@@ -10,6 +10,7 @@ import {
   executionLogEntryContract,
   executionLogEntryOutcomeContract,
   type AgentType,
+  type ObservableId,
   type QuestId,
 } from '@dungeonmaster/shared/contracts';
 import type { ExecutionLogEntry } from '@dungeonmaster/shared/contracts';
@@ -22,11 +23,13 @@ export const writeExecutionLogLayerBroker = async ({
   agentType,
   status,
   report,
+  failedObservableIds,
 }: {
   questId: QuestId;
   agentType: AgentType;
   status: NonNullable<ExecutionLogEntry['status']>;
   report: ExecutionLogEntry['report'];
+  failedObservableIds?: readonly ObservableId[];
 }): Promise<void> => {
   const outcome =
     status === 'pass' || status === 'fail'
@@ -39,6 +42,7 @@ export const writeExecutionLogLayerBroker = async ({
     outcome,
     report,
     timestamp: new Date().toISOString(),
+    ...(failedObservableIds === undefined ? {} : { failedObservableIds }),
   });
 
   const modifyInput = modifyQuestInputContract.parse({

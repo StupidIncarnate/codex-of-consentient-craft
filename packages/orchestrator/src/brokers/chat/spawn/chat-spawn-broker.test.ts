@@ -738,8 +738,7 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      expect(onAgentDetected).toHaveBeenCalled();
-      expect(onAgentDetected.mock.calls[0][0]).toStrictEqual({
+      expect(onAgentDetected).toHaveBeenCalledWith({
         chatProcessId: expect.stringMatching(/^chat-/u),
         toolUseId: 'toolu_patch_test_01',
         agentId: 'agent-patch-test',

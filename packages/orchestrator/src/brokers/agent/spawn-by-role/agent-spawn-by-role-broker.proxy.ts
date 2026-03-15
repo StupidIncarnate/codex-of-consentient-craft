@@ -8,6 +8,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnFailure: () => void;
   setupSpawnFailureOnce: () => void;
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
+  getSpawnedArgs: () => unknown;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
 
@@ -58,5 +59,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
     }): void => {
       unifiedProxy.setupSpawnExitOnKill({ lines, exitCode });
     },
+
+    getSpawnedArgs: (): unknown => unifiedProxy.getSpawnedArgs(),
   };
 };

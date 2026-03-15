@@ -6,7 +6,7 @@
  * // Spawns siegemaster agents for each observable, retries failed ones
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import { maxConcurrentContract } from '../../../contracts/max-concurrent/max-concurrent-contract';
@@ -15,6 +15,7 @@ import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-cont
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
+import { workUnitsToFailedObservableIdsTransformer } from '../../../transformers/work-units-to-failed-observable-ids/work-units-to-failed-observable-ids-transformer';
 import { agentParallelRunnerBroker } from '../../agent/parallel-runner/agent-parallel-runner-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -41,13 +42,17 @@ export const runSiegemasterLayerBroker = async ({
     retryCount: number;
     dispatchDepth: number;
   };
-}): Promise<void> => {
+}): Promise<{ failedObservableIds: ObservableId[] }> => {
   if (_retryState !== undefined) {
     const { failedWorkUnits, lastResults, maxConcurrent, timeoutMs, retryCount, dispatchDepth } =
       _retryState;
 
     if (failedWorkUnits.length === 0 || retryCount >= MAX_RETRIES) {
-      return;
+      return {
+        failedObservableIds: workUnitsToFailedObservableIdsTransformer({
+          workUnits: failedWorkUnits,
+        }),
+      };
     }
 
     const followupUnits = lastResults
@@ -117,7 +122,7 @@ export const runSiegemasterLayerBroker = async ({
   );
 
   if (allObservables.length === 0) {
-    return;
+    return { failedObservableIds: [] };
   }
 
   const workUnits: WorkUnit[] = allObservables.map((observable) =>

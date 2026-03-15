@@ -17,6 +17,7 @@ export const runPathseekerLayerBrokerProxy = (): {
   }) => void;
   setupSpawnFailure: (params: { quest: Quest }) => void;
   getPersistedQuestJsons: () => readonly unknown[];
+  getSpawnedArgs: () => unknown;
 } => {
   const modifyProxy = questModifyBrokerProxy();
   const verifyProxy = questVerifyBrokerProxy();
@@ -47,5 +48,7 @@ export const runPathseekerLayerBrokerProxy = (): {
     },
 
     getPersistedQuestJsons: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+
+    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };
 };

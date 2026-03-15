@@ -6,7 +6,7 @@
  * // Spawns PathSeeker, verifies quest, writes pathseekerRun entry
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
@@ -24,10 +24,12 @@ const PATHSEEKER_TIMEOUT_MS = 600000;
 export const runPathseekerLayerBroker = async ({
   questId,
   startPath,
+  resumeSessionId,
   onAgentEntry,
 }: {
   questId: QuestId;
   startPath: FilePath;
+  resumeSessionId?: SessionId;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
 }): Promise<{ verifySuccess: boolean }> => {
   const pathseekerRunEntry = {
@@ -54,6 +56,7 @@ export const runPathseekerLayerBroker = async ({
     workUnit,
     timeoutMs,
     startPath,
+    ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     ...(onAgentEntry === undefined
       ? {}
       : {

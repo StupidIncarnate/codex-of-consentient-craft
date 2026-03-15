@@ -3,6 +3,7 @@ import {
   ExitCodeStub,
   QuestIdStub,
   QuestStub,
+  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
@@ -112,6 +113,72 @@ describe('runPathseekerLayerBroker', () => {
       });
 
       expect(hasCompletedAt).toBe(true);
+    });
+  });
+
+  describe('resumeSessionId', () => {
+    it('VALID: {resumeSessionId provided} => passes resumeSessionId through to spawn args', async () => {
+      const questId = QuestIdStub({ value: 'test-resume-quest' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        steps: [DependencyStepStub({ status: 'pending' })],
+      });
+      const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupSuccess({
+        quest,
+        spawnLines: ['{"type":"system","session_id":"9c4d8f1c-3e38-48c9-bdec-22b61883b473"}'],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        startPath: '/project/src' as never,
+        resumeSessionId,
+      });
+
+      const spawnedArgs = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '-p',
+        expect.any(String),
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--resume',
+        '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+      ]);
+    });
+
+    it('VALID: {no resumeSessionId} => spawn args do not include --resume', async () => {
+      const questId = QuestIdStub({ value: 'test-no-resume' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        steps: [DependencyStepStub({ status: 'pending' })],
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupSuccess({
+        quest,
+        spawnLines: ['{"type":"system","session_id":"some-session"}'],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        startPath: '/project/src' as never,
+      });
+
+      const spawnedArgs = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '-p',
+        expect.any(String),
+        '--output-format',
+        'stream-json',
+        '--verbose',
+      ]);
     });
   });
 });

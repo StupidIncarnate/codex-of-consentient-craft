@@ -112,6 +112,9 @@ export const questOrchestrationLoopBroker = async ({
         await runPathseekerLayerBroker({
           questId,
           startPath,
+          ...(resolution.resumeSessionId === undefined
+            ? {}
+            : { resumeSessionId: resolution.resumeSessionId }),
           ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
         });
 
@@ -190,12 +193,15 @@ export const questOrchestrationLoopBroker = async ({
 
     if (resolution.action === 'launch-siegemaster') {
       try {
-        await runSiegemasterLayerBroker({ questId, questFilePath, startPath });
+        const siegeResult = await runSiegemasterLayerBroker({ questId, questFilePath, startPath });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('siegemaster'),
           status: 'pass',
           report: executionLogEntryContract.shape.report.parse('siegemaster-phase'),
+          ...(siegeResult.failedObservableIds.length === 0
+            ? {}
+            : { failedObservableIds: siegeResult.failedObservableIds }),
         });
       } catch (siegemasterError: unknown) {
         await writeExecutionLogLayerBroker({
