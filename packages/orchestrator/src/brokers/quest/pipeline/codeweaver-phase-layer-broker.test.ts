@@ -7,6 +7,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhaseStub } from '../../../contracts/orchestration-phase/orchestration-phase.stub';
+import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
 import { codeweaverPhaseLayerBrokerProxy } from './codeweaver-phase-layer-broker.proxy';
 
@@ -31,7 +33,14 @@ describe('codeweaverPhaseLayerBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await codeweaverPhaseLayerBroker({ questId, questFilePath, startPath, onPhaseChange });
+      await codeweaverPhaseLayerBroker({
+        questId,
+        questFilePath,
+        startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onPhaseChange,
+      });
 
       expect(phases).toStrictEqual(['codeweaver']);
     });
@@ -54,6 +63,8 @@ describe('codeweaverPhaseLayerBroker', () => {
           questId,
           questFilePath,
           startPath: FilePathStub({ value: '/project/src' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
           onPhaseChange,
         }),
       ).rejects.toThrow(/Failed to read file/u);

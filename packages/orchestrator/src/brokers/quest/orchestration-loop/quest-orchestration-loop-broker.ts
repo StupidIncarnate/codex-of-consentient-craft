@@ -18,7 +18,10 @@ import {
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questPhaseResolverBroker } from '../phase-resolver/quest-phase-resolver-broker';
@@ -44,6 +47,9 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   abortSignal?: AbortSignal;
 }): Promise<void> => {
+  const slotCount = slotCountContract.parse(slotManagerStatics.codeweaver.slotCount);
+  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+
   if (abortSignal?.aborted) {
     await writeExecutionLogLayerBroker({
       questId,
@@ -150,6 +156,8 @@ export const questOrchestrationLoopBroker = async ({
           questId,
           questFilePath,
           startPath,
+          slotCount,
+          slotOperations,
           ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
         });
 
@@ -173,7 +181,12 @@ export const questOrchestrationLoopBroker = async ({
     if (resolution.action === 'launch-ward') {
       try {
         const absoluteStartPath = absoluteFilePathContract.parse(startPath);
-        await runWardLayerBroker({ questFilePath, startPath: absoluteStartPath });
+        await runWardLayerBroker({
+          questFilePath,
+          startPath: absoluteStartPath,
+          slotCount,
+          slotOperations,
+        });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('ward'),

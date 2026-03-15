@@ -17,7 +17,10 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
+import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
 import { lawbringerPhaseLayerBroker } from './lawbringer-phase-layer-broker';
 import { siegemasterPhaseLayerBroker } from './siegemaster-phase-layer-broker';
@@ -40,6 +43,9 @@ export const questPipelineBroker = async ({
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
   abortSignal?: AbortSignal;
 }): Promise<void> => {
+  const slotCount = slotCountContract.parse(slotManagerStatics.codeweaver.slotCount);
+  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+
   try {
     if (abortSignal?.aborted) {
       onPhaseChange({ phase: 'failed' });
@@ -49,6 +55,8 @@ export const questPipelineBroker = async ({
       questId,
       questFilePath,
       startPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
       ...(onAgentLine === undefined ? {} : { onAgentLine }),
       ...(abortSignal === undefined ? {} : { abortSignal }),
@@ -61,6 +69,8 @@ export const questPipelineBroker = async ({
     await wardPhaseLayerBroker({
       questFilePath,
       startPath: absoluteStartPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });

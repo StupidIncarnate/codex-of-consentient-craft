@@ -7,6 +7,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhaseStub } from '../../../contracts/orchestration-phase/orchestration-phase.stub';
+import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { wardPhaseLayerBroker } from './ward-phase-layer-broker';
 import { wardPhaseLayerBrokerProxy } from './ward-phase-layer-broker.proxy';
 
@@ -70,6 +72,8 @@ describe('wardPhaseLayerBroker', () => {
       await wardPhaseLayerBroker({
         questFilePath: FilePathStub({ value: '/quests/quest.json' }),
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
@@ -95,6 +99,8 @@ describe('wardPhaseLayerBroker', () => {
       await wardPhaseLayerBroker({
         questFilePath: FilePathStub({ value: '/quests/quest.json' }),
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
@@ -130,6 +136,8 @@ describe('wardPhaseLayerBroker', () => {
       await wardPhaseLayerBroker({
         questFilePath: FilePathStub({ value: '/quests/quest.json' }),
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
@@ -155,6 +163,8 @@ describe('wardPhaseLayerBroker', () => {
         wardPhaseLayerBroker({
           questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: AbsoluteFilePathStub({ value: '/project' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
           onPhaseChange,
         }),
       ).rejects.toThrow(/Ward phase failed after 3 retries/u);
@@ -180,6 +190,8 @@ describe('wardPhaseLayerBroker', () => {
         wardPhaseLayerBroker({
           questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: AbsoluteFilePathStub({ value: '/project' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
           onPhaseChange,
         }),
       ).rejects.toThrow(/no file paths could be extracted for spiritmender/u);
@@ -204,6 +216,8 @@ describe('wardPhaseLayerBroker', () => {
       await wardPhaseLayerBroker({
         questFilePath: FilePathStub({ value: '/quests/quest.json' }),
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
