@@ -1,22 +1,32 @@
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+/**
+ * PURPOSE: Proxy for OrchestrationStartupRecoveryResponder that delegates to RecoverGuildLayerResponder
+ *
+ * USAGE:
+ * const proxy = OrchestrationStartupRecoveryResponderProxy();
+ * proxy.setupGuildWithQuests({guildId, guildPath, quests});
+ * await OrchestrationStartupRecoveryResponder({guildItems});
+ */
 
-import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
-import { OrchestrationStartupRecoveryResponder } from './orchestration-startup-recovery-responder';
+import type { GuildId, GuildPath, ProcessId, QuestStub } from '@dungeonmaster/shared/contracts';
+
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const OrchestrationStartupRecoveryResponderProxy = (): {
-  callResponder: (params: {
+  setupGuildWithQuests: (params: {
+    guildId: GuildId;
+    guildPath: GuildPath;
     quests: Quest[];
-  }) => ReturnType<typeof OrchestrationStartupRecoveryResponder>;
+  }) => void;
+  getRegisteredProcessIds: () => readonly ProcessId[];
 } => {
-  const stateProxy = orchestrationProcessesStateProxy();
-
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-  stateProxy.setupEmpty();
+  const layerProxy = RecoverGuildLayerResponderProxy();
 
   return {
-    callResponder: OrchestrationStartupRecoveryResponder,
+    setupGuildWithQuests: layerProxy.setupGuildWithQuests,
+
+    getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
   };
 };

@@ -2,13 +2,13 @@
  * PURPOSE: Recovers active quests for a single guild by launching orchestration loops
  *
  * USAGE:
- * await RecoverGuildLayerResponder({guildItem});
+ * const recoveredIds = await RecoverGuildLayerResponder({guildItem});
  * // Scans guild quests and launches loops for any in recoverable statuses without running processes
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -22,10 +22,12 @@ export const RecoverGuildLayerResponder = async ({
   guildItem,
 }: {
   guildItem: GuildListItem;
-}): Promise<void> => {
+}): Promise<QuestId[]> => {
   if (!guildItem.valid) {
-    return;
+    return [];
   }
+
+  const recoveredIds: QuestId[] = [];
 
   try {
     const quests = await questListBroker({ guildId: guildItem.id });
@@ -73,8 +75,12 @@ export const RecoverGuildLayerResponder = async ({
         .catch(() => {
           orchestrationProcessesState.remove({ processId });
         });
+
+      recoveredIds.push(quest.id);
     }
   } catch {
     // Guild quest directory may not exist yet
   }
+
+  return recoveredIds;
 };

@@ -4,7 +4,7 @@
  * USAGE:
  * const processId = await OrchestrationFlow.start({ questId });
  * const status = OrchestrationFlow.getStatus({ processId });
- * const recovered = OrchestrationFlow.recoverActiveQuests({ quests });
+ * const recovered = await OrchestrationFlow.recoverActiveQuests({ guildItems });
  */
 
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
@@ -27,6 +27,6 @@ export const OrchestrationFlow = {
   getStatus: ({ processId }: GetStatusParams): GetStatusResult =>
     OrchestrationGetStatusResponder({ processId }),
 
-  recoverActiveQuests: ({ quests }: RecoverParams): RecoverResult =>
-    OrchestrationStartupRecoveryResponder({ quests }),
+  recoverActiveQuests: async ({ guildItems }: RecoverParams): Promise<Awaited<RecoverResult>> =>
+    OrchestrationStartupRecoveryResponder({ guildItems }),
 };

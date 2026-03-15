@@ -8,9 +8,10 @@
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 
+import { recoverableQuestStatusesStatics } from '../../statics/recoverable-quest-statuses/recoverable-quest-statuses-statics';
+
 const RECOVERABLE_STATUSES: ReadonlySet<QuestStatus> = new Set<QuestStatus>([
-  'in_progress',
-  'blocked',
+  ...recoverableQuestStatusesStatics,
 ]);
 
 export const isRecoverableQuestStatusGuard = ({ status }: { status?: QuestStatus }): boolean => {

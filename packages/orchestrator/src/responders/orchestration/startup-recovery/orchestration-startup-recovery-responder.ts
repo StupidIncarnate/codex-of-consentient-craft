@@ -1,41 +1,23 @@
 /**
- * PURPOSE: On server start, scans all guilds for active quests and re-registers them in orchestration state
+ * PURPOSE: On server start, scans all guilds for active quests and launches orchestration loops for recovery
  *
  * USAGE:
- * const recoveredQuestIds = await OrchestrationStartupRecoveryResponder();
+ * const recoveredQuestIds = await OrchestrationStartupRecoveryResponder({ guildItems });
  * // Returns array of quest IDs that were recovered across all guilds
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
-import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
-import { isRecoverableQuestStatusGuard } from '../../../guards/is-recoverable-quest-status/is-recoverable-quest-status-guard';
-import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
 
-export const OrchestrationStartupRecoveryResponder = ({
-  quests,
+export const OrchestrationStartupRecoveryResponder = async ({
+  guildItems,
 }: {
-  quests: Quest[];
-}): QuestId[] => {
-  const recoverableQuests = quests.filter((quest) =>
-    isRecoverableQuestStatusGuard({ status: quest.status }),
+  guildItems: GuildListItem[];
+}): Promise<QuestId[]> => {
+  const results = await Promise.all(
+    guildItems.map(async (guildItem) => RecoverGuildLayerResponder({ guildItem })),
   );
 
-  const recoveredIds: QuestId[] = [];
-
-  for (const quest of recoverableQuests) {
-    const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
-
-    const orchestrationProcess = orchestrationProcessContract.parse({
-      processId,
-      questId: quest.id,
-      kill: () => undefined,
-    });
-
-    orchestrationProcessesState.register({ orchestrationProcess });
-    recoveredIds.push(quest.id);
-  }
-
-  return recoveredIds;
+  return results.flat();
 };
