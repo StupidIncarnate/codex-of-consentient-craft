@@ -32,9 +32,19 @@ const STATUS_FONT_SIZE = 10;
 const { colors } = emberDepthsThemeStatics;
 
 const STATUS_COLORS = {
+  created: colors.warning,
+  pending: colors.warning,
+  explore_flows: colors.warning,
+  flows_approved: colors.warning,
+  explore_observables: colors.warning,
+  explore_design: colors.warning,
+  review_flows: colors['loot-gold'],
+  review_observables: colors['loot-gold'],
+  review_design: colors['loot-gold'],
+  approved: colors['loot-rare'],
+  design_approved: colors['loot-rare'],
+  in_progress: colors.primary,
   complete: colors.success,
-  in_progress: colors.warning,
-  pending: colors['text-dim'],
   blocked: colors.danger,
   abandoned: colors.danger,
 } as const;

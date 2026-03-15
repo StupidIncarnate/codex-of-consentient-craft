@@ -37,17 +37,6 @@ describe('resolveCodeweaverLayerBroker', () => {
 
       expect(result).toStrictEqual({ action: 'launch-codeweaver' });
     });
-
-    it('VALID: {steps: [blocked]} => launch-codeweaver', () => {
-      resolveCodeweaverLayerBrokerProxy();
-      const quest = QuestStub({
-        steps: [DependencyStepStub({ status: 'blocked' })],
-      });
-
-      const result = resolveCodeweaverLayerBroker({ quest });
-
-      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
-    });
   });
 
   describe('mixed step statuses', () => {
@@ -99,6 +88,31 @@ describe('resolveCodeweaverLayerBroker', () => {
       resolveCodeweaverLayerBrokerProxy();
       const quest = QuestStub({
         steps: [DependencyStepStub({ status: 'complete' })],
+      });
+
+      const result = resolveCodeweaverLayerBroker({ quest });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('VALID: {steps: [blocked]} => undefined (blocked is terminal)', () => {
+      resolveCodeweaverLayerBrokerProxy();
+      const quest = QuestStub({
+        steps: [DependencyStepStub({ status: 'blocked' })],
+      });
+
+      const result = resolveCodeweaverLayerBroker({ quest });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('VALID: {steps: [blocked, complete]} => undefined (no active steps)', () => {
+      resolveCodeweaverLayerBrokerProxy();
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({ id: StepIdStub({ value: 'step-blocked' }), status: 'blocked' }),
+          DependencyStepStub({ id: StepIdStub({ value: 'step-done' }), status: 'complete' }),
+        ],
       });
 
       const result = resolveCodeweaverLayerBroker({ quest });

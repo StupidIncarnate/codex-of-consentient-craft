@@ -131,7 +131,7 @@ describe('GuildSessionListWidget', () => {
       );
     });
 
-    it('VALID: {session with questStatus: in_progress} => shows IN PROGRESS with warning color', () => {
+    it('VALID: {session with questStatus: in_progress} => shows IN PROGRESS with primary color', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'in-progress-session' });
       const session = SessionListItemStub({
@@ -156,7 +156,7 @@ describe('GuildSessionListWidget', () => {
 
       expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('IN PROGRESS');
       expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
-        'rgb(245, 158, 11)',
+        'rgb(255, 107, 53)',
       );
     });
   });

@@ -20,8 +20,7 @@ export const resolveCodeweaverLayerBroker = ({
     (step) =>
       step.status === 'pending' ||
       step.status === 'in_progress' ||
-      step.status === 'partially_complete' ||
-      step.status === 'blocked',
+      step.status === 'partially_complete',
   );
 
   if (hasActiveSteps) {

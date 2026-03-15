@@ -375,7 +375,7 @@ describe('questPhaseResolverBroker', () => {
       expect(result).toStrictEqual({ action: 'launch-codeweaver' });
     });
 
-    it('VALID: {steps blocked} => launch-codeweaver', () => {
+    it('VALID: {steps blocked} => falls through to ward (blocked is terminal)', () => {
       questPhaseResolverBrokerProxy();
       const quest = QuestStub({
         status: 'in_progress',
@@ -387,7 +387,7 @@ describe('questPhaseResolverBroker', () => {
 
       const result = questPhaseResolverBroker({ quest });
 
-      expect(result).toStrictEqual({ action: 'launch-codeweaver' });
+      expect(result).toStrictEqual({ action: 'launch-ward' });
     });
 
     it('VALID: {all steps complete} => falls through to ward', () => {
