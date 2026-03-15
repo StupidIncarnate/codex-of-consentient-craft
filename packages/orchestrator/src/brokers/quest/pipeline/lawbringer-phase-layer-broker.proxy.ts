@@ -1,17 +1,19 @@
+import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 export const lawbringerPhaseLayerBrokerProxy = (): {
   setupQuestLoad: (params: { questJson: string }) => void;
   setupQuestLoadError: (params: { error: Error }) => void;
 } => {
-  const slotManagerProxy = slotManagerOrchestrateBrokerProxy();
+  const questLoadProxy = questLoadBrokerProxy();
+  slotManagerOrchestrateBrokerProxy();
 
   return {
     setupQuestLoad: ({ questJson }: { questJson: string }): void => {
-      slotManagerProxy.setupQuestLoad({ questJson });
+      questLoadProxy.setupQuestFile({ questJson });
     },
     setupQuestLoadError: ({ error }: { error: Error }): void => {
-      slotManagerProxy.setupQuestLoadError({ error });
+      questLoadProxy.setupQuestFileReadError({ error });
     },
   };
 };

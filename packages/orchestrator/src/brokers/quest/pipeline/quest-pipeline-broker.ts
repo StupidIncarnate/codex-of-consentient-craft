@@ -16,6 +16,7 @@ import {
   type QuestId,
 } from '@dungeonmaster/shared/contracts';
 
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
@@ -33,7 +34,7 @@ export const questPipelineBroker = async ({
   questFilePath,
   startPath,
   onPhaseChange,
-  onAgentLine,
+  onAgentEntry,
   abortSignal,
 }: {
   processId: ProcessId;
@@ -41,7 +42,7 @@ export const questPipelineBroker = async ({
   questFilePath: FilePath;
   startPath: FilePath;
   onPhaseChange: (params: { phase: OrchestrationPhase }) => void;
-  onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
+  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   abortSignal?: AbortSignal;
 }): Promise<void> => {
   const slotCount = slotCountContract.parse(SLOT_COUNT);
@@ -56,8 +57,10 @@ export const questPipelineBroker = async ({
       questId,
       questFilePath,
       startPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
-      ...(onAgentLine === undefined ? {} : { onAgentLine }),
+      ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });
     if (abortSignal?.aborted) {
@@ -68,6 +71,8 @@ export const questPipelineBroker = async ({
     await wardPhaseLayerBroker({
       questFilePath,
       startPath: absoluteStartPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });

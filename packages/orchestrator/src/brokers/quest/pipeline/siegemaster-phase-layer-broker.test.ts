@@ -1,6 +1,10 @@
 import {
   DependencyStepStub,
+  ExitCodeStub,
   FilePathStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
   ObservableIdStub,
   QuestIdStub,
   QuestStub,
@@ -63,9 +67,15 @@ describe('siegemasterPhaseLayerBroker', () => {
         dependsOn: [],
         observablesSatisfied: [observableId1, observableId2],
       });
-      const quest = QuestStub({ steps: [step] });
+      const observable1 = FlowObservableStub({ id: observableId1 });
+      const observable2 = FlowObservableStub({ id: observableId2 });
+      const node = FlowNodeStub({ observables: [observable1, observable2] });
+      const flow = FlowStub({ nodes: [node] });
+      const quest = QuestStub({ steps: [step], flows: [flow] });
 
       proxy.setupQuestLoad({ questJson: JSON.stringify(quest) });
+      // Spawn completes with no signal → step stays incomplete (partially-completed)
+      proxy.setupSpawnAndMonitor({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
 
       const startPath = FilePathStub({ value: '/project/src' });
 

@@ -10,7 +10,10 @@ import type { FilePath, ObservableId, QuestId } from '@dungeonmaster/shared/cont
 
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
+import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
+import { questLoadBroker } from '../load/quest-load-broker';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
 const SIEGEMASTER_SLOT_COUNT = 3;
@@ -28,12 +31,18 @@ export const runSiegemasterLayerBroker = async ({
   const timeoutMs = timeoutMsContract.parse(SIEGEMASTER_TIMEOUT_MS);
   const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
+  const quest = await questLoadBroker({ questFilePath });
+  const pendingSteps = quest.steps.filter((step) => step.status !== 'complete');
+  const workUnits = pendingSteps.map((step) =>
+    buildWorkUnitForRoleTransformer({ role: 'siegemaster', step, quest }),
+  );
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+
   const result = await slotManagerOrchestrateBroker({
-    questFilePath,
+    workTracker,
     slotCount,
     timeoutMs,
     slotOperations,
-    role: 'siegemaster',
     startPath,
   });
 
@@ -41,7 +50,13 @@ export const runSiegemasterLayerBroker = async ({
     return { failedObservableIds: [] };
   }
 
-  const failedObservableIds = result.incompleteSteps.flatMap((step) => step.observablesSatisfied);
+  const failedObservableIds: ObservableId[] = result.incompleteIds.flatMap((workItemId) => {
+    const workUnit = workTracker.getWorkUnit({ workItemId });
+    if (workUnit.role !== 'siegemaster') {
+      return [];
+    }
+    return workUnit.observables.map((observable) => observable.id);
+  });
 
   return { failedObservableIds };
 };

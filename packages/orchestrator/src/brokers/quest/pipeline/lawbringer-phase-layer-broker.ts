@@ -18,6 +18,9 @@ import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
+import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
+import { questLoadBroker } from '../load/quest-load-broker';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
 const LAWBRINGER_TIMEOUT_MS = 300000;
@@ -45,12 +48,18 @@ export const lawbringerPhaseLayerBroker = async ({
 
   const timeoutMs = timeoutMsContract.parse(LAWBRINGER_TIMEOUT_MS);
 
+  const quest = await questLoadBroker({ questFilePath });
+  const stepsToReview = quest.steps.filter((step) => step.status !== 'complete');
+  const workUnits = stepsToReview.map((step) =>
+    buildWorkUnitForRoleTransformer({ role: 'lawbringer', step, quest }),
+  );
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+
   await slotManagerOrchestrateBroker({
-    questFilePath,
+    workTracker,
     slotCount,
     timeoutMs,
     slotOperations,
-    role: 'lawbringer',
     startPath,
     ...(abortSignal === undefined ? {} : { abortSignal }),
   });

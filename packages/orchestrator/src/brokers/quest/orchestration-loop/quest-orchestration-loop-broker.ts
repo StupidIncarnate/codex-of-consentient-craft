@@ -157,6 +157,8 @@ export const questOrchestrationLoopBroker = async ({
           questId,
           questFilePath,
           startPath,
+          slotCount,
+          slotOperations,
           ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
         });
 
@@ -180,7 +182,12 @@ export const questOrchestrationLoopBroker = async ({
     if (resolution.action === 'launch-ward') {
       try {
         const absoluteStartPath = absoluteFilePathContract.parse(startPath);
-        await runWardLayerBroker({ questFilePath, startPath: absoluteStartPath });
+        await runWardLayerBroker({
+          questFilePath,
+          startPath: absoluteStartPath,
+          slotCount,
+          slotOperations,
+        });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('ward'),
