@@ -18,5 +18,7 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     flows: [],
     pathseekerRuns: [],
     needsDesign: false,
+    workItems: [],
+    wardResults: [],
     ...props,
   });

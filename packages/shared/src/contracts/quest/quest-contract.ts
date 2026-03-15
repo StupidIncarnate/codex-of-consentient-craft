@@ -16,6 +16,8 @@ import { pathseekerRunContract } from '../pathseeker-run/pathseeker-run-contract
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
+import { wardResultContract } from '../ward-result/ward-result-contract';
+import { workItemContract } from '../work-item/work-item-contract';
 
 export const questContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
@@ -78,6 +80,14 @@ export const questContract = z.object({
   questCreatedSessionBy: z.string().brand<'SessionId'>().optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
+  workItems: z
+    .array(workItemContract)
+    .default([])
+    .describe('Dependency-ordered queue of prompt executions and commands'),
+  wardResults: z
+    .array(wardResultContract)
+    .default([])
+    .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
 });
 
 export type Quest = z.infer<typeof questContract>;

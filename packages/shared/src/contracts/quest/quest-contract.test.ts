@@ -3,6 +3,8 @@ import { FlowStub } from '../flow/flow.stub';
 import { PathseekerRunStub } from '../pathseeker-run/pathseeker-run.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
+import { WardResultStub } from '../ward-result/ward-result.stub';
+import { WorkItemStub } from '../work-item/work-item.stub';
 import { questContract } from './quest-contract';
 import { QuestStub } from './quest.stub';
 
@@ -27,6 +29,8 @@ describe('questContract', () => {
         flows: [],
         pathseekerRuns: [],
         needsDesign: false,
+        workItems: [],
+        wardResults: [],
       });
     });
 
@@ -195,6 +199,58 @@ describe('questContract', () => {
       });
 
       expect(result.contracts).toStrictEqual([]);
+    });
+
+    it('VALID: quest with workItems => parses successfully', () => {
+      const workItem = WorkItemStub();
+      const quest = QuestStub({
+        workItems: [workItem],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.workItems).toStrictEqual([workItem]);
+    });
+
+    it('VALID: quest with wardResults => parses successfully', () => {
+      const wardResult = WardResultStub();
+      const quest = QuestStub({
+        wardResults: [wardResult],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.wardResults).toStrictEqual([wardResult]);
+    });
+
+    it('VALID: quest without workItems field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        executionLog: [],
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.workItems).toStrictEqual([]);
+    });
+
+    it('VALID: quest without wardResults field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        executionLog: [],
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.wardResults).toStrictEqual([]);
     });
   });
 

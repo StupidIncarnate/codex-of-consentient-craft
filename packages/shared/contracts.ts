@@ -277,3 +277,25 @@ export * from './src/contracts/assistant-stream-line/assistant-stream-line.stub'
 
 export * from './src/contracts/user-tool-result-stream-line/user-tool-result-stream-line-contract';
 export * from './src/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+
+// Work Item Contracts
+export * from './src/contracts/quest-work-item-id/quest-work-item-id-contract';
+export * from './src/contracts/quest-work-item-id/quest-work-item-id.stub';
+
+export * from './src/contracts/work-item-status/work-item-status-contract';
+export * from './src/contracts/work-item-status/work-item-status.stub';
+
+export * from './src/contracts/work-item-role/work-item-role-contract';
+export * from './src/contracts/work-item-role/work-item-role.stub';
+
+export * from './src/contracts/spawner-type/spawner-type-contract';
+export * from './src/contracts/spawner-type/spawner-type.stub';
+
+export * from './src/contracts/related-data-item/related-data-item-contract';
+export * from './src/contracts/related-data-item/related-data-item.stub';
+
+export * from './src/contracts/ward-result/ward-result-contract';
+export * from './src/contracts/ward-result/ward-result.stub';
+
+export * from './src/contracts/work-item/work-item-contract';
+export * from './src/contracts/work-item/work-item.stub';
