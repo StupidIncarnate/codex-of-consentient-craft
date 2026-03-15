@@ -1,69 +1,136 @@
 /**
- * PURPOSE: Executes the siegemaster phase within the orchestration loop using slot manager for parallel execution
+ * PURPOSE: Executes siegemaster phase — single agent checking ALL observables, creates fix chain on failure
  *
  * USAGE:
- * await runSiegemasterLayerBroker({questId, questFilePath, startPath, slotCount, slotOperations});
- * // Runs siegemaster agents via slot manager, returns failedObservableIds from incomplete steps
+ * await runSiegemasterLayerBroker({questId, workItem, startPath});
+ * // Runs siegemaster agent, on failure creates tack-on steps + codeweaver-fix + ward-rerun + siege-recheck chain
  */
 
-import type { FilePath, ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
+import {
+  workItemContract,
+  type FilePath,
+  type QuestId,
+  type WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
-import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
-import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import { failCountContract } from '../../../contracts/fail-count/fail-count-contract';
-import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
+import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
-import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
-import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
-import { questLoadBroker } from '../load/quest-load-broker';
-import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
+import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
+import { questGetBroker } from '../get/quest-get-broker';
+import { questModifyBroker } from '../modify/quest-modify-broker';
+import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
 
 export const runSiegemasterLayerBroker = async ({
-  questFilePath,
+  questId,
+  workItem,
   startPath,
-  slotCount,
-  slotOperations,
 }: {
   questId: QuestId;
-  questFilePath: FilePath;
+  workItem: WorkItem;
   startPath: FilePath;
-  slotCount: SlotCount;
-  slotOperations: SlotOperations;
-}): Promise<{ failedObservableIds: ObservableId[] }> => {
-  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.siegemaster.timeoutMs);
-  const maxRetries = failCountContract.parse(slotManagerStatics.siegemaster.maxRetries);
-  const maxFollowupDepth = followupDepthContract.parse(
-    slotManagerStatics.siegemaster.maxFollowupDepth,
-  );
+}): Promise<void> => {
+  const questInput = getQuestInputContract.parse({ questId });
+  const questResult = await questGetBroker({ input: questInput });
+  if (!questResult.success || !questResult.quest) {
+    throw new Error(`Quest not found: ${questId}`);
+  }
+  const { quest } = questResult;
 
-  const quest = await questLoadBroker({ questFilePath });
-  const pendingSteps = quest.steps.filter((step) => step.status !== 'complete');
-  const workUnits = pendingSteps.map((step) =>
-    buildWorkUnitForRoleTransformer({ role: 'siegemaster', step, quest }),
-  );
-  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits, maxRetries });
+  // Build work unit with ALL observables (full re-check)
+  const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
 
-  const result = await slotManagerOrchestrateBroker({
-    workTracker,
-    slotCount,
-    timeoutMs,
-    slotOperations,
-    startPath,
-    maxFollowupDepth,
+  const workUnit = workUnitContract.parse({
+    role: 'siegemaster',
+    questId,
+    observables: allObservables,
   });
 
-  if (result.completed) {
-    return { failedObservableIds: [] };
+  const timeoutMs = timeoutMsContract.parse(
+    workItem.timeoutMs ?? slotManagerStatics.siegemaster.timeoutMs,
+  );
+
+  // Run single siegemaster agent
+  const spawnResult = await agentSpawnByRoleBroker({
+    workUnit,
+    timeoutMs,
+    startPath,
+  });
+
+  // Check if signal indicates complete
+  const isComplete = spawnResult.signal?.signal === 'complete' || spawnResult.exitCode === 0;
+
+  if (isComplete) {
+    await questModifyBroker({
+      input: {
+        questId,
+        workItems: [{ id: workItem.id, status: 'complete', completedAt: new Date().toISOString() }],
+      } as ModifyQuestInput,
+    });
+    return;
   }
 
-  const failedObservableIds: ObservableId[] = result.incompleteIds.flatMap((workItemId) => {
-    const workUnit = workTracker.getWorkUnit({ workItemId });
-    if (workUnit.role !== 'siegemaster') {
-      return [];
-    }
-    return workUnit.observables.map((observable) => observable.id);
+  // Siegemaster failed — mark current as failed
+  const completedAt = new Date().toISOString();
+  await questModifyBroker({
+    input: {
+      questId,
+      workItems: [
+        { id: workItem.id, status: 'failed', completedAt, errorMessage: 'siege_check_failed' },
+      ],
+    } as ModifyQuestInput,
   });
 
-  return { failedObservableIds };
+  // Create fix chain: codeweaver-fix -> ward-rerun -> siege-recheck
+  // Create a single codeweaver fix item (no specific step — reads from quest context)
+  const cwFixItem = workItemContract.parse({
+    id: crypto.randomUUID(),
+    role: 'codeweaver',
+    status: 'pending',
+    spawnerType: 'agent',
+    dependsOn: [],
+    maxAttempts: 1,
+    timeoutMs: slotManagerStatics.codeweaver.timeoutMs,
+    createdAt: new Date().toISOString(),
+    insertedBy: workItem.id,
+  });
+
+  const wardRerun = workItemContract.parse({
+    id: crypto.randomUUID(),
+    role: 'ward',
+    status: 'pending',
+    spawnerType: 'command',
+    dependsOn: [cwFixItem.id],
+    maxAttempts: slotManagerStatics.ward.maxRetries,
+    createdAt: new Date().toISOString(),
+    insertedBy: workItem.id,
+  });
+
+  const siegeRecheck = workItemContract.parse({
+    id: crypto.randomUUID(),
+    role: 'siegemaster',
+    status: 'pending',
+    spawnerType: 'agent',
+    dependsOn: [wardRerun.id],
+    timeoutMs: slotManagerStatics.siegemaster.timeoutMs,
+    maxAttempts: 1,
+    createdAt: new Date().toISOString(),
+    insertedBy: workItem.id,
+  });
+
+  // Update downstream (lawbringer) to depend on new siege instead of failed one
+  const replacementMapping = [{ oldId: workItem.id, newId: siegeRecheck.id }];
+
+  // Load fresh quest for insert
+  const freshResult = await questGetBroker({ input: questInput });
+  if (freshResult.success && freshResult.quest) {
+    await questWorkItemInsertBroker({
+      questId,
+      quest: freshResult.quest,
+      newWorkItems: [cwFixItem, wardRerun, siegeRecheck],
+      replacementMapping,
+    });
+  }
 };

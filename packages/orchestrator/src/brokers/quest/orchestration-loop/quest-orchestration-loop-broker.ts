@@ -1,66 +1,68 @@
 /**
- * PURPOSE: Drives quest execution by repeatedly calling the phase resolver and dispatching to phase brokers
+ * PURPOSE: Drives quest execution by processing work item queue — find ready items, dispatch to role-specific layer brokers
  *
  * USAGE:
- * await questOrchestrationLoopBroker({processId, questId, questFilePath, startPath});
- * // Loops until resolver returns 'complete', 'blocked', or 'wait-for-user'
+ * await questOrchestrationLoopBroker({processId, questId, startPath});
+ * // Loops until all items complete, quest blocked, or waiting for user
  */
 
-import {
-  absoluteFilePathContract,
-  agentTypeContract,
-  executionLogEntryContract,
-  type FilePath,
-  type ProcessId,
-  type QuestId,
+import type {
+  FilePath,
+  ProcessId,
+  QuestId,
+  UserInput,
+  WorkItem,
+  WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
-import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
+import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
+import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { questPhaseResolverBroker } from '../phase-resolver/quest-phase-resolver-broker';
+import { runChatLayerBroker } from './run-chat-layer-broker';
 import { runCodeweaverLayerBroker } from './run-codeweaver-layer-broker';
 import { runLawbringerLayerBroker } from './run-lawbringer-layer-broker';
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
+import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runWardLayerBroker } from './run-ward-layer-broker';
-import { writeExecutionLogLayerBroker } from './write-execution-log-layer-broker';
 
 const SLOT_COUNT = 3;
+
+const CHAT_ROLES = new Set<WorkItemRole>([
+  'chaoswhisperer' as WorkItemRole,
+  'glyphsmith' as WorkItemRole,
+]);
 
 export const questOrchestrationLoopBroker = async ({
   processId,
   questId,
-  questFilePath,
   startPath,
   onAgentEntry,
   abortSignal,
+  userMessage,
 }: {
   processId: ProcessId;
   questId: QuestId;
-  questFilePath: FilePath;
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   abortSignal?: AbortSignal;
+  userMessage?: UserInput;
 }): Promise<void> => {
-  const slotCount = slotCountContract.parse(SLOT_COUNT);
-  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
-
   if (abortSignal?.aborted) {
-    await writeExecutionLogLayerBroker({
-      questId,
-      agentType: agentTypeContract.parse('orchestration-loop'),
-      status: 'fail',
-      report: executionLogEntryContract.shape.report.parse('Aborted by signal'),
-    });
     return;
   }
 
+  const slotCount = slotCountContract.parse(SLOT_COUNT);
+  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+
+  // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
 
@@ -68,207 +70,183 @@ export const questOrchestrationLoopBroker = async ({
     throw new Error(`Quest not found: ${questId}`);
   }
 
-  const resolution = questPhaseResolverBroker({ quest: result.quest });
+  const { quest } = result;
 
-  if (resolution.action === 'wait-for-user') {
-    return;
-  }
+  // 2. Find ready work items
+  const { ready, questTerminal, questBlocked } = nextReadyWorkItemsTransformer({
+    workItems: quest.workItems,
+  });
 
-  if (resolution.action === 'complete') {
-    const modifyInput = modifyQuestInputContract.parse({ questId, status: 'complete' });
-    await questModifyBroker({ input: modifyInput });
-    return;
-  }
-
-  if (resolution.action === 'blocked') {
-    const modifyInput = modifyQuestInputContract.parse({ questId, status: 'blocked' });
-    await questModifyBroker({ input: modifyInput });
-    return;
-  }
-
-  // launch-chat and resume-chat: The orchestration loop does NOT launch interactive chat sessions
-  // itself. Chat sessions are long-lived and user-driven (user sends messages, agent responds).
-  // The resolver returns these actions to INFORM the caller what should happen. The actual chat
-  // launch is handled by the existing chat-start-responder flow. The loop exits so the caller
-  // can act on the resolution.
-  if (resolution.action === 'launch-chat' || resolution.action === 'resume-chat') {
-    return;
-  }
-
-  // halt: User requested stop. Write a system-level execution log entry and exit.
-  if (resolution.action === 'halt') {
-    await writeExecutionLogLayerBroker({
-      questId,
-      agentType: agentTypeContract.parse('system'),
-      status: 'fail',
-      report: executionLogEntryContract.shape.report.parse('user-halt'),
+  // 3. Handle terminal states
+  if (questTerminal) {
+    const newStatus = workItemsToQuestStatusTransformer({
+      workItems: quest.workItems,
+      currentStatus: quest.status,
     });
+    if (newStatus !== quest.status) {
+      await questModifyBroker({ input: { questId, status: newStatus } as ModifyQuestInput });
+    }
     return;
   }
 
+  if (questBlocked) {
+    await questModifyBroker({ input: { questId, status: 'blocked' } as ModifyQuestInput });
+    return;
+  }
+
+  if (ready.length === 0) {
+    return; // items in_progress elsewhere, or waiting for user
+  }
+
+  // 4. Single-role concurrency: group ready items by role, pick first group
+  const roleGroupMap = new Map<WorkItemRole, WorkItem[]>();
+  for (const item of ready) {
+    const group = roleGroupMap.get(item.role);
+    if (group) {
+      group.push(item);
+    } else {
+      roleGroupMap.set(item.role, [item]);
+    }
+  }
+
+  const firstEntry = roleGroupMap.entries().next().value;
+  if (!firstEntry) {
+    return;
+  }
+
+  const [roleName, roleItemsRaw] = firstEntry;
+  let roleItems = roleItemsRaw;
+
+  // 5. Skip chaos/glyph on auto-recovery (no connected user providing userMessage)
+  if (CHAT_ROLES.has(roleName) && userMessage === undefined) {
+    return;
+  }
+
+  // 6. Enforce single chaos/glyph constraint
+  if (CHAT_ROLES.has(roleName)) {
+    const anyInProgress = quest.workItems.some(
+      (wi) => CHAT_ROLES.has(wi.role) && wi.status === 'in_progress',
+    );
+    if (anyInProgress) {
+      return;
+    }
+    const [singleItem] = roleItems;
+    if (!singleItem) {
+      return;
+    }
+    roleItems = [singleItem];
+  }
+
+  const [firstItem] = roleItems;
+  if (!firstItem) {
+    return;
+  }
+
+  // 7. Mark all items in this role group as in_progress
+  const now = new Date().toISOString();
+  await questModifyBroker({
+    input: {
+      questId,
+      workItems: roleItems.map((wi) => ({
+        id: wi.id,
+        status: 'in_progress' as const,
+        startedAt: now,
+      })),
+    } as ModifyQuestInput,
+  });
+
+  // 8. Dispatch to role-specific layer broker
   try {
-    if (resolution.action === 'launch-pathseeker' || resolution.action === 'resume-pathseeker') {
-      await writeExecutionLogLayerBroker({
+    if (roleName === 'chaoswhisperer' || roleName === 'glyphsmith') {
+      await runChatLayerBroker({
         questId,
-        agentType: agentTypeContract.parse('pathseeker'),
-        status: 'start',
-        report: executionLogEntryContract.shape.report.parse('pathseeker-phase'),
+        workItem: firstItem,
+        startPath,
+        ...(userMessage === undefined ? {} : { userMessage }),
+        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
       });
-
-      try {
-        await runPathseekerLayerBroker({
-          questId,
-          startPath,
-          ...(resolution.resumeSessionId === undefined
-            ? {}
-            : { resumeSessionId: resolution.resumeSessionId }),
-          ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-        });
-
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('pathseeker'),
-          status: 'pass',
-          report: executionLogEntryContract.shape.report.parse('pathseeker-phase'),
-        });
-      } catch (pathseekerError: unknown) {
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('pathseeker'),
-          status: 'fail',
-          report: executionLogEntryContract.shape.report.parse('pathseeker-phase-failed'),
-        });
-        throw pathseekerError;
-      }
-    }
-
-    if (resolution.action === 'launch-codeweaver' || resolution.action === 'resume-codeweaver') {
-      if (resolution.resetStepIds && resolution.resetStepIds.length > 0) {
-        const steps = resolution.resetStepIds.map((stepId) => ({
-          id: stepId,
-          status: 'pending' as const,
-        }));
-        const modifyInput = modifyQuestInputContract.parse({ questId, steps });
-        await questModifyBroker({ input: modifyInput });
-      }
-
-      try {
-        await runCodeweaverLayerBroker({
-          questId,
-          questFilePath,
-          startPath,
-          slotCount,
-          slotOperations,
-          ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-        });
-
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('codeweaver'),
-          status: 'pass',
-          report: executionLogEntryContract.shape.report.parse('codeweaver-phase'),
-        });
-      } catch (codeweaverError: unknown) {
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('codeweaver'),
-          status: 'fail',
-          report: executionLogEntryContract.shape.report.parse('codeweaver-phase-failed'),
-        });
-        throw codeweaverError;
-      }
-    }
-
-    if (resolution.action === 'launch-ward') {
-      try {
-        const absoluteStartPath = absoluteFilePathContract.parse(startPath);
-        await runWardLayerBroker({
-          questFilePath,
-          startPath: absoluteStartPath,
-          slotCount,
-          slotOperations,
-        });
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('ward'),
-          status: 'pass',
-          report: executionLogEntryContract.shape.report.parse('ward-phase'),
-        });
-      } catch (wardError: unknown) {
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('ward'),
-          status: 'fail',
-          report: executionLogEntryContract.shape.report.parse('ward-phase-failed'),
-        });
-        throw wardError;
-      }
-    }
-
-    if (resolution.action === 'launch-siegemaster') {
-      try {
-        const siegeResult = await runSiegemasterLayerBroker({
-          questId,
-          questFilePath,
-          startPath,
-          slotCount,
-          slotOperations,
-        });
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('siegemaster'),
-          status: siegeResult.failedObservableIds.length === 0 ? 'pass' : 'fail',
-          report: executionLogEntryContract.shape.report.parse('siegemaster-phase'),
-          ...(siegeResult.failedObservableIds.length === 0
-            ? {}
-            : { failedObservableIds: siegeResult.failedObservableIds }),
-        });
-      } catch (siegemasterError: unknown) {
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('siegemaster'),
-          status: 'fail',
-          report: executionLogEntryContract.shape.report.parse('siegemaster-phase-failed'),
-        });
-        throw siegemasterError;
-      }
-    }
-
-    if (resolution.action === 'launch-lawbringer') {
-      try {
-        await runLawbringerLayerBroker({ questFilePath, startPath, slotCount, slotOperations });
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('lawbringer'),
-          status: 'pass',
-          report: executionLogEntryContract.shape.report.parse('lawbringer-phase'),
-        });
-      } catch (lawbringerError: unknown) {
-        await writeExecutionLogLayerBroker({
-          questId,
-          agentType: agentTypeContract.parse('lawbringer'),
-          status: 'fail',
-          report: executionLogEntryContract.shape.report.parse('lawbringer-phase-failed'),
-        });
-        throw lawbringerError;
-      }
+    } else if (roleName === 'pathseeker') {
+      await runPathseekerLayerBroker({
+        questId,
+        workItem: firstItem,
+        startPath,
+        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+      });
+    } else if (roleName === 'codeweaver') {
+      await runCodeweaverLayerBroker({
+        questId,
+        workItems: roleItems,
+        startPath,
+        slotCount,
+        slotOperations,
+        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+      });
+    } else if (roleName === 'ward') {
+      await runWardLayerBroker({
+        questId,
+        workItem: firstItem,
+        startPath,
+      });
+    } else if (roleName === 'siegemaster') {
+      await runSiegemasterLayerBroker({
+        questId,
+        workItem: firstItem,
+        startPath,
+      });
+    } else if (roleName === 'lawbringer') {
+      await runLawbringerLayerBroker({
+        questId,
+        workItems: roleItems,
+        startPath,
+        slotCount,
+        slotOperations,
+      });
+    } else {
+      // roleName === 'spiritmender' (exhaustive via WorkItemRole enum)
+      await runSpiritmenderLayerBroker({
+        questId,
+        workItems: roleItems,
+        startPath,
+        slotCount,
+        slotOperations,
+      });
     }
   } catch (error: unknown) {
-    await writeExecutionLogLayerBroker({
-      questId,
-      agentType: agentTypeContract.parse('orchestration-loop'),
-      status: 'fail',
-      report: executionLogEntryContract.shape.report.parse(
-        error instanceof Error ? error.message : 'Unknown error',
-      ),
+    // On unhandled error: mark all in_progress items as failed to prevent zombies
+    const errorNow = new Date().toISOString();
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    await questModifyBroker({
+      input: {
+        questId,
+        workItems: roleItems.map((wi) => ({
+          id: wi.id,
+          status: 'failed' as const,
+          completedAt: errorNow,
+          errorMessage: errorMsg,
+        })),
+      } as ModifyQuestInput,
     });
+
+    // Recalculate quest status (may become blocked)
+    const updatedResult = await questGetBroker({ input });
+    if (updatedResult.success && updatedResult.quest) {
+      const newStatus = workItemsToQuestStatusTransformer({
+        workItems: updatedResult.quest.workItems,
+        currentStatus: updatedResult.quest.status,
+      });
+      if (newStatus !== updatedResult.quest.status) {
+        await questModifyBroker({
+          input: { questId, status: newStatus } as ModifyQuestInput,
+        });
+      }
+    }
     throw error;
   }
 
+  // 9. Recurse
   return questOrchestrationLoopBroker({
     processId,
     questId,
-    questFilePath,
     startPath,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(abortSignal === undefined ? {} : { abortSignal }),

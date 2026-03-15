@@ -6,7 +6,6 @@
  * // Returns ProcessId after registering process and starting orchestration loop
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
@@ -20,8 +19,6 @@ import { getQuestInputContract } from '../../../contracts/get-quest-input/get-qu
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -74,17 +71,13 @@ export const OrchestrationStartResponder = async ({
     }
   }
 
-  const { questPath, guildId } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-  );
+  const { guildId } = await questFindQuestPathBroker({ questId });
   const guild = await guildGetBroker({ guildId });
   const startPath = filePathContract.parse(guild.path);
 
   questOrchestrationLoopBroker({
     processId,
     questId,
-    questFilePath,
     startPath,
     onAgentEntry: ({ slotIndex, entry }) => {
       orchestrationEventsState.emit({

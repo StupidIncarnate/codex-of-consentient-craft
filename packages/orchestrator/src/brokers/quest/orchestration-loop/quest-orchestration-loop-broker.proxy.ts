@@ -2,47 +2,39 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
-import { questPhaseResolverBrokerProxy } from '../phase-resolver/quest-phase-resolver-broker.proxy';
+import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
 import { runCodeweaverLayerBrokerProxy } from './run-codeweaver-layer-broker.proxy';
 import { runLawbringerLayerBrokerProxy } from './run-lawbringer-layer-broker.proxy';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
 import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.proxy';
+import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
 import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
-import { writeExecutionLogLayerBrokerProxy } from './write-execution-log-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const questOrchestrationLoopBrokerProxy = (): {
-  setupQuestWaitForUser: (params: { quest: Quest }) => void;
-  setupQuestComplete: (params: { quest: Quest }) => void;
+  setupQuestTerminal: (params: { quest: Quest }) => void;
   setupQuestBlocked: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
-  setupPathseekerPhase: (params: { quest: Quest }) => void;
-  setupCodeweaverPhase: (params: { quest: Quest }) => void;
-  setupWardPhase: (params: { quest: Quest }) => void;
-  setupSiegemasterPhase: (params: { quest: Quest }) => void;
-  setupLawbringerPhase: (params: { quest: Quest }) => void;
-  setupLaunchChat: (params: { quest: Quest }) => void;
-  setupHalt: (params: { quest: Quest }) => void;
+  setupNoReadyItems: (params: { quest: Quest }) => void;
+  setupChatRoleReady: (params: { quest: Quest }) => void;
+  setupPathseekerReady: (params: { quest: Quest }) => void;
+  setupAborted: () => void;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  questPhaseResolverBrokerProxy();
+  runChatLayerBrokerProxy();
   runPathseekerLayerBrokerProxy();
   runCodeweaverLayerBrokerProxy();
   runWardLayerBrokerProxy();
   runSiegemasterLayerBrokerProxy();
   runLawbringerLayerBrokerProxy();
-  writeExecutionLogLayerBrokerProxy();
+  runSpiritmenderLayerBrokerProxy();
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
   return {
-    setupQuestWaitForUser: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-    },
-
-    setupQuestComplete: ({ quest }: { quest: Quest }): void => {
+    setupQuestTerminal: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
@@ -56,38 +48,22 @@ export const questOrchestrationLoopBrokerProxy = (): {
       getProxy.setupEmptyFolder();
     },
 
-    setupPathseekerPhase: ({ quest }: { quest: Quest }): void => {
+    setupNoReadyItems: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+    },
+
+    setupChatRoleReady: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
 
-    setupCodeweaverPhase: ({ quest }: { quest: Quest }): void => {
+    setupPathseekerReady: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
 
-    setupWardPhase: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-    },
-
-    setupSiegemasterPhase: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-    },
-
-    setupLawbringerPhase: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-    },
-
-    setupLaunchChat: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-    },
-
-    setupHalt: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
+    setupAborted: (): void => {
+      // No setup needed — abort is checked before quest load
     },
   };
 };

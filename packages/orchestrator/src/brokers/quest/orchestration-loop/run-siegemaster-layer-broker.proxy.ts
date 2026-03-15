@@ -1,19 +1,34 @@
-import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
-import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
+import type { ExitCode, QuestStub } from '@dungeonmaster/shared/contracts';
+
+import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
+import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { questWorkItemInsertBrokerProxy } from '../work-item-insert/quest-work-item-insert-broker.proxy';
+
+type Quest = ReturnType<typeof QuestStub>;
 
 export const runSiegemasterLayerBrokerProxy = (): {
-  setupQuestLoad: (params: { questJson: string }) => void;
-  setupQuestLoadError: (params: { error: Error }) => void;
+  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestNotFound: () => void;
+  setupSpawnSuccess: (params: { quest: Quest; exitCode: ExitCode }) => void;
 } => {
-  const questLoadProxy = questLoadBrokerProxy();
-  slotManagerOrchestrateBrokerProxy();
+  const getProxy = questGetBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
+  const spawnProxy = agentSpawnByRoleBrokerProxy();
+  questWorkItemInsertBrokerProxy();
 
   return {
-    setupQuestLoad: ({ questJson }: { questJson: string }): void => {
-      questLoadProxy.setupQuestFile({ questJson });
+    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
     },
-    setupQuestLoadError: ({ error }: { error: Error }): void => {
-      questLoadProxy.setupQuestFileReadError({ error });
+    setupQuestNotFound: (): void => {
+      getProxy.setupEmptyFolder();
+    },
+    setupSpawnSuccess: ({ quest, exitCode }: { quest: Quest; exitCode: ExitCode }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode });
     },
   };
 };

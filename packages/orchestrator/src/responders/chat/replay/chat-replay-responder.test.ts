@@ -7,6 +7,7 @@ import {
   FilePathStub,
   FileNameStub,
   QuestStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ChatReplayResponderProxy } from './chat-replay-responder.proxy';
@@ -58,7 +59,9 @@ describe('ChatReplayResponder', () => {
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'replay-link' });
       const guild = GuildStub({ id: guildId });
-      const quest = QuestStub({ questCreatedSessionBy: sessionId });
+      const quest = QuestStub({
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId, status: 'complete' })],
+      });
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),

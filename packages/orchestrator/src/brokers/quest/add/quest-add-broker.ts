@@ -12,6 +12,7 @@ import {
   fileContentsContract,
   filePathContract,
   questIdContract,
+  workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 
@@ -45,6 +46,17 @@ export const questAddBroker = async ({
     const questsBasePath = filePathContract.parse(questsPath);
     await fsMkdirAdapter({ filepath: questsBasePath });
 
+    // Create initial chaoswhisperer work item
+    const initialWorkItem = workItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'chaoswhisperer',
+      status: 'pending',
+      spawnerType: 'agent',
+      createdAt: new Date().toISOString(),
+      dependsOn: [],
+      maxAttempts: 1,
+    });
+
     // Create Quest object with all required fields
     const quest = questContract.parse({
       id: questId,
@@ -52,7 +64,6 @@ export const questAddBroker = async ({
       title: validated.title,
       status: 'created' as const,
       createdAt: new Date().toISOString(),
-      executionLog: [],
       requirements: [],
       designDecisions: [],
       contexts: [],
@@ -60,6 +71,7 @@ export const questAddBroker = async ({
       steps: [],
       toolingRequirements: [],
       userRequest: validated.userRequest,
+      workItems: [initialWorkItem],
     });
 
     // Create quest folder

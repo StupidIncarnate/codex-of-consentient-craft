@@ -1,4 +1,3 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
   FileContentsStub,
@@ -31,7 +30,6 @@ export const OrchestrationStartResponderProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
   const guildProxy = guildGetBrokerProxy();
   questOrchestrationLoopBrokerProxy();
   const eventsProxy = orchestrationEventsStateProxy();
@@ -75,8 +73,6 @@ export const OrchestrationStartResponderProxy = (): {
         },
       ],
     });
-
-    pathJoinProxy.returns({ result: questFilePath });
 
     const guild = GuildStub({ id: guildId, path: guildPath });
     guildProxy.setupConfig({ config: GuildConfigStub({ guilds: [guild] }) });

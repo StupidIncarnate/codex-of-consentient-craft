@@ -6,7 +6,6 @@
  * // Scans guild quests and launches loops for any in recoverable statuses without running processes
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
 
@@ -15,8 +14,6 @@ import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { recoverableQuestStatusesStatics } from '../../../statics/recoverable-quest-statuses/recoverable-quest-statuses-statics';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const RecoverGuildLayerResponder = async ({
   guildItem,
@@ -58,14 +55,9 @@ export const RecoverGuildLayerResponder = async ({
         },
       });
 
-      const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [quest.folder, QUEST_FILE_NAME] }),
-      );
-
       questOrchestrationLoopBroker({
         processId,
         questId: quest.id,
-        questFilePath,
         startPath,
         abortSignal: abortController.signal,
       })

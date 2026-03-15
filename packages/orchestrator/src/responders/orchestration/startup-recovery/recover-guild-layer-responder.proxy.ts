@@ -7,7 +7,6 @@
  * await RecoverGuildLayerResponder({guildItem});
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { GuildConfigStub, GuildStub } from '@dungeonmaster/shared/contracts';
 import type {
   GuildId,
@@ -42,7 +41,6 @@ export const RecoverGuildLayerResponderProxy = (): {
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
   questOrchestrationLoopBrokerProxy();
-  pathJoinAdapterProxy();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 

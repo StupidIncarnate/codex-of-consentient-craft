@@ -6,7 +6,6 @@
  * // Returns ModifyQuestResult with success status
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
@@ -19,8 +18,6 @@ import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/m
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { autoResumableQuestStatusesStatics } from '../../../statics/auto-resumable-quest-statuses/auto-resumable-quest-statuses-statics';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const QuestModifyResponder = async ({
   questId,
@@ -56,17 +53,13 @@ export const QuestModifyResponder = async ({
         });
 
         questFindQuestPathBroker({ questId: typedQuestId })
-          .then(async ({ questPath, guildId }) => {
-            const questFilePath = filePathContract.parse(
-              pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-            );
+          .then(async ({ guildId }) => {
             const guild = await guildGetBroker({ guildId });
             const startPath = filePathContract.parse(guild.path);
 
             return questOrchestrationLoopBroker({
               processId,
               questId: typedQuestId,
-              questFilePath,
               startPath,
               onAgentEntry: ({ slotIndex, entry }) => {
                 orchestrationEventsState.emit({

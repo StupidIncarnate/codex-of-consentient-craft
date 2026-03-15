@@ -25,7 +25,6 @@ describe('runChatLayerBroker', () => {
       await expect(
         runChatLayerBroker({
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
         }),
@@ -46,7 +45,6 @@ describe('runChatLayerBroker', () => {
       await expect(
         runChatLayerBroker({
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
         }),

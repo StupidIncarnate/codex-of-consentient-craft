@@ -46,7 +46,9 @@ export const ChatReplayResponder = async ({
 
   try {
     const quests = await questListBroker({ guildId });
-    const linkedQuest = quests.find((quest) => quest.questCreatedSessionBy === sessionId);
+    const linkedQuest = quests.find((quest) =>
+      quest.workItems.some((wi) => wi.sessionId === sessionId),
+    );
 
     if (linkedQuest) {
       orchestrationEventsState.emit({

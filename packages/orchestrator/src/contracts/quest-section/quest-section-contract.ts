@@ -12,7 +12,7 @@ export const questSectionContract = z.enum([
   'contracts',
   'steps',
   'toolingRequirements',
-  'executionLog',
+  'workItems',
   'flows',
 ]);
 

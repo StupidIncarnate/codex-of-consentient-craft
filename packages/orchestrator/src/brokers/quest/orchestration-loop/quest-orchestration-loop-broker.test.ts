@@ -1,85 +1,56 @@
 import {
-  DependencyStepStub,
-  ExecutionLogEntryStub,
   FilePathStub,
-  PathseekerRunStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questOrchestrationLoopBroker } from './quest-orchestration-loop-broker';
 import { questOrchestrationLoopBrokerProxy } from './quest-orchestration-loop-broker.proxy';
 
 describe('questOrchestrationLoopBroker', () => {
-  describe('terminal actions', () => {
-    it('VALID: {resolver returns wait-for-user for review_flows} => resolves without modifying quest', async () => {
+  describe('terminal states', () => {
+    it('VALID: {all work items complete} => resolves without error', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'review_flows' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
       const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupQuestWaitForUser({ quest });
+      proxy.setupQuestTerminal({ quest });
 
       await expect(
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: FilePathStub({ value: '/project/src' }),
         }),
       ).resolves.toBeUndefined();
     });
 
-    it('VALID: {resolver returns wait-for-user for review_observables} => resolves without modifying quest', async () => {
+    it('VALID: {blocked — pending items with failed deps} => sets quest status to blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'review_observables' });
-      const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupQuestWaitForUser({ quest });
-
-      await expect(
-        questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1b' }),
-          questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
-          startPath: FilePathStub({ value: '/project/src' }),
-        }),
-      ).resolves.toBeUndefined();
-    });
-
-    it('VALID: {all phases complete} => modifies quest status to complete', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        pathseekerRuns: [PathseekerRunStub({ status: 'complete' })],
-        steps: [DependencyStepStub({ status: 'complete' })],
-        executionLog: [
-          ExecutionLogEntryStub({ agentType: 'ward', status: 'pass' }),
-          ExecutionLogEntryStub({ agentType: 'siegemaster', status: 'pass' }),
-          ExecutionLogEntryStub({ agentType: 'lawbringer', status: 'pass' }),
-        ],
-      });
-      const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupQuestComplete({ quest });
-
-      await expect(
-        questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-2' }),
-          questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
-          startPath: FilePathStub({ value: '/project/src' }),
-        }),
-      ).resolves.toBeUndefined();
-    });
-
-    it('VALID: {pathseeker failed max attempts} => modifies quest status to blocked', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        pathseekerRuns: [
-          PathseekerRunStub({ status: 'failed', attempt: 0 }),
-          PathseekerRunStub({ status: 'failed', attempt: 1 }),
-          PathseekerRunStub({ status: 'failed', attempt: 2 }),
+        workItems: [
+          WorkItemStub({ id: failedId, role: 'pathseeker', status: 'failed' }),
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' }),
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: [failedId],
+          }),
         ],
       });
       const proxy = questOrchestrationLoopBrokerProxy();
@@ -87,63 +58,35 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-3' }),
+          processId: ProcessIdStub({ value: 'proc-test-2' }),
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: FilePathStub({ value: '/project/src' }),
         }),
       ).resolves.toBeUndefined();
     });
   });
 
-  describe('chat actions', () => {
-    it('VALID: {resolver returns launch-chat for created quest} => exits loop without launching chat', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'created' });
-      const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupLaunchChat({ quest });
-
-      await expect(
-        questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-chat-1' }),
-          questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
-          startPath: FilePathStub({ value: '/project/src' }),
-        }),
-      ).resolves.toBeUndefined();
-    });
-
-    it('VALID: {resolver returns resume-chat for explore_flows with session} => exits loop without launching chat', async () => {
+  describe('chat role skipping', () => {
+    it('VALID: {chaos item ready but no userMessage} => returns without spawning (auto-recovery skip)', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
-        status: 'explore_flows',
-        questCreatedSessionBy: 'session-123',
+        status: 'created',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'chaoswhisperer',
+            status: 'pending',
+          }),
+        ],
       });
       const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupLaunchChat({ quest });
+      proxy.setupChatRoleReady({ quest });
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-chat-2' }),
+          processId: ProcessIdStub({ value: 'proc-test-3' }),
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
-          startPath: FilePathStub({ value: '/project/src' }),
-        }),
-      ).resolves.toBeUndefined();
-    });
-
-    it('VALID: {resolver returns launch-chat for flows_approved} => exits loop without launching chat', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'flows_approved' });
-      const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupLaunchChat({ quest });
-
-      await expect(
-        questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-chat-3' }),
-          questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: FilePathStub({ value: '/project/src' }),
         }),
       ).resolves.toBeUndefined();
@@ -160,7 +103,6 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-4' }),
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: FilePathStub({ value: '/project/src' }),
         }),
       ).rejects.toThrow(/Quest not found/u);
@@ -168,11 +110,10 @@ describe('questOrchestrationLoopBroker', () => {
   });
 
   describe('abort signal', () => {
-    it('VALID: {aborted signal} => writes abort execution log and exits', async () => {
+    it('VALID: {aborted signal} => exits immediately', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'in_progress' });
       const proxy = questOrchestrationLoopBrokerProxy();
-      proxy.setupHalt({ quest });
+      proxy.setupAborted();
 
       const abortController = new AbortController();
       abortController.abort();
@@ -181,9 +122,35 @@ describe('questOrchestrationLoopBroker', () => {
         questOrchestrationLoopBroker({
           processId: ProcessIdStub({ value: 'proc-test-5' }),
           questId,
-          questFilePath: FilePathStub({ value: '/quests/quest.json' }),
           startPath: FilePathStub({ value: '/project/src' }),
           abortSignal: abortController.signal,
+        }),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('no ready items', () => {
+    it('VALID: {items in_progress but none ready} => returns without dispatching', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'codeweaver',
+            status: 'in_progress',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNoReadyItems({ quest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-6' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
         }),
       ).resolves.toBeUndefined();
     });

@@ -27,10 +27,10 @@ describe('questSectionContract', () => {
       expect(result).toBe('toolingRequirements');
     });
 
-    it('VALID: {value: "executionLog"} => parses successfully', () => {
-      const result = questSectionContract.parse(QuestSectionStub({ value: 'executionLog' }));
+    it('VALID: {value: "workItems"} => parses successfully', () => {
+      const result = questSectionContract.parse(QuestSectionStub({ value: 'workItems' }));
 
-      expect(result).toBe('executionLog');
+      expect(result).toBe('workItems');
     });
 
     it('VALID: {value: "flows"} => parses successfully', () => {

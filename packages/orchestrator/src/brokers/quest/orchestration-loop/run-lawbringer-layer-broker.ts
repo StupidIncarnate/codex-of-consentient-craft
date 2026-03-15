@@ -1,54 +1,104 @@
 /**
- * PURPOSE: Executes the lawbringer phase within the orchestration loop using slot manager for parallel execution
+ * PURPOSE: Executes lawbringer work items via slot manager, resolves relatedDataItems to steps for file pairs
  *
  * USAGE:
- * await runLawbringerLayerBroker({questFilePath, startPath, slotCount, slotOperations});
- * // Spawns lawbringer agents for each file pair via slot manager
+ * await runLawbringerLayerBroker({questId, workItems, startPath, slotCount, slotOperations});
+ * // Resolves steps from relatedDataItems, runs lawbringer agents, maps results back to quest work items
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
 
+import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
+import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import { failCountContract } from '../../../contracts/fail-count/fail-count-contract';
-import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
+import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
+import { resolveRelatedDataItemTransformer } from '../../../transformers/resolve-related-data-item/resolve-related-data-item-transformer';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
-import { questLoadBroker } from '../load/quest-load-broker';
+import { questGetBroker } from '../get/quest-get-broker';
+import { questModifyBroker } from '../modify/quest-modify-broker';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
 export const runLawbringerLayerBroker = async ({
-  questFilePath,
+  questId,
+  workItems,
   startPath,
   slotCount,
   slotOperations,
 }: {
-  questFilePath: FilePath;
+  questId: QuestId;
+  workItems: WorkItem[];
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.lawbringer.timeoutMs);
-  const maxRetries = failCountContract.parse(slotManagerStatics.lawbringer.maxRetries);
   const maxFollowupDepth = followupDepthContract.parse(
     slotManagerStatics.lawbringer.maxFollowupDepth,
   );
 
-  const quest = await questLoadBroker({ questFilePath });
-  const stepsToReview = quest.steps.filter((step) => step.status !== 'complete');
-  const workUnits = stepsToReview.map((step) =>
-    buildWorkUnitForRoleTransformer({ role: 'lawbringer', step, quest }),
-  );
-  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits, maxRetries });
+  const questInput = getQuestInputContract.parse({ questId });
+  const questResult = await questGetBroker({ input: questInput });
+  if (!questResult.success || !questResult.quest) {
+    throw new Error(`Quest not found: ${questId}`);
+  }
+  const { quest } = questResult;
 
-  await slotManagerOrchestrateBroker({
+  // Resolve relatedDataItems -> steps, build mapping
+  const slotToQuestMap = new Map<WorkItemId, QuestWorkItemId>();
+  const workUnits = workItems.map((wi, i) => {
+    const [ref] = wi.relatedDataItems;
+    if (!ref) {
+      throw new Error(`Work item ${wi.id} has no relatedDataItems`);
+    }
+    const resolved = resolveRelatedDataItemTransformer({ ref, quest });
+    if (resolved.collection !== 'steps') {
+      throw new Error(`Expected steps reference, got ${resolved.collection}`);
+    }
+    const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
+    slotToQuestMap.set(slotId, wi.id);
+    return buildWorkUnitForRoleTransformer({ role: 'lawbringer', step: resolved.item, quest });
+  });
+
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+
+  const result = await slotManagerOrchestrateBroker({
     workTracker,
     slotCount,
     timeoutMs,
     slotOperations,
     startPath,
     maxFollowupDepth,
+  });
+
+  // Map results back to quest work items
+  const completedAt = new Date().toISOString();
+  const incompleteIds: WorkItemId[] = result.completed ? [] : result.incompleteIds;
+  const failedSlotIds = new Set<WorkItemId>(incompleteIds);
+
+  const workItemUpdates: {
+    id: QuestWorkItemId;
+    status: 'complete' | 'failed';
+    completedAt?: typeof completedAt;
+  }[] = [];
+
+  for (const [slotId, questItemId] of slotToQuestMap) {
+    if (failedSlotIds.has(slotId)) {
+      workItemUpdates.push({ id: questItemId, status: 'failed' });
+    } else {
+      workItemUpdates.push({ id: questItemId, status: 'complete', completedAt });
+    }
+  }
+
+  await questModifyBroker({
+    input: {
+      questId,
+      workItems: workItemUpdates,
+    } as ModifyQuestInput,
   });
 };

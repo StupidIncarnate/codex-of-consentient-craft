@@ -6,10 +6,13 @@
  * // Spawns design chat process, streams output via orchestration events
  */
 
+import { workItemContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
+import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { chatRoleContract } from '../../../contracts/chat-role/chat-role-contract';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -24,6 +27,9 @@ export const DesignChatStartResponder = async ({
   message: string;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const processor = chatLineProcessTransformer();
+
+  // Create glyphsmith work item ID upfront for tracking
+  const glyphWorkItemId = crypto.randomUUID();
 
   return chatSpawnBroker({
     role: chatRoleContract.parse('glyphsmith'),
@@ -56,6 +62,28 @@ export const DesignChatStartResponder = async ({
       // Design chat does not tail sub-agents
     },
     onComplete: ({ chatProcessId, exitCode, sessionId }) => {
+      // Create and complete glyphsmith work item in one write
+      const glyphWorkItem = workItemContract.parse({
+        id: glyphWorkItemId,
+        role: 'glyphsmith',
+        status: 'complete',
+        spawnerType: 'agent',
+        dependsOn: [],
+        maxAttempts: 1,
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+        ...(sessionId ? { sessionId } : {}),
+      });
+
+      questModifyBroker({
+        input: {
+          questId,
+          workItems: [glyphWorkItem],
+        } as ModifyQuestInput,
+      }).catch(() => {
+        // Best-effort work item update
+      });
+
       orchestrationProcessesState.remove({ processId: chatProcessId });
       orchestrationEventsState.emit({
         type: 'chat-complete',

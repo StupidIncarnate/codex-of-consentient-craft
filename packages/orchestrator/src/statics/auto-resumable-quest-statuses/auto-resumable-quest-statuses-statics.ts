@@ -6,8 +6,4 @@
  * // Returns true if the status transition should auto-resume the orchestration loop
  */
 
-export const autoResumableQuestStatusesStatics = [
-  'flows_approved',
-  'explore_observables',
-  'in_progress',
-] as const;
+export const autoResumableQuestStatusesStatics = ['in_progress'] as const;

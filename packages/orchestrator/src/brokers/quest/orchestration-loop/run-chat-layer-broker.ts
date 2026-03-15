@@ -2,7 +2,7 @@
  * PURPOSE: Spawns chaos/glyph agents with streaming, writes sessionId to work item
  *
  * USAGE:
- * await runChatLayerBroker({ questId, questFilePath, workItem, startPath });
+ * await runChatLayerBroker({ questId, workItem, startPath, userMessage });
  * // Spawns chaos or glyph agent, writes sessionId and completion status back to quest
  */
 
@@ -18,7 +18,6 @@ export const runChatLayerBroker = async ({
   workItem,
 }: {
   questId: QuestId;
-  questFilePath: FilePath;
   workItem: WorkItem;
   startPath: FilePath;
   userMessage?: UserInput;

@@ -1,31 +1,26 @@
-import type { ExitCode } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
+import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
+type Quest = ReturnType<typeof QuestStub>;
+
 export const runCodeweaverLayerBrokerProxy = (): {
-  setupQuestLoad: (params: { questJson: string }) => void;
-  setupQuestLoadError: (params: { error: Error }) => void;
-  setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestNotFound: () => void;
 } => {
-  const questLoadProxy = questLoadBrokerProxy();
-  const slotManagerProxy = slotManagerOrchestrateBrokerProxy();
+  const getProxy = questGetBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
+  slotManagerOrchestrateBrokerProxy();
 
   return {
-    setupQuestLoad: ({ questJson }: { questJson: string }): void => {
-      questLoadProxy.setupQuestFile({ questJson });
+    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
     },
-    setupQuestLoadError: ({ error }: { error: Error }): void => {
-      questLoadProxy.setupQuestFileReadError({ error });
-    },
-    setupSpawnAndMonitor: ({
-      lines,
-      exitCode,
-    }: {
-      lines: readonly string[];
-      exitCode: ExitCode;
-    }): void => {
-      slotManagerProxy.setupSpawnAndMonitor({ lines, exitCode });
+    setupQuestNotFound: (): void => {
+      getProxy.setupEmptyFolder();
     },
   };
 };

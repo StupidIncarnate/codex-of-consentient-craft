@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Starts a chat session by handling pending clarifications, spawning a Claude CLI process, and setting up event streaming
+ * PURPOSE: Starts a chat session by finding/creating quest, creating chaos work item, and kicking orchestration loop
  *
  * USAGE:
  * const { chatProcessId } = await ChatStartResponder({ guildId, message, sessionId });
- * // Spawns chat process, streams output via orchestration events, handles clarifications
+ * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
@@ -45,7 +45,9 @@ export const ChatStartResponder = async ({
   if (sessionId) {
     try {
       const quests = await questListBroker({ guildId });
-      const linkedQuest = quests.find((quest) => quest.questCreatedSessionBy === sessionId);
+      const linkedQuest = quests.find((quest) =>
+        quest.workItems.some((wi) => wi.sessionId === sessionId),
+      );
       if (linkedQuest) {
         chatQuestId = linkedQuest.id;
         process.stderr.write(

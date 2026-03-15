@@ -22,7 +22,7 @@ describe('QuestModifyResponder', () => {
   });
 
   describe('auto-resume after gate approval', () => {
-    it('VALID: {status: flows_approved} => triggers orchestration loop and registers process', async () => {
+    it('VALID: {status: flows_approved} => does not trigger orchestration loop (no longer auto-resumable)', async () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -48,10 +48,10 @@ describe('QuestModifyResponder', () => {
         questId: 'add-auth' as ReturnType<typeof QuestStub>['id'],
       });
 
-      expect(registeredProcess?.questId).toBe('add-auth');
+      expect(registeredProcess).toBeUndefined();
     });
 
-    it('VALID: {status: explore_observables} => triggers orchestration loop and registers process', async () => {
+    it('VALID: {status: explore_observables} => does not trigger orchestration loop (no longer auto-resumable)', async () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -77,7 +77,7 @@ describe('QuestModifyResponder', () => {
         questId: 'add-auth' as ReturnType<typeof QuestStub>['id'],
       });
 
-      expect(registeredProcess?.questId).toBe('add-auth');
+      expect(registeredProcess).toBeUndefined();
     });
 
     it('VALID: {status: in_progress from blocked} => triggers orchestration loop and registers process', async () => {
