@@ -19,12 +19,13 @@ import {
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { codeweaverPhaseLayerBroker } from './codeweaver-phase-layer-broker';
 import { lawbringerPhaseLayerBroker } from './lawbringer-phase-layer-broker';
 import { siegemasterPhaseLayerBroker } from './siegemaster-phase-layer-broker';
 import { wardPhaseLayerBroker } from './ward-phase-layer-broker';
+
+const SLOT_COUNT = 3;
 
 export const questPipelineBroker = async ({
   processId: _processId,
@@ -43,7 +44,7 @@ export const questPipelineBroker = async ({
   onAgentLine?: (params: { slotIndex: SlotIndex; line: string }) => void;
   abortSignal?: AbortSignal;
 }): Promise<void> => {
-  const slotCount = slotCountContract.parse(slotManagerStatics.codeweaver.slotCount);
+  const slotCount = slotCountContract.parse(SLOT_COUNT);
   const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
   try {
@@ -55,8 +56,6 @@ export const questPipelineBroker = async ({
       questId,
       questFilePath,
       startPath,
-      slotCount,
-      slotOperations,
       onPhaseChange,
       ...(onAgentLine === undefined ? {} : { onAgentLine }),
       ...(abortSignal === undefined ? {} : { abortSignal }),
@@ -69,8 +68,6 @@ export const questPipelineBroker = async ({
     await wardPhaseLayerBroker({
       questFilePath,
       startPath: absoluteStartPath,
-      slotCount,
-      slotOperations,
       onPhaseChange,
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });
@@ -92,6 +89,8 @@ export const questPipelineBroker = async ({
     await lawbringerPhaseLayerBroker({
       questFilePath,
       startPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });

@@ -1,190 +1,66 @@
 /**
- * PURPOSE: Runs siegemaster agents to verify observables, one per observable
+ * PURPOSE: Runs the siegemaster phase using the slot manager for parallel observable verification
  *
  * USAGE:
- * const result = await siegemasterPhaseLayerBroker({
- *   questId: QuestIdStub(),
- *   questFilePath: FilePathStub({ value: '/quests/quest.json' }),
- *   onPhaseChange: ({ phase }) => {},
- * });
- * // Returns SiegemasterPhaseResult with failedObservableIds, or throws on retry exhaustion
+ * const result = await siegemasterPhaseLayerBroker({questId, questFilePath, startPath, onPhaseChange});
+ * // Returns SiegemasterPhaseResult with failedObservableIds from incomplete steps
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
-import { maxConcurrentContract } from '../../../contracts/max-concurrent/max-concurrent-contract';
-import type { MaxConcurrent } from '../../../contracts/max-concurrent/max-concurrent-contract';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { SiegemasterPhaseResult } from '../../../contracts/siegemaster-phase-result/siegemaster-phase-result-contract';
+import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
-import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
-import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
-import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
-import { workUnitsToFailedObservableIdsTransformer } from '../../../transformers/work-units-to-failed-observable-ids/work-units-to-failed-observable-ids-transformer';
-import { agentParallelRunnerBroker } from '../../agent/parallel-runner/agent-parallel-runner-broker';
-import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
-import { questLoadBroker } from '../load/quest-load-broker';
+import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
+import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
-const MAX_RETRIES = 2;
-const MAX_DISPATCH_DEPTH = 3;
-const CONCURRENT_LIMIT = 3;
-const TIMEOUT_MS = 300000;
+const SIEGEMASTER_SLOT_COUNT = 3;
+const SIEGEMASTER_TIMEOUT_MS = 300000;
 
 export const siegemasterPhaseLayerBroker = async ({
-  questId,
   questFilePath,
   startPath,
   onPhaseChange,
-  _retryState,
   abortSignal,
 }: {
   questId: QuestId;
   questFilePath: FilePath;
   startPath: FilePath;
   onPhaseChange: ({ phase }: { phase: OrchestrationPhase }) => void;
-  _retryState?: {
-    failedWorkUnits: WorkUnit[];
-    lastResults: AgentSpawnStreamingResult[];
-    maxConcurrent: MaxConcurrent;
-    timeoutMs: TimeoutMs;
-    retryCount: number;
-    dispatchDepth: number;
-  };
   abortSignal?: AbortSignal;
 }): Promise<SiegemasterPhaseResult> => {
   if (abortSignal?.aborted) {
     return { failedObservableIds: [] };
   }
 
-  if (_retryState !== undefined) {
-    const { failedWorkUnits, lastResults, maxConcurrent, timeoutMs, retryCount, dispatchDepth } =
-      _retryState;
-
-    if (failedWorkUnits.length === 0) {
-      return { failedObservableIds: [] };
-    }
-
-    if (retryCount >= MAX_RETRIES) {
-      const failedObservableIds = workUnitsToFailedObservableIdsTransformer({
-        workUnits: failedWorkUnits,
-      });
-      throw new Error(
-        `Siegemaster phase failed after ${String(MAX_RETRIES)} retries with ${String(failedObservableIds.length)} failed observables`,
-        { cause: { failedObservableIds } },
-      );
-    }
-
-    const followupUnits = lastResults
-      .filter(
-        (
-          result,
-        ): result is AgentSpawnStreamingResult & {
-          signal: NonNullable<AgentSpawnStreamingResult['signal']>;
-        } =>
-          result.signal !== null &&
-          result.signal.signal === 'needs-role-followup' &&
-          result.signal.targetRole !== undefined,
-      )
-      .slice(0, MAX_DISPATCH_DEPTH - dispatchDepth)
-      .map((result) => {
-        const targetRole = String(result.signal.targetRole);
-        const context = result.signal.context === undefined ? '' : String(result.signal.context);
-
-        if (targetRole === 'spiritmender' && context.length > 0) {
-          return workUnitContract.parse({
-            role: 'spiritmender',
-            filePaths: [context],
-          });
-        }
-
-        return null;
-      })
-      .filter((unit): unit is WorkUnit => unit !== null);
-
-    await Promise.all(
-      followupUnits.map(async (workUnit) =>
-        agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath }),
-      ),
-    );
-
-    const retryResults = await agentParallelRunnerBroker({
-      workUnits: failedWorkUnits,
-      maxConcurrent,
-      timeoutMs,
-      startPath,
-    });
-
-    const nextFailed = failedWorkUnits.filter((_, index) => {
-      const result = retryResults[index];
-      return result?.signal?.signal !== 'complete';
-    });
-
-    return siegemasterPhaseLayerBroker({
-      questId,
-      questFilePath,
-      startPath,
-      onPhaseChange,
-      _retryState: {
-        failedWorkUnits: nextFailed,
-        lastResults: retryResults,
-        maxConcurrent,
-        timeoutMs,
-        retryCount: retryCount + 1,
-        dispatchDepth: dispatchDepth + followupUnits.length,
-      },
-      ...(abortSignal === undefined ? {} : { abortSignal }),
-    });
-  }
-
   onPhaseChange({ phase: 'siegemaster' });
 
-  const quest = await questLoadBroker({ questFilePath });
+  const slotCount = slotCountContract.parse(SIEGEMASTER_SLOT_COUNT);
+  const timeoutMs = timeoutMsContract.parse(SIEGEMASTER_TIMEOUT_MS);
+  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
-  const allObservables = quest.flows.flatMap((flow) =>
-    flow.nodes.flatMap((node) => node.observables),
-  );
+  const result = await slotManagerOrchestrateBroker({
+    questFilePath,
+    slotCount,
+    timeoutMs,
+    slotOperations,
+    role: 'siegemaster',
+    startPath,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
+  });
 
-  if (allObservables.length === 0) {
+  if (abortSignal?.aborted) {
     return { failedObservableIds: [] };
   }
 
-  const workUnits: WorkUnit[] = allObservables.map((observable) =>
-    workUnitContract.parse({
-      role: 'siegemaster',
-      questId,
-      observables: [observable],
-    }),
+  if (result.completed) {
+    return { failedObservableIds: [] };
+  }
+
+  const failedObservableIds: ObservableId[] = result.incompleteSteps.flatMap(
+    (step) => step.observablesSatisfied,
   );
 
-  const maxConcurrent = maxConcurrentContract.parse(CONCURRENT_LIMIT);
-  const timeoutMs = timeoutMsContract.parse(TIMEOUT_MS);
-
-  const results = await agentParallelRunnerBroker({
-    workUnits,
-    maxConcurrent,
-    timeoutMs,
-    startPath,
-  });
-
-  const failedWorkUnits = workUnits.filter((_, index) => {
-    const result = results[index];
-    return result?.signal?.signal !== 'complete';
-  });
-
-  return siegemasterPhaseLayerBroker({
-    questId,
-    questFilePath,
-    startPath,
-    onPhaseChange,
-    _retryState: {
-      failedWorkUnits,
-      lastResults: results,
-      maxConcurrent,
-      timeoutMs,
-      retryCount: 0,
-      dispatchDepth: 0,
-    },
-    ...(abortSignal === undefined ? {} : { abortSignal }),
-  });
+  return { failedObservableIds };
 };

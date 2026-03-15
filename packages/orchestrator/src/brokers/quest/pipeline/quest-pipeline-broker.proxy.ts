@@ -14,19 +14,17 @@ export const questPipelineBrokerProxy = (): {
     failWardResultJson: string;
     spiritmenderExitCode: ExitCode;
   }) => void;
-  setupSiegemasterQuestFile: (params: { questJson: string }) => void;
-  setupSiegemasterSpawnsSucceed: (params: { exitCode: ExitCode }) => void;
-  setupSiegemasterSpawnsComplete: (params: { exitCode: ExitCode }) => void;
-  setupSiegemasterSpawnFailure: () => void;
-  setupLawbringerQuestFile: (params: { questJson: string }) => void;
-  setupLawbringerSpawnsSucceed: (params: { exitCode: ExitCode }) => void;
-  setupLawbringerSpawnsComplete: (params: { exitCode: ExitCode }) => void;
-  setupLawbringerSpawnFailure: () => void;
+  setupSiegemasterQuestLoad: (params: { questJson: string }) => void;
+  setupSiegemasterQuestLoadError: (params: { error: Error }) => void;
+  setupLawbringerQuestLoad: (params: { questJson: string }) => void;
+  setupLawbringerQuestLoadError: (params: { error: Error }) => void;
 } => {
   const codeweaver = codeweaverPhaseLayerBrokerProxy();
-  const ward = wardPhaseLayerBrokerProxy();
   const siegemaster = siegemasterPhaseLayerBrokerProxy();
   const lawbringer = lawbringerPhaseLayerBrokerProxy();
+  // Ward must be last — its spawnWardLayerBrokerProxy mocks child_process.spawn and
+  // must be the final mockImplementation so it captures ward-specific spawn calls.
+  const ward = wardPhaseLayerBrokerProxy();
 
   return {
     setupCodeweaverQuestLoad: ({ questJson }: { questJson: string }): void => {
@@ -49,29 +47,17 @@ export const questPipelineBrokerProxy = (): {
     }): void => {
       ward.setupWardFailMaxRetries({ failExitCode, failWardResultJson, spiritmenderExitCode });
     },
-    setupSiegemasterQuestFile: ({ questJson }: { questJson: string }): void => {
-      siegemaster.setupQuestFile({ questJson });
+    setupSiegemasterQuestLoad: ({ questJson }: { questJson: string }): void => {
+      siegemaster.setupQuestLoad({ questJson });
     },
-    setupSiegemasterSpawnsSucceed: ({ exitCode }: { exitCode: ExitCode }): void => {
-      siegemaster.setupAllSpawnsSucceed({ exitCode });
+    setupSiegemasterQuestLoadError: ({ error }: { error: Error }): void => {
+      siegemaster.setupQuestLoadError({ error });
     },
-    setupSiegemasterSpawnsComplete: ({ exitCode }: { exitCode: ExitCode }): void => {
-      siegemaster.setupAllSpawnsComplete({ exitCode });
+    setupLawbringerQuestLoad: ({ questJson }: { questJson: string }): void => {
+      lawbringer.setupQuestLoad({ questJson });
     },
-    setupSiegemasterSpawnFailure: (): void => {
-      siegemaster.setupSpawnFailure();
-    },
-    setupLawbringerQuestFile: ({ questJson }: { questJson: string }): void => {
-      lawbringer.setupQuestFile({ questJson });
-    },
-    setupLawbringerSpawnsSucceed: ({ exitCode }: { exitCode: ExitCode }): void => {
-      lawbringer.setupAllSpawnsSucceed({ exitCode });
-    },
-    setupLawbringerSpawnsComplete: ({ exitCode }: { exitCode: ExitCode }): void => {
-      lawbringer.setupAllSpawnsComplete({ exitCode });
-    },
-    setupLawbringerSpawnFailure: (): void => {
-      lawbringer.setupSpawnFailure();
+    setupLawbringerQuestLoadError: ({ error }: { error: Error }): void => {
+      lawbringer.setupQuestLoadError({ error });
     },
   };
 };

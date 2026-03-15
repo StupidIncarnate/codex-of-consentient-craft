@@ -1,14 +1,21 @@
-import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  FilePathStub,
+  QuestStub,
+  StepIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhaseStub } from '../../../contracts/orchestration-phase/orchestration-phase.stub';
+import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { lawbringerPhaseLayerBroker } from './lawbringer-phase-layer-broker';
 import { lawbringerPhaseLayerBrokerProxy } from './lawbringer-phase-layer-broker.proxy';
 
 type OrchestrationPhase = ReturnType<typeof OrchestrationPhaseStub>;
 
 describe('lawbringerPhaseLayerBroker', () => {
-  describe('all file pairs reviewed successfully', () => {
-    it('VALID: {quest with completed steps having files} => completes without error', async () => {
+  describe('successful lawbringer phase', () => {
+    it('VALID: {quest with completed steps} => calls onPhaseChange with lawbringer and completes', async () => {
       const proxy = lawbringerPhaseLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const phases: OrchestrationPhase[] = [];
@@ -16,51 +23,28 @@ describe('lawbringerPhaseLayerBroker', () => {
         phases.push(phase);
       };
 
-      proxy.setupQuestFile({
-        questJson: JSON.stringify({
-          id: 'add-auth',
-          folder: '001-add-auth',
-          title: 'Add Authentication',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          requirements: [],
-          designDecisions: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-              name: 'Create auth broker',
-              description: 'Create the auth broker',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: [
-                '/src/brokers/auth/login/auth-login-broker.ts',
-                '/src/brokers/auth/login/auth-login-broker.test.ts',
-              ],
-              filesToModify: [],
-              status: 'complete',
-              inputContracts: [],
-              outputContracts: [],
-            },
-          ],
-          toolingRequirements: [],
-          contracts: [],
-        }),
-      });
-      proxy.setupAllSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
+      const quest = QuestStub({ steps: [step] });
+
+      proxy.setupQuestLoad({ questJson: JSON.stringify(quest) });
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
+      await lawbringerPhaseLayerBroker({
+        questFilePath,
+        startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onPhaseChange,
+      });
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
   });
 
-  describe('file pair fails all retries', () => {
-    it('ERROR: {file pair fails all retries} => throws after max retries', async () => {
+  describe('quest load error', () => {
+    it('ERROR: {quest load fails} => throws error', async () => {
       const proxy = lawbringerPhaseLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const phases: OrchestrationPhase[] = [];
@@ -68,144 +52,43 @@ describe('lawbringerPhaseLayerBroker', () => {
         phases.push(phase);
       };
 
-      proxy.setupQuestFile({
-        questJson: JSON.stringify({
-          id: 'add-auth',
-          folder: '001-add-auth',
-          title: 'Add Authentication',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          requirements: [],
-          designDecisions: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-              name: 'Create auth broker',
-              description: 'Create the auth broker',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: ['/src/brokers/auth/login/auth-login-broker.ts'],
-              filesToModify: [],
-              status: 'complete',
-              inputContracts: [],
-              outputContracts: [],
-            },
-          ],
-          toolingRequirements: [],
-          contracts: [],
-        }),
-      });
-      proxy.setupSpawnFailure();
-
-      const startPath = FilePathStub({ value: '/project/src' });
+      proxy.setupQuestLoadError({ error: new Error('Quest file not found') });
 
       await expect(
-        lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange }),
-      ).rejects.toThrow(/Lawbringer phase failed after 2 retries/u);
+        lawbringerPhaseLayerBroker({
+          questFilePath,
+          startPath: FilePathStub({ value: '/project/src' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
+          onPhaseChange,
+        }),
+      ).rejects.toThrow(/Failed to read file/u);
 
       expect(phases).toStrictEqual(['lawbringer']);
     });
   });
 
-  describe('no completed steps', () => {
-    it('EMPTY: {quest with no completed steps} => returns immediately', async () => {
-      const proxy = lawbringerPhaseLayerBrokerProxy();
+  describe('aborted signal', () => {
+    it('VALID: {abortSignal already aborted} => returns immediately without calling onPhaseChange', async () => {
+      lawbringerPhaseLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest.json' });
       const phases: OrchestrationPhase[] = [];
       const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
         phases.push(phase);
       };
+      const controller = new AbortController();
+      controller.abort();
 
-      proxy.setupQuestFile({
-        questJson: JSON.stringify({
-          id: 'add-auth',
-          folder: '001-add-auth',
-          title: 'Add Authentication',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          requirements: [],
-          designDecisions: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-              name: 'Pending step',
-              description: 'Still pending',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: ['/src/brokers/auth/login/auth-login-broker.ts'],
-              filesToModify: [],
-              status: 'pending',
-              inputContracts: [],
-              outputContracts: [],
-            },
-          ],
-          toolingRequirements: [],
-          contracts: [],
-        }),
+      await lawbringerPhaseLayerBroker({
+        questFilePath,
+        startPath: FilePathStub({ value: '/project/src' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onPhaseChange,
+        abortSignal: controller.signal,
       });
 
-      const startPath = FilePathStub({ value: '/project/src' });
-
-      await lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange });
-
-      expect(phases).toStrictEqual(['lawbringer']);
-    });
-  });
-
-  describe('max retries exceeded', () => {
-    it('ERROR: {file pair keeps failing beyond max retries} => throws with retry count in message', async () => {
-      const proxy = lawbringerPhaseLayerBrokerProxy();
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const phases: OrchestrationPhase[] = [];
-      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
-        phases.push(phase);
-      };
-
-      proxy.setupQuestFile({
-        questJson: JSON.stringify({
-          id: 'add-auth',
-          folder: '001-add-auth',
-          title: 'Add Authentication',
-          status: 'in_progress',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          executionLog: [],
-          requirements: [],
-          designDecisions: [],
-          contexts: [],
-          observables: [],
-          steps: [
-            {
-              id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-              name: 'Create auth broker',
-              description: 'Create the auth broker',
-              observablesSatisfied: [],
-              dependsOn: [],
-              filesToCreate: ['/src/brokers/auth/login/auth-login-broker.ts'],
-              filesToModify: [],
-              status: 'complete',
-              inputContracts: [],
-              outputContracts: [],
-            },
-          ],
-          toolingRequirements: [],
-          contracts: [],
-        }),
-      });
-      proxy.setupSpawnFailure();
-
-      const startPath = FilePathStub({ value: '/project/src' });
-
-      await expect(
-        lawbringerPhaseLayerBroker({ questFilePath, startPath, onPhaseChange }),
-      ).rejects.toThrow(/Lawbringer phase failed after 2 retries with 1 failed file pairs/u);
-
-      expect(phases).toStrictEqual(['lawbringer']);
+      expect(phases).toStrictEqual([]);
     });
   });
 });

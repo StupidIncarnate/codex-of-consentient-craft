@@ -1,11 +1,7 @@
-import { agentParallelRunnerBrokerProxy } from '../../agent/parallel-runner/agent-parallel-runner-broker.proxy';
-import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
-import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
+import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 export const runLawbringerLayerBrokerProxy = (): Record<PropertyKey, never> => {
-  questLoadBrokerProxy();
-  agentSpawnByRoleBrokerProxy();
-  agentParallelRunnerBrokerProxy();
+  slotManagerOrchestrateBrokerProxy();
 
   return {};
 };

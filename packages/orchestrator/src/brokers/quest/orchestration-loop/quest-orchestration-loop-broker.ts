@@ -20,7 +20,6 @@ import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -31,6 +30,8 @@ import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
 import { runWardLayerBroker } from './run-ward-layer-broker';
 import { writeExecutionLogLayerBroker } from './write-execution-log-layer-broker';
+
+const SLOT_COUNT = 3;
 
 export const questOrchestrationLoopBroker = async ({
   processId,
@@ -47,7 +48,7 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   abortSignal?: AbortSignal;
 }): Promise<void> => {
-  const slotCount = slotCountContract.parse(slotManagerStatics.codeweaver.slotCount);
+  const slotCount = slotCountContract.parse(SLOT_COUNT);
   const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
   if (abortSignal?.aborted) {
@@ -156,8 +157,6 @@ export const questOrchestrationLoopBroker = async ({
           questId,
           questFilePath,
           startPath,
-          slotCount,
-          slotOperations,
           ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
         });
 
@@ -181,12 +180,7 @@ export const questOrchestrationLoopBroker = async ({
     if (resolution.action === 'launch-ward') {
       try {
         const absoluteStartPath = absoluteFilePathContract.parse(startPath);
-        await runWardLayerBroker({
-          questFilePath,
-          startPath: absoluteStartPath,
-          slotCount,
-          slotOperations,
-        });
+        await runWardLayerBroker({ questFilePath, startPath: absoluteStartPath });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('ward'),
@@ -229,7 +223,7 @@ export const questOrchestrationLoopBroker = async ({
 
     if (resolution.action === 'launch-lawbringer') {
       try {
-        await runLawbringerLayerBroker({ questFilePath, startPath });
+        await runLawbringerLayerBroker({ questFilePath, startPath, slotCount, slotOperations });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('lawbringer'),

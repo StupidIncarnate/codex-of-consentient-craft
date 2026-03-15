@@ -34,10 +34,8 @@ describe('questPipelineBroker', () => {
 
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupSiegemasterSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupLawbringerQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupLawbringerSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSiegemasterQuestLoad({ questJson: JSON.stringify(quest) });
+      proxy.setupLawbringerQuestLoad({ questJson: JSON.stringify(emptyQuest) });
 
       await questPipelineBroker({
         processId,
@@ -97,6 +95,7 @@ describe('questPipelineBroker', () => {
 
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSiegemasterQuestLoadError({ error: new Error('Quest file not found') });
 
       await expect(
         questPipelineBroker({
@@ -106,7 +105,7 @@ describe('questPipelineBroker', () => {
           startPath,
           onPhaseChange,
         }),
-      ).rejects.toThrow(/Failed to parse quest file/u);
+      ).rejects.toThrow(/Failed to read file/u);
 
       expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'failed']);
     });
@@ -158,7 +157,6 @@ describe('questPipelineBroker', () => {
         }),
         spiritmenderExitCode: ExitCodeStub({ value: 0 }),
       });
-      proxy.setupLawbringerSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
 
       await expect(
         questPipelineBroker({
@@ -189,12 +187,11 @@ describe('questPipelineBroker', () => {
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
       const quest = QuestStub({ steps: [step] });
-      const emptyQuest = QuestStub({ steps: [] });
 
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupSiegemasterSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSiegemasterQuestLoad({ questJson: JSON.stringify(quest) });
+      proxy.setupLawbringerQuestLoadError({ error: new Error('Quest file not found') });
 
       await expect(
         questPipelineBroker({
@@ -204,123 +201,7 @@ describe('questPipelineBroker', () => {
           startPath,
           onPhaseChange,
         }),
-      ).rejects.toThrow(/Failed to parse quest file/u);
-
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'lawbringer', 'failed']);
-    });
-  });
-
-  describe('siegemaster retry exhaustion', () => {
-    it('ERROR: {siegemaster observables fail all retries} => onPhaseChange has failed and error re-thrown', async () => {
-      const proxy = questPipelineBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-test-7' });
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const startPath = FilePathStub({ value: '/project/src' });
-      const phases: OrchestrationPhase[] = [];
-      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
-        phases.push(phase);
-      };
-
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
-      const quest = QuestStub({ steps: [step] });
-
-      proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
-      proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
-            flows: [
-              {
-                id: 'login-flow',
-                name: 'Login Flow',
-                entryPoint: '/login',
-                exitPoints: ['/dashboard'],
-                nodes: [
-                  {
-                    id: 'login-page',
-                    label: 'Login Page',
-                    type: 'state',
-                    observables: [
-                      { id: 'redirects-to-dashboard', type: 'ui-state', description: 'redirects' },
-                    ],
-                  },
-                ],
-                edges: [],
-              },
-            ],
-          }),
-        ),
-      });
-      proxy.setupSiegemasterSpawnFailure();
-
-      await expect(
-        questPipelineBroker({
-          processId,
-          questId,
-          questFilePath,
-          startPath,
-          onPhaseChange,
-        }),
-      ).rejects.toThrow(/Siegemaster phase failed after 2 retries/u);
-
-      expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'failed']);
-    });
-  });
-
-  describe('lawbringer retry exhaustion', () => {
-    it('ERROR: {lawbringer file pairs fail all retries} => onPhaseChange has failed and error re-thrown', async () => {
-      const proxy = questPipelineBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-test-8' });
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const questFilePath = FilePathStub({ value: '/quests/quest.json' });
-      const startPath = FilePathStub({ value: '/project/src' });
-      const phases: OrchestrationPhase[] = [];
-      const onPhaseChange = ({ phase }: { phase: OrchestrationPhase }): void => {
-        phases.push(phase);
-      };
-
-      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const step = DependencyStepStub({ id: stepId, status: 'complete', dependsOn: [] });
-      const quest = QuestStub({ steps: [step] });
-      const emptyQuest = QuestStub({ steps: [] });
-
-      proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
-      proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupSiegemasterSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupLawbringerQuestFile({
-        questJson: JSON.stringify(
-          QuestStub({
-            steps: [
-              {
-                id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-                name: 'Create auth broker',
-                description: 'Create the auth broker',
-                observablesSatisfied: [],
-                dependsOn: [],
-                filesToCreate: ['/src/brokers/auth/login/auth-login-broker.ts'],
-                filesToModify: [],
-                status: 'complete',
-                inputContracts: [],
-                outputContracts: [],
-              },
-            ],
-          }),
-        ),
-      });
-      proxy.setupLawbringerSpawnFailure();
-
-      await expect(
-        questPipelineBroker({
-          processId,
-          questId,
-          questFilePath,
-          startPath,
-          onPhaseChange,
-        }),
-      ).rejects.toThrow(/Lawbringer phase failed after 2 retries/u);
+      ).rejects.toThrow(/Failed to read file/u);
 
       expect(phases).toStrictEqual(['codeweaver', 'ward', 'siegemaster', 'lawbringer', 'failed']);
     });
@@ -345,10 +226,8 @@ describe('questPipelineBroker', () => {
 
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupSiegemasterSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupLawbringerQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupLawbringerSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSiegemasterQuestLoad({ questJson: JSON.stringify(quest) });
+      proxy.setupLawbringerQuestLoad({ questJson: JSON.stringify(emptyQuest) });
 
       await questPipelineBroker({
         processId,
@@ -409,10 +288,8 @@ describe('questPipelineBroker', () => {
 
       proxy.setupCodeweaverQuestLoad({ questJson: JSON.stringify(quest) });
       proxy.setupWardSuccessFirstTry({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupSiegemasterQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupSiegemasterSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
-      proxy.setupLawbringerQuestFile({ questJson: JSON.stringify(emptyQuest) });
-      proxy.setupLawbringerSpawnsComplete({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSiegemasterQuestLoad({ questJson: JSON.stringify(quest) });
+      proxy.setupLawbringerQuestLoad({ questJson: JSON.stringify(emptyQuest) });
 
       await questPipelineBroker({
         processId,

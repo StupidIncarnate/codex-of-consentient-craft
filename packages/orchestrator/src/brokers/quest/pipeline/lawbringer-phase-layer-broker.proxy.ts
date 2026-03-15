@@ -1,34 +1,17 @@
-import type { ExitCode } from '@dungeonmaster/shared/contracts';
-
-import { agentParallelRunnerBrokerProxy } from '../../agent/parallel-runner/agent-parallel-runner-broker.proxy';
-import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
-import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
+import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 export const lawbringerPhaseLayerBrokerProxy = (): {
-  setupQuestFile: (params: { questJson: string }) => void;
-  setupAllSpawnsSucceed: (params: { exitCode: ExitCode }) => void;
-  setupAllSpawnsComplete: (params: { exitCode: ExitCode }) => void;
-  setupSpawnFailure: () => void;
+  setupQuestLoad: (params: { questJson: string }) => void;
+  setupQuestLoadError: (params: { error: Error }) => void;
 } => {
-  const questProxy = questLoadBrokerProxy();
-  agentSpawnByRoleBrokerProxy();
-  const parallelProxy = agentParallelRunnerBrokerProxy();
+  const slotManagerProxy = slotManagerOrchestrateBrokerProxy();
 
   return {
-    setupQuestFile: ({ questJson }: { questJson: string }): void => {
-      questProxy.setupQuestFile({ questJson });
+    setupQuestLoad: ({ questJson }: { questJson: string }): void => {
+      slotManagerProxy.setupQuestLoad({ questJson });
     },
-
-    setupAllSpawnsSucceed: ({ exitCode }: { exitCode: ExitCode }): void => {
-      parallelProxy.setupAllSpawnsSucceed({ exitCode });
-    },
-
-    setupAllSpawnsComplete: ({ exitCode }: { exitCode: ExitCode }): void => {
-      parallelProxy.setupAllSpawnsComplete({ exitCode });
-    },
-
-    setupSpawnFailure: (): void => {
-      parallelProxy.setupSpawnFailure();
+    setupQuestLoadError: ({ error }: { error: Error }): void => {
+      slotManagerProxy.setupQuestLoadError({ error });
     },
   };
 };
