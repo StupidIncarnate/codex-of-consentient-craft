@@ -12,6 +12,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationPhaseStub } from '../../../contracts/orchestration-phase/orchestration-phase.stub';
+import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { siegemasterPhaseLayerBroker } from './siegemaster-phase-layer-broker';
 import { siegemasterPhaseLayerBrokerProxy } from './siegemaster-phase-layer-broker.proxy';
 
@@ -40,6 +42,8 @@ describe('siegemasterPhaseLayerBroker', () => {
         questId,
         questFilePath,
         startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
@@ -83,6 +87,8 @@ describe('siegemasterPhaseLayerBroker', () => {
         questId,
         questFilePath,
         startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
       });
 
@@ -110,6 +116,8 @@ describe('siegemasterPhaseLayerBroker', () => {
           questId,
           questFilePath,
           startPath: FilePathStub({ value: '/project/src' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
           onPhaseChange,
         }),
       ).rejects.toThrow(/Failed to read file/u);
@@ -135,6 +143,8 @@ describe('siegemasterPhaseLayerBroker', () => {
         questId,
         questFilePath,
         startPath: FilePathStub({ value: '/project/src' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
         onPhaseChange,
         abortSignal: controller.signal,
       });

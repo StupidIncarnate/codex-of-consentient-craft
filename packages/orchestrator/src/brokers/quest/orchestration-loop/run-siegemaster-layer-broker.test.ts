@@ -6,6 +6,8 @@ import {
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
 import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.proxy';
 
@@ -27,6 +29,8 @@ describe('runSiegemasterLayerBroker', () => {
         questId,
         questFilePath,
         startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
       });
 
       expect(result).toStrictEqual({ failedObservableIds: [] });
@@ -48,6 +52,8 @@ describe('runSiegemasterLayerBroker', () => {
         questId,
         questFilePath,
         startPath,
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
       });
 
       expect(result).toStrictEqual({ failedObservableIds: [] });
@@ -67,6 +73,8 @@ describe('runSiegemasterLayerBroker', () => {
           questId,
           questFilePath,
           startPath: FilePathStub({ value: '/project/src' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
         }),
       ).rejects.toThrow(/Failed to read file/u);
     });

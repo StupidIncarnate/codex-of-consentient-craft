@@ -2,7 +2,7 @@
  * PURPOSE: Runs the siegemaster phase using the slot manager for parallel observable verification
  *
  * USAGE:
- * const result = await siegemasterPhaseLayerBroker({questId, questFilePath, startPath, onPhaseChange});
+ * const result = await siegemasterPhaseLayerBroker({questId, questFilePath, startPath, slotCount, slotOperations, onPhaseChange});
  * // Returns SiegemasterPhaseResult with failedObservableIds from incomplete steps
  */
 
@@ -10,26 +10,30 @@ import type { FilePath, ObservableId, QuestId } from '@dungeonmaster/shared/cont
 
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { SiegemasterPhaseResult } from '../../../contracts/siegemaster-phase-result/siegemaster-phase-result-contract';
-import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
+import { failCountContract } from '../../../contracts/fail-count/fail-count-contract';
+import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
-import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 
-const SIEGEMASTER_SLOT_COUNT = 3;
-const SIEGEMASTER_TIMEOUT_MS = 300000;
-
 export const siegemasterPhaseLayerBroker = async ({
   questFilePath,
   startPath,
+  slotCount,
+  slotOperations,
   onPhaseChange,
   abortSignal,
 }: {
   questId: QuestId;
   questFilePath: FilePath;
   startPath: FilePath;
+  slotCount: SlotCount;
+  slotOperations: SlotOperations;
   onPhaseChange: ({ phase }: { phase: OrchestrationPhase }) => void;
   abortSignal?: AbortSignal;
 }): Promise<SiegemasterPhaseResult> => {
@@ -39,16 +43,18 @@ export const siegemasterPhaseLayerBroker = async ({
 
   onPhaseChange({ phase: 'siegemaster' });
 
-  const slotCount = slotCountContract.parse(SIEGEMASTER_SLOT_COUNT);
-  const timeoutMs = timeoutMsContract.parse(SIEGEMASTER_TIMEOUT_MS);
-  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.siegemaster.timeoutMs);
+  const maxRetries = failCountContract.parse(slotManagerStatics.siegemaster.maxRetries);
+  const maxFollowupDepth = followupDepthContract.parse(
+    slotManagerStatics.siegemaster.maxFollowupDepth,
+  );
 
   const quest = await questLoadBroker({ questFilePath });
   const pendingSteps = quest.steps.filter((step) => step.status !== 'complete');
   const workUnits = pendingSteps.map((step) =>
     buildWorkUnitForRoleTransformer({ role: 'siegemaster', step, quest }),
   );
-  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits, maxRetries });
 
   const result = await slotManagerOrchestrateBroker({
     workTracker,
@@ -56,6 +62,7 @@ export const siegemasterPhaseLayerBroker = async ({
     timeoutMs,
     slotOperations,
     startPath,
+    maxFollowupDepth,
     ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 

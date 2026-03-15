@@ -14,7 +14,9 @@ describe('slotManagerOrchestrateBroker', () => {
       slotManagerOrchestrateBrokerProxy();
       const workTracker = WorkTrackerStub({
         isAllComplete: () => true,
+        isAllTerminal: () => true,
         getReadyWorkIds: () => [],
+        getFailedIds: () => [],
       });
 
       const startPath = FilePathStub({ value: '/project/src' });
@@ -34,7 +36,9 @@ describe('slotManagerOrchestrateBroker', () => {
       slotManagerOrchestrateBrokerProxy();
       const workTracker = WorkTrackerStub({
         isAllComplete: () => true,
+        isAllTerminal: () => true,
         getReadyWorkIds: () => [],
+        getFailedIds: () => [],
       });
 
       const startPath = FilePathStub({ value: '/project/src' });

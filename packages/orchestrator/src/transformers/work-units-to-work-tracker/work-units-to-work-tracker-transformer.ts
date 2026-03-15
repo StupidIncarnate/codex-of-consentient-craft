@@ -97,6 +97,15 @@ export const workUnitsToWorkTrackerTransformer = ({
 
     isAllComplete: (): boolean => {
       for (const entry of items.values()) {
+        if (entry.status !== 'completed') {
+          return false;
+        }
+      }
+      return true;
+    },
+
+    isAllTerminal: (): boolean => {
+      for (const entry of items.values()) {
         if (entry.status !== 'completed' && entry.status !== 'failed') {
           return false;
         }

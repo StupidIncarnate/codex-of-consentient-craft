@@ -107,7 +107,8 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       await tracker.markFailed({ workItemId });
 
       expect(tracker.getFailedIds()).toStrictEqual([workItemId]);
-      expect(tracker.isAllComplete()).toBe(true);
+      expect(tracker.isAllComplete()).toBe(false);
+      expect(tracker.isAllTerminal()).toBe(true);
     });
 
     it('VALID: {maxRetries: 1, first failure} => resets to pending for retry', async () => {
@@ -212,6 +213,53 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       expect(tracker.isAllComplete()).toBe(true);
     });
 
+    it('VALID: {all failed} => returns false', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
+      const workItemId = WorkItemIdStub({ value: 'work-item-0' });
+
+      await tracker.markStarted({ workItemId });
+      await tracker.markFailed({ workItemId });
+
+      expect(tracker.isAllComplete()).toBe(false);
+    });
+
+    it('VALID: {mix completed and failed} => returns false', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+      await tracker.markFailed({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+
+      expect(tracker.isAllComplete()).toBe(false);
+    });
+
+    it('VALID: {pending items remain} => returns false', () => {
+      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
+
+      expect(tracker.isAllComplete()).toBe(false);
+    });
+  });
+
+  describe('isAllTerminal()', () => {
+    it('EMPTY: {no items} => returns true', () => {
+      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [] });
+
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
+
+    it('VALID: {all completed} => returns true', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
+      const workItemId = WorkItemIdStub({ value: 'work-item-0' });
+
+      await tracker.markStarted({ workItemId });
+      await tracker.markCompleted({ workItemId });
+
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
+
     it('VALID: {all failed} => returns true', async () => {
       const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
       const workItemId = WorkItemIdStub({ value: 'work-item-0' });
@@ -219,7 +267,7 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       await tracker.markStarted({ workItemId });
       await tracker.markFailed({ workItemId });
 
-      expect(tracker.isAllComplete()).toBe(true);
+      expect(tracker.isAllTerminal()).toBe(true);
     });
 
     it('VALID: {mix completed and failed} => returns true', async () => {
@@ -232,13 +280,13 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
       await tracker.markFailed({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
 
-      expect(tracker.isAllComplete()).toBe(true);
+      expect(tracker.isAllTerminal()).toBe(true);
     });
 
     it('VALID: {pending items remain} => returns false', () => {
       const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
 
-      expect(tracker.isAllComplete()).toBe(false);
+      expect(tracker.isAllTerminal()).toBe(false);
     });
   });
 

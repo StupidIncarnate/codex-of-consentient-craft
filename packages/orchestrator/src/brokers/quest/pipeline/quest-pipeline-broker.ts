@@ -84,6 +84,8 @@ export const questPipelineBroker = async ({
       questId,
       questFilePath,
       startPath,
+      slotCount,
+      slotOperations,
       onPhaseChange,
       ...(abortSignal === undefined ? {} : { abortSignal }),
     });

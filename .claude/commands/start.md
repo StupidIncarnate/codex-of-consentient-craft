@@ -9,8 +9,10 @@ dispatch a sub agent to gather it and report back.
 
 ## Agent Dispatch Rules
 
-- **Agents** (via `Task` tool) — Use for all implementation work. Pass them the relevant section of the plan and clear
-  instructions on what to build.
+- **Agents** (via `Task` tool) — Use for all implementation work. **Always pass the full plan file path** and tell the
+  agent which steps it owns. Instruct the agent to read the plan file first to understand the broader goals, context,
+  and constraints before starting its work. The agent needs the full picture — not just its slice — to make good
+  decisions at boundaries.
 - **Sub agents** — Use ONLY for lint/test fixes and exploratory research (finding files, reading code, checking
   patterns). Never for implementation.
 - **Terse responses** — Instruct all agents and sub agents to keep their response messages short. Only report what was
@@ -39,7 +41,21 @@ Dispatch an agent with the full plan. Tell it to:
 
 Then use those E2E test cases to drive manual validation. After all that is done, have a sub agent run a full `npm run ward` in the root of repo and to fix any issues that come out of it.
 
-After ward is passing, commit any remaining changes if any. 
+After ward is passing, commit any remaining changes if any.
+
+## Plan Alignment Review
+
+After all work is done and ward is green, **review the implementation against the plan**:
+
+1. Re-read the full plan.
+2. For each plan step, dispatch a sub agent **with the full plan file path** and tell it which steps to review. The
+   agent
+   must read the plan to understand what was intended, then inspect the actual implementation to verify it matches —
+   checking for gaps, wrong implementations, missing pieces, or deviations from the plan's intent.
+3. Compile a list of issues found across all review agents.
+4. If issues exist, dispatch agents to fix them (giving them the plan file path and the specific issues to address).
+   After fixes, run `npm run ward` again and ensure it's fully green.
+5. Repeat until the implementation faithfully matches the plan with no remaining gaps.
 
 ## Progress Tracking
 

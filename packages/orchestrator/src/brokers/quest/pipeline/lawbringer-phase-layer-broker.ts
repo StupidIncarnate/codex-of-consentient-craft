@@ -17,13 +17,14 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationPhase } from '../../../contracts/orchestration-phase/orchestration-phase-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
+import { failCountContract } from '../../../contracts/fail-count/fail-count-contract';
+import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
-
-const LAWBRINGER_TIMEOUT_MS = 300000;
 
 export const lawbringerPhaseLayerBroker = async ({
   questFilePath,
@@ -46,14 +47,18 @@ export const lawbringerPhaseLayerBroker = async ({
 
   onPhaseChange({ phase: 'lawbringer' });
 
-  const timeoutMs = timeoutMsContract.parse(LAWBRINGER_TIMEOUT_MS);
+  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.lawbringer.timeoutMs);
+  const maxRetries = failCountContract.parse(slotManagerStatics.lawbringer.maxRetries);
+  const maxFollowupDepth = followupDepthContract.parse(
+    slotManagerStatics.lawbringer.maxFollowupDepth,
+  );
 
   const quest = await questLoadBroker({ questFilePath });
   const stepsToReview = quest.steps.filter((step) => step.status !== 'complete');
   const workUnits = stepsToReview.map((step) =>
     buildWorkUnitForRoleTransformer({ role: 'lawbringer', step, quest }),
   );
-  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits, maxRetries });
 
   await slotManagerOrchestrateBroker({
     workTracker,
@@ -61,6 +66,7 @@ export const lawbringerPhaseLayerBroker = async ({
     timeoutMs,
     slotOperations,
     startPath,
+    maxFollowupDepth,
     ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 };

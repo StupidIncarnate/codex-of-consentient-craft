@@ -207,7 +207,13 @@ export const questOrchestrationLoopBroker = async ({
 
     if (resolution.action === 'launch-siegemaster') {
       try {
-        const siegeResult = await runSiegemasterLayerBroker({ questId, questFilePath, startPath });
+        const siegeResult = await runSiegemasterLayerBroker({
+          questId,
+          questFilePath,
+          startPath,
+          slotCount,
+          slotOperations,
+        });
         await writeExecutionLogLayerBroker({
           questId,
           agentType: agentTypeContract.parse('siegemaster'),

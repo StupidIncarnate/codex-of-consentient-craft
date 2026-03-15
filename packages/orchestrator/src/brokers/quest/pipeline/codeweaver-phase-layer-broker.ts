@@ -13,6 +13,7 @@ import type { SlotCount } from '../../../contracts/slot-count/slot-count-contrac
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
+import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -46,6 +47,9 @@ export const codeweaverPhaseLayerBroker = async ({
   onPhaseChange({ phase: 'codeweaver' });
 
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.codeweaver.timeoutMs);
+  const maxFollowupDepth = followupDepthContract.parse(
+    slotManagerStatics.codeweaver.maxFollowupDepth,
+  );
 
   const quest = await questLoadBroker({ questFilePath });
   const pendingSteps = quest.steps.filter((step) => step.status !== 'complete');
@@ -60,6 +64,7 @@ export const codeweaverPhaseLayerBroker = async ({
     timeoutMs,
     slotOperations,
     startPath,
+    maxFollowupDepth,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
   });

@@ -77,6 +77,10 @@ export const workTrackerQuestStepBroker = ({
       throw new Error('isAllComplete requires async quest load — use pre-load quest pattern');
     },
 
+    isAllTerminal: (): boolean => {
+      throw new Error('isAllTerminal requires async quest load — use pre-load quest pattern');
+    },
+
     getIncompleteIds: (): WorkItemId[] => {
       throw new Error('getIncompleteIds requires async quest load — use pre-load quest pattern');
     },

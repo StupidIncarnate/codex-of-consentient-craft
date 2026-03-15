@@ -6,6 +6,7 @@
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
+import { absoluteFilePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
@@ -17,7 +18,9 @@ import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contrac
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
+import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { buildContinuationContextTransformer } from '../../../transformers/build-continuation-context/build-continuation-context-transformer';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
@@ -47,7 +50,12 @@ export const orchestrationLoopLayerBroker = async ({
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
   maxFollowupDepth?: FollowupDepth;
 }): Promise<LoopResult> => {
-  if (workTracker.isAllComplete() && activeAgents.length === 0) {
+  if (workTracker.isAllTerminal() && activeAgents.length === 0) {
+    const failedIds = workTracker.getFailedIds();
+    if (failedIds.length > 0) {
+      const incompleteIds = workTracker.getIncompleteIds();
+      return { done: true, result: { completed: false, incompleteIds, failedIds } };
+    }
     return { done: true, result: { completed: true } };
   }
 
@@ -200,12 +208,32 @@ export const orchestrationLoopLayerBroker = async ({
         maxFollowupDepth === undefined || completedAgent.followupDepth < maxFollowupDepth;
 
       if (isWithinDepthLimit) {
-        const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
+        const contextString = signalResult.context ?? '';
+        const filePaths = contextString
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith('/'))
+          .map((line) => absoluteFilePathContract.parse(line));
+
+        const spiritmenderWorkUnit = workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths: filePaths.length > 0 ? filePaths : [absoluteFilePathContract.parse(startPath)],
+          ...(signalResult.reason === undefined
+            ? {}
+            : { errors: [errorMessageContract.parse(signalResult.reason)] }),
+        });
+
+        const newWorkItemId = workItemIdContract.parse(
+          `followup-${completedAgent.workItemId}-${String(Date.now())}`,
+        );
+        workTracker.addWorkItem({ workItemId: newWorkItemId, workUnit: spiritmenderWorkUnit });
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {
+          await workTracker.markStarted({ workItemId: newWorkItemId });
+
           const agentPromise = spawnAgentLayerBroker({
-            workUnit,
+            workUnit: spiritmenderWorkUnit,
             timeoutMs,
             startPath,
             ...(onAgentEntry === undefined
@@ -221,7 +249,7 @@ export const orchestrationLoopLayerBroker = async ({
 
           activeAgents.push({
             slotIndex: newSlotIndex,
-            workItemId: completedAgent.workItemId,
+            workItemId: newWorkItemId,
             sessionId: null,
             followupDepth: nextDepth,
             promise: agentPromise,

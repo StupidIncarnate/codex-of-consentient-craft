@@ -167,6 +167,14 @@ describe('workTrackerQuestStepBroker', () => {
       expect(() => tracker.isAllComplete()).toThrow(/requires async quest load/u);
     });
 
+    it('ERROR: {isAllTerminal} => throws sync not supported', () => {
+      workTrackerQuestStepBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });
+      const tracker = workTrackerQuestStepBroker({ questFilePath, role: 'codeweaver' });
+
+      expect(() => tracker.isAllTerminal()).toThrow(/requires async quest load/u);
+    });
+
     it('ERROR: {addWorkItem} => throws not supported', () => {
       workTrackerQuestStepBrokerProxy();
       const questFilePath = FilePathStub({ value: '/quests/quest-1.json' });

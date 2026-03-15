@@ -40,6 +40,7 @@ export const workTrackerContract = z.object({
     .args(z.object({ workItemId: workItemIdContract, targetRole: agentRoleContract }))
     .returns(z.promise(z.void())),
   isAllComplete: z.function().args().returns(z.boolean()),
+  isAllTerminal: z.function().args().returns(z.boolean()),
   getIncompleteIds: z.function().args().returns(z.array(workItemIdContract)),
   getFailedIds: z.function().args().returns(z.array(workItemIdContract)),
   addWorkItem: z
