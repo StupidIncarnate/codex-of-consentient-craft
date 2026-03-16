@@ -6,8 +6,7 @@
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
-import { absoluteFilePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -21,7 +20,6 @@ import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contrac
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
-import { buildContinuationContextTransformer } from '../../../transformers/build-continuation-context/build-continuation-context-transformer';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 
@@ -32,6 +30,7 @@ type LoopResult =
   | { done: false; activeAgents: ActiveAgent[] };
 
 export const orchestrationLoopLayerBroker = async ({
+  questId,
   workTracker,
   slotCount,
   timeoutMs,
@@ -41,6 +40,7 @@ export const orchestrationLoopLayerBroker = async ({
   onAgentEntry,
   maxFollowupDepth,
 }: {
+  questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
@@ -147,14 +147,17 @@ export const orchestrationLoopLayerBroker = async ({
   }
 
   if (result.signal === null) {
-    await workTracker.markPartiallyCompleted({ workItemId: completedAgent.workItemId });
+    await workTracker.markFailed({ workItemId: completedAgent.workItemId });
     return { done: false, activeAgents };
   }
+
+  const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
 
   const signalResult = await handleSignalLayerBroker({
     signal: result.signal,
     workItemId: completedAgent.workItemId,
     workTracker,
+    role: workUnit.role,
   });
 
   switch (signalResult.action) {
@@ -165,75 +168,40 @@ export const orchestrationLoopLayerBroker = async ({
       return { done: false, activeAgents };
     }
 
-    case 'respawn': {
-      const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
-
-      const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
-      if (newSlotIndex !== undefined) {
-        const continuationContext = buildContinuationContextTransformer({
-          ...(signalResult.continuationPoint === undefined
-            ? {}
-            : { continuationPoint: signalResult.continuationPoint }),
-          capturedOutput: result.capturedOutput,
-        });
-
-        const agentPromise = spawnAgentLayerBroker({
-          workUnit,
-          timeoutMs,
-          startPath,
-          ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
-          ...(continuationContext === null ? {} : { continuationContext }),
-          ...(onAgentEntry === undefined
-            ? {}
-            : {
-                onLine: ({ line }: { line: string }) => {
-                  onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
-                },
-              }),
-        });
-
-        activeAgents.push({
-          slotIndex: newSlotIndex,
-          workItemId: completedAgent.workItemId,
-          sessionId: result.sessionId,
-          followupDepth: ZERO_DEPTH,
-          promise: agentPromise,
-        });
-      }
-      return { done: false, activeAgents };
-    }
-
     case 'spawn_role': {
       const isWithinDepthLimit =
         maxFollowupDepth === undefined || completedAgent.followupDepth < maxFollowupDepth;
 
       if (isWithinDepthLimit) {
-        const contextString = signalResult.context ?? '';
-        const filePaths = contextString
-          .split('\n')
-          .map((line) => line.trim())
-          .filter((line) => line.startsWith('/'))
-          .map((line) => absoluteFilePathContract.parse(line));
+        // Drain: skip all pending items so no new work spawns while active agents finish
+        workTracker.skipAllPending();
 
-        const spiritmenderWorkUnit = workUnitContract.parse({
-          role: 'spiritmender',
-          filePaths: filePaths.length > 0 ? filePaths : [absoluteFilePathContract.parse(startPath)],
-          ...(signalResult.reason === undefined
-            ? {}
-            : { errors: [errorMessageContract.parse(signalResult.reason)] }),
-        });
+        const followupWorkUnit =
+          signalResult.targetRole === 'spiritmender'
+            ? workUnitContract.parse({
+                role: 'spiritmender',
+                filePaths: 'filePaths' in workUnit ? workUnit.filePaths : [],
+                ...(signalResult.summary === undefined ? {} : { errors: [signalResult.summary] }),
+              })
+            : workUnitContract.parse({
+                role: signalResult.targetRole,
+                questId,
+                ...(signalResult.summary === undefined
+                  ? {}
+                  : { failureContext: signalResult.summary }),
+              });
 
         const newWorkItemId = workItemIdContract.parse(
           `followup-${completedAgent.workItemId}-${String(Date.now())}`,
         );
-        workTracker.addWorkItem({ workItemId: newWorkItemId, workUnit: spiritmenderWorkUnit });
+        workTracker.addWorkItem({ workItemId: newWorkItemId, workUnit: followupWorkUnit });
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {
           await workTracker.markStarted({ workItemId: newWorkItemId });
 
           const agentPromise = spawnAgentLayerBroker({
-            workUnit: spiritmenderWorkUnit,
+            workUnit: followupWorkUnit,
             timeoutMs,
             startPath,
             ...(onAgentEntry === undefined
@@ -258,6 +226,10 @@ export const orchestrationLoopLayerBroker = async ({
       } else {
         await workTracker.markFailed({ workItemId: completedAgent.workItemId });
       }
+      return { done: false, activeAgents };
+    }
+
+    case 'bubble_to_user': {
       return { done: false, activeAgents };
     }
 

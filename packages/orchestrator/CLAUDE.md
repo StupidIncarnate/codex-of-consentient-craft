@@ -25,12 +25,13 @@ Orchestration Loop (workItems queue)
   │
   ├─ PathSeeker ──── verify-quest + finalizer (retry max 3)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
+  │     └─ PathSeeker on failure (depth-limited)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
-  │     └─ Spiritmender on failure (retry max 3)
-  ├─ Siegemaster ─── x3 concurrent via slot manager, 1 observable each
-  │     └─ Spiritmender via needs-role-followup (depth 3)
+  │     └─ PathSeeker on failure (drain + skip + replan)
+  ├─ Siegemaster ─── integration tests for observables
+  │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Lawbringer ──── x3 concurrent via slot manager, 1 file pair each
-  │     └─ Spiritmender via needs-role-followup (depth 3)
+  │     └─ PathSeeker on failure (drain + skip + replan)
   │
   ▼
 Complete
@@ -128,22 +129,40 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 ## Agent Roles
 
-| Role         | Spawned By                        | Signals                                           |
-|--------------|-----------------------------------|---------------------------------------------------|
-| Glyphsmith   | startDesignChat                   | N/A (design prototype)                            |
-| PathSeeker   | orchestration loop                | N/A (process exit)                                |
-| Codeweaver   | slot manager                      | complete, partially-complete, needs-role-followup |
-| Spiritmender | ward failure or needs-role-followup | complete, needs-role-followup                   |
-| Siegemaster  | slot manager                      | complete, partially-complete, needs-role-followup |
-| Lawbringer   | slot manager                      | complete, needs-role-followup                     |
+| Role         | Spawned By         | Signals          | On Failure        | MCP Tools (modify-quest)              |
+|--------------|--------------------|------------------|-------------------|---------------------------------------|
+| Glyphsmith   | startDesignChat    | N/A (design)     | N/A               | status                                |
+| PathSeeker   | orchestration loop | complete, failed | Bubble to user    | steps, contracts, toolingRequirements |
+| Codeweaver   | slot manager (x3)  | complete, failed | → PathSeeker      | none                                  |
+| Spiritmender | ward failure       | complete, failed | → PathSeeker      | none                                  |
+| Siegemaster  | orchestration loop | complete, failed | Creates fix chain | none                                  |
+| Lawbringer   | slot manager (x3)  | complete, failed | → Spiritmender    | none                                  |
 
 ## Signal System
 
-Agents communicate via `signal-back` MCP tool:
+Agents communicate via `signal-back` MCP tool. Two signals only:
 
-- **`complete`** — step done, release slot, dispatch next
-- **`partially-complete`** — respawn with `continuationPoint` context
-- **`needs-role-followup`** — spawn `targetRole` agent (usually spiritmender), depth-limited
+- **`complete`** — work done, release slot, dispatch next ready item
+- **`failed`** — work failed, trigger failure routing
+
+### Failure Routing Map
+
+```
+codeweaver   → pathseeker    (drain + skip + replan)
+siegemaster  → pathseeker    (drain + skip + replan)
+lawbringer   → pathseeker    (drain + skip + replan)
+spiritmender → pathseeker    (drain + skip + replan)
+pathseeker   → bubble to user (terminal — quest blocks)
+```
+
+Followup depth is limited to prevent infinite retry loops.
+
+### MCP Sanitization
+
+The MCP `modify-quest` tool strips server-only fields before passing to the orchestrator:
+
+- `workItems` — server-only, managed by orchestration loop
+- `wardResults` — server-only, written by ward layer broker
 
 ## Quest Event Notification (Two-Tier Model)
 

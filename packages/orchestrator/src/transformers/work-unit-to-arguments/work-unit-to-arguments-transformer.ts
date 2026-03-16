@@ -8,6 +8,7 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { outcomeTypeDescriptionsStatics } from '@dungeonmaster/shared/statics';
 
 import type { WorkUnit } from '../../contracts/work-unit/work-unit-contract';
 
@@ -72,6 +73,11 @@ export const workUnitToArgumentsTransformer = ({
       const { questId: siegeQuestId, observables } = workUnit;
       const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
 
+      siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
+      for (const [type, desc] of Object.entries(outcomeTypeDescriptionsStatics)) {
+        siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
+      }
+
       if (observables.length > 0) {
         siegeParts.push(contentTextContract.parse('Observables:'));
         for (const observable of observables) {
@@ -115,7 +121,13 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'pathseeker': {
-      return contentTextContract.parse(`Quest ID: ${workUnit.questId}`);
+      const pathParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${workUnit.questId}`)];
+
+      if (workUnit.failureContext !== undefined) {
+        pathParts.push(contentTextContract.parse(`\nFAILURE CONTEXT:\n${workUnit.failureContext}`));
+      }
+
+      return contentTextContract.parse(pathParts.join('\n'));
     }
 
     default: {

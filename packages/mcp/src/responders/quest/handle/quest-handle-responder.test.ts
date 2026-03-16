@@ -136,6 +136,48 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('SANITIZE: {workItems in args} => strips workItems before passing to adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          title: 'Keep This',
+          workItems: [{ id: 'sneaky-item', status: 'complete' }],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput();
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+        title: 'Keep This',
+      });
+    });
+
+    it('SANITIZE: {wardResults in args} => strips wardResults before passing to adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          wardResults: [{ id: 'sneaky-result' }],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput();
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupModifyQuestThrows({ error: new Error('Modify failed') });

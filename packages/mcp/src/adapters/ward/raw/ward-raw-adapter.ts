@@ -29,10 +29,20 @@ export const wardRawAdapter = async ({
     ? absoluteFilePathContract.parse(`${process.cwd()}/${packagePath}`)
     : absoluteFilePathContract.parse(process.cwd());
   const loadArgs = runId ? { rootPath, runId } : { rootPath };
-  const wardResult = await WardStorage.storageLoadBroker(loadArgs);
+  let wardResult = await WardStorage.storageLoadBroker(loadArgs);
+
+  if (!wardResult && packagePath) {
+    const fallbackRootPath = absoluteFilePathContract.parse(process.cwd());
+    const fallbackArgs = runId
+      ? { rootPath: fallbackRootPath, runId }
+      : { rootPath: fallbackRootPath };
+    wardResult = await WardStorage.storageLoadBroker(fallbackArgs);
+  }
 
   if (!wardResult) {
-    const message = runId ? `No ward result found for run ${runId}` : 'No ward results found';
+    const message = runId
+      ? `No ward result found for run ${runId}. Run IDs from 'npm run ward' are stored at the project root — do not pass packagePath when looking up root-level runs.`
+      : 'No ward results found';
     return contentTextContract.parse(message);
   }
 

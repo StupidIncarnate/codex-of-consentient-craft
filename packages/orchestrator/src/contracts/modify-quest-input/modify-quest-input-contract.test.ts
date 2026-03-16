@@ -90,7 +90,6 @@ describe('modifyQuestInputContract', () => {
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
-            status: 'pending',
           },
         ],
       });
@@ -107,7 +106,6 @@ describe('modifyQuestInputContract', () => {
           dependsOn: [],
           filesToCreate: [],
           filesToModify: [],
-          status: 'pending',
           inputContracts: [],
           outputContracts: [],
         },

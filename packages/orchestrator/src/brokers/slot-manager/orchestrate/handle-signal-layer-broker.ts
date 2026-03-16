@@ -2,39 +2,44 @@
  * PURPOSE: Handles agent signal types and updates work item status via WorkTracker
  *
  * USAGE:
- * const result = await handleSignalLayerBroker({signal, workItemId, workTracker});
+ * const result = await handleSignalLayerBroker({signal, workItemId, workTracker, role});
  * // Returns HandleSignalResult to drive orchestration loop decisions
  */
 
-import { agentRoleContract } from '../../../contracts/agent-role/agent-role-contract';
+import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
-import { streamSignalContract } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 
-type SignalContinuationPoint = NonNullable<StreamSignal['continuationPoint']>;
-type SignalTargetRole = NonNullable<StreamSignal['targetRole']>;
-type SignalReason = NonNullable<StreamSignal['reason']>;
-type SignalContext = NonNullable<StreamSignal['context']>;
+type SignalSummary = NonNullable<StreamSignal['summary']>;
+
+// Static failure routing: role that failed → role that gets spawned
+// Most failures route to pathseeker for replanning (drain+skip wipes pending items)
+// Lawbringer routes to spiritmender (targeted code fix using same file paths)
+// PathSeeker itself failing bubbles to the user (terminal)
+const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
+  codeweaver: 'pathseeker',
+  siegemaster: 'pathseeker',
+  lawbringer: 'spiritmender',
+  spiritmender: 'pathseeker',
+  pathseeker: null,
+};
 
 type HandleSignalResult =
   | { action: 'continue' }
-  | { action: 'respawn'; continuationPoint?: SignalContinuationPoint }
-  | {
-      action: 'spawn_role';
-      targetRole: SignalTargetRole;
-      reason?: SignalReason;
-      context?: SignalContext;
-    };
+  | { action: 'spawn_role'; targetRole: AgentRole; summary?: SignalSummary }
+  | { action: 'bubble_to_user'; summary?: SignalSummary };
 
 export const handleSignalLayerBroker = async ({
   signal,
   workItemId,
   workTracker,
+  role,
 }: {
   signal: StreamSignal;
   workItemId?: WorkItemId;
   workTracker: WorkTracker;
+  role: AgentRole;
 }): Promise<HandleSignalResult> => {
   switch (signal.signal) {
     case 'complete': {
@@ -44,34 +49,24 @@ export const handleSignalLayerBroker = async ({
       return { action: 'continue' };
     }
 
-    case 'partially-complete': {
+    case 'failed': {
       if (workItemId) {
-        await workTracker.markPartiallyCompleted({ workItemId });
-      }
-      return {
-        action: 'respawn',
-        ...(signal.continuationPoint === undefined
-          ? {}
-          : { continuationPoint: signal.continuationPoint }),
-      };
-    }
-
-    case 'needs-role-followup': {
-      if (workItemId) {
-        const parsedTargetRole = agentRoleContract.parse(signal.targetRole ?? 'spiritmender');
-        await workTracker.markBlocked({
-          workItemId,
-          targetRole: parsedTargetRole,
-        });
+        await workTracker.markFailed({ workItemId });
       }
 
-      const defaultTargetRole = streamSignalContract.shape.targetRole.unwrap().parse('default');
+      const targetRole = FAILURE_ROLE_MAP[role];
+
+      if (targetRole === null) {
+        return {
+          action: 'bubble_to_user',
+          ...(signal.summary === undefined ? {} : { summary: signal.summary }),
+        };
+      }
 
       return {
         action: 'spawn_role',
-        targetRole: signal.targetRole ?? defaultTargetRole,
-        ...(signal.reason === undefined ? {} : { reason: signal.reason }),
-        ...(signal.context === undefined ? {} : { context: signal.context }),
+        targetRole,
+        ...(signal.summary === undefined ? {} : { summary: signal.summary }),
       };
     }
 

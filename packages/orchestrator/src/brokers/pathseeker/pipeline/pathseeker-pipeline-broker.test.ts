@@ -32,7 +32,6 @@ describe('pathseekerPipelineBroker', () => {
               'packages/api/src/guards/has-auth/has-auth-guard.test.ts',
             ],
             filesToModify: [],
-            status: 'pending',
             exportName: 'hasAuthGuard',
           },
         ],

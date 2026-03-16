@@ -8,6 +8,7 @@ export const orchestrationLoopLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnFailure: () => void;
+  setupDateNow: (params: { timestamp: number }) => void;
 } => {
   const spawnProxy = spawnAgentLayerBrokerProxy();
   handleSignalLayerBrokerProxy();
@@ -16,8 +17,6 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     markStarted: jest.fn().mockResolvedValue(undefined),
     markCompleted: jest.fn().mockResolvedValue(undefined),
     markFailed: jest.fn().mockResolvedValue(undefined),
-    markPartiallyCompleted: jest.fn().mockResolvedValue(undefined),
-    markBlocked: jest.fn().mockResolvedValue(undefined),
     addWorkItem: jest.fn().mockReturnValue(undefined),
   });
 
@@ -34,6 +33,9 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     },
     setupSpawnFailure: (): void => {
       spawnProxy.setupSpawnFailure();
+    },
+    setupDateNow: ({ timestamp }: { timestamp: number }): void => {
+      jest.spyOn(Date, 'now').mockReturnValue(timestamp);
     },
   };
 };

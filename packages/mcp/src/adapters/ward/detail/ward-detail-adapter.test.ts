@@ -66,6 +66,40 @@ describe('wardDetailAdapter', () => {
     });
   });
 
+  describe('root fallback', () => {
+    it('VALID: {packagePath, not in package .ward but in root .ward} => falls back to root and returns detail', async () => {
+      const proxy = wardDetailAdapterProxy();
+      const wardResult = WardResultStub();
+      const expectedDetail = WardFileDetailStub({
+        value: 'src/app.ts\n  lint  no-unused-vars (line 15)\n    message',
+      });
+
+      proxy.setupStorageFallbackSequence({ packageResult: null, rootResult: wardResult });
+      proxy.setupDetailReturns({ detail: expectedDetail });
+
+      const result = await wardDetailAdapter({
+        runId: RunIdStub(),
+        filePath: ContentTextStub({ value: 'src/app.ts' }),
+        packagePath: 'packages/orchestrator',
+      });
+
+      expect(result).toStrictEqual(String(expectedDetail));
+    });
+
+    it('VALID: {packagePath, not in package or root .ward} => returns guidance message', async () => {
+      const proxy = wardDetailAdapterProxy();
+      proxy.setupStorageFallbackSequence({ packageResult: null, rootResult: null });
+
+      const result = await wardDetailAdapter({
+        runId: RunIdStub(),
+        filePath: ContentTextStub({ value: 'src/app.ts' }),
+        packagePath: 'packages/orchestrator',
+      });
+
+      expect(String(result)).toMatch(/do not pass packagePath/u);
+    });
+  });
+
   describe('no results found', () => {
     it('VALID: {runId, no result} => returns run-specific not found message', async () => {
       const proxy = wardDetailAdapterProxy();
@@ -76,7 +110,7 @@ describe('wardDetailAdapter', () => {
         filePath: ContentTextStub({ value: 'src/app.ts' }),
       });
 
-      expect(result).toBe('No ward result found for run 1739625600000-a3f1');
+      expect(String(result)).toMatch(/do not pass packagePath/u);
     });
 
     it('VALID: {no runId, no result} => returns generic not found message', async () => {

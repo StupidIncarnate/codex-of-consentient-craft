@@ -35,6 +35,7 @@ export const QuestHandleResponderProxy = (): {
   setupVerifyQuestThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
+  getLastModifyInput: () => unknown;
 } => {
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
@@ -86,5 +87,7 @@ export const QuestHandleResponderProxy = (): {
     setupListGuildsThrows: ({ error }: { error: Error }): void => {
       listGuildsProxy.throws({ error });
     },
+
+    getLastModifyInput: (): unknown => modifyQuestProxy.getLastCalledInput(),
   };
 };

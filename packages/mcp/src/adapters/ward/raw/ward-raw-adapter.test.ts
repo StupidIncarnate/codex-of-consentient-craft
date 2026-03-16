@@ -111,6 +111,47 @@ describe('wardRawAdapter', () => {
     });
   });
 
+  describe('root fallback', () => {
+    it('VALID: {packagePath, not in package .ward but in root .ward} => falls back to root and returns raw output', async () => {
+      const proxy = wardRawAdapterProxy();
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: CheckTypeStub({ value: 'lint' }),
+            projectResults: [
+              ProjectResultStub({
+                rawOutput: { stdout: 'lint output here', stderr: '', exitCode: 0 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      proxy.setupStorageFallbackSequence({ packageResult: null, rootResult: wardResult });
+
+      const result = await wardRawAdapter({
+        runId: RunIdStub(),
+        checkType: CheckTypeStub({ value: 'lint' }),
+        packagePath: 'packages/orchestrator',
+      });
+
+      expect(result).toBe('lint output here');
+    });
+
+    it('VALID: {packagePath, not in package or root .ward} => returns guidance message', async () => {
+      const proxy = wardRawAdapterProxy();
+      proxy.setupStorageFallbackSequence({ packageResult: null, rootResult: null });
+
+      const result = await wardRawAdapter({
+        runId: RunIdStub(),
+        checkType: CheckTypeStub({ value: 'lint' }),
+        packagePath: 'packages/orchestrator',
+      });
+
+      expect(String(result)).toMatch(/do not pass packagePath/u);
+    });
+  });
+
   describe('no results found', () => {
     it('VALID: {no ward result with runId} => returns run-specific not found message', async () => {
       const proxy = wardRawAdapterProxy();
@@ -121,7 +162,7 @@ describe('wardRawAdapter', () => {
         checkType: CheckTypeStub({ value: 'lint' }),
       });
 
-      expect(result).toBe('No ward result found for run 1739625600000-a3f1');
+      expect(String(result)).toMatch(/do not pass packagePath/u);
     });
 
     it('VALID: {no ward result without runId} => returns generic not found message', async () => {

@@ -25,7 +25,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub({ status: 'pending' })],
+        steps: [DependencyStepStub()],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();
@@ -62,7 +62,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub({ status: 'pending' })],
+        steps: [DependencyStepStub()],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();

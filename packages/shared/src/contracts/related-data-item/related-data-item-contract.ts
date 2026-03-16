@@ -2,7 +2,7 @@
  * PURPOSE: Branded string for work item relatedDataItems references with regex validation
  *
  * USAGE:
- * relatedDataItemContract.parse('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
+ * relatedDataItemContract.parse('steps/create-login-api');
  * // Returns: RelatedDataItem branded string
  *
  * WHEN-TO-USE: For referencing quest-level data from work items
@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 export const relatedDataItemContract = z
   .string()
-  .regex(/^(steps|wardResults)\/[a-f0-9-]+$/u, 'Must be {collection}/{uuid}')
+  .regex(/^(steps|wardResults)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}')
   .brand<'RelatedDataItem'>();
 
 export type RelatedDataItem = z.infer<typeof relatedDataItemContract>;

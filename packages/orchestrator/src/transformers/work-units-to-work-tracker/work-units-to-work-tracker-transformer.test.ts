@@ -150,52 +150,6 @@ describe('workUnitsToWorkTrackerTransformer', () => {
     });
   });
 
-  describe('markPartiallyCompleted()', () => {
-    it('VALID: {started item} => removes from ready and incomplete', async () => {
-      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
-      const workItemId = WorkItemIdStub({ value: 'work-item-0' });
-
-      await tracker.markStarted({ workItemId });
-      await tracker.markPartiallyCompleted({ workItemId });
-
-      expect(tracker.getReadyWorkIds()).toStrictEqual([]);
-      expect(tracker.getIncompleteIds()).toStrictEqual([workItemId]);
-      expect(tracker.isAllComplete()).toBe(false);
-    });
-
-    it('ERROR: {nonexistent item} => throws', async () => {
-      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [] });
-
-      await expect(
-        tracker.markPartiallyCompleted({ workItemId: WorkItemIdStub({ value: 'nonexistent' }) }),
-      ).rejects.toThrow(/Work item not found/u);
-    });
-  });
-
-  describe('markBlocked()', () => {
-    it('VALID: {started item} => marks as blocked', async () => {
-      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [WorkUnitStub()] });
-      const workItemId = WorkItemIdStub({ value: 'work-item-0' });
-
-      await tracker.markStarted({ workItemId });
-      await tracker.markBlocked({ workItemId, targetRole: 'spiritmender' });
-
-      expect(tracker.getReadyWorkIds()).toStrictEqual([]);
-      expect(tracker.getIncompleteIds()).toStrictEqual([workItemId]);
-    });
-
-    it('ERROR: {nonexistent item} => throws', async () => {
-      const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [] });
-
-      await expect(
-        tracker.markBlocked({
-          workItemId: WorkItemIdStub({ value: 'nonexistent' }),
-          targetRole: 'spiritmender',
-        }),
-      ).rejects.toThrow(/Work item not found/u);
-    });
-  });
-
   describe('isAllComplete()', () => {
     it('EMPTY: {no items} => returns true', () => {
       const tracker = workUnitsToWorkTrackerTransformer({ workUnits: [] });
@@ -300,6 +254,93 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
 
       expect(tracker.getIncompleteIds()).toStrictEqual([WorkItemIdStub({ value: 'work-item-1' })]);
+    });
+  });
+
+  describe('skipAllPending()', () => {
+    it('VALID: {2 pending items} => marks all as skipped', () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      tracker.skipAllPending();
+
+      expect(tracker.getReadyWorkIds()).toStrictEqual([]);
+      expect(tracker.isAllTerminal()).toBe(true);
+      expect(tracker.getIncompleteIds()).toStrictEqual([]);
+    });
+
+    it('VALID: {1 started, 1 pending} => only skips pending item', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.getReadyWorkIds()).toStrictEqual([]);
+      expect(tracker.isAllTerminal()).toBe(false);
+      expect(tracker.getIncompleteIds()).toStrictEqual([WorkItemIdStub({ value: 'work-item-0' })]);
+    });
+
+    it('VALID: {1 completed, 1 failed, 1 pending} => only skips pending', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub(), WorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+      await tracker.markFailed({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.getReadyWorkIds()).toStrictEqual([]);
+      expect(tracker.isAllTerminal()).toBe(true);
+      expect(tracker.getFailedIds()).toStrictEqual([WorkItemIdStub({ value: 'work-item-1' })]);
+    });
+
+    it('EMPTY: {no pending items} => no-op', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.isAllComplete()).toBe(true);
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
+  });
+
+  describe('isAllTerminal() with skipped', () => {
+    it('VALID: {all skipped} => returns true', () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      tracker.skipAllPending();
+
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
+
+    it('VALID: {mix of completed, failed, and skipped} => returns true', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub(), WorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+      await tracker.markFailed({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.isAllTerminal()).toBe(true);
+      expect(tracker.isAllComplete()).toBe(false);
     });
   });
 

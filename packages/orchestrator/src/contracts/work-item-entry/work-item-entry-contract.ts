@@ -11,14 +11,7 @@ import { z } from 'zod';
 import { failCountContract } from '../fail-count/fail-count-contract';
 import { workUnitContract } from '../work-unit/work-unit-contract';
 
-const workItemStatusContract = z.enum([
-  'pending',
-  'started',
-  'completed',
-  'failed',
-  'partially-completed',
-  'blocked',
-]);
+const workItemStatusContract = z.enum(['pending', 'started', 'completed', 'failed', 'skipped']);
 
 export type WorkItemStatus = z.infer<typeof workItemStatusContract>;
 

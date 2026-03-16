@@ -32,7 +32,7 @@ export const workItemsToQuestStatusTransformer = ({
     return currentStatus;
   }
 
-  if (workItems.every((item) => item.status === 'complete')) {
+  if (workItems.every((item) => item.status === 'complete' || item.status === 'skipped')) {
     return 'complete';
   }
 

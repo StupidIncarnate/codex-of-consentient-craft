@@ -1,29 +1,16 @@
-import { StreamSignalStub } from '../../contracts/stream-signal/stream-signal.stub';
 import { StreamTextStub } from '../../contracts/stream-text/stream-text.stub';
 import { buildContinuationContextTransformer } from './build-continuation-context-transformer';
-
-type StreamSignal = ReturnType<typeof StreamSignalStub>;
-type SignalContinuationPoint = NonNullable<StreamSignal['continuationPoint']>;
-
-const makeContinuationPoint = ({ value }: { value: string }): SignalContinuationPoint => {
-  const { continuationPoint } = StreamSignalStub({
-    signal: 'partially-complete',
-    continuationPoint: value as never,
-  });
-  return continuationPoint!;
-};
 
 describe('buildContinuationContextTransformer', () => {
   describe('both continuationPoint and capturedOutput', () => {
     it('VALID: {continuationPoint and capturedOutput with lines} => returns combined context with output tail', () => {
-      const continuationPoint = makeContinuationPoint({ value: 'Resume from gate 3' });
       const capturedOutput = [
         StreamTextStub({ value: 'Created file utils.ts' }),
         StreamTextStub({ value: 'Writing test cases' }),
       ];
 
       const result = buildContinuationContextTransformer({
-        continuationPoint,
+        continuationPoint: 'Resume from gate 3',
         capturedOutput,
       });
 
@@ -35,10 +22,8 @@ describe('buildContinuationContextTransformer', () => {
 
   describe('only continuationPoint', () => {
     it('VALID: {continuationPoint, empty capturedOutput} => returns continuationPoint as context', () => {
-      const continuationPoint = makeContinuationPoint({ value: 'Resume from gate 3' });
-
       const result = buildContinuationContextTransformer({
-        continuationPoint,
+        continuationPoint: 'Resume from gate 3',
         capturedOutput: [],
       });
 

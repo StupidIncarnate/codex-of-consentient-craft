@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-import type { BlockingReason } from '../../contracts/blocking-reason/blocking-reason-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
@@ -34,7 +33,6 @@ export interface ExecutionRowLayerWidgetProps {
   dependsOn: DependencyLabel[];
   isAdhoc: boolean;
   errorMessage?: ErrorMessage;
-  blockingReason?: BlockingReason;
   entries?: ChatEntry[];
   isStreaming?: boolean;
 }
@@ -79,7 +77,6 @@ export const ExecutionRowLayerWidget = ({
   dependsOn,
   isAdhoc,
   errorMessage,
-  blockingReason,
   entries,
   isStreaming,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
@@ -263,19 +260,6 @@ export const ExecutionRowLayerWidget = ({
               }}
             >
               Files: {files.join(', ')}
-            </Text>
-          ) : null}
-          {blockingReason ? (
-            <Text
-              ff="monospace"
-              data-testid="execution-row-blocking-reason"
-              style={{
-                fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                color: colors.warning,
-                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
-              }}
-            >
-              Blocked: {blockingReason}
             </Text>
           ) : null}
           {errorMessage ? (

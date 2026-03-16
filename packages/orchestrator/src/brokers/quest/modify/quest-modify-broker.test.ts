@@ -28,7 +28,6 @@ describe('questModifyBroker', () => {
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
-            status: 'pending',
           },
         ],
       });

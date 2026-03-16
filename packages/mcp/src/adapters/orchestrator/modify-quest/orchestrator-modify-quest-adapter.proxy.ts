@@ -16,6 +16,7 @@ jest.mock('@dungeonmaster/orchestrator');
 export const orchestratorModifyQuestAdapterProxy = (): {
   returns: (params: { result: ModifyQuestResult }) => void;
   throws: (params: { error: Error }) => void;
+  getLastCalledInput: () => unknown;
 } => {
   const mock = jest.mocked(StartOrchestrator.modifyQuest);
 
@@ -27,6 +28,10 @@ export const orchestratorModifyQuestAdapterProxy = (): {
     },
     throws: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);
+    },
+    getLastCalledInput: (): unknown => {
+      const lastCall = mock.mock.calls.at(-1);
+      return lastCall?.[0]?.input;
     },
   };
 };

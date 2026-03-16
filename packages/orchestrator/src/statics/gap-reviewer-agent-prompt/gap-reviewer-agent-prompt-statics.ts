@@ -17,7 +17,7 @@ export const gapReviewerAgentPromptStatics = {
   prompt: {
     template: `---
 name: quest-gap-reviewer
-description: "Use this agent to critically review a quest SPEC for internal consistency, completeness, and testability. It pokes holes in the specification document — NOT the codebase. It does NOT plan implementation layers, flag missing adapters/brokers, or audit what code exists. That is PathSeeker's job.\\n\\nUse this agent:\\n- After a quest has been written or updated and needs critical review of the spec\\n- Before starting implementation to catch spec-level problems early\\n- When you want to ensure flow graphs are complete, observables are testable, and contracts are consistent\\n- When validating that tangible values are concrete and design decisions don't contradict each other\\n\\n<example>\\nContext: User has just finished writing a quest definition for a new feature.\\nuser: \\"I've created the quest for the user registration flow. Can you review it for gaps?\\"\\nassistant: \\"I'll use the quest-gap-reviewer agent to review the spec for logical gaps, vague observables, and missing error paths.\\"\\n<commentary>\\nThe user wants a spec review. Launch quest-gap-reviewer to check the spec document for completeness, NOT to audit the codebase.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User mentions they're unsure if a quest is thoroughly reviewed.\\nuser: \\"I think the payment flow quest might be missing some edge cases.\\"\\nassistant: \\"Let me use the quest-gap-reviewer agent to review the payment flow spec for missing edge cases, orphan nodes, and vague observables.\\"\\n<commentary>\\nThe user suspects incompleteness in a spec. Launch quest-gap-reviewer to find spec-level gaps.\\n</commentary>\\n</example>"
+description: "Use this agent to critically review a quest SPEC for internal consistency, completeness, and testability. It pokes holes in the specification document — NOT the codebase. It does NOT plan implementation layers, flag missing adapters/brokers, or audit what code exists. That is PathSeeker's job.nnUse this agent:n- After a quest has been written or updated and needs critical review of the specn- Before starting implementation to catch spec-level problems earlyn- When you want to ensure flow graphs are complete, observables are testable, and contracts are consistentn- When validating that tangible values are concrete and design decisions don't contradict each othernn<example>nContext: User has just finished writing a quest definition for a new feature.nuser: "I've created the quest for the user registration flow. Can you review it for gaps?"nassistant: "I'll use the quest-gap-reviewer agent to review the spec for logical gaps, vague observables, and missing error paths."n<commentary>nThe user wants a spec review. Launch quest-gap-reviewer to check the spec document for completeness, NOT to audit the codebase.n</commentary>n</example>nn<example>nContext: User mentions they're unsure if a quest is thoroughly reviewed.nuser: "I think the payment flow quest might be missing some edge cases."nassistant: "Let me use the quest-gap-reviewer agent to review the payment flow spec for missing edge cases, orphan nodes, and vague observables."n<commentary>nThe user suspects incompleteness in a spec. Launch quest-gap-reviewer to find spec-level gaps.n</commentary>n</example>"
 tools: Bash, Glob, Grep, Read, WebFetch, WebSearch
 model: sonnet
 color: orange
@@ -75,10 +75,10 @@ You excel at:
 
 ### Step 1: Retrieve the Quest
 
-Use the \\\`get-quest\\\` MCP tool with \\\`stage: "spec"\\\` and the provided quest ID.
+Use the \`get-quest\` MCP tool with \`stage: "spec"\` and the provided quest ID.
 
 This fetches flows (with structured nodes, edges, and inline observables), designDecisions, contracts, and
-toolingRequirements - excluding \\\`steps\\\` which are not relevant for gap analysis. If no quest ID
+toolingRequirements - excluding \`steps\` which are not relevant for gap analysis. If no quest ID
 is provided, ask the user for it.
 
 ### Step 2: Review Flows (Node and Edge Structure)
@@ -223,7 +223,7 @@ For each observable's \`then\` assertions:
 
 Structure your review as:
 
-\\\`\\\`\\\`markdown
+\`\`\`markdown
 ## Quest Review: [Quest Title]
 
 ### Flow Assessment
@@ -289,7 +289,7 @@ Things that are fine but worth noting.
 - Warnings: [count]
 - Questions: [count]
 - Overall assessment: [Ready / Needs Work / Major Gaps]
-\\\`\\\`\\\`
+\`\`\`
 
 ## Important Principles
 
@@ -301,7 +301,7 @@ Things that are fine but worth noting.
 
 ## Quest Context
 
-The quest ID will be provided in $ARGUMENTS. Use the \\\`get-quest\\\` MCP tool with \\\`stage: "spec"\\\` to retrieve it.
+The quest ID will be provided in $ARGUMENTS. Use the \`get-quest\` MCP tool with \`stage: "spec"\` to retrieve it.
 
 If no quest ID is provided, ask the user to specify which quest to review.`,
     placeholders: {

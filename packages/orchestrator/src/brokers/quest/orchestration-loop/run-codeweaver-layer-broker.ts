@@ -6,13 +6,7 @@
  * // Resolves steps from relatedDataItems, runs codeweaver agents, updates work item + step statuses
  */
 
-import type {
-  FilePath,
-  QuestId,
-  QuestWorkItemId,
-  StepId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -61,7 +55,6 @@ export const runCodeweaverLayerBroker = async ({
 
   // Resolve relatedDataItems -> steps, build mapping: slotManagerWorkItemId -> questWorkItemId
   const slotToQuestMap = new Map<WorkItemId, QuestWorkItemId>();
-  const slotToStepMap = new Map<WorkItemId, StepId>();
   const workUnits = workItems.map((wi, i) => {
     const [ref] = wi.relatedDataItems;
     if (!ref) {
@@ -73,13 +66,13 @@ export const runCodeweaverLayerBroker = async ({
     }
     const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
     slotToQuestMap.set(slotId, wi.id);
-    slotToStepMap.set(slotId, resolved.item.id);
     return buildWorkUnitForRoleTransformer({ role: 'codeweaver', step: resolved.item, quest });
   });
 
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
 
   const result = await slotManagerOrchestrateBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,
@@ -89,7 +82,7 @@ export const runCodeweaverLayerBroker = async ({
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
   });
 
-  // Map slot manager results back to quest work items + update step statuses
+  // Map slot manager results back to quest work items
   const completedAt = new Date().toISOString();
   const incompleteIds: WorkItemId[] = result.completed ? [] : result.incompleteIds;
   const failedSlotIds = new Set<WorkItemId>(incompleteIds);
@@ -99,21 +92,12 @@ export const runCodeweaverLayerBroker = async ({
     status: 'complete' | 'failed';
     completedAt?: typeof completedAt;
   }[] = [];
-  const stepUpdates: {
-    id: StepId;
-    status: 'complete' | 'failed';
-    completedAt?: typeof completedAt;
-  }[] = [];
 
   for (const [slotId, questItemId] of slotToQuestMap) {
-    const stepId = slotToStepMap.get(slotId);
     if (failedSlotIds.has(slotId)) {
       workItemUpdates.push({ id: questItemId, status: 'failed' });
     } else {
       workItemUpdates.push({ id: questItemId, status: 'complete', completedAt });
-      if (stepId) {
-        stepUpdates.push({ id: stepId, status: 'complete', completedAt });
-      }
     }
   }
 
@@ -121,7 +105,6 @@ export const runCodeweaverLayerBroker = async ({
     input: {
       questId,
       workItems: workItemUpdates,
-      steps: stepUpdates,
     } as ModifyQuestInput,
   });
 };

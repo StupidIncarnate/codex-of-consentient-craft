@@ -70,9 +70,6 @@ export * from './src/contracts/exit-code/exit-code.stub';
 export * from './src/contracts/quest-status/quest-status-contract';
 export * from './src/contracts/quest-status/quest-status.stub';
 
-export * from './src/contracts/step-status/step-status-contract';
-export * from './src/contracts/step-status/step-status.stub';
-
 export * from './src/contracts/file-name/file-name-contract';
 export * from './src/contracts/file-name/file-name.stub';
 

@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { BlockingReasonStub } from '../../contracts/blocking-reason/blocking-reason.stub';
 import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
@@ -316,27 +315,6 @@ describe('ExecutionRowLayerWidget', () => {
       const errorEl = screen.getByTestId('execution-row-error-message');
 
       expect(errorEl.textContent).toBe('Error: Type check failed');
-    });
-
-    it('VALID: {expanded, blockingReason} => shows blocking reason', async () => {
-      ExecutionRowLayerWidgetProxy();
-
-      mantineRenderAdapter({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            blockingReason={BlockingReasonStub({ value: 'Rate limited' })}
-          />
-        ),
-      });
-
-      const header = screen.getByTestId('execution-row-header');
-      await userEvent.click(header);
-
-      const blockingEl = screen.getByTestId('execution-row-blocking-reason');
-
-      expect(blockingEl.textContent).toBe('Blocked: Rate limited');
     });
   });
 

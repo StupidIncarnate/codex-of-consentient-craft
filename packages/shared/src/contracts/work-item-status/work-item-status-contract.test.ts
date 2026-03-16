@@ -35,14 +35,6 @@ describe('workItemStatusContract', () => {
       expect(result).toBe('failed');
     });
 
-    it('VALID: skipped => parses successfully', () => {
-      const status = WorkItemStatusStub({ value: 'skipped' });
-
-      const result = workItemStatusContract.parse(status);
-
-      expect(result).toBe('skipped');
-    });
-
     it('VALID: {default} => defaults to pending', () => {
       const status = WorkItemStatusStub();
 
@@ -55,6 +47,14 @@ describe('workItemStatusContract', () => {
       expect(() => {
         workItemStatusContract.parse('invalid_status');
       }).toThrow(/Invalid enum value/u);
+    });
+
+    it('VALID: skipped => parses successfully', () => {
+      const status = WorkItemStatusStub({ value: 'skipped' });
+
+      const result = workItemStatusContract.parse(status);
+
+      expect(result).toBe('skipped');
     });
   });
 });

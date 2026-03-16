@@ -19,6 +19,7 @@ import {
 const pathseekerWorkUnitContract = z.object({
   role: z.literal('pathseeker'),
   questId: questIdContract,
+  failureContext: z.string().min(1).brand<'FailureContext'>().optional(),
 });
 
 const codeweaverWorkUnitContract = z.object({

@@ -352,5 +352,28 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe('Quest ID: my-quest');
     });
+
+    it('VALID: {pathseeker with failureContext} => returns quest ID and failure context', () => {
+      const workUnit = PathseekerWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        failureContext: 'FAILED OBSERVABLES:\n- modal-visible: Modal not rendered' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Quest ID: my-quest\n\nFAILURE CONTEXT:\nFAILED OBSERVABLES:\n- modal-visible: Modal not rendered',
+      );
+    });
+
+    it('VALID: {pathseeker without failureContext} => omits failure context section', () => {
+      const workUnit = PathseekerWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/FAILURE CONTEXT/u);
+    });
   });
 });

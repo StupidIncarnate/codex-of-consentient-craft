@@ -9,7 +9,6 @@
 
 import { z } from 'zod';
 
-import { agentRoleContract } from '../agent-role/agent-role-contract';
 import { workItemIdContract } from '../work-item-id/work-item-id-contract';
 import { workUnitContract } from '../work-unit/work-unit-contract';
 
@@ -31,14 +30,6 @@ export const workTrackerContract = z.object({
     .function()
     .args(z.object({ workItemId: workItemIdContract }))
     .returns(z.promise(z.void())),
-  markPartiallyCompleted: z
-    .function()
-    .args(z.object({ workItemId: workItemIdContract }))
-    .returns(z.promise(z.void())),
-  markBlocked: z
-    .function()
-    .args(z.object({ workItemId: workItemIdContract, targetRole: agentRoleContract }))
-    .returns(z.promise(z.void())),
   isAllComplete: z.function().args().returns(z.boolean()),
   isAllTerminal: z.function().args().returns(z.boolean()),
   getIncompleteIds: z.function().args().returns(z.array(workItemIdContract)),
@@ -47,6 +38,7 @@ export const workTrackerContract = z.object({
     .function()
     .args(z.object({ workItemId: workItemIdContract, workUnit: workUnitContract }))
     .returns(z.void()),
+  skipAllPending: z.function().args().returns(z.void()),
 });
 
 export type WorkTracker = z.infer<typeof workTrackerContract>;

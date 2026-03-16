@@ -84,12 +84,17 @@ export const QuestHandleResponder = async ({
 
   if (tool === 'modify-quest') {
     const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const questId = String(questIdRaw);
+    const questId = questIdContract.parse(questIdRaw);
+
+    // Sanitize: strip server-only fields that agents must not set via MCP
+    const sanitized = { ...args };
+    Reflect.deleteProperty(sanitized, 'workItems');
+    Reflect.deleteProperty(sanitized, 'wardResults');
 
     try {
       const result = await orchestratorModifyQuestAdapter({
         questId,
-        input: args as never,
+        input: sanitized as never,
       });
       return {
         content: [

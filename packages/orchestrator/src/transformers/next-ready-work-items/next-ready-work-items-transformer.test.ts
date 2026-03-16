@@ -43,25 +43,6 @@ describe('nextReadyWorkItemsTransformer', () => {
         questBlocked: false,
       });
     });
-
-    it('VALID: {mix of complete and skipped} => questTerminal true', () => {
-      const item1 = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
-        status: 'complete',
-      });
-      const item2 = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
-        status: 'skipped',
-      });
-
-      const result = nextReadyWorkItemsTransformer({ workItems: [item1, item2] });
-
-      expect(result).toStrictEqual({
-        ready: [],
-        questTerminal: true,
-        questBlocked: false,
-      });
-    });
   });
 
   describe('ready items', () => {
@@ -82,22 +63,6 @@ describe('nextReadyWorkItemsTransformer', () => {
     it('VALID: {item with completed dep} => ready', () => {
       const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep = WorkItemStub({ id: depId, status: 'complete' });
-      const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
-        status: 'pending',
-        dependsOn: [depId],
-      });
-
-      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
-
-      expect(result.ready).toStrictEqual([item]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
-    });
-
-    it('VALID: {skipped dep counts as satisfied} => ready', () => {
-      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const dep = WorkItemStub({ id: depId, status: 'skipped' });
       const item = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
         status: 'pending',
@@ -147,6 +112,64 @@ describe('nextReadyWorkItemsTransformer', () => {
         ready: [],
         questTerminal: false,
         questBlocked: true,
+      });
+    });
+
+    it('VALID: {pending item with skipped dep} => blocked', () => {
+      const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const dep = WorkItemStub({ id: depId, status: 'skipped' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [depId],
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: false,
+        questBlocked: true,
+      });
+    });
+  });
+
+  describe('skipped states', () => {
+    it('VALID: {all items skipped} => questTerminal true', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'skipped',
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
+      });
+    });
+
+    it('VALID: {mix of complete, failed, and skipped} => questTerminal true', () => {
+      const item1 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+      const item2 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'failed',
+      });
+      const item3 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f' }),
+        status: 'skipped',
+      });
+
+      const result = nextReadyWorkItemsTransformer({ workItems: [item1, item2, item3] });
+
+      expect(result).toStrictEqual({
+        ready: [],
+        questTerminal: true,
+        questBlocked: false,
       });
     });
   });

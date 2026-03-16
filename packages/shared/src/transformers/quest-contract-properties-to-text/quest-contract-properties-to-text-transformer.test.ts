@@ -2,31 +2,51 @@ import { questContractPropertiesToTextTransformer } from './quest-contract-prope
 
 describe('questContractPropertiesToTextTransformer', () => {
   describe('basic properties', () => {
-    it('VALID: {properties: single with type, depth: 1} => returns indented line with type', () => {
+    it('VALID: {properties: single with type, depth: 1} => returns indented line with type and description', () => {
       const result = questContractPropertiesToTextTransformer({
-        properties: [{ name: 'email' as never, type: 'EmailAddress' as never }],
+        properties: [
+          {
+            name: 'email' as never,
+            type: 'EmailAddress' as never,
+            description: 'User email' as never,
+          },
+        ],
         depth: 1,
       });
 
-      expect(result).toStrictEqual(['  email: EmailAddress']);
+      expect(result).toStrictEqual(['  email: EmailAddress \u2014 User email']);
     });
 
-    it('VALID: {properties: with value, depth: 1} => includes value in quotes', () => {
+    it('VALID: {properties: with value, depth: 1} => includes type, value, and description', () => {
       const result = questContractPropertiesToTextTransformer({
-        properties: [{ name: 'method' as never, value: 'POST' as never }],
+        properties: [
+          {
+            name: 'method' as never,
+            type: 'HttpMethod' as never,
+            value: 'POST' as never,
+            description: 'HTTP method' as never,
+          },
+        ],
         depth: 1,
       });
 
-      expect(result).toStrictEqual(['  method = "POST"']);
+      expect(result).toStrictEqual(['  method: HttpMethod = "POST" \u2014 HTTP method']);
     });
 
-    it('VALID: {properties: with optional flag, depth: 1} => appends (optional)', () => {
+    it('VALID: {properties: with optional flag, depth: 1} => appends (optional) then description', () => {
       const result = questContractPropertiesToTextTransformer({
-        properties: [{ name: 'bio' as never, type: 'BioText' as never, optional: true }],
+        properties: [
+          {
+            name: 'bio' as never,
+            type: 'BioText' as never,
+            description: 'User bio' as never,
+            optional: true,
+          },
+        ],
         depth: 1,
       });
 
-      expect(result).toStrictEqual(['  bio: BioText (optional)']);
+      expect(result).toStrictEqual(['  bio: BioText (optional) \u2014 User bio']);
     });
 
     it('VALID: {properties: with description, depth: 1} => appends em-dash description', () => {
@@ -44,20 +64,24 @@ describe('questContractPropertiesToTextTransformer', () => {
   describe('depth', () => {
     it('VALID: {depth: 0} => no indentation', () => {
       const result = questContractPropertiesToTextTransformer({
-        properties: [{ name: 'id' as never, type: 'UserId' as never }],
+        properties: [
+          { name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never },
+        ],
         depth: 0,
       });
 
-      expect(result).toStrictEqual(['id: UserId']);
+      expect(result).toStrictEqual(['id: UserId \u2014 User ID']);
     });
 
     it('VALID: {depth: 2} => double indentation', () => {
       const result = questContractPropertiesToTextTransformer({
-        properties: [{ name: 'id' as never, type: 'UserId' as never }],
+        properties: [
+          { name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never },
+        ],
         depth: 2,
       });
 
-      expect(result).toStrictEqual(['    id: UserId']);
+      expect(result).toStrictEqual(['    id: UserId \u2014 User ID']);
     });
   });
 
@@ -68,9 +92,18 @@ describe('questContractPropertiesToTextTransformer', () => {
           {
             name: 'body' as never,
             type: 'RequestBody' as never,
+            description: 'Request body' as never,
             properties: [
-              { name: 'email' as never, type: 'EmailAddress' as never },
-              { name: 'password' as never, type: 'Password' as never },
+              {
+                name: 'email' as never,
+                type: 'EmailAddress' as never,
+                description: 'User email' as never,
+              },
+              {
+                name: 'password' as never,
+                type: 'Password' as never,
+                description: 'User password' as never,
+              },
             ],
           },
         ],
@@ -78,9 +111,9 @@ describe('questContractPropertiesToTextTransformer', () => {
       });
 
       expect(result).toStrictEqual([
-        '  body: RequestBody',
-        '    email: EmailAddress',
-        '    password: Password',
+        '  body: RequestBody \u2014 Request body',
+        '    email: EmailAddress \u2014 User email',
+        '    password: Password \u2014 User password',
       ]);
     });
   });
@@ -100,13 +133,20 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: multiple} => returns one line per property', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          { name: 'email' as never, type: 'EmailAddress' as never },
-          { name: 'name' as never, type: 'UserName' as never },
+          {
+            name: 'email' as never,
+            type: 'EmailAddress' as never,
+            description: 'User email' as never,
+          },
+          { name: 'name' as never, type: 'UserName' as never, description: 'User name' as never },
         ],
         depth: 1,
       });
 
-      expect(result).toStrictEqual(['  email: EmailAddress', '  name: UserName']);
+      expect(result).toStrictEqual([
+        '  email: EmailAddress \u2014 User email',
+        '  name: UserName \u2014 User name',
+      ]);
     });
   });
 });

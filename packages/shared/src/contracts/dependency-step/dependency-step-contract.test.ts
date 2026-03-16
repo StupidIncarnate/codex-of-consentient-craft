@@ -11,7 +11,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
-      status: 'in_progress',
     });
 
     expect(step).toStrictEqual({
@@ -22,7 +21,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: ['src/routes/users.ts'],
       filesToModify: ['src/routes/index.ts'],
-      status: 'in_progress',
       inputContracts: [],
       outputContracts: [],
     });
@@ -44,7 +42,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: [],
       outputContracts: [],
     });
@@ -63,7 +60,6 @@ describe('dependencyStepContract', () => {
       dependsOn: ['setup-database', 'create-schema'],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: [],
       outputContracts: [],
     });
@@ -83,7 +79,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: ['src/controllers/user-controller.ts', 'src/models/user-model.ts'],
       filesToModify: ['src/app.ts', 'src/routes/index.ts'],
-      status: 'pending',
       inputContracts: [],
       outputContracts: [],
     });
@@ -100,24 +95,9 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: [],
       outputContracts: [],
     });
-  });
-
-  it('VALID: {with new status fields} => parses status tracking fields', () => {
-    const step = DependencyStepStub({
-      status: 'blocked',
-      startedAt: '2024-01-15T10:00:00.000Z',
-      blockingReason: 'Waiting for role followup',
-      blockingType: 'needs_role_followup',
-    });
-
-    expect(step.status).toBe('blocked');
-    expect(step.startedAt).toBe('2024-01-15T10:00:00.000Z');
-    expect(step.blockingReason).toBe('Waiting for role followup');
-    expect(step.blockingType).toBe('needs_role_followup');
   });
 
   it('VALID: {with exportName} => parses step with export name', () => {
@@ -142,7 +122,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: ['LoginCredentials', 'AuthToken'],
       outputContracts: ['UserSession'],
     });
@@ -157,7 +136,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
     });
 
     expect(step).toStrictEqual({
@@ -168,7 +146,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: [],
       outputContracts: [],
     });
@@ -188,7 +165,6 @@ describe('dependencyStepContract', () => {
       dependsOn: [],
       filesToCreate: [],
       filesToModify: [],
-      status: 'pending',
       inputContracts: [],
       outputContracts: ['LoginCredentials'],
     });
@@ -204,7 +180,6 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
-        status: 'pending',
       });
 
     expect(parseInvalidId).toThrow(/invalid_string/u);
@@ -220,7 +195,6 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
-        status: 'pending',
       });
 
     expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
@@ -236,7 +210,6 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         filesToCreate: [],
         filesToModify: [],
-        status: 'pending',
       });
 
     expect(parseInvalidObservables).toThrow(/invalid_string/u);
@@ -252,25 +225,8 @@ describe('dependencyStepContract', () => {
         dependsOn: ['Bad'],
         filesToCreate: [],
         filesToModify: [],
-        status: 'pending',
       });
 
     expect(parseInvalidDependsOn).toThrow(/invalid_string/u);
-  });
-
-  it('INVALID_STATUS: {status: "invalid"} => throws validation error', () => {
-    const parseInvalidStatus = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'valid-step',
-        name: 'Test',
-        description: 'Test',
-        observablesSatisfied: [],
-        dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
-        status: 'invalid',
-      });
-
-    expect(parseInvalidStatus).toThrow(/Invalid enum value/u);
   });
 });

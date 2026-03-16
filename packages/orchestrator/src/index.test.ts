@@ -29,7 +29,6 @@ describe('orchestrator', () => {
       'questOutboxWatchBroker',
       'questSectionContract',
       'questStageContract',
-      'questUpdateStepBroker',
       'questVerifyBroker',
       'sessionIdExtractorTransformer',
       'siegemasterPromptStatics',

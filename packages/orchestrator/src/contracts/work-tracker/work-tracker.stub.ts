@@ -12,12 +12,11 @@ export const WorkTrackerStub = ({ ...props }: StubArgument<WorkTracker> = {}): W
     markStarted: () => undefined,
     markCompleted: () => undefined,
     markFailed: () => undefined,
-    markPartiallyCompleted: () => undefined,
-    markBlocked: () => undefined,
     isAllComplete: () => false,
     isAllTerminal: () => false,
     getIncompleteIds: () => [WorkItemIdStub()],
     getFailedIds: () => [],
     addWorkItem: () => undefined,
+    skipAllPending: () => undefined,
     ...props,
   });

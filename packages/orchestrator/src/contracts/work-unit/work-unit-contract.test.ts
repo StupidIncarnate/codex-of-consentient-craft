@@ -41,6 +41,46 @@ describe('workUnitContract', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
     });
+
+    it('VALID: {role: pathseeker, failureContext} => parses with failureContext', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'pathseeker',
+        questId,
+        failureContext: 'FAILED OBSERVABLES: login form did not redirect',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'pathseeker',
+        questId,
+        failureContext: 'FAILED OBSERVABLES: login form did not redirect',
+      });
+    });
+
+    it('VALID: {role: pathseeker, no failureContext} => parses without failureContext', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'pathseeker',
+        questId,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'pathseeker',
+        questId,
+      });
+    });
+
+    it('INVALID: {role: pathseeker, failureContext: ""} => throws for empty string', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'pathseeker',
+          questId: QuestIdStub({ value: 'add-auth' }),
+          failureContext: '',
+        }),
+      ).toThrow(/too_small/u);
+    });
   });
 
   describe('codeweaver work unit', () => {

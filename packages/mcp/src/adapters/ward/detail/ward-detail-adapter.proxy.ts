@@ -18,6 +18,10 @@ jest.mock(
 
 export const wardDetailAdapterProxy = (): {
   setupStorageReturns: (params: { wardResult: WardResult | null }) => void;
+  setupStorageFallbackSequence: (params: {
+    packageResult: WardResult | null;
+    rootResult: WardResult | null;
+  }) => void;
   setupDetailReturns: (params: { detail: WardFileDetail }) => void;
   setupStorageThrows: (params: { error: Error }) => void;
 } => {
@@ -30,6 +34,16 @@ export const wardDetailAdapterProxy = (): {
   return {
     setupStorageReturns: ({ wardResult }: { wardResult: WardResult | null }): void => {
       storageMock.mockResolvedValueOnce(wardResult);
+    },
+    setupStorageFallbackSequence: ({
+      packageResult,
+      rootResult,
+    }: {
+      packageResult: WardResult | null;
+      rootResult: WardResult | null;
+    }): void => {
+      storageMock.mockResolvedValueOnce(packageResult);
+      storageMock.mockResolvedValueOnce(rootResult);
     },
     setupDetailReturns: ({ detail }: { detail: WardFileDetail }): void => {
       detailMock.mockReturnValueOnce(detail);

@@ -8,7 +8,6 @@ export { questFolderFindBroker } from './brokers/quest/folder-find/quest-folder-
 export { questListBroker } from './brokers/quest/list/quest-list-broker';
 export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
 export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
-export { questUpdateStepBroker } from './brokers/quest/update-step/quest-update-step-broker';
 export { questVerifyBroker } from './brokers/quest/verify/quest-verify-broker';
 export { questOutboxWatchBroker } from './brokers/quest/outbox-watch/quest-outbox-watch-broker';
 

@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -22,6 +22,7 @@ describe('slotManagerOrchestrateBroker', () => {
       const startPath = FilePathStub({ value: '/project/src' });
 
       const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
@@ -44,6 +45,7 @@ describe('slotManagerOrchestrateBroker', () => {
       const startPath = FilePathStub({ value: '/project/src' });
 
       const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
@@ -72,6 +74,7 @@ describe('slotManagerOrchestrateBroker', () => {
       });
 
       const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
@@ -95,6 +98,7 @@ describe('slotManagerOrchestrateBroker', () => {
       const startPath = FilePathStub({ value: '/project/src' });
 
       const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),

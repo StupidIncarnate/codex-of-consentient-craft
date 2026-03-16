@@ -13,6 +13,10 @@ jest.mock('@dungeonmaster/ward/dist/src/brokers/storage/load/storage-load-broker
 
 export const wardRawAdapterProxy = (): {
   setupStorageReturns: (params: { wardResult: WardResult | null }) => void;
+  setupStorageFallbackSequence: (params: {
+    packageResult: WardResult | null;
+    rootResult: WardResult | null;
+  }) => void;
   setupStorageThrows: (params: { error: Error }) => void;
 } => {
   const storageMock = jest.mocked(WardStorage.storageLoadBroker);
@@ -22,6 +26,16 @@ export const wardRawAdapterProxy = (): {
   return {
     setupStorageReturns: ({ wardResult }: { wardResult: WardResult | null }): void => {
       storageMock.mockResolvedValueOnce(wardResult);
+    },
+    setupStorageFallbackSequence: ({
+      packageResult,
+      rootResult,
+    }: {
+      packageResult: WardResult | null;
+      rootResult: WardResult | null;
+    }): void => {
+      storageMock.mockResolvedValueOnce(packageResult);
+      storageMock.mockResolvedValueOnce(rootResult);
     },
     setupStorageThrows: ({ error }: { error: Error }): void => {
       storageMock.mockRejectedValueOnce(error);

@@ -5,12 +5,10 @@ import {
 
 import { signalFromStreamTransformer } from './signal-from-stream-transformer';
 import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
-import { StepIdStub } from '@dungeonmaster/shared/contracts';
 
 describe('signalFromStreamTransformer', () => {
   describe('valid signal extraction', () => {
     it('VALID: {assistant message with signal-back tool call} => returns StreamSignal', () => {
-      const stepId = StepIdStub();
       const line = StreamJsonLineStub({
         value: JSON.stringify({
           type: 'assistant',
@@ -21,7 +19,6 @@ describe('signalFromStreamTransformer', () => {
                 name: 'mcp__dungeonmaster__signal-back',
                 input: {
                   signal: 'complete',
-                  stepId,
                   summary: 'Task completed',
                 },
               },
@@ -34,13 +31,11 @@ describe('signalFromStreamTransformer', () => {
 
       expect(result).toStrictEqual({
         signal: 'complete',
-        stepId,
         summary: 'Task completed',
       });
     });
 
-    it('VALID: {partially-complete signal} => returns StreamSignal with progress', () => {
-      const stepId = StepIdStub();
+    it('VALID: {failed signal} => returns StreamSignal with summary', () => {
       const line = StreamJsonLineStub({
         value: JSON.stringify({
           type: 'assistant',
@@ -50,10 +45,8 @@ describe('signalFromStreamTransformer', () => {
                 type: 'tool_use',
                 name: 'mcp__dungeonmaster__signal-back',
                 input: {
-                  signal: 'partially-complete',
-                  stepId,
-                  progress: 'Half done',
-                  continuationPoint: 'Step 3',
+                  signal: 'failed',
+                  summary: 'Tests failing in user-fetch-broker',
                 },
               },
             ],
@@ -64,15 +57,12 @@ describe('signalFromStreamTransformer', () => {
       const result = signalFromStreamTransformer({ line });
 
       expect(result).toStrictEqual({
-        signal: 'partially-complete',
-        stepId,
-        progress: 'Half done',
-        continuationPoint: 'Step 3',
+        signal: 'failed',
+        summary: 'Tests failing in user-fetch-broker',
       });
     });
 
     it('VALID: {multiple tool calls with signal-back} => returns first signal', () => {
-      const stepId = StepIdStub();
       const line = StreamJsonLineStub({
         value: JSON.stringify({
           type: 'assistant',
@@ -84,7 +74,6 @@ describe('signalFromStreamTransformer', () => {
                 name: 'mcp__dungeonmaster__signal-back',
                 input: {
                   signal: 'complete',
-                  stepId,
                   summary: 'Done',
                 },
               },
@@ -97,44 +86,7 @@ describe('signalFromStreamTransformer', () => {
 
       expect(result).toStrictEqual({
         signal: 'complete',
-        stepId,
         summary: 'Done',
-      });
-    });
-
-    it('VALID: {needs-role-followup signal} => returns StreamSignal with targetRole', () => {
-      const stepId = StepIdStub();
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__signal-back',
-                input: {
-                  signal: 'needs-role-followup',
-                  stepId,
-                  targetRole: 'reviewer',
-                  reason: 'Code needs review before merge',
-                  context: 'PR ready for review',
-                  resume: true,
-                },
-              },
-            ],
-          },
-        }),
-      });
-
-      const result = signalFromStreamTransformer({ line });
-
-      expect(result).toStrictEqual({
-        signal: 'needs-role-followup',
-        stepId,
-        targetRole: 'reviewer',
-        reason: 'Code needs review before merge',
-        context: 'PR ready for review',
-        resume: true,
       });
     });
   });

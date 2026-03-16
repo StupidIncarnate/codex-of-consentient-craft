@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { DependencyStepStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { DependencyStepStub, QuestStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
 import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
@@ -93,14 +93,12 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Build auth module',
-            status: 'in_progress',
             filesToCreate: ['src/auth.ts'],
             filesToModify: [],
           }),
           DependencyStepStub({
             id: 'step-2',
             name: 'Add user model',
-            status: 'pending',
             filesToCreate: ['src/user.ts'],
             filesToModify: [],
           }),
@@ -122,9 +120,29 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({
         status: 'in_progress',
         steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Step A', status: 'complete' }),
-          DependencyStepStub({ id: 'step-2', name: 'Step B', status: 'in_progress' }),
-          DependencyStepStub({ id: 'step-3', name: 'Step C', status: 'pending' }),
+          DependencyStepStub({ id: 'step-1', name: 'Step A' }),
+          DependencyStepStub({ id: 'step-2', name: 'Step B' }),
+          DependencyStepStub({ id: 'step-3', name: 'Step C' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: ['steps/step-2'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: ['steps/step-3'],
+          }),
         ],
       });
 
@@ -327,8 +345,22 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({
         status: 'in_progress',
         steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Step A', status: 'complete' }),
-          DependencyStepStub({ id: 'step-2', name: 'Step B', status: 'pending' }),
+          DependencyStepStub({ id: 'step-1', name: 'Step A' }),
+          DependencyStepStub({ id: 'step-2', name: 'Step B' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: ['steps/step-2'],
+          }),
         ],
       });
 

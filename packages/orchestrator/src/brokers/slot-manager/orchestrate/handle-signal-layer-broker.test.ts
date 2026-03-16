@@ -15,7 +15,12 @@ describe('handleSignalLayerBroker', () => {
       });
       const signal = StreamSignalStub({ signal: 'complete' });
 
-      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'codeweaver',
+      });
 
       expect(result).toStrictEqual({ action: 'continue' });
       expect(mockMarkCompleted).toHaveBeenCalledTimes(1);
@@ -29,104 +34,190 @@ describe('handleSignalLayerBroker', () => {
       });
       const signal = StreamSignalStub({ signal: 'complete' });
 
-      const result = await handleSignalLayerBroker({ signal, workTracker });
+      const result = await handleSignalLayerBroker({ signal, workTracker, role: 'codeweaver' });
 
       expect(result).toStrictEqual({ action: 'continue' });
       expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
     });
   });
 
-  describe('partially-complete signal', () => {
-    it('VALID: {signal: partially-complete, workItemId, continuationPoint: defined} => returns respawn action with continuationPoint', async () => {
+  describe('failed signal - codeweaver', () => {
+    it('VALID: {signal: failed, role: codeweaver} => spawns pathseeker', async () => {
       handleSignalLayerBrokerProxy();
       const workItemId = WorkItemIdStub({ value: 'work-item-1' });
-      const mockMarkPartiallyCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
       const workTracker = WorkTrackerStub({
-        markPartiallyCompleted: mockMarkPartiallyCompleted,
+        markFailed: mockMarkFailed,
       });
-      const signal = StreamSignalStub({
-        signal: 'partially-complete',
-        continuationPoint: 'Continue from step 2' as never,
-      });
+      const signal = StreamSignalStub({ signal: 'failed', summary: 'Tests broken' as never });
 
-      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'codeweaver',
+      });
 
       expect(result).toStrictEqual({
-        action: 'respawn',
-        continuationPoint: 'Continue from step 2',
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+        summary: 'Tests broken',
       });
-      expect(mockMarkPartiallyCompleted).toHaveBeenCalledTimes(1);
-    });
-
-    it('VALID: {signal: partially-complete, no workItemId} => skips markPartiallyCompleted and returns respawn action', async () => {
-      handleSignalLayerBrokerProxy();
-      const mockMarkPartiallyCompleted = jest.fn().mockResolvedValue(undefined);
-      const workTracker = WorkTrackerStub({
-        markPartiallyCompleted: mockMarkPartiallyCompleted,
-      });
-      const signal = StreamSignalStub({
-        signal: 'partially-complete',
-        continuationPoint: 'Continue from step 2' as never,
-      });
-
-      const result = await handleSignalLayerBroker({ signal, workTracker });
-
-      expect(result).toStrictEqual({
-        action: 'respawn',
-        continuationPoint: 'Continue from step 2',
-      });
-      expect(mockMarkPartiallyCompleted).toHaveBeenCalledTimes(0);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('needs-role-followup signal', () => {
-    it('VALID: {signal: needs-role-followup, workItemId, all fields defined} => returns spawn_role action with all fields', async () => {
+  describe('failed signal - siegemaster', () => {
+    it('VALID: {signal: failed, role: siegemaster} => spawns pathseeker', async () => {
       handleSignalLayerBrokerProxy();
       const workItemId = WorkItemIdStub({ value: 'work-item-1' });
-      const mockMarkBlocked = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
       const workTracker = WorkTrackerStub({
-        markBlocked: mockMarkBlocked,
+        markFailed: mockMarkFailed,
       });
-      const signal = StreamSignalStub({
-        signal: 'needs-role-followup',
-        targetRole: 'spiritmender' as never,
-        reason: 'Need code review' as never,
-        context: 'Review context' as never,
-      });
+      const signal = StreamSignalStub({ signal: 'failed', summary: 'Modal not rendered' as never });
 
-      const result = await handleSignalLayerBroker({ signal, workItemId, workTracker });
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'siegemaster',
+      });
 
       expect(result).toStrictEqual({
         action: 'spawn_role',
-        targetRole: 'spiritmender',
-        reason: 'Need code review',
-        context: 'Review context',
+        targetRole: 'pathseeker',
+        summary: 'Modal not rendered',
       });
-      expect(mockMarkBlocked).toHaveBeenCalledTimes(1);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('VALID: {signal: needs-role-followup, no workItemId} => skips markBlocked and returns spawn_role action', async () => {
+  describe('failed signal - lawbringer', () => {
+    it('VALID: {signal: failed, role: lawbringer} => spawns spiritmender', async () => {
       handleSignalLayerBrokerProxy();
-      const mockMarkBlocked = jest.fn().mockResolvedValue(undefined);
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
       const workTracker = WorkTrackerStub({
-        markBlocked: mockMarkBlocked,
+        markFailed: mockMarkFailed,
       });
       const signal = StreamSignalStub({
-        signal: 'needs-role-followup',
-        targetRole: 'spiritmender' as never,
-        reason: 'Need code review' as never,
-        context: 'Review context' as never,
+        signal: 'failed',
+        summary: 'Missing test coverage' as never,
       });
 
-      const result = await handleSignalLayerBroker({ signal, workTracker });
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'lawbringer',
+      });
 
       expect(result).toStrictEqual({
         action: 'spawn_role',
         targetRole: 'spiritmender',
-        reason: 'Need code review',
-        context: 'Review context',
+        summary: 'Missing test coverage',
       });
-      expect(mockMarkBlocked).toHaveBeenCalledTimes(0);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('failed signal - spiritmender', () => {
+    it('VALID: {signal: failed, role: spiritmender} => spawns pathseeker', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Architectural issue' as never,
+      });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'spiritmender',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+        summary: 'Architectural issue',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('failed signal - pathseeker', () => {
+    it('VALID: {signal: failed, role: pathseeker} => bubbles to user', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed', summary: 'Cannot plan steps' as never });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'pathseeker',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'bubble_to_user',
+        summary: 'Cannot plan steps',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('failed signal - no workItemId', () => {
+    it('VALID: {signal: failed, no workItemId} => skips markFailed', async () => {
+      handleSignalLayerBrokerProxy();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed', summary: 'Error occurred' as never });
+
+      const result = await handleSignalLayerBroker({ signal, workTracker, role: 'codeweaver' });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+        summary: 'Error occurred',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('failed signal - with default summary', () => {
+    it('VALID: {signal: failed, default stub summary} => includes summary in result', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed' });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'siegemaster',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+        summary: 'Task completed successfully',
+      });
     });
   });
 });

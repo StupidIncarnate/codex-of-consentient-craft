@@ -27,6 +27,14 @@ describe('workItemEntryContract', () => {
 
       expect(result.status).toBe('failed');
     });
+
+    it('VALID: {status: started} => parses successfully', () => {
+      const entry = WorkItemEntryStub({ status: 'started' });
+
+      const result = workItemEntryContract.parse(entry);
+
+      expect(result.status).toBe('started');
+    });
   });
 
   describe('invalid entries', () => {
@@ -35,6 +43,24 @@ describe('workItemEntryContract', () => {
         workItemEntryContract.parse({
           ...WorkItemEntryStub(),
           status: 'unknown',
+        }),
+      ).toThrow(/invalid_enum_value/u);
+    });
+
+    it('INVALID_STATUS: {status: "partially-completed"} => throws (removed status)', () => {
+      expect(() =>
+        workItemEntryContract.parse({
+          ...WorkItemEntryStub(),
+          status: 'partially-completed',
+        }),
+      ).toThrow(/invalid_enum_value/u);
+    });
+
+    it('INVALID_STATUS: {status: "blocked"} => throws (removed status)', () => {
+      expect(() =>
+        workItemEntryContract.parse({
+          ...WorkItemEntryStub(),
+          status: 'blocked',
         }),
       ).toThrow(/invalid_enum_value/u);
     });

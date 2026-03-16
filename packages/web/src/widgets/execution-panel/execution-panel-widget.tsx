@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { Quest, QuestStatus, StepId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, StepId, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
@@ -69,20 +69,22 @@ export const ExecutionPanelWidget = ({
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
-  const completedCount = steps.filter((s) => s.status === 'complete').length as CompletedCount;
   const totalCount = steps.length as TotalCount;
   const isPlanning = steps.length === 0;
 
-  const stepRoleMap = new Map<StepId, ExecutionRole>();
+  const stepWorkItemMap = new Map<StepId, WorkItem>();
   for (const step of steps) {
     const stepRef = `steps/${step.id}`;
     const matchingItem = quest.workItems.find((wi) =>
       wi.relatedDataItems.some((ref) => ref === stepRef),
     );
     if (matchingItem) {
-      stepRoleMap.set(step.id, matchingItem.role as ExecutionRole);
+      stepWorkItemMap.set(step.id, matchingItem);
     }
   }
+
+  const completedCount = [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete')
+    .length as CompletedCount;
 
   const floorConfigs = executionFloorConfigStatics.floors;
 
@@ -182,7 +184,8 @@ export const ExecutionPanelWidget = ({
 
               if (floor.role === 'codeweaver') {
                 const codeweaverSteps = steps.filter((step) => {
-                  const role = stepRoleMap.get(step.id) ?? DEFAULT_ROLE;
+                  const wi = stepWorkItemMap.get(step.id);
+                  const role = wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE;
                   return !otherRoles.has(role);
                 });
 
@@ -201,33 +204,37 @@ export const ExecutionPanelWidget = ({
                 return (
                   <Box key={floor.role}>
                     <FloorHeaderLayerWidget floorNumber={floorNumber} name={floorName} />
-                    {codeweaverSteps.map((step, stepIndex) => (
-                      <ExecutionRowLayerWidget
-                        key={step.id}
-                        order={(stepIndex + 1) as StepOrder}
-                        name={step.name as unknown as StepName}
-                        role={stepRoleMap.get(step.id) ?? DEFAULT_ROLE}
-                        status={step.status as ExecutionStepStatus}
-                        files={
-                          [
-                            ...step.filesToCreate,
-                            ...step.filesToModify,
-                          ] as unknown as DisplayFilePath[]
-                        }
-                        dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                        isAdhoc={step.blockingType === 'needs_role_followup'}
-                        entries={slotEntries.get(0 as SlotIndex) ?? []}
-                        isStreaming={step.status === 'in_progress'}
-                        {...(step.errorMessage ? { errorMessage: step.errorMessage } : {})}
-                        {...(step.blockingReason ? { blockingReason: step.blockingReason } : {})}
-                      />
-                    ))}
+                    {codeweaverSteps.map((step, stepIndex) => {
+                      const wi = stepWorkItemMap.get(step.id);
+                      const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
+                      return (
+                        <ExecutionRowLayerWidget
+                          key={step.id}
+                          order={(stepIndex + 1) as StepOrder}
+                          name={step.name as unknown as StepName}
+                          role={wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE}
+                          status={wiStatus}
+                          files={
+                            [
+                              ...step.filesToCreate,
+                              ...step.filesToModify,
+                            ] as unknown as DisplayFilePath[]
+                          }
+                          dependsOn={step.dependsOn as unknown as DependencyLabel[]}
+                          isAdhoc={false}
+                          entries={slotEntries.get(0 as SlotIndex) ?? []}
+                          isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
+                          {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                        />
+                      );
+                    })}
                   </Box>
                 );
               }
 
               const floorSteps = steps.filter((step) => {
-                const role = stepRoleMap.get(step.id) ?? DEFAULT_ROLE;
+                const wi = stepWorkItemMap.get(step.id);
+                const role = wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE;
                 return role === floor.role;
               });
 
@@ -238,27 +245,30 @@ export const ExecutionPanelWidget = ({
               return (
                 <Box key={floor.role}>
                   <FloorHeaderLayerWidget floorNumber={floorNumber} name={floorName} />
-                  {floorSteps.map((step, stepIndex) => (
-                    <ExecutionRowLayerWidget
-                      key={step.id}
-                      order={(stepIndex + 1) as StepOrder}
-                      name={step.name as unknown as StepName}
-                      role={stepRoleMap.get(step.id) ?? (floor.role as ExecutionRole)}
-                      status={step.status as ExecutionStepStatus}
-                      files={
-                        [
-                          ...step.filesToCreate,
-                          ...step.filesToModify,
-                        ] as unknown as DisplayFilePath[]
-                      }
-                      dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                      isAdhoc={step.blockingType === 'needs_role_followup'}
-                      entries={slotEntries.get(0 as SlotIndex) ?? []}
-                      isStreaming={step.status === 'in_progress'}
-                      {...(step.errorMessage ? { errorMessage: step.errorMessage } : {})}
-                      {...(step.blockingReason ? { blockingReason: step.blockingReason } : {})}
-                    />
-                  ))}
+                  {floorSteps.map((step, stepIndex) => {
+                    const wi = stepWorkItemMap.get(step.id);
+                    const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
+                    return (
+                      <ExecutionRowLayerWidget
+                        key={step.id}
+                        order={(stepIndex + 1) as StepOrder}
+                        name={step.name as unknown as StepName}
+                        role={wi ? (wi.role as ExecutionRole) : (floor.role as ExecutionRole)}
+                        status={wiStatus}
+                        files={
+                          [
+                            ...step.filesToCreate,
+                            ...step.filesToModify,
+                          ] as unknown as DisplayFilePath[]
+                        }
+                        dependsOn={step.dependsOn as unknown as DependencyLabel[]}
+                        isAdhoc={false}
+                        entries={slotEntries.get(0 as SlotIndex) ?? []}
+                        isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
+                        {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                      />
+                    );
+                  })}
                 </Box>
               );
             })}

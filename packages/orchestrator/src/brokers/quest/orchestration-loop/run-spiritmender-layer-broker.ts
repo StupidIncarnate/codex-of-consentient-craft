@@ -90,6 +90,7 @@ export const runSpiritmenderLayerBroker = async ({
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits: spiritmenderWorkUnits });
 
   const result = await slotManagerOrchestrateBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,

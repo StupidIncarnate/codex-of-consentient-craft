@@ -44,6 +44,12 @@ describe('executionStepStatusContract', () => {
 
       expect(result).toBe('blocked');
     });
+
+    it('VALID: {value: "skipped"} => parses skipped status', () => {
+      const result = executionStepStatusContract.parse('skipped');
+
+      expect(result).toBe('skipped');
+    });
   });
 
   describe('invalid inputs', () => {

@@ -10,7 +10,6 @@ describe('InteractionHandleResponder', () => {
         tool: ToolNameStub({ value: 'signal-back' }),
         args: {
           signal: 'complete',
-          stepId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           summary: 'Step completed successfully',
         },
       });
@@ -20,16 +19,14 @@ describe('InteractionHandleResponder', () => {
       expect(result.isError).toBeUndefined();
     });
 
-    it('VALID: {signal: partially-complete} => returns JSON result', () => {
+    it('VALID: {signal: failed} => returns JSON result', () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = proxy.callResponder({
         tool: ToolNameStub({ value: 'signal-back' }),
         args: {
-          signal: 'partially-complete',
-          stepId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          progress: 'Half done',
-          continuationPoint: 'Next step',
+          signal: 'failed',
+          summary: 'Tests failing in user-fetch-broker',
         },
       });
 

@@ -162,7 +162,6 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
           contentTextContract.parse(`${SYM.indent}Contracts in: ${inPart} | out: ${outPart}`),
         );
       }
-      parts.push(contentTextContract.parse(`${SYM.indent}Status: ${step.status}`));
     }
   }
 

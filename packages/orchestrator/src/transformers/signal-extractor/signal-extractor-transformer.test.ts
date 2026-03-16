@@ -1,7 +1,6 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
@@ -11,7 +10,6 @@ import { signalExtractorTransformer } from './signal-extractor-transformer';
 describe('signalExtractorTransformer', () => {
   describe('valid signal extraction', () => {
     it('VALID: {line with signal-back tool call} => returns extracted signal', () => {
-      const stepId = StepIdStub();
       const line = StreamJsonLineStub({
         value: JSON.stringify({
           type: 'assistant',
@@ -22,7 +20,6 @@ describe('signalExtractorTransformer', () => {
                 name: 'mcp__dungeonmaster__signal-back',
                 input: {
                   signal: 'complete',
-                  stepId,
                   summary: 'Task completed',
                 },
               },
@@ -36,14 +33,12 @@ describe('signalExtractorTransformer', () => {
       expect(result).toStrictEqual({
         signal: {
           signal: 'complete',
-          stepId,
           summary: 'Task completed',
         },
       });
     });
 
     it('VALID: {mixed tool_use items, one signal-back} => extracts signal', () => {
-      const stepId = StepIdStub();
       const line = StreamJsonLineStub({
         value: JSON.stringify({
           type: 'assistant',
@@ -60,7 +55,6 @@ describe('signalExtractorTransformer', () => {
                 name: 'mcp__dungeonmaster__signal-back',
                 input: {
                   signal: 'complete',
-                  stepId,
                   summary: 'Done',
                 },
               },
@@ -74,7 +68,6 @@ describe('signalExtractorTransformer', () => {
       expect(result).toStrictEqual({
         signal: {
           signal: 'complete',
-          stepId,
           summary: 'Done',
         },
       });

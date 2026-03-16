@@ -10,10 +10,7 @@ import {
   continuationContextContract,
   type ContinuationContext,
 } from '../../contracts/continuation-context/continuation-context-contract';
-import type { StreamSignal } from '../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../contracts/stream-text/stream-text-contract';
-
-type SignalContinuationPoint = NonNullable<StreamSignal['continuationPoint']>;
 
 const OUTPUT_TAIL_LINE_COUNT = 50;
 
@@ -21,7 +18,7 @@ export const buildContinuationContextTransformer = ({
   continuationPoint,
   capturedOutput,
 }: {
-  continuationPoint?: SignalContinuationPoint;
+  continuationPoint?: string;
   capturedOutput: readonly StreamText[];
 }): ContinuationContext | null => {
   const outputTail = capturedOutput.slice(-OUTPUT_TAIL_LINE_COUNT);

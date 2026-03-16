@@ -79,22 +79,6 @@ export const workUnitsToWorkTrackerTransformer = ({
       }
     },
 
-    markPartiallyCompleted: ({ workItemId }: { workItemId: WorkItemId }): void => {
-      const entry = items.get(workItemId);
-      if (!entry) {
-        throw new Error(`Work item not found: ${workItemId}`);
-      }
-      entry.status = 'partially-completed';
-    },
-
-    markBlocked: ({ workItemId }: { workItemId: WorkItemId }): void => {
-      const entry = items.get(workItemId);
-      if (!entry) {
-        throw new Error(`Work item not found: ${workItemId}`);
-      }
-      entry.status = 'blocked';
-    },
-
     isAllComplete: (): boolean => {
       for (const entry of items.values()) {
         if (entry.status !== 'completed') {
@@ -106,7 +90,11 @@ export const workUnitsToWorkTrackerTransformer = ({
 
     isAllTerminal: (): boolean => {
       for (const entry of items.values()) {
-        if (entry.status !== 'completed' && entry.status !== 'failed') {
+        if (
+          entry.status !== 'completed' &&
+          entry.status !== 'failed' &&
+          entry.status !== 'skipped'
+        ) {
           return false;
         }
       }
@@ -116,7 +104,11 @@ export const workUnitsToWorkTrackerTransformer = ({
     getIncompleteIds: (): WorkItemId[] => {
       const result: WorkItemId[] = [];
       for (const [id, entry] of items) {
-        if (entry.status !== 'completed' && entry.status !== 'failed') {
+        if (
+          entry.status !== 'completed' &&
+          entry.status !== 'failed' &&
+          entry.status !== 'skipped'
+        ) {
           result.push(id);
         }
       }
@@ -145,6 +137,14 @@ export const workUnitsToWorkTrackerTransformer = ({
         status: 'pending',
         retryCount: failCountContract.parse(0),
       });
+    },
+
+    skipAllPending: (): void => {
+      for (const entry of items.values()) {
+        if (entry.status === 'pending') {
+          entry.status = 'skipped';
+        }
+      }
     },
   });
 };

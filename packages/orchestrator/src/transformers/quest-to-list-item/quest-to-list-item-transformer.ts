@@ -12,7 +12,10 @@ import { questListItemContract } from '@dungeonmaster/shared/contracts';
 import { questActiveSessionTransformer } from '../quest-active-session/quest-active-session-transformer';
 
 export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestListItem => {
-  const completedSteps = quest.steps.filter((step) => step.status === 'complete').length;
+  const stepWorkItems = quest.workItems.filter(
+    (wi) => wi.role === 'codeweaver' && wi.relatedDataItems.some((ref) => ref.startsWith('steps/')),
+  );
+  const completedSteps = stepWorkItems.filter((wi) => wi.status === 'complete').length;
   const totalSteps = quest.steps.length;
   const stepProgress = totalSteps > 0 ? `${completedSteps}/${totalSteps}` : undefined;
 

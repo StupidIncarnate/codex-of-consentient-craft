@@ -68,6 +68,7 @@ export const runLawbringerLayerBroker = async ({
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
 
   const result = await slotManagerOrchestrateBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,

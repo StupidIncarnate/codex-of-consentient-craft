@@ -6,7 +6,7 @@
  * // Returns { completed: true } when all work items done
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
@@ -19,6 +19,7 @@ import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-c
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';
 
 export const slotManagerOrchestrateBroker = async ({
+  questId,
   workTracker,
   slotCount,
   timeoutMs,
@@ -28,6 +29,7 @@ export const slotManagerOrchestrateBroker = async ({
   abortSignal,
   maxFollowupDepth,
 }: {
+  questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
@@ -38,6 +40,7 @@ export const slotManagerOrchestrateBroker = async ({
   maxFollowupDepth?: FollowupDepth;
 }): Promise<SlotManagerResult> => {
   const result = await runOrchestrationLayerBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,

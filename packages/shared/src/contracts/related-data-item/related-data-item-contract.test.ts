@@ -34,31 +34,31 @@ describe('relatedDataItemContract', () => {
     it('INVALID: unknown collection => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('unknown/abc');
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
     it('INVALID: missing id => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('steps');
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
     it('INVALID: empty id after slash => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('steps/');
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
     it('INVALID: missing collection => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('/abc');
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
     it('INVALID: empty string => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('');
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
   });
 });

@@ -16,6 +16,7 @@ export const executionStepStatusContract = z.enum([
   'failed',
   'partially_complete',
   'blocked',
+  'skipped',
 ]);
 
 export type ExecutionStepStatus = z.infer<typeof executionStepStatusContract>;

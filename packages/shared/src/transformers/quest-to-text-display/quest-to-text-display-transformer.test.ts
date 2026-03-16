@@ -214,7 +214,6 @@ describe('questToTextDisplayTransformer', () => {
             exportName: 'apiHandler' as never,
             inputContracts: ['RequestBody' as never],
             outputContracts: ['ApiResponse' as never],
-            status: 'pending',
           }),
         ],
       });
@@ -225,7 +224,6 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/ {2}Build the REST API/u);
       expect(result).toMatch(/ {2}Satisfies: #api-responds/u);
       expect(result).toMatch(/ {2}Depends on: #setup-db/u);
-      expect(result).toMatch(/ {2}Status: pending/u);
     });
 
     it('VALID: {quest: with full step} => renders step files and contracts', () => {
@@ -239,7 +237,6 @@ describe('questToTextDisplayTransformer', () => {
             exportName: 'apiHandler' as never,
             inputContracts: ['RequestBody' as never],
             outputContracts: ['ApiResponse' as never],
-            status: 'pending',
           }),
         ],
       });
@@ -271,7 +268,6 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).not.toMatch(/Satisfies:/u);
       expect(result).not.toMatch(/Depends on:/u);
       expect(result).not.toMatch(/Create:/u);
-      expect(result).toMatch(/Status: pending/u);
     });
 
     it('VALID: {quest: step with no optional fields} => omits file and contract fields', () => {

@@ -6,7 +6,7 @@
  * // Returns SlotManagerResult when orchestration completes or gets stuck
  */
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
@@ -20,6 +20,7 @@ import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-c
 import { orchestrationLoopLayerBroker } from './orchestration-loop-layer-broker';
 
 export const runOrchestrationLayerBroker = async ({
+  questId,
   workTracker,
   slotCount,
   timeoutMs,
@@ -30,6 +31,7 @@ export const runOrchestrationLayerBroker = async ({
   abortSignal,
   maxFollowupDepth,
 }: {
+  questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
   timeoutMs: TimeoutMs;
@@ -49,6 +51,7 @@ export const runOrchestrationLayerBroker = async ({
   }
 
   const loopResult = await orchestrationLoopLayerBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,
@@ -64,6 +67,7 @@ export const runOrchestrationLayerBroker = async ({
   }
 
   return runOrchestrationLayerBroker({
+    questId,
     workTracker,
     slotCount,
     timeoutMs,

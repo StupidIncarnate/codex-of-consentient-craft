@@ -16,6 +16,10 @@ jest.mock('@dungeonmaster/ward/dist/src/transformers/result-to-list/result-to-li
 
 export const wardListAdapterProxy = (): {
   setupStorageReturns: (params: { wardResult: WardResult | null }) => void;
+  setupStorageFallbackSequence: (params: {
+    packageResult: WardResult | null;
+    rootResult: WardResult | null;
+  }) => void;
   setupListReturns: (params: { list: WardErrorList }) => void;
   setupStorageThrows: (params: { error: Error }) => void;
 } => {
@@ -28,6 +32,16 @@ export const wardListAdapterProxy = (): {
   return {
     setupStorageReturns: ({ wardResult }: { wardResult: WardResult | null }): void => {
       storageMock.mockResolvedValueOnce(wardResult);
+    },
+    setupStorageFallbackSequence: ({
+      packageResult,
+      rootResult,
+    }: {
+      packageResult: WardResult | null;
+      rootResult: WardResult | null;
+    }): void => {
+      storageMock.mockResolvedValueOnce(packageResult);
+      storageMock.mockResolvedValueOnce(rootResult);
     },
     setupListReturns: ({ list }: { list: WardErrorList }): void => {
       listMock.mockReturnValueOnce(list);

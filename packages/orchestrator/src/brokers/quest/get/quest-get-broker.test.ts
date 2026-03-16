@@ -65,7 +65,6 @@ describe('questGetBroker', () => {
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
-            status: 'pending',
           },
         ],
       });
@@ -101,7 +100,6 @@ describe('questGetBroker', () => {
             dependsOn: [],
             filesToCreate: [],
             filesToModify: [],
-            status: 'pending',
           },
         ],
       });
@@ -124,7 +122,6 @@ describe('questGetBroker', () => {
           filesToModify: [],
           inputContracts: [],
           outputContracts: [],
-          status: 'pending',
         },
       ]);
     });

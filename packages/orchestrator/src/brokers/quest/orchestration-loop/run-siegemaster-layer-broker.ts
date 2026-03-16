@@ -1,12 +1,13 @@
 /**
- * PURPOSE: Executes siegemaster phase — single agent checking ALL observables, creates fix chain on failure
+ * PURPOSE: Executes siegemaster phase — single agent writing integration/e2e tests, creates codeweaver fix on failure
  *
  * USAGE:
  * await runSiegemasterLayerBroker({questId, workItem, startPath});
- * // Runs siegemaster agent, on failure creates tack-on steps + codeweaver-fix + ward-rerun + siege-recheck chain
+ * // Runs siegemaster agent. If summary contains FAILED OBSERVABLES, creates codeweaver-fix + ward-rerun + siege-recheck chain
  */
 
 import {
+  errorMessageContract,
   workItemContract,
   type FilePath,
   type QuestId,
@@ -22,6 +23,8 @@ import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
+
+const FAILURE_MARKER = 'FAILED OBSERVABLES:';
 
 export const runSiegemasterLayerBroker = async ({
   questId,
@@ -39,7 +42,6 @@ export const runSiegemasterLayerBroker = async ({
   }
   const { quest } = questResult;
 
-  // Build work unit with ALL observables (full re-check)
   const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
 
   const workUnit = workUnitContract.parse({
@@ -52,15 +54,15 @@ export const runSiegemasterLayerBroker = async ({
     workItem.timeoutMs ?? slotManagerStatics.siegemaster.timeoutMs,
   );
 
-  // Run single siegemaster agent
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     startPath,
   });
 
-  // Check if signal indicates complete
-  const isComplete = spawnResult.signal?.signal === 'complete' || spawnResult.exitCode === 0;
+  const summary = spawnResult.signal?.summary ?? '';
+  const hasFailed = summary.includes(FAILURE_MARKER);
+  const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
 
   if (isComplete) {
     await questModifyBroker({
@@ -72,19 +74,21 @@ export const runSiegemasterLayerBroker = async ({
     return;
   }
 
-  // Siegemaster failed — mark current as failed
+  // Siegemaster reported failures or crashed — mark as failed with the summary as error message
   const completedAt = new Date().toISOString();
+  const errorMessage = hasFailed
+    ? errorMessageContract.parse(summary)
+    : errorMessageContract.parse('siege_check_failed');
+
   await questModifyBroker({
     input: {
       questId,
-      workItems: [
-        { id: workItem.id, status: 'failed', completedAt, errorMessage: 'siege_check_failed' },
-      ],
+      workItems: [{ id: workItem.id, status: 'failed', completedAt, errorMessage }],
     } as ModifyQuestInput,
   });
 
-  // Create fix chain: codeweaver-fix -> ward-rerun -> siege-recheck
-  // Create a single codeweaver fix item (no specific step — reads from quest context)
+  // Create fix chain: codeweaver-fix → ward-rerun → siege-recheck
+  // The codeweaver gets the failure summary as its error context
   const cwFixItem = workItemContract.parse({
     id: crypto.randomUUID(),
     role: 'codeweaver',
@@ -95,6 +99,7 @@ export const runSiegemasterLayerBroker = async ({
     timeoutMs: slotManagerStatics.codeweaver.timeoutMs,
     createdAt: new Date().toISOString(),
     insertedBy: workItem.id,
+    errorMessage,
   });
 
   const wardRerun = workItemContract.parse({
@@ -120,10 +125,8 @@ export const runSiegemasterLayerBroker = async ({
     insertedBy: workItem.id,
   });
 
-  // Update downstream (lawbringer) to depend on new siege instead of failed one
   const replacementMapping = [{ oldId: workItem.id, newId: siegeRecheck.id }];
 
-  // Load fresh quest for insert
   const freshResult = await questGetBroker({ input: questInput });
   if (freshResult.success && freshResult.quest) {
     await questWorkItemInsertBroker({

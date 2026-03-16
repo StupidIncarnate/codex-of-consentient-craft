@@ -14,7 +14,6 @@ export const DependencyStepStub = ({
     dependsOn: [],
     filesToCreate: [],
     filesToModify: [],
-    status: 'pending',
     inputContracts: [],
     outputContracts: [],
     ...props,

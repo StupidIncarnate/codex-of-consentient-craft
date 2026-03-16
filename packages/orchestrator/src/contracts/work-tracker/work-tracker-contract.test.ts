@@ -17,13 +17,12 @@ describe('workTrackerContract', () => {
           markStarted: expect.any(Function),
           markCompleted: expect.any(Function),
           markFailed: expect.any(Function),
-          markPartiallyCompleted: expect.any(Function),
-          markBlocked: expect.any(Function),
           isAllComplete: expect.any(Function),
           isAllTerminal: expect.any(Function),
           getIncompleteIds: expect.any(Function),
           getFailedIds: expect.any(Function),
           addWorkItem: expect.any(Function),
+          skipAllPending: expect.any(Function),
         });
       });
     });
@@ -37,13 +36,12 @@ describe('workTrackerContract', () => {
             markStarted: () => undefined,
             markCompleted: () => undefined,
             markFailed: () => undefined,
-            markPartiallyCompleted: () => undefined,
-            markBlocked: () => undefined,
             isAllComplete: () => false,
             isAllTerminal: () => false,
             getIncompleteIds: () => [],
             getFailedIds: () => [],
             addWorkItem: () => undefined,
+            skipAllPending: () => undefined,
           }),
         ).toThrow(/Expected function, received string/u);
       });
@@ -85,6 +83,14 @@ describe('workTrackerContract', () => {
         const workItemId = WorkItemIdStub();
 
         await expect(markStarted({ workItemId })).resolves.toBeUndefined();
+      });
+
+      it('VALID: {default} => skipAllPending completes without error', () => {
+        const { skipAllPending } = WorkTrackerStub();
+
+        expect(() => {
+          skipAllPending();
+        }).not.toThrow();
       });
 
       it('VALID: {default} => addWorkItem completes without error', () => {
