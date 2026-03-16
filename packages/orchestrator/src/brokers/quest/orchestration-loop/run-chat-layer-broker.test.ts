@@ -3,6 +3,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  UserInputStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -11,7 +12,7 @@ import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
 
 describe('runChatLayerBroker', () => {
   describe('basic spawn', () => {
-    it('VALID: {chaoswhisperer work item} => completes work item', async () => {
+    it('VALID: {chaoswhisperer work item} => spawns agent and completes work item', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const workItem = WorkItemStub({
@@ -27,11 +28,12 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
+          userMessage: UserInputStub({ value: 'Help me build auth' }),
         }),
       ).resolves.toBeUndefined();
     });
 
-    it('VALID: {glyphsmith work item} => completes work item', async () => {
+    it('VALID: {glyphsmith work item} => spawns agent and completes work item', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const workItem = WorkItemStub({
@@ -47,6 +49,7 @@ describe('runChatLayerBroker', () => {
           questId,
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
+          userMessage: UserInputStub({ value: 'Design the login page' }),
         }),
       ).resolves.toBeUndefined();
     });
