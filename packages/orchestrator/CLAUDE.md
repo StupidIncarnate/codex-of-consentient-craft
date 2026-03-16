@@ -20,31 +20,33 @@
 /quest:start ──► start-quest MCP
   │
   ▼
-PathSeeker (1) ◄── retry (max 3, on verify failure)
-  ├─ verify-quest ──── 11 integrity checks
-  ├─ finalizer-quest-agent ── semantic review
+Orchestration Loop (workItems queue)
+  │  "find next ready item, run it, repeat"
   │
-  ▼
-Codeweaver (x3 concurrent, 600s timeout)
-  │  dependency-aware DAG scheduling
-  │
-  ▼
-Ward ──► npm run ward
-  │  └─ Spiritmender (x3) on failure ◄── retry (max 3)
-  │
-  ▼
-Siegemaster (x3 concurrent, 300s, 2 retries)
-  │  one agent per observable
-  │  └─ Spiritmender via needs-role-followup (depth 3)
-  │
-  ▼
-Lawbringer (x3 concurrent, 300s, 2 retries)
-  │  one agent per file pair
-  │  └─ Spiritmender via needs-role-followup (depth 3)
+  ├─ PathSeeker ──── verify-quest + finalizer (retry max 3)
+  ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
+  ├─ Ward ────────── npm run ward (spawnerType: 'command')
+  │     └─ Spiritmender on failure (retry max 3)
+  ├─ Siegemaster ─── x3 concurrent via slot manager, 1 observable each
+  │     └─ Spiritmender via needs-role-followup (depth 3)
+  ├─ Lawbringer ──── x3 concurrent via slot manager, 1 file pair each
+  │     └─ Spiritmender via needs-role-followup (depth 3)
   │
   ▼
 Complete
 ```
+
+## Work Items Model
+
+All execution is driven by `quest.workItems[]`. Each work item is a generic container with a `role`,
+`status`, `dependsOn` (ordering), and `relatedDataItems` (links to quest-level data like steps or wardResults).
+
+- **Ordering**: `dependsOn` array — item runs when all deps are complete/skipped
+- **Dispatch**: orchestration loop finds next ready item, routes to layer broker by role
+- **Concurrency**: slot manager groups parallel-capable roles (codeweaver, siegemaster, lawbringer)
+- **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`
+- **Session tracking**: `sessionId` on each work item (replaces executionLog/pathseekerRuns)
+- **Ward**: only non-agent item (`spawnerType: 'command'`), all others are `'agent'`
 
 ## Quest Status Lifecycle
 
@@ -126,14 +128,14 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 ## Agent Roles
 
-| Role         | Phase         | Spawned By                        | Signals                                           |
-|--------------|---------------|-----------------------------------|---------------------------------------------------|
-| Glyphsmith   | design        | startDesignChat                   | N/A (design prototype)                            |
-| PathSeeker   | pathseeker    | start-quest                       | N/A (process exit)                                |
-| Codeweaver   | codeweaver    | slot manager                      | complete, partially-complete, needs-role-followup |
-| Spiritmender | ward / nested | ward phase or needs-role-followup | complete, needs-role-followup                     |
-| Siegemaster  | siegemaster   | parallel runner                   | complete, partially-complete, needs-role-followup |
-| Lawbringer   | lawbringer    | parallel runner                   | complete, needs-role-followup                     |
+| Role         | Spawned By                        | Signals                                           |
+|--------------|-----------------------------------|---------------------------------------------------|
+| Glyphsmith   | startDesignChat                   | N/A (design prototype)                            |
+| PathSeeker   | orchestration loop                | N/A (process exit)                                |
+| Codeweaver   | slot manager                      | complete, partially-complete, needs-role-followup |
+| Spiritmender | ward failure or needs-role-followup | complete, needs-role-followup                   |
+| Siegemaster  | slot manager                      | complete, partially-complete, needs-role-followup |
+| Lawbringer   | slot manager                      | complete, needs-role-followup                     |
 
 ## Signal System
 
