@@ -3,13 +3,17 @@ import { QuestContractPropertyStub } from './quest-contract-property.stub';
 
 describe('questContractPropertyContract', () => {
   describe('valid properties', () => {
-    it('VALID: {name} => parses basic property with just name', () => {
+    it('VALID: {name, type, description} => parses basic property with required fields', () => {
       const property = QuestContractPropertyStub({
         name: 'userId',
+        type: 'UserId',
+        description: 'The user identifier',
       });
 
       expect(property).toStrictEqual({
         name: 'userId',
+        type: 'UserId',
+        description: 'The user identifier',
       });
     });
 
@@ -45,6 +49,7 @@ describe('questContractPropertyContract', () => {
           {
             name: 'city',
             type: 'CityName',
+            description: 'City name',
           },
         ],
       });
@@ -62,6 +67,7 @@ describe('questContractPropertyContract', () => {
           {
             name: 'city',
             type: 'CityName',
+            description: 'City name',
           },
         ],
       });
@@ -71,22 +77,27 @@ describe('questContractPropertyContract', () => {
       const property = QuestContractPropertyStub({
         name: 'organization',
         type: 'Organization',
+        description: 'Organization entity',
         properties: [
           {
             name: 'headquarters',
             type: 'Location',
+            description: 'HQ location',
             properties: [
               {
                 name: 'coordinates',
                 type: 'GeoCoordinates',
+                description: 'Geographic coordinates',
                 properties: [
                   {
                     name: 'latitude',
                     type: 'Latitude',
+                    description: 'Latitude value',
                   },
                   {
                     name: 'longitude',
                     type: 'Longitude',
+                    description: 'Longitude value',
                   },
                 ],
               },
@@ -98,22 +109,27 @@ describe('questContractPropertyContract', () => {
       expect(property).toStrictEqual({
         name: 'organization',
         type: 'Organization',
+        description: 'Organization entity',
         properties: [
           {
             name: 'headquarters',
             type: 'Location',
+            description: 'HQ location',
             properties: [
               {
                 name: 'coordinates',
                 type: 'GeoCoordinates',
+                description: 'Geographic coordinates',
                 properties: [
                   {
                     name: 'latitude',
                     type: 'Latitude',
+                    description: 'Latitude value',
                   },
                   {
                     name: 'longitude',
                     type: 'Longitude',
+                    description: 'Longitude value',
                   },
                 ],
               },
@@ -129,6 +145,8 @@ describe('questContractPropertyContract', () => {
       const parseEmptyName = (): unknown =>
         questContractPropertyContract.parse({
           name: '',
+          type: 'ValidType',
+          description: 'Some description',
         });
 
       expect(parseEmptyName).toThrow(/too_small/u);
@@ -138,10 +156,55 @@ describe('questContractPropertyContract', () => {
       const parseEmptyType = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',
+          description: 'Some description',
           type: '',
         });
 
       expect(parseEmptyType).toThrow(/too_small/u);
+    });
+
+    it('INVALID_TYPE: {type: "string"} => rejects raw primitive type', () => {
+      const parseRawString = (): unknown =>
+        questContractPropertyContract.parse({
+          name: 'validName',
+          description: 'Some description',
+          type: 'string',
+        });
+
+      expect(parseRawString).toThrow(/branded type reference/u);
+    });
+
+    it('INVALID_TYPE: {type: "number"} => rejects raw primitive type', () => {
+      const parseRawNumber = (): unknown =>
+        questContractPropertyContract.parse({
+          name: 'validName',
+          description: 'Some description',
+          type: 'number',
+        });
+
+      expect(parseRawNumber).toThrow(/branded type reference/u);
+    });
+
+    it('INVALID_TYPE: {type: "String"} => rejects raw primitive type case-insensitively', () => {
+      const parseUpperString = (): unknown =>
+        questContractPropertyContract.parse({
+          name: 'validName',
+          description: 'Some description',
+          type: 'String',
+        });
+
+      expect(parseUpperString).toThrow(/branded type reference/u);
+    });
+
+    it('INVALID_TYPE: {type: "NUMBER"} => rejects raw primitive type case-insensitively', () => {
+      const parseUpperNumber = (): unknown =>
+        questContractPropertyContract.parse({
+          name: 'validName',
+          description: 'Some description',
+          type: 'NUMBER',
+        });
+
+      expect(parseUpperNumber).toThrow(/branded type reference/u);
     });
   });
 
@@ -149,23 +212,31 @@ describe('questContractPropertyContract', () => {
     it('EDGE: {properties: []} => parses with empty properties array', () => {
       const property = QuestContractPropertyStub({
         name: 'emptyContainer',
+        type: 'Container',
+        description: 'Empty container property',
         properties: [],
       });
 
       expect(property).toStrictEqual({
         name: 'emptyContainer',
+        type: 'Container',
+        description: 'Empty container property',
         properties: [],
       });
     });
 
-    it('EDGE: {name, optional: true} => parses with only name and optional', () => {
+    it('EDGE: {name, type, description, optional: true} => parses with required fields and optional', () => {
       const property = QuestContractPropertyStub({
         name: 'optionalField',
+        type: 'FieldType',
+        description: 'An optional field',
         optional: true,
       });
 
       expect(property).toStrictEqual({
         name: 'optionalField',
+        type: 'FieldType',
+        description: 'An optional field',
         optional: true,
       });
     });

@@ -16,6 +16,7 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     contracts: [],
     flows: [],
     needsDesign: false,
+    userRequest: 'Add authentication to the application',
     workItems: [],
     wardResults: [],
     ...props,

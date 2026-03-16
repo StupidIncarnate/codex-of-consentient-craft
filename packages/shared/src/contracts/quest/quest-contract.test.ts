@@ -26,6 +26,7 @@ describe('questContract', () => {
         contracts: [],
         flows: [],
         needsDesign: false,
+        userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
       });
@@ -134,6 +135,7 @@ describe('questContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
         steps: [],
         toolingRequirements: [],
       });
@@ -148,6 +150,7 @@ describe('questContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
         steps: [],
         toolingRequirements: [],
       });
@@ -184,6 +187,7 @@ describe('questContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
         steps: [],
         toolingRequirements: [],
       });
@@ -198,6 +202,7 @@ describe('questContract', () => {
         title: 'Add Authentication',
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
         steps: [],
         toolingRequirements: [],
       });

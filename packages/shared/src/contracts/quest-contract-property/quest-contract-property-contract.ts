@@ -17,8 +17,11 @@ const baseQuestContractPropertyContract = z.object({
   type: z
     .string()
     .min(1)
+    .refine(
+      (value) => !/^(string|number)$/iu.test(value),
+      'Type must be a branded type reference (e.g., "EmailAddress", "UserId"), not a raw primitive like "string" or "number"',
+    )
     .brand<'TypeReference'>()
-    .optional()
     .describe(
       'Branded type reference (e.g., "EmailAddress", "UserId"). Must NOT be raw primitives like "string" or "number"',
     ),
@@ -32,7 +35,6 @@ const baseQuestContractPropertyContract = z.object({
   description: z
     .string()
     .brand<'PropertyDescription'>()
-    .optional()
     .describe('Human-readable description giving AI context about this property'),
   optional: z
     .boolean()

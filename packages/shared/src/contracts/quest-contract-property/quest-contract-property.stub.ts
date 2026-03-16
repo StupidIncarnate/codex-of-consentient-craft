@@ -8,5 +8,7 @@ export const QuestContractPropertyStub = ({
 }: StubArgument<QuestContractProperty> = {}): QuestContractProperty =>
   questContractPropertyContract.parse({
     name: 'email',
+    type: 'EmailAddress',
+    description: 'Stub property description',
     ...props,
   });

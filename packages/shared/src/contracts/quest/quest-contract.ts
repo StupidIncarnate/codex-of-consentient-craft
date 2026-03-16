@@ -60,7 +60,7 @@ export const questContract = z.object({
     .brand<'DesignPort'>()
     .optional()
     .describe('Port of per-quest Vite design sandbox'),
-  userRequest: z.string().brand<'UserRequest'>().optional(),
+  userRequest: z.string().min(1).brand<'UserRequest'>(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
   workItems: z
     .array(workItemContract)
