@@ -32,7 +32,12 @@ export const childProcessSpawnCaptureAdapter = async ({
     execFile(
       command,
       args,
-      { cwd, maxBuffer: FIFTY_MB, ...(timeout !== undefined && { timeout }) },
+      {
+        cwd,
+        maxBuffer: FIFTY_MB,
+        env: { ...process.env },
+        ...(timeout !== undefined && { timeout }),
+      },
       (error, stdout, stderr) => {
         const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
