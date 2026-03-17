@@ -147,47 +147,64 @@ status from work items, never sets it directly.
   ├─ VERIFY PASSES ──────────────────────────────────────────────────────────
   │   pathseeker → complete
   │   CREATES:
-  │     N × codeweaver  (dependsOn: [pathseeker-id] + inter-step chains)
-  │     1 × ward        (dependsOn: [ALL codeweaver IDs], spawnerType: 'command', maxAttempts: 3)
-  │     1 × siege       (dependsOn: [ward-id], timeoutMs: 300000)
-  │     N × lawbringer  (dependsOn: [siege-id])
+  │     N × codeweaver   (dependsOn: [pathseeker-id] + inter-step chains)
+  │     1 × ward         (dependsOn: [ALL codeweaver IDs], spawnerType: 'command', maxAttempts: 3)
+  │     1 × siege        (dependsOn: [ward-id], timeoutMs: 300000)
+  │     N × lawbringer   (dependsOn: [siege-id])
+  │     1 × final-ward   (dependsOn: [ALL lawbringer IDs], spawnerType: 'command', maxAttempts: 3)
   │
   ├─ VERIFY FAILS (attempt < maxAttempts - 1) ───────────────────────────────
   │   pathseeker → failed
   │   CREATES: pathseeker-retry (dependsOn: [], attempt: +1, insertedBy: failed-ps-id)
   │   Loop recurses → retry dispatched
   │
-  ├─ VERIFY FAILS (attempt >= maxAttempts - 1) ──────────────────────────────
+  ├─ VERIFY FAILS (no retries left) ─────────────────────────────────────────
   │   pathseeker → failed
-  │   NO retry created. Quest stuck at in_progress (no pending items, not all complete).
+  │   NO retry created. Quest → blocked.
+  │
+  ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
+  │   pathseeker → failed
+  │   Same retry/no-retry logic as verify failure above.
   │
   └─ EXCEPTION (spawn failure, quest not found) ───────────────────────────
       pathseeker → failed
-      Quest status recalculated.
+      Same retry/no-retry logic as verify failure above.
 ```
 
 ### Phase 2b: Codeweavers (parallel, up to 3 slots)
 
 ```
-⑦ Codeweavers dispatched (all ready CWs: pending → in_progress)
-   Each implements one quest step via slot manager.
+⑦ Codeweavers dispatched
+   Each implements one quest step. N work items total, up to 3 slots.
+   Items move pending → in_progress only when a slot picks them up.
+
+   workItems: [
+     { chaos, complete },
+     { pathseeker, complete },
+     { cw-1, in_progress }, { cw-2, in_progress }, { cw-3, in_progress },
+     { cw-4, pending }, { cw-5, pending },          ◄── waiting for a slot
+     { ward, pending, dependsOn: [cw-1, ..., cw-N] },
+     { siege, pending, dependsOn: [ward-id] },
+     { law-1, pending, dependsOn: [siege-id] }, ...
+   ]
   │
-  ├─ SUCCESS (signal: 'complete') ───────────────────────────────────────────
+  ├─ SUCCESS ───────────────────────────────────────────────────────────────
   │   codeweaver → complete
   │   When ALL codeweavers complete → ward becomes ready
   │
-  ├─ FAILURE (signal: 'failed') ─────────────────────────────────────────────
+  ├─ FAILURE ───────────────────────────────────────────────────────────────
   │   codeweaver → failed
-  │   Ward has failed dep → ward NEVER ready → quest → blocked
+  │   Remaining in-progress codeweavers drain (run to completion).
+  │   All pending work items (remaining codeweavers, ward, siege, lawbringers) → skipped.
+  │   CREATES: pathseeker (replan — re-evaluates steps with knowledge of what failed).
   │
-  ├─ NEEDS FOLLOWUP (signal: 'needs-role-followup', depth < max) ────────────
-  │   Slot manager spawns inline spiritmender (NOT a quest work item).
-  │   On spiritmender complete → original codeweaver re-queued.
-  │   On depth exceeded (codeweaver maxFollowupDepth: 5) → codeweaver → failed.
+  ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
+  │   Respawned in next available slot. ⚠ [X4] No attempt counter.
+  │   If no slot available → orphaned. ⚠ [X6]
   │
-  └─ CRASH / TIMEOUT ───────────────────────────────────────────────────────
-      Slot manager respawns in next available slot. ⚠ [X4] No attempt counter.
-      If no slot available → orphaned. ⚠ [X6]
+  └─ EXCEPTION (quest not found, step missing) ────────────────────────────
+      codeweaver → failed
+      Same as FAILURE above — drain, skip pending, spawn pathseeker.
 ```
 
 ### Phase 2c: Ward (single, command-based)
@@ -195,24 +212,47 @@ status from work items, never sets it directly.
 ```
 ⑧ Ward dispatched (pending → in_progress)
    Runs quality checks (lint, typecheck, test). Exit code 0 = pass, non-zero = fail.
+
+   workItems: [
+     { chaos, complete }, { pathseeker, complete },
+     { cw-1, complete }, { cw-2, complete }, { cw-3, complete },
+     { ward, in_progress, dependsOn: [cw-1, cw-2, cw-3], maxAttempts: 3 },
+     { siege, pending, dependsOn: [ward-id] },
+     { law-1, pending, dependsOn: [siege-id] }, ...
+   ]
   │
   ├─ PASS (exit code 0) ──────────────────────────────────────────────────
   │   ward → complete
   │   Siege becomes ready (dependsOn satisfied)
   │
-  ├─ FAIL (exit code != 0, retries left) ─────────────────────────────────
+  ├─ FAIL (retries left) ─────────────────────────────────────────────────
   │   ward → failed
   │   CREATES wardResult on quest (exitCode, filePaths, errorSummary)
   │   CREATES:
   │     1 × spiritmender (dependsOn: [], relatedDataItems: ['wardResults/<id>'])
   │     1 × ward-retry   (dependsOn: [spiritmender-id], attempt: +1, insertedBy: failed-ward-id)
   │   Siege dependsOn REWIRED to ward-retry
-  │   Loop recurses → spiritmender dispatched (immediately ready)
   │
-  └─ FAIL (exit code != 0, no retries left) ──────────────────────────────
+  │   workItems: [
+  │     ..., { ward, failed },
+  │     { spiritmender, pending, dependsOn: [] },
+  │     { ward-retry, pending, dependsOn: [spiritmender-id], attempt: 1 },
+  │     { siege, pending, dependsOn: [ward-retry-id] },  ◄── rewired
+  │     ...
+  │   ]
+  │
+  ├─ FAIL (no retries left) ──────────────────────────────────────────────
+  │   ward → failed
+  │   All pending work items (siege, lawbringers) → skipped.
+  │   CREATES: pathseeker (replan).
+  │
+  ├─ CRASH (process killed) ───────────────────────────────────────────────
+  │   exitCode null → treated as failure (exit code 1 fallback).
+  │   Same retry/no-retry logic as FAIL above.
+  │
+  └─ EXCEPTION (quest not found, write failure) ───────────────────────────
       ward → failed
-      NO spiritmender, NO retry.
-      Siege has failed dep → quest → blocked.
+      Same retry/no-retry logic as FAIL above.
 ```
 
 ### Phase 2c-recovery: Spiritmender (quest-level, from ward failure)
@@ -220,15 +260,30 @@ status from work items, never sets it directly.
 ```
 ⑧a Spiritmender dispatched (pending → in_progress)
     Reads ward errors from relatedDataItems. Fixes 1 file per agent slot.
-    Each agent sees ALL concatenated errors.
+
+    workItems: [
+      ..., { ward, failed },
+      { spiritmender, in_progress, dependsOn: [], relatedDataItems: ['wardResults/<id>'] },
+      { ward-retry, pending, dependsOn: [spiritmender-id] },
+      { siege, pending, dependsOn: [ward-retry-id] },
+      ...
+    ]
   │
   ├─ SUCCESS ───────────────────────────────────────────────────────────────
   │   spiritmender → complete
-  │   Ward-retry becomes ready (dependsOn: [spiritmender-id] satisfied)
+  │   Ward-retry becomes ready (dependsOn satisfied)
   │
-  └─ FAILURE ───────────────────────────────────────────────────────────────
+  ├─ FAILURE ───────────────────────────────────────────────────────────────
+  │   spiritmender → failed
+  │   All pending work items (ward-retry, siege, lawbringers) → skipped.
+  │   CREATES: pathseeker (replan).
+  │
+  ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
+  │   Respawned in next available slot (slot-managed). ⚠ [X4] No attempt counter.
+  │
+  └─ EXCEPTION (quest not found, wardResult missing) ──────────────────────
       spiritmender → failed
-      Ward-retry has failed dep → quest → blocked.
+      Same as FAILURE above — skip pending, spawn pathseeker.
 ```
 
 ### Phase 2d: Siegemaster (single, agent-based)
@@ -236,51 +291,98 @@ status from work items, never sets it directly.
 ```
 ⑨ Siege dispatched (pending → in_progress)
    Verifies ALL observables from ALL flow nodes.
+
+   workItems: [
+     ..., { cw-1, complete }, ..., { ward, complete },
+     { siege, in_progress, dependsOn: [ward-id] },
+     { law-1, pending, dependsOn: [siege-id] }, ...
+   ]
   │
-  ├─ SUCCESS (signal: 'complete' OR exitCode: 0) ──────────────────────────
+  ├─ SUCCESS ──────────────────────────────────────────────────────────────
   │   siege → complete
-  │   Lawbringers become ready (dependsOn: [siege-id] satisfied)
+  │   Lawbringers become ready (dependsOn satisfied)
   │
-  └─ FAILURE ──────────────────────────────────────────────────────────────
+  ├─ FAILURE ──────────────────────────────────────────────────────────────
+  │   siege → failed
+  │   All pending work items (lawbringers) → skipped.
+  │   CREATES: pathseeker (replan).
+  │
+  ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
+  │   siege → failed (not slot-managed — no respawn, treated as failure).
+  │   Same as FAILURE above — skip pending, spawn pathseeker.
+  │
+  └─ EXCEPTION (quest not found) ──────────────────────────────────────────
       siege → failed
-      CREATES (fix chain):
-        1 × codeweaver-fix  (dependsOn: [], relatedDataItems: [])
-        1 × ward-rerun      (dependsOn: [cw-fix-id], maxAttempts: 3)
-        1 × siege-recheck   (dependsOn: [ward-rerun-id])
-      Lawbringer dependsOn REWIRED to siege-recheck
-      ⚠ [X5] No depth limit — siege-recheck can fail → another fix chain → unbounded.
+      Same as FAILURE above — skip pending, spawn pathseeker.
 ```
 
 ### Phase 2e: Lawbringers (parallel, up to 3 slots)
 
 ```
-⑩ Lawbringers dispatched (all ready: pending → in_progress)
-   Each verifies one step's file paths.
+⑩ Lawbringers dispatched
+   Each verifies all changed files (not just step file lists — actual git diff from execution).
+   N work items total, up to 3 slots. Items move pending → in_progress only when a slot picks them up.
+
+   workItems: [
+     ..., { siege, complete },
+     { law-1, in_progress, dependsOn: [siege-id] },
+     { law-2, in_progress, dependsOn: [siege-id] },
+     { law-3, in_progress, dependsOn: [siege-id] },
+     { law-4, pending }, { law-5, pending },          ◄── waiting for a slot
+   ]
   │
-  ├─ SUCCESS (signal: 'complete') ───────────────────────────────────────────
+  ├─ SUCCESS ───────────────────────────────────────────────────────────────
   │   lawbringer → complete
-  │   When ALL lawbringers + all other items complete → quest → complete ✓
+  │   When ALL lawbringers complete → final ward fires (full project quality check)
   │
-  ├─ FAILURE (signal: 'failed') ─────────────────────────────────────────────
+  ├─ FAILURE ───────────────────────────────────────────────────────────────
   │   lawbringer → failed
-  │   Quest stays in_progress (nothing depends on lawbringers, so no blocked).
+  │   CREATES: spiritmender (targeted fix for the failed lawbringer's files).
+  │   Other lawbringers continue running — no skip, no drain.
   │
-  ├─ NEEDS FOLLOWUP (signal: 'needs-role-followup', depth < max) ────────────
-  │   Slot manager spawns inline spiritmender (NOT a quest work item).
-  │   On spiritmender complete → original lawbringer re-queued.
-  │   On depth exceeded (lawbringer maxFollowupDepth: 3) → lawbringer → failed.
+  ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
+  │   Respawned in next available slot. ⚠ [X4] No attempt counter.
   │
-  └─ CRASH / TIMEOUT ───────────────────────────────────────────────────────
-      Slot manager respawns in next available slot. ⚠ [X4] No attempt counter.
+  └─ EXCEPTION (quest not found, step missing) ────────────────────────────
+      lawbringer → failed
+      Same as FAILURE above — spawn spiritmender, no skip.
+```
+
+### Phase 2f: Final Ward (full project quality gate)
+
+```
+⑪ Final Ward dispatched (pending → in_progress)
+   Full project quality check — same as Phase 2c ward but runs after lawbringers.
+   This is the second ward gate in the flow (first is after codeweavers).
+
+   workItems: [
+     ..., { law-1, complete }, { law-2, complete }, ...,
+     { final-ward, in_progress, dependsOn: [ALL lawbringer IDs], maxAttempts: 3 },
+   ]
+  │
+  ├─ PASS (exit code 0) ──────────────────────────────────────────────────
+  │   final-ward → complete
+  │   All items complete → quest → complete ✓
+  │
+  ├─ FAIL (retries left) ─────────────────────────────────────────────────
+  │   Same as Phase 2c ward — spiritmender + ward-retry cycle.
+  │
+  ├─ FAIL (no retries left) ──────────────────────────────────────────────
+  │   final-ward → failed
+  │   CREATES: pathseeker (replan).
+  │
+  ├─ CRASH (process killed) ───────────────────────────────────────────────
+  │   Same as FAIL — retry/no-retry logic.
+  │
+  └─ EXCEPTION ────────────────────────────────────────────────────────────
+      Same as FAIL — retry/no-retry logic.
 ```
 
 ### Quest Terminal States
 
 ```
 COMPLETE:  Every work item is complete (or skipped).
-BLOCKED:   Pending items exist whose deps are ALL failed, nothing in_progress.
-STUCK:     No pending items, nothing in_progress, but not all complete (e.g., all pathseekers failed).
-           Quest stays in_progress — this is NOT blocked (no pending items to block).
+BLOCKED:   Nothing can make progress — failed items with no retries left, no pending items satisfiable.
 ABANDONED: User manually abandons.
 ```
 
@@ -295,13 +397,15 @@ ABANDONED: User manually abandons.
 | PathSeeker verify passes               | 1 × ward                | `[ALL codeweaver IDs]`                |
 | PathSeeker verify passes               | 1 × siege               | `[ward-id]`                           |
 | PathSeeker verify passes               | N × lawbringer          | `[siege-id]`                          |
+| PathSeeker verify passes               | 1 × final-ward          | `[ALL lawbringer IDs]`                |
 | PathSeeker verify fails (retries left) | 1 × pathseeker-retry    | `[]`                                  |
+| Codeweaver fails                       | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
 | Ward fails (retries left)              | 1 × spiritmender        | `[]`                                  |
 | Ward fails (retries left)              | 1 × ward-retry          | `[spiritmender-id]`                   |
-| Siege fails                            | 1 × codeweaver-fix      | `[]`                                  |
-| Siege fails                            | 1 × ward-rerun          | `[codeweaver-fix-id]`                 |
-| Siege fails                            | 1 × siege-recheck       | `[ward-rerun-id]`                     |
-| Codeweaver/Lawbringer needs followup   | 1 × inline spiritmender | slot-internal (NOT a quest work item) |
+| Ward fails (no retries left)           | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
+| Spiritmender fails (ward recovery)     | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
+| Siege fails                            | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
+| Lawbringer fails                       | 1 × spiritmender        | `[]`                                  |
 
 ### Who sets quest status
 
@@ -339,12 +443,12 @@ verify broken/risky behavior, not intended behavior.
 
 ### Design Risks (no fix yet — need circuit breakers)
 
-| ID | Affects                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | How to Trigger                                                 | What to Verify                                                                                                    |
-|----|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| X4 | Codeweaver, Lawbringer, Spiritmender | Slot manager crash/timeout retry has NO attempt counter. An agent that always crashes retries forever.                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Have agent binary consistently crash (e.g., bad config)        | Quest stays `in_progress` indefinitely, work item never reaches `failed`. Process must be manually killed.        |
-| X5 | Siegemaster                          | Fix chains have no depth limit. Each failed siege-recheck creates another full codeweaver-fix → ward-rerun → siege-recheck chain indefinitely.                                                                                                                                                                                                                                                                                                                                                                                                           | Have siege agent always fail verification                      | `quest.workItems` grows by 3 per cycle. Quest stays `in_progress` forever.                                        |
-| X6 | All slot-managed roles               | Silent drop: if crash/timeout or partially-complete respawn can't get a slot, work item stays "started" with no agent — orphaned.                                                                                                                                                                                                                                                                                                                                                                                                                        | Saturate all 3 slots, then crash an agent when no slot is free | Work item stuck at `started` with no agent. Eventually returns as `failed` when slot manager detects stuck state. |
-| X8 | Web UI (execution panel)             | Ad-hoc step detection removed. Previously derived from `step.blockingType === 'needs_role_followup'` (dashed border + AD-HOC tag on spiritmender fix-up steps). Field removed during work-items pivot. `isAdhoc` is now hardcoded `false`. Need to derive ad-hoc status from work item metadata (e.g., `insertedBy` or role) instead.                                                                                                                                                                                                                    | View execution panel with spiritmender-spawned steps           | All steps render identically — no visual distinction between planned and ad-hoc fix-up steps.                     |
+| ID | Affects                              | Description                                                                                                                                               | How to Trigger                                                 | What to Verify                                                                                                    |
+|----|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| X4 | Codeweaver, Lawbringer, Spiritmender | Slot manager crash/timeout retry has NO attempt counter. An agent that always crashes retries forever.                                                    | Have agent binary consistently crash (e.g., bad config)        | Quest stays `in_progress` indefinitely, work item never reaches `failed`. Process must be manually killed.        |
+| X5 | Siegemaster                          | Fix chains have no depth limit. Each failed siege-recheck creates another full codeweaver-fix → ward-rerun → siege-recheck chain indefinitely.            | Have siege agent always fail verification                      | `quest.workItems` grows by 3 per cycle. Quest stays `in_progress` forever.                                        |
+| X6 | All slot-managed roles               | Silent drop: if crash/timeout or partially-complete respawn can't get a slot, work item stays "started" with no agent — orphaned.                         | Saturate all 3 slots, then crash an agent when no slot is free | Work item stuck at `started` with no agent. Eventually returns as `failed` when slot manager detects stuck state. |
+| X8 | Web UI (execution panel)             | Ad-hoc step detection removed. `isAdhoc` is hardcoded `false`. Need to derive ad-hoc status from work item metadata (e.g., `insertedBy` or role) instead. | View execution panel with spiritmender-spawned steps           | All steps render identically — no visual distinction between planned and ad-hoc fix-up steps.                     |
 
 ---
 
@@ -547,8 +651,6 @@ Siege (on failure)
   ├─► 1 × ward-rerun (dependsOn: [codeweaver-fix ID])
   └─► 1 × siege-recheck (dependsOn: [ward-rerun ID])
 
-Slot Manager (on needs-role-followup signal)
-  └─► 1 × inline spiritmender (slot-internal, NOT a quest work item)
 ```
 
 - [ ] **T-SPAWN-1: PathSeeker generates correct item shapes**
@@ -589,22 +691,11 @@ Slot Manager (on needs-role-followup signal)
 | Lawbringer   | 1 (but crash retry ∞ ⚠ [X4]) | Slot manager respawns on crash          | Quest stays `in_progress` forever                      |
 | Spiritmender | 1 (but crash retry ∞ ⚠ [X4]) | Slot manager respawns on crash          | Quest stays `in_progress` forever                      |
 
-**Followup depth limits** (for `needs-role-followup` signal within slot manager):
-
-| Caller       | Max Depth | At limit                                                     |
-|--------------|-----------|--------------------------------------------------------------|
-| Codeweaver   | 5         | Original item `failed` → ward dep unmet → `blocked`          |
-| Lawbringer   | 3         | Original item `failed` → quest terminal, stays `in_progress` |
-| Spiritmender | 3         | Original item `failed` → ward retry dep unmet → `blocked`    |
-
 - [ ] **T-RETRY-1: PathSeeker retry preserves maxAttempts and timeoutMs**
   Retry item carries same `maxAttempts: 3` and `timeoutMs` from original.
 
 - [ ] **T-RETRY-2: Ward retry at max = no spiritmender, no retry**
   At attempt 2 (0-indexed, max 3): ward marked `failed`, nothing created. Siege stays pending with failed dep.
-
-- [ ] **T-RETRY-3: Followup depth exceeded = original item failed**
-  When `followupDepth >= maxFollowupDepth`, the ORIGINAL work item (not the spiritmender) is marked `failed`.
 
 ### Quest Contract Integrity
 
