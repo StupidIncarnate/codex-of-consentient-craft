@@ -6,6 +6,7 @@ import {
   GuildConfigStub,
   GuildIdStub,
   GuildStub,
+  questContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
@@ -26,6 +27,9 @@ export const OrchestrationStartResponderProxy = (): {
   setupQuestNotApproved: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
+  setupPathseekerInsertFailure: (params: { quest: Quest }) => void;
+  getAllPersistedContents: () => readonly unknown[];
+  getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -115,6 +119,20 @@ export const OrchestrationStartResponderProxy = (): {
     setupModifyFailure: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupEmptyFolder();
+    },
+
+    setupPathseekerInsertFailure: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupEmptyFolder();
+    },
+
+    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+
+    getLastPersistedQuest: (): ReturnType<typeof questContract.parse> => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      const lastWrite = persisted[persisted.length - 1];
+      return questContract.parse(JSON.parse(String(lastWrite)));
     },
   };
 };

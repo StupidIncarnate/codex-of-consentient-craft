@@ -1,4 +1,9 @@
-import { QuestStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestStub,
+  QuestIdStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
 
@@ -82,6 +87,168 @@ describe('OrchestrationStartResponder', () => {
       const result = await proxy.callResponder({ questId });
 
       expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
+  });
+
+  describe('pathseeker work item creation', () => {
+    it('VALID: {approved quest with completed chaos} => persists pathseeker with correct identity', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const [pathseeker] = pathseekerItems;
+
+      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseeker?.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(pathseeker?.role).toBe('pathseeker');
+      expect(pathseeker?.status).toBe('pending');
+      expect(pathseeker?.spawnerType).toBe('agent');
+    });
+
+    it('VALID: {approved quest with completed chaos} => persists pathseeker with correct config', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const [pathseeker] = pathseekerItems;
+
+      expect(pathseeker?.dependsOn).toStrictEqual([chaosId]);
+      expect(pathseeker?.maxAttempts).toBe(3);
+      expect(pathseeker?.timeoutMs).toBe(600000);
+    });
+
+    it('VALID: {approved quest with no work items} => persists pathseeker with empty dependsOn', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([]);
+    });
+
+    it('VALID: {quest already has pathseeker} => does not create duplicate pathseeker', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const existingPathseeker = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        role: 'pathseeker',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        workItems: [existingPathseeker],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseekerItems[0]?.id).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    });
+
+    it('ERROR: {pathseeker insert fails} => throws pathseeker creation error', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupPathseekerInsertFailure({ quest });
+
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(
+        /Failed to create pathseeker work item/u,
+      );
+    });
+
+    it('VALID: {approved quest with chaos and glyphsmith complete} => pathseeker depends on both', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const glyphItem = WorkItemStub({
+        id: glyphId,
+        role: 'glyphsmith',
+        status: 'complete',
+        createdAt: '2024-01-15T11:00:00.000Z',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        workItems: [chaosItem, glyphItem],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
+    });
+
+    it('VALID: {in_progress quest with no pathseeker} => creates pathseeker before loop', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [chaosItem],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestInProgressRestart({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseekerItems[0]?.role).toBe('pathseeker');
+      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
     });
   });
 });

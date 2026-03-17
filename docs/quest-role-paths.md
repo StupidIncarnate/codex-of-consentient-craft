@@ -30,7 +30,10 @@ packages/orchestrator/src/statics/
 
 ### Test Procedure (per test case)
 
-**1. Setup**
+**Important:** The LLM cannot spawn Claude agent subprocesses from within a Claude Code session (nested session
+restriction). All execution must be triggered by the **user** via the web UI or a separate terminal.
+
+**1. Setup (LLM does this)**
 
 - LLM calls out the test case ID, what it tests, and the expected results for:
     - `quest.json` state (work item statuses, quest status, new items created)
@@ -40,21 +43,22 @@ packages/orchestrator/src/statics/
 - LLM modifies the relevant role prompt statics to force the LLM agent into the behavior we need (e.g., replace the
   prompt text with "exit immediately with signal complete" or "crash after 5 seconds"). We're in git, so all statics
   changes get reverted after testing.
+- LLM tells user what to do next
 
-**2. Execute**
+**2. Execute (User does this)**
 
-- Start the dev server: `npm run dev`
-- Trigger the test action (start orchestration, send user message, etc.)
-- LLM monitors `quest.json` for state changes during execution
-- LLM checks backend logs/stderr for expected errors or output
+- User starts the dev server: `npm run dev` (in a separate terminal, NOT through the LLM)
+- User triggers the test action via the web UI (start orchestration, send user message, approve, etc.)
+- User tells LLM when execution is done
 
-**3. Verify**
+**3. Verify (LLM does this, User confirms)**
 
-- LLM compares actual `quest.json` state against expected
+- LLM reads `quest.json` and compares actual state against expected
 - LLM checks frontend if the test case has UI expectations
-- User confirms "good" or flags discrepancies
+- LLM reports findings to user
+- **User confirms "good" or flags discrepancies — LLM does NOT proceed until user confirms**
 
-**4. Teardown**
+**4. Teardown (LLM does this ONLY after user confirms)**
 
 - Kill the dev server
 - Revert statics changes (`git checkout -- packages/orchestrator/src/statics/`)
@@ -68,53 +72,256 @@ packages/orchestrator/src/statics/
 
 ### Bugs Found During Testing
 
-| Test Case              | Date | Description | Severity | Status |
-|------------------------|------|-------------|----------|--------|
-| *(populated as we go)* |      |             |          |        |
+| Test Case   | Date       | Description                                                                                                                                                                                                                                                                                                                    | Severity | Status                                    |
+|-------------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------|
+| H-1 (setup) | 2026-03-17 | Malformed quest.json (e.g. duplicate keys, parse failure) causes the entire quest listing endpoint to return 500. Should skip the broken quest and show an error indicator in the UI for that item only.                                                                                                                       | Medium   | Open                                      |
+| H-1 (info)  | 2026-03-17 | Chaos → PathSeeker is NOT an automatic transition. User must manually approve observables (status → `approved`) and then hit Start to trigger OrchestrationStartResponder, which creates the pathseeker work item. The test entry state must be `approved` with chaos `complete`, and the user must click Start in the UI.     | Info     | N/A                                       |
+| H-1         | 2026-03-17 | OrchestrationStartResponder transitions quest to `in_progress` but does NOT create pathseeker work item. Root cause: `questModifyBroker` returned `{ success: false }` and the result was never checked. Fix: added error check + throw. 7 tests added. Still need to investigate WHY the modify broker fails for this insert. | Critical | Fixed (error handling), Open (root cause) |
 
 ---
 
-## Quest Status Lifecycle (for reference)
+## Quest Status + Work Item Lifecycle (full map)
+
+This is the complete map of quest status transitions, work item creation points, and failure-triggered recovery. Every
+automatic transition after `in_progress` is driven by work item status changes — the orchestration loop derives quest
+status from work items, never sets it directly.
+
+### Phase 1: Spec (manual transitions — user + ChaosWhisperer)
 
 ```
-created ─► explore_flows ─► review_flows ─► flows_approved
-                │                 │
-                └── (back) ◄──────┘
-                                       │
-                                       ▼
-                              explore_observables ─► review_observables ─► approved
-                                       │                    │                 │
-                                       └── (back) ◄─────────┘                │
-                                                                              │
-                                                            ┌─────────────────┤
-                                                            ▼                 ▼
-                                                    explore_design      in_progress
-                                                       │                    │
-                                                  review_design        ┌─────┤
-                                                       │               │     │
-                                                  design_approved      │     ▼
-                                                       │               │  blocked ──► in_progress
-                                                       ▼               │     │            │
-                                                  in_progress          │     ▼            ▼
-                                                       │               │  abandoned    complete
-                                                       └───────────────┘             abandoned
+[USER] Creates quest via web UI
+  │
+  ▼
+① created
+   workItems: [{ chaos, pending }]
+  │
+  ▼ [USER sends message via web UI chat]
+② ChaosWhisperer runs (agent)
+   status: created → explore_flows → review_flows (set by ChaosWhisperer during conversation)
+  │
+  ▼ [USER approves flows in web UI — Gate #1]
+③ flows_approved
+   status: flows_approved → explore_observables → review_observables (set by ChaosWhisperer)
+  │
+  ▼ [USER approves observables in web UI — Gate #2]
+④ approved
+   workItems: [{ chaos, complete }]
 ```
 
-**Who sets quest status:**
+### Phase 1b: Design (automatic if needsDesign is true)
 
-| Status                                 | Set by                        | Trigger                                                            |
-|----------------------------------------|-------------------------------|--------------------------------------------------------------------|
-| `created`                              | quest-add broker              | `/quest` creates initial quest                                     |
-| `explore_flows` → `review_observables` | ChaosWhisperer agent          | via `modify-quest` MCP tool during spec phases                     |
-| `approved`                             | User                          | approves observables in web UI (Gate #2)                           |
-| `explore_design` → `design_approved`   | Glyphsmith + User             | design flow + approval                                             |
-| `in_progress`                          | `OrchestrationStartResponder` | Orchestrator detects startable quest status (line 70)              |
-| `blocked`                              | orchestration loop            | `nextReadyWorkItemsTransformer` returns blocked (line 93)          |
-| `complete`                             | orchestration loop            | `workItemsToQuestStatusTransformer` — all items complete (line 87) |
-| `in_progress` (from blocked)           | orchestration loop            | items become ready again after dynamic insertion                   |
+```
+④ approved
+  │
+  ├─ needsDesign === false → skip to Phase 2 (User clicks Start)
+  │
+  ▼ needsDesign === true → Glyphsmith auto-starts
+④a Glyphsmith runs (agent)
+    workItems: [{ chaos, complete }, { glyph, pending }]
+    status: approved → explore_design → review_design (set by Glyphsmith during conversation)
+  │
+  ▼ [USER approves design in web UI — Gate #3]
+④b design_approved
+    workItems: [{ chaos, complete }, { glyph, complete }]
+```
+
+### Phase 2: Execution (automatic transitions — orchestration loop)
+
+**Entry:** User clicks Start in web UI.
+
+```
+⑤ in_progress
+     - Quest status → in_progress
+     - CREATES: pathseeker work item (dependsOn: [completed chat IDs])
+     - Orchestration loop starts
+
+   workItems: [{ chaos, complete }, { pathseeker, pending, dependsOn: [chaos-id] }]
+```
+
+### Phase 2a: PathSeeker
+
+```
+⑥ PathSeeker dispatched (pending → in_progress)
+   Agent runs, creates steps, verifies quest integrity
+  │
+  ├─ VERIFY PASSES ──────────────────────────────────────────────────────────
+  │   pathseeker → complete
+  │   CREATES:
+  │     N × codeweaver  (dependsOn: [pathseeker-id] + inter-step chains)
+  │     1 × ward        (dependsOn: [ALL codeweaver IDs], spawnerType: 'command', maxAttempts: 3)
+  │     1 × siege       (dependsOn: [ward-id], timeoutMs: 300000)
+  │     N × lawbringer  (dependsOn: [siege-id])
+  │
+  ├─ VERIFY FAILS (attempt < maxAttempts - 1) ───────────────────────────────
+  │   pathseeker → failed
+  │   CREATES: pathseeker-retry (dependsOn: [], attempt: +1, insertedBy: failed-ps-id)
+  │   Loop recurses → retry dispatched
+  │
+  ├─ VERIFY FAILS (attempt >= maxAttempts - 1) ──────────────────────────────
+  │   pathseeker → failed
+  │   NO retry created. Quest stuck at in_progress (no pending items, not all complete).
+  │
+  └─ EXCEPTION (spawn failure, quest not found) ───────────────────────────
+      pathseeker → failed
+      Quest status recalculated.
+```
+
+### Phase 2b: Codeweavers (parallel, up to 3 slots)
+
+```
+⑦ Codeweavers dispatched (all ready CWs: pending → in_progress)
+   Each implements one quest step via slot manager.
+  │
+  ├─ SUCCESS (signal: 'complete') ───────────────────────────────────────────
+  │   codeweaver → complete
+  │   When ALL codeweavers complete → ward becomes ready
+  │
+  ├─ FAILURE (signal: 'failed') ─────────────────────────────────────────────
+  │   codeweaver → failed
+  │   Ward has failed dep → ward NEVER ready → quest → blocked
+  │
+  ├─ NEEDS FOLLOWUP (signal: 'needs-role-followup', depth < max) ────────────
+  │   Slot manager spawns inline spiritmender (NOT a quest work item).
+  │   On spiritmender complete → original codeweaver re-queued.
+  │   On depth exceeded (codeweaver maxFollowupDepth: 5) → codeweaver → failed.
+  │
+  └─ CRASH / TIMEOUT ───────────────────────────────────────────────────────
+      Slot manager respawns in next available slot. ⚠ [X4] No attempt counter.
+      If no slot available → orphaned. ⚠ [X6]
+```
+
+### Phase 2c: Ward (single, command-based)
+
+```
+⑧ Ward dispatched (pending → in_progress)
+   Runs quality checks (lint, typecheck, test). Exit code 0 = pass, non-zero = fail.
+  │
+  ├─ PASS (exit code 0) ──────────────────────────────────────────────────
+  │   ward → complete
+  │   Siege becomes ready (dependsOn satisfied)
+  │
+  ├─ FAIL (exit code != 0, retries left) ─────────────────────────────────
+  │   ward → failed
+  │   CREATES wardResult on quest (exitCode, filePaths, errorSummary)
+  │   CREATES:
+  │     1 × spiritmender (dependsOn: [], relatedDataItems: ['wardResults/<id>'])
+  │     1 × ward-retry   (dependsOn: [spiritmender-id], attempt: +1, insertedBy: failed-ward-id)
+  │   Siege dependsOn REWIRED to ward-retry
+  │   Loop recurses → spiritmender dispatched (immediately ready)
+  │
+  └─ FAIL (exit code != 0, no retries left) ──────────────────────────────
+      ward → failed
+      NO spiritmender, NO retry.
+      Siege has failed dep → quest → blocked.
+```
+
+### Phase 2c-recovery: Spiritmender (quest-level, from ward failure)
+
+```
+⑧a Spiritmender dispatched (pending → in_progress)
+    Reads ward errors from relatedDataItems. Fixes 1 file per agent slot.
+    Each agent sees ALL concatenated errors.
+  │
+  ├─ SUCCESS ───────────────────────────────────────────────────────────────
+  │   spiritmender → complete
+  │   Ward-retry becomes ready (dependsOn: [spiritmender-id] satisfied)
+  │
+  └─ FAILURE ───────────────────────────────────────────────────────────────
+      spiritmender → failed
+      Ward-retry has failed dep → quest → blocked.
+```
+
+### Phase 2d: Siegemaster (single, agent-based)
+
+```
+⑨ Siege dispatched (pending → in_progress)
+   Verifies ALL observables from ALL flow nodes.
+  │
+  ├─ SUCCESS (signal: 'complete' OR exitCode: 0) ──────────────────────────
+  │   siege → complete
+  │   Lawbringers become ready (dependsOn: [siege-id] satisfied)
+  │
+  └─ FAILURE ──────────────────────────────────────────────────────────────
+      siege → failed
+      CREATES (fix chain):
+        1 × codeweaver-fix  (dependsOn: [], relatedDataItems: [])
+        1 × ward-rerun      (dependsOn: [cw-fix-id], maxAttempts: 3)
+        1 × siege-recheck   (dependsOn: [ward-rerun-id])
+      Lawbringer dependsOn REWIRED to siege-recheck
+      ⚠ [X5] No depth limit — siege-recheck can fail → another fix chain → unbounded.
+```
+
+### Phase 2e: Lawbringers (parallel, up to 3 slots)
+
+```
+⑩ Lawbringers dispatched (all ready: pending → in_progress)
+   Each verifies one step's file paths.
+  │
+  ├─ SUCCESS (signal: 'complete') ───────────────────────────────────────────
+  │   lawbringer → complete
+  │   When ALL lawbringers + all other items complete → quest → complete ✓
+  │
+  ├─ FAILURE (signal: 'failed') ─────────────────────────────────────────────
+  │   lawbringer → failed
+  │   Quest stays in_progress (nothing depends on lawbringers, so no blocked).
+  │
+  ├─ NEEDS FOLLOWUP (signal: 'needs-role-followup', depth < max) ────────────
+  │   Slot manager spawns inline spiritmender (NOT a quest work item).
+  │   On spiritmender complete → original lawbringer re-queued.
+  │   On depth exceeded (lawbringer maxFollowupDepth: 3) → lawbringer → failed.
+  │
+  └─ CRASH / TIMEOUT ───────────────────────────────────────────────────────
+      Slot manager respawns in next available slot. ⚠ [X4] No attempt counter.
+```
+
+### Quest Terminal States
+
+```
+COMPLETE:  Every work item is complete (or skipped).
+BLOCKED:   Pending items exist whose deps are ALL failed, nothing in_progress.
+STUCK:     No pending items, nothing in_progress, but not all complete (e.g., all pathseekers failed).
+           Quest stays in_progress — this is NOT blocked (no pending items to block).
+ABANDONED: User manually abandons.
+```
+
+### Work Item Creation Summary
+
+| When                                   | Creates                 | dependsOn                             |
+|----------------------------------------|-------------------------|---------------------------------------|
+| User creates quest via web UI          | 1 × chaoswhisperer      | `[]`                                  |
+| needsDesign === true after approved    | 1 × glyphsmith          | `[]`                                  |
+| User clicks Start                      | 1 × pathseeker          | `[completed chat IDs]`                |
+| PathSeeker verify passes               | N × codeweaver          | `[pathseeker-id + inter-step chains]` |
+| PathSeeker verify passes               | 1 × ward                | `[ALL codeweaver IDs]`                |
+| PathSeeker verify passes               | 1 × siege               | `[ward-id]`                           |
+| PathSeeker verify passes               | N × lawbringer          | `[siege-id]`                          |
+| PathSeeker verify fails (retries left) | 1 × pathseeker-retry    | `[]`                                  |
+| Ward fails (retries left)              | 1 × spiritmender        | `[]`                                  |
+| Ward fails (retries left)              | 1 × ward-retry          | `[spiritmender-id]`                   |
+| Siege fails                            | 1 × codeweaver-fix      | `[]`                                  |
+| Siege fails                            | 1 × ward-rerun          | `[codeweaver-fix-id]`                 |
+| Siege fails                            | 1 × siege-recheck       | `[ward-rerun-id]`                     |
+| Codeweaver/Lawbringer needs followup   | 1 × inline spiritmender | slot-internal (NOT a quest work item) |
+
+### Who sets quest status
+
+| Status                                 | Set by             | When                                                    |
+|----------------------------------------|--------------------|---------------------------------------------------------|
+| `created`                              | System             | User creates quest via web UI                           |
+| `explore_flows` → `review_observables` | ChaosWhisperer     | During spec conversation                                |
+| `approved`                             | User               | Approves observables in web UI (Gate #2)                |
+| `explore_design` → `design_approved`   | Glyphsmith + User  | Design conversation + approval (Gate #3)                |
+| `in_progress`                          | System             | User clicks Start (manual trigger)                      |
+| `blocked`                              | Orchestration loop | Pending items with all-failed deps, nothing in_progress |
+| `complete`                             | Orchestration loop | All work items complete                                 |
+| `in_progress` (from blocked)           | Orchestration loop | New items inserted, deps satisfiable again              |
 
 **Critical:** Layer brokers NEVER set quest status. They only modify work item statuses. Quest status is always derived
 by the orchestration loop's terminal/blocked checks or error handler.
+
+**Critical:** The transition from `approved`/`design_approved` → `in_progress` is the ONLY manual transition in the
+execution phase. Everything after that is automatic — driven by the orchestration loop dispatching work items and
+deriving quest status from their states.
 
 ---
 
@@ -439,7 +646,7 @@ These walk the entire quest lifecycle. Verify quest.json at each checkpoint.
 - [ ] **Checkpoint flow:**
 
 ```
-[USER] /quest "Build login page"
+[USER] Creates quest "Build login page" via web UI
   │
   ▼
 ① quest.json created

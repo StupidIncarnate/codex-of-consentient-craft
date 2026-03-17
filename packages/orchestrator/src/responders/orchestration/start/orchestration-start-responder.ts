@@ -99,7 +99,11 @@ export const OrchestrationStartResponder = async ({
     });
 
     const insertInput = modifyQuestInputContract.parse({ questId, workItems: [pathseekerItem] });
-    await questModifyBroker({ input: insertInput });
+    const insertResult = await questModifyBroker({ input: insertInput });
+
+    if (!insertResult.success) {
+      throw new Error(`Failed to create pathseeker work item: ${insertResult.error}`);
+    }
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });
