@@ -12,6 +12,7 @@ export const checkRunE2eBrokerProxy = (): {
   setupPassWithOutput: (params: { stdout: string }) => void;
   setupFail: (params: { stdout: string }) => void;
   setupFailWithBadOutput: () => void;
+  setupFailWithInfraError: (params: { errorMessage: string }) => void;
   setupNoPlaywrightConfig: () => void;
   getSpawnedArgs: () => unknown;
 } => {
@@ -22,10 +23,16 @@ export const checkRunE2eBrokerProxy = (): {
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
 
+  const queueFuserCleanup = (): void => {
+    captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
+    captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
+  };
+
   return {
     setupPass: (): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
+      queueFuserCleanup();
       captureProxy.setupSuccess({
         exitCode: successCode,
         stdout: '{"suites":[],"errors":[]}',
@@ -36,21 +43,38 @@ export const checkRunE2eBrokerProxy = (): {
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
+      queueFuserCleanup();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
+      queueFuserCleanup();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: (): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
+      queueFuserCleanup();
       captureProxy.setupSuccess({
         exitCode: failCode,
         stdout: 'not valid json \x1b[31m',
+        stderr: '',
+      });
+    },
+
+    setupFailWithInfraError: ({ errorMessage }: { errorMessage: string }): void => {
+      existsProxy.returns({ result: true });
+      binProxy.setupFound();
+      queueFuserCleanup();
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: JSON.stringify({
+          suites: [],
+          errors: [{ message: errorMessage }],
+        }),
         stderr: '',
       });
     },
