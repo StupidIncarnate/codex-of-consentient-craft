@@ -66,6 +66,9 @@ export * from './src/contracts/user-input/user-input.stub';
 export * from './src/contracts/exit-code/exit-code-contract';
 export * from './src/contracts/exit-code/exit-code.stub';
 
+export * from './src/contracts/network-port/network-port-contract';
+export * from './src/contracts/network-port/network-port.stub';
+
 // Quest Contracts
 export * from './src/contracts/quest-status/quest-status-contract';
 export * from './src/contracts/quest-status/quest-status.stub';

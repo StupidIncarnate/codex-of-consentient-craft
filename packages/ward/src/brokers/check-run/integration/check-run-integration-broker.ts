@@ -58,7 +58,9 @@ export const checkRunIntegrationBroker = async ({
   }
 
   const finalArgs =
-    fileList.length > 0 ? [...args, '--runInBand', '--findRelatedTests', ...fileList] : [...args];
+    fileList.length > 0
+      ? [...args, '--runInBand', '--findRelatedTests', ...fileList]
+      : [...args, '--runInBand'];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({

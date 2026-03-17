@@ -9,14 +9,20 @@
 import {
   childProcessSpawnCaptureAdapter,
   fsExistsSyncAdapter,
+  netFreePortAdapter,
 } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
+  errorMessageContract,
   exitCodeContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
+import {
+  errorEntryContract,
+  type ErrorEntry,
+} from '../../../contracts/error-entry/error-entry-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -67,12 +73,18 @@ export const checkRunE2eBroker = async ({
   const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
+  const [serverPort, webPort] = await Promise.all([netFreePortAdapter(), netFreePortAdapter()]);
+
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
     timeout: FIVE_MINUTES,
+    env: {
+      DUNGEONMASTER_PORT: String(serverPort),
+      DUNGEONMASTER_WEB_PORT: String(webPort),
+    },
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
@@ -90,26 +102,64 @@ export const checkRunE2eBroker = async ({
 
   let filesCount = 0;
   const processedFiles: GitRelativePath[] = [];
+  const infrastructureErrors: ErrorEntry[] = [];
 
   try {
     const jsonSlice = extractJsonObjectTransformer({ output: result.output });
     const parsed: unknown = JSON.parse(jsonSlice);
-    if (typeof parsed === 'object' && parsed !== null && 'suites' in parsed) {
-      const suites: unknown = Reflect.get(parsed, 'suites');
-      if (Array.isArray(suites)) {
-        filesCount = suites.length;
-        for (const suite of suites) {
-          if (typeof suite === 'object' && suite !== null && 'title' in suite) {
-            const title: unknown = Reflect.get(suite, 'title');
-            if (typeof title === 'string' && title.length > 0) {
-              processedFiles.push(gitRelativePathContract.parse(title));
+    if (typeof parsed === 'object' && parsed !== null) {
+      if ('suites' in parsed) {
+        const suites: unknown = Reflect.get(parsed, 'suites');
+        if (Array.isArray(suites)) {
+          filesCount = suites.length;
+          for (const suite of suites) {
+            if (typeof suite === 'object' && suite !== null && 'title' in suite) {
+              const title: unknown = Reflect.get(suite, 'title');
+              if (typeof title === 'string' && title.length > 0) {
+                processedFiles.push(gitRelativePathContract.parse(title));
+              }
             }
+          }
+        }
+      }
+
+      if ('errors' in parsed) {
+        const pwErrors: unknown = Reflect.get(parsed, 'errors');
+        if (Array.isArray(pwErrors)) {
+          for (const entry of pwErrors) {
+            if (typeof entry !== 'object' || entry === null || !('message' in entry)) {
+              continue;
+            }
+            const msg: unknown = Reflect.get(entry, 'message');
+            if (typeof msg !== 'string' || msg.length === 0) {
+              continue;
+            }
+            infrastructureErrors.push(
+              errorEntryContract.parse({
+                filePath: 'playwright.config.ts',
+                line: 0,
+                column: 0,
+                message: errorMessageContract.parse(msg),
+                severity: 'error',
+              }),
+            );
           }
         }
       }
     }
   } catch {
-    // non-JSON output, filesCount stays 0
+    const MAX_CRASH_MESSAGE_LENGTH = 2_000;
+    if (status === 'fail' && result.output.length > 0) {
+      infrastructureErrors.push(
+        errorEntryContract.parse({
+          filePath: 'playwright.config.ts',
+          line: 0,
+          column: 0,
+          message: errorMessageContract.parse(result.output.slice(0, MAX_CRASH_MESSAGE_LENGTH)),
+          severity: 'error',
+        }),
+      );
+    }
   }
 
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
@@ -121,7 +171,7 @@ export const checkRunE2eBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status,
-    errors: [],
+    errors: infrastructureErrors,
     testFailures,
     filesCount,
     discoveredCount,

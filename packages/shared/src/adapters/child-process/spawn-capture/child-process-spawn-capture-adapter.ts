@@ -22,11 +22,13 @@ export const childProcessSpawnCaptureAdapter = async ({
   args,
   cwd,
   timeout,
+  env,
 }: {
   command: string;
   args: string[];
   cwd: AbsoluteFilePath;
   timeout?: number;
+  env?: Record<string, string>;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
     execFile(
@@ -35,7 +37,7 @@ export const childProcessSpawnCaptureAdapter = async ({
       {
         cwd,
         maxBuffer: FIFTY_MB,
-        env: { ...process.env },
+        env: { ...process.env, ...env },
         ...(timeout !== undefined && { timeout }),
       },
       (error, stdout, stderr) => {

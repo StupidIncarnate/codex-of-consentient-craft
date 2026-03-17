@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 
 import { checkRunE2eBroker } from './check-run-e2e-broker';
 import { checkRunE2eBrokerProxy } from './check-run-e2e-broker.proxy';
@@ -137,7 +138,15 @@ describe('checkRunE2eBroker', () => {
           discoveredCount: 2,
           projectFolder,
           status: 'fail',
-          errors: [],
+          errors: [
+            ErrorEntryStub({
+              filePath: 'playwright.config.ts',
+              line: 0,
+              column: 0,
+              message: 'not valid json \x1b[31m',
+              severity: 'error',
+            }),
+          ],
           testFailures: [],
           onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
@@ -145,6 +154,46 @@ describe('checkRunE2eBroker', () => {
             stderr: '',
             exitCode: 1,
           }),
+        }),
+      );
+    });
+  });
+
+  describe('infrastructure errors', () => {
+    it('VALID: {playwright exits 1 with errors array} => returns fail result with parsed infrastructure errors', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      const portError = 'http://localhost:5737 is already used';
+      proxy.setupFailWithInfraError({ errorMessage: portError });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      const expectedOutput = JSON.stringify({
+        suites: [],
+        errors: [{ message: portError }],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'playwright.config.ts',
+              line: 0,
+              column: 0,
+              message: portError,
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
+          rawOutput: RawOutputStub({ stdout: expectedOutput, stderr: '', exitCode: 1 }),
         }),
       );
     });

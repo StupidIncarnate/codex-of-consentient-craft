@@ -356,7 +356,7 @@ describe('OrchestrationFlow', () => {
       // Poll until quest reaches a terminal status
       const pollResult = await pollForTerminal({
         questId,
-        timeoutMs: QuestIdStub({ value: '15000' }),
+        timeoutMs: QuestIdStub({ value: '25000' }),
       });
 
       // Restore env vars
@@ -369,6 +369,6 @@ describe('OrchestrationFlow', () => {
       testbed.cleanup();
 
       expect(pollResult.quest!.status).toBe('complete');
-    }, 30000);
+    }, 30_000);
   });
 });
