@@ -22,17 +22,24 @@ export const childProcessSpawnCaptureAdapter = async ({
   args,
   cwd,
   timeout,
+  env,
 }: {
   command: string;
   args: string[];
   cwd: AbsoluteFilePath;
   timeout?: number;
+  env?: Record<string, string>;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
     execFile(
       command,
       args,
-      { cwd, maxBuffer: FIFTY_MB, ...(timeout !== undefined && { timeout }) },
+      {
+        cwd,
+        maxBuffer: FIFTY_MB,
+        ...(timeout !== undefined && { timeout }),
+        ...(env !== undefined && { env: { ...process.env, ...env } }),
+      },
       (error, stdout, stderr) => {
         const combinedOutput = errorMessageContract.parse(stdout + stderr);
 

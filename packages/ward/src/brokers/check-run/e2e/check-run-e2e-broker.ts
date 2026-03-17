@@ -9,6 +9,7 @@
 import {
   childProcessSpawnCaptureAdapter,
   fsExistsSyncAdapter,
+  netFreePortAdapter,
 } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
@@ -32,8 +33,6 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
-
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
@@ -74,18 +73,7 @@ export const checkRunE2eBroker = async ({
   const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const FUSER_TIMEOUT = 5_000;
-  const { testPort } = environmentStatics;
-  await Promise.all(
-    [testPort, testPort + 1].map(async (port) =>
-      childProcessSpawnCaptureAdapter({
-        command: 'fuser',
-        args: ['-k', `${String(port)}/tcp`],
-        cwd,
-        timeout: FUSER_TIMEOUT,
-      }),
-    ),
-  );
+  const [serverPort, webPort] = await Promise.all([netFreePortAdapter(), netFreePortAdapter()]);
 
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
@@ -93,6 +81,10 @@ export const checkRunE2eBroker = async ({
     args: finalArgs,
     cwd,
     timeout: FIVE_MINUTES,
+    env: {
+      DUNGEONMASTER_PORT: String(serverPort),
+      DUNGEONMASTER_WEB_PORT: String(webPort),
+    },
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
@@ -156,7 +148,18 @@ export const checkRunE2eBroker = async ({
       }
     }
   } catch {
-    // non-JSON output, filesCount stays 0
+    const MAX_CRASH_MESSAGE_LENGTH = 2_000;
+    if (status === 'fail' && result.output.length > 0) {
+      infrastructureErrors.push(
+        errorEntryContract.parse({
+          filePath: 'playwright.config.ts',
+          line: 0,
+          column: 0,
+          message: errorMessageContract.parse(result.output.slice(0, MAX_CRASH_MESSAGE_LENGTH)),
+          severity: 'error',
+        }),
+      );
+    }
   }
 
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({

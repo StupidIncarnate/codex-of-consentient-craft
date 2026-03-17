@@ -19,6 +19,7 @@ export * from './src/adapters/os/user-homedir/os-user-homedir-adapter.proxy';
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy';
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
+export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
 
 // Broker Proxies
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';

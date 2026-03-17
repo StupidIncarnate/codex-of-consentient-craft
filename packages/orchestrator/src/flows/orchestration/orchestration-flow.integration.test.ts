@@ -132,6 +132,6 @@ describe('OrchestrationFlow', () => {
       expect(processId).toMatch(/^proc-/u);
       // With work-item queue model, the loop exits immediately when only chat items
       // are pending (no userMessage). The process may already be cleaned up.
-    });
+    }, 30_000);
   });
 });

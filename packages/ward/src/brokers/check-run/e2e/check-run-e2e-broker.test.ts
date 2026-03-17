@@ -138,7 +138,15 @@ describe('checkRunE2eBroker', () => {
           discoveredCount: 2,
           projectFolder,
           status: 'fail',
-          errors: [],
+          errors: [
+            ErrorEntryStub({
+              filePath: 'playwright.config.ts',
+              line: 0,
+              column: 0,
+              message: 'not valid json \x1b[31m',
+              severity: 'error',
+            }),
+          ],
           testFailures: [],
           onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({

@@ -1,6 +1,7 @@
 import {
   childProcessSpawnCaptureAdapterProxy,
   fsExistsSyncAdapterProxy,
+  netFreePortAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
@@ -15,24 +16,26 @@ export const checkRunE2eBrokerProxy = (): {
   setupFailWithInfraError: (params: { errorMessage: string }) => void;
   setupNoPlaywrightConfig: () => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedOptions: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
+  const freePortProxy = netFreePortAdapterProxy();
   fsGlobSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
 
-  const queueFuserCleanup = (): void => {
-    captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
-    captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
+  const queueFreePorts = (): void => {
+    freePortProxy.setupPort({ port: 40_000 });
+    freePortProxy.setupPort({ port: 40_001 });
   };
 
   return {
     setupPass: (): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
-      queueFuserCleanup();
+      queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: successCode,
         stdout: '{"suites":[],"errors":[]}',
@@ -43,21 +46,21 @@ export const checkRunE2eBrokerProxy = (): {
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
-      queueFuserCleanup();
+      queueFreePorts();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
-      queueFuserCleanup();
+      queueFreePorts();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: (): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
-      queueFuserCleanup();
+      queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: failCode,
         stdout: 'not valid json \x1b[31m',
@@ -68,7 +71,7 @@ export const checkRunE2eBrokerProxy = (): {
     setupFailWithInfraError: ({ errorMessage }: { errorMessage: string }): void => {
       existsProxy.returns({ result: true });
       binProxy.setupFound();
-      queueFuserCleanup();
+      queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: failCode,
         stdout: JSON.stringify({
@@ -84,5 +87,6 @@ export const checkRunE2eBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedOptions: (): unknown => captureProxy.getSpawnedOptions(),
   };
 };
