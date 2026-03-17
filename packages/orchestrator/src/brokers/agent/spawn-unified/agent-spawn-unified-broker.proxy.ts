@@ -27,6 +27,8 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     >[0],
   ) => void;
   emitLines: (params: { lines: readonly string[] }) => void;
+  setAutoEmitLines: ReturnType<typeof readlineCreateInterfaceAdapterProxy>['setAutoEmitLines'];
+  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
 } => {
   const readlineProxy = readlineCreateInterfaceAdapterProxy();
@@ -112,6 +114,12 @@ export const agentSpawnUnifiedBrokerProxy = (): {
 
     emitLines: ({ lines }: { lines: readonly string[] }): void => {
       readlineProxy.emitLines({ lines });
+    },
+
+    setAutoEmitLines: readlineProxy.setAutoEmitLines,
+
+    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
+      readlineProxy.setAutoReplayLines({ lines });
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),

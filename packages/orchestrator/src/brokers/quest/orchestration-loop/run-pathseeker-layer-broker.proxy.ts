@@ -1,5 +1,6 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -17,9 +18,27 @@ export const runPathseekerLayerBrokerProxy = (): {
     >[0]['lines'];
     exitCode: ExitCode;
   }) => void;
+  setupVerifyPass: (params: {
+    quest: Quest;
+    spawnLines: Parameters<
+      ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+    >[0]['lines'];
+    exitCode: ExitCode;
+  }) => void;
   setupSpawnFailure: (params: { quest: Quest }) => void;
+  setupSpawnSuccessVerifyFail: (params: {
+    quest: Quest;
+    spawnLines: Parameters<
+      ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+    >[0]['lines'];
+    exitCode: ExitCode;
+  }) => void;
+  setupSpawnCrashVerifyFail: (params: { quest: Quest }) => void;
+  setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
   getPersistedQuestJsons: () => readonly unknown[];
   getSpawnedArgs: () => unknown;
+  getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
+  getAllPersistedQuests: () => readonly ReturnType<typeof questContract.parse>[];
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -47,14 +66,83 @@ export const runPathseekerLayerBrokerProxy = (): {
       spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
     },
 
+    setupVerifyPass: ({
+      quest,
+      spawnLines,
+      exitCode,
+    }: {
+      quest: Quest;
+      spawnLines: Parameters<
+        ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+      >[0]['lines'];
+      exitCode: ExitCode;
+    }): void => {
+      // Order: spawn -> verify -> modify(complete) -> get(quest) -> modify(items)
+      spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
+      verifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+    },
+
     setupSpawnFailure: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnFailureOnce();
     },
 
+    setupSpawnSuccessVerifyFail: ({
+      quest,
+      spawnLines,
+      exitCode,
+    }: {
+      quest: Quest;
+      spawnLines: Parameters<
+        ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+      >[0]['lines'];
+      exitCode: ExitCode;
+    }): void => {
+      // Order: spawn -> verify(fail) -> modify(failed) -> get(retry) -> modify(insert)
+      spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
+      verifyProxy.setupEmptyFolder();
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+    },
+
+    setupSpawnCrashVerifyFail: ({ quest }: { quest: Quest }): void => {
+      // Order: spawn(crash) -> verify(fail) -> modify(failed) -> get(retry) -> modify(insert)
+      spawnProxy.setupSpawnFailureOnce();
+      verifyProxy.setupEmptyFolder();
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+    },
+
+    setupDeterministicUuids: ({ uuids }: { uuids: readonly string[] }): void => {
+      const counter = { value: 0 };
+      const mock = jest.spyOn(crypto, 'randomUUID');
+      mock.mockImplementation(() => {
+        const uuid =
+          uuids[counter.value] ?? uuids[uuids.length - 1] ?? 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+        counter.value += 1;
+        return uuid as ReturnType<typeof crypto.randomUUID>;
+      });
+    },
+
     getPersistedQuestJsons: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+
+    getLastPersistedQuest: (): ReturnType<typeof questContract.parse> => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      const lastWrite = persisted[persisted.length - 1];
+      return questContract.parse(JSON.parse(String(lastWrite)));
+    },
+
+    getAllPersistedQuests: (): readonly ReturnType<typeof questContract.parse>[] => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      return persisted.map((content) => questContract.parse(JSON.parse(String(content))));
+    },
   };
 };

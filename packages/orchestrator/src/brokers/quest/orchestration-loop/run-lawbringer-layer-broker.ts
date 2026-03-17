@@ -79,8 +79,8 @@ export const runLawbringerLayerBroker = async ({
 
   // Map results back to quest work items
   const completedAt = new Date().toISOString();
-  const incompleteIds: WorkItemId[] = result.completed ? [] : result.incompleteIds;
-  const failedSlotIds = new Set<WorkItemId>(incompleteIds);
+  const failedIds: WorkItemId[] = result.completed ? [] : result.failedIds;
+  const failedSlotIds = new Set<WorkItemId>(failedIds);
 
   const workItemUpdates: {
     id: QuestWorkItemId;

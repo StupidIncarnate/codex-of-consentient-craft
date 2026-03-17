@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Executes siegemaster phase — single agent writing integration/e2e tests, creates codeweaver fix on failure
+ * PURPOSE: Executes siegemaster phase — runs integration/e2e tests, skips pending on failure and spawns pathseeker replan
  *
  * USAGE:
  * await runSiegemasterLayerBroker({questId, workItem, startPath});
- * // Runs siegemaster agent. If summary contains FAILED OBSERVABLES, creates codeweaver-fix + ward-rerun + siege-recheck chain
+ * // Runs siegemaster agent. On failure: skips pending work items, creates pathseeker replan
  */
 
 import {
@@ -22,7 +22,6 @@ import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-s
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
 
 const FAILURE_MARKER = 'FAILED OBSERVABLES:';
 
@@ -74,66 +73,42 @@ export const runSiegemasterLayerBroker = async ({
     return;
   }
 
-  // Siegemaster reported failures or crashed — mark as failed with the summary as error message
+  // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
   const completedAt = new Date().toISOString();
   const errorMessage = hasFailed
     ? errorMessageContract.parse(summary)
     : errorMessageContract.parse('siege_check_failed');
 
-  await questModifyBroker({
-    input: {
-      questId,
-      workItems: [{ id: workItem.id, status: 'failed', completedAt, errorMessage }],
-    } as ModifyQuestInput,
-  });
+  const pendingItems = quest.workItems.filter(
+    (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+  );
 
-  // Create fix chain: codeweaver-fix → ward-rerun → siege-recheck
-  // The codeweaver gets the failure summary as its error context
-  const cwFixItem = workItemContract.parse({
+  const skippedItems = pendingItems.map((wi) => ({
+    id: wi.id,
+    status: 'skipped' as const,
+    completedAt,
+  }));
+
+  const pathseekerReplan = workItemContract.parse({
     id: crypto.randomUUID(),
-    role: 'codeweaver',
+    role: 'pathseeker',
     status: 'pending',
     spawnerType: 'agent',
     dependsOn: [],
-    maxAttempts: 1,
-    timeoutMs: slotManagerStatics.codeweaver.timeoutMs,
-    createdAt: new Date().toISOString(),
-    insertedBy: workItem.id,
-    errorMessage,
-  });
-
-  const wardRerun = workItemContract.parse({
-    id: crypto.randomUUID(),
-    role: 'ward',
-    status: 'pending',
-    spawnerType: 'command',
-    dependsOn: [cwFixItem.id],
-    maxAttempts: slotManagerStatics.ward.maxRetries,
+    maxAttempts: 3,
+    timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
     createdAt: new Date().toISOString(),
     insertedBy: workItem.id,
   });
 
-  const siegeRecheck = workItemContract.parse({
-    id: crypto.randomUUID(),
-    role: 'siegemaster',
-    status: 'pending',
-    spawnerType: 'agent',
-    dependsOn: [wardRerun.id],
-    timeoutMs: slotManagerStatics.siegemaster.timeoutMs,
-    maxAttempts: 1,
-    createdAt: new Date().toISOString(),
-    insertedBy: workItem.id,
-  });
-
-  const replacementMapping = [{ oldId: workItem.id, newId: siegeRecheck.id }];
-
-  const freshResult = await questGetBroker({ input: questInput });
-  if (freshResult.success && freshResult.quest) {
-    await questWorkItemInsertBroker({
+  await questModifyBroker({
+    input: {
       questId,
-      quest: freshResult.quest,
-      newWorkItems: [cwFixItem, wardRerun, siegeRecheck],
-      replacementMapping,
-    });
-  }
+      workItems: [
+        { id: workItem.id, status: 'failed', completedAt, errorMessage },
+        ...skippedItems,
+        pathseekerReplan,
+      ],
+    } as ModifyQuestInput,
+  });
 };

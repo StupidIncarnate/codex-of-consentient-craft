@@ -7,7 +7,10 @@ import { spawnAgentLayerBrokerProxy } from './spawn-agent-layer-broker.proxy';
 export const orchestrationLoopLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupAutoEmitLines: ReturnType<typeof spawnAgentLayerBrokerProxy>['setupAutoEmitLines'];
   setupSpawnFailure: () => void;
+  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
   setupDateNow: (params: { timestamp: number }) => void;
 } => {
   const spawnProxy = spawnAgentLayerBrokerProxy();
@@ -31,8 +34,21 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnAndMonitor({ lines, exitCode });
     },
+    setupSpawnOnce: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      spawnProxy.setupSpawnOnce({ lines, exitCode });
+    },
+    setupAutoEmitLines: spawnProxy.setupAutoEmitLines,
     setupSpawnFailure: (): void => {
       spawnProxy.setupSpawnFailure();
+    },
+    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
+      spawnProxy.setAutoReplayLines({ lines });
     },
     setupDateNow: ({ timestamp }: { timestamp: number }): void => {
       jest.spyOn(Date, 'now').mockReturnValue(timestamp);
