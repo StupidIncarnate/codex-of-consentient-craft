@@ -355,5 +355,53 @@ describe('workUnitsToWorkTrackerTransformer', () => {
       expect(tracker.getReadyWorkIds()).toStrictEqual([workItemId]);
       expect(tracker.getWorkUnit({ workItemId })).toStrictEqual(workUnit);
     });
+
+    it('VALID: {add after skipAllPending} => newly added item is pending and ready', () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      tracker.skipAllPending();
+
+      const newItemId = WorkItemIdStub({ value: 'recovery-item' });
+      tracker.addWorkItem({ workItemId: newItemId, workUnit: WorkUnitStub() });
+
+      expect(tracker.getReadyWorkIds()).toStrictEqual([newItemId]);
+      expect(tracker.isAllTerminal()).toBe(false);
+    });
+  });
+
+  describe('isAllComplete() with skipped items', () => {
+    it('VALID: {completed + skipped} => returns false', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.isAllComplete()).toBe(false);
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
+  });
+
+  describe('getFailedIds() with skipped items', () => {
+    it('VALID: {failed + skipped} => returns only failed ids', async () => {
+      const tracker = workUnitsToWorkTrackerTransformer({
+        workUnits: [WorkUnitStub(), CodeweaverWorkUnitStub(), WorkUnitStub()],
+      });
+
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markFailed({ workItemId: WorkItemIdStub({ value: 'work-item-0' }) });
+      await tracker.markStarted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+      await tracker.markCompleted({ workItemId: WorkItemIdStub({ value: 'work-item-1' }) });
+
+      tracker.skipAllPending();
+
+      expect(tracker.getFailedIds()).toStrictEqual([WorkItemIdStub({ value: 'work-item-0' })]);
+      expect(tracker.isAllTerminal()).toBe(true);
+    });
   });
 });

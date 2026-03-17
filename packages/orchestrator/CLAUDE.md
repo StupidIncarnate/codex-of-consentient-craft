@@ -25,13 +25,13 @@ Orchestration Loop (workItems queue)
   │
   ├─ PathSeeker ──── verify-quest + finalizer (retry max 3)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
-  │     └─ PathSeeker on failure (depth-limited)
+  │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
-  │     └─ PathSeeker on failure (drain + skip + replan)
+  │     └─ Spiritmender on failure (targeted code fix)
   ├─ Siegemaster ─── integration tests for observables
-  │     └─ PathSeeker on failure (drain + skip + replan)
+  │     └─ Creates fix chain: codeweaver-fix → ward-rerun → siege-recheck
   ├─ Lawbringer ──── x3 concurrent via slot manager, 1 file pair each
-  │     └─ PathSeeker on failure (drain + skip + replan)
+  │     └─ Spiritmender on failure (targeted code fix)
   │
   ▼
 Complete
@@ -134,7 +134,7 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 | Glyphsmith   | startDesignChat    | N/A (design)     | N/A               | status                                |
 | PathSeeker   | orchestration loop | complete, failed | Bubble to user    | steps, contracts, toolingRequirements |
 | Codeweaver   | slot manager (x3)  | complete, failed | → PathSeeker      | none                                  |
-| Spiritmender | ward failure       | complete, failed | → PathSeeker      | none                                  |
+| Spiritmender | slot manager       | complete, failed | → PathSeeker      | none                                  |
 | Siegemaster  | orchestration loop | complete, failed | Creates fix chain | none                                  |
 | Lawbringer   | slot manager (x3)  | complete, failed | → Spiritmender    | none                                  |
 
@@ -149,13 +149,31 @@ Agents communicate via `signal-back` MCP tool. Two signals only:
 
 ```
 codeweaver   → pathseeker    (drain + skip + replan)
-siegemaster  → pathseeker    (drain + skip + replan)
-lawbringer   → pathseeker    (drain + skip + replan)
+lawbringer   → spiritmender  (targeted code fix)
 spiritmender → pathseeker    (drain + skip + replan)
+siegemaster  → fix chain     (codeweaver-fix → ward-rerun → siege-recheck)
 pathseeker   → bubble to user (terminal — quest blocks)
 ```
 
 Followup depth is limited to prevent infinite retry loops.
+
+### Drain + Skip Model
+
+When a non-PathSeeker agent fails inside the slot manager, the orchestration loop:
+
+1. **Drain** — calls `workTracker.skipAllPending()`, marking all pending items as `skipped`
+2. **Spawn** — creates a recovery work unit (pathseeker or spiritmender) and starts it immediately
+3. **Finish** — already-running agents continue to completion (they're `started`, not `pending`)
+
+Once all agents finish and the recovery agent completes, the quest either succeeds (all items
+complete/skipped) or reaches a new failure which repeats the cycle (depth-limited).
+
+`skipped` is a terminal status like `failed` but does NOT count as a failure — it means the item was
+intentionally bypassed. Skipped deps do NOT satisfy `dependsOn` (the dependent item would be blocked,
+but in practice it's also skipped by the drain).
+
+**Siegemaster** does NOT use drain+skip. It handles failure by inserting a fix chain (codeweaver-fix →
+ward-rerun → siege-recheck) directly into the quest's work items.
 
 ### MCP Sanitization
 

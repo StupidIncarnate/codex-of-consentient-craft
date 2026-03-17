@@ -21,27 +21,34 @@ export const childProcessSpawnCaptureAdapter = async ({
   command,
   args,
   cwd,
+  timeout,
 }: {
   command: string;
   args: string[];
   cwd: AbsoluteFilePath;
+  timeout?: number;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
-    execFile(command, args, { cwd, maxBuffer: FIFTY_MB }, (error, stdout, stderr) => {
-      const combinedOutput = errorMessageContract.parse(stdout + stderr);
+    execFile(
+      command,
+      args,
+      { cwd, maxBuffer: FIFTY_MB, ...(timeout !== undefined && { timeout }) },
+      (error, stdout, stderr) => {
+        const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
-      if (error && 'code' in error && typeof error.code === 'number') {
-        const normalizedCode = Math.max(0, error.code);
-        const exitCode = exitCodeContract.parse(normalizedCode);
-        resolve({ exitCode, output: combinedOutput });
-        return;
-      }
+        if (error && 'code' in error && typeof error.code === 'number') {
+          const normalizedCode = Math.max(0, error.code);
+          const exitCode = exitCodeContract.parse(normalizedCode);
+          resolve({ exitCode, output: combinedOutput });
+          return;
+        }
 
-      if (error) {
-        resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
-        return;
-      }
+        if (error) {
+          resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
+          return;
+        }
 
-      resolve({ exitCode: exitCodeContract.parse(0), output: combinedOutput });
-    });
+        resolve({ exitCode: exitCodeContract.parse(0), output: combinedOutput });
+      },
+    );
   });

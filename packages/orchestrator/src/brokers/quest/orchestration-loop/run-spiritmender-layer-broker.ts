@@ -100,9 +100,9 @@ export const runSpiritmenderLayerBroker = async ({
   });
 
   // Map results back to quest work items
+  // Spiritmender has 1 quest work item that fans out to N file-based work units.
+  // Use the overall completion flag — if ANY file fix failed, the whole spiritmender failed.
   const completedAt = new Date().toISOString();
-  const incompleteIds: WorkItemId[] = result.completed ? [] : result.incompleteIds;
-  const failedSlotIds = new Set<WorkItemId>(incompleteIds);
 
   const workItemUpdates: {
     id: QuestWorkItemId;
@@ -110,11 +110,11 @@ export const runSpiritmenderLayerBroker = async ({
     completedAt?: typeof completedAt;
   }[] = [];
 
-  for (const [slotId, questItemId] of slotToQuestMap) {
-    if (failedSlotIds.has(slotId)) {
-      workItemUpdates.push({ id: questItemId, status: 'failed' });
-    } else {
+  for (const [, questItemId] of slotToQuestMap) {
+    if (result.completed) {
       workItemUpdates.push({ id: questItemId, status: 'complete', completedAt });
+    } else {
+      workItemUpdates.push({ id: questItemId, status: 'failed' });
     }
   }
 

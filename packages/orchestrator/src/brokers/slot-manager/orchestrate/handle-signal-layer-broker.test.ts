@@ -220,4 +220,51 @@ describe('handleSignalLayerBroker', () => {
       });
     });
   });
+
+  describe('failed signal - no summary', () => {
+    it('VALID: {signal: failed, no summary} => spawn_role result has no summary property', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed' });
+      Reflect.deleteProperty(signal, 'summary');
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'codeweaver',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+      });
+    });
+
+    it('VALID: {signal: failed, no summary, pathseeker} => bubble_to_user result has no summary property', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed' });
+      Reflect.deleteProperty(signal, 'summary');
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'pathseeker',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'bubble_to_user',
+      });
+    });
+  });
 });

@@ -130,5 +130,39 @@ describe('childProcessSpawnCaptureAdapter', () => {
 
       expect(Reflect.get(options as object, 'maxBuffer')).toBe(FIFTY_MB);
     });
+
+    it('VALID: {timeout provided} => passes timeout option to execFile', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      const FIVE_MINUTES = 300_000;
+
+      await childProcessSpawnCaptureAdapter({
+        command: 'npx',
+        args: ['playwright', 'test'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        timeout: FIVE_MINUTES,
+      });
+
+      const options: unknown = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'timeout')).toBe(FIVE_MINUTES);
+    });
+
+    it('VALID: {no timeout} => does not set timeout option on execFile', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+
+      await childProcessSpawnCaptureAdapter({
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      const options: unknown = proxy.getSpawnedOptions();
+
+      expect(Object.hasOwn(options as object, 'timeout')).toBe(false);
+    });
   });
 });

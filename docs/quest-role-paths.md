@@ -129,8 +129,6 @@ verify broken/risky behavior, not intended behavior.
 |----|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
 | X1 | ChaosWhisperer, Glyphsmith    | Chat layer broker does NOT check agent exit code. Non-zero exit (crash) marks work item `complete` instead of `failed`. Only JS exceptions reach the catch block.                                                                 | Kill the claude process mid-run (SIGKILL) or have it exit non-zero                                          | Work item is `complete` (bug) instead of `failed` (correct). Quest status unchanged.                     |
 | X2 | PathSeeker, Ward, Siegemaster | "Second fetch failure": if `questGetBroker` fails AFTER work item is already marked complete/failed, recovery items are never inserted. Quest silently goes terminal/blocked with no recourse.                                    | Make quest file temporarily unreadable after pathseeker verify passes but before downstream item generation | Work item is `complete` but zero downstream items created. Quest goes `complete` with no implementation. |
-| X3 | Spiritmender                  | Slot-to-quest mapping assumes 1:1 between quest work items and file-derived work units. If wardResult has more files than work items, extra slot results go unmapped. If fewer, excess quest items are falsely marked `complete`. | Create ward failure with 5 file paths but only 2 spiritmender work items (or vice versa)                    | Mismatch between slot results and quest work item updates.                                               |
-| X7 | Codeweaver                    | Failed slots don't update step status. Step stays `pending` even though its codeweaver work item is `failed`.                                                                                                                     | Have a codeweaver agent fail (crash or exception)                                                           | Step status remains `pending` in quest.json while work item shows `failed`.                              |
 
 ### Design Risks (no fix yet — need circuit breakers)
 
@@ -140,7 +138,6 @@ verify broken/risky behavior, not intended behavior.
 | X5 | Siegemaster                          | Fix chains have no depth limit. Each failed siege-recheck creates another full codeweaver-fix → ward-rerun → siege-recheck chain indefinitely.                                                                                                                                                                                                                                                                                                                                                                                                           | Have siege agent always fail verification                      | `quest.workItems` grows by 3 per cycle. Quest stays `in_progress` forever.                                        |
 | X6 | All slot-managed roles               | Silent drop: if crash/timeout or partially-complete respawn can't get a slot, work item stays "started" with no agent — orphaned.                                                                                                                                                                                                                                                                                                                                                                                                                        | Saturate all 3 slots, then crash an agent when no slot is free | Work item stuck at `started` with no agent. Eventually returns as `failed` when slot manager detects stuck state. |
 | X8 | Web UI (execution panel)             | Ad-hoc step detection removed. Previously derived from `step.blockingType === 'needs_role_followup'` (dashed border + AD-HOC tag on spiritmender fix-up steps). Field removed during work-items pivot. `isAdhoc` is now hardcoded `false`. Need to derive ad-hoc status from work item metadata (e.g., `insertedBy` or role) instead.                                                                                                                                                                                                                    | View execution panel with spiritmender-spawned steps           | All steps render identically — no visual distinction between planned and ad-hoc fix-up steps.                     |
-| X9 | Web UI (execution panel)             | Execution panel still reads `step.status` and `step.errorMessage` for display (status badge, progress count, streaming indicator, error message). These fields have been removed from the step contract — steps are now pure planning data. The panel needs to pivot to deriving step execution state from the corresponding work item (via `relatedDataItems: ['steps/<stepId>']`). The `quest-to-list-item-transformer` also counts `step.status === 'complete'` for progress — needs same pivot. `is-step-ready-guard` is dead code (can be deleted). | View execution panel during quest execution                    | Step rows will show no status/progress until panel reads from work items instead of steps.                        |
 
 ---
 
@@ -420,9 +417,10 @@ Slot Manager (on needs-role-followup signal)
   Glyphsmith: `approved` → `explore_design` → ... → `design_approved`
   No cross-phase jumps.
 
-- [ ] **T-CONTRACT-5: Slot-to-quest mapping integrity ⚠ [X3]**
-  For spiritmender: the number of quest work items MUST match the number of file-derived work units. Currently broken —
-  see Known Issues X3.
+- [ ] **T-CONTRACT-5: Slot-to-quest mapping integrity**
+  For spiritmender: result mapping uses `result.completed` flag (not per-slot-ID matching) to determine quest work item
+  status. One quest work item fans out to N file-based work units — if ANY fails, the quest work item is marked
+  `failed`.
 
 - [ ] **T-CONTRACT-6: insertedBy traceability**
   Dynamically created items (retries, spiritmenders, fix chains) have `insertedBy` pointing to the failed item that
@@ -482,7 +480,6 @@ These walk the entire quest lifecycle. Verify quest.json at each checkpoint.
   ▼
 ⑥ Codeweavers run (parallel, up to 3 slots)
    cw-1, cw-2, cw-3 → complete (respecting inter-step deps)
-   steps[0,1,2].status → complete
   │
   ▼
 ⑦ Ward runs (npm run ward)
@@ -769,23 +766,24 @@ generates all downstream work items (codeweavers, ward, siege, lawbringers) via 
 
 ### Codeweaver
 
-| Property         | Value                                                                            |
-|------------------|----------------------------------------------------------------------------------|
-| Layer broker     | `run-codeweaver-layer-broker.ts`                                                 |
-| Spawner          | `agent` (via slot manager, up to 3 concurrent)                                   |
-| Created by       | PathSeeker (via `stepsToWorkItemsTransformer`)                                   |
-| maxAttempts      | 1 (no direct retry — crash retry is infinite via slot manager ⚠ [X4])            |
-| maxFollowupDepth | 5                                                                                |
-| Timeout          | 600,000ms (10 min)                                                               |
-| Known issues     | [X4] infinite crash retry, [X6] silent drop, [X7] failed step status not updated |
+| Property         | Value                                                                 |
+|------------------|-----------------------------------------------------------------------|
+| Layer broker     | `run-codeweaver-layer-broker.ts`                                      |
+| Spawner          | `agent` (via slot manager, up to 3 concurrent)                        |
+| Created by       | PathSeeker (via `stepsToWorkItemsTransformer`)                        |
+| maxAttempts      | 1 (no direct retry — crash retry is infinite via slot manager ⚠ [X4]) |
+| maxFollowupDepth | 5                                                                     |
+| Timeout          | 600,000ms (10 min)                                                    |
+| Known issues     | [X4] infinite crash retry, [X6] silent drop                           |
 
 **What it does:** Implements a single quest step. Resolves its step from `relatedDataItems`, builds work unit with step
 context + related contracts/observables, runs via slot manager.
 
 **Role-specific quirks:**
 
-- On success: marks BOTH work item `complete` AND step `complete`
-- On failure: marks work item `failed` but step stays `pending` ⚠ [X7]
+- On success: marks work item `complete` (steps no longer have a status field — execution state is derived from work
+  items)
+- On failure: marks work item `failed`
 - `relatedDataItems` must point to `steps/<stepId>` — throws if missing, wrong collection, or step not found
 - Codeweaver-fix items (from siege fix chain) have `relatedDataItems: []` — they operate from overall quest context, not
   a specific step
@@ -829,7 +827,7 @@ spiritmender + retry cycle.
 | Spawner          | `agent` (via slot manager, up to 3 concurrent)                             |
 | Created by       | Ward (quest-level) or Slot Manager (inline, via `needs-role-followup`)     |
 | maxFollowupDepth | 3                                                                          |
-| Known issues     | [X3] slot-to-quest mapping mismatch, [X4] infinite crash retry             |
+| Known issues     | [X4] infinite crash retry                                                  |
 
 **Two distinct paths exist:**
 
@@ -840,8 +838,6 @@ spiritmender + retry cycle.
 
 **Role-specific quirks:**
 
-- ⚠ [X3]: Quest-level slot mapping assumes 1:1 between quest work items and file-derived work units. Mismatch = unmapped
-  results or falsely-completed items.
 - Empty `relatedDataItems` → zero work units → instant "complete" with no actual work
 - Inline spiritmender: `signal.context` undefined → falls back to `[startPath]`
 - `maxFollowupDepth` varies by caller: codeweaver=5, lawbringer=3, spiritmender=3

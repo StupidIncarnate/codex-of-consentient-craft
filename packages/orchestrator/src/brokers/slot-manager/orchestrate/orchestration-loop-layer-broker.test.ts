@@ -82,6 +82,36 @@ describe('orchestrationLoopLayerBroker', () => {
     });
   });
 
+  describe('all terminal with failures', () => {
+    it('VALID: {isAllTerminal true, has failed ids, no active agents} => returns completed false with failedIds', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const failedId = WorkItemIdStub({ value: 'work-item-failed' });
+      const workTracker = WorkTrackerStub({
+        isAllTerminal: () => true,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [],
+        getFailedIds: () => [failedId],
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [],
+      });
+
+      expect(result).toStrictEqual({
+        done: true,
+        result: { completed: false, incompleteIds: [], failedIds: ['work-item-failed'] },
+      });
+    });
+  });
+
   describe('failed and incomplete work items', () => {
     it('VALID: {failed work item, no active agents} => returns completed false with failedIds', async () => {
       orchestrationLoopLayerBrokerProxy();
@@ -647,6 +677,410 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
       expect(mockMarkStarted).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('crashed agent path', () => {
+    it('VALID: {agent crashed} => respawns agent with resume session, does not mark failed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-crashed' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const crashSessionId = SessionIdStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: crashSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        activeAgents: [
+          {
+            slotIndex: SlotIndexStub({ value: 0 }),
+            workItemId: 'work-item-crashed',
+            sessionId: crashSessionId,
+            followupDepth: 0,
+            promise: expect.any(Promise),
+          },
+        ],
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {agent timed out} => respawns agent', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-timeout' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const timeoutSessionId = SessionIdStub();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: timeoutSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: false as never,
+        timedOut: true as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        activeAgents: [
+          {
+            slotIndex: SlotIndexStub({ value: 0 }),
+            workItemId: 'work-item-timeout',
+            sessionId: timeoutSessionId,
+            followupDepth: 0,
+            promise: expect.any(Promise),
+          },
+        ],
+      });
+    });
+  });
+
+  describe('null signal path', () => {
+    it('VALID: {agent completes with no signal} => marks work item as failed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-nosignal' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: null as never,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('spawn_role work unit verification', () => {
+    it('VALID: {lawbringer fails} => addWorkItem receives spiritmender work unit with filePaths from original', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'lawbringer-verify' });
+      const lawbringerWorkUnit = LawbringerWorkUnitStub();
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => lawbringerWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Lint errors found' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
+
+      const addCall = mockAddWorkItem.mock.calls[0][0];
+
+      expect(addCall.workUnit).toStrictEqual({
+        role: 'spiritmender',
+        filePaths: ['/src/broker.ts'],
+        errors: ['Lint errors found'],
+      });
+    });
+
+    it('VALID: {codeweaver fails} => addWorkItem receives pathseeker work unit with questId and failureContext', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'codeweaver-verify' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Build error in module' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
+
+      const addCall = mockAddWorkItem.mock.calls[0][0];
+
+      expect(addCall.workUnit).toStrictEqual({
+        role: 'pathseeker',
+        questId: 'add-auth',
+        failureContext: 'Build error in module',
+      });
+    });
+
+    it('VALID: {spiritmender fails} => addWorkItem receives pathseeker work unit with questId and failureContext', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'spiritmender-verify' });
+      const spiritmenderWorkUnit = SpiritmenderWorkUnitStub();
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => spiritmenderWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Could not resolve type errors' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
+
+      const addCall = mockAddWorkItem.mock.calls[0][0];
+
+      expect(addCall.workUnit).toStrictEqual({
+        role: 'pathseeker',
+        questId: 'add-auth',
+        failureContext: 'Could not resolve type errors',
+      });
+    });
+
+    it('VALID: {lawbringer fails, no summary} => spiritmender work unit has no errors field', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'lawbringer-nosummary' });
+      const lawbringerWorkUnit = LawbringerWorkUnitStub();
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => lawbringerWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({ signal: 'failed' });
+      Reflect.deleteProperty(failedSignal, 'summary');
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
+
+      const addCall = mockAddWorkItem.mock.calls[0][0];
+
+      expect(addCall.workUnit).toStrictEqual({
+        role: 'spiritmender',
+        filePaths: ['/src/broker.ts'],
+      });
     });
   });
 
