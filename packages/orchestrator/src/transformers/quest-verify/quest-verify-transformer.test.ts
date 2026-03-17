@@ -14,6 +14,57 @@ import {
 
 import { questVerifyTransformer } from './quest-verify-transformer';
 
+type QuestContractProperty = ReturnType<typeof QuestContractPropertyStub>;
+
+/**
+ * Creates a QuestContractProperty with a raw primitive type that bypasses Zod validation.
+ * The Zod contract now rejects "string" and "number" at parse time, but the guard still
+ * needs to handle data from external sources that bypasses Zod parsing.
+ */
+type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
+type Quest = ReturnType<typeof QuestStub>;
+
+/**
+ * Creates a QuestContractProperty with a raw primitive type that bypasses Zod validation.
+ * The Zod contract now rejects "string" and "number" at parse time, but the guard still
+ * needs to handle data from external sources that bypasses Zod parsing.
+ */
+const createPropertyWithRawType = (overrides: {
+  name?: string;
+  type: string;
+}): QuestContractProperty => {
+  const base = QuestContractPropertyStub({ name: overrides.name ?? 'stub' });
+
+  return {
+    ...base,
+    type: overrides.type,
+  } as QuestContractProperty;
+};
+
+/**
+ * Creates a QuestContractEntry with pre-built properties, bypassing Zod validation.
+ */
+const createEntryWithProperties = (properties: QuestContractProperty[]): QuestContractEntry => {
+  const base = QuestContractEntryStub();
+
+  return {
+    ...base,
+    properties,
+  } as QuestContractEntry;
+};
+
+/**
+ * Creates a Quest with pre-built contracts, bypassing Zod validation on the quest stub.
+ */
+const createQuestWithContracts = (contracts: QuestContractEntry[]): Quest => {
+  const base = QuestStub();
+
+  return {
+    ...base,
+    contracts,
+  } as Quest;
+};
+
 describe('questVerifyTransformer', () => {
   describe('all checks pass', () => {
     it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 12 checks pass', () => {
@@ -262,13 +313,9 @@ describe('questVerifyTransformer', () => {
 
   describe('raw primitives in contracts', () => {
     it('INVALID_PRIMITIVES: {contract with string type property} => raw primitives check fails', () => {
-      const quest = QuestStub({
-        contracts: [
-          QuestContractEntryStub({
-            properties: [QuestContractPropertyStub({ name: 'name', type: 'string' })],
-          }),
-        ],
-      });
+      const quest = createQuestWithContracts([
+        createEntryWithProperties([createPropertyWithRawType({ name: 'name', type: 'string' })]),
+      ]);
 
       const [, , , , , primitivesCheck] = questVerifyTransformer({ quest });
 

@@ -53,7 +53,7 @@ export const runSpiritmenderLayerBrokerProxy = (): {
         return undefined;
       }
       const raw = persisted[persisted.length - 1];
-      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;

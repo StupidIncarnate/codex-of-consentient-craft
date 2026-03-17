@@ -96,14 +96,17 @@ describe('questContractEntryContract', () => {
               {
                 name: 'street',
                 type: 'StreetName',
+                description: 'Street name',
               },
               {
                 name: 'city',
                 type: 'CityName',
+                description: 'City name',
               },
               {
                 name: 'zipCode',
                 type: 'ZipCode',
+                description: 'Zip code',
               },
             ],
           },
@@ -129,14 +132,17 @@ describe('questContractEntryContract', () => {
               {
                 name: 'street',
                 type: 'StreetName',
+                description: 'Street name',
               },
               {
                 name: 'city',
                 type: 'CityName',
+                description: 'City name',
               },
               {
                 name: 'zipCode',
                 type: 'ZipCode',
+                description: 'Zip code',
               },
             ],
           },
@@ -152,11 +158,13 @@ describe('questContractEntryContract', () => {
         properties: [
           {
             name: 'method',
+            type: 'HttpMethod',
             value: 'POST',
             description: 'HTTP method',
           },
           {
             name: 'path',
+            type: 'EndpointPath',
             value: '/api/auth/login',
             description: 'API endpoint path',
           },
@@ -181,11 +189,13 @@ describe('questContractEntryContract', () => {
         properties: [
           {
             name: 'method',
+            type: 'HttpMethod',
             value: 'POST',
             description: 'HTTP method',
           },
           {
             name: 'path',
+            type: 'EndpointPath',
             value: '/api/auth/login',
             description: 'API endpoint path',
           },

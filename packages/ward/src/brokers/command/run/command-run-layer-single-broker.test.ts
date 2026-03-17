@@ -70,7 +70,7 @@ describe('commandRunLayerSingleBroker', () => {
       ]);
     });
 
-    it('VALID: {e2e skips, no playwright config} => clears running line without result output', async () => {
+    it('VALID: {e2e skips, no playwright config} => shows skip label on stderr', async () => {
       const proxy = commandRunLayerSingleBrokerProxy();
       proxy.setupE2eOnlySkip();
 
@@ -82,7 +82,7 @@ describe('commandRunLayerSingleBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'e2e         ward                 running...\r',
-        '\x1b[K',
+        '\x1b[Ke2e         ward                 skip\n',
       ]);
     });
   });

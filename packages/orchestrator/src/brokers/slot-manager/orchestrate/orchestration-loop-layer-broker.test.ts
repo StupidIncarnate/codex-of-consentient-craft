@@ -894,7 +894,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
 
-      const addCall = mockAddWorkItem.mock.calls[0][0];
+      const [[addCall]] = mockAddWorkItem.mock.calls;
 
       expect(addCall.workUnit).toStrictEqual({
         role: 'spiritmender',
@@ -955,7 +955,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
 
-      const addCall = mockAddWorkItem.mock.calls[0][0];
+      const [[addCall]] = mockAddWorkItem.mock.calls;
 
       expect(addCall.workUnit).toStrictEqual({
         role: 'pathseeker',
@@ -1016,7 +1016,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
 
-      const addCall = mockAddWorkItem.mock.calls[0][0];
+      const [[addCall]] = mockAddWorkItem.mock.calls;
 
       expect(addCall.workUnit).toStrictEqual({
         role: 'pathseeker',
@@ -1075,7 +1075,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
 
-      const addCall = mockAddWorkItem.mock.calls[0][0];
+      const [[addCall]] = mockAddWorkItem.mock.calls;
 
       expect(addCall.workUnit).toStrictEqual({
         role: 'spiritmender',

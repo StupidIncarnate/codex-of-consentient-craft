@@ -27,6 +27,7 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
+
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { playwrightJsonParseTransformer } from '../../../transformers/playwright-json-parse/playwright-json-parse-transformer';
@@ -66,10 +67,12 @@ export const checkRunE2eBroker = async ({
   const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
+  const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
+    timeout: FIVE_MINUTES,
   });
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);

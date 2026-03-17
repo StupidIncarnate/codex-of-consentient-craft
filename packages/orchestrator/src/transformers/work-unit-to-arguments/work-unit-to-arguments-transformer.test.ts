@@ -123,78 +123,6 @@ describe('workUnitToArgumentsTransformer', () => {
       );
     });
 
-    it('VALID: {codeweaver with contract property having type but no description} => formats name with type only', () => {
-      const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
-        }),
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedContracts: [
-          QuestContractEntryStub({
-            name: 'TypeOnlyContract',
-            kind: 'data',
-            properties: [{ name: 'userId', type: 'UserId' }],
-          }),
-        ],
-        relatedObservables: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toMatch(/ {4}- userId \(UserId\)$/mu);
-    });
-
-    it('VALID: {codeweaver with contract property having description but no type} => formats name with description only', () => {
-      const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
-        }),
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedContracts: [
-          QuestContractEntryStub({
-            name: 'DescOnlyContract',
-            kind: 'data',
-            properties: [{ name: 'email', description: 'The user email address' }],
-          }),
-        ],
-        relatedObservables: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toMatch(/ {4}- email - The user email address$/mu);
-    });
-
-    it('VALID: {codeweaver with contract property without type/description} => formats name only', () => {
-      const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
-        }),
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedContracts: [
-          QuestContractEntryStub({
-            name: 'SimpleContract',
-            kind: 'data',
-            properties: [{ name: 'id' }],
-          }),
-        ],
-        relatedObservables: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toMatch(/ {4}- id$/mu);
-    });
-
     it('VALID: {codeweaver with related observables} => includes assertions format', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
@@ -260,9 +188,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toBe(
-        'Quest ID: verify-quest\nObservables:\n    - Shows success message (ui-state)',
-      );
+      expect(result).toMatch(/^Quest ID: verify-quest\n/u);
+      expect(result).toMatch(/Observable Type Reference:/u);
+      expect(result).toMatch(/Observables:\n {4}- Shows success message \(ui-state\)$/u);
     });
 
     it('VALID: {siegemaster with empty observables} => returns quest ID only', () => {
@@ -273,7 +201,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toBe('Quest ID: empty-quest');
+      expect(result).toMatch(/^Quest ID: empty-quest\n/u);
+      expect(result).toMatch(/Observable Type Reference:/u);
+      expect(result).not.toMatch(/Observables:/u);
     });
   });
 

@@ -328,7 +328,6 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: 0,
         signal: {
           signal: 'complete',
-          stepId,
           summary: 'All done',
         },
         crashed: false,

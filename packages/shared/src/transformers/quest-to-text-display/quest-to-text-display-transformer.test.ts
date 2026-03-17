@@ -86,7 +86,13 @@ describe('questToTextDisplayTransformer', () => {
             name: 'LoginCredentials' as never,
             kind: 'data',
             status: 'new',
-            properties: [{ name: 'email' as never, type: 'EmailAddress' as never }],
+            properties: [
+              {
+                name: 'email' as never,
+                type: 'EmailAddress' as never,
+                description: 'User email' as never,
+              },
+            ],
           }),
         ],
       });

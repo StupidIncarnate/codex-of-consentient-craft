@@ -174,7 +174,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           relatedDataItems: ['invalid-format'],
         });
-      }).toThrow(/Must be \{collection\}\/\{uuid\}/u);
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
   });
 });

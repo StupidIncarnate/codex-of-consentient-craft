@@ -2,6 +2,41 @@ import { QuestContractEntryStub, QuestContractPropertyStub } from '@dungeonmaste
 
 import { questContractHasNoRawPrimitivesGuard } from './quest-contract-has-no-raw-primitives-guard';
 
+type QuestContractProperty = ReturnType<typeof QuestContractPropertyStub>;
+type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
+
+/**
+ * Creates a QuestContractProperty with a raw primitive type that bypasses Zod validation.
+ * The Zod contract now rejects "string" and "number" at parse time, but the guard still
+ * needs to handle data from external sources that bypasses Zod parsing.
+ */
+const createPropertyWithRawType = (overrides: {
+  name?: string;
+  type: string;
+  properties?: QuestContractProperty[];
+}): QuestContractProperty => {
+  const base = QuestContractPropertyStub({ name: overrides.name ?? 'stub' });
+
+  return {
+    ...base,
+    type: overrides.type,
+    ...(overrides.properties ? { properties: overrides.properties } : {}),
+  } as QuestContractProperty;
+};
+
+/**
+ * Creates a QuestContractEntry with pre-built properties, bypassing Zod validation on
+ * the entry stub. Required when properties contain raw primitive types that Zod rejects.
+ */
+const createEntryWithProperties = (properties: QuestContractProperty[]): QuestContractEntry => {
+  const base = QuestContractEntryStub();
+
+  return {
+    ...base,
+    properties,
+  } as QuestContractEntry;
+};
+
 describe('questContractHasNoRawPrimitivesGuard', () => {
   describe('valid contracts', () => {
     it('VALID: {empty contracts array} => returns true', () => {
@@ -65,9 +100,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
   describe('invalid contracts', () => {
     it('INVALID_TYPE: {property using string type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [QuestContractPropertyStub({ name: 'name', type: 'string' })],
-        }),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'name', type: 'string' })]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -77,9 +110,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
 
     it('INVALID_TYPE: {property using number type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [QuestContractPropertyStub({ name: 'age', type: 'number' })],
-        }),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'age', type: 'number' })]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -89,9 +120,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
 
     it('INVALID_TYPE: {property using any type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [QuestContractPropertyStub({ name: 'data', type: 'any' })],
-        }),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'data', type: 'any' })]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -101,9 +130,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
 
     it('INVALID_TYPE: {property using object type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [QuestContractPropertyStub({ name: 'config', type: 'object' })],
-        }),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'config', type: 'object' })]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -113,9 +140,9 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
 
     it('INVALID_TYPE: {property using unknown type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [QuestContractPropertyStub({ name: 'payload', type: 'unknown' })],
-        }),
+        createEntryWithProperties([
+          createPropertyWithRawType({ name: 'payload', type: 'unknown' }),
+        ]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -125,21 +152,19 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
 
     it('INVALID_TYPE: {deeply nested property using string type} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [
-            QuestContractPropertyStub({
-              name: 'user',
-              type: 'User',
-              properties: [
-                QuestContractPropertyStub({
-                  name: 'address',
-                  type: 'Address',
-                  properties: [QuestContractPropertyStub({ name: 'street', type: 'string' })],
-                }),
-              ],
-            }),
-          ],
-        }),
+        createEntryWithProperties([
+          createPropertyWithRawType({
+            name: 'user',
+            type: 'User',
+            properties: [
+              createPropertyWithRawType({
+                name: 'address',
+                type: 'Address',
+                properties: [createPropertyWithRawType({ name: 'street', type: 'string' })],
+              }),
+            ],
+          }),
+        ]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });
@@ -151,13 +176,11 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
   describe('edge cases', () => {
     it('EDGE: {mix of valid and one invalid property} => returns false', () => {
       const contracts = [
-        QuestContractEntryStub({
-          properties: [
-            QuestContractPropertyStub({ name: 'email', type: 'EmailAddress' }),
-            QuestContractPropertyStub({ name: 'name', type: 'string' }),
-            QuestContractPropertyStub({ name: 'isActive', type: 'boolean' }),
-          ],
-        }),
+        createEntryWithProperties([
+          QuestContractPropertyStub({ name: 'email', type: 'EmailAddress' }),
+          createPropertyWithRawType({ name: 'name', type: 'string' }),
+          QuestContractPropertyStub({ name: 'isActive', type: 'boolean' }),
+        ]),
       ];
 
       const result = questContractHasNoRawPrimitivesGuard({ contracts });

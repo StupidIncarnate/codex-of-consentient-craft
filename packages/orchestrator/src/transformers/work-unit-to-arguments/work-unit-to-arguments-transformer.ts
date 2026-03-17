@@ -48,8 +48,8 @@ export const workUnitToArgumentsTransformer = ({
         for (const contract of relatedContracts) {
           parts.push(contentTextContract.parse(`  - ${contract.name} (${contract.kind})`));
           for (const prop of contract.properties) {
-            const typeSuffix = prop.type === undefined ? '' : ` (${prop.type})`;
-            const descSuffix = prop.description === undefined ? '' : ` - ${prop.description}`;
+            const typeSuffix = ` (${prop.type})`;
+            const descSuffix = ` - ${prop.description}`;
             parts.push(contentTextContract.parse(`    - ${prop.name}${typeSuffix}${descSuffix}`));
           }
         }

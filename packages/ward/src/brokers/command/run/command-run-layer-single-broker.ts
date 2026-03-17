@@ -68,7 +68,9 @@ export const commandRunLayerSingleBroker = async ({
       const projectResult = await runner({ projectFolder, fileList });
 
       if (projectResult.status === 'skip') {
-        process.stderr.write(`\x1b[K`);
+        process.stderr.write(
+          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} skip\n`,
+        );
       } else {
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
         const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';

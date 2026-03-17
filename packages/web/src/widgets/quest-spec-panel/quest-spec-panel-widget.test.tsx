@@ -321,7 +321,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('USER_REQUEST_TEXT').textContent).toBe('Add login with OAuth');
     });
 
-    it('EMPTY: {quest without userRequest} => does not render user request section', () => {
+    it('VALID: {quest with default userRequest} => renders user request section', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
 
@@ -329,7 +329,7 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      expect(screen.queryByTestId('USER_REQUEST_SECTION')).toBeNull();
+      expect(screen.getByTestId('USER_REQUEST_SECTION')).toBeInTheDocument();
     });
   });
 

@@ -86,7 +86,7 @@ describe('ContractsLayerWidget', () => {
     it('VALID: {contracts: [entry with properties]} => renders property with name and type', () => {
       ContractsLayerWidgetProxy();
       const contract = QuestContractEntryStub({
-        properties: [{ name: 'email', type: 'EmailAddress' }],
+        properties: [{ name: 'email', type: 'EmailAddress', description: 'User email' }],
       });
 
       mantineRenderAdapter({
@@ -102,7 +102,7 @@ describe('ContractsLayerWidget', () => {
 
       const propertyElement = screen.getByTestId('CONTRACT_PROPERTY');
 
-      expect(propertyElement.textContent).toBe('email: EmailAddress');
+      expect(propertyElement.textContent).toBe('email: EmailAddress — User email');
     });
 
     it('VALID: {contracts: [entry without source]} => does not render CONTRACT_SOURCE', () => {
@@ -121,28 +121,6 @@ describe('ContractsLayerWidget', () => {
       });
 
       expect(screen.queryByTestId('CONTRACT_SOURCE')).not.toBeInTheDocument();
-    });
-
-    it('VALID: {contracts: [entry with property value but no type]} => renders value as fallback', () => {
-      ContractsLayerWidgetProxy();
-      const contract = QuestContractEntryStub({
-        properties: [{ name: 'timeout', value: '3000' }],
-      });
-
-      mantineRenderAdapter({
-        ui: (
-          <ContractsLayerWidget
-            contracts={[contract]}
-            tooling={[]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      const propertyElement = screen.getByTestId('CONTRACT_PROPERTY');
-
-      expect(propertyElement.textContent).toBe('timeout: 3000');
     });
 
     it('VALID: {contracts: [entry with property description]} => renders em-dash and description', () => {

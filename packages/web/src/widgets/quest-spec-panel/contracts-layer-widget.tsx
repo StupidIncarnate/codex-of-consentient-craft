@@ -198,7 +198,7 @@ export const ContractsLayerWidget = ({
                     color={DIM_COLOR}
                     width={'30%' as CssDimension}
                   />
-                  {property.type !== undefined && (
+                  {
                     <FormInputWidget
                       value={property.type as unknown as FormInputValue}
                       onChange={(value) => {
@@ -219,7 +219,7 @@ export const ContractsLayerWidget = ({
                       placeholder={PROP_TYPE_PLACEHOLDER}
                       width={'30%' as CssDimension}
                     />
-                  )}
+                  }
                   {property.value !== undefined && (
                     <FormInputWidget
                       value={property.value as unknown as FormInputValue}
@@ -295,9 +295,8 @@ export const ContractsLayerWidget = ({
                   style={{ fontSize: PROPERTY_FONT_SIZE, color: colors['text-dim'] }}
                   data-testid="CONTRACT_PROPERTY"
                 >
-                  {property.name}:{' '}
-                  <span style={{ color: colors.text }}>{property.type ?? property.value}</span>
-                  {property.description !== undefined && ` \u2014 ${property.description}`}
+                  {property.name}: <span style={{ color: colors.text }}>{property.type}</span>
+                  {` \u2014 ${property.description}`}
                 </Text>
               ))}
             </>
