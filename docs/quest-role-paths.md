@@ -647,9 +647,7 @@ Ward (on failure, attempts remain)
   └─► 1 × ward-retry (dependsOn: [spiritmender ID])
 
 Siege (on failure)
-  ├─► 1 × codeweaver-fix (dependsOn: [])
-  ├─► 1 × ward-rerun (dependsOn: [codeweaver-fix ID])
-  └─► 1 × siege-recheck (dependsOn: [ward-rerun ID])
+  └─► 1 × pathseeker replan (dependsOn: [], pending items → skipped)
 
 ```
 
@@ -666,12 +664,10 @@ Siege (on failure)
     - 1 new ward-retry with `dependsOn: [spiritmender ID]` and `attempt: previous + 1`
     - Siege `dependsOn` rewired to ward-retry ID
 
-- [ ] **T-SPAWN-3: Siege failure generates fix chain**
+- [ ] **T-SPAWN-3: Siege failure skips pending + spawns pathseeker replan**
   After siege fails, quest.json should contain:
-    - 1 codeweaver-fix with `dependsOn: []`, `relatedDataItems: []`
-    - 1 ward-rerun with `dependsOn: [codeweaver-fix ID]`, `maxAttempts: 3`
-    - 1 siege-recheck with `dependsOn: [ward-rerun ID]`
-    - Lawbringer `dependsOn` rewired to siege-recheck ID
+  - All pending lawbringers → `skipped`
+  - 1 new pathseeker with `dependsOn: []` (replan)
 
 - [ ] **T-SPAWN-4: OrchestrationStartResponder creates pathseeker only once**
   If any work item with `role: 'pathseeker'` exists (regardless of status), no new pathseeker is created on restart.
