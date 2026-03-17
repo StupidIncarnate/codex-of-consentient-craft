@@ -335,6 +335,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'followup-siege-work-1-1700000000000',
             sessionId: null,
             followupDepth: 1,
+            crashRetries: 0,
             promise: expect.any(Promise),
           },
         ],
@@ -407,6 +408,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'followup-codeweaver-work-1-1700000000000',
             sessionId: null,
             followupDepth: 1,
+            crashRetries: 0,
             promise: expect.any(Promise),
           },
         ],
@@ -479,6 +481,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'followup-lawbringer-work-1-1700000000000',
             sessionId: null,
             followupDepth: 1,
+            crashRetries: 0,
             promise: expect.any(Promise),
           },
         ],
@@ -551,6 +554,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'followup-spiritmender-work-1-1700000000000',
             sessionId: null,
             followupDepth: 1,
+            crashRetries: 0,
             promise: expect.any(Promise),
           },
         ],
@@ -731,6 +735,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'work-item-crashed',
             sessionId: crashSessionId,
             followupDepth: 0,
+            crashRetries: 1,
             promise: expect.any(Promise),
           },
         ],
@@ -786,6 +791,7 @@ describe('orchestrationLoopLayerBroker', () => {
             workItemId: 'work-item-timeout',
             sessionId: timeoutSessionId,
             followupDepth: 0,
+            crashRetries: 1,
             promise: expect.any(Promise),
           },
         ],
@@ -1139,6 +1145,167 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
       expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('[X4] crash retry limit', () => {
+    it('VALID: {agent crashes 3 times} => respawns each time, incrementing crashRetries', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-crash-retry' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const crashSessionId = SessionIdStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: crashSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        crashRetries: 2,
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        activeAgents: [
+          {
+            slotIndex: SlotIndexStub({ value: 0 }),
+            workItemId: 'work-item-crash-retry',
+            sessionId: crashSessionId,
+            followupDepth: 0,
+            crashRetries: 3,
+            promise: expect.any(Promise),
+          },
+        ],
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {agent exceeds maxCrashRetries (4th crash)} => marks work item as failed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-crash-limit' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const crashSessionId = SessionIdStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: crashSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        crashRetries: 3,
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+      expect(mockMarkFailed).toHaveBeenCalledWith({ workItemId: 'work-item-crash-limit' });
+    });
+  });
+
+  describe('[X6] crash respawn no slot available', () => {
+    it('VALID: {agent crashes, no slot available} => marks work item as failed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-orphan' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const crashSessionId = SessionIdStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: crashSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        crashRetries: 0,
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub({
+          getAvailableSlot: () => undefined,
+        }),
+        activeAgents: [activeAgent],
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+      expect(mockMarkFailed).toHaveBeenCalledWith({ workItemId: 'work-item-orphan' });
     });
   });
 });

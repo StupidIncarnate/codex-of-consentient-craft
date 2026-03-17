@@ -93,21 +93,22 @@ export const runPathseekerLayerBroker = async ({
     // Generate work items for next phases (codeweaver -> ward -> siege -> law)
     const questInput = getQuestInputContract.parse({ questId });
     const questResult = await questGetBroker({ input: questInput });
-    if (questResult.success && questResult.quest) {
-      const now = isoTimestampContract.parse(new Date().toISOString());
-      const newItems = stepsToWorkItemsTransformer({
-        steps: questResult.quest.steps,
-        pathseekerWorkItemId: workItem.id,
-        now,
+    if (!questResult.success || !questResult.quest) {
+      throw new Error(`Quest not found after pathseeker completion: ${questId}`);
+    }
+    const now = isoTimestampContract.parse(new Date().toISOString());
+    const newItems = stepsToWorkItemsTransformer({
+      steps: questResult.quest.steps,
+      pathseekerWorkItemId: workItem.id,
+      now,
+    });
+    if (newItems.length > 0) {
+      await questModifyBroker({
+        input: {
+          questId,
+          workItems: newItems,
+        } as ModifyQuestInput,
       });
-      if (newItems.length > 0) {
-        await questModifyBroker({
-          input: {
-            questId,
-            workItems: newItems,
-          } as ModifyQuestInput,
-        });
-      }
     }
   } else if (workItem.attempt < workItem.maxAttempts - 1) {
     // Mark failed, insert retry

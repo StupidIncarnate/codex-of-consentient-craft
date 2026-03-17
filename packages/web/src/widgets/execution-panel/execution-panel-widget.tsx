@@ -221,7 +221,7 @@ export const ExecutionPanelWidget = ({
                             ] as unknown as DisplayFilePath[]
                           }
                           dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                          isAdhoc={false}
+                          isAdhoc={wi?.insertedBy !== undefined}
                           entries={slotEntries.get(0 as SlotIndex) ?? []}
                           isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
                           {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
@@ -262,7 +262,7 @@ export const ExecutionPanelWidget = ({
                           ] as unknown as DisplayFilePath[]
                         }
                         dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                        isAdhoc={false}
+                        isAdhoc={wi?.insertedBy !== undefined}
                         entries={slotEntries.get(0 as SlotIndex) ?? []}
                         isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
                         {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}

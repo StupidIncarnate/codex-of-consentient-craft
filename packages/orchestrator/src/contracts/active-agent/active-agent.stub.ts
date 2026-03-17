@@ -13,6 +13,7 @@ export const ActiveAgentStub = ({ ...props }: StubArgument<ActiveAgent> = {}): A
     workItemId: WorkItemIdStub(),
     sessionId: SessionIdStub(),
     followupDepth: 0,
+    crashRetries: 0,
     promise: Promise.resolve(AgentSpawnStreamingResultStub()),
     ...props,
   });

@@ -20,6 +20,7 @@ export const activeAgentContract = z.object({
   workItemId: workItemIdContract,
   sessionId: sessionIdContract.nullable(),
   followupDepth: followupDepthContract.default(0),
+  crashRetries: z.number().int().nonnegative().brand<'CrashRetries'>().default(0),
   promise: z.promise(agentSpawnStreamingResultContract),
 });
 

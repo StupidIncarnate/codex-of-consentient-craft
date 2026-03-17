@@ -272,17 +272,19 @@ describe('runPathseekerLayerBroker', () => {
     });
   });
 
-  describe('quest not found for downstream creation', () => {
-    it('VALID: {verify passes, get fails} => resolves without error', async () => {
-      const questId = QuestIdStub({ value: 'quest-get-fail' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000005-0005-4005-a005-000000000001' });
+  describe('[X2] second fetch failure guard', () => {
+    it('VALID: {verify passes on empty quest} => second questGetBroker succeeds and no throw', async () => {
+      // This test verifies the X2 fix: after marking pathseeker complete, the code
+      // now throws if questGetBroker fails (instead of silently dropping downstream items).
+      // Here we verify the success path (no steps = no downstream items needed).
+      const questId = QuestIdStub({ value: 'verify-pass-x2-guard' });
+      const workItemId = QuestWorkItemIdStub({ value: '00000006-0006-4006-a006-000000000001' });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'pathseeker',
         status: 'in_progress',
         maxAttempts: 3,
       });
-      // Empty steps/flows passes verification vacuously
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -292,23 +294,26 @@ describe('runPathseekerLayerBroker', () => {
       });
 
       const proxy = runPathseekerLayerBrokerProxy();
-      // setupSuccess provides limited mocks. With 0 steps, no downstream items
-      // are generated so questGetBroker failure is irrelevant.
-      proxy.setupSuccess({
+      proxy.setupVerifyPass({
         quest,
         spawnLines: [],
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      // The function resolves without error even when downstream get fails,
-      // because questGetBroker returns { success: false } silently.
-      await expect(
-        runPathseekerLayerBroker({
-          questId,
-          workItem,
-          startPath: '/project/src' as never,
-        }),
-      ).resolves.toBeUndefined();
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+      });
+
+      const persistedQuests = proxy.getAllPersistedQuests();
+
+      expect(persistedQuests.length).toBeGreaterThanOrEqual(1);
+
+      const completedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
+
+      expect(completedItem).toHaveLength(1);
+      expect(completedItem[0]?.status).toBe('complete');
     });
   });
 });

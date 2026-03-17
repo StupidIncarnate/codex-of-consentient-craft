@@ -10,6 +10,7 @@ export const runChatLayerBrokerProxy = (): {
   setupSpawnSuccess: (params: { quest: Quest; lines: readonly string[] }) => void;
   setupSpawnSuccessWithSessionId: (params: { quest: Quest; lines: readonly string[] }) => void;
   setupSpawnFailure: (params: { quest: Quest; error: Error }) => void;
+  setupSpawnThrow: (params: { quest: Quest }) => void;
   setupSpawnWithExitCode: (params: {
     quest: Quest;
     lines: readonly string[];
@@ -49,6 +50,11 @@ export const runChatLayerBrokerProxy = (): {
     setupSpawnFailure: ({ quest, error }: { quest: Quest; error: Error }): void => {
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnThrow({ error });
+    },
+
+    setupSpawnThrow: ({ quest }: { quest: Quest }): void => {
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnThrowOnce({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnWithExitCode: ({

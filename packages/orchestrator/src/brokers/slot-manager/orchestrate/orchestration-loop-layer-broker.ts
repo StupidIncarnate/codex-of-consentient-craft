@@ -24,6 +24,8 @@ import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 
 const ZERO_DEPTH = followupDepthContract.parse(0);
+const ZERO_CRASH_RETRIES = 0 as ActiveAgent['crashRetries'];
+const MAX_CRASH_RETRIES = 3;
 
 type LoopResult =
   | { done: true; result: SlotManagerResult }
@@ -87,6 +89,7 @@ export const orchestrationLoopLayerBroker = async ({
         workItemId,
         sessionId: null,
         followupDepth: ZERO_DEPTH,
+        crashRetries: ZERO_CRASH_RETRIES,
         promise: agentPromise,
       });
     }
@@ -117,10 +120,19 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations.releaseSlot({ slotIndex: completedAgent.slotIndex });
 
   if (result.crashed || result.timedOut) {
+    const nextCrashRetries = (completedAgent.crashRetries + 1) as ActiveAgent['crashRetries'];
+
+    if (nextCrashRetries > MAX_CRASH_RETRIES) {
+      await workTracker.markFailed({ workItemId: completedAgent.workItemId });
+      return { done: false, activeAgents };
+    }
+
     const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });
 
     const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
-    if (newSlotIndex !== undefined) {
+    if (newSlotIndex === undefined) {
+      await workTracker.markFailed({ workItemId: completedAgent.workItemId });
+    } else {
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
         timeoutMs,
@@ -140,6 +152,7 @@ export const orchestrationLoopLayerBroker = async ({
         workItemId: completedAgent.workItemId,
         sessionId: result.sessionId,
         followupDepth: ZERO_DEPTH,
+        crashRetries: nextCrashRetries,
         promise: agentPromise,
       });
     }
@@ -220,6 +233,7 @@ export const orchestrationLoopLayerBroker = async ({
             workItemId: newWorkItemId,
             sessionId: null,
             followupDepth: nextDepth,
+            crashRetries: ZERO_CRASH_RETRIES,
             promise: agentPromise,
           });
         }

@@ -34,6 +34,13 @@ export const runPathseekerLayerBrokerProxy = (): {
     exitCode: ExitCode;
   }) => void;
   setupSpawnCrashVerifyFail: (params: { quest: Quest }) => void;
+  setupSecondGetFailure: (params: {
+    quest: Quest;
+    spawnLines: Parameters<
+      ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+    >[0]['lines'];
+    exitCode: ExitCode;
+  }) => void;
   setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
   getPersistedQuestJsons: () => readonly unknown[];
   getSpawnedArgs: () => unknown;
@@ -117,6 +124,25 @@ export const runPathseekerLayerBrokerProxy = (): {
       modifyProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+    },
+
+    setupSecondGetFailure: ({
+      quest,
+      spawnLines,
+      exitCode,
+    }: {
+      quest: Quest;
+      spawnLines: Parameters<
+        ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+      >[0]['lines'];
+      exitCode: ExitCode;
+    }): void => {
+      // Same as setupVerifyPass: spawn -> verify -> modify(complete) -> get(quest)
+      // But set up get to return empty folder so it fails
+      spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
+      verifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupEmptyFolder();
     },
 
     setupDeterministicUuids: ({ uuids }: { uuids: readonly string[] }): void => {

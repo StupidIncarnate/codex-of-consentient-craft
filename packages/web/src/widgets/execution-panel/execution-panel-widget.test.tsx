@@ -1,6 +1,11 @@
 import { screen } from '@testing-library/react';
 
-import { DependencyStepStub, QuestStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  QuestStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
@@ -374,6 +379,71 @@ describe('ExecutionPanelWidget', () => {
       expect(stepRows).toHaveLength(3);
       // First row should be pathseeker done
       expect(stepRows[0]?.textContent).toMatch(/Planned 2 steps/u);
+    });
+  });
+
+  describe('[X8] ad-hoc step detection', () => {
+    it('VALID: {work item has insertedBy} => renders step with AD-HOC indicator', () => {
+      ExecutionPanelWidgetProxy();
+      const insertedById = QuestWorkItemIdStub({
+        value: 'b0000000-0000-0000-0000-000000000001',
+      });
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [
+          DependencyStepStub({
+            id: 'step-adhoc',
+            name: 'Fix lint errors',
+            filesToCreate: [],
+            filesToModify: ['src/broker.ts'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: ['steps/step-adhoc'],
+            insertedBy: insertedById,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-row-adhoc-tag')).toBeInTheDocument();
+      expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
+    });
+
+    it('VALID: {work item has no insertedBy} => does not render AD-HOC indicator', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [
+          DependencyStepStub({
+            id: 'step-normal',
+            name: 'Build auth module',
+            filesToCreate: ['src/auth.ts'],
+            filesToModify: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: ['steps/step-normal'],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-adhoc-tag')).toBeNull();
     });
   });
 });
