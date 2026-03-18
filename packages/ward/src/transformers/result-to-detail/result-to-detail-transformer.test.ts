@@ -144,13 +144,13 @@ describe('resultToDetailTransformer', () => {
       );
     });
 
-    it('VALID: {wardResult: test failure with stack, verbose: false} => truncates stack trace', () => {
+    it('VALID: {wardResult: test failure with long message, verbose: false} => truncates message', () => {
       const lines = Array.from(
-        { length: 8 },
+        { length: 20 },
         (_, i) => `at line${String(i)} (file.ts:${String(i)}:0)`,
       );
-      const fullStack = lines.join('\n');
-      const truncatedStack = `${lines.slice(0, 5).join('\n')}\n... (3 more lines, use --verbose for full trace)`;
+      const fullMessage = lines.join('\n');
+      const truncatedMessage = `${lines.slice(0, 15).join('\n')}\n... (5 more lines, use --verbose for full trace)`;
       const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
       const wardResult = WardResultStub({
         checks: [
@@ -164,8 +164,7 @@ describe('resultToDetailTransformer', () => {
                   TestFailureStub({
                     suitePath: 'src/app.test.tsx',
                     testName: 'should render',
-                    message: 'Failed',
-                    stackTrace: fullStack,
+                    message: fullMessage,
                   }),
                 ],
               }),
@@ -178,14 +177,14 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         WardFileDetailStub({
-          value: `src/app.test.tsx\n  FAIL  "should render"\n    Failed\n    ${truncatedStack}`,
+          value: `src/app.test.tsx\n  FAIL  "should render"\n    ${truncatedMessage}`,
         }),
       );
     });
 
-    it('VALID: {wardResult: test failure with stack, verbose: true} => shows full stack trace', () => {
-      const fullStack =
-        'at Object.<anonymous> (src/app.test.tsx:10:5)\nat Module._compile (node:internal/modules/cjs/loader:1)';
+    it('VALID: {wardResult: test failure with long message, verbose: true} => shows full message', () => {
+      const fullMessage =
+        'Error: expected ok\nat Object.<anonymous> (src/app.test.tsx:10:5)\nat Module._compile (node:internal/modules/cjs/loader:1)';
       const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
       const wardResult = WardResultStub({
         checks: [
@@ -199,8 +198,7 @@ describe('resultToDetailTransformer', () => {
                   TestFailureStub({
                     suitePath: 'src/app.test.tsx',
                     testName: 'should render',
-                    message: 'Failed',
-                    stackTrace: fullStack,
+                    message: fullMessage,
                   }),
                 ],
               }),
@@ -213,7 +211,47 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         WardFileDetailStub({
-          value: `src/app.test.tsx\n  FAIL  "should render"\n    Failed\n    ${fullStack}`,
+          value: `src/app.test.tsx\n  FAIL  "should render"\n    ${fullMessage}`,
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: test failure with framework lines in message} => filters framework lines', () => {
+      const message = [
+        'Error: expected "wrong" received "ok"',
+        '    at Object.<anonymous> (src/app.test.tsx:14:58)',
+        '    at Object.toBe (/home/user/project/node_modules/expect/build/index.js:2140:20)',
+        '    at callAsyncCircusFn (/home/user/project/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)',
+        '    at runTest (/home/user/project/node_modules/jest-runner/build/index.js:343:7)',
+      ].join('\n');
+      const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: 'src/app.test.tsx',
+                    testName: 'should render',
+                    message,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value:
+            'src/app.test.tsx\n  FAIL  "should render"\n    Error: expected "wrong" received "ok"\n    at Object.<anonymous> (src/app.test.tsx:14:58)\n... (3 framework lines hidden, use --verbose for full trace)',
         }),
       );
     });

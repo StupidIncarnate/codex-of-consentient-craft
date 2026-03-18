@@ -6,6 +6,8 @@
  * // Returns: WardFileDetail with all errors and test failures for that file
  */
 
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
@@ -13,6 +15,7 @@ import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-
 import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { stackTraceTruncateTransformer } from '../stack-trace-truncate/stack-trace-truncate-transformer';
+import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
 
 export const resultToDetailTransformer = ({
   wardResult,
@@ -40,20 +43,17 @@ export const resultToDetailTransformer = ({
       for (const failure of project.testFailures) {
         if (isPathSuffixMatchGuard({ storedPath: failure.suitePath, queryPath: filePath })) {
           entries.push(`  FAIL  "${failure.testName}"` as ErrorEntry['message']);
-          entries.push(`    ${failure.message}` as ErrorEntry['message']);
-
-          if (failure.stackTrace) {
-            const stack = verbose
-              ? failure.stackTrace
-              : stackTraceTruncateTransformer({ stackTrace: failure.stackTrace });
-            entries.push(`    ${stack}` as ErrorEntry['message']);
-          }
+          const displayMessage = verbose
+            ? failure.message
+            : stackTraceTruncateTransformer({ stackTrace: failure.message });
+          entries.push(`    ${displayMessage}` as ErrorEntry['message']);
         }
       }
     }
   }
 
-  const output = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : String(filePath);
+  const raw = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : String(filePath);
+  const output = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
 
   return wardFileDetailContract.parse(output);
 };

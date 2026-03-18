@@ -50,6 +50,46 @@ describe('stackTraceTruncateTransformer', () => {
     });
   });
 
+  describe('framework line filtering', () => {
+    it('VALID: {stack with framework lines} => filters framework lines and shows hidden count', () => {
+      const stackTrace = [
+        'Error: expected "wrong" received "ok"',
+        '    at Object.<anonymous> (src/app.test.ts:14:58)',
+        '    at Object.toBe (/home/user/project/node_modules/expect/build/index.js:2140:20)',
+        '    at callAsyncCircusFn (/home/user/project/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)',
+        '    at runTest (/home/user/project/node_modules/jest-runner/build/index.js:343:7)',
+      ].join('\n');
+
+      const result = stackTraceTruncateTransformer({ stackTrace, maxLines: 5 });
+
+      expect(result).toBe(
+        TruncatedStackStub({
+          value:
+            'Error: expected "wrong" received "ok"\n    at Object.<anonymous> (src/app.test.ts:14:58)\n... (3 framework lines hidden, use --verbose for full trace)',
+        }),
+      );
+    });
+
+    it('VALID: {stack with mixed lines exceeding limit after filtering} => truncates filtered result', () => {
+      const stackTrace = [
+        'Error: fail',
+        '    at a (src/a.ts:1:0)',
+        '    at b (src/b.ts:2:0)',
+        '    at c (src/c.ts:3:0)',
+        '    at callAsyncCircusFn (/home/user/project/node_modules/jest-circus/build/jestAdapterInit.js:1:1)',
+      ].join('\n');
+
+      const result = stackTraceTruncateTransformer({ stackTrace, maxLines: 2 });
+
+      expect(result).toBe(
+        TruncatedStackStub({
+          value:
+            'Error: fail\n    at a (src/a.ts:1:0)\n... (3 more lines, use --verbose for full trace)',
+        }),
+      );
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {single line stack trace, maxLines 1} => returns unchanged', () => {
       const stackTrace = 'Error: fail';

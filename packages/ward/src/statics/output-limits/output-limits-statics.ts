@@ -14,5 +14,5 @@ export const outputLimitsStatics = {
     maxLines: 200,
     maxChars: 20000,
   },
-  stackTraceDefaultMaxLines: 5,
+  stackTraceDefaultMaxLines: 15,
 } as const;
