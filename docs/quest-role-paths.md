@@ -199,8 +199,8 @@ status from work items, never sets it directly.
   │   CREATES: pathseeker (replan — re-evaluates steps with knowledge of what failed).
   │
   ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
-  │   Respawned in next available slot. ⚠ [X4] No attempt counter.
-  │   If no slot available → orphaned. ⚠ [X6]
+  │   Respawned in next available slot (max 3 crash retries — [X4] FIXED).
+  │   If no slot available → marked `failed` ([X6] FIXED).
   │
   └─ EXCEPTION (quest not found, step missing) ────────────────────────────
       codeweaver → failed
@@ -279,7 +279,7 @@ status from work items, never sets it directly.
   │   CREATES: pathseeker (replan).
   │
   ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
-  │   Respawned in next available slot (slot-managed). ⚠ [X4] No attempt counter.
+  │   Respawned in next available slot (max 3 crash retries — [X4] FIXED).
   │
   └─ EXCEPTION (quest not found, wardResult missing) ──────────────────────
       spiritmender → failed
@@ -341,7 +341,7 @@ status from work items, never sets it directly.
   │   Other lawbringers continue running — no skip, no drain.
   │
   ├─ CRASH / TIMEOUT ──────────────────────────────────────────────────────
-  │   Respawned in next available slot. ⚠ [X4] No attempt counter.
+  │   Respawned in next available slot (max 3 crash retries — [X4] FIXED).
   │
   └─ EXCEPTION (quest not found, step missing) ────────────────────────────
       lawbringer → failed
@@ -436,19 +436,19 @@ verify broken/risky behavior, not intended behavior.
 
 ### Confirmed Bugs
 
-| ID | Affects                       | Description                                                                                                                                                                                                                       | How to Trigger                                                                                              | What to Verify                                                                                           |
-|----|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| X1 | ChaosWhisperer, Glyphsmith    | Chat layer broker does NOT check agent exit code. Non-zero exit (crash) marks work item `complete` instead of `failed`. Only JS exceptions reach the catch block.                                                                 | Kill the claude process mid-run (SIGKILL) or have it exit non-zero                                          | Work item is `complete` (bug) instead of `failed` (correct). Quest status unchanged.                     |
-| X2 | PathSeeker, Ward, Siegemaster | "Second fetch failure": if `questGetBroker` fails AFTER work item is already marked complete/failed, recovery items are never inserted. Quest silently goes terminal/blocked with no recourse.                                    | Make quest file temporarily unreadable after pathseeker verify passes but before downstream item generation | Work item is `complete` but zero downstream items created. Quest goes `complete` with no implementation. |
+| ID | Affects                       | Description                                                                                                                                                                                                                       | Status |
+|----|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| X1 | ChaosWhisperer, Glyphsmith    | Chat layer broker does NOT check agent exit code. Non-zero exit (crash) marks work item `complete` instead of `failed`. Only JS exceptions reach the catch block.                                                                 | **FIXED** — `run-chat-layer-broker.ts` now checks exit code; non-zero exit throws, caught by error handler which marks work item `failed`. Regression test in `run-chat-layer-broker.test.ts`. |
+| X2 | PathSeeker, Ward, Siegemaster | "Second fetch failure": if `questGetBroker` fails AFTER work item is already marked complete/failed, recovery items are never inserted. Quest silently goes terminal/blocked with no recourse.                                    | **FIXED** — `run-pathseeker-layer-broker.ts` now throws on second fetch failure instead of silently dropping downstream items. Error propagates to orchestration loop catch block. Regression test in `run-pathseeker-layer-broker.test.ts`. |
 
-### Design Risks (no fix yet — need circuit breakers)
+### Design Risks
 
-| ID | Affects                              | Description                                                                                                                                               | How to Trigger                                                 | What to Verify                                                                                                    |
-|----|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| X4 | Codeweaver, Lawbringer, Spiritmender | Slot manager crash/timeout retry has NO attempt counter. An agent that always crashes retries forever.                                                    | Have agent binary consistently crash (e.g., bad config)        | Quest stays `in_progress` indefinitely, work item never reaches `failed`. Process must be manually killed.        |
-| X5 | Siegemaster                          | Fix chains have no depth limit. Each failed siege-recheck creates another full codeweaver-fix → ward-rerun → siege-recheck chain indefinitely.            | Have siege agent always fail verification                      | `quest.workItems` grows by 3 per cycle. Quest stays `in_progress` forever.                                        |
-| X6 | All slot-managed roles               | Silent drop: if crash/timeout or partially-complete respawn can't get a slot, work item stays "started" with no agent — orphaned.                         | Saturate all 3 slots, then crash an agent when no slot is free | Work item stuck at `started` with no agent. Eventually returns as `failed` when slot manager detects stuck state. |
-| X8 | Web UI (execution panel)             | Ad-hoc step detection removed. `isAdhoc` is hardcoded `false`. Need to derive ad-hoc status from work item metadata (e.g., `insertedBy` or role) instead. | View execution panel with spiritmender-spawned steps           | All steps render identically — no visual distinction between planned and ad-hoc fix-up steps.                     |
+| ID | Affects                              | Description                                                                                                                                               | Status |
+|----|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| X4 | Codeweaver, Lawbringer, Spiritmender | Slot manager crash/timeout retry has NO attempt counter. An agent that always crashes retries forever.                                                    | **FIXED** — Added `crashRetries` field to `ActiveAgent` contract. Slot manager increments on each respawn; after 3 crashes, marks work item `failed`. Regression tests in `orchestration-loop-layer-broker.test.ts`. |
+| X5 | Siegemaster                          | Fix chains have no depth limit. Each failed siege-recheck creates another full codeweaver-fix → ward-rerun → siege-recheck chain indefinitely.            | **FIXED** — Fix chain removed entirely from `run-siegemaster-layer-broker.ts`. Siege failure now skips pending items + creates pathseeker replan. Regression tests in `run-siegemaster-layer-broker.test.ts`. |
+| X6 | All slot-managed roles               | Silent drop: if crash/timeout or partially-complete respawn can't get a slot, work item stays "started" with no agent — orphaned.                         | **FIXED** — Slot manager now detects no-slot-available on crash respawn and marks work item `failed`. Regression test in `orchestration-loop-layer-broker.test.ts`. |
+| X8 | Web UI (execution panel)             | Ad-hoc step detection removed. `isAdhoc` is hardcoded `false`. Need to derive ad-hoc status from work item metadata (e.g., `insertedBy` or role) instead. | **FIXED** — `execution-panel-widget.tsx` now derives `isAdhoc` from `wi?.insertedBy !== undefined`. Steps created by recovery roles render with AD-HOC indicator. Regression tests in `execution-panel-widget.test.tsx`. |
 
 ---
 
@@ -608,12 +608,11 @@ broken regardless of which role triggered it.
   still re-thrown. Not swallowed.
 
 - [ ] **T-FAIL-4: Agent crash (non-zero exit) — slot-managed roles**
-  Slot manager respawns the agent in the same or next available slot. Session ID is passed for resume. **⚠ [X4]: No
-  attempt counter — infinite retry.**
+  Slot manager respawns the agent in the same or next available slot. Session ID is passed for resume. **[X4] FIXED:**
+  Crash retries limited to 3 via `crashRetries` counter on `ActiveAgent`.
 
 - [ ] **T-FAIL-5: Agent crash — chat roles**
-  **⚠ [X1]: Exit code is NOT checked.** Non-zero exit still marks work item `complete`. Only a JS exception (spawn
-  failure) reaches the error path.
+  **[X1] FIXED:** Exit code is now checked. Non-zero exit marks work item `failed`.
 
 - [ ] **T-FAIL-6: Agent timeout**
   Agent is killed after `timeoutMs`. Slot-managed roles: respawned with sessionId. Non-slot roles (pathseeker, siege):
@@ -682,10 +681,10 @@ Siege (on failure)
 |--------------|------------------------------|-----------------------------------------|--------------------------------------------------------|
 | PathSeeker   | 3                            | Creates own retry work item             | All pathseekers `failed`, quest stuck at `in_progress` |
 | Ward         | 3                            | Creates spiritmender + retry work item  | No retry, siege dep unmet → quest `blocked`            |
-| Siege        | **Unbounded ⚠ [X5]**         | Creates fix chain (3 items) per failure | Quest stays `in_progress` forever, workItems grows     |
-| Codeweaver   | 1 (but crash retry ∞ ⚠ [X4]) | Slot manager respawns on crash          | Quest stays `in_progress` forever                      |
-| Lawbringer   | 1 (but crash retry ∞ ⚠ [X4]) | Slot manager respawns on crash          | Quest stays `in_progress` forever                      |
-| Spiritmender | 1 (but crash retry ∞ ⚠ [X4]) | Slot manager respawns on crash          | Quest stays `in_progress` forever                      |
+| Siege        | 1                             | Skips pending + creates pathseeker replan | No retry, pending items skipped, pathseeker replans    |
+| Codeweaver   | 1 (crash retry max 3)         | Slot manager respawns on crash (max 3)   | After 3 crashes → work item `failed`                  |
+| Lawbringer   | 1 (crash retry max 3)         | Slot manager respawns on crash (max 3)   | After 3 crashes → work item `failed`                  |
+| Spiritmender | 1 (crash retry max 3)         | Slot manager respawns on crash (max 3)   | After 3 crashes → work item `failed`                  |
 
 - [ ] **T-RETRY-1: PathSeeker retry preserves maxAttempts and timeoutMs**
   Retry item carries same `maxAttempts: 3` and `timeoutMs` from original.
@@ -964,37 +963,15 @@ quest.json:
 
 ### SAD-E2E-4: Quest file write fails after successful work ("second fetch failure")
 
-- [ ] **⚠ [X2]** PathSeeker passes verify, but quest.json write to add downstream items fails:
-
-```
-pathseeker: complete  ← already marked before the write
-codeweavers/ward/siege/lawbringers: NEVER CREATED
-
-quest.json:
-  status: complete  ← ALL items are terminal (just chaos + pathseeker, both complete)
-  workItems: [{ chaos, complete }, { pathseeker, complete }]
-```
-
-**Quest falsely reports `complete` with zero implementation.** This is bug X2.
+- [ ] **[X2] FIXED** PathSeeker passes verify, but quest.json write to add downstream items fails:
+  Now throws an error instead of silently dropping downstream items. Error propagates to orchestration loop catch block.
 
 ---
 
 ### SAD-E2E-5: Siege fix chain loops indefinitely
 
-- [ ] **⚠ [X5]** Siege keeps failing, each failure creates a new fix chain:
-
-```
-siege-A fails → fix chain 1 (cw-fix-1, ward-rerun-1, siege-recheck-1)
-siege-recheck-1 fails → fix chain 2 (cw-fix-2, ward-rerun-2, siege-recheck-2)
-siege-recheck-2 fails → fix chain 3 ...
-... no depth limit ...
-
-quest.json:
-  status: in_progress  ← forever
-  workItems: grows by 3 per cycle
-```
-
-**Quest never terminates.** Process must be manually killed.
+- [ ] **[X5] FIXED** Siege fix chain removed entirely. Siege failure now skips pending items + creates pathseeker replan.
+  Quest terminates cleanly (blocked or replanned) instead of growing indefinitely.
 
 ---
 
@@ -1065,10 +1042,10 @@ generates all downstream work items (codeweavers, ward, siege, lawbringers) via 
 | Layer broker     | `run-codeweaver-layer-broker.ts`                                      |
 | Spawner          | `agent` (via slot manager, up to 3 concurrent)                        |
 | Created by       | PathSeeker (via `stepsToWorkItemsTransformer`)                        |
-| maxAttempts      | 1 (no direct retry — crash retry is infinite via slot manager ⚠ [X4]) |
+| maxAttempts      | 1 (no direct retry — crash retry max 3 via slot manager)              |
 | maxFollowupDepth | 5                                                                     |
 | Timeout          | 600,000ms (10 min)                                                    |
-| Known issues     | [X4] infinite crash retry, [X6] silent drop                           |
+| Known issues     | [X4] FIXED, [X6] FIXED                                                |
 
 **What it does:** Implements a single quest step. Resolves its step from `relatedDataItems`, builds work unit with step
 context + related contracts/observables, runs via slot manager.
@@ -1154,13 +1131,10 @@ spiritmender + retry cycle.
 
 **Role-specific quirks:**
 
-- NOT slot-managed — single agent, no crash retry (crash/timeout = immediate failure → fix chain)
+- NOT slot-managed — single agent, no crash retry (crash/timeout = immediate failure)
 - `isComplete = true` if `signal === 'complete'` OR `exitCode === 0` (either suffices)
 - Agent exits 0 with non-complete signal (e.g., `partially-complete`) → treated as complete (potential false positive)
-- Fix chain: codeweaver-fix (`relatedDataItems: []`, reads quest context) → ward-rerun (`maxAttempts: 3`, own retry
-  budget) → siege-recheck
-- ⚠ [X5]: Siege-recheck can itself fail → another fix chain → unbounded. No depth limit.
-- Fix chain items carry `insertedBy: <failed-siege-id>` for traceability but this chain is NOT depth-limited
+- **[X5] FIXED:** Fix chain removed. Siege failure now skips pending items (lawbringers, final-ward) + creates pathseeker replan with `dependsOn: []` and `insertedBy: <failed-siege-id>`
 - Abort signal during execution → agent NOT killed (abort only checked at loop entry) → runs to timeout
 
 ---
@@ -1237,7 +1211,7 @@ Promise.race(activeAgents) → first agent to finish
   │
   ▼
 RESULT ROUTING:
-  ├─ crashed/timedOut → respawn if slot available, else orphaned ⚠ [X4][X6]
+  ├─ crashed/timedOut → respawn if slot available (max 3 retries), else mark failed [X4][X6] FIXED
   ├─ signal null → markPartiallyCompleted
   ├─ signal 'complete' → markCompleted (if followupDepth > 0: re-queue original)
   ├─ signal 'partially-complete' → respawn with continuationContext
