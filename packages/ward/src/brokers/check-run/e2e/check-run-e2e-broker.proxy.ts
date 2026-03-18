@@ -28,7 +28,6 @@ export const checkRunE2eBrokerProxy = (): {
 
   const queueFreePorts = (): void => {
     freePortProxy.setupPort({ port: 40_000 });
-    freePortProxy.setupPort({ port: 40_001 });
   };
 
   return {

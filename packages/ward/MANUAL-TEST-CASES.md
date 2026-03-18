@@ -2,6 +2,61 @@
 
 Test cases for verifying ward's CLI behavior across scope levels, check types, and pass/fail scenarios.
 
+## How to Run These Tests
+
+### Before you start
+
+1. **Rebuild all packages** before running any tests: `npm run build`
+2. **Rebuild ward specifically** after any ward source changes: `npm run build --workspace=@dungeonmaster/ward`
+3. All commands run from the **repo root** (`/home/brutus-home/projects/codex-of-consentient-craft`). If you `cd` into a
+   package directory, ward will fail with "No files found".
+4. For e2e tests, the Playwright config auto-starts server + web dev servers. Kill any conflicting dev servers first.
+
+### How to evaluate each test case
+
+**For happy path / cross-type / flag tests:**
+
+- Run the command
+- Check the **live progress lines** — verify the correct check types appear with the expected status (PASS/skip)
+- Check the **summary** — verify only non-skip check types appear
+- Verify the **"Not in output" column** — check types listed there must NOT appear anywhere in the output
+- For cross-type tests, the critical assertion is **bold** in the grid — that check type MUST show `skip`, not
+  `PASS N files`
+
+**For failure tests:**
+
+- **Mutate** the file as described (flip assertion, add unused param, remove `.success`, etc.)
+- Run the command — verify FAIL status with error count
+- Run the **full drill-down chain** using the `run: {runId}` from the output:
+  1. `ward-list` with runId — verify full error messages (jest diffs, lint rules, TS errors)
+  2. `ward-detail` with runId + filePath — verify file-specific error with line/col
+  3. `ward-raw` with runId + checkType — verify raw tool output is captured (skip for typecheck — output is huge)
+- **Revert** the mutation after each test. If you forget, the next test case will fail unexpectedly.
+
+### Common mistakes to avoid
+
+- **Forgetting to rebuild after source changes.** Ward runs from `dist/`. If you changed source and didn't rebuild,
+  you're testing old code. Always `npm run build --workspace=@dungeonmaster/ward` after editing ward source.
+- **Running from the wrong directory.** Ward resolves file paths relative to the repo root. If your cwd is
+  `packages/ward`, jest will fail with "No files found".
+- **Forgetting to revert mutations.** Failure tests modify source files. If you don't revert, subsequent tests break.
+  Check `git diff` between failure tests to confirm files are clean.
+- **Assuming ward-raw is useful for typecheck.** The tsc raw output is 100K+ chars of file listings. Use `ward-list` and
+  `ward-detail` for typecheck errors instead.
+- **Using `var x = 1;` for lint mutations.** ESLint `--fix` auto-converts `var` to `const`, and `_x` prefix satisfies
+  the unused-vars rule. Use an unused destructured param without underscore prefix instead (e.g., `{ value, broken }`).
+- **Using raw primitive types for typecheck mutations.** The pre-edit hook blocks raw `number`, `string`, `boolean`
+  types. Instead, change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected).
+- **Not checking the drill-down on failures.** The ward summary truncates error messages. The real value is in
+  `ward-list` (full diffs) and `ward-detail` (file-specific errors with line numbers). Always verify these.
+- **Skipping global test cases.** `--only unit` with no scope runs across ALL packages and takes minutes. Skip these
+  unless specifically testing multi-package behavior.
+
+### Test case numbering
+
+Each test case has an ID like `1a`, `4g`, `9b`. The number is the section, the letter is the case within that section.
+The coverage grids at the top link each ID to its detailed instructions below.
+
 ## Output Format Reference
 
 **Live progress** (stderr, shown during execution):
@@ -98,22 +153,22 @@ These verify that check types **skip** (not run everything) when passthrough fil
 
 ### Failure Scenarios
 
-All failures require modifying `is-check-type-guard.ts` or its `.test.ts` — see linked detail for exact change. **Revert
-after each test.**
+All failures require modifying source files — see linked detail for exact change. **Revert after each test.**
 
-| ID                                                                    | Mutation                             | Command                                                         | unit     | int      | lint     | tc       |
-|-----------------------------------------------------------------------|--------------------------------------|-----------------------------------------------------------------|----------|----------|----------|----------|
-| [1h](#1h-unit-test-failure)                                           | flip assertion in `.test.ts`         | `--only unit -- .../is-check-type-guard.test.ts`                | **FAIL** |          |          |          |
-| [2g](#2g-integration-test-failure)                                    | flip assertion in int test           | `--only int -- .../start-ward.integration.test.ts`              |          | **FAIL** |          |          |
-| [4g](#4g-lint-failure--single-file)                                   | add unused `broken` param            | `--only lint -- .../is-check-type-guard.ts`                     |          |          | **FAIL** |          |
-| [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add unused `broken` param            | `--only lint -- .../is-check-type-guard.test.ts`                |          |          | PASS     |          |
-| [4i](#4i-lint-failure--package-scope-catches-it)                      | add unused `broken` param            | `--only lint -- packages/ward`                                  |          |          | **FAIL** |          |
-| [5d](#5d-typecheck-failure--scoped-to-broken-file)                    | return `.safeParse()` not `.success` | `--only typecheck -- .../is-check-type-guard.ts`                |          |          |          | **FAIL** |
-| [5e](#5e-typecheck-failure--scoped-to-different-file-error-filtering) | return `.safeParse()` not `.success` | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          | PASS     |
-| [5f](#5f-typecheck-failure--package-scope-catches-it)                 | return `.safeParse()` not `.success` | `--only typecheck -- packages/ward`                             |          |          |          | **FAIL** |
-| [9a](#9a-unit-fails-lint-and-typecheck-pass)                          | flip assertion in `.test.ts`         | `--only unit,lint,typecheck -- .../is-check-type-guard.test.ts` | **FAIL** |          | PASS     | PASS     |
-| [9b](#9b-lint-fails-unit-also-fails-shared-violation)                 | add unused `broken` param            | `--only lint,unit -- .../is-check-type-guard.ts`                | **FAIL** |          | **FAIL** |          |
-| [9c](#9c-typecheck-fails-lint-passes-on-same-file)                    | return `.safeParse()` not `.success` | `--only lint,typecheck -- .../is-check-type-guard.ts`           |          |          | PASS     | **FAIL** |
+| ID                                                                    | Mutation                             | Command                                                         | unit     | int      | e2e      | lint     | tc       |
+|-----------------------------------------------------------------------|--------------------------------------|-----------------------------------------------------------------|----------|----------|----------|----------|----------|
+| [1h](#1h-unit-test-failure)                                           | flip assertion in `.test.ts`         | `--only unit -- .../is-check-type-guard.test.ts`                | **FAIL** |          |          |          |          |
+| [2g](#2g-integration-test-failure)                                    | flip assertion in int test           | `--only int -- .../start-ward.integration.test.ts`              |          | **FAIL** |          |          |          |
+| [3f](#3f-e2e-test-failure)                                            | flip `'ok'` to `'broken'` in smoke   | `--only e2e --onlyTests "health" -- .../smoke.spec.ts`          |          |          | **FAIL** |          |          |
+| [4g](#4g-lint-failure--single-file)                                   | add unused `broken` param            | `--only lint -- .../is-check-type-guard.ts`                     |          |          |          | **FAIL** |          |
+| [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add unused `broken` param            | `--only lint -- .../is-check-type-guard.test.ts`                |          |          |          | PASS     |          |
+| [4i](#4i-lint-failure--package-scope-catches-it)                      | add unused `broken` param            | `--only lint -- packages/ward`                                  |          |          |          | **FAIL** |          |
+| [5d](#5d-typecheck-failure--scoped-to-broken-file)                    | return `.safeParse()` not `.success` | `--only typecheck -- .../is-check-type-guard.ts`                |          |          |          |          | **FAIL** |
+| [5e](#5e-typecheck-failure--scoped-to-different-file-error-filtering) | return `.safeParse()` not `.success` | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          |          | PASS     |
+| [5f](#5f-typecheck-failure--package-scope-catches-it)                 | return `.safeParse()` not `.success` | `--only typecheck -- packages/ward`                             |          |          |          |          | **FAIL** |
+| [9a](#9a-unit-fails-lint-and-typecheck-pass)                          | flip assertion in `.test.ts`         | `--only unit,lint,typecheck -- .../is-check-type-guard.test.ts` | **FAIL** |          |          | PASS     | PASS     |
+| [9b](#9b-lint-fails-unit-also-fails-shared-violation)                 | add unused `broken` param            | `--only lint,unit -- .../is-check-type-guard.ts`                | **FAIL** |          |          | **FAIL** |          |
+| [9c](#9c-typecheck-fails-lint-passes-on-same-file)                    | return `.safeParse()` not `.success` | `--only lint,typecheck -- .../is-check-type-guard.ts`           |          |          |          | PASS     | **FAIL** |
 
 ### Flag Behavior
 
@@ -495,6 +550,38 @@ npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smok
 - Playwright receives `--grep health`
 - Only tests with "health" in the name run
 - Summary: `e2e: PASS ...`
+
+#### 3f. E2E test failure
+
+**Modify:** `packages/testing/e2e/web/smoke.spec.ts`
+**Change:** Flip `expect(body.status).toBe('ok')` to `expect(body.status).toBe('broken')`
+
+```bash
+npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smoke.spec.ts
+```
+
+**Expected:**
+
+- Live: `e2e @dungeonmaster/testing FAIL  1 files, 1 errors, 20 discovered`
+- Summary: `e2e: FAIL  1 packages ...`
+- Error detail: `--- e2e ---` with test name and Expected/Received diff
+- Exit code: non-zero
+- Note: Playwright retries (configured 2 retries) — all 3 attempts fail
+
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows test name: `"smoke.spec.ts > Smoke Tests > health endpoint responds"`
+  - Shows diff: `Expected: "broken"` / `Received: "ok"`
+- `ward-detail` with runId + filePath `smoke.spec.ts`:
+  - Shows FAIL with test name and diff
+  - Shows source location `smoke.spec.ts:9:25`
+- `ward-raw` with runId + checkType `e2e`:
+  - Structured Playwright JSON with `stats.unexpected: 1`
+  - Contains `error.snippet` with source context and `>` pointer
+  - Shows all retry attempts in `results[]` array
+
+**Revert change after testing.**
 
 #### 3b. No scope (all packages)
 

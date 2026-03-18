@@ -78,7 +78,8 @@ export const checkRunE2eBroker = async ({
       : [...args, '--grep', testNamePattern, ...fileList];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const [serverPort, webPort] = await Promise.all([netFreePortAdapter(), netFreePortAdapter()]);
+  const serverPort = await netFreePortAdapter();
+  const webPort = serverPort + 1;
 
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
