@@ -14,6 +14,8 @@ import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
 import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
 import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
+import { gitDiffFilesBroker } from '../../git/diff-files/git-diff-files-broker';
+import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 
 export const commandRunBroker = async ({
   config,
@@ -22,15 +24,35 @@ export const commandRunBroker = async ({
   config: WardConfig;
   rootPath: AbsoluteFilePath;
 }): Promise<void> => {
+  const resolvedConfig = config.changed
+    ? await (async (): Promise<WardConfig> => {
+        const changedFiles = await gitDiffFilesBroker({ cwd: rootPath });
+        const sourceFiles = changedFiles.filter((file) =>
+          isSourceFileGuard({ filePath: String(file) }),
+        );
+        return {
+          ...config,
+          passthrough:
+            sourceFiles.length > 0
+              ? (sourceFiles.map(String) as WardConfig['passthrough'])
+              : config.passthrough,
+        };
+      })()
+    : config;
+
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 
   const wardResult =
     workspaces === null
       ? await (async () => {
           const projectFolder = await commandRunLayerFolderBroker({ rootPath });
-          return commandRunLayerSingleBroker({ config, projectFolder, rootPath });
+          return commandRunLayerSingleBroker({ config: resolvedConfig, projectFolder, rootPath });
         })()
-      : await commandRunLayerMultiBroker({ config, projectFolders: workspaces, rootPath });
+      : await commandRunLayerMultiBroker({
+          config: resolvedConfig,
+          projectFolders: workspaces,
+          rootPath,
+        });
 
   process.stderr.write('\r\x1b[K\n');
   const summary = resultToSummaryTransformer({ wardResult, cwd: rootPath });

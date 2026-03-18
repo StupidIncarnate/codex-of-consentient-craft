@@ -45,12 +45,20 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
   `ward-detail` for typecheck errors instead.
 - **Using `var x = 1;` for lint mutations.** ESLint `--fix` auto-converts `var` to `const`, and `_x` prefix satisfies
   the unused-vars rule. Use an unused destructured param without underscore prefix instead (e.g., `{ value, broken }`).
+- **Using blank lines for `--changed` mutations.** ESLint `--fix` strips trailing blank lines, reverting your change and
+  leaving git clean. Use a comment (e.g., `// trivial change`) instead of a blank line.
 - **Using raw primitive types for typecheck mutations.** The pre-edit hook blocks raw `number`, `string`, `boolean`
   types. Instead, change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected).
 - **Not checking the drill-down on failures.** The ward summary truncates error messages. The real value is in
   `ward-list` (full diffs) and `ward-detail` (file-specific errors with line numbers). Always verify these.
 - **Skipping global test cases.** `--only unit` with no scope runs across ALL packages and takes minutes. Skip these
   unless specifically testing multi-package behavior.
+
+### Known issues found during testing
+
+- **`ward-raw` MCP tool is missing `integration` in its `checkType` enum.** The tool only accepts
+  `lint | typecheck | unit | e2e`. Test cases that call `ward-raw` with `checkType: integration` (e.g., 2g drill-down)
+  will fail. This is a tool schema bug.
 
 ### Test case numbering
 
@@ -109,12 +117,12 @@ Only the requested check type appears in the output. No other check types should
 | [1j](#1j-multiple-implementation-files)                  | `--only unit -- .../is-check-type-guard.ts .../is-run-id-guard.ts`                               | `unit ... PASS N files`†    | int, e2e, lint, tc   |
 | [1d](#1d-directory-scope)                                | `--only unit -- .../transformers/cli-args-parse`                                                 | `unit ... PASS N files`     | int, e2e, lint, tc   |
 | [1e](#1e-multiple-directory-scope)                       | `--only unit -- .../cli-args-parse .../is-check-type`                                            | `unit ... PASS N files`     | int, e2e, lint, tc   |
-| [1f](#1f-package-scope-all-unit-tests-in-package)        | `--only unit -- packages/ward`                                                                   | `unit ... PASS 81 files`    | int, e2e, lint, tc   |
+| [1f](#1f-package-scope-all-unit-tests-in-package)        | `--only unit -- packages/ward`                                                                   | `unit ... PASS N files`     | int, e2e, lint, tc   |
 | [1g](#1g-no-scope-all-packages)                          | `--only unit`                                                                                    | `unit ... PASS` (all pkgs)  | int, e2e, lint, tc   |
 | [2a](#2a-single-integration-test-file)                   | `--only integration -- .../start-ward.integration.test.ts`                                       | `int ... PASS 1 files`      | unit, e2e, lint, tc  |
 | [2h](#2h-multiple-integration-test-files)                | `--only integration -- .../start-ward.integration.test.ts .../start-install.integration.test.ts` | `int ... PASS 2 files`      | unit, e2e, lint, tc  |
 | [2c](#2c-directory-scope-containing-integration-tests)   | `--only integration -- .../startup`                                                              | `int ... PASS N files`      | unit, e2e, lint, tc  |
-| [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                                                            | `int ... PASS 4 files`      | unit, e2e, lint, tc  |
+| [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                                                            | `int ... PASS N files`      | unit, e2e, lint, tc  |
 | [2f](#2f-no-scope-all-packages)                          | `--only integration`                                                                             | `int ... PASS` (all pkgs)   | unit, e2e, lint, tc  |
 | [3a](#3a-package-without-playwrightconfigts)             | `--only e2e -- packages/ward`                                                                    | `e2e ... skip`              | unit, int, lint, tc  |
 | [3c](#3c-single-e2e-test-file)                           | `--only e2e -- .../smoke.spec.ts`                                                                | `e2e ... PASS N files`      | unit, int, lint, tc  |
@@ -124,7 +132,7 @@ Only the requested check type appears in the output. No other check types should
 | [4b](#4b-single-test-file)                               | `--only lint -- .../is-check-type-guard.test.ts`                                                 | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
 | [4c](#4c-integration-test-file)                          | `--only lint -- .../start-ward.integration.test.ts`                                              | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
 | [4d](#4d-multiple-files)                                 | `--only lint -- .../guard.ts .../guard.test.ts`                                                  | `lint ... PASS 2 files`     | unit, int, e2e, tc   |
-| [4e](#4e-package-scope-all-files)                        | `--only lint -- packages/ward`                                                                   | `lint ... PASS 236 files`   | unit, int, e2e, tc   |
+| [4e](#4e-package-scope-all-files)                        | `--only lint -- packages/ward`                                                                   | `lint ... PASS N files`     | unit, int, e2e, tc   |
 | [4f](#4f-no-scope-all-packages)                          | `--only lint`                                                                                    | `lint ... PASS` (all pkgs)  | unit, int, e2e, tc   |
 | [5g](#5g-multiple-files)                                 | `--only typecheck -- .../is-check-type-guard.ts .../is-run-id-guard.ts`                          | `tc ... PASS`\*             | unit, int, e2e, lint |
 | [5a](#5a-single-file-scope--clean-project)               | `--only typecheck -- .../is-check-type-guard.ts`                                                 | `tc ... PASS`\*             | unit, int, e2e, lint |
@@ -184,14 +192,14 @@ All failures require modifying source files — see linked detail for exact chan
 | [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation             |
 | [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | FAIL — 0 tests matched pattern    |
 | [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                 |
-| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "exports" -- packages/ward`                    | int respects it                   |
+| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "delegates" -- packages/ward`                  | int respects it                   |
 | [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name     |
 
 ### Edge Cases
 
 | ID                                                      | Command                                                | Expected                |
 |---------------------------------------------------------|--------------------------------------------------------|-------------------------|
-| [10a](#10a-file-that-doesnt-exist)                      | `--only unit -- packages/ward/src/nonexistent.test.ts` | no crash, 0 files       |
+| [10a](#10a-file-that-doesnt-exist)                      | `--only unit -- packages/ward/src/nonexistent.test.ts` | no crash, FAIL 0 files  |
 | [10b](#10b---only-with-invalid-check-type)              | `--only banana -- packages/ward`                       | error message           |
 | [10c](#10c-empty-passthrough-just---)                   | `--only unit --`                                       | no file scope, runs all |
 | [10d](#10d---changed-flag-requires-uncommitted-changes) | `--only lint --changed`                                | scoped to git diff      |
@@ -217,8 +225,8 @@ npm run ward -- --only unit -- packages/ward/src/transformers/cli-args-parse/cli
 
 **Expected:**
 
-- Live: `unit @dungeonmaster/ward PASS  1 files, 81 discovered`
-- Summary: `unit: PASS  1 packages (1 files passed/0 files failed, 81 discovered)`
+- Live: `unit @dungeonmaster/ward PASS  1 files, N discovered`
+- Summary: `unit: PASS  1 packages (1 files passed/0 files failed, N discovered)`
 
 **Should NOT see:**
 
@@ -232,7 +240,7 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `unit ... PASS  N files, 81 discovered` (jest --findRelatedTests finds tests that import this file)
+- Live: `unit ... PASS  N files, N discovered` (jest --findRelatedTests finds tests that import this file)
 - Summary: `unit: PASS ...`
 
 #### 1c. Integration test file passed to unit (should skip)
@@ -258,7 +266,7 @@ npm run ward -- --only unit -- packages/ward/src/transformers/cli-args-parse/cli
 
 **Expected:**
 
-- Live: `unit ... PASS  2 files, 81 discovered`
+- Live: `unit ... PASS  2 files, N discovered`
 - Both files passed via `--findRelatedTests`
 
 **Should NOT see:**
@@ -273,7 +281,7 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `unit ... PASS  N files, 81 discovered` (--findRelatedTests on both impl files)
+- Live: `unit ... PASS  N files, N discovered` (--findRelatedTests on both impl files)
 
 **Should NOT see:**
 
@@ -287,7 +295,7 @@ npm run ward -- --only unit -- packages/ward/src/transformers/cli-args-parse
 
 **Expected:**
 
-- Live: `unit ... PASS  N files, 81 discovered`
+- Live: `unit ... PASS  N files, N discovered`
 - Jest receives `--testPathPatterns src/transformers/cli-args-parse` (directory pattern, not --findRelatedTests)
 
 #### 1e. Multiple directory scope
@@ -309,7 +317,7 @@ npm run ward -- --only unit -- packages/ward
 
 **Expected:**
 
-- Live: `unit @dungeonmaster/ward PASS  81 files, 81 discovered`
+- Live: `unit @dungeonmaster/ward PASS  N files, N discovered`
 - Runs ALL unit tests within the ward package only
 
 **Should NOT see:**
@@ -339,8 +347,8 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `unit @dungeonmaster/ward FAIL  1 files, 1 errors, 81 discovered`
-- Summary: `unit: FAIL  1 packages (0 files passed/1 files failed, 81 discovered)  @dungeonmaster/ward (1)`
+- Live: `unit @dungeonmaster/ward FAIL  1 files, 1 errors, N discovered`
+- Summary: `unit: FAIL  1 packages (0 files passed/1 files failed, N discovered)  @dungeonmaster/ward (1)`
 - Error detail section: `--- unit ---` with test name and failure message
 - Exit code: non-zero
 
@@ -378,7 +386,7 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 **Expected:**
 
-- Live: `integration @dungeonmaster/ward PASS  1 files, 4 discovered`
+- Live: `integration @dungeonmaster/ward PASS  1 files, N discovered`
 - Summary: `integration: PASS  1 packages (...)`
 
 #### 2b. Unit test file passed to integration (should skip)
@@ -394,7 +402,7 @@ npm run ward -- --only integration -- packages/ward/src/transformers/cli-args-pa
 
 **Should NOT see:**
 
-- integration must NOT show `PASS 4 files` — the `.test.ts` file doesn't match integration filtering
+- integration must NOT show `PASS N files` — the `.test.ts` file doesn't match integration filtering
 
 #### 2h. Multiple integration test files
 
@@ -404,7 +412,7 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 **Expected:**
 
-- Live: `integration ... PASS  2 files, 4 discovered`
+- Live: `integration ... PASS  2 files, N discovered`
 - Both integration test files passed via `--findRelatedTests`
 
 **Should NOT see:**
@@ -419,7 +427,7 @@ npm run ward -- --only integration -- packages/ward/src/startup
 
 **Expected:**
 
-- Live: `integration ... PASS N files, 4 discovered`
+- Live: `integration ... PASS N files, N discovered`
 - Jest receives `--testPathPatterns (?:src/startup).*\.integration\.test\.ts$`
 
 #### 2d. Directory scope with NO integration tests
@@ -435,7 +443,7 @@ npm run ward -- --only integration -- packages/ward/src/transformers
 
 **Should NOT see:**
 
-- integration must NOT discover and run all 4 integration tests in the package
+- integration must NOT discover and run all integration tests in the package
 
 #### 2e. Package scope (all integration tests in package)
 
@@ -445,7 +453,7 @@ npm run ward -- --only integration -- packages/ward
 
 **Expected:**
 
-- Live: `integration @dungeonmaster/ward PASS  4 files, 4 discovered`
+- Live: `integration @dungeonmaster/ward PASS  4 files, N discovered`
 
 #### 2f. No scope (all packages)
 
@@ -469,7 +477,7 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 **Expected:**
 
-- Live: `integration @dungeonmaster/ward FAIL  1 files, 1 errors, 4 discovered`
+- Live: `integration @dungeonmaster/ward FAIL  1 files, 1 errors, N discovered`
 - Summary: `integration: FAIL  1 packages ...`
 - Error detail section: `--- integration ---` with test name and failure message
 - Exit code: non-zero
@@ -483,8 +491,8 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 - `ward-detail` with runId + filePath `src/startup/start-ward.integration.test.ts`:
   - Shows `FAIL` with test name and full diff
 - `ward-raw` with runId + checkType `integration`:
-  - Raw jest JSON with `success: false`
-  - `testResults[].assertionResults[].failureMessages` populated
+  - **KNOWN BUG:** `ward-raw` MCP tool schema does not include `integration` in its `checkType` enum — this call will
+    fail with an invalid enum error. The raw jest JSON should be accessible but the tool blocks it.
 
 **Revert change after testing.**
 
@@ -562,7 +570,7 @@ npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smok
 
 **Expected:**
 
-- Live: `e2e @dungeonmaster/testing FAIL  1 files, 1 errors, 20 discovered`
+- Live: `e2e @dungeonmaster/testing FAIL  1 files, 1 errors, N discovered`
 - Summary: `e2e: FAIL  1 packages ...`
 - Error detail: `--- e2e ---` with test name and Expected/Received diff
 - Exit code: non-zero
@@ -609,8 +617,8 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  1 files, 236 discovered`
-- Summary: `lint: PASS 1 packages (1 files passed/0 files failed, 236 discovered)`
+- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
+- Summary: `lint: PASS 1 packages (1 files passed/0 files failed, N discovered)`
 
 #### 4b. Single test file
 
@@ -620,7 +628,7 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  1 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
 - Lint runs on any file type — test files are valid lint targets
 
 #### 4c. Integration test file
@@ -631,7 +639,7 @@ npm run ward -- --only lint -- packages/ward/src/startup/start-ward.integration.
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  1 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
 - Lint does NOT skip for integration test files (unlike unit check)
 
 #### 4d. Multiple files
@@ -642,7 +650,7 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  2 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  2 files, N discovered`
 - ESLint receives both files
 
 #### 4e. Package scope (all files)
@@ -653,7 +661,7 @@ npm run ward -- --only lint -- packages/ward
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  236 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  N files, N discovered`
 - ESLint runs on all files in the package
 
 #### 4f. No scope (all packages)
@@ -679,7 +687,7 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward FAIL  1 files, N errors, 236 discovered`
+- Live: `lint @dungeonmaster/ward FAIL  1 files, N errors, N discovered`
 - Summary: `lint: FAIL  1 packages ...`
 - Error detail: `--- lint ---` with file path and lint rule name
 - Exit code: non-zero
@@ -707,7 +715,7 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward PASS  1 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
 - The broken file is NOT in the passthrough — only the clean test file is linted
 - Lint passes because the scoped file has no errors
 
@@ -723,19 +731,19 @@ npm run ward -- --only lint -- packages/ward
 
 **Expected:**
 
-- Live: `lint @dungeonmaster/ward FAIL  236 files, N errors, 236 discovered`
+- Live: `lint @dungeonmaster/ward FAIL  N files, N errors, N discovered`
 - Package scope lints all files including the broken one
 - Error detail: `--- lint ---` with the modified file path
 
 **Drill-down verification:**
 
 - `ward-list` with runId:
-  - Shows only the file with errors (not all 236 files)
+  - Shows only the file with errors (not all N files)
   - Shows `@typescript-eslint/no-unused-vars (line N)` for the modified file
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Isolates the single lint error for that file
 - `ward-raw` with runId + checkType `lint`:
-  - Raw eslint JSON array — 236 entries, only 1 with `errorCount > 0`
+  - Raw eslint JSON array — N entries, only 1 with `errorCount > 0`
 
 **Revert change after testing.**
 
@@ -938,8 +946,8 @@ npm run ward -- --only test -- packages/ward/src/transformers/cli-args-parse/cli
 
 **Should NOT see:**
 
-- unit running all 81 tests
-- integration running all 4 tests
+- unit running all tests
+- integration running all tests
 
 ---
 
@@ -1076,7 +1084,7 @@ npm run ward -- --only unit --onlyTests "XYZNONEXISTENT" -- packages/ward/src/tr
 **Expected:**
 
 - Jest loads the file but no `it()` blocks match the pattern — 0 tests execute
-- Live: `unit ... FAIL 1 files, 1 errors, 81 discovered`
+- Live: `unit ... FAIL 1 files, 1 errors, N discovered`
 - Error detail: `--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name`
 - Exit code: non-zero
 - Ward detects `numPassedTests === 0` when a `--onlyTests` pattern was provided and reports failure
@@ -1095,12 +1103,12 @@ npm run ward -- --only lint,typecheck --onlyTests "foo" -- packages/ward
 #### 8e. --onlyTests with integration
 
 ```bash
-npm run ward -- --only integration --onlyTests "exports" -- packages/ward
+npm run ward -- --only integration --onlyTests "delegates" -- packages/ward
 ```
 
 **Expected:**
 
-- Jest receives `--testNamePattern exports` alongside `--testPathPatterns \.integration\.test\.ts$`
+- Jest receives `--testNamePattern delegates` alongside `--testPathPatterns \.integration\.test\.ts$`
 - Only integration tests matching the name pattern run
 
 #### 8f. --onlyTests with multi files
@@ -1224,8 +1232,8 @@ npm run ward -- --only unit -- packages/ward/src/nonexistent.test.ts
 **Expected:**
 
 - Ward does NOT crash
-- Jest exits 1 with "No tests found" — ward reports `FAIL 0 files` with `(crash)` label
-- DISCOVERY MISMATCH shown (82 discovered, 0 run)
+- Live: `unit ... FAIL  0 files, N discovered  DISCOVERY MISMATCH` with `(crash)` in error detail
+- Summary: `unit: FAIL  0 files run, N discovered  DISCOVERY MISMATCH`
 - Exit code: non-zero
 
 #### 10b. --only with invalid check type
@@ -1260,7 +1268,12 @@ npm run ward -- --only lint --changed
 **Expected:**
 
 - Only the changed file is linted
-- Live: `lint @dungeonmaster/ward PASS  1 files, 236 discovered`
+- Live: `lint @dungeonmaster/ward PASS  1 files, N discovered`
+
+**Mutation tip:** Don't use a blank line — ESLint `--fix` will strip it, leaving git clean. Use a comment instead.
+
+**Note:** `--changed` only passes source files (`.ts`, `.tsx`, `.js`, etc.) to check runners. Non-source files like
+`.md` are filtered out to avoid ESLint "file ignored" errors.
 
 **Revert the change after testing.**
 
@@ -1274,9 +1287,9 @@ npm run ward -- --only lint,unit,typecheck --changed
 
 **Expected:**
 
-- lint: scoped to changed file only
-- unit: scoped to changed file via --findRelatedTests
-- typecheck: runs full tsc, post-filters errors to changed file
+- lint: scoped to changed source files only
+- unit: scoped to changed source files via --findRelatedTests
+- typecheck: runs full tsc, post-filters errors to changed source files
 
 **Revert the change after testing.**
 

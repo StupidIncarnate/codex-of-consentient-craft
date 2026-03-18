@@ -61,10 +61,11 @@ export const resultToSummaryTransformer = ({
     });
 
     if (totalFiles === 0) {
+      const statusWord = check.status === 'fail' ? 'FAIL' : 'WARN';
       const zeroDiscoveredPart =
         totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered  DISCOVERY MISMATCH` : '';
       const zeroDiffPart = totalDiscovered > 0 ? diffPart : '';
-      return [`${label} WARN  0 files run${zeroDiscoveredPart}${zeroDiffPart}`];
+      return [`${label} ${statusWord}  0 files run${zeroDiscoveredPart}${zeroDiffPart}`];
     }
 
     if (check.status === 'pass') {

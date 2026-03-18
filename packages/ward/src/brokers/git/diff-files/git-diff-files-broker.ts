@@ -31,7 +31,7 @@ export const gitDiffFilesBroker = async ({
       const mergeBase = mergeBaseResult.output.trim();
       const diffResult = await childProcessSpawnCaptureAdapter({
         command: 'git',
-        args: ['diff', '--name-only', `${mergeBase}...HEAD`],
+        args: ['diff', '--name-only', mergeBase],
         cwd,
       });
 

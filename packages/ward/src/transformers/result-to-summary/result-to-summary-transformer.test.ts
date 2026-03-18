@@ -286,7 +286,7 @@ describe('resultToSummaryTransformer', () => {
   });
 
   describe('fail edge cases', () => {
-    it('VALID: {wardResult: fail status with 0 total files} => shows WARN instead of FAIL for summary line', () => {
+    it('VALID: {wardResult: fail status with 0 total files} => shows FAIL for summary line', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
@@ -312,7 +312,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nlint:      WARN  0 files run\n\n--- lint ---\nsrc/index.ts\n  Unexpected any (line 10)',
+            'run: 1739625600000-a3f1\nlint:      FAIL  0 files run\n\n--- lint ---\nsrc/index.ts\n  Unexpected any (line 10)',
         }),
       );
     });
@@ -498,7 +498,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nintegration: WARN  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
+            'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
         }),
       );
     });
@@ -598,7 +598,7 @@ describe('resultToSummaryTransformer', () => {
       expect(result).toBe(
         WardSummaryStub({
           value:
-            'run: 1739625600000-a3f1\nunit:      WARN  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
+            'run: 1739625600000-a3f1\nunit:      FAIL  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
         }),
       );
     });
