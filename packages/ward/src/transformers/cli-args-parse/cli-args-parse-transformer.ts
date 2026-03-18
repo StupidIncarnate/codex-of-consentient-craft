@@ -13,7 +13,7 @@ import {
 } from '../../contracts/ward-config/ward-config-contract';
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 
-const KNOWN_FLAGS = new Set(['--only', '--changed', '--verbose', '--']);
+const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--verbose', '--']);
 
 export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
   const parsed: Partial<WardConfig> = {};
@@ -54,6 +54,14 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
       continue;
     }
 
+    if (arg === '--onlyTests') {
+      if (args[i + 1]) {
+        parsed.onlyTests = wardConfigContract.shape.onlyTests.unwrap().parse(String(args[i + 1]));
+        i++;
+      }
+      continue;
+    }
+
     if (arg === '--changed') {
       parsed.changed = true;
       continue;
@@ -72,7 +80,7 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
           `  - ESLint flags (--fix, --quiet, --format) are not supported\n` +
           `  - tsc flags (--noEmit, --project, --strict) are not supported\n` +
           `  - Playwright flags (--headed, --debug, --ui) are not supported\n\n` +
-          `Usage: npm run ward -- [--only <check-types>] [--changed] [--verbose] [-- <files>]`,
+          `Usage: npm run ward -- [--only <check-types>] [--onlyTests <regex>] [--changed] [--verbose] [-- <files>]`,
       );
     }
 

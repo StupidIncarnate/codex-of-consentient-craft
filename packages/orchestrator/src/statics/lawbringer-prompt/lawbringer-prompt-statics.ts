@@ -108,7 +108,7 @@ Manually verify all branches are tested:
 
 Execute verification commands:
 \`\`\`bash
-npm run ward -- --glob "filenames"
+npm run ward -- -- <filenames>
 \`\`\`
 
 All files must pass lint and type checks.

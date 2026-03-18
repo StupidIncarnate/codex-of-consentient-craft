@@ -20,6 +20,7 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-test/is-non-integration-test-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
@@ -30,9 +31,11 @@ import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-a
 export const checkRunIntegrationBroker = async ({
   projectFolder,
   fileList,
+  testNamePattern,
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args, discoverPatterns } = checkCommandsStatics.integration;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
@@ -57,10 +60,45 @@ export const checkRunIntegrationBroker = async ({
     });
   }
 
-  const finalArgs =
-    fileList.length > 0
-      ? [...args, '--runInBand', '--findRelatedTests', ...fileList]
-      : [...args, '--runInBand'];
+  const relevantFiles = fileList.filter((f) => !isNonIntegrationTestGuard({ filePath: String(f) }));
+
+  if (fileList.length > 0 && relevantFiles.length === 0) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no matching integration test files in passthrough',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
+  const dirs = relevantFiles.filter((f) => !String(f).includes('.'));
+  const fileEntries = relevantFiles.filter((f) => String(f).includes('.'));
+  const hasFiles = fileEntries.length > 0;
+  const hasDirs = dirs.length > 0;
+  const baseArgs = [...args];
+  if (hasDirs) {
+    const dirPattern = dirs.map(String).join('|');
+    const patternIndex = baseArgs.indexOf('--testPathPatterns');
+    if (patternIndex >= 0) {
+      const existingPattern = String(baseArgs[patternIndex + 1]);
+      baseArgs[patternIndex + 1] = `(?:${dirPattern}).*${existingPattern}` as (typeof baseArgs)[0];
+    }
+  }
+  const finalArgs = hasFiles
+    ? [...baseArgs, '--runInBand', '--findRelatedTests', ...fileEntries]
+    : hasDirs
+      ? [...baseArgs, '--runInBand']
+      : [...baseArgs, '--runInBand'];
+  if (testNamePattern !== undefined) {
+    finalArgs.push('--testNamePattern', testNamePattern);
+  }
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({

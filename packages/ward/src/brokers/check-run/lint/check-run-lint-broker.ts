@@ -33,6 +33,7 @@ export const checkRunLintBroker = async ({
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args, discoverPatterns } = checkCommandsStatics.lint;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);

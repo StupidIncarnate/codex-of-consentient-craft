@@ -369,6 +369,7 @@ package-root/
 | ❌ Don't Use | ✅ Use Instead |
 |-------------|---------------|
 | \`npx jest ...\` | \`npm run ward -- --only test -- <path>\` |
+| \`npx jest -t "name"\` | \`npm run ward -- --only unit --onlyTests "name"\` |
 | \`npx eslint ...\` | \`npm run ward -- --only lint\` |
 | \`npx tsc --noEmit\` | \`npm run ward -- --only typecheck\` |
 | \`npm test\` | \`npm run ward -- --only test\` |

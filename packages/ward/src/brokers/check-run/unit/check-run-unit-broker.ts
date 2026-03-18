@@ -20,6 +20,7 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import { isUnitTestPathGuard } from '../../../guards/is-unit-test-path/is-unit-test-path-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
@@ -30,9 +31,11 @@ import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-a
 export const checkRunUnitBroker = async ({
   projectFolder,
   fileList,
+  testNamePattern,
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args, discoverPatterns, excludePatterns } = checkCommandsStatics.unit;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
@@ -58,10 +61,34 @@ export const checkRunUnitBroker = async ({
     });
   }
 
+  const unitFiles = fileList.filter((f) => isUnitTestPathGuard({ filePath: String(f) }));
+
+  if (fileList.length > 0 && unitFiles.length === 0) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no matching unit test files in passthrough',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
+  const allFiles = unitFiles.length > 0 && unitFiles.every((f) => String(f).includes('.'));
   const finalArgs =
-    fileList.length > 0
-      ? [...args, '--runInBand', '--findRelatedTests', ...fileList]
+    unitFiles.length > 0
+      ? allFiles
+        ? [...args, '--runInBand', '--findRelatedTests', ...unitFiles]
+        : [...args, '--runInBand', '--testPathPatterns', unitFiles.join('|')]
       : [...args, '--runInBand'];
+  if (testNamePattern !== undefined) {
+    finalArgs.push('--testNamePattern', testNamePattern);
+  }
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({

@@ -27,6 +27,9 @@ export const resultToSummaryTransformer = ({
 }): WardSummary => {
   const runLine = `run: ${wardResult.runId}`;
 
+  const hasPassthrough =
+    Array.isArray(wardResult.filters.passthrough) && wardResult.filters.passthrough.length > 0;
+
   const checkLines = wardResult.checks.flatMap((check) => {
     if (check.status === 'skip') {
       return [];
@@ -41,7 +44,9 @@ export const resultToSummaryTransformer = ({
     );
     const fileBreakdown = `${String(totalFiles - totalFailingFiles)} files passed/${String(totalFailingFiles)} files failed`;
     const discoveredPart = totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered` : '';
-    const hasMismatch = totalDiscovered > 0 && totalDiscovered !== totalFiles;
+    const isScopedWithResults = hasPassthrough && totalFiles > 0;
+    const hasMismatch =
+      !isScopedWithResults && totalDiscovered > 0 && totalDiscovered !== totalFiles;
     const mismatchPart = hasMismatch ? '  DISCOVERY MISMATCH' : '';
 
     const allOnlyDiscovered = check.projectResults.flatMap((pr) => pr.onlyDiscovered);

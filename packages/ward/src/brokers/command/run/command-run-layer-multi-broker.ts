@@ -77,6 +77,10 @@ export const commandRunLayerMultiBroker = async ({
         spawnArgs.push('--only', config.only.join(','));
       }
 
+      if (config.onlyTests) {
+        spawnArgs.push('--onlyTests', String(config.onlyTests));
+      }
+
       if (hasPassthrough && config.passthrough) {
         const prefix = `${folder.path.slice(rootPath.length + 1)}/`;
         const matchingArgs = config.passthrough

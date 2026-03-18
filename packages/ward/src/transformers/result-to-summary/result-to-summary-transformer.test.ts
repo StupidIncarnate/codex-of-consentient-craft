@@ -503,7 +503,107 @@ describe('resultToSummaryTransformer', () => {
       );
     });
 
-    it('VALID: {wardResult: unit pass with mismatch} => shows DISCOVERY MISMATCH after pass line', () => {
+    it('VALID: {wardResult: file-scoped pass with subset} => suppresses DISCOVERY MISMATCH', () => {
+      const wardResult = WardResultStub({
+        filters: { passthrough: ['src/brokers/quest/orchestration-loop'] },
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'orchestrator', path: '/p/orchestrator' },
+                status: 'pass',
+                filesCount: 9,
+                discoveredCount: 209,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (9 files passed/0 files failed, 209 discovered)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: file-scoped fail with subset} => suppresses DISCOVERY MISMATCH', () => {
+      const wardResult = WardResultStub({
+        filters: { passthrough: ['src/brokers/quest/orchestration-loop'] },
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'orchestrator', path: '/p/orchestrator' },
+                status: 'fail',
+                filesCount: 9,
+                discoveredCount: 209,
+                testFailures: [TestFailureStub({ testName: 'broken test' })],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed, 209 discovered)  orchestrator (1)\n\n--- unit ---\norchestrator/src/index.test.ts\n  FAIL "broken test"\n    Expected true to be false',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: file-scoped 0 files run bad path} => shows DISCOVERY MISMATCH', () => {
+      const wardResult = WardResultStub({
+        filters: { passthrough: ['src/brokers/quest/nonexistent'] },
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'orchestrator', path: '/p/orchestrator' },
+                status: 'fail',
+                filesCount: 0,
+                discoveredCount: 209,
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: 'No tests found', stderr: '', exitCode: 1 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      WARN  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: no passthrough with mismatch} => still shows DISCOVERY MISMATCH', () => {
       const wardResult = WardResultStub({
         checks: [
           CheckResultStub({

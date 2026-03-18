@@ -39,6 +39,7 @@ export const checkRunTypecheckBroker = async ({
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const tsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.json`);
   if (!fsExistsSyncAdapter({ filePath: tsconfigPath })) {

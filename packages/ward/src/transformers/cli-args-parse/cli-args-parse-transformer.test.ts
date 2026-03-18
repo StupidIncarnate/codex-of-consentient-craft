@@ -103,6 +103,53 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
+  describe('--onlyTests flag', () => {
+    it('VALID: {args: ["--onlyTests", "my test"]} => returns config with onlyTests pattern', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+      });
+
+      expect(result).toStrictEqual({ onlyTests: 'my test' });
+    });
+
+    it('VALID: {args: ["--onlyTests", "foo|bar|baz"]} => supports regex alternation', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'foo|bar|baz' })],
+      });
+
+      expect(result).toStrictEqual({ onlyTests: 'foo|bar|baz' });
+    });
+
+    it('VALID: {args: ["--only", "unit", "--onlyTests", "my test"]} => combines with --only', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'unit' }),
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit'], onlyTests: 'my test' });
+    });
+
+    it('EDGE: {args: ["--onlyTests"]} => onlyTests with no value is ignored', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+  });
+
   describe('--changed flag', () => {
     it('VALID: {args: ["--changed"]} => returns config with changed true', () => {
       cliArgsParseTransformerProxy();

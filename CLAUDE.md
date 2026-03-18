@@ -119,6 +119,8 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 - **Run tests only**: `npm run ward -- --only test`
 - **Run typecheck only**: `npm run ward -- --only typecheck`
 - **Run specific test file**: `npm run ward -- --only test -- path/to/file.test.ts`
+- **Run tests by name pattern**: `npm run ward -- --only unit --onlyTests "my test name"`
+- **Run tests matching multiple patterns**: `npm run ward -- --only unit --onlyTests "foo|bar"`
 - **Run checks on a single package**: `npm run ward -- -- packages/hooks`
 - **Get full error details after a failing run**: Use MCP tool `ward-list` with the run ID
 - **Build**: `npm run build`

@@ -67,13 +67,13 @@ Prioritize fixes by type:
 For each error:
 - Identify the root cause (not just the symptom)
 - Apply the fix following project standards
-- Verify the fix with \`npm run ward -- --glob "filename"\`
+- Verify the fix with \`npm run ward -- -- <filename>\`
 - Check for cascading effects
 
 ### 4. Verification
 
 After fixing:
-- Run \`npm run ward -- --glob "filenames"\` on all affected files
+- Run \`npm run ward -- -- <filenames>\` on all affected files
 - Ensure no new errors were introduced
 - Verify tests pass
 - Check type safety
