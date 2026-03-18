@@ -213,32 +213,37 @@ export const questOrchestrationLoopBroker = async ({
     }
   } catch (error: unknown) {
     // On unhandled error: mark all in_progress items as failed to prevent zombies
-    const errorNow = new Date().toISOString();
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    await questModifyBroker({
-      input: {
-        questId,
-        workItems: roleItems.map((wi) => ({
-          id: wi.id,
-          status: 'failed' as const,
-          completedAt: errorNow,
-          errorMessage: errorMsg,
-        })),
-      } as ModifyQuestInput,
-    });
-
-    // Recalculate quest status (may become blocked)
-    const updatedResult = await questGetBroker({ input });
-    if (updatedResult.success && updatedResult.quest) {
-      const newStatus = workItemsToQuestStatusTransformer({
-        workItems: updatedResult.quest.workItems,
-        currentStatus: updatedResult.quest.status,
+    // Wrapped in inner try/catch to ensure original error always propagates (double fault safety)
+    try {
+      const errorNow = new Date().toISOString();
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      await questModifyBroker({
+        input: {
+          questId,
+          workItems: roleItems.map((wi) => ({
+            id: wi.id,
+            status: 'failed' as const,
+            completedAt: errorNow,
+            errorMessage: errorMsg,
+          })),
+        } as ModifyQuestInput,
       });
-      if (newStatus !== updatedResult.quest.status) {
-        await questModifyBroker({
-          input: { questId, status: newStatus } as ModifyQuestInput,
+
+      // Recalculate quest status (may become blocked)
+      const updatedResult = await questGetBroker({ input });
+      if (updatedResult.success && updatedResult.quest) {
+        const newStatus = workItemsToQuestStatusTransformer({
+          workItems: updatedResult.quest.workItems,
+          currentStatus: updatedResult.quest.status,
         });
+        if (newStatus !== updatedResult.quest.status) {
+          await questModifyBroker({
+            input: { questId, status: newStatus } as ModifyQuestInput,
+          });
+        }
       }
+    } catch {
+      // Double fault: error handler itself failed. Swallow inner error to preserve original.
     }
     throw error;
   }

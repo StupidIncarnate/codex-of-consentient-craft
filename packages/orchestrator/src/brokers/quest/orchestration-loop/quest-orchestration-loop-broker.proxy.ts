@@ -1,47 +1,86 @@
 import {
   questContract,
-  type QuestStatus,
+  type Quest,
+  type QuestStub,
   type QuestWorkItemId,
   type WorkItem,
+  type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { runChatLayerBroker as chatLayer } from './run-chat-layer-broker';
 import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
+import { runCodeweaverLayerBroker as cwLayer } from './run-codeweaver-layer-broker';
 import { runCodeweaverLayerBrokerProxy } from './run-codeweaver-layer-broker.proxy';
+import { runLawbringerLayerBroker as lbLayer } from './run-lawbringer-layer-broker';
 import { runLawbringerLayerBrokerProxy } from './run-lawbringer-layer-broker.proxy';
+import { runPathseekerLayerBroker as psLayer } from './run-pathseeker-layer-broker';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
+import { runSiegemasterLayerBroker as smLayer } from './run-siegemaster-layer-broker';
 import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.proxy';
+import { runSpiritmenderLayerBroker as spLayer } from './run-spiritmender-layer-broker';
 import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
+import { runWardLayerBroker as wardLayer } from './run-ward-layer-broker';
 import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
 
-type Quest = ReturnType<typeof QuestStub>;
+jest.mock('./run-chat-layer-broker');
+jest.mock('./run-codeweaver-layer-broker');
+jest.mock('./run-lawbringer-layer-broker');
+jest.mock('./run-pathseeker-layer-broker');
+jest.mock('./run-siegemaster-layer-broker');
+jest.mock('./run-spiritmender-layer-broker');
+jest.mock('./run-ward-layer-broker');
+
+type QuestParam = ReturnType<typeof QuestStub>;
+
+const layerMocks = (): void => {
+  jest.mocked(chatLayer).mockResolvedValue(undefined);
+  jest.mocked(cwLayer).mockResolvedValue(undefined);
+  jest.mocked(lbLayer).mockResolvedValue(undefined);
+  jest.mocked(psLayer).mockResolvedValue(undefined);
+  jest.mocked(smLayer).mockResolvedValue(undefined);
+  jest.mocked(spLayer).mockResolvedValue(undefined);
+  jest.mocked(wardLayer).mockResolvedValue(undefined);
+};
+
+const parsePersistedQuests = ({
+  modifyProxy,
+}: {
+  modifyProxy: ReturnType<typeof questModifyBrokerProxy>;
+}): readonly Quest[] =>
+  modifyProxy
+    .getAllPersistedContents()
+    .map((content) => questContract.parse(JSON.parse(String(content))));
 
 export const questOrchestrationLoopBrokerProxy = (): {
-  setupQuestTerminal: (params: { quest: Quest }) => void;
-  setupQuestBlocked: (params: { quest: Quest }) => void;
+  setupQuestTerminal: (params: { quest: QuestParam }) => void;
+  setupQuestBlocked: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
-  setupNoReadyItems: (params: { quest: Quest }) => void;
-  setupChatRoleReady: (params: { quest: Quest }) => void;
-  setupChatDispatch: (params: { quest: Quest }) => void;
-  setupPathseekerReady: (params: { quest: Quest }) => void;
-  setupLayerBrokerThrows: (params: { quest: Quest }) => void;
+  setupNoReadyItems: (params: { quest: QuestParam }) => void;
+  setupChatRoleReady: (params: { quest: QuestParam }) => void;
+  setupPathseekerReady: (params: { quest: QuestParam }) => void;
   setupAborted: () => void;
-  setupDispatchThenTerminal: (params: { questBefore: Quest; questAfter: Quest }) => void;
-  setupDispatchThenReturn: (params: { questBefore: Quest; questAfter: Quest }) => void;
-  setupDispatchTwiceThenTerminal: (params: { quest1: Quest; quest2: Quest; quest3: Quest }) => void;
+  setupLayerThrows: (params: { quest: QuestParam; error: Error }) => void;
+  setupLayerThrowsWithCatchFailure: (params: { quest: QuestParam; error: Error }) => void;
+  setupChatDispatchWithRecursion: (params: {
+    firstQuest: QuestParam;
+    secondQuest: QuestParam;
+  }) => void;
+  setupRecoveryFromBlocked: (params: {
+    blockedQuest: QuestParam;
+    terminalQuest: QuestParam;
+  }) => void;
   getAllPersistedContents: () => readonly unknown[];
-  getLastPersistedQuestStatus: () => QuestStatus | undefined;
-  getPersistedWorkItemById: (params: {
+  getAllPersistedQuests: () => readonly Quest[];
+  findPersistedWorkItem: (params: {
     workItemId: QuestWorkItemId;
-    index?: number;
+    status: WorkItemStatus;
   }) => WorkItem | undefined;
-  getPersistedQuestAt: (params: { index: number }) => ReturnType<typeof questContract.parse>;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const chatLayerProxy = runChatLayerBrokerProxy();
+  runChatLayerBrokerProxy();
   runPathseekerLayerBrokerProxy();
   runCodeweaverLayerBrokerProxy();
   runWardLayerBrokerProxy();
@@ -49,15 +88,17 @@ export const questOrchestrationLoopBrokerProxy = (): {
   runLawbringerLayerBrokerProxy();
   runSpiritmenderLayerBrokerProxy();
 
+  layerMocks();
+
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
   return {
-    setupQuestTerminal: ({ quest }: { quest: Quest }): void => {
+    setupQuestTerminal: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
 
-    setupQuestBlocked: ({ quest }: { quest: Quest }): void => {
+    setupQuestBlocked: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
@@ -66,124 +107,115 @@ export const questOrchestrationLoopBrokerProxy = (): {
       getProxy.setupEmptyFolder();
     },
 
-    setupNoReadyItems: ({ quest }: { quest: Quest }): void => {
+    setupNoReadyItems: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
     },
 
-    setupChatRoleReady: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-    },
-
-    setupChatDispatch: ({ quest }: { quest: Quest }): void => {
-      // Quest get for the loop's initial load
-      getProxy.setupQuestFound({ quest });
-      // Quest modify for in_progress marking
-      modifyProxy.setupQuestFound({ quest });
-      // Chat layer broker needs: spawn success + quest modify for completion
-      chatLayerProxy.setupSpawnSuccess({ quest, lines: [] });
-    },
-
-    setupPathseekerReady: ({ quest }: { quest: Quest }): void => {
+    setupChatRoleReady: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
 
-    setupLayerBrokerThrows: ({ quest }: { quest: Quest }): void => {
-      // Loop loads quest (first get) — quest has chaoswhisperer pending
+    setupPathseekerReady: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
-      // Mark items in_progress (first modify)
       modifyProxy.setupQuestFound({ quest });
-      // Chat layer broker: spawn throws → chat catch marks failed + re-throws
-      // Chat catch calls questModifyBroker (mark failed) — needs modify setup
-      chatLayerProxy.setupSpawnThrow({ quest });
-      // Orchestration loop catch: mark items failed (another modify)
-      modifyProxy.setupQuestFound({ quest });
-      // Orchestration loop catch: re-fetch quest (second get)
-      getProxy.setupQuestFound({ quest });
     },
 
     setupAborted: (): void => {
       // No setup needed — abort is checked before quest load
     },
 
-    setupDispatchThenTerminal: ({
-      questBefore,
-      questAfter,
-    }: {
-      questBefore: Quest;
-      questAfter: Quest;
-    }): void => {
-      getProxy.setupQuestFound({ quest: questBefore });
-      modifyProxy.setupQuestFound({ quest: questBefore });
-      getProxy.setupQuestFound({ quest: questAfter });
-      modifyProxy.setupQuestFound({ quest: questAfter });
+    setupLayerThrows: ({ quest, error }: { quest: QuestParam; error: Error }): void => {
+      // Loop: initial quest load
+      getProxy.setupQuestFound({ quest });
+      // Loop: mark items in_progress
+      modifyProxy.setupQuestFound({ quest });
+      // Loop catch: mark items failed
+      modifyProxy.setupQuestFound({ quest });
+      // Loop catch: re-fetch quest
+      getProxy.setupQuestFound({ quest });
+      // Loop catch: update quest status
+      modifyProxy.setupQuestFound({ quest });
+
+      jest.mocked(psLayer).mockRejectedValueOnce(error);
     },
 
-    setupDispatchThenReturn: ({
-      questBefore,
-      questAfter,
+    setupLayerThrowsWithCatchFailure: ({
+      quest,
+      error,
     }: {
-      questBefore: Quest;
-      questAfter: Quest;
+      quest: QuestParam;
+      error: Error;
     }): void => {
-      getProxy.setupQuestFound({ quest: questBefore });
-      modifyProxy.setupQuestFound({ quest: questBefore });
-      getProxy.setupQuestFound({ quest: questAfter });
-      modifyProxy.setupQuestFound({ quest: questAfter });
+      // Loop: initial quest load
+      getProxy.setupQuestFound({ quest });
+      // Loop: mark items in_progress
+      modifyProxy.setupQuestFound({ quest });
+
+      jest.mocked(psLayer).mockRejectedValueOnce(error);
+
+      // Catch block: no modify mocks queued, so questModifyBroker returns { success: false }
+      // Original error still propagates due to inner try/catch in catch block
     },
 
-    setupDispatchTwiceThenTerminal: ({
-      quest1,
-      quest2,
-      quest3,
+    setupChatDispatchWithRecursion: ({
+      firstQuest,
+      secondQuest,
     }: {
-      quest1: Quest;
-      quest2: Quest;
-      quest3: Quest;
+      firstQuest: QuestParam;
+      secondQuest: QuestParam;
     }): void => {
-      getProxy.setupQuestFound({ quest: quest1 });
-      modifyProxy.setupQuestFound({ quest: quest1 });
-      getProxy.setupQuestFound({ quest: quest2 });
-      modifyProxy.setupQuestFound({ quest: quest2 });
-      getProxy.setupQuestFound({ quest: quest3 });
-      modifyProxy.setupQuestFound({ quest: quest3 });
+      // First iteration: load quest with chat ready
+      getProxy.setupQuestFound({ quest: firstQuest });
+      // Mark chat item in_progress
+      modifyProxy.setupQuestFound({ quest: firstQuest });
+
+      // Chat layer resolves (jest.mock auto-returns undefined = success)
+
+      // Recursion: load quest with second chat ready but no userMessage
+      getProxy.setupQuestFound({ quest: secondQuest });
+      modifyProxy.setupQuestFound({ quest: secondQuest });
+    },
+
+    setupRecoveryFromBlocked: ({
+      blockedQuest,
+      terminalQuest,
+    }: {
+      blockedQuest: QuestParam;
+      terminalQuest: QuestParam;
+    }): void => {
+      // First iteration: load blocked quest that has ready items
+      getProxy.setupQuestFound({ quest: blockedQuest });
+      // Mark ready item in_progress
+      modifyProxy.setupQuestFound({ quest: blockedQuest });
+
+      // Layer resolves (jest.mock auto-returns undefined = success)
+
+      // Recursion: load terminal quest
+      getProxy.setupQuestFound({ quest: terminalQuest });
+      // Terminal state may modify quest status
+      modifyProxy.setupQuestFound({ quest: terminalQuest });
     },
 
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 
-    getLastPersistedQuestStatus: (): QuestStatus | undefined => {
-      const persisted = modifyProxy.getAllPersistedContents();
-      if (persisted.length === 0) {
-        return undefined;
-      }
-      const raw = persisted[persisted.length - 1];
-      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
-      const quest = questContract.parse(parsed);
-      return quest.status;
-    },
+    getAllPersistedQuests: (): readonly Quest[] => parsePersistedQuests({ modifyProxy }),
 
-    getPersistedWorkItemById: ({
+    findPersistedWorkItem: ({
       workItemId,
-      index = 0,
+      status,
     }: {
       workItemId: QuestWorkItemId;
-      index?: number;
+      status: WorkItemStatus;
     }): WorkItem | undefined => {
-      const persisted = modifyProxy.getAllPersistedContents();
-      if (persisted.length <= index) {
-        return undefined;
+      const quests = parsePersistedQuests({ modifyProxy });
+      for (const quest of quests) {
+        const match = quest.workItems.find((wi) => wi.id === workItemId && wi.status === status);
+        if (match) {
+          return match;
+        }
       }
-      const raw = persisted[index];
-      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
-      const quest = questContract.parse(parsed);
-      return quest.workItems.find((wi) => wi.id === workItemId);
-    },
-
-    getPersistedQuestAt: ({ index }: { index: number }): ReturnType<typeof questContract.parse> => {
-      const persisted = modifyProxy.getAllPersistedContents();
-      const entry = persisted[index];
-      return questContract.parse(JSON.parse(String(entry)));
+      return undefined;
     },
   };
 };
