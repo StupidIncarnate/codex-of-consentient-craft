@@ -10,6 +10,10 @@ import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters'
 import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
+import {
+  errorEntryContract,
+  type ErrorEntry,
+} from '../../../contracts/error-entry/error-entry-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -20,6 +24,7 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-test/is-non-integration-test-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
@@ -30,9 +35,11 @@ import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-a
 export const checkRunIntegrationBroker = async ({
   projectFolder,
   fileList,
+  testNamePattern,
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args, discoverPatterns } = checkCommandsStatics.integration;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
@@ -57,10 +64,67 @@ export const checkRunIntegrationBroker = async ({
     });
   }
 
-  const finalArgs =
-    fileList.length > 0
-      ? [...args, '--runInBand', '--findRelatedTests', ...fileList]
-      : [...args, '--runInBand'];
+  const relevantFiles = fileList.filter((f) => !isNonIntegrationTestGuard({ filePath: String(f) }));
+
+  if (fileList.length > 0 && relevantFiles.length === 0) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no matching integration test files in passthrough',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
+  const dirs = relevantFiles.filter((f) => !String(f).includes('.'));
+  const fileEntries = relevantFiles.filter((f) => String(f).includes('.'));
+  const hasFiles = fileEntries.length > 0;
+  const hasDirs = dirs.length > 0;
+
+  if (!hasFiles && hasDirs) {
+    const hasMatchingDiscovered = discoveredFiles.some((discovered) =>
+      dirs.some((dir) => discovered.includes(String(dir))),
+    );
+    if (!hasMatchingDiscovered) {
+      return projectResultContract.parse({
+        projectFolder,
+        status: 'skip',
+        errors: [],
+        testFailures: [],
+        filesCount: 0,
+        discoveredCount,
+        rawOutput: rawOutputContract.parse({
+          stdout: '',
+          stderr: 'no matching integration test files in passthrough',
+          exitCode: exitCodeContract.parse(0),
+        }),
+      });
+    }
+  }
+
+  const baseArgs = [...args];
+  if (hasDirs) {
+    const dirPattern = dirs.map(String).join('|');
+    const patternIndex = baseArgs.indexOf('--testPathPatterns');
+    if (patternIndex >= 0) {
+      const existingPattern = String(baseArgs[patternIndex + 1]);
+      baseArgs[patternIndex + 1] = `(?:${dirPattern}).*${existingPattern}` as (typeof baseArgs)[0];
+    }
+  }
+  const finalArgs = hasFiles
+    ? [...baseArgs, '--runInBand', '--findRelatedTests', ...fileEntries]
+    : hasDirs
+      ? [...baseArgs, '--runInBand']
+      : [...baseArgs, '--runInBand'];
+  if (testNamePattern !== undefined) {
+    finalArgs.push('--testNamePattern', testNamePattern);
+  }
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const result = await childProcessSpawnCaptureAdapter({
@@ -75,7 +139,9 @@ export const checkRunIntegrationBroker = async ({
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;
   let filesCount = 0;
+  let numPassedTests = 0;
   const processedFiles: GitRelativePath[] = [];
+  const errors: ErrorEntry[] = [];
 
   if (status === 'fail') {
     try {
@@ -95,6 +161,12 @@ export const checkRunIntegrationBroker = async ({
         filesCount = count;
       }
     }
+    if (typeof parsed === 'object' && parsed !== null && 'numPassedTests' in parsed) {
+      const count: unknown = Reflect.get(parsed, 'numPassedTests');
+      if (typeof count === 'number') {
+        numPassedTests = count;
+      }
+    }
     if (typeof parsed === 'object' && parsed !== null && 'testResults' in parsed) {
       const testResults: unknown = Reflect.get(parsed, 'testResults');
       if (Array.isArray(testResults)) {
@@ -112,6 +184,19 @@ export const checkRunIntegrationBroker = async ({
     // non-JSON output, filesCount stays 0
   }
 
+  if (resolvedStatus === 'pass' && testNamePattern !== undefined && numPassedTests === 0) {
+    resolvedStatus = 'fail';
+    errors.push(
+      errorEntryContract.parse({
+        filePath: 'jest',
+        line: 0,
+        column: 0,
+        message: `--onlyTests pattern "${testNamePattern}" matched 0 tests — possible typo or stale test name`,
+        severity: 'error',
+      }),
+    );
+  }
+
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
     discoveredFiles,
     processedFiles,
@@ -121,7 +206,7 @@ export const checkRunIntegrationBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status: resolvedStatus,
-    errors: [],
+    errors,
     testFailures,
     filesCount,
     discoveredCount,

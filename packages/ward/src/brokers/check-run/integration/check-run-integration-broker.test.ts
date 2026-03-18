@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 
 import { checkRunIntegrationBroker } from './check-run-integration-broker';
 import { checkRunIntegrationBrokerProxy } from './check-run-integration-broker.proxy';
@@ -141,6 +142,333 @@ describe('checkRunIntegrationBroker', () => {
         '--findRelatedTests',
         'src/index.ts',
       ]);
+    });
+  });
+
+  describe('directory path filtering', () => {
+    it('VALID: {fileList with directory path} => combines directory with integration pattern in --testPathPatterns', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/flows/chat-replay/chat-replay.integration.test.ts', 'discovered.ts'],
+      });
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/flows/chat-replay' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathPatterns',
+        '(?:src/flows/chat-replay).*\\.integration\\.test\\.ts$',
+        '--runInBand',
+      ]);
+    });
+
+    it('VALID: {fileList with multiple directory paths} => joins paths in combined pattern', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: [
+          'src/flows/quest/quest.integration.test.ts',
+          'src/flows/install/install.integration.test.ts',
+        ],
+      });
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/flows/quest' }),
+          GitRelativePathStub({ value: 'src/flows/install' }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathPatterns',
+        '(?:src/flows/quest|src/flows/install).*\\.integration\\.test\\.ts$',
+        '--runInBand',
+      ]);
+    });
+
+    it('VALID: {fileList with .integration.test.ts file} => uses --findRelatedTests with matching file', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathPatterns',
+        '\\.integration\\.test\\.ts$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+      ]);
+    });
+
+    it('VALID: {fileList with non-integration .test.ts file} => skips without spawning jest', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts',
+          }),
+        ],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching integration test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
+    });
+
+    it('VALID: {fileList with mix of integration and unit test files} => only passes integration files to --findRelatedTests', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/brokers/quest/spawn-ward-layer-broker.test.ts',
+          }),
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathPatterns',
+        '\\.integration\\.test\\.ts$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+      ]);
+    });
+  });
+
+  describe('directory with no matching integration tests', () => {
+    it('VALID: {fileList with directory that has no integration tests in discovered files} => skips without spawning jest', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching integration test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
+    });
+  });
+
+  describe('testNamePattern', () => {
+    it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'should connect',
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathPatterns',
+        '\\.integration\\.test\\.ts$',
+        '--runInBand',
+        '--testNamePattern',
+        'should connect',
+      ]);
+    });
+  });
+
+  describe('testNamePattern zero matches', () => {
+    it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'jest',
+              line: 0,
+              column: 0,
+              message:
+                '--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name',
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 3,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'VALID',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
     });
   });
 

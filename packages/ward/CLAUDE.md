@@ -42,12 +42,16 @@ parsing. Deduplication is automatic: `--only test,e2e` becomes `--only unit,inte
 
 All flags apply to the `run` subcommand. The `detail` subcommand also accepts `--verbose`.
 
-| Flag                                         | Description                                                            |
-|----------------------------------------------|------------------------------------------------------------------------|
-| `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.      |
-| `--changed`                                  | Scope checks to files changed in git (uses `git diff`).                |
-| `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths. |
-| `--verbose`                                  | Enable verbose output.                                                 |
+| Flag                                         | Description                                                                             |
+|----------------------------------------------|-----------------------------------------------------------------------------------------|
+| `--only lint,typecheck,unit,integration,e2e` | Comma-separated list of check types to run. Omit to run all five.                       |
+| `--onlyTests <regex>`                        | Filter tests by name pattern. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
+| `--changed`                                  | Scope checks to files changed in git (uses `git diff`).                                 |
+| `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
+| `--verbose`                                  | Enable verbose output.                                                                  |
+
+**`--onlyTests` accepts a regex pattern.** Use `|` for alternation: `--onlyTests "foo|bar"` runs tests matching either
+name. Ignored by lint and typecheck check types.
 
 ## Common Invocation Patterns
 
@@ -84,6 +88,15 @@ npm run ward -- --only lint,unit
 
 # Lint only changed files
 npm run ward -- --only lint --changed
+
+# Run only tests matching a name pattern
+npm run ward -- --only unit --onlyTests "my specific test"
+
+# Run tests matching multiple patterns (regex alternation)
+npm run ward -- --only test --onlyTests "user|auth"
+
+# Combine file scoping with test name filtering
+npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
 ```
 
 **Inspect results after a run** — use MCP tools:
@@ -129,6 +142,9 @@ Ward spawns these commands per package:
 | unit        | `npx jest --json --no-color --testPathIgnorePatterns '\\.integration\\.test\\.ts$'` | Same + `--runInBand --findRelatedTests <files>`                              |
 | integration | `npx jest --json --no-color --testPathPatterns '\\.integration\\.test\\.ts$'`       | Same + `--runInBand --findRelatedTests <files>`                              |
 | e2e         | `npx playwright test --reporter=json`                                               | `npx playwright test --reporter=json <file1> <file2> ...`                    |
+
+**`--onlyTests` mapping:** When `--onlyTests <regex>` is provided, ward appends `--testNamePattern <regex>` to Jest
+commands (unit/integration) and `--grep <regex>` to Playwright commands (e2e). Lint and typecheck ignore it.
 
 **E2e skip behavior:** The e2e broker checks for `playwright.config.ts` before spawning. If absent, it returns
 `status: 'skip'` — packages without Playwright tests are skipped gracefully.

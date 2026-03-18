@@ -103,6 +103,53 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
+  describe('--onlyTests flag', () => {
+    it('VALID: {args: ["--onlyTests", "my test"]} => returns config with onlyTests pattern', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'my test' })],
+      });
+
+      expect(result).toStrictEqual({ onlyTests: 'my test' });
+    });
+
+    it('VALID: {args: ["--onlyTests", "foo|bar|baz"]} => supports regex alternation', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' }), CliArgStub({ value: 'foo|bar|baz' })],
+      });
+
+      expect(result).toStrictEqual({ onlyTests: 'foo|bar|baz' });
+    });
+
+    it('VALID: {args: ["--only", "unit", "--onlyTests", "my test"]} => combines with --only', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [
+          CliArgStub({ value: '--only' }),
+          CliArgStub({ value: 'unit' }),
+          CliArgStub({ value: '--onlyTests' }),
+          CliArgStub({ value: 'my test' }),
+        ],
+      });
+
+      expect(result).toStrictEqual({ only: ['unit'], onlyTests: 'my test' });
+    });
+
+    it('EDGE: {args: ["--onlyTests"]} => onlyTests with no value is ignored', () => {
+      cliArgsParseTransformerProxy();
+
+      const result = cliArgsParseTransformer({
+        args: [CliArgStub({ value: '--onlyTests' })],
+      });
+
+      expect(result).toStrictEqual({});
+    });
+  });
+
   describe('--changed flag', () => {
     it('VALID: {args: ["--changed"]} => returns config with changed true', () => {
       cliArgsParseTransformerProxy();
@@ -173,24 +220,21 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('flags after -- are passthrough', () => {
-    it('VALID: {--only test -- --only lint} => --only lint treated as passthrough, not parsed', () => {
+  describe('flags after -- are rejected', () => {
+    it('REJECT: {--only test -- --only lint} => flags after separator are rejected', () => {
       cliArgsParseTransformerProxy();
 
-      const result = cliArgsParseTransformer({
-        args: [
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'test' }),
-          CliArgStub({ value: '--' }),
-          CliArgStub({ value: '--only' }),
-          CliArgStub({ value: 'lint' }),
-        ],
-      });
-
-      expect(result).toStrictEqual({
-        only: ['unit', 'integration', 'e2e'],
-        passthrough: ['--only', 'lint'],
-      });
+      expect(() =>
+        cliArgsParseTransformer({
+          args: [
+            CliArgStub({ value: '--only' }),
+            CliArgStub({ value: 'test' }),
+            CliArgStub({ value: '--' }),
+            CliArgStub({ value: '--only' }),
+            CliArgStub({ value: 'lint' }),
+          ],
+        }),
+      ).toThrow(/Flags after "--" are not forwarded/u);
     });
   });
 
@@ -269,6 +313,320 @@ describe('cliArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({});
+    });
+  });
+
+  describe('unknown flags reject with helpful error', () => {
+    describe('jest flags', () => {
+      it.each([
+        ['--watch'],
+        ['--watchAll'],
+        ['--bail'],
+        ['--coverage'],
+        ['--testNamePattern'],
+        ['-t'],
+        ['--runInBand'],
+        ['--findRelatedTests'],
+        ['--forceExit'],
+        ['--detectOpenHandles'],
+        ['--maxWorkers'],
+        ['--json'],
+        ['--no-color'],
+        ['--listTests'],
+        ['--showConfig'],
+        ['--passWithNoTests'],
+        ['--silent'],
+        ['--testPathPattern'],
+        ['--testPathIgnorePatterns'],
+        ['--clearCache'],
+        ['--changedSince'],
+        ['--collectCoverageFrom'],
+        ['--updateSnapshot'],
+        ['-u'],
+        ['--ci'],
+        ['--noStackTrace'],
+        ['--expand'],
+        ['-e'],
+      ])('REJECT: jest flag %s => throws unknown flag error', (flag) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: flag })],
+          }),
+        ).toThrow(/Unknown flag/u);
+      });
+    });
+
+    describe('eslint flags', () => {
+      it.each([
+        ['--fix'],
+        ['--fix-dry-run'],
+        ['--quiet'],
+        ['--format'],
+        ['-f'],
+        ['--ext'],
+        ['--no-eslintrc'],
+        ['--config'],
+        ['-c'],
+        ['--rule'],
+        ['--rulesdir'],
+        ['--ignore-path'],
+        ['--no-ignore'],
+        ['--max-warnings'],
+        ['--cache'],
+        ['--no-cache'],
+        ['--cache-location'],
+        ['--debug'],
+        ['--output-file'],
+        ['-o'],
+        ['--color'],
+        ['--no-color'],
+        ['--parser'],
+        ['--resolve-plugins-relative-to'],
+      ])('REJECT: eslint flag %s => throws unknown flag error', (flag) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: flag })],
+          }),
+        ).toThrow(/Unknown flag/u);
+      });
+    });
+
+    describe('tsc flags', () => {
+      it.each([
+        ['--noEmit'],
+        ['--project'],
+        ['-p'],
+        ['--strict'],
+        ['--build'],
+        ['-b'],
+        ['--declaration'],
+        ['-d'],
+        ['--emitDeclarationOnly'],
+        ['--outDir'],
+        ['--target'],
+        ['--module'],
+        ['--moduleResolution'],
+        ['--esModuleInterop'],
+        ['--skipLibCheck'],
+        ['--incremental'],
+        ['--watch'],
+        ['-w'],
+        ['--pretty'],
+        ['--listEmittedFiles'],
+        ['--diagnostics'],
+        ['--extendedDiagnostics'],
+        ['--traceResolution'],
+        ['--noErrorTruncation'],
+        ['--composite'],
+      ])('REJECT: tsc flag %s => throws unknown flag error', (flag) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: flag })],
+          }),
+        ).toThrow(/Unknown flag/u);
+      });
+    });
+
+    describe('playwright flags', () => {
+      it.each([
+        ['--headed'],
+        ['--debug'],
+        ['--ui'],
+        ['--reporter'],
+        ['--retries'],
+        ['--timeout'],
+        ['--grep'],
+        ['-g'],
+        ['--workers'],
+        ['-j'],
+        ['--project'],
+        ['--shard'],
+        ['--repeat-each'],
+        ['--list'],
+        ['--forbid-only'],
+        ['--global-timeout'],
+        ['--update-snapshots'],
+        ['--output'],
+        ['--trace'],
+        ['--browser'],
+      ])('REJECT: playwright flag %s => throws unknown flag error', (flag) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: flag })],
+          }),
+        ).toThrow(/Unknown flag/u);
+      });
+    });
+
+    describe('random/nonsense flags', () => {
+      it.each([
+        ['--donut'],
+        ['-d'],
+        ['-x'],
+        ['--foo'],
+        ['--bar-baz'],
+        ['-abc'],
+        ['--help'],
+        ['-h'],
+        ['--version'],
+        ['-v'],
+        ['-V'],
+        ['--dry-run'],
+        ['--force'],
+        ['--recursive'],
+        ['-r'],
+        ['--all'],
+        ['-a'],
+        ['--yes'],
+        ['-y'],
+        ['--no-verify'],
+        ['--skip'],
+        ['--parallel'],
+        ['--serial'],
+        ['--env'],
+        ['--config'],
+        ['--init'],
+        ['--reset'],
+      ])('REJECT: random flag %s => throws unknown flag error', (flag) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: flag })],
+          }),
+        ).toThrow(/Unknown flag/u);
+      });
+    });
+
+    describe('positional arguments without separator', () => {
+      it.each([
+        ['path/to/file.test.ts'],
+        ['packages/ward'],
+        ['src/index.ts'],
+        ['file.ts'],
+        ['some-random-word'],
+      ])('REJECT: positional arg "%s" without -- separator => throws', (arg) => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: arg })],
+          }),
+        ).toThrow(/Unexpected positional argument/u);
+      });
+    });
+
+    describe('error message quality', () => {
+      it('REJECT: unknown flag error includes the flag name', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: '--coverage' })],
+          }),
+        ).toThrow(/--coverage/u);
+      });
+
+      it('REJECT: unknown flag error includes usage hint', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: '--watch' })],
+          }),
+        ).toThrow(/Usage:/u);
+      });
+
+      it('REJECT: positional arg error includes separator hint', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [CliArgStub({ value: 'file.test.ts' })],
+          }),
+        ).toThrow(/after "--" separator/u);
+      });
+
+      it('REJECT: unknown flag mixed with valid flags still throws', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'unit' }),
+              CliArgStub({ value: '--bail' }),
+            ],
+          }),
+        ).toThrow(/Unknown flag: --bail/u);
+      });
+    });
+
+    describe('flags after -- separator are also rejected', () => {
+      it('REJECT: jest flags after -- are rejected as non-file-path args', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: '--watch' }),
+              CliArgStub({ value: '--bail' }),
+            ],
+          }),
+        ).toThrow(/Flags after "--" are not forwarded.*--watch.*--bail/su);
+      });
+
+      it('REJECT: mixed files and flags after -- rejects the flags', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: 'path/to/file.test.ts' }),
+              CliArgStub({ value: '--verbose' }),
+            ],
+          }),
+        ).toThrow(/Flags after "--" are not forwarded.*--verbose/su);
+      });
+
+      it('REJECT: short flags after -- are also rejected', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: '-t' }),
+              CliArgStub({ value: 'my test name' }),
+            ],
+          }),
+        ).toThrow(/Flags after "--" are not forwarded.*-t/su);
+      });
+
+      it('REJECT: passthrough error mentions flags are not forwarded to tools', () => {
+        cliArgsParseTransformerProxy();
+
+        expect(() =>
+          cliArgsParseTransformer({
+            args: [
+              CliArgStub({ value: '--only' }),
+              CliArgStub({ value: 'unit' }),
+              CliArgStub({ value: '--' }),
+              CliArgStub({ value: '--coverage' }),
+            ],
+          }),
+        ).toThrow(/Ward does not support passing flags to Jest/u);
+      });
     });
   });
 

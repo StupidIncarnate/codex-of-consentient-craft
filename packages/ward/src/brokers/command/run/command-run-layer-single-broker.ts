@@ -65,7 +65,11 @@ export const commandRunLayerSingleBroker = async ({
         `${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} running...\r`,
       );
 
-      const projectResult = await runner({ projectFolder, fileList });
+      const projectResult = await runner({
+        projectFolder,
+        fileList,
+        ...(config.onlyTests ? { testNamePattern: String(config.onlyTests) } : {}),
+      });
 
       if (projectResult.status === 'skip') {
         process.stderr.write(
@@ -74,7 +78,9 @@ export const commandRunLayerSingleBroker = async ({
       } else {
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
         const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';
+        const isScopedWithResults = hasPassthrough && Number(projectResult.filesCount) > 0;
         const hasMismatch =
+          !isScopedWithResults &&
           Number(projectResult.discoveredCount) > 0 &&
           Number(projectResult.discoveredCount) !== Number(projectResult.filesCount);
         const mismatch = hasMismatch ? '  DISCOVERY MISMATCH' : '';

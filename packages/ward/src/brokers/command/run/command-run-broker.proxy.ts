@@ -1,4 +1,5 @@
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
+import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
@@ -12,6 +13,7 @@ export const commandRunBrokerProxy = (): {
   jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
+  gitDiffFilesBrokerProxy();
   const folderProxy = commandRunLayerFolderBrokerProxy();
   const singleProxy = commandRunLayerSingleBrokerProxy();
   const multiProxy = commandRunLayerMultiBrokerProxy();

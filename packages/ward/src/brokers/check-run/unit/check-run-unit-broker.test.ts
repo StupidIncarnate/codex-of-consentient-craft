@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
@@ -261,6 +262,339 @@ describe('checkRunUnitBroker', () => {
         '--findRelatedTests',
         'src/index.ts',
       ]);
+    });
+  });
+
+  describe('directory path filtering', () => {
+    it('VALID: {fileList with directory path} => uses --testPathPatterns instead of --findRelatedTests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/brokers/quest/orchestration-loop/some-broker.test.ts', 'discovered.ts'],
+      });
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/brokers/quest/orchestration-loop' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '--runInBand',
+        '--testPathPatterns',
+        'src/brokers/quest/orchestration-loop',
+      ]);
+    });
+
+    it('VALID: {fileList with multiple directory paths} => joins paths with pipe in --testPathPatterns', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: [
+          'src/brokers/quest/some-broker.test.ts',
+          'src/transformers/some-transformer.test.ts',
+        ],
+      });
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/brokers/quest' }),
+          GitRelativePathStub({ value: 'src/transformers' }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '--runInBand',
+        '--testPathPatterns',
+        'src/brokers/quest|src/transformers',
+      ]);
+    });
+  });
+
+  describe('file type filtering', () => {
+    it('VALID: {fileList with only .integration.test.ts file} => skips without spawning jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+        ],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
+    });
+
+    it('VALID: {fileList with mix of unit and integration files} => only passes unit files to --findRelatedTests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/brokers/quest/spawn-ward-layer-broker.test.ts' }),
+          GitRelativePathStub({
+            value: 'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
+          }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/brokers/quest/spawn-ward-layer-broker.test.ts',
+      ]);
+    });
+  });
+
+  describe('directory with no matching unit tests', () => {
+    it('VALID: {fileList with directory that has no unit tests in discovered files} => skips without spawning jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
+    });
+  });
+
+  describe('testNamePattern', () => {
+    it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'my specific test',
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '--runInBand',
+        '--testNamePattern',
+        'my specific test',
+      ]);
+    });
+
+    it('VALID: {testNamePattern with directory path} => appends both --testPathPatterns and --testNamePattern', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/brokers/quest/some-broker.test.ts', 'discovered.ts'],
+      });
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/brokers/quest' })],
+        testNamePattern: 'foo|bar',
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '--runInBand',
+        '--testPathPatterns',
+        'src/brokers/quest',
+        '--testNamePattern',
+        'foo|bar',
+      ]);
+    });
+  });
+
+  describe('testNamePattern zero matches', () => {
+    it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'jest',
+              line: 0,
+              column: 0,
+              message:
+                '--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name',
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 3,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'VALID',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
     });
   });
 

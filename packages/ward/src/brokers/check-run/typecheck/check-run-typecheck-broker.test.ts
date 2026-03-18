@@ -36,7 +36,7 @@ describe('checkRunTypecheckBroker', () => {
           filesCount: 3,
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/index.ts', 'src/utils.ts', 'src/types.ts'],
-          rawOutput: RawOutputStub({ stdout: listFilesOutput, exitCode: 0 }),
+          rawOutput: RawOutputStub({ stdout: '', exitCode: 0 }),
         }),
       );
     });
@@ -78,7 +78,11 @@ describe('checkRunTypecheckBroker', () => {
           filesCount: 2,
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/index.ts', 'src/utils.ts'],
-          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({
+            stdout: 'src/index.ts(10,5): error TS2345: Argument mismatch.',
+            stderr: '',
+            exitCode: 1,
+          }),
         }),
       );
     });
@@ -163,7 +167,11 @@ describe('checkRunTypecheckBroker', () => {
           filesCount: 1,
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/index.ts'],
-          rawOutput: RawOutputStub({ stdout: tscOutput, stderr: '', exitCode: 1 }),
+          rawOutput: RawOutputStub({
+            stdout: 'src/other.ts(5,1): error TS2345: Type mismatch.',
+            stderr: '',
+            exitCode: 1,
+          }),
         }),
       );
     });

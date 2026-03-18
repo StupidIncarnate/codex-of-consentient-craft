@@ -5,11 +5,17 @@ describe('wardConfigContract', () => {
   describe('valid inputs', () => {
     it('VALID: {all fields} => parses successfully', () => {
       const result = wardConfigContract.parse(
-        WardConfigStub({ only: ['lint', 'unit'], changed: true, verbose: true }),
+        WardConfigStub({
+          only: ['lint', 'unit'],
+          onlyTests: 'my test',
+          changed: true,
+          verbose: true,
+        }),
       );
 
       expect(result).toStrictEqual({
         only: ['lint', 'unit'],
+        onlyTests: 'my test',
         changed: true,
         verbose: true,
       });

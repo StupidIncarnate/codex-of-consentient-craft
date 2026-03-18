@@ -44,9 +44,11 @@ import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-a
 export const checkRunE2eBroker = async ({
   projectFolder,
   fileList,
+  testNamePattern,
 }: {
   projectFolder: ProjectFolder;
   fileList: GitRelativePath[];
+  testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const configPath = filePathContract.parse(`${projectFolder.path}/playwright.config.ts`);
   if (!fsExistsSyncAdapter({ filePath: configPath })) {
@@ -70,10 +72,14 @@ export const checkRunE2eBroker = async ({
     patterns: discoverPatterns,
     cwd,
   });
-  const finalArgs = fileList.length > 0 ? [...args, ...fileList] : [...args];
+  const finalArgs =
+    testNamePattern === undefined
+      ? [...args, ...fileList]
+      : [...args, '--grep', testNamePattern, ...fileList];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const [serverPort, webPort] = await Promise.all([netFreePortAdapter(), netFreePortAdapter()]);
+  const serverPort = await netFreePortAdapter();
+  const webPort = serverPort + 1;
 
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({

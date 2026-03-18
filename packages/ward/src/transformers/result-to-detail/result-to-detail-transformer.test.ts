@@ -255,6 +255,191 @@ describe('resultToDetailTransformer', () => {
     });
   });
 
+  describe('path normalization', () => {
+    it('VALID: {query: repo-relative path, stored: absolute path} => matches and returns errors', () => {
+      const storedPath =
+        '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts';
+      const { filePath: queryPath } = ErrorEntryStub({
+        filePath: 'packages/ward/src/guards/is-check-type/is-check-type-guard.ts',
+      });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: storedPath,
+                    line: 5,
+                    column: 1,
+                    rule: 'no-unused-vars',
+                    message: 'Unused variable',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: `${String(queryPath)}\n  lint no-unused-vars (line 5, col 1)\n    Unused variable`,
+        }),
+      );
+    });
+
+    it('VALID: {query: package-relative path, stored: absolute path} => matches and returns errors', () => {
+      const storedPath =
+        '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts';
+      const { filePath: queryPath } = ErrorEntryStub({
+        filePath: 'src/guards/is-check-type/is-check-type-guard.ts',
+      });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: storedPath,
+                    line: 10,
+                    column: 3,
+                    rule: 'no-any',
+                    message: 'No any allowed',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: `${String(queryPath)}\n  lint no-any (line 10, col 3)\n    No any allowed`,
+        }),
+      );
+    });
+
+    it('VALID: {query: absolute path, stored: package-relative path} => matches and returns errors', () => {
+      const storedPath = 'src/guards/is-check-type/is-check-type-guard.ts';
+      const { filePath: queryPath } = ErrorEntryStub({
+        filePath:
+          '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts',
+      });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'typecheck',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: storedPath,
+                    line: 7,
+                    column: 2,
+                    message: 'TS2345: Argument not assignable',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: `${String(queryPath)}\n  typecheck (line 7, col 2)\n    TS2345: Argument not assignable`,
+        }),
+      );
+    });
+
+    it('VALID: {query: absolute path, stored: package-relative suitePath} => matches test failures', () => {
+      const storedSuitePath = 'src/guards/is-check-type/is-check-type-guard.test.ts';
+      const { suitePath: queryPath } = TestFailureStub({
+        suitePath:
+          '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.test.ts',
+      });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: storedSuitePath,
+                    testName: 'should validate',
+                    message: 'Expected true, received false',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: `${String(queryPath)}\n  FAIL  "should validate"\n    Expected true, received false`,
+        }),
+      );
+    });
+
+    it('EMPTY: {query: unrelated path, stored: absolute path} => returns file path only', () => {
+      const storedPath =
+        '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts';
+      const { filePath: queryPath } = ErrorEntryStub({
+        filePath: 'packages/other/src/completely-different.ts',
+      });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: storedPath,
+                    line: 5,
+                    column: 1,
+                    rule: 'no-unused-vars',
+                    message: 'Unused variable',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath: queryPath });
+
+      expect(result).toBe(WardFileDetailStub({ value: String(queryPath) }));
+    });
+  });
+
   describe('multiple errors in same file', () => {
     it('VALID: {wardResult: lint + test errors for same file} => shows all entries', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/app.ts' });

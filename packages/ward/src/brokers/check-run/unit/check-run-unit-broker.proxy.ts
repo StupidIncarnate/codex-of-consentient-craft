@@ -12,6 +12,7 @@ export const checkRunUnitBrokerProxy = (): {
   setupPassWithStderr: (params: { stdout: string; stderr: string }) => void;
   setupFailWithStderr: (params: { stdout: string; stderr: string }) => void;
   setupNoTestFiles: () => void;
+  setDiscoveredFiles: (params: { files: string[] }) => void;
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
@@ -61,6 +62,10 @@ export const checkRunUnitBrokerProxy = (): {
 
     setupNoTestFiles: (): void => {
       globProxy.returnsEmpty();
+    },
+
+    setDiscoveredFiles: ({ files }: { files: string[] }): void => {
+      globProxy.returnsFiles({ files });
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),

@@ -68,7 +68,7 @@ describe('resultToListTransformer', () => {
       expect(result).toBe(
         WardErrorListStub({
           value:
-            'src/app.ts\n  lint no-unused-vars (line 15)\n  lint @typescript-eslint/no-explicit-any (line 20)',
+            'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused var\n  lint @typescript-eslint/no-explicit-any (line 20)\n    No any',
         }),
       );
     });
@@ -93,7 +93,9 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(WardErrorListStub({ value: 'src/index.ts\n  typecheck (line 23)' }));
+      expect(result).toBe(
+        WardErrorListStub({ value: 'src/index.ts\n  typecheck (line 23)\n    TS2345' }),
+      );
     });
   });
 
@@ -163,7 +165,9 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(WardErrorListStub({ value: 'src/broken.ts\n  lint' }));
+      expect(result).toBe(
+        WardErrorListStub({ value: 'src/broken.ts\n  lint\n    Parsing error: Unexpected token' }),
+      );
     });
   });
 
@@ -212,7 +216,7 @@ describe('resultToListTransformer', () => {
       expect(result).toBe(
         WardErrorListStub({
           value:
-            'src/app.ts\n  lint no-unused-vars (line 15)\nsrc/app.test.ts\n  FAIL  "should work" - Failed',
+            'src/app.ts\n  lint no-unused-vars (line 15)\n    Unused\nsrc/app.test.ts\n  FAIL  "should work" - Failed',
         }),
       );
     });
