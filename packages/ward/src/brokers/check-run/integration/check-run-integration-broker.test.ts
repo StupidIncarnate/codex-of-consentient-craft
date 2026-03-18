@@ -147,6 +147,9 @@ describe('checkRunIntegrationBroker', () => {
   describe('directory path filtering', () => {
     it('VALID: {fileList with directory path} => combines directory with integration pattern in --testPathPatterns', async () => {
       const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/flows/chat-replay/chat-replay.integration.test.ts', 'discovered.ts'],
+      });
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
@@ -171,6 +174,12 @@ describe('checkRunIntegrationBroker', () => {
 
     it('VALID: {fileList with multiple directory paths} => joins paths in combined pattern', async () => {
       const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: [
+          'src/flows/quest/quest.integration.test.ts',
+          'src/flows/install/install.integration.test.ts',
+        ],
+      });
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
@@ -290,6 +299,37 @@ describe('checkRunIntegrationBroker', () => {
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
       ]);
+    });
+  });
+
+  describe('directory with no matching integration tests', () => {
+    it('VALID: {fileList with directory that has no integration tests in discovered files} => skips without spawning jest', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching integration test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
     });
   });
 

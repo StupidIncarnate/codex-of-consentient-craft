@@ -373,7 +373,69 @@ package-root/
 | \`npx eslint ...\` | \`npm run ward -- --only lint\` |
 | \`npx tsc --noEmit\` | \`npm run ward -- --only typecheck\` |
 | \`npm test\` | \`npm run ward -- --only test\` |
-| Running all checks | \`npm run ward\` |`;
+| Running all checks | \`npm run ward\` |
+
+### Check Types
+
+| Check Type | Tool | Description |
+|------------|------|-------------|
+| \`lint\` | ESLint | Linting with \`--fix\` |
+| \`typecheck\` | tsc | TypeScript type checking |
+| \`unit\` | Jest | Unit tests (\`*.test.ts\`, excludes \`*.integration.test.ts\`) |
+| \`integration\` | Jest | Integration tests (\`*.integration.test.ts\` only) |
+| \`e2e\` | Playwright | End-to-end browser tests |
+| \`test\` | *(alias)* | Expands to \`unit,integration,e2e\` (runs all three) |
+
+**\`test\` is a virtual alias**, not a real check type. \`--only test\` expands to \`--only unit,integration,e2e\` during CLI parsing. Deduplication is automatic: \`--only test,e2e\` becomes \`--only unit,integration,e2e\`.
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| \`--only lint,typecheck,unit,integration,e2e\` | Comma-separated list of check types to run. Omit to run all five. |
+| \`--onlyTests <regex>\` | Filter tests by name pattern. Maps to Jest \`--testNamePattern\` and Playwright \`--grep\`. |
+| \`--changed\` | Scope checks to files changed in git (uses \`git diff\`). |
+| \`-- file1 file2\` | Passthrough file list. Everything after \`--\` is treated as file paths. |
+| \`--verbose\` | Enable verbose output. |
+
+**\`--onlyTests\` accepts a regex pattern.** Use \`|\` for alternation: \`--onlyTests "foo|bar"\` runs tests matching either name. Ignored by lint and typecheck check types.
+
+### Common Invocations
+
+\`\`\`bash
+npm run ward                                          # All checks, all packages
+npm run ward -- --only lint                           # Lint only
+npm run ward -- --only test                           # All tests (unit + integration + e2e)
+npm run ward -- --only unit                           # Unit tests only
+npm run ward -- --only unit -- path/to/file.test.ts   # Single test file
+npm run ward -- --only unit --onlyTests "my test"     # Tests by name pattern
+npm run ward -- --only unit --onlyTests "foo|bar"     # Tests matching multiple patterns
+npm run ward -- -- packages/hooks                     # Scope to single package
+npm run ward -- --only lint --changed                 # Lint only changed files
+\`\`\`
+
+### Inspecting Failures
+
+When ward finds failures, the run output shows a summary with truncated errors. Use MCP tools for full details:
+
+1. Run checks: \`npm run ward -- --only lint,test\`
+2. Use MCP tool \`ward-list\` with the run ID to see full error messages and jest diffs
+3. Use MCP tool \`ward-detail\` with the run ID and file path to drill into a specific file
+
+**Zero tolerance for ward failures:** NEVER assume a failure is "pre-existing" or "unrelated" to your changes. Every ward failure must be investigated and fixed before a task is complete. Ward must be fully green. Failures that look unrelated are often caused by transitive effects (stale dist builds, proxy chain breakage, cache invalidation, or side-effect imports exposed by type changes). Always trace the full dependency chain.
+
+### Examples
+
+\`\`\`bash
+# File + test name pattern together
+npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks/src/brokers/quest/quest-broker.test.ts
+
+# Combo: lint + typecheck + unit on one package
+npm run ward -- --only lint,typecheck,unit -- packages/hooks
+
+# Combo: lint + test (all test types) on changed files only
+npm run ward -- --only lint,test --changed
+\`\`\``;
 
   // Build critical rules
   const criticalRules = `**Never do these things (❌):**

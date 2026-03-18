@@ -267,6 +267,9 @@ describe('checkRunUnitBroker', () => {
   describe('directory path filtering', () => {
     it('VALID: {fileList with directory path} => uses --testPathPatterns instead of --findRelatedTests', async () => {
       const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/brokers/quest/orchestration-loop/some-broker.test.ts', 'discovered.ts'],
+      });
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
@@ -293,6 +296,12 @@ describe('checkRunUnitBroker', () => {
 
     it('VALID: {fileList with multiple directory paths} => joins paths with pipe in --testPathPatterns', async () => {
       const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: [
+          'src/brokers/quest/some-broker.test.ts',
+          'src/transformers/some-transformer.test.ts',
+        ],
+      });
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();
@@ -387,6 +396,37 @@ describe('checkRunUnitBroker', () => {
     });
   });
 
+  describe('directory with no matching unit tests', () => {
+    it('VALID: {fileList with directory that has no unit tests in discovered files} => skips without spawning jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/transformers' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBeUndefined();
+    });
+  });
+
   describe('testNamePattern', () => {
     it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
       const proxy = checkRunUnitBrokerProxy();
@@ -417,6 +457,9 @@ describe('checkRunUnitBroker', () => {
 
     it('VALID: {testNamePattern with directory path} => appends both --testPathPatterns and --testNamePattern', async () => {
       const proxy = checkRunUnitBrokerProxy();
+      proxy.setDiscoveredFiles({
+        files: ['src/brokers/quest/some-broker.test.ts', 'discovered.ts'],
+      });
       proxy.setupPass();
 
       const projectFolder = ProjectFolderStub();

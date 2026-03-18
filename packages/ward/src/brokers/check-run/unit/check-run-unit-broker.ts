@@ -80,6 +80,30 @@ export const checkRunUnitBroker = async ({
   }
 
   const allFiles = unitFiles.length > 0 && unitFiles.every((f) => String(f).includes('.'));
+  const dirEntries = unitFiles.filter((f) => !String(f).includes('.'));
+  const fileEntries = unitFiles.filter((f) => String(f).includes('.'));
+
+  if (fileEntries.length === 0 && dirEntries.length > 0) {
+    const hasMatchingDiscovered = discoveredFiles.some((discovered) =>
+      dirEntries.some((dir) => discovered.includes(String(dir))),
+    );
+    if (!hasMatchingDiscovered) {
+      return projectResultContract.parse({
+        projectFolder,
+        status: 'skip',
+        errors: [],
+        testFailures: [],
+        filesCount: 0,
+        discoveredCount,
+        rawOutput: rawOutputContract.parse({
+          stdout: '',
+          stderr: 'no matching unit test files in passthrough',
+          exitCode: exitCodeContract.parse(0),
+        }),
+      });
+    }
+  }
+
   const finalArgs =
     unitFiles.length > 0
       ? allFiles

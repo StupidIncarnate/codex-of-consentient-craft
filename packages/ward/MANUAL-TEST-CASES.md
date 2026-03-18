@@ -98,17 +98,20 @@ after each test.**
 
 ### Flag Behavior
 
-| ID                                                  | Command                                                               | Checks that run               |
-|-----------------------------------------------------|-----------------------------------------------------------------------|-------------------------------|
-| [7a](#7a-comma-separated-types)                     | `--only lint,unit -- packages/ward`                                   | lint, unit                    |
-| [7b](#7b---only-test-expands-to-unitintegratione2e) | `--only test -- packages/ward`                                        | unit, int, e2e                |
-| [7c](#7c---only-testlint-deduplicates)              | `--only test,lint -- packages/ward`                                   | unit, int, e2e, lint          |
-| [7d](#7d---only-teste2e-does-not-duplicate-e2e)     | `--only test,e2e -- packages/ward`                                    | unit, int, e2e (no dup)       |
-| [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`          | jest gets `--testNamePattern` |
-| [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`   | jest gets alternation         |
-| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts` | jest runs, 0 matches          |
-| [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`            | lint/tc ignore it             |
-| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "exports" -- packages/ward`           | int respects it               |
+| ID                                                  | Command                                                                        | Checks that run                    |
+|-----------------------------------------------------|--------------------------------------------------------------------------------|------------------------------------|
+| [7a](#7a-comma-separated-types)                     | `--only lint,unit -- packages/ward`                                            | lint, unit                         |
+| [7b](#7b---only-test-expands-to-unitintegratione2e) | `--only test -- packages/ward`                                                 | unit, int, e2e                     |
+| [7c](#7c---only-testlint-deduplicates)              | `--only test,lint -- packages/ward`                                            | unit, int, e2e, lint               |
+| [7d](#7d---only-teste2e-does-not-duplicate-e2e)     | `--only test,e2e -- packages/ward`                                             | unit, int, e2e (no dup)            |
+| [7e](#7e-comma-separated-with-multi-files)          | `--only lint,unit -- .../guard.ts .../transformer.test.ts`                     | lint PASS 2, unit PASS N           |
+| [7f](#7f-test-expansion-with-multi-mixed-files)     | `--only test -- .../transformer.test.ts .../start-ward.int.test.ts`            | unit PASS 1, int PASS 1, e2e skip  |
+| [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`                   | jest gets `--testNamePattern`      |
+| [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation              |
+| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | PASS 1 (0 tests run, jest exits 0) |
+| [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                  |
+| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "exports" -- packages/ward`                    | int respects it                    |
+| [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name      |
 
 ### Edge Cases
 
@@ -781,6 +784,40 @@ npm run ward -- --only test,e2e -- packages/ward
 - unit, integration, e2e run (e2e not duplicated from test expansion)
 - e2e shows `skip` once
 
+#### 7e. Comma-separated with multi files
+
+```bash
+npm run ward -- --only lint,unit -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts packages/ward/src/transformers/cli-args-parse/cli-args-parse-transformer.test.ts
+```
+
+**Expected:**
+
+- lint: `PASS 2 files` (both files linted)
+- unit: `PASS N files` (impl file via --findRelatedTests, test file directly)
+- Summary: `lint:` and `unit:` lines only
+
+**Should NOT see:**
+
+- integration, e2e, or typecheck lines
+
+#### 7f. Test expansion with multi mixed files
+
+```bash
+npm run ward -- --only test -- packages/ward/src/transformers/cli-args-parse/cli-args-parse-transformer.test.ts packages/ward/src/startup/start-ward.integration.test.ts
+```
+
+**Expected:**
+
+- unit: `PASS 1 files` (only the `.test.ts` matches unit filter)
+- integration: `PASS 1 files` (only the `.integration.test.ts` matches)
+- e2e: `skip`
+- Each check type gets only its matching file, not both
+
+**Should NOT see:**
+
+- unit running 2 files (the integration file should be filtered out)
+- integration running 2 files (the unit file should be filtered out)
+
 ---
 
 ### 8. --onlyTests Pattern Filtering
@@ -819,8 +856,10 @@ npm run ward -- --only unit --onlyTests "XYZNONEXISTENT" -- packages/ward/src/tr
 
 **Expected:**
 
-- Jest runs but finds no matching test names
-- Live: `unit ... PASS 0 files` or similar (jest exits 0 with no tests run)
+- Jest loads the file but no `it()` blocks match the pattern — 0 tests execute
+- Live: `unit ... PASS 1 files` (jest still counts the suite, exits 0)
+- Note: Jest treats "no test names matched" as a pass, not an error. The file is found and loaded, just nothing runs
+  inside it.
 
 #### 8d. --onlyTests ignored by lint and typecheck
 
@@ -843,6 +882,18 @@ npm run ward -- --only integration --onlyTests "exports" -- packages/ward
 
 - Jest receives `--testNamePattern exports` alongside `--testPathPatterns \.integration\.test\.ts$`
 - Only integration tests matching the name pattern run
+
+#### 8f. --onlyTests with multi files
+
+```bash
+npm run ward -- --only unit --onlyTests "EMPTY" -- packages/ward/src/transformers/cli-args-parse/cli-args-parse-transformer.test.ts packages/ward/src/guards/is-check-type/is-check-type-guard.test.ts
+```
+
+**Expected:**
+
+- Jest receives both files via `--findRelatedTests` AND `--testNamePattern EMPTY`
+- Only tests matching "EMPTY" run across both files
+- If only one file has tests matching "EMPTY", filesCount reflects that
 
 ---
 

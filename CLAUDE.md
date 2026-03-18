@@ -114,22 +114,7 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 ### Common Commands
 
-- **Run all quality checks**: `npm run ward`
-- **Run lint only**: `npm run ward -- --only lint`
-- **Run tests only**: `npm run ward -- --only test`
-- **Run typecheck only**: `npm run ward -- --only typecheck`
-- **Run specific test file**: `npm run ward -- --only test -- path/to/file.test.ts`
-- **Run tests by name pattern**: `npm run ward -- --only unit --onlyTests "my test name"`
-- **Run tests matching multiple patterns**: `npm run ward -- --only unit --onlyTests "foo|bar"`
-- **Run checks on a single package**: `npm run ward -- -- packages/hooks`
-- **Get full error details after a failing run**: Use MCP tool `ward-list` with the run ID
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`
-
-**When ward fails:** The run output shows a summary with truncated errors. Use the MCP tool `ward-list` with the
-run ID shown at the bottom to get full details — especially jest diffs for test failures.
-
-**Zero tolerance for ward failures:** NEVER assume a failure is "pre-existing" or "unrelated" to your changes. Every
-ward failure must be investigated and fixed before a task is complete. Ward must be fully green. Failures that look
-unrelated are often caused by transitive effects (stale dist builds, proxy chain breakage, cache invalidation, or
-side-effect imports exposed by type changes). Always trace the full dependency chain.
+- **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
+  invocation patterns.

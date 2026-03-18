@@ -82,6 +82,28 @@ export const checkRunIntegrationBroker = async ({
   const fileEntries = relevantFiles.filter((f) => String(f).includes('.'));
   const hasFiles = fileEntries.length > 0;
   const hasDirs = dirs.length > 0;
+
+  if (!hasFiles && hasDirs) {
+    const hasMatchingDiscovered = discoveredFiles.some((discovered) =>
+      dirs.some((dir) => discovered.includes(String(dir))),
+    );
+    if (!hasMatchingDiscovered) {
+      return projectResultContract.parse({
+        projectFolder,
+        status: 'skip',
+        errors: [],
+        testFailures: [],
+        filesCount: 0,
+        discoveredCount,
+        rawOutput: rawOutputContract.parse({
+          stdout: '',
+          stderr: 'no matching integration test files in passthrough',
+          exitCode: exitCodeContract.parse(0),
+        }),
+      });
+    }
+  }
+
   const baseArgs = [...args];
   if (hasDirs) {
     const dirPattern = dirs.map(String).join('|');
