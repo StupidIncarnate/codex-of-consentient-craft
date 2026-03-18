@@ -29,29 +29,33 @@ run: {runId}
 
 Only the requested check type appears in the output. No other check types should be visible.
 
-| ID                                                       | Command                                                    | Live output                 | Not in output        |
-|----------------------------------------------------------|------------------------------------------------------------|-----------------------------|----------------------|
-| [1a](#1a-single-unit-test-file)                          | `--only unit -- .../cli-args-parse-transformer.test.ts`    | `unit ... PASS 1 files`     | int, e2e, lint, tc   |
-| [1b](#1b-implementation-file-finds-related-tests)        | `--only unit -- .../is-check-type-guard.ts`                | `unit ... PASS N files`†    | int, e2e, lint, tc   |
-| [1d](#1d-directory-scope)                                | `--only unit -- .../transformers/cli-args-parse`           | `unit ... PASS N files`     | int, e2e, lint, tc   |
-| [1e](#1e-multiple-directory-scope)                       | `--only unit -- .../cli-args-parse .../is-check-type`      | `unit ... PASS N files`     | int, e2e, lint, tc   |
-| [1f](#1f-package-scope-all-unit-tests-in-package)        | `--only unit -- packages/ward`                             | `unit ... PASS 81 files`    | int, e2e, lint, tc   |
-| [1g](#1g-no-scope-all-packages)                          | `--only unit`                                              | `unit ... PASS` (all pkgs)  | int, e2e, lint, tc   |
-| [2a](#2a-single-integration-test-file)                   | `--only integration -- .../start-ward.integration.test.ts` | `int ... PASS 1 files`      | unit, e2e, lint, tc  |
-| [2c](#2c-directory-scope-containing-integration-tests)   | `--only integration -- .../startup`                        | `int ... PASS N files`      | unit, e2e, lint, tc  |
-| [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                      | `int ... PASS 4 files`      | unit, e2e, lint, tc  |
-| [2f](#2f-no-scope-all-packages)                          | `--only integration`                                       | `int ... PASS` (all pkgs)   | unit, e2e, lint, tc  |
-| [3a](#3a-package-without-playwrightconfigts)             | `--only e2e -- packages/ward`                              | `e2e ... skip`              | unit, int, lint, tc  |
-| [3b](#3b-no-scope-all-packages)                          | `--only e2e`                                               | `e2e ... PASS/skip` per pkg | unit, int, lint, tc  |
-| [4a](#4a-single-implementation-file)                     | `--only lint -- .../is-check-type-guard.ts`                | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
-| [4b](#4b-single-test-file)                               | `--only lint -- .../is-check-type-guard.test.ts`           | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
-| [4c](#4c-integration-test-file)                          | `--only lint -- .../start-ward.integration.test.ts`        | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
-| [4d](#4d-multiple-files)                                 | `--only lint -- .../guard.ts .../guard.test.ts`            | `lint ... PASS 2 files`     | unit, int, e2e, tc   |
-| [4e](#4e-package-scope-all-files)                        | `--only lint -- packages/ward`                             | `lint ... PASS 236 files`   | unit, int, e2e, tc   |
-| [4f](#4f-no-scope-all-packages)                          | `--only lint`                                              | `lint ... PASS` (all pkgs)  | unit, int, e2e, tc   |
-| [5a](#5a-single-file-scope--clean-project)               | `--only typecheck -- .../is-check-type-guard.ts`           | `tc ... PASS`\*             | unit, int, e2e, lint |
-| [5b](#5b-package-scope)                                  | `--only typecheck -- packages/ward`                        | `tc ... PASS`\*             | unit, int, e2e, lint |
-| [5c](#5c-no-scope-all-packages)                          | `--only typecheck`                                         | `tc ... PASS` (all pkgs)\*  | unit, int, e2e, lint |
+| ID                                                       | Command                                                                                          | Live output                 | Not in output        |
+|----------------------------------------------------------|--------------------------------------------------------------------------------------------------|-----------------------------|----------------------|
+| [1a](#1a-single-unit-test-file)                          | `--only unit -- .../cli-args-parse-transformer.test.ts`                                          | `unit ... PASS 1 files`     | int, e2e, lint, tc   |
+| [1b](#1b-implementation-file-finds-related-tests)        | `--only unit -- .../is-check-type-guard.ts`                                                      | `unit ... PASS N files`†    | int, e2e, lint, tc   |
+| [1i](#1i-multiple-unit-test-files)                       | `--only unit -- .../cli-args-parse-transformer.test.ts .../is-check-type-guard.test.ts`          | `unit ... PASS 2 files`     | int, e2e, lint, tc   |
+| [1j](#1j-multiple-implementation-files)                  | `--only unit -- .../is-check-type-guard.ts .../is-run-id-guard.ts`                               | `unit ... PASS N files`†    | int, e2e, lint, tc   |
+| [1d](#1d-directory-scope)                                | `--only unit -- .../transformers/cli-args-parse`                                                 | `unit ... PASS N files`     | int, e2e, lint, tc   |
+| [1e](#1e-multiple-directory-scope)                       | `--only unit -- .../cli-args-parse .../is-check-type`                                            | `unit ... PASS N files`     | int, e2e, lint, tc   |
+| [1f](#1f-package-scope-all-unit-tests-in-package)        | `--only unit -- packages/ward`                                                                   | `unit ... PASS 81 files`    | int, e2e, lint, tc   |
+| [1g](#1g-no-scope-all-packages)                          | `--only unit`                                                                                    | `unit ... PASS` (all pkgs)  | int, e2e, lint, tc   |
+| [2a](#2a-single-integration-test-file)                   | `--only integration -- .../start-ward.integration.test.ts`                                       | `int ... PASS 1 files`      | unit, e2e, lint, tc  |
+| [2h](#2h-multiple-integration-test-files)                | `--only integration -- .../start-ward.integration.test.ts .../start-install.integration.test.ts` | `int ... PASS 2 files`      | unit, e2e, lint, tc  |
+| [2c](#2c-directory-scope-containing-integration-tests)   | `--only integration -- .../startup`                                                              | `int ... PASS N files`      | unit, e2e, lint, tc  |
+| [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                                                            | `int ... PASS 4 files`      | unit, e2e, lint, tc  |
+| [2f](#2f-no-scope-all-packages)                          | `--only integration`                                                                             | `int ... PASS` (all pkgs)   | unit, e2e, lint, tc  |
+| [3a](#3a-package-without-playwrightconfigts)             | `--only e2e -- packages/ward`                                                                    | `e2e ... skip`              | unit, int, lint, tc  |
+| [3b](#3b-no-scope-all-packages)                          | `--only e2e`                                                                                     | `e2e ... PASS/skip` per pkg | unit, int, lint, tc  |
+| [4a](#4a-single-implementation-file)                     | `--only lint -- .../is-check-type-guard.ts`                                                      | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
+| [4b](#4b-single-test-file)                               | `--only lint -- .../is-check-type-guard.test.ts`                                                 | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
+| [4c](#4c-integration-test-file)                          | `--only lint -- .../start-ward.integration.test.ts`                                              | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
+| [4d](#4d-multiple-files)                                 | `--only lint -- .../guard.ts .../guard.test.ts`                                                  | `lint ... PASS 2 files`     | unit, int, e2e, tc   |
+| [4e](#4e-package-scope-all-files)                        | `--only lint -- packages/ward`                                                                   | `lint ... PASS 236 files`   | unit, int, e2e, tc   |
+| [4f](#4f-no-scope-all-packages)                          | `--only lint`                                                                                    | `lint ... PASS` (all pkgs)  | unit, int, e2e, tc   |
+| [5g](#5g-multiple-files)                                 | `--only typecheck -- .../is-check-type-guard.ts .../is-run-id-guard.ts`                          | `tc ... PASS`\*             | unit, int, e2e, lint |
+| [5a](#5a-single-file-scope--clean-project)               | `--only typecheck -- .../is-check-type-guard.ts`                                                 | `tc ... PASS`\*             | unit, int, e2e, lint |
+| [5b](#5b-package-scope)                                  | `--only typecheck -- packages/ward`                                                              | `tc ... PASS`\*             | unit, int, e2e, lint |
+| [5c](#5c-no-scope-all-packages)                          | `--only typecheck`                                                                               | `tc ... PASS` (all pkgs)\*  | unit, int, e2e, lint |
 
 `*` = typecheck always runs full project, post-filters errors to passthrough files
 `†` = via `--findRelatedTests`, N depends on how many tests import the file
@@ -169,6 +173,35 @@ npm run ward -- --only unit -- packages/ward/src/startup/start-ward.integration.
 
 - unit must NOT show `PASS` — the `.integration.test.ts` file doesn't match unit filtering
 
+#### 1i. Multiple unit test files
+
+```bash
+npm run ward -- --only unit -- packages/ward/src/transformers/cli-args-parse/cli-args-parse-transformer.test.ts packages/ward/src/guards/is-check-type/is-check-type-guard.test.ts
+```
+
+**Expected:**
+
+- Live: `unit ... PASS  2 files, 81 discovered`
+- Both files passed via `--findRelatedTests`
+
+**Should NOT see:**
+
+- No integration, e2e, lint, or typecheck lines
+
+#### 1j. Multiple implementation files
+
+```bash
+npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts packages/ward/src/guards/is-run-id/is-run-id-guard.ts
+```
+
+**Expected:**
+
+- Live: `unit ... PASS  N files, 81 discovered` (--findRelatedTests on both impl files)
+
+**Should NOT see:**
+
+- No integration, e2e, lint, or typecheck lines
+
 #### 1d. Directory scope
 
 ```bash
@@ -270,6 +303,21 @@ npm run ward -- --only integration -- packages/ward/src/transformers/cli-args-pa
 **Should NOT see:**
 
 - integration must NOT show `PASS 4 files` — the `.test.ts` file doesn't match integration filtering
+
+#### 2h. Multiple integration test files
+
+```bash
+npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integration.test.ts packages/ward/src/startup/start-install.integration.test.ts
+```
+
+**Expected:**
+
+- Live: `integration ... PASS  2 files, 4 discovered`
+- Both integration test files passed via `--findRelatedTests`
+
+**Should NOT see:**
+
+- No unit, e2e, lint, or typecheck lines
 
 #### 2c. Directory scope containing integration tests
 
@@ -497,6 +545,21 @@ Typecheck runs `tsc --noEmit`. It ALWAYS checks the entire project regardless of
 When passthrough files are provided, typecheck post-filters errors: only errors in passthrough files are reported. If
 tsc fails but no errors match the passthrough, status is reported as `pass`.
 Skips if no `tsconfig.json` exists in the package.
+
+#### 5g. Multiple files
+
+```bash
+npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts packages/ward/src/guards/is-run-id/is-run-id-guard.ts
+```
+
+**Expected:**
+
+- Live: `typecheck ... PASS` (tsc always runs full project regardless of file scope)
+- Both files are in the post-filter set for error reporting
+
+**Should NOT see:**
+
+- No unit, integration, e2e, or lint lines
 
 #### 5a. Single file scope — clean project
 
