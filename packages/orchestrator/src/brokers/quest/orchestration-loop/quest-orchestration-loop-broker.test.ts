@@ -157,8 +157,8 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
-  describe('T-DISPATCH: dispatch rules', () => {
-    it('T-DISPATCH-1: {chaos in_progress + glyph pending ready} => glyph stays pending (chat mutual exclusion)', async () => {
+  describe('dispatch rules', () => {
+    it('VALID: {chaos in_progress + glyph pending ready} => glyph stays pending because only one chat role runs at a time', async () => {
       const questId = QuestIdStub({ value: 'dispatch-1' });
       const quest = QuestStub({
         id: questId,
@@ -194,7 +194,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(persisted).toHaveLength(0);
     });
 
-    it('T-DISPATCH-2: {chaos pending ready, no userMessage} => chaos stays pending', async () => {
+    it('VALID: {chaos pending ready, no userMessage} => chaos stays pending because chat roles require a user message to dispatch', async () => {
       const questId = QuestIdStub({ value: 'dispatch-2' });
       const quest = QuestStub({
         id: questId,
@@ -223,7 +223,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(persisted).toHaveLength(0);
     });
 
-    it('T-DISPATCH-3: {two chaos items pending ready, userMessage provided} => only first chaos item marked in_progress', async () => {
+    it('VALID: {two chaos items pending ready, userMessage provided} => only first chaos dispatched because chat items dispatch one at a time', async () => {
       const questId = QuestIdStub({ value: 'dispatch-3' });
       const chaosA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const chaosB = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -260,7 +260,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(unmarkedItem?.status).toBe('pending');
     });
 
-    it('T-DISPATCH-4: {CW-1 ready + CW-2 ready + CW-3 dep unmet} => CW-1 and CW-2 marked in_progress', async () => {
+    it('VALID: {CW-1 ready + CW-2 ready + CW-3 dep unmet} => CW-1 and CW-2 dispatched together, CW-3 stays pending', async () => {
       const questId = QuestIdStub({ value: 'dispatch-4' });
       const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const cw1 = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -311,7 +311,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(cw3Item?.status).toBe('pending');
     });
 
-    it('T-DISPATCH-5: {codeweavers ready AND lawbringers ready} => only first role group marked in_progress', async () => {
+    it('VALID: {codeweavers ready AND lawbringers ready} => only first role group dispatched per iteration', async () => {
       const questId = QuestIdStub({ value: 'dispatch-5' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const lbId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -347,7 +347,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lbItem?.status).toBe('pending');
     });
 
-    it('T-DISPATCH-6: {abortSignal.aborted} => nothing happens', async () => {
+    it('VALID: {abortSignal already aborted} => loop exits immediately without dispatching', async () => {
       const questId = QuestIdStub({ value: 'dispatch-6' });
       const proxy = questOrchestrationLoopBrokerProxy();
       proxy.setupAborted();
@@ -365,7 +365,7 @@ describe('questOrchestrationLoopBroker', () => {
       ).resolves.toBeUndefined();
     });
 
-    it('T-DISPATCH-7: {chat role ready with userMessage, recursion has another chat pending} => recursion skips chat (no userMessage)', async () => {
+    it('VALID: {chat role completes, another chat pending} => loop recurses without userMessage so second chat stays pending', async () => {
       const questId = QuestIdStub({ value: 'dispatch-7' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -394,8 +394,8 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
-  describe('T-DEP: dependency & ordering rules', () => {
-    it('T-DEP-1: {item with 2 deps, one complete one in_progress} => item NOT ready', async () => {
+  describe('dependency and ordering rules', () => {
+    it('VALID: {item with 2 deps, one complete one in_progress} => item not ready until all deps complete', async () => {
       const questId = QuestIdStub({ value: 'dep-1' });
       const dep1 = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep2 = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -430,7 +430,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(persisted).toHaveLength(0);
     });
 
-    it('T-DEP-2: {ward pending, dependsOn failed codeweaver} => ward never ready, quest blocked', async () => {
+    it('VALID: {ward pending, dependsOn failed codeweaver} => ward never becomes ready, quest blocked', async () => {
       const questId = QuestIdStub({ value: 'dep-2' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const wardId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -463,7 +463,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lastStatus).toBe('blocked');
     });
 
-    it('T-DEP-5: {replacement chain ward-A failed, ward-B failed, ward-C complete} => siege with dep on ward-C becomes ready', async () => {
+    it('VALID: {ward fails twice creating replacement chain A->B->C} => siege dep rewired to ward-C, becomes ready when C completes', async () => {
       const questId = QuestIdStub({ value: 'dep-5' });
       const wardA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const wardB = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -504,8 +504,8 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
-  describe('T-STATUS: quest status rules', () => {
-    it('T-STATUS-1: {all items complete} => quest status set to complete', async () => {
+  describe('quest status rules', () => {
+    it('VALID: {all work items complete} => quest status transitions to complete', async () => {
       const questId = QuestIdStub({ value: 'status-1' });
       const quest = QuestStub({
         id: questId,
@@ -539,7 +539,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lastStatus).toBe('complete');
     });
 
-    it('T-STATUS-2: {pending with all-failed deps} => quest status set to blocked', async () => {
+    it('VALID: {pending items whose deps all failed} => quest status transitions to blocked', async () => {
       const questId = QuestIdStub({ value: 'status-2' });
       const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -571,7 +571,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lastStatus).toBe('blocked');
     });
 
-    it('T-STATUS-3: {all terminal but not all complete} => quest status unchanged (stays in_progress)', async () => {
+    it('VALID: {all items terminal but some failed} => quest status stays in_progress, not complete', async () => {
       const questId = QuestIdStub({ value: 'status-3' });
       const quest = QuestStub({
         id: questId,
@@ -606,7 +606,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lastStatus).toBeUndefined();
     });
 
-    it('T-STATUS-4: {pre-execution status explore_flows with failed chaos} => status preserved', async () => {
+    it('VALID: {quest in explore_flows with failed chaos} => pre-execution status preserved, not overwritten', async () => {
       const questId = QuestIdStub({ value: 'status-4' });
       const quest = QuestStub({
         id: questId,
@@ -636,7 +636,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(lastStatus).toBeUndefined();
     });
 
-    it('T-STATUS-5: {items still in_progress} => quest stays in_progress, no dispatch', async () => {
+    it('VALID: {some items still in_progress} => quest stays in_progress even if others failed', async () => {
       const questId = QuestIdStub({ value: 'status-5' });
       const quest = QuestStub({
         id: questId,
@@ -671,8 +671,8 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
-  describe('failure handling (T-FAIL)', () => {
-    it('T-FAIL-1: {layer broker throws JS exception} => dispatched items marked failed and error re-thrown', async () => {
+  describe('failure handling', () => {
+    it('ERROR: {layer broker throws JS exception} => dispatched items marked failed and error re-thrown', async () => {
       const questId = QuestIdStub({ value: 'quest-fail-1' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -703,7 +703,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(persisted.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('T-FAIL-2: {quest not found} => throws quest not found error', async () => {
+    it('ERROR: {quest not found during loop} => throws quest not found error', async () => {
       const questId = QuestIdStub({ value: 'nonexistent-fail-2' });
       const proxy = questOrchestrationLoopBrokerProxy();
       proxy.setupQuestNotFound();
@@ -717,7 +717,7 @@ describe('questOrchestrationLoopBroker', () => {
       ).rejects.toThrow(/Quest not found/u);
     });
 
-    it('T-FAIL-3: {double fault — error in error handler} => error propagates not swallowed', async () => {
+    it('ERROR: {error handler itself throws} => original error propagates and is not swallowed', async () => {
       const questId = QuestIdStub({ value: 'quest-fail-3' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -745,7 +745,7 @@ describe('questOrchestrationLoopBroker', () => {
       ).rejects.toThrow(/spawn claude ENOENT/u);
     });
 
-    it('T-FAIL-6: {agent timeout — process killed} => error handler marks items failed', async () => {
+    it('ERROR: {agent times out and process is killed} => error handler marks dispatched items failed', async () => {
       const questId = QuestIdStub({ value: 'quest-fail-6' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
