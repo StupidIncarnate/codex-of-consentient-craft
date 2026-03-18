@@ -16,11 +16,14 @@ export const runLawbringerLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
-  setupAutoEmitLines: ReturnType<typeof slotManagerOrchestrateBrokerProxy>['setupAutoEmitLines'];
-  getModifyContents: () => readonly unknown[];
+  setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
+  getAllPersistedWorkItemStatuses: () => readonly {
+    id: QuestWorkItemId;
+    status: WorkItemStatus;
+  }[];
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -43,10 +46,17 @@ export const runLawbringerLayerBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode;
     }): void => {
-      slotProxy.setupSpawnAndMonitor({ lines, exitCode });
+      slotProxy.setupSpawnAutoLines({ lines, exitCode });
     },
-    setupAutoEmitLines: slotProxy.setupAutoEmitLines,
-    getModifyContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+    setupSpawnOnce: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      slotProxy.setupSpawnOnce({ lines, exitCode });
+    },
     getLastPersistedWorkItemStatus: ({
       workItemId,
     }: {
@@ -61,6 +71,19 @@ export const runLawbringerLayerBrokerProxy = (): {
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
+    },
+    getAllPersistedWorkItemStatuses: (): readonly {
+      id: QuestWorkItemId;
+      status: WorkItemStatus;
+    }[] => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return [];
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      return lastQuest.workItems.map((wi) => ({ id: wi.id, status: wi.status }));
     },
   };
 };

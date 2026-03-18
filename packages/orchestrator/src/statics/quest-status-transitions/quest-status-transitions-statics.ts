@@ -18,7 +18,7 @@ export const questStatusTransitionsStatics = {
   explore_design: ['review_design'],
   review_design: ['design_approved', 'explore_design'],
   design_approved: ['in_progress', 'explore_design'],
-  in_progress: ['blocked', 'complete', 'abandoned'],
+  in_progress: ['in_progress', 'blocked', 'complete', 'abandoned'],
   blocked: ['in_progress', 'abandoned'],
   complete: [],
   abandoned: [],

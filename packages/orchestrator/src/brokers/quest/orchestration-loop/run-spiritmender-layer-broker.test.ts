@@ -95,7 +95,100 @@ describe('runSpiritmenderLayerBroker', () => {
       expect(status).toBe('complete');
     });
 
-    it('VALID: {agents fail with null signal, 3 files} => marks quest work item failed', async () => {
+    it('VALID: {agents signal complete, 2 files} => marks quest work item complete', async () => {
+      const wardResult = WardResultStub({
+        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
+          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
+        ],
+        errorSummary: 'lint errors',
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+        wardResults: [wardResult],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
+    });
+
+    it('VALID: {agents signal complete, 3 files fills slots} => marks quest work item complete', async () => {
+      const wardResult = WardResultStub({
+        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
+          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
+          AbsoluteFilePathStub({ value: '/project/src/file-c.ts' }),
+        ],
+        errorSummary: 'lint errors',
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+        wardResults: [wardResult],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
+    });
+
+    it('VALID: {1 of 3 files fails, others succeed} => marks quest work item failed', async () => {
       const wardResult = WardResultStub({
         id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
         filePaths: [
@@ -124,11 +217,10 @@ describe('runSpiritmenderLayerBroker', () => {
 
       const proxy = runSpiritmenderLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
-      // No signal lines + exit 0 → signal is null → workTracker.markFailed
-      // With 3 files but 1 quest work item, the old per-ID mapping only checked
-      // work-item-0 against failedSlotIds. The fix uses result.completed instead.
-      proxy.setupSpawnAndMonitor({
-        lines: [],
+      // First spawn: skip auto-emit (no signal → fail). Remaining spawns: auto-emit complete signal.
+      proxy.setupSpawnOnceLazy();
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -144,150 +236,8 @@ describe('runSpiritmenderLayerBroker', () => {
 
       expect(status).toBe('failed');
     });
-  });
 
-  describe('file count variations', () => {
-    it('VALID: {2 files, all agents signal complete} => marks quest work item complete', async () => {
-      const wardResult = WardResultStub({
-        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-        filePaths: [
-          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
-          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
-        ],
-        errorSummary: 'lint errors',
-      });
-
-      const workItemId = QuestWorkItemIdStub({
-        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'spiritmender',
-        status: 'in_progress',
-        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
-      });
-
-      const quest = QuestStub({
-        status: 'in_progress',
-        workItems: [workItem],
-        wardResults: [wardResult],
-      });
-
-      const proxy = runSpiritmenderLayerBrokerProxy();
-      proxy.setupQuestFound({ quest });
-      proxy.setupSpawnAndMonitorMulti({
-        lines: [COMPLETE_SIGNAL_LINE],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runSpiritmenderLayerBroker({
-        questId: quest.id,
-        workItems: [workItem],
-        startPath: FilePathStub({ value: '/project' }),
-        slotCount: SlotCountStub(),
-        slotOperations: SlotOperationsStub(),
-      });
-
-      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
-
-      expect(status).toBe('complete');
-    });
-
-    it('VALID: {3 files filling all slots, all agents signal complete} => marks quest work item complete', async () => {
-      const wardResult = WardResultStub({
-        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-        filePaths: [
-          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
-          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
-          AbsoluteFilePathStub({ value: '/project/src/file-c.ts' }),
-        ],
-        errorSummary: 'lint errors',
-      });
-
-      const workItemId = QuestWorkItemIdStub({
-        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'spiritmender',
-        status: 'in_progress',
-        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
-      });
-
-      const quest = QuestStub({
-        status: 'in_progress',
-        workItems: [workItem],
-        wardResults: [wardResult],
-      });
-
-      const proxy = runSpiritmenderLayerBrokerProxy();
-      proxy.setupQuestFound({ quest });
-      proxy.setupSpawnAndMonitorMulti({
-        lines: [COMPLETE_SIGNAL_LINE],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runSpiritmenderLayerBroker({
-        questId: quest.id,
-        workItems: [workItem],
-        startPath: FilePathStub({ value: '/project' }),
-        slotCount: SlotCountStub({ value: 3 }),
-        slotOperations: SlotOperationsStub(),
-      });
-
-      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
-
-      expect(status).toBe('complete');
-    });
-
-    it('VALID: {3 files, agents fail with null signal} => marks quest work item failed', async () => {
-      const wardResult = WardResultStub({
-        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-        filePaths: [
-          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
-          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
-          AbsoluteFilePathStub({ value: '/project/src/file-c.ts' }),
-        ],
-        errorSummary: 'type errors',
-      });
-
-      const workItemId = QuestWorkItemIdStub({
-        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'spiritmender',
-        status: 'in_progress',
-        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
-      });
-
-      const quest = QuestStub({
-        status: 'in_progress',
-        workItems: [workItem],
-        wardResults: [wardResult],
-      });
-
-      const proxy = runSpiritmenderLayerBrokerProxy();
-      proxy.setupQuestFound({ quest });
-      proxy.setupSpawnAndMonitor({
-        lines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runSpiritmenderLayerBroker({
-        questId: quest.id,
-        workItems: [workItem],
-        startPath: FilePathStub({ value: '/project' }),
-        slotCount: SlotCountStub({ value: 3 }),
-        slotOperations: SlotOperationsStub(),
-      });
-
-      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
-
-      expect(status).toBe('failed');
-    });
-
-    it('VALID: {6 files across 3 slots, agents fail} => marks quest work item failed', async () => {
+    it('VALID: {6 files, 3 slots, 1 fails} => marks quest work item failed', async () => {
       const wardResult = WardResultStub({
         id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
         filePaths: [
@@ -298,7 +248,7 @@ describe('runSpiritmenderLayerBroker', () => {
           AbsoluteFilePathStub({ value: '/project/src/file-e.ts' }),
           AbsoluteFilePathStub({ value: '/project/src/file-f.ts' }),
         ],
-        errorSummary: 'multiple failures',
+        errorSummary: 'test failures',
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -319,8 +269,10 @@ describe('runSpiritmenderLayerBroker', () => {
 
       const proxy = runSpiritmenderLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
-      proxy.setupSpawnAndMonitor({
-        lines: [],
+      // First spawn: skip auto-emit (no signal → fail). Remaining spawns: auto-emit complete signal.
+      proxy.setupSpawnOnceLazy();
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
@@ -336,14 +288,19 @@ describe('runSpiritmenderLayerBroker', () => {
 
       expect(status).toBe('failed');
     });
-  });
 
-  describe('failure recovery', () => {
-    it('VALID: {spiritmender agent exits with no signal} => quest work item status is failed for downstream handling', async () => {
+    it('VALID: {all agents fail, 3 files} => marks quest work item failed for orchestration loop to handle skip + pathseeker', async () => {
+      // NOTE: skip pending + pathseeker replan happens at the orchestration loop level,
+      // not in this broker. This test verifies the broker correctly returns failed status
+      // so the orchestration loop CAN perform skip + pathseeker.
       const wardResult = WardResultStub({
         id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-        filePaths: [AbsoluteFilePathStub({ value: '/project/src/file-a.ts' })],
-        errorSummary: 'lint errors',
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/project/src/file-a.ts' }),
+          AbsoluteFilePathStub({ value: '/project/src/file-b.ts' }),
+          AbsoluteFilePathStub({ value: '/project/src/file-c.ts' }),
+        ],
+        errorSummary: 'test failures',
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -364,6 +321,7 @@ describe('runSpiritmenderLayerBroker', () => {
 
       const proxy = runSpiritmenderLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
+      // No signal lines → all agents fail → result.completed = false
       proxy.setupSpawnAndMonitor({
         lines: [],
         exitCode: ExitCodeStub({ value: 0 }),
@@ -381,10 +339,8 @@ describe('runSpiritmenderLayerBroker', () => {
 
       expect(status).toBe('failed');
     });
-  });
 
-  describe('exception handling', () => {
-    it('ERROR: {wardResult reference missing from quest} => throws', async () => {
+    it('ERROR: {wardResult missing from quest} => throws', async () => {
       const workItemId = QuestWorkItemIdStub({
         value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
       });
@@ -392,7 +348,7 @@ describe('runSpiritmenderLayerBroker', () => {
         id: workItemId,
         role: 'spiritmender',
         status: 'in_progress',
-        relatedDataItems: ['wardResults/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'],
+        relatedDataItems: ['wardResults/non-existent-ward-result-id'],
       });
 
       const quest = QuestStub({
@@ -412,16 +368,14 @@ describe('runSpiritmenderLayerBroker', () => {
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
         }),
-      ).rejects.toThrow(/WardResult.*not found/u);
+      ).rejects.toThrow(/WardResult .* not found/u);
     });
-  });
 
-  describe('edge cases', () => {
-    it('VALID: {0 files in wardResult} => marks quest work item complete with no work units', async () => {
+    it('VALID: {0 files in wardResult} => marks quest work item complete without spawning agents', async () => {
       const wardResult = WardResultStub({
         id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
         filePaths: [],
-        errorSummary: 'no files affected',
+        errorSummary: 'lint errors',
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -442,10 +396,7 @@ describe('runSpiritmenderLayerBroker', () => {
 
       const proxy = runSpiritmenderLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
-      proxy.setupSpawnAndMonitor({
-        lines: [COMPLETE_SIGNAL_LINE],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
+      // No spawn mock setup needed — 0 work units means no agents spawned
 
       await runSpiritmenderLayerBroker({
         questId: quest.id,

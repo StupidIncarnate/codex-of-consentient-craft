@@ -4,6 +4,7 @@ import {
   type Quest,
   type QuestStub,
   type QuestWorkItemId,
+  type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
@@ -12,119 +13,172 @@ import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questWorkItemInsertBrokerProxy } from '../work-item-insert/quest-work-item-insert-broker.proxy';
 import { spawnWardLayerBrokerProxy } from './spawn-ward-layer-broker.proxy';
 
-type QuestShape = ReturnType<typeof QuestStub>;
-
-const parseContent = (raw: unknown): Quest => {
-  const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
-  return questContract.parse(parsed);
-};
+type QuestInput = ReturnType<typeof QuestStub>;
 
 export const runWardLayerBrokerProxy = (): {
-  setupWardPass: (params: { quest: QuestShape }) => void;
-  setupWardFailWithRetry: (params: { quest: QuestShape; exitCode: ExitCode }) => void;
-  setupWardFailNoRetry: (params: { quest: QuestShape; exitCode: ExitCode }) => void;
-  setupWardFailWithWardResult: (params: {
-    quest: QuestShape;
+  setupWardPass: (params: { quest: QuestInput }) => void;
+  setupWardFail: (params: {
+    quest: QuestInput;
     exitCode: ExitCode;
     wardResultJson: string;
   }) => void;
-  setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
-  getLastPersistedWorkItemStatus: (params: {
+  setupWardFailRetryExhausted: (params: {
+    quest: QuestInput;
+    exitCode: ExitCode;
+    wardResultJson: string;
+  }) => void;
+  setupWardFailNullExit: (params: { quest: QuestInput }) => void;
+  setupWardFailNoFilePaths: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
+  getPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
-  getPersistedQuestAt: (params: { index: Quest['wardResults']['length'] }) => Quest;
-  getAllPersistedQuests: () => readonly Quest[];
-  getAllPersistedContents: () => readonly unknown[];
+  getPersistedWardResultExitCode: () => ExitCode | undefined;
+  getInsertedWorkItems: () => readonly WorkItem[];
+  getSkippedWorkItemIds: () => readonly QuestWorkItemId[];
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const wardProxy = spawnWardLayerBrokerProxy();
-  const insertProxy = questWorkItemInsertBrokerProxy();
+  const spawnProxy = spawnWardLayerBrokerProxy();
+  questWorkItemInsertBrokerProxy();
 
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
-  const getAllParsed = (): readonly Quest[] =>
-    modifyProxy.getAllPersistedContents().map((raw) => parseContent(raw));
+  const clearEnv = (): void => {
+    Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+  };
+
+  const setupModify = ({ quest }: { quest: QuestInput }): void => {
+    modifyProxy.setupQuestFound({ quest });
+  };
+
+  const setupGet = ({ quest }: { quest: QuestInput }): void => {
+    getProxy.setupQuestFound({ quest });
+  };
+
+  const parseAllQuests = (): readonly Quest[] => {
+    const persisted = modifyProxy.getAllPersistedContents();
+
+    return persisted.map((raw) => {
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+
+      return questContract.parse(parsed);
+    });
+  };
 
   return {
-    setupWardPass: ({ quest }: { quest: QuestShape }): void => {
-      wardProxy.setupWardSuccess({
+    setupWardPass: ({ quest }: { quest: QuestInput }): void => {
+      clearEnv();
+      spawnProxy.setupWardSuccess({
         exitCode: 0 as ExitCode,
         wardResultJson: '{"checks":[]}',
       });
-      modifyProxy.setupQuestFound({ quest });
+      // Pass: modify(mark complete)
+      setupModify({ quest });
     },
 
-    setupWardFailWithRetry: ({
-      quest,
-      exitCode,
-    }: {
-      quest: QuestShape;
-      exitCode: ExitCode;
-    }): void => {
-      wardProxy.setupWardNoRunId({ exitCode });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      insertProxy.setupQuestModify({ quest });
-    },
-
-    setupWardFailNoRetry: ({
-      quest,
-      exitCode,
-    }: {
-      quest: QuestShape;
-      exitCode: ExitCode;
-    }): void => {
-      wardProxy.setupWardNoRunId({ exitCode });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-    },
-
-    setupWardFailWithWardResult: ({
+    setupWardFail: ({
       quest,
       exitCode,
       wardResultJson,
     }: {
-      quest: QuestShape;
+      quest: QuestInput;
       exitCode: ExitCode;
       wardResultJson: string;
     }): void => {
-      wardProxy.setupWardFailure({ exitCode, wardResultJson });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
+      clearEnv();
+      spawnProxy.setupWardFailure({ exitCode, wardResultJson });
+      // Fail w/ filePaths + retries: modify(wardResult), modify(failed), get(insert), modify(insert)
+      setupModify({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
     },
 
-    getLastPersistedWorkItemStatus: ({
+    setupWardFailRetryExhausted: ({
+      quest,
+      exitCode,
+      wardResultJson,
+    }: {
+      quest: QuestInput;
+      exitCode: ExitCode;
+      wardResultJson: string;
+    }): void => {
+      clearEnv();
+      spawnProxy.setupWardFailure({ exitCode, wardResultJson });
+      // Exhausted: modify(wardResult), modify(failed), get(exhausted), modify(skip), get(fresh), modify(insert)
+      setupModify({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
+    },
+
+    setupWardFailNullExit: ({ quest }: { quest: QuestInput }): void => {
+      clearEnv();
+      spawnProxy.setupWardNoRunId({ exitCode: null as unknown as ExitCode });
+      // Null exit, no wardResult filePaths: get(fallback), modify(wardResult), modify(failed), get(insert), modify(insert)
+      setupGet({ quest });
+      setupModify({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
+    },
+
+    setupWardFailNoFilePaths: ({
+      quest,
+      exitCode,
+    }: {
+      quest: QuestInput;
+      exitCode: ExitCode;
+    }): void => {
+      clearEnv();
+      spawnProxy.setupWardFailure({ exitCode, wardResultJson: '{"checks":[]}' });
+      // No filePaths from ward output: get(fallback), modify(wardResult), modify(failed), get(insert), modify(insert)
+      setupGet({ quest });
+      setupModify({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
+    },
+
+    getPersistedWorkItemStatus: ({
       workItemId,
     }: {
       workItemId: QuestWorkItemId;
     }): WorkItemStatus | undefined => {
-      const quests = getAllParsed();
+      const quests = parseAllQuests();
+      const reversed = [...quests].reverse();
+      const found = reversed
+        .flatMap((q) => q.workItems)
+        .find((w) => w.id === workItemId && w.status !== 'in_progress');
+
+      return found?.status;
+    },
+
+    getPersistedWardResultExitCode: (): ExitCode | undefined => {
+      const quests = parseAllQuests();
+      const questWithResults = quests.find((q) => q.wardResults.length > 0);
+
+      return questWithResults?.wardResults[0]?.exitCode;
+    },
+
+    getInsertedWorkItems: (): readonly WorkItem[] => {
+      const quests = parseAllQuests();
       const last = quests[quests.length - 1];
-      if (!last) return undefined;
-      const item = last.workItems.find((wi) => wi.id === workItemId);
-      return item?.status;
+
+      return last ? last.workItems : [];
     },
 
-    getPersistedQuestAt: ({ index }: { index: Quest['wardResults']['length'] }): Quest => {
-      const quests = getAllParsed();
-      const quest = quests[index];
-      if (!quest) throw new Error(`No persisted quest at index ${String(index)}`);
-      return quest;
-    },
+    getSkippedWorkItemIds: (): readonly QuestWorkItemId[] => {
+      const quests = parseAllQuests();
 
-    getAllPersistedQuests: (): readonly Quest[] => getAllParsed(),
-
-    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
-
-    setupDeterministicUuids: ({ uuids }: { uuids: readonly string[] }): void => {
-      const spy = jest.spyOn(crypto, 'randomUUID');
-      for (const uuid of uuids) {
-        spy.mockReturnValueOnce(uuid as ReturnType<typeof crypto.randomUUID>);
-      }
+      return quests
+        .flatMap((q) => q.workItems)
+        .filter((w) => w.status === 'skipped')
+        .map((w) => w.id)
+        .filter((id, idx, arr) => arr.indexOf(id) === idx);
     },
   };
 };

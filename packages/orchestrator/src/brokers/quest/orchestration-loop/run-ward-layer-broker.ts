@@ -62,7 +62,7 @@ export const runWardLayerBroker = async ({
   const wardResult = wardResultContract.parse({
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
-    exitCode: exitCode ?? 1,
+    exitCode,
     filePaths,
     ...(wardResultJson ? { errorSummary: wardResultJson } : {}),
   });
@@ -85,6 +85,44 @@ export const runWardLayerBroker = async ({
 
   // Check retry budget
   if (workItem.attempt >= workItem.maxAttempts - 1) {
+    // Retries exhausted — skip all pending items and create pathseeker replan
+    const questInput = getQuestInputContract.parse({ questId });
+    const exhaustedResult = await questGetBroker({ input: questInput });
+    if (exhaustedResult.success && exhaustedResult.quest) {
+      const pendingSkips = exhaustedResult.quest.workItems
+        .filter((item) => item.status === 'pending')
+        .map((item) => ({ id: item.id, status: 'skipped' as const, completedAt }));
+
+      if (pendingSkips.length > 0) {
+        await questModifyBroker({
+          input: {
+            questId,
+            workItems: pendingSkips,
+          } as ModifyQuestInput,
+        });
+      }
+
+      // Re-fetch after skip modifications
+      const freshResult = await questGetBroker({ input: questInput });
+      if (freshResult.success && freshResult.quest) {
+        const pathseekerReplan = workItemContract.parse({
+          id: crypto.randomUUID(),
+          role: 'pathseeker',
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [],
+          maxAttempts: 3,
+          createdAt: new Date().toISOString(),
+          insertedBy: workItem.id,
+        });
+
+        await questWorkItemInsertBroker({
+          questId,
+          quest: freshResult.quest,
+          newWorkItems: [pathseekerReplan],
+        });
+      }
+    }
     return;
   }
 

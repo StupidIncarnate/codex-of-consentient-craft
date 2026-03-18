@@ -5,20 +5,14 @@ jest.mock('readline');
 export const readlineCreateInterfaceAdapterProxy = (): {
   emitLines: (params: { lines: readonly string[] }) => void;
   setAutoEmitLines: (params: { lines: readonly string[] }) => void;
-  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
+  skipAutoEmitOnce: () => void;
 } => {
   const mock = jest.mocked(createInterface);
   const lineCallbacks: ((line: string) => void)[] = [];
-  const autoEmitRef: {
-    lines: Parameters<
-      ReturnType<typeof readlineCreateInterfaceAdapterProxy>['emitLines']
-    >[0]['lines'];
-  } = { lines: [] };
-  const storedReplayRef: {
-    lines: Parameters<
-      ReturnType<typeof readlineCreateInterfaceAdapterProxy>['emitLines']
-    >[0]['lines'];
-  } = { lines: [] };
+  const autoLines = [] as Parameters<
+    ReturnType<typeof readlineCreateInterfaceAdapterProxy>['emitLines']
+  >[0][];
+  const skipAutoEmitQueue: boolean[] = [];
 
   mock.mockImplementation(
     () =>
@@ -26,13 +20,20 @@ export const readlineCreateInterfaceAdapterProxy = (): {
         on: jest.fn().mockImplementation((event: string, callback: (line: string) => void) => {
           if (event === 'line') {
             lineCallbacks.push(callback);
-            if (autoEmitRef.lines.length > 0) {
-              for (const emitLine of autoEmitRef.lines) {
-                callback(emitLine);
-              }
+            if (skipAutoEmitQueue.length > 0) {
+              skipAutoEmitQueue.pop();
+              return;
             }
-            for (const line of storedReplayRef.lines) {
-              callback(line);
+            if (autoLines.length > 0) {
+              const [config] = autoLines;
+              if (config) {
+                // Use queueMicrotask so lines arrive before setImmediate-based exit
+                queueMicrotask(() => {
+                  for (const autoLine of config.lines) {
+                    callback(autoLine);
+                  }
+                });
+              }
             }
           }
         }),
@@ -49,10 +50,10 @@ export const readlineCreateInterfaceAdapterProxy = (): {
       }
     },
     setAutoEmitLines: ({ lines }: { lines: readonly string[] }): void => {
-      autoEmitRef.lines = lines;
+      autoLines.push({ lines });
     },
-    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
-      storedReplayRef.lines = lines;
+    skipAutoEmitOnce: (): void => {
+      skipAutoEmitQueue.push(true);
     },
   };
 };

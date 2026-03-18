@@ -7,9 +7,9 @@ export const slotManagerOrchestrateBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
-  setupAutoEmitLines: ReturnType<typeof runOrchestrationLayerBrokerProxy>['setupAutoEmitLines'];
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
-  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
 } => {
   const runOrchestrationProxy = runOrchestrationLayerBrokerProxy();
 
@@ -33,12 +33,20 @@ export const slotManagerOrchestrateBrokerProxy = (): {
     }): void => {
       runOrchestrationProxy.setupSpawnOnce({ lines, exitCode });
     },
-    setupAutoEmitLines: runOrchestrationProxy.setupAutoEmitLines,
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      runOrchestrationProxy.setupSpawnAutoLines({ lines, exitCode });
+    },
+    setupSpawnOnceLazy: (): void => {
+      runOrchestrationProxy.setupSpawnOnceLazy();
+    },
     setupSpawnFailure: (): void => {
       runOrchestrationProxy.setupSpawnFailure();
-    },
-    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
-      runOrchestrationProxy.setAutoReplayLines({ lines });
     },
   };
 };

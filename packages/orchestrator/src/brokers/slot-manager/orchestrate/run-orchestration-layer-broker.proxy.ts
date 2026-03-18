@@ -7,9 +7,9 @@ export const runOrchestrationLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
-  setupAutoEmitLines: ReturnType<typeof orchestrationLoopLayerBrokerProxy>['setupAutoEmitLines'];
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
-  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
 } => {
   const loopProxy = orchestrationLoopLayerBrokerProxy();
 
@@ -33,12 +33,20 @@ export const runOrchestrationLayerBrokerProxy = (): {
     }): void => {
       loopProxy.setupSpawnOnce({ lines, exitCode });
     },
-    setupAutoEmitLines: loopProxy.setupAutoEmitLines,
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      loopProxy.setupSpawnAutoLines({ lines, exitCode });
+    },
+    setupSpawnOnceLazy: (): void => {
+      loopProxy.setupSpawnOnceLazy();
+    },
     setupSpawnFailure: (): void => {
       loopProxy.setupSpawnFailure();
-    },
-    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
-      loopProxy.setAutoReplayLines({ lines });
     },
   };
 };

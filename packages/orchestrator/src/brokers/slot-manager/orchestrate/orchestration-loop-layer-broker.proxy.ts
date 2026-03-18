@@ -8,9 +8,9 @@ export const orchestrationLoopLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
-  setupAutoEmitLines: ReturnType<typeof spawnAgentLayerBrokerProxy>['setupAutoEmitLines'];
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
-  setAutoReplayLines: (params: { lines: readonly string[] }) => void;
   setupDateNow: (params: { timestamp: number }) => void;
 } => {
   const spawnProxy = spawnAgentLayerBrokerProxy();
@@ -43,12 +43,20 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnOnce({ lines, exitCode });
     },
-    setupAutoEmitLines: spawnProxy.setupAutoEmitLines,
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      spawnProxy.setupSpawnAutoLines({ lines, exitCode });
+    },
+    setupSpawnOnceLazy: (): void => {
+      spawnProxy.setupSpawnOnceLazy();
+    },
     setupSpawnFailure: (): void => {
       spawnProxy.setupSpawnFailure();
-    },
-    setAutoReplayLines: ({ lines }: { lines: readonly string[] }): void => {
-      spawnProxy.setAutoReplayLines({ lines });
     },
     setupDateNow: ({ timestamp }: { timestamp: number }): void => {
       jest.spyOn(Date, 'now').mockReturnValue(timestamp);

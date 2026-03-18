@@ -7,7 +7,7 @@
  */
 
 import type { AbsoluteFilePath, ExitCode, FileContents } from '@dungeonmaster/shared/contracts';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 
@@ -18,12 +18,14 @@ export const spawnWardLayerBroker = async ({
   startPath,
 }: {
   startPath: AbsoluteFilePath;
-}): Promise<{ exitCode: ExitCode | null; wardResultJson: FileContents | null }> => {
-  const { exitCode, output } = await childProcessSpawnCaptureAdapter({
+}): Promise<{ exitCode: ExitCode; wardResultJson: FileContents | null }> => {
+  const { exitCode: rawExitCode, output } = await childProcessSpawnCaptureAdapter({
     command: 'dungeonmaster-ward',
     args: ['run'],
     cwd: startPath,
   });
+
+  const exitCode = rawExitCode ?? exitCodeContract.parse(1);
 
   const runId = wardOutputToRunIdTransformer({ output });
 

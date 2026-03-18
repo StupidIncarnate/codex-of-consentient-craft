@@ -1,23 +1,337 @@
 import {
+  ContractNameStub,
   DependencyStepStub,
   ExitCodeStub,
+  FlowEdgeStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
+  ObservableIdStub,
+  QuestContractEntryStub,
+  QuestContractPropertyStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  StepIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
 
+const CW1_UUID = '11111111-1111-4111-8111-111111111101';
+const CW2_UUID = '22222222-2222-4222-8222-222222222202';
+const WARD_UUID = '33333333-3333-4333-8333-333333333303';
+const SIEGE_UUID = '44444444-4444-4444-8444-444444444404';
+const PS_WORK_ITEM_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+const ALL_UUIDS = [
+  CW1_UUID,
+  CW2_UUID,
+  WARD_UUID,
+  SIEGE_UUID,
+  '55555555-5555-4555-8555-555555555505',
+  '66666666-6666-4666-8666-666666666606',
+];
+
+const buildValidQuestWith2Steps = ({
+  workItem,
+}: {
+  workItem: ReturnType<typeof WorkItemStub>;
+}): ReturnType<typeof QuestStub> => {
+  const obsId1 = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+  const obsId2 = ObservableIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+  const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
+  const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
+  const contractName = ContractNameStub({ value: 'IsValid' });
+
+  return QuestStub({
+    id: QuestIdStub({ value: 'test-quest' }),
+    status: 'in_progress',
+    flows: [
+      FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page',
+            type: 'terminal',
+            observables: [FlowObservableStub({ id: obsId1 })],
+          }),
+          FlowNodeStub({
+            id: 'dashboard',
+            type: 'terminal',
+            observables: [FlowObservableStub({ id: obsId2 })],
+          }),
+        ],
+        edges: [FlowEdgeStub({ from: 'login-page', to: 'dashboard' })],
+      }),
+    ],
+    contracts: [
+      QuestContractEntryStub({
+        name: contractName,
+        properties: [QuestContractPropertyStub({ name: 'email', type: 'EmailAddress' })],
+      }),
+    ],
+    steps: [
+      DependencyStepStub({
+        id: stepId1,
+        observablesSatisfied: [obsId1],
+        dependsOn: [],
+        filesToCreate: [
+          'packages/orchestrator/src/guards/step-one/step-one-guard.ts',
+          'packages/orchestrator/src/guards/step-one/step-one-guard.test.ts',
+        ],
+        filesToModify: [],
+        outputContracts: [contractName],
+        exportName: 'stepOneGuard',
+      }),
+      DependencyStepStub({
+        id: stepId2,
+        observablesSatisfied: [obsId2],
+        dependsOn: [],
+        filesToCreate: [
+          'packages/orchestrator/src/guards/step-two/step-two-guard.ts',
+          'packages/orchestrator/src/guards/step-two/step-two-guard.test.ts',
+        ],
+        filesToModify: [],
+        outputContracts: [contractName],
+        exportName: 'stepTwoGuard',
+      }),
+    ],
+    workItems: [workItem],
+  });
+};
+
+const buildVerifyFailQuest = ({
+  workItem,
+}: {
+  workItem: ReturnType<typeof WorkItemStub>;
+}): ReturnType<typeof QuestStub> =>
+  QuestStub({
+    id: QuestIdStub({ value: 'test-quest' }),
+    status: 'in_progress',
+    flows: [
+      FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page',
+            type: 'terminal',
+            observables: [
+              FlowObservableStub({
+                id: ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' }),
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+    steps: [
+      DependencyStepStub({
+        observablesSatisfied: [],
+        filesToCreate: [],
+        filesToModify: [],
+      }),
+    ],
+    workItems: [workItem],
+  });
+
+type PersistedQuest = ReturnType<typeof QuestStub>;
+
 describe('runPathseekerLayerBroker', () => {
+  describe('VERIFY PASSES — codeweavers created', () => {
+    it('VALID: {quest with 2 steps, verify passes} => 2 codeweavers depending on pathseeker', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ALL_UUIDS });
+      proxy.setupSuccess({
+        quest: buildValidQuestWith2Steps({ workItem }),
+        spawnLines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
+      const codeweavers = lastQuest.workItems.filter((item) => item.role === 'codeweaver');
+
+      expect(codeweavers).toHaveLength(2);
+      expect(codeweavers[0]?.dependsOn).toStrictEqual([PS_WORK_ITEM_ID]);
+      expect(codeweavers[1]?.dependsOn).toStrictEqual([PS_WORK_ITEM_ID]);
+    });
+  });
+
+  describe('VERIFY PASSES — ward created', () => {
+    it('VALID: {quest with 2 steps, verify passes} => 1 ward depending on both codeweavers', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ALL_UUIDS });
+      proxy.setupSuccess({
+        quest: buildValidQuestWith2Steps({ workItem }),
+        spawnLines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
+      const wards = lastQuest.workItems.filter((item) => item.role === 'ward');
+
+      expect(wards).toHaveLength(1);
+      expect(wards[0]?.spawnerType).toBe('command');
+      expect(wards[0]?.maxAttempts).toBe(3);
+      expect(wards[0]?.dependsOn).toStrictEqual([CW1_UUID, CW2_UUID]);
+    });
+  });
+
+  describe('VERIFY PASSES — siege and lawbringers created', () => {
+    it('VALID: {quest with 2 steps, verify passes} => 1 siege + 2 lawbringers with correct chain', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ALL_UUIDS });
+      proxy.setupSuccess({
+        quest: buildValidQuestWith2Steps({ workItem }),
+        spawnLines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
+      const sieges = lastQuest.workItems.filter((item) => item.role === 'siegemaster');
+      const lawbringers = lastQuest.workItems.filter((item) => item.role === 'lawbringer');
+
+      expect(sieges).toHaveLength(1);
+      expect(sieges[0]?.dependsOn).toStrictEqual([WARD_UUID]);
+      expect(lawbringers).toHaveLength(2);
+      expect(lawbringers[0]?.dependsOn).toStrictEqual([SIEGE_UUID]);
+      expect(lawbringers[1]?.dependsOn).toStrictEqual([SIEGE_UUID]);
+    });
+  });
+
+  describe('VERIFY FAILS (retries left) — retry work item created', () => {
+    it('VALID: {verify fails, attempt 0, maxAttempts 3} => pathseeker failed + retry created', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        attempt: 0,
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeee01'] });
+      proxy.setupVerifyFail({
+        quest: buildVerifyFailQuest({ workItem }),
+        spawnLines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
+      const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
+
+      expect(failedItem?.status).toBe('failed');
+      expect(failedItem?.errorMessage).toBe('verification_failed');
+      expect(proxy.getUuidCalls()).toHaveLength(1);
+    });
+  });
+
+  describe('VERIFY FAILS (no retries left) — no retry created', () => {
+    it('VALID: {verify fails, attempt 2, maxAttempts 3} => pathseeker failed, no retry', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        attempt: 2,
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupVerifyFail({
+        quest: buildVerifyFailQuest({ workItem }),
+        spawnLines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
+      const failedItem = lastQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
+
+      expect(failedItem?.status).toBe('failed');
+      expect(failedItem?.errorMessage).toBe('verification_failed');
+      expect(lastQuest.workItems.filter((item) => item.role === 'pathseeker')).toHaveLength(1);
+    });
+  });
+
+  describe('CRASH — spawn fails, verify still runs', () => {
+    it('VALID: {spawn crashes, attempt 0, maxAttempts 3} => verify fails, retry created', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        attempt: 0,
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ['bbbbbbbb-cccc-4ddd-8eee-ffffffffffff'] });
+      proxy.setupSpawnFailure({ quest: buildVerifyFailQuest({ workItem }) });
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      const allWorkItems = proxy
+        .getPersistedQuestJsons()
+        .flatMap((q) => (q as PersistedQuest).workItems);
+      const failedItems = allWorkItems.filter((item) => item.id === PS_WORK_ITEM_ID);
+      const markedFailed = failedItems.find((item) => item.status === 'failed');
+
+      expect(markedFailed?.errorMessage).toBe('verification_failed');
+      expect(proxy.getUuidCalls()).toHaveLength(1);
+    });
+  });
+
+  describe('EXCEPTION — quest not found', () => {
+    it('VALID: {quest not found in filesystem} => broker completes without persisting', async () => {
+      const questId = QuestIdStub({ value: 'nonexistent-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupQuestNotFound();
+
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+
+      expect(proxy.getPersistedQuestJsons()).toHaveLength(0);
+    });
+  });
+
   describe('sessionId capture', () => {
     it('VALID: {spawn emits session_id line} => writes sessionId to work item', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const workItem = WorkItemStub({
-        id: workItemId,
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
         role: 'pathseeker',
         status: 'in_progress',
         maxAttempts: 3,
@@ -35,15 +349,9 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
 
-      const questJsons = proxy.getPersistedQuestJsons();
-
-      expect(questJsons.length).toBeGreaterThan(0);
+      expect(proxy.getPersistedQuestJsons().length).toBeGreaterThan(0);
     });
   });
 
@@ -51,9 +359,8 @@ describe('runPathseekerLayerBroker', () => {
     it('VALID: {workItem has sessionId} => passes resumeSessionId through to spawn args', async () => {
       const questId = QuestIdStub({ value: 'test-resume-quest' });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
-      const workItemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const workItem = WorkItemStub({
-        id: workItemId,
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
         role: 'pathseeker',
         status: 'in_progress',
         sessionId: resumeSessionId,
@@ -72,15 +379,9 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
+      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
 
-      const spawnedArgs = proxy.getSpawnedArgs();
-
-      expect(spawnedArgs).toStrictEqual([
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
         expect.any(String),
         '--output-format',
@@ -89,231 +390,6 @@ describe('runPathseekerLayerBroker', () => {
         '--resume',
         '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
       ]);
-    });
-  });
-
-  describe('verify passes', () => {
-    it('VALID: {spawn succeeds, verify passes on empty quest} => marks pathseeker complete', async () => {
-      const questId = QuestIdStub({ value: 'verify-pass-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000001-0001-4001-a001-000000000001' });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        maxAttempts: 3,
-      });
-      // Empty steps and flows pass all verification checks vacuously.
-      // stepsToWorkItemsTransformer returns [] for 0 steps, so no downstream items.
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [],
-        flows: [],
-        workItems: [workItem],
-      });
-
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupVerifyPass({
-        quest,
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
-
-      const persistedQuests = proxy.getAllPersistedQuests();
-
-      expect(persistedQuests.length).toBeGreaterThanOrEqual(1);
-
-      // Pathseeker marked complete
-      const completedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
-
-      expect(completedItem).toHaveLength(1);
-      expect(completedItem[0]?.status).toBe('complete');
-      expect(completedItem[0]?.completedAt).toBe('2024-01-15T10:00:00.000Z');
-    });
-  });
-
-  describe('verify fails with retries left', () => {
-    it('VALID: {verify fails, attempt 0 of 3} => marks pathseeker failed with verification_failed', async () => {
-      const questId = QuestIdStub({ value: 'verify-fail-retry-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000002-0002-4002-a002-000000000001' });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 0 as never,
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [DependencyStepStub()],
-        workItems: [workItem],
-      });
-
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupDeterministicUuids({
-        uuids: ['aaa00000-0000-4000-a000-000000000001'],
-      });
-      proxy.setupSpawnSuccessVerifyFail({
-        quest,
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
-
-      const persistedQuests = proxy.getAllPersistedQuests();
-
-      expect(persistedQuests.length).toBeGreaterThanOrEqual(1);
-
-      // First persist: pathseeker marked failed
-      const failedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
-
-      expect(failedItem).toHaveLength(1);
-      expect(failedItem[0]?.status).toBe('failed');
-      expect(failedItem[0]?.errorMessage).toBe('verification_failed');
-    });
-  });
-
-  describe('verify fails with no retries left', () => {
-    it('VALID: {verify fails, attempt 2 of 3} => marks failed with no retry created', async () => {
-      const questId = QuestIdStub({ value: 'verify-fail-no-retry-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000003-0003-4003-a003-000000000001' });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 2 as never,
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [DependencyStepStub()],
-        workItems: [workItem],
-      });
-
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupSpawnSuccessVerifyFail({
-        quest,
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
-
-      const persistedQuests = proxy.getAllPersistedQuests();
-
-      // Only one persist: pathseeker marked failed, no retry created
-      expect(persistedQuests).toHaveLength(1);
-
-      const failedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
-
-      expect(failedItem).toHaveLength(1);
-      expect(failedItem[0]?.status).toBe('failed');
-      expect(failedItem[0]?.errorMessage).toBe('verification_failed');
-    });
-  });
-
-  describe('spawn crash with retries left', () => {
-    it('VALID: {spawn crashes, verify fails, retries left} => marks pathseeker failed', async () => {
-      const questId = QuestIdStub({ value: 'crash-retry-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000004-0004-4004-a004-000000000001' });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 0 as never,
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [DependencyStepStub()],
-        workItems: [workItem],
-      });
-
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupDeterministicUuids({
-        uuids: ['bbb00000-0000-4000-a000-000000000001'],
-      });
-      proxy.setupSpawnCrashVerifyFail({ quest });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
-
-      const persistedQuests = proxy.getAllPersistedQuests();
-
-      expect(persistedQuests.length).toBeGreaterThanOrEqual(1);
-
-      // First persist: pathseeker marked failed after crash + verify failure
-      const failedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
-
-      expect(failedItem).toHaveLength(1);
-      expect(failedItem[0]?.status).toBe('failed');
-      expect(failedItem[0]?.errorMessage).toBe('verification_failed');
-    });
-  });
-
-  describe('[X2] second fetch failure guard', () => {
-    it('VALID: {verify passes on empty quest} => second questGetBroker succeeds and no throw', async () => {
-      // This test verifies the X2 fix: after marking pathseeker complete, the code
-      // now throws if questGetBroker fails (instead of silently dropping downstream items).
-      // Here we verify the success path (no steps = no downstream items needed).
-      const questId = QuestIdStub({ value: 'verify-pass-x2-guard' });
-      const workItemId = QuestWorkItemIdStub({ value: '00000006-0006-4006-a006-000000000001' });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        steps: [],
-        flows: [],
-        workItems: [workItem],
-      });
-
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupVerifyPass({
-        quest,
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-      });
-
-      const persistedQuests = proxy.getAllPersistedQuests();
-
-      expect(persistedQuests.length).toBeGreaterThanOrEqual(1);
-
-      const completedItem = persistedQuests[0]!.workItems.filter((wi) => wi.id === workItemId);
-
-      expect(completedItem).toHaveLength(1);
-      expect(completedItem[0]?.status).toBe('complete');
     });
   });
 });
