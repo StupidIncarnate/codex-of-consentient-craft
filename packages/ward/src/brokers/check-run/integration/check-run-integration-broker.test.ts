@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 
 import { checkRunIntegrationBroker } from './check-run-integration-broker';
 import { checkRunIntegrationBrokerProxy } from './check-run-integration-broker.proxy';
@@ -359,6 +360,115 @@ describe('checkRunIntegrationBroker', () => {
         '--testNamePattern',
         'should connect',
       ]);
+    });
+  });
+
+  describe('testNamePattern zero matches', () => {
+    it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'jest',
+              line: 0,
+              column: 0,
+              message:
+                '--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name',
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 3,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'VALID',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 0,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.integration.test.ts'],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
     });
   });
 

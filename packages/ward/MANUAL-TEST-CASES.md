@@ -21,6 +21,23 @@ run: {runId}
 - Skipped checks appear as `skip` in live progress but are **omitted entirely** from the summary.
 - The `--- {checkType} ---` error detail section only appears for failing checks.
 
+### Failure Verification Workflow
+
+Every failure test case MUST verify the full drill-down chain, not just the summary:
+
+1. **Run ward** — note the `run: {runId}` from the summary
+2. **ward-list** — use MCP tool `ward-list` with `runId`. Verify: full error messages visible (not truncated), correct
+   file paths, jest diffs for test failures
+3. **ward-detail** — use MCP tool `ward-detail` with `runId` + `filePath`. Verify: drill-down shows complete error for
+   the specific file
+4. **ward-raw** — use MCP tool `ward-raw` with `runId` + `checkType`. Verify: raw tool output is captured
+
+**Note on ward-detail paths:** `ward-detail` normalizes paths, so any format works (absolute, repo-relative,
+package-relative). Use whatever `ward-list` shows.
+
+**Note on ward-raw for typecheck:** `ward-raw` with `checkType: typecheck` returns the full tsc output (100K+ chars)
+which may exceed MCP response limits. This is expected — tsc dumps every file it processed.
+
 ---
 
 ## Coverage Grid
@@ -45,6 +62,8 @@ Only the requested check type appears in the output. No other check types should
 | [2e](#2e-package-scope-all-integration-tests-in-package) | `--only integration -- packages/ward`                                                            | `int ... PASS 4 files`      | unit, e2e, lint, tc  |
 | [2f](#2f-no-scope-all-packages)                          | `--only integration`                                                                             | `int ... PASS` (all pkgs)   | unit, e2e, lint, tc  |
 | [3a](#3a-package-without-playwrightconfigts)             | `--only e2e -- packages/ward`                                                                    | `e2e ... skip`              | unit, int, lint, tc  |
+| [3c](#3c-single-e2e-test-file)                           | `--only e2e -- .../smoke.spec.ts`                                                                | `e2e ... PASS N files`      | unit, int, lint, tc  |
+| [3d](#3d-package-scope-all-e2e-tests)                    | `--only e2e -- packages/testing`                                                                 | `e2e ... PASS N files`      | unit, int, lint, tc  |
 | [3b](#3b-no-scope-all-packages)                          | `--only e2e`                                                                                     | `e2e ... PASS/skip` per pkg | unit, int, lint, tc  |
 | [4a](#4a-single-implementation-file)                     | `--only lint -- .../is-check-type-guard.ts`                                                      | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
 | [4b](#4b-single-test-file)                               | `--only lint -- .../is-check-type-guard.test.ts`                                                 | `lint ... PASS 1 files`     | unit, int, e2e, tc   |
@@ -82,36 +101,36 @@ These verify that check types **skip** (not run everything) when passthrough fil
 All failures require modifying `is-check-type-guard.ts` or its `.test.ts` — see linked detail for exact change. **Revert
 after each test.**
 
-| ID                                                                    | Mutation                     | Command                                                         | unit     | int      | lint     | tc       |
-|-----------------------------------------------------------------------|------------------------------|-----------------------------------------------------------------|----------|----------|----------|----------|
-| [1h](#1h-unit-test-failure)                                           | flip assertion in `.test.ts` | `--only unit -- .../is-check-type-guard.test.ts`                | **FAIL** |          |          |          |
-| [2g](#2g-integration-test-failure)                                    | flip assertion in int test   | `--only int -- .../start-ward.integration.test.ts`              |          | **FAIL** |          |          |
-| [4g](#4g-lint-failure--single-file)                                   | add `var x` to `.ts`         | `--only lint -- .../is-check-type-guard.ts`                     |          |          | **FAIL** |          |
-| [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add `var x` to `.ts`         | `--only lint -- .../is-check-type-guard.test.ts`                |          |          | PASS     |          |
-| [4i](#4i-lint-failure--package-scope-catches-it)                      | add `var x` to `.ts`         | `--only lint -- packages/ward`                                  |          |          | **FAIL** |          |
-| [5d](#5d-typecheck-failure--scoped-to-broken-file)                    | `const x: number = 'hello'`  | `--only typecheck -- .../is-check-type-guard.ts`                |          |          |          | **FAIL** |
-| [5e](#5e-typecheck-failure--scoped-to-different-file-error-filtering) | `const x: number = 'hello'`  | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          | PASS     |
-| [5f](#5f-typecheck-failure--package-scope-catches-it)                 | `const x: number = 'hello'`  | `--only typecheck -- packages/ward`                             |          |          |          | **FAIL** |
-| [9a](#9a-unit-fails-lint-and-typecheck-pass)                          | flip assertion in `.test.ts` | `--only unit,lint,typecheck -- .../is-check-type-guard.test.ts` | **FAIL** |          | PASS     | PASS     |
-| [9b](#9b-lint-fails-unit-passes)                                      | add `var x` to `.ts`         | `--only lint,unit -- .../is-check-type-guard.ts`                | PASS     |          | **FAIL** |          |
-| [9c](#9c-typecheck-fails-lint-passes-on-same-file)                    | `const x: number = 'hello'`  | `--only lint,typecheck -- .../is-check-type-guard.ts`           |          |          | PASS     | **FAIL** |
+| ID                                                                    | Mutation                             | Command                                                         | unit     | int      | lint     | tc       |
+|-----------------------------------------------------------------------|--------------------------------------|-----------------------------------------------------------------|----------|----------|----------|----------|
+| [1h](#1h-unit-test-failure)                                           | flip assertion in `.test.ts`         | `--only unit -- .../is-check-type-guard.test.ts`                | **FAIL** |          |          |          |
+| [2g](#2g-integration-test-failure)                                    | flip assertion in int test           | `--only int -- .../start-ward.integration.test.ts`              |          | **FAIL** |          |          |
+| [4g](#4g-lint-failure--single-file)                                   | add unused `broken` param            | `--only lint -- .../is-check-type-guard.ts`                     |          |          | **FAIL** |          |
+| [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add unused `broken` param            | `--only lint -- .../is-check-type-guard.test.ts`                |          |          | PASS     |          |
+| [4i](#4i-lint-failure--package-scope-catches-it)                      | add unused `broken` param            | `--only lint -- packages/ward`                                  |          |          | **FAIL** |          |
+| [5d](#5d-typecheck-failure--scoped-to-broken-file)                    | return `.safeParse()` not `.success` | `--only typecheck -- .../is-check-type-guard.ts`                |          |          |          | **FAIL** |
+| [5e](#5e-typecheck-failure--scoped-to-different-file-error-filtering) | return `.safeParse()` not `.success` | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          | PASS     |
+| [5f](#5f-typecheck-failure--package-scope-catches-it)                 | return `.safeParse()` not `.success` | `--only typecheck -- packages/ward`                             |          |          |          | **FAIL** |
+| [9a](#9a-unit-fails-lint-and-typecheck-pass)                          | flip assertion in `.test.ts`         | `--only unit,lint,typecheck -- .../is-check-type-guard.test.ts` | **FAIL** |          | PASS     | PASS     |
+| [9b](#9b-lint-fails-unit-also-fails-shared-violation)                 | add unused `broken` param            | `--only lint,unit -- .../is-check-type-guard.ts`                | **FAIL** |          | **FAIL** |          |
+| [9c](#9c-typecheck-fails-lint-passes-on-same-file)                    | return `.safeParse()` not `.success` | `--only lint,typecheck -- .../is-check-type-guard.ts`           |          |          | PASS     | **FAIL** |
 
 ### Flag Behavior
 
-| ID                                                  | Command                                                                        | Checks that run                    |
-|-----------------------------------------------------|--------------------------------------------------------------------------------|------------------------------------|
-| [7a](#7a-comma-separated-types)                     | `--only lint,unit -- packages/ward`                                            | lint, unit                         |
-| [7b](#7b---only-test-expands-to-unitintegratione2e) | `--only test -- packages/ward`                                                 | unit, int, e2e                     |
-| [7c](#7c---only-testlint-deduplicates)              | `--only test,lint -- packages/ward`                                            | unit, int, e2e, lint               |
-| [7d](#7d---only-teste2e-does-not-duplicate-e2e)     | `--only test,e2e -- packages/ward`                                             | unit, int, e2e (no dup)            |
-| [7e](#7e-comma-separated-with-multi-files)          | `--only lint,unit -- .../guard.ts .../transformer.test.ts`                     | lint PASS 2, unit PASS N           |
-| [7f](#7f-test-expansion-with-multi-mixed-files)     | `--only test -- .../transformer.test.ts .../start-ward.int.test.ts`            | unit PASS 1, int PASS 1, e2e skip  |
-| [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`                   | jest gets `--testNamePattern`      |
-| [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation              |
-| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | PASS 1 (0 tests run, jest exits 0) |
-| [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                  |
-| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "exports" -- packages/ward`                    | int respects it                    |
-| [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name      |
+| ID                                                  | Command                                                                        | Checks that run                   |
+|-----------------------------------------------------|--------------------------------------------------------------------------------|-----------------------------------|
+| [7a](#7a-comma-separated-types)                     | `--only lint,unit -- packages/ward`                                            | lint, unit                        |
+| [7b](#7b---only-test-expands-to-unitintegratione2e) | `--only test -- packages/ward`                                                 | unit, int, e2e                    |
+| [7c](#7c---only-testlint-deduplicates)              | `--only test,lint -- packages/ward`                                            | unit, int, e2e, lint              |
+| [7d](#7d---only-teste2e-does-not-duplicate-e2e)     | `--only test,e2e -- packages/ward`                                             | unit, int, e2e (no dup)           |
+| [7e](#7e-comma-separated-with-multi-files)          | `--only lint,unit -- .../guard.ts .../transformer.test.ts`                     | lint PASS 2, unit PASS N          |
+| [7f](#7f-test-expansion-with-multi-mixed-files)     | `--only test -- .../transformer.test.ts .../start-ward.int.test.ts`            | unit PASS 1, int PASS 1, e2e skip |
+| [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`                   | jest gets `--testNamePattern`     |
+| [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation             |
+| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | FAIL — 0 tests matched pattern    |
+| [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                 |
+| [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "exports" -- packages/ward`                    | int respects it                   |
+| [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name     |
 
 ### Edge Cases
 
@@ -122,7 +141,7 @@ after each test.**
 | [10c](#10c-empty-passthrough-just---)                   | `--only unit --`                                       | no file scope, runs all |
 | [10d](#10d---changed-flag-requires-uncommitted-changes) | `--only lint --changed`                                | scoped to git diff      |
 | [10e](#10e---changed-with-multiple-check-types)         | `--only lint,unit,typecheck --changed`                 | each type scoped        |
-| [10f](#10f-no-tests-discovered-in-package)              | `--only integration -- packages/eslint-plugin`         | skip                    |
+| [10f](#10f-no-tests-discovered-in-package)              | `--only integration -- packages/shared`                | skip                    |
 
 ---
 
@@ -270,6 +289,21 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
 - Error detail section: `--- unit ---` with test name and failure message
 - Exit code: non-zero
 
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows file path and test name: `"isCheckTypeGuard valid check types VALID: {value: "lint"} => returns true"`
+  - Shows full jest diff: `Expected: false` / `Received: true`
+  - Shows stack trace with line number
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.test.ts`:
+  - Shows `FAIL` with test name
+  - Shows full `Expected/Received` diff
+  - With `verbose: true`: includes full stack trace
+- `ward-raw` with runId + checkType `unit`:
+  - Returns raw jest JSON with `success: false`
+  - Contains `testResults[].assertionResults[].failureMessages` with the diff
+  - Contains `numFailedTests: 1`, `numPassedTests: N`
+
 **Revert change after testing.**
 
 ---
@@ -385,6 +419,18 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 - Error detail section: `--- integration ---` with test name and failure message
 - Exit code: non-zero
 
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows file path and failing test name
+  - Shows full jest diff (Expected/Received)
+  - Shows stack trace with line number
+- `ward-detail` with runId + filePath `src/startup/start-ward.integration.test.ts`:
+  - Shows `FAIL` with test name and full diff
+- `ward-raw` with runId + checkType `integration`:
+  - Raw jest JSON with `success: false`
+  - `testResults[].assertionResults[].failureMessages` populated
+
 **Revert change after testing.**
 
 ---
@@ -393,6 +439,12 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 E2E runs Playwright. Skips entirely if no `playwright.config.ts` exists in the package.
 E2E does NOT filter passthrough files by type — it passes them directly to Playwright.
+Only `packages/testing` has a `playwright.config.ts` in this repo.
+
+**Prerequisites:**
+
+- Playwright config auto-starts server + web dev servers on rotating test ports
+- Ensure no conflicting instances are running
 
 #### 3a. Package without playwright.config.ts
 
@@ -405,6 +457,45 @@ npm run ward -- --only e2e -- packages/ward
 - Live: `e2e @dungeonmaster/ward skip`
 - Summary: empty (just `run: {id}`)
 
+#### 3c. Single e2e test file
+
+```bash
+npm run ward -- --only e2e -- packages/testing/e2e/web/smoke.spec.ts
+```
+
+**Expected:**
+
+- Live: `e2e @dungeonmaster/testing PASS  N files`
+- Playwright runs only the smoke spec
+- Summary: `e2e: PASS 1 packages (...)`
+
+**Should NOT see:**
+
+- No unit, integration, lint, or typecheck lines
+
+#### 3d. Package scope (all e2e tests)
+
+```bash
+npm run ward -- --only e2e -- packages/testing
+```
+
+**Expected:**
+
+- Live: `e2e @dungeonmaster/testing PASS  N files, N discovered`
+- Runs ALL e2e test files in the testing package
+
+#### 3e. E2e with --onlyTests pattern
+
+```bash
+npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smoke.spec.ts
+```
+
+**Expected:**
+
+- Playwright receives `--grep health`
+- Only tests with "health" in the name run
+- Summary: `e2e: PASS ...`
+
 #### 3b. No scope (all packages)
 
 ```bash
@@ -414,7 +505,7 @@ npm run ward -- --only e2e
 **Expected:**
 
 - Packages without playwright.config.ts show `skip`
-- Only packages with playwright.config.ts actually run
+- Only `@dungeonmaster/testing` actually runs
 
 ---
 
@@ -493,7 +584,7 @@ npm run ward -- --only lint
 #### 4g. Lint failure — single file
 
 **Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
-**Change:** Add `var x = 1;` at the top of the file
+**Change:** Add unused `broken` param to destructured arg (e.g., `{ value, broken }` — no underscore prefix)
 
 ```bash
 npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts
@@ -506,11 +597,22 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 - Error detail: `--- lint ---` with file path and lint rule name
 - Exit code: non-zero
 
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows file path with lint rule: `@typescript-eslint/no-unused-vars (line N)`
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Shows `lint @typescript-eslint/no-unused-vars (line N, col N)`
+  - Shows error message about unused variable
+- `ward-raw` with runId + checkType `lint`:
+  - Raw eslint JSON array with `errorCount: 1`
+  - Contains `ruleId`, `severity`, `line`, `column`, `message`
+
 **Revert change after testing.**
 
 #### 4h. Lint failure — file scoped, other files clean
 
-**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add `var x = 1;`)
+**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add unused `broken` param)
 
 ```bash
 npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-type-guard.test.ts
@@ -526,7 +628,7 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 #### 4i. Lint failure — package scope catches it
 
-**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add `var x = 1;`)
+**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add unused `broken` param)
 
 ```bash
 npm run ward -- --only lint -- packages/ward
@@ -537,6 +639,16 @@ npm run ward -- --only lint -- packages/ward
 - Live: `lint @dungeonmaster/ward FAIL  236 files, N errors, 236 discovered`
 - Package scope lints all files including the broken one
 - Error detail: `--- lint ---` with the modified file path
+
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows only the file with errors (not all 236 files)
+  - Shows `@typescript-eslint/no-unused-vars (line N)` for the modified file
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Isolates the single lint error for that file
+- `ward-raw` with runId + checkType `lint`:
+  - Raw eslint JSON array — 236 entries, only 1 with `errorCount > 0`
 
 **Revert change after testing.**
 
@@ -599,7 +711,7 @@ npm run ward -- --only typecheck
 #### 5d. Typecheck failure — scoped to broken file
 
 **Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
-**Change:** Add `const x: number = 'hello';` at the top
+**Change:** Change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected)
 
 ```bash
 npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts
@@ -613,12 +725,23 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-ch
   `Type 'string' is not assignable to type 'number'`)
 - Exit code: non-zero
 
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows `typecheck (line N)` for the modified file
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Shows `typecheck (line N, col N)`
+  - Shows TS error code and message (e.g., `TS2322: Type '...' is not assignable to type 'boolean'`)
+- `ward-raw` with runId + checkType `typecheck`:
+  - Full tsc output (may be very large — 100K+ chars)
+  - Contains the TS error line
+
 **Revert change after testing.**
 
 #### 5e. Typecheck failure — scoped to DIFFERENT file (error filtering)
 
 **Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
-**Change:** Add `const x: number = 'hello';` at the top
+**Change:** Change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected)
 
 ```bash
 npm run ward -- --only typecheck -- packages/ward/src/guards/is-run-id/is-run-id-guard.ts
@@ -639,7 +762,7 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-run-id/is-run-id
 #### 5f. Typecheck failure — package scope catches it
 
 **Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
-**Change:** Add `const x: number = 'hello';` at the top
+**Change:** Change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected)
 
 ```bash
 npm run ward -- --only typecheck -- packages/ward
@@ -650,6 +773,15 @@ npm run ward -- --only typecheck -- packages/ward
 - Live: `typecheck @dungeonmaster/ward FAIL ...`
 - Package scope means no file filtering — all errors are reported
 - Error detail: `--- typecheck ---` with the modified file
+
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows `typecheck (line N)` for the modified file
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Shows full TS error with code and message
+- `ward-raw` with runId + checkType `typecheck`:
+  - Full tsc output (100K+ chars, may exceed MCP limits)
 
 **Revert change after testing.**
 
@@ -857,9 +989,10 @@ npm run ward -- --only unit --onlyTests "XYZNONEXISTENT" -- packages/ward/src/tr
 **Expected:**
 
 - Jest loads the file but no `it()` blocks match the pattern — 0 tests execute
-- Live: `unit ... PASS 1 files` (jest still counts the suite, exits 0)
-- Note: Jest treats "no test names matched" as a pass, not an error. The file is found and loaded, just nothing runs
-  inside it.
+- Live: `unit ... FAIL 1 files, 1 errors, 81 discovered`
+- Error detail: `--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name`
+- Exit code: non-zero
+- Ward detects `numPassedTests === 0` when a `--onlyTests` pattern was provided and reports failure
 
 #### 8d. --onlyTests ignored by lint and typecheck
 
@@ -917,11 +1050,24 @@ npm run ward -- --only unit,lint,typecheck -- packages/ward/src/guards/is-check-
 - Error detail: only `--- unit ---` section
 - Exit code: non-zero
 
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows ONLY the unit test failure — no lint or typecheck errors
+  - Shows test name and jest diff
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.test.ts`:
+  - Shows unit FAIL with test name and diff
+  - Does NOT show lint or typecheck entries (they passed)
+- `ward-raw` with runId + checkType `unit`:
+  - Raw jest JSON with `success: false`, `numFailedTests: 1`
+- `ward-raw` with runId + checkType `lint`:
+  - Raw eslint JSON with `errorCount: 0` for the file (confirms pass)
+
 **Revert change after testing.**
 
-#### 9b. Lint fails, unit passes
+#### 9b. Lint fails, unit also fails (shared violation)
 
-**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add `var x = 1;`)
+**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add unused `broken` param)
 
 ```bash
 npm run ward -- --only lint,unit -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts
@@ -929,16 +1075,28 @@ npm run ward -- --only lint,unit -- packages/ward/src/guards/is-check-type/is-ch
 
 **Expected:**
 
-- lint: FAIL (var triggers lint rule)
-- unit: PASS (tests still pass via --findRelatedTests)
-- Error detail: only `--- lint ---` section
+- lint: FAIL (unused param triggers `@typescript-eslint/no-unused-vars`)
+- unit: FAIL (ts-jest enforces `noUnusedLocals` at compile time — same violation kills both)
+- Error detail: both `--- lint ---` and `--- unit ---` sections
 - Exit code: non-zero
+
+**Note:** There's no easy mutation that fails lint but passes unit — ts-jest catches the same issues at compile time.
+
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows lint error for the impl file AND unit "Test suite failed to run" for the test file
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Shows lint error (the impl file has the violation)
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.test.ts`:
+  - Shows unit FAIL "Test suite failed to run" with TS6133
 
 **Revert change after testing.**
 
 #### 9c. Typecheck fails, lint passes on same file
 
-**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (add `const x: number = 'hello';`)
+**Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts` (change `.safeParse(value).success` to
+`.safeParse(value)`)
 
 ```bash
 npm run ward -- --only lint,typecheck -- packages/ward/src/guards/is-check-type/is-check-type-guard.ts
@@ -950,6 +1108,19 @@ npm run ward -- --only lint,typecheck -- packages/ward/src/guards/is-check-type/
 - typecheck: FAIL (tsc catches the type error)
 - Error detail: `--- typecheck ---` section with the type error
 - Exit code: non-zero
+
+**Drill-down verification:**
+
+- `ward-list` with runId:
+  - Shows ONLY the typecheck error — no lint errors
+  - Shows TS error code, line number
+- `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
+  - Shows typecheck error only
+  - Does NOT show lint entries (they passed)
+- `ward-raw` with runId + checkType `typecheck`:
+  - Raw tsc output containing the TS error
+- `ward-raw` with runId + checkType `lint`:
+  - Raw eslint JSON with `errorCount: 0` (confirms lint passed)
 
 **Revert change after testing.**
 
@@ -965,9 +1136,10 @@ npm run ward -- --only unit -- packages/ward/src/nonexistent.test.ts
 
 **Expected:**
 
-- Jest runs with --findRelatedTests on a nonexistent path
-- Likely: `unit ... PASS 0 files` or jest error
-- Should not crash ward itself
+- Ward does NOT crash
+- Jest exits 1 with "No tests found" — ward reports `FAIL 0 files` with `(crash)` label
+- DISCOVERY MISMATCH shown (82 discovered, 0 run)
+- Exit code: non-zero
 
 #### 10b. --only with invalid check type
 
@@ -1024,10 +1196,10 @@ npm run ward -- --only lint,unit,typecheck --changed
 #### 10f. No tests discovered in package
 
 ```bash
-npm run ward -- --only integration -- packages/eslint-plugin
+npm run ward -- --only integration -- packages/shared
 ```
 
 **Expected:**
 
-- Live: `integration @dungeonmaster/eslint-plugin skip` (no `.integration.test.ts` files exist)
+- Live: `integration @dungeonmaster/shared skip` (no `.integration.test.ts` files exist)
 - Summary: empty

@@ -10,6 +10,10 @@ import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters'
 import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
+import {
+  errorEntryContract,
+  type ErrorEntry,
+} from '../../../contracts/error-entry/error-entry-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -127,7 +131,9 @@ export const checkRunUnitBroker = async ({
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;
   let filesCount = 0;
+  let numPassedTests = 0;
   const processedFiles: GitRelativePath[] = [];
+  const errors: ErrorEntry[] = [];
 
   if (status === 'fail') {
     try {
@@ -147,6 +153,12 @@ export const checkRunUnitBroker = async ({
         filesCount = count;
       }
     }
+    if (typeof parsed === 'object' && parsed !== null && 'numPassedTests' in parsed) {
+      const count: unknown = Reflect.get(parsed, 'numPassedTests');
+      if (typeof count === 'number') {
+        numPassedTests = count;
+      }
+    }
     if (typeof parsed === 'object' && parsed !== null && 'testResults' in parsed) {
       const testResults: unknown = Reflect.get(parsed, 'testResults');
       if (Array.isArray(testResults)) {
@@ -164,6 +176,19 @@ export const checkRunUnitBroker = async ({
     // non-JSON output, filesCount stays 0
   }
 
+  if (resolvedStatus === 'pass' && testNamePattern !== undefined && numPassedTests === 0) {
+    resolvedStatus = 'fail';
+    errors.push(
+      errorEntryContract.parse({
+        filePath: 'jest',
+        line: 0,
+        column: 0,
+        message: `--onlyTests pattern "${testNamePattern}" matched 0 tests — possible typo or stale test name`,
+        severity: 'error',
+      }),
+    );
+  }
+
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
     discoveredFiles,
     processedFiles,
@@ -173,7 +198,7 @@ export const checkRunUnitBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status: resolvedStatus,
-    errors: [],
+    errors,
     testFailures,
     filesCount,
     discoveredCount,

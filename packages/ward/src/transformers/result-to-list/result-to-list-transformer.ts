@@ -29,6 +29,7 @@ export const resultToListTransformer = ({
         const rulePart = error.rule ? ` ${error.rule}` : '';
         const linePart = error.line === 0 ? '' : ` (line ${String(error.line)})`;
         existing.push(`  ${check.checkType}${rulePart}${linePart}` as ErrorEntry['message']);
+        existing.push(`    ${error.message}` as ErrorEntry['message']);
         fileMap.set(error.filePath, existing);
       }
 

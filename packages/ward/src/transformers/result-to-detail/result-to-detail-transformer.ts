@@ -11,6 +11,7 @@ import type { TestFailure } from '../../contracts/test-failure/test-failure-cont
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
+import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { stackTraceTruncateTransformer } from '../stack-trace-truncate/stack-trace-truncate-transformer';
 
 export const resultToDetailTransformer = ({
@@ -27,7 +28,7 @@ export const resultToDetailTransformer = ({
   for (const check of wardResult.checks) {
     for (const project of check.projectResults) {
       for (const error of project.errors) {
-        if (String(error.filePath) === String(filePath)) {
+        if (isPathSuffixMatchGuard({ storedPath: error.filePath, queryPath: filePath })) {
           const rulePart = error.rule ? ` ${error.rule}` : '';
           const locationPart =
             error.line === 0 ? '' : ` (line ${String(error.line)}, col ${String(error.column)})`;
@@ -37,7 +38,7 @@ export const resultToDetailTransformer = ({
       }
 
       for (const failure of project.testFailures) {
-        if (String(failure.suitePath) === String(filePath)) {
+        if (isPathSuffixMatchGuard({ storedPath: failure.suitePath, queryPath: filePath })) {
           entries.push(`  FAIL  "${failure.testName}"` as ErrorEntry['message']);
           entries.push(`    ${failure.message}` as ErrorEntry['message']);
 

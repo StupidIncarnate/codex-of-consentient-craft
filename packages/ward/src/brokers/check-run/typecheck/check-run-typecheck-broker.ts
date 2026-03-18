@@ -110,6 +110,8 @@ export const checkRunTypecheckBroker = async ({
     cwd,
   });
 
+  const strippedOutput = tscLines.filter((line) => !line.startsWith('/')).join('\n');
+
   return projectResultContract.parse({
     projectFolder,
     status: filteredStatus,
@@ -120,7 +122,7 @@ export const checkRunTypecheckBroker = async ({
     onlyDiscovered,
     onlyProcessed,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      stdout: strippedOutput,
       stderr: '',
       exitCode,
     }),
