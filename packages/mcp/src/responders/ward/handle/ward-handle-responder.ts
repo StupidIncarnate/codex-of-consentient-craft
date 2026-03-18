@@ -1,14 +1,12 @@
 /**
- * PURPOSE: Handles ward MCP tool calls (ward-list, ward-detail, ward-raw)
+ * PURPOSE: Handles ward MCP tool calls (ward-detail)
  *
  * USAGE:
- * const result = await WardHandleResponder({ tool: ToolNameStub({ value: 'ward-list' }), args: {} });
+ * const result = await WardHandleResponder({ tool: ToolNameStub({ value: 'ward-detail' }), args: {} });
  * // Returns ToolResponse with ward data as text content
  */
 
-import { wardListAdapter } from '../../../adapters/ward/list/ward-list-adapter';
 import { wardDetailAdapter } from '../../../adapters/ward/detail/ward-detail-adapter';
-import { wardRawAdapter } from '../../../adapters/ward/raw/ward-raw-adapter';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -27,14 +25,6 @@ export const WardHandleResponder = async ({
 
   try {
     const wardResult = await (async (): Promise<unknown> => {
-      if (tool === 'ward-list') {
-        const runIdRaw: unknown = Reflect.get(args, 'runId');
-        const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
-        return wardListAdapter({
-          ...(runId && { runId: runId as never }),
-          ...(packagePath && { packagePath }),
-        });
-      }
       if (tool === 'ward-detail') {
         const runIdRaw: unknown = Reflect.get(args, 'runId');
         const filePathRaw: unknown = Reflect.get(args, 'filePath');
@@ -49,15 +39,7 @@ export const WardHandleResponder = async ({
           ...(packagePath && { packagePath }),
         });
       }
-      const runIdRaw: unknown = Reflect.get(args, 'runId');
-      const checkTypeRaw: unknown = Reflect.get(args, 'checkType');
-      const runId = typeof runIdRaw === 'string' ? runIdRaw : undefined;
-      const checkType = String(checkTypeRaw);
-      return wardRawAdapter({
-        ...(runId && { runId: runId as never }),
-        checkType: checkType as never,
-        ...(packagePath && { packagePath }),
-      });
+      throw new Error(`Unknown ward tool: ${tool}`);
     })();
     return {
       content: [{ type: 'text', text: contentTextContract.parse(String(wardResult)) }],

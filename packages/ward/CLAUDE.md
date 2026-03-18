@@ -20,7 +20,7 @@ The binary is `dungeonmaster-ward`. It has four subcommands:
 npm run ward                                       # Run checks (default if no subcommand given)
 ```
 
-For inspecting results after a run, use the MCP tools: `ward-list`, `ward-detail`, `ward-raw`.
+For inspecting results after a run, use the MCP tool: `ward-detail`.
 
 Running `npm run ward` with no arguments is equivalent to `npm run ward -- run`.
 
@@ -99,21 +99,19 @@ npm run ward -- --only test --onlyTests "user|auth"
 npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
 ```
 
-**Inspect results after a run** — use MCP tools:
-- `ward-list` with runId — errors from a specific run
+**Inspect results after a run** — use MCP tool:
 - `ward-detail` with runId + filePath — drill into a file's errors
-- `ward-raw` with runId + checkType — raw tool output for a check type
 
-## Workflow: run → list → detail
+## Workflow: run → detail
 
 When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
 test failures), use the MCP tools:
 
 1. Run checks: `npm run ward -- --only lint,test`
-2. Use MCP tool `ward-list` with the run ID to see full error messages and jest diffs
-3. Use MCP tool `ward-detail` with the run ID and file path to drill into a specific file
+2. Use MCP tool `ward-detail` with the run ID and file path to drill into a specific file's errors
 
-**Why this matters:** The `run` output truncates test failure messages to the first line. The `list` command shows the
+**Why this matters:** The `run` output truncates test failure messages to the first line. The `ward-detail` tool shows
+the
 full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of a
 failing run.
 
