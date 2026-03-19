@@ -13,9 +13,9 @@ import {
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-features';
 const HTTP_OK = 200;
-const CHAT_TIMEOUT = 15_000;
+const CHAT_TIMEOUT = 5_000;
 const SETTLE_DELAY = 500;
-const USER_MSG_TIMEOUT = 5_000;
+const USER_MSG_TIMEOUT = 3_000;
 
 const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;
 

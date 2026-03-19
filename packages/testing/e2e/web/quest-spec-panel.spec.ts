@@ -38,7 +38,19 @@ const createQuestFile = ({
     title: 'E2E Spec Panel Quest',
     status: 'approved',
     createdAt: new Date().toISOString(),
-    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    workItems: [
+      {
+        id: 'e2e00000-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        spawnerType: 'agent',
+        sessionId,
+        createdAt: new Date().toISOString(),
+        relatedDataItems: [],
+        dependsOn: [],
+      },
+    ],
+    userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],
     toolingRequirements: [],
@@ -96,7 +108,7 @@ test.describe('Quest Spec Panel', () => {
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 
     // The spec panel should render instead of the "Awaiting quest activity..." text
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 5_000 });
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
   });
 });

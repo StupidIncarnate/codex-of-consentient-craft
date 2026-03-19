@@ -11,11 +11,14 @@ import {
   fsExistsSyncAdapter,
   netFreePortAdapter,
 } from '@dungeonmaster/shared/adapters';
+
+import { netKillPortAdapter } from '../../../adapters/net/kill-port/net-kill-port-adapter';
 import {
   absoluteFilePathContract,
   errorMessageContract,
   exitCodeContract,
   filePathContract,
+  networkPortContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
@@ -79,7 +82,7 @@ export const checkRunE2eBroker = async ({
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const serverPort = await netFreePortAdapter();
-  const webPort = serverPort + 1;
+  const webPort = networkPortContract.parse(serverPort + 1);
 
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
@@ -92,6 +95,11 @@ export const checkRunE2eBroker = async ({
       DUNGEONMASTER_WEB_PORT: String(webPort),
     },
   });
+
+  await Promise.all([
+    netKillPortAdapter({ port: serverPort }),
+    netKillPortAdapter({ port: webPort }),
+  ]);
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';

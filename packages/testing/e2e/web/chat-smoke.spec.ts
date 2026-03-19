@@ -40,6 +40,6 @@ test.describe('Chat Smoke', () => {
     await expect(chatPanel.getByText('Hello Claude')).toBeVisible();
 
     // Wait for Claude response to appear
-    await expect(chatPanel.getByText('I can help with that!')).toBeVisible({ timeout: 15_000 });
+    await expect(chatPanel.getByText('I can help with that!')).toBeVisible({ timeout: 5_000 });
   });
 });

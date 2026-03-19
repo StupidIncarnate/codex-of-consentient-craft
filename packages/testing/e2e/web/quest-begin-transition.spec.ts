@@ -13,9 +13,9 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-begin-transition';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-const MODAL_TIMEOUT = 10_000;
-const PANEL_TIMEOUT = 15_000;
-const REQUEST_TIMEOUT = 5000;
+const MODAL_TIMEOUT = 5_000;
+const PANEL_TIMEOUT = 5_000;
+const REQUEST_TIMEOUT = 3000;
 
 const createQuestFile = ({
   guildId,
@@ -39,7 +39,19 @@ const createQuestFile = ({
     title: 'E2E Begin Transition Quest',
     status,
     createdAt: new Date().toISOString(),
-    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    workItems: [
+      {
+        id: 'e2e00000-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        spawnerType: 'agent',
+        sessionId,
+        createdAt: new Date().toISOString(),
+        relatedDataItems: [],
+        dependsOn: [],
+      },
+    ],
+    userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],
     toolingRequirements: [],

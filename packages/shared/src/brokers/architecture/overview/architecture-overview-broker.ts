@@ -419,8 +419,7 @@ npm run ward -- --only lint --changed                 # Lint only changed files
 When ward finds failures, the run output shows a summary with truncated errors. Use MCP tools for full details:
 
 1. Run checks: \`npm run ward -- --only lint,test\`
-2. Use MCP tool \`ward-list\` with the run ID to see full error messages and jest diffs
-3. Use MCP tool \`ward-detail\` with the run ID and file path to drill into a specific file
+2. Use MCP tool \`ward-detail\` with the run ID and file path to see full error messages and jest diffs
 
 **Zero tolerance for ward failures:** NEVER assume a failure is "pre-existing" or "unrelated" to your changes. Every ward failure must be investigated and fixed before a task is complete. Ward must be fully green. Failures that look unrelated are often caused by transitive effects (stale dist builds, proxy chain breakage, cache invalidation, or side-effect imports exposed by type changes). Always trace the full dependency chain.
 

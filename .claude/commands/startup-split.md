@@ -196,7 +196,7 @@ Dispatch a sub agent for each NEW file to verify it has proper test coverage acc
 - If coverage is missing or thin, the agent writes the missing tests.
 
 Then dispatch a sub agent to run `npm run ward -- -- packages/<target>` (scoped to this package only) and fix any
-failures. If ward fails, use `ward-list` and `ward-detail` MCP tools to get full error details and dispatch a fix agent.
+failures. If ward fails, use the `ward-detail` MCP tool to get full error details and dispatch a fix agent.
 
 ### Phase 6: Commit
 

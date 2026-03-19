@@ -3,7 +3,7 @@ import * as path from 'path';
 import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
-const CI_RETRIES = 2;
+const CI_RETRIES = 1;
 
 const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.testPort;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
@@ -22,7 +22,7 @@ export default defineConfig({
   testDir: './e2e/web',
   workers: 1,
   fullyParallel: false,
-  timeout: 30_000,
+  timeout: 10_000,
   forbidOnly: Boolean(process.env.CI),
   retries: CI_RETRIES,
   reporter: 'json',

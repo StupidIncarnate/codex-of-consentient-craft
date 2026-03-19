@@ -16,8 +16,8 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-const PANEL_TIMEOUT = 15_000;
-const CHAT_TIMEOUT = 15_000;
+const PANEL_TIMEOUT = 5_000;
+const CHAT_TIMEOUT = 5_000;
 
 /**
  * Writes a quest.json with NO content (empty flows/designDecisions)
@@ -43,7 +43,19 @@ const createEmptyQuestFile = ({
     title: 'E2E WS Update Quest',
     status: 'created',
     createdAt: new Date().toISOString(),
-    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    workItems: [
+      {
+        id: 'e2e00000-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        spawnerType: 'agent',
+        sessionId,
+        createdAt: new Date().toISOString(),
+        relatedDataItems: [],
+        dependsOn: [],
+      },
+    ],
+    userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],
     toolingRequirements: [],
@@ -140,7 +152,19 @@ test.describe('Quest WS Update', () => {
       title: 'E2E WS Incremental Quest',
       status: 'approved',
       createdAt: new Date().toISOString(),
-      workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
       designDecisions: [],
       steps: [],
       toolingRequirements: [],

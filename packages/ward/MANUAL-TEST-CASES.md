@@ -27,10 +27,8 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
 
 - **Mutate** the file as described (flip assertion, add unused param, remove `.success`, etc.)
 - Run the command — verify FAIL status with error count
-- Run the **full drill-down chain** using the `run: {runId}` from the output:
-  1. `ward-list` with runId — verify full error messages (jest diffs, lint rules, TS errors)
-  2. `ward-detail` with runId + filePath — verify file-specific error with line/col
-  3. `ward-raw` with runId + checkType — verify raw tool output is captured (skip for typecheck — output is huge)
+- Run the **drill-down** using the `run: {runId}` from the output:
+  1. `ward-detail` with runId + filePath — verify file-specific error with line/col and full error messages
 - **Revert** the mutation after each test. If you forget, the next test case will fail unexpectedly.
 
 ### Common mistakes to avoid
@@ -41,8 +39,8 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
   `packages/ward`, jest will fail with "No files found".
 - **Forgetting to revert mutations.** Failure tests modify source files. If you don't revert, subsequent tests break.
   Check `git diff` between failure tests to confirm files are clean.
-- **Assuming ward-raw is useful for typecheck.** The tsc raw output is 100K+ chars of file listings. Use `ward-list` and
-  `ward-detail` for typecheck errors instead.
+- **Assuming raw output is useful for typecheck.** The tsc raw output is 100K+ chars of file listings. Use `ward-detail`
+  for typecheck errors instead.
 - **Using `var x = 1;` for lint mutations.** ESLint `--fix` auto-converts `var` to `const`, and `_x` prefix satisfies
   the unused-vars rule. Use an unused destructured param without underscore prefix instead (e.g., `{ value, broken }`).
 - **Using blank lines for `--changed` mutations.** ESLint `--fix` strips trailing blank lines, reverting your change and
@@ -50,15 +48,9 @@ Test cases for verifying ward's CLI behavior across scope levels, check types, a
 - **Using raw primitive types for typecheck mutations.** The pre-edit hook blocks raw `number`, `string`, `boolean`
   types. Instead, change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected).
 - **Not checking the drill-down on failures.** The ward summary truncates error messages. The real value is in
-  `ward-list` (full diffs) and `ward-detail` (file-specific errors with line numbers). Always verify these.
+  `ward-detail` (file-specific errors with full diffs and line numbers). Always verify these.
 - **Skipping global test cases.** `--only unit` with no scope runs across ALL packages and takes minutes. Skip these
   unless specifically testing multi-package behavior.
-
-### Known issues found during testing
-
-- **`ward-raw` MCP tool is missing `integration` in its `checkType` enum.** The tool only accepts
-  `lint | typecheck | unit | e2e`. Test cases that call `ward-raw` with `checkType: integration` (e.g., 2g drill-down)
-  will fail. This is a tool schema bug.
 
 ### Test case numbering
 
@@ -86,20 +78,14 @@ run: {runId}
 
 ### Failure Verification Workflow
 
-Every failure test case MUST verify the full drill-down chain, not just the summary:
+Every failure test case MUST verify the drill-down, not just the summary:
 
 1. **Run ward** — note the `run: {runId}` from the summary
-2. **ward-list** — use MCP tool `ward-list` with `runId`. Verify: full error messages visible (not truncated), correct
-   file paths, jest diffs for test failures
-3. **ward-detail** — use MCP tool `ward-detail` with `runId` + `filePath`. Verify: drill-down shows complete error for
-   the specific file
-4. **ward-raw** — use MCP tool `ward-raw` with `runId` + `checkType`. Verify: raw tool output is captured
+2. **ward-detail** — use MCP tool `ward-detail` with `runId` + `filePath`. Verify: drill-down shows complete error for
+   the specific file, including full error messages, jest diffs, and line numbers
 
 **Note on ward-detail paths:** `ward-detail` normalizes paths, so any format works (absolute, repo-relative,
-package-relative). Use whatever `ward-list` shows.
-
-**Note on ward-raw for typecheck:** `ward-raw` with `checkType: typecheck` returns the full tsc output (100K+ chars)
-which may exceed MCP response limits. This is expected — tsc dumps every file it processed.
+package-relative).
 
 ---
 
@@ -354,7 +340,7 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows file path and test name: `"isCheckTypeGuard valid check types VALID: {value: "lint"} => returns true"`
   - Shows full jest diff: `Expected: false` / `Received: true`
   - Shows stack trace with line number
@@ -362,11 +348,6 @@ npm run ward -- --only unit -- packages/ward/src/guards/is-check-type/is-check-t
   - Shows `FAIL` with test name
   - Shows full `Expected/Received` diff
   - With `verbose: true`: includes full stack trace
-- `ward-raw` with runId + checkType `unit`:
-  - Returns raw jest JSON with `success: false`
-  - Contains `testResults[].assertionResults[].failureMessages` with the diff
-  - Contains `numFailedTests: 1`, `numPassedTests: N`
-
 **Revert change after testing.**
 
 ---
@@ -484,16 +465,12 @@ npm run ward -- --only integration -- packages/ward/src/startup/start-ward.integ
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows file path and failing test name
   - Shows full jest diff (Expected/Received)
   - Shows stack trace with line number
 - `ward-detail` with runId + filePath `src/startup/start-ward.integration.test.ts`:
   - Shows `FAIL` with test name and full diff
-- `ward-raw` with runId + checkType `integration`:
-  - **KNOWN BUG:** `ward-raw` MCP tool schema does not include `integration` in its `checkType` enum — this call will
-    fail with an invalid enum error. The raw jest JSON should be accessible but the tool blocks it.
-
 **Revert change after testing.**
 
 ---
@@ -578,17 +555,12 @@ npm run ward -- --only e2e --onlyTests "health" -- packages/testing/e2e/web/smok
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows test name: `"smoke.spec.ts > Smoke Tests > health endpoint responds"`
   - Shows diff: `Expected: "broken"` / `Received: "ok"`
 - `ward-detail` with runId + filePath `smoke.spec.ts`:
   - Shows FAIL with test name and diff
   - Shows source location `smoke.spec.ts:9:25`
-- `ward-raw` with runId + checkType `e2e`:
-  - Structured Playwright JSON with `stats.unexpected: 1`
-  - Contains `error.snippet` with source context and `>` pointer
-  - Shows all retry attempts in `results[]` array
-
 **Revert change after testing.**
 
 #### 3b. No scope (all packages)
@@ -694,14 +666,11 @@ npm run ward -- --only lint -- packages/ward/src/guards/is-check-type/is-check-t
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows file path with lint rule: `@typescript-eslint/no-unused-vars (line N)`
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Shows `lint @typescript-eslint/no-unused-vars (line N, col N)`
   - Shows error message about unused variable
-- `ward-raw` with runId + checkType `lint`:
-  - Raw eslint JSON array with `errorCount: 1`
-  - Contains `ruleId`, `severity`, `line`, `column`, `message`
 
 **Revert change after testing.**
 
@@ -737,13 +706,11 @@ npm run ward -- --only lint -- packages/ward
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows only the file with errors (not all N files)
   - Shows `@typescript-eslint/no-unused-vars (line N)` for the modified file
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Isolates the single lint error for that file
-- `ward-raw` with runId + checkType `lint`:
-  - Raw eslint JSON array — N entries, only 1 with `errorCount > 0`
 
 **Revert change after testing.**
 
@@ -822,14 +789,11 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-ch
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows `typecheck (line N)` for the modified file
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Shows `typecheck (line N, col N)`
   - Shows TS error code and message (e.g., `TS2322: Type '...' is not assignable to type 'boolean'`)
-- `ward-raw` with runId + checkType `typecheck`:
-  - Full tsc output (may be very large — 100K+ chars)
-  - Contains the TS error line
 
 **Revert change after testing.**
 
@@ -871,12 +835,10 @@ npm run ward -- --only typecheck -- packages/ward
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows `typecheck (line N)` for the modified file
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Shows full TS error with code and message
-- `ward-raw` with runId + checkType `typecheck`:
-  - Full tsc output (100K+ chars, may exceed MCP limits)
 
 **Revert change after testing.**
 
@@ -1147,16 +1109,12 @@ npm run ward -- --only unit,lint,typecheck -- packages/ward/src/guards/is-check-
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows ONLY the unit test failure — no lint or typecheck errors
   - Shows test name and jest diff
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.test.ts`:
   - Shows unit FAIL with test name and diff
   - Does NOT show lint or typecheck entries (they passed)
-- `ward-raw` with runId + checkType `unit`:
-  - Raw jest JSON with `success: false`, `numFailedTests: 1`
-- `ward-raw` with runId + checkType `lint`:
-  - Raw eslint JSON with `errorCount: 0` for the file (confirms pass)
 
 **Revert change after testing.**
 
@@ -1179,7 +1137,7 @@ npm run ward -- --only lint,unit -- packages/ward/src/guards/is-check-type/is-ch
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows lint error for the impl file AND unit "Test suite failed to run" for the test file
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Shows lint error (the impl file has the violation)
@@ -1206,16 +1164,12 @@ npm run ward -- --only lint,typecheck -- packages/ward/src/guards/is-check-type/
 
 **Drill-down verification:**
 
-- `ward-list` with runId:
+- `ward-detail` with runId + filePath:
   - Shows ONLY the typecheck error — no lint errors
   - Shows TS error code, line number
 - `ward-detail` with runId + filePath `src/guards/is-check-type/is-check-type-guard.ts`:
   - Shows typecheck error only
   - Does NOT show lint entries (they passed)
-- `ward-raw` with runId + checkType `typecheck`:
-  - Raw tsc output containing the TS error
-- `ward-raw` with runId + checkType `lint`:
-  - Raw eslint JSON with `errorCount: 0` (confirms lint passed)
 
 **Revert change after testing.**
 

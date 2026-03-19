@@ -22,6 +22,18 @@ export const tscOutputParseTransformer = ({ output }: { output: string }): Error
       const match = TSC_LINE_REGEX.exec(line);
 
       if (match === null) {
+        const previous = entries.length > 0 ? entries[entries.length - 1] : undefined;
+
+        if (previous !== undefined && line.startsWith('  ')) {
+          return [
+            ...entries.slice(0, -1),
+            errorEntryContract.parse({
+              ...previous,
+              message: `${previous.message}\n${line.trimStart()}`,
+            }),
+          ];
+        }
+
         return entries;
       }
 

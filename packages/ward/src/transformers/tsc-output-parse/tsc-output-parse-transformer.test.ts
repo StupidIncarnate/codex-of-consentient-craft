@@ -65,6 +65,49 @@ describe('tscOutputParseTransformer', () => {
     });
   });
 
+  describe('continuation lines', () => {
+    it('VALID: {error with indented continuation line} => appends continuation to previous error message', () => {
+      const output = [
+        "src/file.ts(10,5): error TS2322: Type 'A' is not assignable to type 'B'.",
+        "  Type 'C' is not assignable to type 'B'.",
+      ].join('\n');
+
+      const result = tscOutputParseTransformer({ output });
+
+      expect(result).toStrictEqual([
+        ErrorEntryStub({
+          filePath: 'src/file.ts',
+          line: 10,
+          column: 5,
+          message:
+            "TS2322: Type 'A' is not assignable to type 'B'.\nType 'C' is not assignable to type 'B'.",
+          severity: 'error',
+        }),
+      ]);
+    });
+
+    it('VALID: {error with multiple continuation lines} => appends all continuations', () => {
+      const output = [
+        "src/file.ts(10,5): error TS2322: Type 'A' is not assignable to type 'B'.",
+        "  Type 'C' is not assignable to type 'B'.",
+        "  Type 'D' is not assignable to type 'B'.",
+      ].join('\n');
+
+      const result = tscOutputParseTransformer({ output });
+
+      expect(result).toStrictEqual([
+        ErrorEntryStub({
+          filePath: 'src/file.ts',
+          line: 10,
+          column: 5,
+          message:
+            "TS2322: Type 'A' is not assignable to type 'B'.\nType 'C' is not assignable to type 'B'.\nType 'D' is not assignable to type 'B'.",
+          severity: 'error',
+        }),
+      ]);
+    });
+  });
+
   describe('non-matching lines', () => {
     it('EDGE: {non-matching lines mixed with valid} => skips non-matching lines', () => {
       const output = [
