@@ -40,6 +40,7 @@ const createQuestFile = ({
     status: 'in_progress',
     createdAt: new Date().toISOString(),
     workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],
     toolingRequirements: [],

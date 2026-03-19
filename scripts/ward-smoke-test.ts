@@ -4,7 +4,6 @@ import {
   readFileSync,
   writeFileSync,
   existsSync,
-  statSync,
 } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 
@@ -613,8 +612,7 @@ function runSection8(packages: PackageInfo[]): void {
 
       const listLabel = `ward list ${runId}`;
       const listResult = exec({ cmd: 'npx', args: ['dungeonmaster-ward', 'list', runId] });
-      const listPassed =
-        listResult.exitCode === 0 && listResult.stdout.trim().length > 0;
+      const listPassed = listResult.exitCode === 0 && listResult.stdout.trim().length > 0;
       if (listPassed) {
         pass(listLabel);
       } else {
