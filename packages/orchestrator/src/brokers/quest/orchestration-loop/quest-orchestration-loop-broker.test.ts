@@ -702,6 +702,97 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
+  describe('H-1 root cause: pathseeker dispatch after approved→in_progress', () => {
+    it('VALID: {chaos complete, pathseeker pending with deps satisfied} => pathseeker marked in_progress with startedAt', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const psId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: chaosId,
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: psId,
+            role: 'pathseeker',
+            status: 'pending',
+            spawnerType: 'agent',
+            dependsOn: [chaosId],
+          }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: chaosId, role: 'chaoswhisperer', status: 'complete' }),
+          WorkItemStub({
+            id: psId,
+            role: 'pathseeker',
+            status: 'complete',
+            spawnerType: 'agent',
+            dependsOn: [chaosId],
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-h1-dispatch' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+        }),
+      ).resolves.toBeUndefined();
+
+      const psDispatched = proxy.findPersistedWorkItem({
+        workItemId: psId,
+        status: 'in_progress',
+      });
+
+      expect(psDispatched?.id).toBe(psId);
+      expect(psDispatched?.status).toBe('in_progress');
+      expect(psDispatched?.startedAt).toBe('2024-01-15T10:00:00.000Z');
+    });
+
+    it('VALID: {only chaos complete, no pathseeker} => quest set to complete (H-1 observed failure mode)', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: chaosId,
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupQuestTerminal({ quest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-h1-terminal' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+        }),
+      ).resolves.toBeUndefined();
+
+      // When pathseeker is never inserted, the loop sees only chaos=complete
+      // → all terminal → quest=complete. This documents the observed failure.
+      const quests = proxy.getAllPersistedQuests();
+
+      expect(quests[0]?.status).toBe('complete');
+    });
+  });
+
   describe('dependency resolution', () => {
     it('T-DEP-1: {only some deps complete} => item is not ready', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });

@@ -6,12 +6,14 @@
  * // Renders split panel chat interface, reads guildSlug and optional sessionId from URL params
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
@@ -185,6 +187,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
         ? ('explore_design' as QuestStatus)
         : null;
 
+  const sessionEntriesMap = useMemo(() => {
+    const map = new Map<SessionId, ChatEntry[]>();
+    if (currentSessionId && entries.length > 0) {
+      map.set(currentSessionId, entries);
+    }
+    return map;
+  }, [currentSessionId, entries]);
+
   if (questData && isExecutionPhaseGuard({ status: questData.status })) {
     return (
       <Box
@@ -201,6 +211,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
             <ExecutionPanelWidget
               quest={questWithContent}
               slotEntries={slotEntries}
+              sessionEntries={sessionEntriesMap}
               onStatusChange={({ status }): void => {
                 questModifyBroker({
                   questId: questWithContent.id,
@@ -450,10 +461,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
           }}
           onBeginQuest={() => {
             setApprovedModalOpen(false);
-            questModifyBroker({
-              questId: questWithContent.id,
-              modifications: { status: 'in_progress' },
-            }).catch(() => undefined);
+            questStartBroker({ questId: questWithContent.id }).catch(() => undefined);
           }}
         />
       ) : null}

@@ -10,7 +10,13 @@ import { useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { Quest, QuestStatus, StepId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  Quest,
+  QuestStatus,
+  SessionId,
+  StepId,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
@@ -37,6 +43,7 @@ import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
   slotEntries?: Map<SlotIndex, ChatEntry[]>;
+  sessionEntries?: Map<SessionId, ChatEntry[]>;
   onStatusChange?: (params: { status: QuestStatus }) => void;
 }
 
@@ -49,7 +56,6 @@ const TAB_FONT_SIZE = 10;
 const TAB_FONT_WEIGHT = 600;
 const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
-const COLON_SEPARATOR_OFFSET = 2;
 const DEFAULT_ROLE = 'codeweaver' as ExecutionRole;
 const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
 const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
@@ -62,6 +68,7 @@ const ACTION_BAR_PADDING = 12;
 export const ExecutionPanelWidget = ({
   quest,
   slotEntries = new Map(),
+  sessionEntries = new Map(),
   onStatusChange,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
@@ -69,8 +76,9 @@ export const ExecutionPanelWidget = ({
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
-  const totalCount = steps.length as TotalCount;
-  const isPlanning = steps.length === 0;
+  const isTerminalQuest = quest.status === 'complete' || quest.status === 'abandoned';
+  const isPlanning = steps.length === 0 && !isTerminalQuest;
+  const hasWorkItemsOnly = steps.length === 0 && isTerminalQuest && quest.workItems.length > 0;
 
   const stepWorkItemMap = new Map<StepId, WorkItem>();
   for (const step of steps) {
@@ -83,14 +91,33 @@ export const ExecutionPanelWidget = ({
     }
   }
 
-  const completedCount = [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete')
-    .length as CompletedCount;
+  const totalCount = (hasWorkItemsOnly ? quest.workItems.length : steps.length) as TotalCount;
+  const completedCount = (
+    hasWorkItemsOnly
+      ? quest.workItems.filter((wi) => wi.status === 'complete').length
+      : [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete').length
+  ) as CompletedCount;
 
   const floorConfigs = executionFloorConfigStatics.floors;
 
-  const otherRoles = new Set<ExecutionRole>(
-    floorConfigs.filter((f) => f.role !== 'codeweaver').map((f) => f.role as ExecutionRole),
-  );
+  const stepRoleMap = new Map<ExecutionRole, typeof steps>();
+  for (const step of steps) {
+    const wi = stepWorkItemMap.get(step.id);
+    const role = wi ? wi.role : DEFAULT_ROLE;
+    const existing = stepRoleMap.get(role) ?? [];
+    existing.push(step);
+    stepRoleMap.set(role, existing);
+  }
+
+  const workItemsByRole = new Map<ExecutionRole, WorkItem[]>();
+  if (hasWorkItemsOnly) {
+    for (const wi of quest.workItems) {
+      const { role } = wi;
+      const existing = workItemsByRole.get(role) ?? [];
+      existing.push(wi);
+      workItemsByRole.set(role, existing);
+    }
+  }
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">
@@ -163,7 +190,45 @@ export const ExecutionPanelWidget = ({
                 </Text>
               </>
             ) : null}
-            {isPlanning ? null : (
+            {hasWorkItemsOnly
+              ? (() => {
+                  let floorCounter = 0;
+                  return floorConfigs
+                    .filter((floor) => workItemsByRole.has(floor.role))
+                    .map((floor) => {
+                      floorCounter += 1;
+                      const floorItems = workItemsByRole.get(floor.role) ?? [];
+                      return (
+                        <Box key={floor.role}>
+                          <FloorHeaderLayerWidget
+                            floorNumber={floorCounter as FloorNumber}
+                            name={floor.name as FloorName}
+                          />
+                          {floorItems.map((wi, wiIndex) => {
+                            const wiEntries = wi.sessionId
+                              ? (sessionEntries.get(wi.sessionId) ?? [])
+                              : [];
+                            return (
+                              <ExecutionRowLayerWidget
+                                key={wi.id}
+                                order={(wiIndex + 1) as StepOrder}
+                                name={wi.role as unknown as StepName}
+                                role={wi.role as unknown as ExecutionRole}
+                                status={wi.status as unknown as ExecutionStepStatus}
+                                files={[] as DisplayFilePath[]}
+                                dependsOn={[] as DependencyLabel[]}
+                                isAdhoc={wi.insertedBy !== undefined}
+                                entries={wiEntries}
+                                {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                              />
+                            );
+                          })}
+                        </Box>
+                      );
+                    });
+                })()
+              : null}
+            {isPlanning || hasWorkItemsOnly ? null : (
               <ExecutionRowLayerWidget
                 order={'--' as unknown as StepOrder}
                 name={`Planned ${String(totalCount)} steps` as StepName}
@@ -174,104 +239,49 @@ export const ExecutionPanelWidget = ({
                 isAdhoc={false}
               />
             )}
-            {floorConfigs.map((floor, floorIndex) => {
-              const floorNumber = (floorIndex + 1) as FloorNumber;
-              const floorLabel = floor.label;
-              const colonIndex = floorLabel.indexOf(': ');
-              const floorName = (
-                colonIndex >= 0 ? floorLabel.slice(colonIndex + COLON_SEPARATOR_OFFSET) : floorLabel
-              ) as FloorName;
-
-              if (floor.role === 'codeweaver') {
-                const codeweaverSteps = steps.filter((step) => {
-                  const wi = stepWorkItemMap.get(step.id);
-                  const role = wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE;
-                  return !otherRoles.has(role);
-                });
-
-                if (codeweaverSteps.length === 0 && steps.length === 0) {
-                  return (
-                    <Box key={floor.role}>
-                      <FloorHeaderLayerWidget floorNumber={floorNumber} name={floorName} />
-                    </Box>
-                  );
-                }
-
-                if (codeweaverSteps.length === 0) {
-                  return null;
-                }
-
-                return (
-                  <Box key={floor.role}>
-                    <FloorHeaderLayerWidget floorNumber={floorNumber} name={floorName} />
-                    {codeweaverSteps.map((step, stepIndex) => {
-                      const wi = stepWorkItemMap.get(step.id);
-                      const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
+            {steps.length > 0
+              ? (() => {
+                  let floorCounter = 0;
+                  return floorConfigs
+                    .filter((floor) => stepRoleMap.has(floor.role))
+                    .map((floor) => {
+                      floorCounter += 1;
+                      const floorSteps = stepRoleMap.get(floor.role) ?? [];
                       return (
-                        <ExecutionRowLayerWidget
-                          key={step.id}
-                          order={(stepIndex + 1) as StepOrder}
-                          name={step.name as unknown as StepName}
-                          role={wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE}
-                          status={wiStatus}
-                          files={
-                            [
-                              ...step.filesToCreate,
-                              ...step.filesToModify,
-                            ] as unknown as DisplayFilePath[]
-                          }
-                          dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                          isAdhoc={wi?.insertedBy !== undefined}
-                          entries={slotEntries.get(0 as SlotIndex) ?? []}
-                          isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                          {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                        />
+                        <Box key={floor.role}>
+                          <FloorHeaderLayerWidget
+                            floorNumber={floorCounter as FloorNumber}
+                            name={floor.name as FloorName}
+                          />
+                          {floorSteps.map((step, stepIndex) => {
+                            const wi = stepWorkItemMap.get(step.id);
+                            const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
+                            return (
+                              <ExecutionRowLayerWidget
+                                key={step.id}
+                                order={(stepIndex + 1) as StepOrder}
+                                name={step.name as unknown as StepName}
+                                role={wi ? (wi.role as unknown as ExecutionRole) : DEFAULT_ROLE}
+                                status={wiStatus}
+                                files={
+                                  [
+                                    ...step.filesToCreate,
+                                    ...step.filesToModify,
+                                  ] as unknown as DisplayFilePath[]
+                                }
+                                dependsOn={step.dependsOn as unknown as DependencyLabel[]}
+                                isAdhoc={wi?.insertedBy !== undefined}
+                                entries={slotEntries.get(0 as SlotIndex) ?? []}
+                                isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
+                                {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                              />
+                            );
+                          })}
+                        </Box>
                       );
-                    })}
-                  </Box>
-                );
-              }
-
-              const floorSteps = steps.filter((step) => {
-                const wi = stepWorkItemMap.get(step.id);
-                const role = wi ? (wi.role as ExecutionRole) : DEFAULT_ROLE;
-                return role === floor.role;
-              });
-
-              if (floorSteps.length === 0) {
-                return null;
-              }
-
-              return (
-                <Box key={floor.role}>
-                  <FloorHeaderLayerWidget floorNumber={floorNumber} name={floorName} />
-                  {floorSteps.map((step, stepIndex) => {
-                    const wi = stepWorkItemMap.get(step.id);
-                    const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
-                    return (
-                      <ExecutionRowLayerWidget
-                        key={step.id}
-                        order={(stepIndex + 1) as StepOrder}
-                        name={step.name as unknown as StepName}
-                        role={wi ? (wi.role as ExecutionRole) : (floor.role as ExecutionRole)}
-                        status={wiStatus}
-                        files={
-                          [
-                            ...step.filesToCreate,
-                            ...step.filesToModify,
-                          ] as unknown as DisplayFilePath[]
-                        }
-                        dependsOn={step.dependsOn as unknown as DependencyLabel[]}
-                        isAdhoc={wi?.insertedBy !== undefined}
-                        entries={slotEntries.get(0 as SlotIndex) ?? []}
-                        isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                        {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                      />
-                    );
-                  })}
-                </Box>
-              );
-            })}
+                    });
+                })()
+              : null}
           </Box>
           {(quest.status === 'blocked' || quest.status === 'in_progress') && onStatusChange && (
             <Box

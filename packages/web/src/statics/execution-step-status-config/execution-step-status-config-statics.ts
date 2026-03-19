@@ -8,6 +8,8 @@
 
 export const executionStepStatusConfigStatics = {
   roleColors: {
+    chaoswhisperer: 'primary',
+    glyphsmith: 'primary',
     pathseeker: 'primary',
     codeweaver: 'primary',
     ward: 'warning',

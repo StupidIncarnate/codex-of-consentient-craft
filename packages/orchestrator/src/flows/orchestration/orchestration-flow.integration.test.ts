@@ -636,15 +636,14 @@ describe('OrchestrationFlow', () => {
       const lawbringerItems = workItems.filter((wi) => wi.role === 'lawbringer');
 
       expect(quest.status).toBe('complete');
-      expect(pathseekerItems).toHaveLength(1);
-      expect(pathseekerItems[0]!.status).toBe('complete');
-      expect(codeweaverItems).toHaveLength(2);
-      expect(codeweaverItems.every((wi) => wi.status === 'complete')).toBe(true);
-      expect(wardItems.every((wi) => wi.status === 'complete')).toBe(true);
-      expect(siegeItems).toHaveLength(1);
-      expect(siegeItems[0]!.status).toBe('complete');
-      expect(lawbringerItems).toHaveLength(2);
-      expect(lawbringerItems.every((wi) => wi.status === 'complete')).toBe(true);
+      expect(pathseekerItems[0]?.status).toBe('complete');
+      expect(codeweaverItems[0]?.status).toBe('complete');
+      expect(codeweaverItems[1]?.status).toBe('complete');
+      expect(wardItems[0]?.status).toBe('complete');
+      expect(wardItems[1]?.status).toBe('complete');
+      expect(siegeItems[0]?.status).toBe('complete');
+      expect(lawbringerItems[0]?.status).toBe('complete');
+      expect(lawbringerItems[1]?.status).toBe('complete');
     });
 
     // Test 2a: Codeweaver failure (2 items, all in slots)
@@ -1290,8 +1289,10 @@ describe('OrchestrationFlow', () => {
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
       expect(quest.status).toBe('complete');
-      expect(chaosItems.every((wi) => wi.status === 'complete')).toBe(true);
-      expect(pathseekers).toHaveLength(1);
+      expect(chaosItems[0]?.status).toBe('complete');
+      expect(pathseekers[0]?.role).toBe('pathseeker');
+      expect(pathseekers[0]?.status).toBe('complete');
+      expect(pathseekers[0]?.dependsOn).toStrictEqual([chaosItems[0]?.id]);
     });
 
     // Test 11: Glyphsmith flow (needsDesign=true)
@@ -1379,9 +1380,10 @@ describe('OrchestrationFlow', () => {
       const chaosItems = quest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
 
       expect(quest.status).toBe('complete');
-      expect(chaosItems.every((wi) => wi.status === 'complete')).toBe(true);
-      expect(pathseekers.length).toBeGreaterThanOrEqual(1);
-      expect(pathseekers[0]!.status).toBe('complete');
+      expect(chaosItems[0]?.status).toBe('complete');
+      expect(pathseekers[0]?.role).toBe('pathseeker');
+      expect(pathseekers[0]?.status).toBe('complete');
+      expect(pathseekers[0]?.dependsOn).toStrictEqual([chaosItems[0]?.id]);
     });
 
     // Test 12a: Spiritmender failure (2 files)
