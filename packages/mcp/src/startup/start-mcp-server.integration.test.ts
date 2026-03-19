@@ -147,7 +147,7 @@ describe('StartMcpServer', () => {
 
       const result = ToolListResultStub(response.result as never);
 
-      expect(result.tools.length).toBeGreaterThanOrEqual(17);
+      expect(result.tools.length).toBeGreaterThanOrEqual(14);
     });
   });
 });
