@@ -18,8 +18,8 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-dual-panel';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-const CHAT_TIMEOUT = 15_000;
-const PANEL_TIMEOUT = 15_000;
+const CHAT_TIMEOUT = 5_000;
+const PANEL_TIMEOUT = 5_000;
 
 /**
  * Writes a quest.json to disk with flows populated so the spec panel renders.
@@ -45,7 +45,18 @@ const createQuestFile = ({
     title: 'E2E Dual Panel Quest',
     status: 'approved',
     createdAt: new Date().toISOString(),
-    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    workItems: [
+      {
+        id: 'e2e00000-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        spawnerType: 'agent',
+        sessionId,
+        createdAt: new Date().toISOString(),
+        relatedDataItems: [],
+        dependsOn: [],
+      },
+    ],
     userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],
@@ -90,7 +101,18 @@ const createQuestFileWithFlows = ({
     title: 'E2E Dual Panel History Quest',
     status: 'approved',
     createdAt: new Date().toISOString(),
-    workItems: [{ id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete', spawnerType: 'agent', sessionId, createdAt: new Date().toISOString(), relatedDataItems: [], dependsOn: [] }],
+    workItems: [
+      {
+        id: 'e2e00000-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        spawnerType: 'agent',
+        sessionId,
+        createdAt: new Date().toISOString(),
+        relatedDataItems: [],
+        dependsOn: [],
+      },
+    ],
     userRequest: 'Build the feature',
     designDecisions: [],
     steps: [],

@@ -236,7 +236,7 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=json', 'e2e/login.spec.ts']);
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/login.spec.ts']);
     });
   });
 });

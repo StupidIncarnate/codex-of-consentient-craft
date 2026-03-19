@@ -6,6 +6,7 @@ import {
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 
 export const checkRunE2eBrokerProxy = (): {
@@ -22,6 +23,7 @@ export const checkRunE2eBrokerProxy = (): {
   const existsProxy = fsExistsSyncAdapterProxy();
   const freePortProxy = netFreePortAdapterProxy();
   fsGlobSyncAdapterProxy();
+  netKillPortAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });

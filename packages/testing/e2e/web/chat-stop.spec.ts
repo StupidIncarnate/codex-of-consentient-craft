@@ -14,7 +14,7 @@ import {
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop';
 const HTTP_OK = 200;
-const CHAT_TIMEOUT = 15_000;
+const CHAT_TIMEOUT = 5_000;
 const SLOW_DELAY_MS = 3000;
 
 test.describe('Chat Stop', () => {

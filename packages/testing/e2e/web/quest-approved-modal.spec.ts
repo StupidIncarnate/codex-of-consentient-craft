@@ -13,9 +13,9 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-approved-modal';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-const MODAL_TIMEOUT = 10_000;
-const PANEL_TIMEOUT = 15_000;
-const REQUEST_TIMEOUT = 5000;
+const MODAL_TIMEOUT = 5_000;
+const PANEL_TIMEOUT = 5_000;
+const REQUEST_TIMEOUT = 3000;
 const WS_PROPAGATION_DELAY = 2000;
 
 const createQuestFile = ({

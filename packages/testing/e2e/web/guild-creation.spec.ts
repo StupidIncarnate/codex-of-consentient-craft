@@ -25,7 +25,7 @@ test.describe('Guild Creation Flow', () => {
     await page.getByText('CREATE').click();
 
     // Form should disappear, guild appears in list
-    await expect(page.getByText('NEW GUILD')).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('NEW GUILD')).not.toBeVisible({ timeout: 3000 });
     await expect(page.getByText('My Guild')).toBeVisible();
     // Session list should show empty state
     await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
@@ -53,7 +53,7 @@ test.describe('Guild Creation Flow', () => {
 
     // Directory entries MUST be visible — the user home always has subdirectories
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
-    await expect(dirEntries.first()).toBeVisible({ timeout: 5000 });
+    await expect(dirEntries.first()).toBeVisible({ timeout: 3000 });
     const count = await dirEntries.count();
     expect(count).toBeGreaterThan(0);
 
@@ -70,7 +70,7 @@ test.describe('Guild Creation Flow', () => {
 
     // Wait for entries to load
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
-    await expect(dirEntries.first()).toBeVisible({ timeout: 5000 });
+    await expect(dirEntries.first()).toBeVisible({ timeout: 3000 });
 
     // Click into a directory
     const firstEntry = dirEntries.first();

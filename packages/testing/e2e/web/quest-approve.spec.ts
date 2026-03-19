@@ -102,13 +102,13 @@ test.describe('Quest Approve Button', () => {
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await sessionResponsePromise;
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 5_000 });
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');
 
     // Intercept the PATCH request to verify it sends the status transition
     const patchPromise = page.waitForRequest(
       (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
-      { timeout: 5000 },
+      { timeout: 3000 },
     );
 
     await page.getByRole('button', { name: 'APPROVE' }).click();
