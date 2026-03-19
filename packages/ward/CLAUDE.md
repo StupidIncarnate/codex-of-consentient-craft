@@ -20,7 +20,7 @@ The binary is `dungeonmaster-ward`. It has four subcommands:
 npm run ward                                       # Run checks (default if no subcommand given)
 ```
 
-For inspecting results after a run, use the MCP tool: `ward-detail`.
+For inspecting results after a run, use: `npm run ward -- detail <runId> <filePath>`.
 
 Running `npm run ward` with no arguments is equivalent to `npm run ward -- run`.
 
@@ -99,21 +99,21 @@ npm run ward -- --only test --onlyTests "user|auth"
 npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks
 ```
 
-**Inspect results after a run** — use MCP tool:
-- `ward-detail` with runId + filePath — drill into a file's errors
+**Inspect results after a run** — use CLI:
+
+- `npm run ward -- detail <runId> <filePath>` — drill into a file's errors
 
 ## Workflow: run → detail
 
 When ward finds failures, it prints a summary with truncated error info. To get full details (especially jest diffs for
-test failures), use the MCP tools:
+test failures), use the detail subcommand:
 
 1. Run checks: `npm run ward -- --only lint,test`
-2. Use MCP tool `ward-detail` with the run ID and file path to drill into a specific file's errors
+2. Run `npm run ward -- detail <runId> <filePath>` to drill into a specific file's errors
 
-**Why this matters:** The `run` output truncates test failure messages to the first line. The `ward-detail` tool shows
-the
-full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of a
-failing run.
+**Why this matters:** The `run` output truncates test failure messages to the first line. The `detail` subcommand shows
+the full `toStrictEqual` diff, which is what you need to actually fix the test. Always follow the hint at the bottom of
+a failing run.
 
 ## How File Scoping Works
 
