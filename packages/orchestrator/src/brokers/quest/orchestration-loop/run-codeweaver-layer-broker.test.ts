@@ -118,6 +118,122 @@ describe('runCodeweaverLayerBroker', () => {
       expect(status).toBe('complete');
     });
 
+    it('VALID: {2 codeweavers, both signal complete} => marks both work items complete', async () => {
+      const step1 = DependencyStepStub({ id: 'step-1' });
+      const step2 = DependencyStepStub({ id: 'step-2' });
+
+      const workItemId1 = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItemId2 = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+
+      const workItem1 = WorkItemStub({
+        id: workItemId1,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step1.id)}`],
+      });
+      const workItem2 = WorkItemStub({
+        id: workItemId2,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step2.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step1, step2],
+        workItems: [workItem1, workItem2],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem1, workItem2],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
+      const status2 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId2 });
+
+      expect(status1).toBe('complete');
+      expect(status2).toBe('complete');
+    });
+
+    it('VALID: {3 codeweavers, all signal complete} => marks all 3 work items complete', async () => {
+      const step1 = DependencyStepStub({ id: 'step-1' });
+      const step2 = DependencyStepStub({ id: 'step-2' });
+      const step3 = DependencyStepStub({ id: 'step-3' });
+
+      const workItemId1 = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItemId2 = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+      const workItemId3 = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+
+      const workItem1 = WorkItemStub({
+        id: workItemId1,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step1.id)}`],
+      });
+      const workItem2 = WorkItemStub({
+        id: workItemId2,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step2.id)}`],
+      });
+      const workItem3 = WorkItemStub({
+        id: workItemId3,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step3.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step1, step2, step3],
+        workItems: [workItem1, workItem2, workItem3],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem1, workItem2, workItem3],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
+      const status2 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId2 });
+      const status3 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId3 });
+
+      expect(status1).toBe('complete');
+      expect(status2).toBe('complete');
+      expect(status3).toBe('complete');
+    });
+
     it('VALID: {1 codeweaver, null signal} => marks work item failed', async () => {
       const step = DependencyStepStub({ id: 'step-1' });
       const workItemId = QuestWorkItemIdStub({

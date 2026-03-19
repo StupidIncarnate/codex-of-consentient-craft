@@ -43,6 +43,18 @@ describe('spawnWardLayerBroker', () => {
       expect(result.wardResultJson).toBeNull();
     });
 
+    it('VALID: {ward process is killed (null exitCode)} => returns exitCode 1 and null wardResultJson', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardKilled();
+
+      const result = await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(result.wardResultJson).toBeNull();
+    });
+
     it('VALID: {adapter normalizes null exitCode to 1} => returns exitCode 1 (adapter-level guarantee)', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       proxy.setupWardNoRunId({ exitCode: ExitCodeStub({ value: 1 }) });

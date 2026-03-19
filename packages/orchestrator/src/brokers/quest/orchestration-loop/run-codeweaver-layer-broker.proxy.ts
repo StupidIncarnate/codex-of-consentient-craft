@@ -16,6 +16,7 @@ export const runCodeweaverLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -42,6 +43,15 @@ export const runCodeweaverLayerBrokerProxy = (): {
       exitCode: ExitCode;
     }): void => {
       slotProxy.setupSpawnAndMonitor({ lines, exitCode });
+    },
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      slotProxy.setupSpawnAutoLines({ lines, exitCode });
     },
     getLastPersistedWorkItemStatus: ({
       workItemId,

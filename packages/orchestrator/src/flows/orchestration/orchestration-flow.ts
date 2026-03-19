@@ -7,6 +7,7 @@
  * const recovered = await OrchestrationFlow.recoverActiveQuests({ guildItems });
  */
 
+import { ChatStopAllResponder } from '../../responders/chat/stop-all/chat-stop-all-responder';
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
 import { OrchestrationStartResponder } from '../../responders/orchestration/start/orchestration-start-responder';
 import { OrchestrationStartupRecoveryResponder } from '../../responders/orchestration/startup-recovery/orchestration-startup-recovery-responder';
@@ -29,4 +30,8 @@ export const OrchestrationFlow = {
 
   recoverActiveQuests: async ({ guildItems }: RecoverParams): Promise<Awaited<RecoverResult>> =>
     OrchestrationStartupRecoveryResponder({ guildItems }),
+
+  stopAll: (): void => {
+    ChatStopAllResponder();
+  },
 };

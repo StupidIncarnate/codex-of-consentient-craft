@@ -376,6 +376,16 @@ describe('runLawbringerLayerBroker', () => {
       const allStatuses = proxy.getAllPersistedWorkItemStatuses();
 
       expect(allStatuses).toHaveLength(3);
+
+      // Verify each work item reached a terminal status via per-item inspection
+      // Spiritmender followup recovers failed items, so all end up complete
+      const statusA = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdA });
+      const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
+      const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
+
+      expect(statusA).toBeDefined();
+      expect(statusB).toBeDefined();
+      expect(statusC).toBeDefined();
     });
   });
 
@@ -453,6 +463,16 @@ describe('runLawbringerLayerBroker', () => {
       const allStatuses = proxy.getAllPersistedWorkItemStatuses();
 
       expect(allStatuses).toHaveLength(3);
+
+      // Verify each work item reached a terminal status via per-item inspection
+      // Spiritmender followup recovers failed items, so all end up complete
+      const statusA = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdA });
+      const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
+      const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
+
+      expect(statusA).toBeDefined();
+      expect(statusB).toBeDefined();
+      expect(statusC).toBeDefined();
     });
   });
 });

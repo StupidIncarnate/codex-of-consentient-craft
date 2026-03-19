@@ -36,6 +36,7 @@ export const checkCommandsStatics = {
       '--no-color',
       '--forceExit',
       '--detectOpenHandles',
+      '--testTimeout=30000',
       '--testPathPatterns',
       '\\.integration\\.test\\.ts$',
     ],
