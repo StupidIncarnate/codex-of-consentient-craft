@@ -37,7 +37,11 @@ export const slotManagerOrchestrateBroker = async ({
   timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
   startPath: FilePath;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;

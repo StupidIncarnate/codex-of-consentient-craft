@@ -61,11 +61,16 @@ export const QuestModifyResponder = async ({
               processId,
               questId: typedQuestId,
               startPath,
-              onAgentEntry: ({ slotIndex, entry }) => {
+              onAgentEntry: ({ slotIndex, entry, sessionId }) => {
                 orchestrationEventsState.emit({
                   type: 'chat-output',
                   processId,
-                  payload: { processId, slotIndex, entry },
+                  payload: {
+                    processId,
+                    slotIndex,
+                    entry,
+                    ...(sessionId === undefined ? {} : { sessionId }),
+                  },
                 });
               },
               abortSignal: abortController.signal,

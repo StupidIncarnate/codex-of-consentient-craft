@@ -1154,6 +1154,283 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('live sessionId routing in execution phase', () => {
+    it('VALID: {chat-output WS message with slotIndex and sessionId} => routes entries to work item panel by sessionId', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-live-session',
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-live-session' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-live-session-cw' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-live-session' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-live-session',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              slotIndex: 0,
+              sessionId: 'wi-live-session-cw',
+              entry: {
+                raw: JSON.stringify({
+                  type: 'assistant',
+                  message: {
+                    role: 'assistant',
+                    content: [{ type: 'text', text: 'Live codeweaver output...' }],
+                  },
+                }),
+              },
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRow = stepRows.find((row) => row.textContent?.includes('CODEWEAVER'));
+      const rowHeader = codeweaverRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      const messages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(messages).toHaveLength(1);
+      expect(messages[0]?.textContent).toMatch(/Live codeweaver output/u);
+    });
+
+    it('VALID: {two codeweaver instances, live message for first sessionId} => routes to first instance only', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-multi-inst-1',
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-multi-inst-1' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000010',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-cw-session-1' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000011',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-cw-session-2' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-multi-inst-1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-multi-inst-1',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              slotIndex: 0,
+              sessionId: 'wi-cw-session-1',
+              entry: {
+                raw: JSON.stringify({
+                  type: 'assistant',
+                  message: {
+                    role: 'assistant',
+                    content: [{ type: 'text', text: 'Codeweaver instance one working...' }],
+                  },
+                }),
+              },
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRows = stepRows.filter((row) => row.textContent?.includes('CODEWEAVER'));
+      const [firstRow] = codeweaverRows;
+      const firstHeader = firstRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(firstHeader);
+
+      const firstRowMessages = firstRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(firstRowMessages).toHaveLength(1);
+      expect(firstRowMessages[0]?.textContent).toMatch(/Codeweaver instance one working/u);
+    });
+
+    it('VALID: {two codeweaver instances, live message for second sessionId} => routes to second instance only', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-multi-inst-2',
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-multi-inst-2' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000010',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-cw-session-1' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000011',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-cw-session-2' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-multi-inst-2' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-multi-inst-2',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              slotIndex: 1,
+              sessionId: 'wi-cw-session-2',
+              entry: {
+                raw: JSON.stringify({
+                  type: 'assistant',
+                  message: {
+                    role: 'assistant',
+                    content: [{ type: 'text', text: 'Codeweaver instance two working...' }],
+                  },
+                }),
+              },
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRows = stepRows.filter((row) => row.textContent?.includes('CODEWEAVER'));
+      const [, secondRow] = codeweaverRows;
+      const secondHeader = secondRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(secondHeader);
+
+      const secondRowMessages = secondRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(secondRowMessages).toHaveLength(1);
+      expect(secondRowMessages[0]?.textContent).toMatch(/Codeweaver instance two working/u);
+    });
+  });
+
   describe('work item session entries in execution phase', () => {
     it('VALID: {quest in execution phase with replay response for work item session} => shows entries in execution panel', async () => {
       const proxy = QuestChatWidgetProxy();

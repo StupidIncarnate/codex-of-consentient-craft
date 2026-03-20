@@ -41,7 +41,11 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;

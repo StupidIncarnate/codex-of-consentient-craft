@@ -10,6 +10,7 @@ import {
   workItemContract,
   type FilePath,
   type QuestId,
+  type SessionId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
@@ -40,7 +41,11 @@ export const runPathseekerLayerBroker = async ({
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
 }): Promise<void> => {
   const workUnit = workUnitContract.parse({
     role: 'pathseeker',
@@ -49,6 +54,7 @@ export const runPathseekerLayerBroker = async ({
 
   const slotIndex = slotIndexContract.parse(0);
   const timeoutMs = timeoutMsContract.parse(workItem.timeoutMs ?? PATHSEEKER_TIMEOUT_MS);
+  let trackedSessionId: SessionId | null = null;
 
   await agentSpawnByRoleBroker({
     workUnit,
@@ -59,10 +65,15 @@ export const runPathseekerLayerBroker = async ({
       ? {}
       : {
           onLine: ({ line }: { line: string }) => {
-            onAgentEntry({ slotIndex, entry: { raw: line } });
+            onAgentEntry({
+              slotIndex,
+              entry: { raw: line },
+              ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+            });
           },
         }),
     onSessionId: ({ sessionId }) => {
+      trackedSessionId = sessionId;
       questModifyBroker({
         input: {
           questId,

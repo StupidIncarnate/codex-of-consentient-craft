@@ -6,7 +6,13 @@
  * // Resolves steps from relatedDataItems, runs codeweaver agents, updates work item + step statuses
  */
 
-import type { FilePath, QuestId, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  FilePath,
+  QuestId,
+  QuestWorkItemId,
+  SessionId,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -39,7 +45,11 @@ export const runCodeweaverLayerBroker = async ({
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.codeweaver.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(

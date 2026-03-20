@@ -52,7 +52,11 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
@@ -84,7 +88,12 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                onAgentEntry({ slotIndex: availableSlotIndex, entry: { raw: line } });
+                const knownSessionId = Reflect.get(sessionIds, workItemId) as SessionId | undefined;
+                onAgentEntry({
+                  slotIndex: availableSlotIndex,
+                  entry: { raw: line },
+                  ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
+                });
               },
             }),
         ...(onWorkItemSessionId === undefined
@@ -159,7 +168,14 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
+                const knownSessionId = Reflect.get(sessionIds, completedAgent.workItemId) as
+                  | SessionId
+                  | undefined;
+                onAgentEntry({
+                  slotIndex: newSlotIndex,
+                  entry: { raw: line },
+                  ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
+                });
               },
             }),
         ...(onWorkItemSessionId === undefined
@@ -246,7 +262,14 @@ export const orchestrationLoopLayerBroker = async ({
               ? {}
               : {
                   onLine: ({ line }: { line: string }) => {
-                    onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
+                    const knownSessionId = Reflect.get(sessionIds, newWorkItemId) as
+                      | SessionId
+                      | undefined;
+                    onAgentEntry({
+                      slotIndex: newSlotIndex,
+                      entry: { raw: line },
+                      ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
+                    });
                   },
                 }),
             ...(onWorkItemSessionId === undefined

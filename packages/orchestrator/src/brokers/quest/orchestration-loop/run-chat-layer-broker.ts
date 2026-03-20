@@ -38,7 +38,11 @@ export const runChatLayerBroker = async ({
   workItem: WorkItem;
   startPath: FilePath;
   userMessage?: UserInput;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
 }): Promise<void> => {
   const slotIndex = slotIndexContract.parse(0);
 
@@ -61,7 +65,11 @@ export const runChatLayerBroker = async ({
         cwd: absoluteFilePathContract.parse(startPath),
         ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
         onLine: ({ line }) => {
-          onAgentEntry?.({ slotIndex, entry: { raw: line } });
+          onAgentEntry?.({
+            slotIndex,
+            entry: { raw: line },
+            ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+          });
 
           if (trackedSessionId === null) {
             const parseResult = streamJsonLineContract.safeParse(line);

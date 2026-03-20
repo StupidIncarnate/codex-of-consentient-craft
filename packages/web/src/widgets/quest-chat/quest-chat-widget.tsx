@@ -163,6 +163,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
           if (result.entries.length === 0) return;
 
           handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
+
+          const rawSessionId: unknown = Reflect.get(parsed.data.payload, 'sessionId');
+          if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
+            const liveSessionId = rawSessionId as SessionId;
+            setWorkItemSessionEntries((prev) => {
+              const updated = new Map(prev);
+              const existing = updated.get(liveSessionId) ?? [];
+              updated.set(liveSessionId, [...existing, ...result.entries]);
+              return updated;
+            });
+          }
           return;
         }
 

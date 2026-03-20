@@ -10,6 +10,7 @@ import type {
   FilePath,
   ProcessId,
   QuestId,
+  SessionId,
   UserInput,
   WorkItem,
   WorkItemRole,
@@ -51,7 +52,11 @@ export const questOrchestrationLoopBroker = async ({
   processId: ProcessId;
   questId: QuestId;
   startPath: FilePath;
-  onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
   abortSignal?: AbortSignal;
   userMessage?: UserInput;
 }): Promise<void> => {
