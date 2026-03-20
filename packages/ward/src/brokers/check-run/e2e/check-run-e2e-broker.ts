@@ -41,6 +41,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { playwrightJsonParseTransformer } from '../../../transformers/playwright-json-parse/playwright-json-parse-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
+import { flattenPlaywrightProjectSuitesTransformer } from '../../../transformers/flatten-playwright-project-suites/flatten-playwright-project-suites-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
@@ -123,14 +124,17 @@ export const checkRunE2eBroker = async ({
     const parsed: unknown = JSON.parse(jsonSlice);
     if (typeof parsed === 'object' && parsed !== null) {
       if ('suites' in parsed) {
-        const suites: unknown = Reflect.get(parsed, 'suites');
-        if (Array.isArray(suites)) {
-          filesCount = suites.length;
-          for (const suite of suites) {
-            if (typeof suite === 'object' && suite !== null && 'title' in suite) {
-              const title: unknown = Reflect.get(suite, 'title');
-              if (typeof title === 'string' && title.length > 0) {
-                processedFiles.push(gitRelativePathContract.parse(title));
+        const topSuites: unknown = Reflect.get(parsed, 'suites');
+        if (Array.isArray(topSuites)) {
+          const fileSuites = flattenPlaywrightProjectSuitesTransformer({ suites: topSuites });
+          filesCount = fileSuites.length;
+          for (const suite of fileSuites) {
+            if (typeof suite === 'object' && suite !== null) {
+              const file: unknown = 'file' in suite ? Reflect.get(suite, 'file') : undefined;
+              const title: unknown = 'title' in suite ? Reflect.get(suite, 'title') : undefined;
+              const filePath = typeof file === 'string' && file.length > 0 ? file : title;
+              if (typeof filePath === 'string' && filePath.length > 0) {
+                processedFiles.push(gitRelativePathContract.parse(filePath));
               }
             }
           }

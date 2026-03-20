@@ -74,6 +74,7 @@ describe('checkRunE2eBroker', () => {
         suites: [
           {
             title: 'login.spec.ts',
+            file: 'e2e/login.spec.ts',
             suites: [],
             specs: [
               {
@@ -114,7 +115,7 @@ describe('checkRunE2eBroker', () => {
           ],
           filesCount: 1,
           onlyDiscovered: ['discovered.ts'],
-          onlyProcessed: ['login.spec.ts'],
+          onlyProcessed: ['e2e/login.spec.ts'],
           rawOutput: RawOutputStub({ stdout: playwrightOutput, stderr: '', exitCode: 1 }),
         }),
       );
