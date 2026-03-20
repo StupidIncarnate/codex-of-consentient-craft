@@ -206,6 +206,7 @@ Broker proxies compose child adapter/broker proxies and provide semantic setup m
 ```typescript
 // brokers/user/fetch/user-fetch-broker.proxy.ts
 import {axiosGetAdapterProxy} from '../../../adapters/axios/get/axios-get-adapter.proxy';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 import {UserStub} from '../../../contracts/user/user.stub';
 import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
 
@@ -216,8 +217,9 @@ export const userFetchBrokerProxy = () => {
     // Compose child adapter proxy
     const httpProxy = axiosGetAdapterProxy();
 
-    // Mock globals if broker uses them
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+  // Mock globals via registerMock if broker uses them
+  const dateHandle = registerMock({fn: Date.now});
+  dateHandle.mockReturnValue(1609459200000);
 
     return {
         // Semantic setup method
@@ -249,9 +251,9 @@ export const pureBrokerProxy = (): Record<PropertyKey, never> => ({});
 **Key principles:**
 
 - Delegate to child proxies (adapter/broker/state proxies)
-- Mock globals (Date.now, crypto.randomUUID) in constructor if broker uses them
+- Mock globals (Date.now, crypto.randomUUID) via registerMock in constructor if broker uses them
 - Export semantic methods that describe scenarios, not implementation details
-- Tests never call jest.mocked() directly - only use proxy methods
+- Tests never call registerMock or jest.mocked() directly - only use proxy methods
 
 **TEST EXAMPLE:**
 

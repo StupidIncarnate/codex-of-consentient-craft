@@ -109,6 +109,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
     '@dungeonmaster/ban-startup-branching': 'error',
+    // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

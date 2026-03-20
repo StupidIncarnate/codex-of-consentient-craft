@@ -319,22 +319,24 @@ export const universalSyntaxRulesStatics = {
           'Use .toStrictEqual() for all objects/arrays to catch property bleedthrough',
       },
       mockingAndProxies: {
-        directMockManipulation: 'Using jest.mocked() in tests instead of proxy semantic methods',
+        directMockManipulation:
+          'Using jest.mocked()/jest.spyOn()/jest.mock() directly instead of registerMock in proxies',
         mockingApplicationCode:
-          'Using jest.mock() on application code (only mock npm packages in proxies)',
+          'Using jest.mock() on application code (only mock npm packages via registerMock in proxies)',
         manualMockCleanup: 'Calling mockReset(), mockClear() (@dungeonmaster/testing handles this)',
-        jestSpyOnModules: 'Using jest.spyOn() for module imports (only use for global objects)',
+        jestSpyOnModules:
+          'Using jest.spyOn() for any mocking (use registerMock for both modules and globals)',
         sharedProxyInstances:
           'Creating proxy once outside tests (always create fresh proxy per test)',
         violations: [
-          'const mockAxios = jest.mocked(axios.get); mockAxios.mockResolvedValue({data: user}); // Use proxy methods',
+          'const mockAxios = jest.mocked(axios.get); mockAxios.mockResolvedValue({data: user}); // Use registerMock in proxy',
           'jest.mock("../../brokers/user/fetch/user-fetch-broker"); // Never mock app code',
           'beforeEach(() => { jest.clearAllMocks(); }); // @dungeonmaster/testing handles this',
-          'jest.spyOn(adapter, "fsReadFile"); // Use jest.mock for modules',
+          'jest.spyOn(adapter, "fsReadFile"); // Use registerMock, not jest.spyOn',
           'const proxy = userFetchBrokerProxy(); it("test 1", () => {}); it("test 2", () => {}); // Stale mocks',
         ],
         correctApproach:
-          'Create fresh proxy per test, use semantic methods, only mock npm packages in proxies',
+          'Create fresh proxy per test, use registerMock in proxies with semantic methods, only mock at I/O boundaries',
       },
       typeSafety: {
         typeEscapeHatches: 'Using any, as, @ts-ignore in tests to bypass type errors',

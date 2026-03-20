@@ -167,14 +167,15 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/Use `get-folder-detail\(\{ folderType: "contracts"/u);
     });
 
-    it('VALID: {} => includes mocking mechanics section', () => {
+    it('VALID: {} => includes mocking mechanics section with registerMock', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/## Mocking Mechanics/u);
-      expect(result).toMatch(/jest\.mock\(\) \+ jest\.mocked\(\)/u);
-      expect(result).toMatch(/jest\.spyOn\(\)/u);
+      expect(result).toMatch(/registerMock/u);
+      expect(result).toMatch(/Stack-based dispatch/u);
+      expect(result).toMatch(/MockHandle API/u);
     });
 
     it('VALID: {} => includes integration testing section', () => {

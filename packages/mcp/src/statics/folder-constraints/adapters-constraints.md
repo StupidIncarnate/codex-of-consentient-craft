@@ -151,18 +151,16 @@ Proxies mock the npm package, NOT the adapter. Adapter code runs real in tests.
 ```typescript
 // adapters/axios/get/axios-get-adapter.proxy.ts
 import axios from 'axios';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 import {HttpResponseStub} from '../../../contracts/http-response/http-response.stub';
 import {UrlStub} from '../../../contracts/url/url.stub';
 
-// Declare jest.mock() in proxy (auto-hoisted by Jest)
-jest.mock('axios');
-
 export const axiosGetAdapterProxy = () => {
-    // Mock the npm package, not the adapter
-    const mock = jest.mocked(axios.get);
+    // registerMock wraps the npm package mock with stack-based dispatch
+    const handle = registerMock({ fn: axios.get });
 
     // Default mock behavior in constructor
-    mock.mockResolvedValue({
+    handle.mockResolvedValue({
         data: {},
         status: 200,
         statusText: 'OK',
@@ -173,7 +171,7 @@ export const axiosGetAdapterProxy = () => {
     return {
         // Semantic method for success
         returns: ({url, data}: { url: ReturnType<typeof UrlStub>; data: unknown }) => {
-            mock.mockResolvedValueOnce({
+            handle.mockResolvedValueOnce({
                 data,
                 status: 200,
                 statusText: 'OK',
@@ -184,7 +182,7 @@ export const axiosGetAdapterProxy = () => {
 
         // Semantic method for error
         throws: ({url, error}: { url: ReturnType<typeof UrlStub>; error: Error }) => {
-            mock.mockRejectedValueOnce(error);
+            handle.mockRejectedValueOnce(error);
         },
     };
 };
@@ -231,22 +229,18 @@ This is simpler than method-based proxies because there's only one operation to 
 ```typescript
 // adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts
 import {runtimeDynamicImportAdapter} from '@dungeonmaster/shared/adapters';
-
-jest.mock('@dungeonmaster/shared/adapters', () => ({
-  ...jest.requireActual('@dungeonmaster/shared/adapters'),
-  runtimeDynamicImportAdapter: jest.fn(),
-}));
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 
 export const runtimeDynamicImportAdapterProxy = ({
                                                    module,
                                                  }: {
   module: unknown;
 }): Record<PropertyKey, never> => {
-  const mock = jest.mocked(runtimeDynamicImportAdapter<unknown>);
+  const handle = registerMock({ fn: runtimeDynamicImportAdapter });
   if (module instanceof Error) {
-    mock.mockRejectedValue(module);
+    handle.mockRejectedValueOnce(module);
   } else {
-    mock.mockResolvedValue(module);
+    handle.mockResolvedValue(module);
   }
   return {};
 };
@@ -255,8 +249,8 @@ export const runtimeDynamicImportAdapterProxy = ({
 **Broker Proxy Pattern (when a broker uses this adapter):**
 
 When a broker uses `runtimeDynamicImportAdapter`, its proxy imports and calls the adapter proxy
-from `@dungeonmaster/shared/testing`. The adapter proxy already has the `jest.mock()` declaration
-which gets hoisted when imported - broker proxies don't repeat it.
+from `@dungeonmaster/shared/testing`. The adapter proxy uses `registerMock` internally —
+broker proxies delegate to it, they don't mock directly.
 
 ```typescript
 // brokers/config/load/config-load-broker.proxy.ts

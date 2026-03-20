@@ -37,6 +37,7 @@ describe('StartEslintPlugin', () => {
         'enforce-file-metadata',
         'ban-fetch-in-proxies',
         'ban-startup-branching',
+        'ban-jest-mock-in-proxies',
       ]);
       expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });

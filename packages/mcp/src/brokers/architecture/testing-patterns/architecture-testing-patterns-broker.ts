@@ -38,14 +38,14 @@ const user: ReturnType<typeof UserStub> = UserStub({id: userId});
 
 **Why:** Stubs are single source of truth for test data. They return typed values automatically.
 
-**Exception for mocks:** Use \`jest.mocked()\` instead of type assertions. For branded types, use stubs:
+**Exception for mocks:** Use \`registerMock\` handles with stubs for branded types, not type assertions:
 
 \`\`\`typescript
-// ✅ CORRECT - Mock with branded type using stub
-mockFsReadFile.mockResolvedValue(FileContentsStub({value: 'content'}));
+// ✅ CORRECT - registerMock handle with branded type using stub
+handle.mockResolvedValue(FileContentsStub({value: 'content'}));
 
 // ❌ WRONG - Type error or escape hatch
-mockFsReadFile.mockResolvedValue('content' as FileContents);
+handle.mockResolvedValue('content' as FileContents);
 \`\`\`
 
 **Exception for testing invalid inputs:** Use \`as never\`:
@@ -379,10 +379,10 @@ it('test', () => {
 **Constructor setup:** Proxies set up all mocks in their constructor (function body). No beforeEach hooks, no bootstrap() methods.
 
 \`\`\`typescript
-// ✅ CORRECT - Setup in constructor
+// ✅ CORRECT - Setup in constructor with registerMock
 export const httpAdapterProxy = () => {
-  const mock = jest.mocked(axios); // Setup here
-  mock.mockResolvedValue({data: {}}); // Default behavior
+  const handle = registerMock({ fn: axios }); // Setup here
+  handle.mockResolvedValue({data: {}}); // Default behavior
   return { /* semantic methods */ };
 };
 
@@ -392,16 +392,20 @@ beforeEach(() => {
 });
 \`\`\`
 
-**No direct mock manipulation:** Tests use semantic proxy methods, never jest.mocked() directly.
+**No direct mock manipulation:** Tests use semantic proxy methods, never \`registerMock\` or \`jest.mocked()\` directly in test files.
 
 \`\`\`typescript
-// ✅ CORRECT - Semantic proxy method
+// ✅ CORRECT - Semantic proxy method (registerMock is inside the proxy)
 const proxy = axiosGetAdapterProxy();
 proxy.returns({url: UrlStub('/users/123'), data: user});
 
 // ❌ WRONG - Direct mock manipulation in test
 const mockAxios = jest.mocked(axios.get);
 mockAxios.mockResolvedValue({data: user});
+
+// ❌ WRONG - registerMock in test file (belongs in proxy)
+const handle = registerMock({ fn: readFile });
+handle.mockResolvedValue(Buffer.from(''));
 \`\`\``;
 
   // Child Proxy Creation
@@ -441,14 +445,19 @@ export const badProxy = () => {
   // Global Function Mocking
   const globalMocking = `ANY proxy can mock globals if the code being tested uses them. Not just brokers!
 
+Use \`registerMock\` for globals the same way you use it for module mocks:
+
 \`\`\`typescript
-// Example: Broker proxy mocking globals
+import { randomUUID } from 'crypto';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+// Example: Broker proxy mocking globals via registerMock
 export const userCreateBrokerProxy = () => {
   const httpProxy = httpAdapterProxy();
 
-  // Mock in constructor (runs when proxy is created)
-  jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-...');
+  // registerMock works for globals too — stack-based dispatch prevents collisions
+  const uuidHandle = registerMock({ fn: randomUUID });
+  uuidHandle.mockReturnValue('f47ac10b-...');
 
   return {
     setupUserCreate: ({userData, user}) => {
@@ -483,30 +492,101 @@ import {UserStub} from '../contracts/user/user.stub';
 type User = ReturnType<typeof UserStub>;
 \`\`\``;
 
-  // Mocking Mechanics
-  const mockingMechanics = `**jest.mock() + jest.mocked()** - Used in proxy files, not tests:
+  // Mocking Mechanics - registerMock
+  const mockingMechanics = `**Use \`registerMock\` for all mocking in proxy files.** It replaces \`jest.mock()\`/\`jest.mocked()\`/\`jest.spyOn()\`.
 
 \`\`\`typescript
-import {readFile} from 'fs/promises';
-jest.mock('fs/promises'); // Hoisted automatically
+import { writeFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+\`\`\`
 
-export const fsReadFileAdapterProxy = () => {
-  const mockReadFile = jest.mocked(readFile); // Type-safe
-  mockReadFile.mockImplementation(async () => Buffer.from(''));
-  return { /* semantic methods */ };
+**Why registerMock over jest.mock/jest.spyOn?** Stack-based dispatch lets multiple proxies mock the same \`jest.fn()\` without collision. When a broker proxy composes two adapter proxies that both mock the same npm function, \`registerMock\` routes each call to the correct proxy based on the call stack. With raw \`jest.mock()\`, the second proxy would overwrite the first.
+
+**How it works:**
+1. Call \`registerMock({ fn })\` with the imported function
+2. It auto-derives the caller's file path from the stack trace
+3. Returns a \`MockHandle\` scoped to that caller — other proxies get their own independent handle
+4. When the mocked function is called at runtime, the dispatcher inspects the call stack and routes to the matching handle
+
+**MockHandle API:**
+
+| Method | Purpose |
+|--------|---------|
+| \`handle.mockImplementation(fn)\` | Set base implementation |
+| \`handle.mockImplementationOnce(fn)\` | Queue one-shot implementation (FIFO) |
+| \`handle.mockReturnValue(val)\` | Set base return value |
+| \`handle.mockReturnValueOnce(val)\` | Queue one-shot return value |
+| \`handle.mockResolvedValue(val)\` | Set base resolved promise |
+| \`handle.mockResolvedValueOnce(val)\` | Queue one-shot resolved promise |
+| \`handle.mockRejectedValueOnce(val)\` | Queue one-shot rejected promise |
+| \`handle.mock.calls\` | Array of call argument arrays (per-proxy) |
+| \`handle.mockClear()\` | Clear calls, queue, and base impl |
+
+**Adapter proxy example (I/O boundary):**
+
+\`\`\`typescript
+import { writeFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+export const fsWriteFileAdapterProxy = (): {
+  succeeds: () => void;
+  throws: (params: { error: Error }) => void;
+  getWrittenContent: () => unknown;
+} => {
+  const handle = registerMock({ fn: writeFile });
+  handle.mockResolvedValue(undefined); // Default: writes succeed
+
+  return {
+    succeeds: (): void => {
+      handle.mockResolvedValueOnce(undefined);
+    },
+    throws: ({ error }: { error: Error }): void => {
+      handle.mockRejectedValueOnce(error);
+    },
+    getWrittenContent: (): unknown => {
+      const { calls } = handle.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      return lastCall[1];
+    },
+  };
 };
 \`\`\`
 
-**jest.spyOn()** - For global objects only, not module imports:
+**Global function proxy example:**
 
 \`\`\`typescript
-// ✅ CORRECT - Global objects
-jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-...');
-jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+import { randomUUID } from 'crypto';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-// ❌ WRONG - Module imports (use jest.mock instead)
-import * as adapter from './adapter';
-jest.spyOn(adapter, 'fsReadFile'); // Doesn't work!
+export const cryptoRandomUuidAdapterProxy = (): {
+  setupReturns: (params: { uuid: Uuid }) => void;
+} => {
+  const handle = registerMock({ fn: randomUUID });
+  handle.mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+
+  return {
+    setupReturns: ({ uuid }: { uuid: Uuid }): void => {
+      handle.mockReturnValue(uuid);
+    },
+  };
+};
+\`\`\`
+
+\`\`\`typescript
+// ❌ WRONG - jest.mocked in proxy
+const mockReadFile = jest.mocked(readFile);
+mockReadFile.mockImplementation(async () => Buffer.from(''));
+
+// ❌ WRONG - jest.spyOn in proxy
+jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-...');
+
+// ❌ WRONG - jest.mock in proxy
+jest.mock('fs/promises');
+
+// ✅ CORRECT - registerMock replaces all of the above
+const handle = registerMock({ fn: readFile });
+const uuidHandle = registerMock({ fn: randomUUID });
 \`\`\``;
 
   // Integration Testing
@@ -717,8 +797,8 @@ Before writing any test, verify:
 
 - [ ] Created fresh proxy in test (not shared)
 - [ ] Used ReturnType<typeof Stub> for types (not contract imports)
-- [ ] Proxies set up mocks in constructor
-- [ ] Tests use semantic proxy methods (not jest.mocked directly)
+- [ ] Proxies use registerMock (not jest.mocked/jest.spyOn) and set up in constructor
+- [ ] Tests use semantic proxy methods (never registerMock/jest.mocked directly in tests)
 - [ ] Used toStrictEqual for objects/arrays (no weak matchers)
 - [ ] No beforeEach/afterEach hooks
 - [ ] No conditionals in tests

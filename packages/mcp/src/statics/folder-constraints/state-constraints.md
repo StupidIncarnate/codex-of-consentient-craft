@@ -171,6 +171,7 @@ State proxies spy on methods and clear state in constructor.
 ```typescript
 // state/user-cache/user-cache-state.proxy.ts
 import {userCacheState} from './user-cache-state';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 import {UserStub} from '../../contracts/user/user.stub';
 import {UserIdStub} from '../../contracts/user-id/user-id.stub';
 
@@ -181,10 +182,10 @@ export const userCacheStateProxy = () => {
     // Clear state in constructor (runs when proxy is created)
     userCacheState.clear();
 
-    // Spy on methods to verify calls
-    const getSpy = jest.spyOn(userCacheState, 'get');
-    const setSpy = jest.spyOn(userCacheState, 'set');
-    const deleteSpy = jest.spyOn(userCacheState, 'delete');
+    // Spy on methods to verify calls via registerMock
+    const getHandle = registerMock({fn: userCacheState.get});
+    const setHandle = registerMock({fn: userCacheState.set});
+    const deleteHandle = registerMock({fn: userCacheState.delete});
 
     return {
         // Semantic setup for pre-cached data
@@ -196,18 +197,17 @@ export const userCacheStateProxy = () => {
             userCacheState.clear(); // Already called in constructor, but semantic
         },
 
-        // Verification helpers
+        // Verification helpers using handle.mock.calls
         verifyCacheHit: () => {
-            expect(getSpy).toHaveBeenCalled();
+            expect(getHandle.mock.calls.length > 0).toBe(true);
         },
 
         verifyCacheMiss: () => {
-            expect(getSpy).toHaveBeenCalledTimes(1);
-            expect(getSpy).toHaveReturnedWith(undefined);
+            expect(getHandle.mock.calls).toStrictEqual([[]]);
         },
 
         verifySet: ({userId}: { userId: UserId }) => {
-            expect(setSpy).toHaveBeenCalledWith({id: userId, user: expect.anything()});
+            expect(setHandle.mock.calls[0]).toStrictEqual([{id: userId, user: expect.anything()}]);
         }
     };
 };
@@ -215,29 +215,25 @@ export const userCacheStateProxy = () => {
 
 **External System State (DB, Redis):**
 
-For state that wraps external systems, mock the npm package:
+For state that wraps external systems, use registerMock:
 
 ```typescript
 // state/db-pool/db-pool-state.proxy.ts
 import {Pool} from 'pg';
-
-jest.mock('pg');
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 
 export const dbPoolStateProxy = () => {
-    const mockPool = {
-        connect: jest.fn(),
-        end: jest.fn(),
-    };
-
-    jest.mocked(Pool).mockImplementation(() => mockPool as never);
+    const poolHandle = registerMock({fn: Pool});
+    const mockConnect = registerMock({fn: Pool.prototype.connect});
+    const mockEnd = registerMock({fn: Pool.prototype.end});
 
     return {
         setupConnection: () => {
-            mockPool.connect.mockResolvedValue({/* mock client */});
+            mockConnect.mockResolvedValueOnce({/* mock client */});
         },
 
         setupConnectionError: () => {
-            mockPool.connect.mockRejectedValue(new Error('Connection failed'));
+            mockConnect.mockRejectedValueOnce(new Error('Connection failed'));
         }
     };
 };

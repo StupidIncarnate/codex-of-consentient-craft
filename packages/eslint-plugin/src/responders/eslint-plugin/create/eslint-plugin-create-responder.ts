@@ -36,6 +36,7 @@ import { ruleEnforceRegexUsageBroker } from '../../../brokers/rule/enforce-regex
 import { ruleEnforceFileMetadataBroker } from '../../../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
 import { ruleBanFetchInProxiesBroker } from '../../../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker';
 import { ruleBanStartupBranchingBroker } from '../../../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker';
+import { ruleBanJestMockInProxiesBroker } from '../../../brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -72,6 +73,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-file-metadata': EslintRule;
     readonly 'ban-fetch-in-proxies': EslintRule;
     readonly 'ban-startup-branching': EslintRule;
+    readonly 'ban-jest-mock-in-proxies': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -111,6 +113,7 @@ export const EslintPluginCreateResponder = (): {
       'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
       'ban-fetch-in-proxies': ruleBanFetchInProxiesBroker(),
       'ban-startup-branching': ruleBanStartupBranchingBroker(),
+      'ban-jest-mock-in-proxies': ruleBanJestMockInProxiesBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

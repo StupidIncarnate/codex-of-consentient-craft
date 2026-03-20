@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 31 rule names', () => {
+    it('VALID: {} => returns plugin with all 32 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -38,6 +38,7 @@ describe('EslintPluginCreateResponder', () => {
         'enforce-file-metadata',
         'ban-fetch-in-proxies',
         'ban-startup-branching',
+        'ban-jest-mock-in-proxies',
       ]);
     });
 
