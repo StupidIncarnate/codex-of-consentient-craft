@@ -5,6 +5,8 @@ import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unifi
 export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
   setupSpawnFailureOnce: () => void;
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
@@ -40,6 +42,23 @@ export const agentSpawnByRoleBrokerProxy = (): {
     }): void => {
       // Use mockReturnValueOnce so this spawn takes priority over later mockImplementation calls
       unifiedProxy.setupSpawnAndEmitLines({ lines, exitCode });
+    },
+
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      // Set default config so all spawn calls auto-exit with this exitCode
+      unifiedProxy.setupSuccessConfig({ exitCode });
+      // Auto-emit lines per readline interface creation
+      unifiedProxy.setAutoEmitLines({ lines });
+    },
+
+    setupSpawnOnceLazy: (): void => {
+      unifiedProxy.setupSpawnOnceLazy();
     },
 
     setupSpawnFailure: (): void => {

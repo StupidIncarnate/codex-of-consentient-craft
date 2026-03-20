@@ -8,6 +8,7 @@ export const spawnWardLayerBrokerProxy = (): {
   setupWardSuccess: (params: { exitCode: ExitCode; wardResultJson: string }) => void;
   setupWardFailure: (params: { exitCode: ExitCode; wardResultJson: string }) => void;
   setupWardNoRunId: (params: { exitCode: ExitCode }) => void;
+  setupWardKilled: () => void;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const fileProxy = fsReadFileAdapterProxy();
@@ -45,6 +46,10 @@ export const spawnWardLayerBrokerProxy = (): {
 
     setupWardNoRunId: ({ exitCode }: { exitCode: ExitCode }): void => {
       captureProxy.setupSuccess({ exitCode, stdout: 'some error without run id', stderr: '' });
+    },
+
+    setupWardKilled: (): void => {
+      captureProxy.setupError({ error: new Error('Process was killed') });
     },
   };
 };

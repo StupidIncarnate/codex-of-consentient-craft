@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+const queueDir = process.env.FAKE_WARD_QUEUE_DIR;
+
+if (!queueDir) {
+    process.stderr.write('FAKE_WARD_QUEUE_DIR env var is not set\n');
+    process.exit(1);
+}
+
+// Find the lowest-numbered .json file in the queue directory
+let files;
+try {
+    files = fs.readdirSync(queueDir)
+        .filter((f) => f.endsWith('.json') && f !== 'metadata.json')
+        .sort();
+} catch {
+    process.stderr.write(`Failed to read ward queue directory: ${queueDir}\n`);
+    process.exit(1);
+}
+
+if (files.length === 0) {
+    process.stderr.write('Fake ward CLI: queue is empty — no response files found.\n');
+    process.exit(1);
+}
+
+const nextFile = path.join(queueDir, files[0]);
+const raw = fs.readFileSync(nextFile, 'utf-8');
+const response = JSON.parse(raw);
+
+// Remove the consumed file from the queue
+fs.unlinkSync(nextFile);
+
+const exitCode = response.exitCode ?? 0;
+const runId = response.runId || `fake-${Date.now()}`;
+const wardResultJson = response.wardResultJson || null;
+
+// Write run ID to stdout (ward output format: "run: <id>")
+process.stdout.write(`run: ${runId}\n`);
+
+// Write ward result JSON file to <cwd>/.ward/run-<runId>.json
+if (wardResultJson) {
+    const cwd = process.cwd();
+    const wardDir = path.join(cwd, '.ward');
+    fs.mkdirSync(wardDir, { recursive: true });
+    fs.writeFileSync(
+        path.join(wardDir, `run-${runId}.json`),
+        JSON.stringify(wardResultJson),
+    );
+}
+
+process.exit(exitCode);

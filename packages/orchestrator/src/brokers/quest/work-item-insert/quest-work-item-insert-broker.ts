@@ -49,7 +49,7 @@ export const questWorkItemInsertBroker = async ({
     input: {
       questId,
       workItems: updatedWorkItems,
-      status: newStatus,
+      ...(newStatus === quest.status ? {} : { status: newStatus }),
       ...(tackOnSteps ? { steps: [...quest.steps, ...tackOnSteps] } : {}),
     } as ModifyQuestInput,
   });

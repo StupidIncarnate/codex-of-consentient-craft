@@ -135,8 +135,6 @@ const createMcpClient = async (): Promise<
   };
 };
 
-jest.setTimeout(30_000);
-
 describe('McpServerFlow', () => {
   describe('initialization', () => {
     it('VALID: Server starts and responds to initialize request', async () => {

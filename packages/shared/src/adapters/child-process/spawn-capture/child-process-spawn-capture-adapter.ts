@@ -37,8 +37,8 @@ export const childProcessSpawnCaptureAdapter = async ({
       {
         cwd,
         maxBuffer: FIFTY_MB,
+        env: { ...process.env, ...env },
         ...(timeout !== undefined && { timeout }),
-        ...(env !== undefined && { env: { ...process.env, ...env } }),
       },
       (error, stdout, stderr) => {
         const combinedOutput = errorMessageContract.parse(stdout + stderr);

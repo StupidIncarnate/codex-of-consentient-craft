@@ -18,6 +18,16 @@ export const runPathseekerLayerBrokerProxy = (): {
     exitCode: ExitCode;
   }) => void;
   setupSpawnFailure: (params: { quest: Quest }) => void;
+  setupVerifyFail: (params: {
+    quest: Quest;
+    spawnLines: Parameters<
+      ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+    >[0]['lines'];
+    exitCode: ExitCode;
+  }) => void;
+  setupQuestNotFound: () => void;
+  setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
+  getUuidCalls: () => readonly unknown[];
   getPersistedQuestJsons: () => readonly unknown[];
   getSpawnedArgs: () => unknown;
 } => {
@@ -25,7 +35,7 @@ export const runPathseekerLayerBrokerProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const verifyProxy = questVerifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
-  questWorkItemInsertBrokerProxy();
+  const insertProxy = questWorkItemInsertBrokerProxy();
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
@@ -44,16 +54,72 @@ export const runPathseekerLayerBrokerProxy = (): {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       verifyProxy.setupQuestFound({ quest });
+      insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
     },
 
     setupSpawnFailure: ({ quest }: { quest: Quest }): void => {
+      // Spawn failure path: spawn crashes, verify still runs, then modify + get + insert
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      verifyProxy.setupQuestFound({ quest });
+      insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnFailureOnce();
     },
 
-    getPersistedQuestJsons: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+    setupVerifyFail: ({
+      quest,
+      spawnLines,
+      exitCode,
+    }: {
+      quest: Quest;
+      spawnLines: Parameters<
+        ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
+      >[0]['lines'];
+      exitCode: ExitCode;
+    }): void => {
+      // Verify fail path needs: verify + modify(failed) + get + modify(insert via insertBroker)
+      // Generous mock setups to ensure values are not exhausted
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      verifyProxy.setupQuestFound({ quest });
+      verifyProxy.setupQuestFound({ quest });
+      insertProxy.setupQuestModify({ quest });
+      insertProxy.setupQuestModify({ quest });
+      spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
+    },
+
+    setupQuestNotFound: (): void => {
+      getProxy.setupEmptyFolder();
+      modifyProxy.setupEmptyFolder();
+      verifyProxy.setupEmptyFolder();
+      spawnProxy.setupSpawnFailureOnce();
+    },
+
+    setupDeterministicUuids: ({ uuids }: { uuids: readonly string[] }): void => {
+      const counter = { value: 0 };
+      const spy = jest.spyOn(crypto, 'randomUUID');
+      spy.mockImplementation(() => uuids[counter.value++] as ReturnType<typeof crypto.randomUUID>);
+    },
+
+    getUuidCalls: (): readonly unknown[] => {
+      const mock = jest.spyOn(crypto, 'randomUUID');
+      return mock.mock.calls;
+    },
+
+    getPersistedQuestJsons: (): readonly unknown[] =>
+      modifyProxy
+        .getAllPersistedContents()
+        .map((content) =>
+          typeof content === 'string' ? (JSON.parse(content) as unknown) : content,
+        ),
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };

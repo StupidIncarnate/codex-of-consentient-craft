@@ -1,6 +1,6 @@
 /**
  * PURPOSE: After PathSeeker creates steps, generate the full work item chain
- *          (codeweaver -> ward -> siegemaster -> lawbringer)
+ *          (codeweaver -> ward -> siegemaster -> lawbringer -> final-ward)
  *
  * USAGE:
  * stepsToWorkItemsTransformer({ steps, pathseekerWorkItemId, now });
@@ -91,5 +91,18 @@ export const stepsToWorkItemsTransformer = ({
     }),
   );
 
-  return [...cwItems, wardItem, siegeItem, ...lawItems];
+  const allLawIds = lawItems.map((item) => item.id);
+  const finalWardDeps = allLawIds.length > 0 ? allLawIds : [siegeItem.id];
+
+  const finalWardItem = workItemContract.parse({
+    id: crypto.randomUUID(),
+    role: 'ward',
+    status: 'pending',
+    spawnerType: 'command',
+    dependsOn: finalWardDeps,
+    maxAttempts: slotManagerStatics.ward.maxRetries,
+    createdAt: now,
+  });
+
+  return [...cwItems, wardItem, siegeItem, ...lawItems, finalWardItem];
 };

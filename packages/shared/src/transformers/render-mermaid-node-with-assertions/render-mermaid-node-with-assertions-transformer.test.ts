@@ -62,7 +62,7 @@ describe('renderMermaidNodeWithAssertionsTransformer', () => {
 
       const result = renderMermaidNodeWithAssertionsTransformer({ node, assertions });
 
-      expect(result).toBe('end["<b>End</b><br/><small>· session cleaned up</small>"]');
+      expect(result).toBe('_end["<b>End</b><br/><small>· session cleaned up</small>"]');
     });
   });
 

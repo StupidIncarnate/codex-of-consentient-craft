@@ -10,6 +10,7 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
 import { escapeQuotedMermaidLabelTransformer } from '../escape-quoted-mermaid-label/escape-quoted-mermaid-label-transformer';
+import { sanitizeMermaidIdTransformer } from '../sanitize-mermaid-id/sanitize-mermaid-id-transformer';
 
 const SHAPE_DELIMITERS = {
   state: { open: '[', close: ']' },
@@ -34,7 +35,11 @@ export const renderMermaidNodeWithAssertionsTransformer = ({
     )
     .join('');
 
+  const safeId = sanitizeMermaidIdTransformer({
+    id: contentTextContract.parse(String(node.id)),
+  });
+
   return contentTextContract.parse(
-    `${node.id}${delimiters.open}"<b>${escapedLabel}</b>${assertionLines}"${delimiters.close}`,
+    `${safeId}${delimiters.open}"<b>${escapedLabel}</b>${assertionLines}"${delimiters.close}`,
   );
 };

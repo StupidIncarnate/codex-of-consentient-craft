@@ -19,6 +19,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: number | null }) => {
     mockProcess: MockProcess;
   };
+  setupSpawnOnceLazy: () => void;
   setupSpawnThrow: (params: { error: Error }) => void;
   setupSpawnThrowOnce: (params: { error: Error }) => void;
   setupSuccessConfig: (
@@ -26,6 +27,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       ReturnType<typeof childProcessSpawnStreamJsonAdapterProxy>['setupSuccess']
     >[0],
   ) => void;
+  setAutoEmitLines: (params: { lines: readonly string[] }) => void;
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
 } => {
@@ -94,6 +96,11 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       return { mockProcess };
     },
 
+    setupSpawnOnceLazy: (): void => {
+      spawnProxy.setupSpawnLazy();
+      readlineProxy.skipAutoEmitOnce();
+    },
+
     setupSpawnThrow: ({ error }: { error: Error }): void => {
       spawnProxy.setupSpawnThrow({ error });
     },
@@ -108,6 +115,10 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       ReturnType<typeof childProcessSpawnStreamJsonAdapterProxy>['setupSuccess']
     >[0]): void => {
       spawnProxy.setupSuccess({ exitCode });
+    },
+
+    setAutoEmitLines: ({ lines }: { lines: readonly string[] }): void => {
+      readlineProxy.setAutoEmitLines({ lines });
     },
 
     emitLines: ({ lines }: { lines: readonly string[] }): void => {

@@ -6,7 +6,7 @@
  * // Returns SlotManagerResult when orchestration completes or gets stuck
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
@@ -16,6 +16,7 @@ import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contrac
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { orchestrationLoopLayerBroker } from './orchestration-loop-layer-broker';
 
@@ -28,8 +29,10 @@ export const runOrchestrationLayerBroker = async ({
   activeAgents,
   startPath,
   onAgentEntry,
+  onWorkItemSessionId,
   abortSignal,
   maxFollowupDepth,
+  sessionIds,
 }: {
   questId: QuestId;
   workTracker: WorkTracker;
@@ -39,14 +42,17 @@ export const runOrchestrationLayerBroker = async ({
   activeAgents: ActiveAgent[];
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
+  sessionIds: Record<WorkItemId, SessionId>;
 }): Promise<SlotManagerResult> => {
   if (abortSignal?.aborted) {
     return {
       completed: false,
       incompleteIds: workTracker.getIncompleteIds(),
       failedIds: workTracker.getFailedIds(),
+      sessionIds,
     };
   }
 
@@ -58,7 +64,9 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     activeAgents,
     startPath,
+    sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });
 
@@ -74,7 +82,9 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     activeAgents: loopResult.activeAgents,
     startPath,
+    sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });

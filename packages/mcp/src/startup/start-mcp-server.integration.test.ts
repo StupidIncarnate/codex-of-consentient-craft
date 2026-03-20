@@ -114,8 +114,6 @@ const createMcpClient = async (): Promise<{
   };
 };
 
-jest.setTimeout(30_000);
-
 describe('StartMcpServer', () => {
   describe('wiring', () => {
     it('VALID: startup delegates to flows and returns all expected tools', async () => {
@@ -147,7 +145,7 @@ describe('StartMcpServer', () => {
 
       const result = ToolListResultStub(response.result as never);
 
-      expect(result.tools.length).toBeGreaterThanOrEqual(14);
+      expect(result.tools.length).toBeGreaterThanOrEqual(15);
     });
   });
 });

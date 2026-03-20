@@ -9,6 +9,7 @@
 import {
   absoluteFilePathContract,
   sessionIdContract,
+  type ExitCode,
   type FilePath,
   type QuestId,
   type SessionId,
@@ -49,7 +50,10 @@ export const runChatLayerBroker = async ({
   });
 
   try {
-    const { sessionId } = await new Promise<{ sessionId: SessionId | null }>((resolve) => {
+    const { sessionId, exitCode } = await new Promise<{
+      sessionId: SessionId | null;
+      exitCode: ExitCode | null;
+    }>((resolve) => {
       let trackedSessionId: SessionId | null = null;
 
       agentSpawnUnifiedBroker({
@@ -69,11 +73,15 @@ export const runChatLayerBroker = async ({
             }
           }
         },
-        onComplete: () => {
-          resolve({ sessionId: trackedSessionId });
+        onComplete: ({ exitCode: code }) => {
+          resolve({ sessionId: trackedSessionId, exitCode: code });
         },
       });
     });
+
+    if (exitCode !== null && exitCode !== 0) {
+      throw new Error(`Chat agent exited with code ${String(exitCode)}`);
+    }
 
     // Write sessionId back to work item
     if (sessionId) {

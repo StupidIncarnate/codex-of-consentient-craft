@@ -16,6 +16,9 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -42,6 +45,27 @@ export const runSpiritmenderLayerBrokerProxy = (): {
       exitCode: ExitCode;
     }): void => {
       slotProxy.setupSpawnAndMonitor({ lines, exitCode });
+    },
+    setupSpawnOnce: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      slotProxy.setupSpawnOnce({ lines, exitCode });
+    },
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      slotProxy.setupSpawnAutoLines({ lines, exitCode });
+    },
+    setupSpawnOnceLazy: (): void => {
+      slotProxy.setupSpawnOnceLazy();
     },
     getLastPersistedWorkItemStatus: ({
       workItemId,

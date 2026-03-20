@@ -97,6 +97,17 @@ export const runSpiritmenderLayerBroker = async ({
     slotOperations,
     startPath: filePathContract.parse(startPath),
     maxFollowupDepth,
+    onWorkItemSessionId: ({ workItemId, sessionId }) => {
+      const questItemId = slotToQuestMap.get(workItemId);
+      if (questItemId !== undefined) {
+        void questModifyBroker({
+          input: {
+            questId,
+            workItems: [{ id: questItemId, sessionId }],
+          } as ModifyQuestInput,
+        });
+      }
+    },
   });
 
   // Map results back to quest work items
@@ -110,11 +121,21 @@ export const runSpiritmenderLayerBroker = async ({
     completedAt?: typeof completedAt;
   }[] = [];
 
-  for (const [, questItemId] of slotToQuestMap) {
+  for (const [slotId, questItemId] of slotToQuestMap) {
+    const sessionId = result.sessionIds[slotId];
     if (result.completed) {
-      workItemUpdates.push({ id: questItemId, status: 'complete', completedAt });
+      workItemUpdates.push({
+        id: questItemId,
+        status: 'complete',
+        completedAt,
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
     } else {
-      workItemUpdates.push({ id: questItemId, status: 'failed' });
+      workItemUpdates.push({
+        id: questItemId,
+        status: 'failed',
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
     }
   }
 

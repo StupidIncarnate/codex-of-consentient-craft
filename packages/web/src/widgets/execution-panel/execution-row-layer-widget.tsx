@@ -9,7 +9,14 @@
 import { Box, Text, UnstyledButton } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
+import type {
+  ContractName,
+  DependencyStep,
+  ErrorMessage,
+  ObservableId,
+  WardResult,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
@@ -20,6 +27,7 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
+import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
@@ -35,6 +43,15 @@ export interface ExecutionRowLayerWidgetProps {
   errorMessage?: ErrorMessage;
   entries?: ChatEntry[];
   isStreaming?: boolean;
+  description?: DependencyStep['description'];
+  attempt?: WorkItem['attempt'];
+  maxAttempts?: WorkItem['maxAttempts'];
+  startedAt?: WorkItem['startedAt'];
+  completedAt?: WorkItem['completedAt'];
+  observablesSatisfied?: ObservableId[];
+  inputContracts?: ContractName[];
+  outputContracts?: ContractName[];
+  wardResults?: WardResult[];
 }
 
 const EXPANDABLE_STATUSES: ExecutionStepStatus[] = [
@@ -79,6 +96,15 @@ export const ExecutionRowLayerWidget = ({
   errorMessage,
   entries,
   isStreaming,
+  description,
+  attempt,
+  maxAttempts,
+  startedAt,
+  completedAt,
+  observablesSatisfied,
+  inputContracts,
+  outputContracts,
+  wardResults,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const hasEntries = entries !== undefined && entries.length > 0;
@@ -204,6 +230,35 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
+        {attempt !== undefined && maxAttempts !== undefined && attempt > 0 ? (
+          <Text
+            ff="monospace"
+            data-testid="execution-row-retry-badge"
+            style={{
+              fontSize: ADHOC_FONT_SIZE,
+              color: colors.warning,
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
+          >
+            retry {String(attempt)}/{String(maxAttempts)}
+          </Text>
+        ) : null}
+
+        {startedAt && completedAt ? (
+          <Text
+            ff="monospace"
+            data-testid="execution-row-duration"
+            style={{
+              fontSize: ADHOC_FONT_SIZE,
+              color: colors['text-dim'],
+              flexShrink: 0,
+            }}
+          >
+            {durationDisplayTransformer({ startedAt, completedAt })}
+          </Text>
+        ) : null}
+
         <Text
           ff="monospace"
           data-testid="execution-row-status-badge"
@@ -244,6 +299,58 @@ export const ExecutionRowLayerWidget = ({
             borderRadius: ROW_MARGIN_BOTTOM,
           }}
         >
+          {description ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-description"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors['text-dim'],
+                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
+              }}
+            >
+              {description}
+            </Text>
+          ) : null}
+          {observablesSatisfied && observablesSatisfied.length > 0 ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-observables"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors['text-dim'],
+                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
+              }}
+            >
+              Satisfies: {observablesSatisfied.join(', ')}
+            </Text>
+          ) : null}
+          {inputContracts && inputContracts.length > 0 ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-input-contracts"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors['text-dim'],
+                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
+              }}
+            >
+              Inputs: {inputContracts.join(', ')}
+            </Text>
+          ) : null}
+          {outputContracts && outputContracts.length > 0 ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-output-contracts"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors['text-dim'],
+                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
+              }}
+            >
+              Outputs: {outputContracts.join(', ')}
+            </Text>
+          ) : null}
           {entries && entries.length > 0
             ? entries.map((entry, i) => <ChatMessageWidget key={i} entry={entry} compact={true} />)
             : null}
@@ -262,6 +369,44 @@ export const ExecutionRowLayerWidget = ({
               Files: {files.join(', ')}
             </Text>
           ) : null}
+          {wardResults && wardResults.length > 0
+            ? wardResults.map((wr) => (
+                <Box
+                  key={wr.id}
+                  data-testid="execution-row-ward-result"
+                  style={{ marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM }}
+                >
+                  <Text
+                    ff="monospace"
+                    style={{
+                      fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                      color: wr.exitCode === 0 ? colors.success : colors.danger,
+                    }}
+                  >
+                    Ward exit code: {String(wr.exitCode)}
+                  </Text>
+                  {wr.errorSummary ? (
+                    <Text
+                      ff="monospace"
+                      style={{ fontSize: EXPANDED_DETAIL_FONT_SIZE, color: colors.danger }}
+                    >
+                      {wr.errorSummary}
+                    </Text>
+                  ) : null}
+                  {wr.filePaths.length > 0 ? (
+                    <Text
+                      ff="monospace"
+                      style={{
+                        fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                        color: colors['text-dim'],
+                      }}
+                    >
+                      Failed files: {wr.filePaths.join(', ')}
+                    </Text>
+                  ) : null}
+                </Box>
+              ))
+            : null}
           {errorMessage ? (
             <Text
               ff="monospace"

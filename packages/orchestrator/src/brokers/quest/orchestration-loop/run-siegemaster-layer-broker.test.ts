@@ -5,6 +5,7 @@ import {
   FlowObservableStub,
   FlowStub,
   QuestStub,
+  QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -20,12 +21,15 @@ describe('runSiegemasterLayerBroker', () => {
   });
 
   describe('complete signal without failure marker', () => {
-    it('VALID: {signal: complete, no FAILED OBSERVABLES} => resolves without error', async () => {
+    it('VALID: {signal: complete, no FAILED OBSERVABLES} => marks siege complete with completedAt', async () => {
       const observable = FlowObservableStub();
       const node = FlowNodeStub({ observables: [observable] });
       const flow = FlowStub({ nodes: [node] });
-      const quest = QuestStub({ flows: [flow] });
-      const workItem = WorkItemStub({ role: 'siegemaster' });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
       proxy.setupSpawnWithSignal({
@@ -34,23 +38,135 @@ describe('runSiegemasterLayerBroker', () => {
         signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
       });
 
-      await expect(
-        runSiegemasterLayerBroker({
-          questId: quest.id,
-          workItem,
-          startPath: FilePathStub({ value: '/project' }),
-        }),
-      ).resolves.toBeUndefined();
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getModifyContents()).toHaveLength(1);
+
+      const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
+
+      expect(siegeItem?.status).toBe('complete');
+      expect(siegeItem?.completedAt).toBe('2024-01-15T10:00:00.000Z');
     });
   });
 
-  describe('complete signal with failure marker', () => {
-    it('VALID: {signal: complete, summary has FAILED OBSERVABLES} => resolves (marks failed + creates fix chain)', async () => {
+  describe('failed signal', () => {
+    it('VALID: {signal: failed} => marks siege failed with errorMessage and skips pending lawbringers', async () => {
       const observable = FlowObservableStub();
       const node = FlowNodeStub({ observables: [observable] });
       const flow = FlowStub({ nodes: [node] });
-      const quest = QuestStub({ flows: [flow] });
-      const workItem = WorkItemStub({ role: 'siegemaster' });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupSpawnWithSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: StreamSignalStub({ signal: 'failed' }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'siege_check_failed',
+      );
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
+        'skipped',
+      );
+    });
+
+    it('VALID: {signal: failed} => creates pathseeker replan with dependsOn empty and insertedBy siege', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupSpawnWithSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: StreamSignalStub({ signal: 'failed' }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+      });
+
+      const pathseekerReplan = proxy.getPersistedWorkItemByRole({ role: 'pathseeker' });
+
+      expect(pathseekerReplan).toBeDefined();
+      expect(pathseekerReplan?.status).toBe('pending');
+      expect(pathseekerReplan?.dependsOn).toStrictEqual([]);
+      expect(pathseekerReplan?.insertedBy).toBe(siegeWorkItemId);
+    });
+  });
+
+  describe('complete signal with FAILED OBSERVABLES in summary', () => {
+    it('VALID: {signal: complete, summary has FAILED OBSERVABLES} => marks siege failed, skips pending, creates pathseeker', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
       proxy.setupSpawnWithSignal({
@@ -62,38 +178,67 @@ describe('runSiegemasterLayerBroker', () => {
         }),
       });
 
-      await expect(
-        runSiegemasterLayerBroker({
-          questId: quest.id,
-          workItem,
-          startPath: FilePathStub({ value: '/project' }),
-        }),
-      ).resolves.toBeUndefined();
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'FAILED OBSERVABLES: login form did not redirect',
+      );
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
+        'skipped',
+      );
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([]);
     });
   });
 
-  describe('failed signal', () => {
-    it('VALID: {signal: failed} => resolves (marks failed + creates fix chain)', async () => {
+  describe('crash / timeout (no signal, exitCode 1)', () => {
+    it('VALID: {no signal, exitCode 1} => marks siege failed, skips pending, creates pathseeker replan', async () => {
       const observable = FlowObservableStub();
       const node = FlowNodeStub({ observables: [observable] });
       const flow = FlowStub({ nodes: [node] });
-      const quest = QuestStub({ flows: [flow] });
-      const workItem = WorkItemStub({ role: 'siegemaster' });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
-      proxy.setupSpawnWithSignal({
+      proxy.setupSpawnSuccess({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        signal: StreamSignalStub({ signal: 'failed' }),
       });
 
-      await expect(
-        runSiegemasterLayerBroker({
-          questId: quest.id,
-          workItem,
-          startPath: FilePathStub({ value: '/project' }),
-        }),
-      ).resolves.toBeUndefined();
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'siege_check_failed',
+      );
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
+        'skipped',
+      );
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([]);
     });
   });
 

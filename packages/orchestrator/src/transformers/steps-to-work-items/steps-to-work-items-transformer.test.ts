@@ -12,7 +12,7 @@ const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
 
 describe('stepsToWorkItemsTransformer', () => {
   describe('basic chain generation', () => {
-    it('VALID: {1 step} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer', () => {
+    it('VALID: {1 step} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer + 1 final-ward', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -20,6 +20,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000002',
           '00000000-0000-4000-8000-000000000003',
           '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
         ],
       });
 
@@ -83,6 +84,17 @@ describe('stepsToWorkItemsTransformer', () => {
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
+        {
+          id: '00000000-0000-4000-8000-000000000005',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
       ]);
     });
   });
@@ -98,6 +110,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
+          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -189,6 +202,20 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           timeoutMs: 300000,
           maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000007',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: [
+            '00000000-0000-4000-8000-000000000005',
+            '00000000-0000-4000-8000-000000000006',
+          ],
+          maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },

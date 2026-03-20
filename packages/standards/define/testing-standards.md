@@ -2303,5 +2303,36 @@ Use `getByText` for content-specific assertions (modal titles, labels).
 | Checking CSS classes or DOM attributes     | Breaks on styling changes                             | Check visibility and text content                       |
 | One giant test for the whole flow          | Hard to debug, slow to pinpoint failures              | One test per user action with full transition assertion |
 | Missing `not.toBeVisible` checks           | Old UI lingers undetected (modals, panels, toasts)    | Always assert previous state is gone                    |
+| Increasing timeouts to fix failures        | Masks the real bug — polling/logic error persists     | Diagnose root cause first, timeout bump is last resort  |
+
+### Timeout Increases Are a Last Resort
+
+When an E2E test fails with a timeout, the instinct is to bump the number. This almost never
+fixes the real problem. E2E failures are usually caused by the system being in a different state
+than the test expects — not by the system being slow.
+
+**Diagnose state before touching timeouts:**
+
+- **Log at each stage of the test.** Add `console.log` or structured trace output at key
+  checkpoints in the test's setup, action, and assertion phases. Confirm that each stage
+  produced the state the next stage expects. Most E2E failures come from looking for something
+  that doesn't exist in the state you've set up.
+
+- **Inspect the actual system state when the failure occurs.** Don't guess — read the DOM, query
+  the API, dump the database. Compare what you got against what the test assumes. The gap
+  between "what I expected the setup to produce" and "what it actually produced" is where the
+  bug lives.
+
+- **Check that the test's preconditions actually hold.** Setup helpers can silently fail, return
+  partial data, or be affected by earlier tests. Verify the state exists before the action that
+  depends on it.
+
+- **If it passes in isolation but fails under load**, the problem is shared mutable state
+  (env vars, temp dirs, ports, global singletons) — not timing. Adding seconds doesn't fix
+  cross-test contamination.
+
+- **Only after confirming the system state is correct at every stage** and the operation
+  legitimately needs more wall-clock time (e.g., spawning N sequential subprocesses), increase
+  the timeout with a comment explaining why.
 
 ```

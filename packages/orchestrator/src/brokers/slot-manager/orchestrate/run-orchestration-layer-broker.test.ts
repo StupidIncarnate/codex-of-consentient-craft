@@ -29,9 +29,10 @@ describe('runOrchestrationLayerBroker', () => {
         timeoutMs: TimeoutMsStub({ value: 60000 }),
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
+        sessionIds: {},
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({ completed: true, sessionIds: {} });
     });
   });
 
@@ -58,9 +59,10 @@ describe('runOrchestrationLayerBroker', () => {
         timeoutMs: TimeoutMsStub({ value: 60000 }),
         slotOperations,
         activeAgents: [],
+        sessionIds: {},
       });
 
-      expect(result).toStrictEqual({ completed: false, incompleteIds: [], failedIds: [] });
+      expect(result).toStrictEqual({ completed: false, incompleteIds: [], failedIds: [], sessionIds: {} });
     });
   });
 
@@ -85,12 +87,14 @@ describe('runOrchestrationLayerBroker', () => {
         timeoutMs: TimeoutMsStub({ value: 60000 }),
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
+        sessionIds: {},
       });
 
       expect(result).toStrictEqual({
         completed: false,
         incompleteIds: ['work-item-failed'],
         failedIds: ['work-item-failed'],
+        sessionIds: {},
       });
     });
   });

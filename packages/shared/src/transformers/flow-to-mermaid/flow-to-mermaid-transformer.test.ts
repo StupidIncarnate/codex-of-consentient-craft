@@ -58,6 +58,19 @@ describe('flowToMermaidTransformer', () => {
 
     it('VALID: {type: terminal} => renders circle syntax', () => {
       const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'done', label: 'End', type: 'terminal' })],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(
+        ['flowchart TD', '  done((End))', '  style done fill:#c92a2a,color:#fff'].join('\n'),
+      );
+    });
+
+    it('VALID: {type: terminal, id: "end"} => sanitizes reserved keyword', () => {
+      const flow = FlowStub({
         nodes: [FlowNodeStub({ id: 'end', label: 'End', type: 'terminal' })],
         edges: [],
       });
@@ -65,7 +78,7 @@ describe('flowToMermaidTransformer', () => {
       const result = flowToMermaidTransformer({ flow });
 
       expect(result).toBe(
-        ['flowchart TD', '  end((End))', '  style end fill:#c92a2a,color:#fff'].join('\n'),
+        ['flowchart TD', '  _end((End))', '  style _end fill:#c92a2a,color:#fff'].join('\n'),
       );
     });
 
@@ -149,9 +162,9 @@ describe('flowToMermaidTransformer', () => {
         [
           'flowchart TD',
           '  start[Start]',
-          '  end((End))',
-          '  start --> end',
-          '  style end fill:#c92a2a,color:#fff',
+          '  _end((End))',
+          '  start --> _end',
+          '  style _end fill:#c92a2a,color:#fff',
         ].join('\n'),
       );
     });

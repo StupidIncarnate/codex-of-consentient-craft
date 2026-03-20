@@ -30,7 +30,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotOperations: SlotOperationsStub(),
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({ completed: true, sessionIds: {} });
     });
 
     it('VALID: {multiple items all complete} => returns completed true', async () => {
@@ -53,7 +53,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotOperations: SlotOperationsStub(),
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({ completed: true, sessionIds: {} });
     });
   });
 
@@ -82,7 +82,7 @@ describe('slotManagerOrchestrateBroker', () => {
         slotOperations,
       });
 
-      expect(result).toStrictEqual({ completed: true });
+      expect(result).toStrictEqual({ completed: true, sessionIds: {} });
     });
 
     it('VALID: {failed work item, no agents} => returns completed false with failedIds', async () => {
@@ -110,6 +110,7 @@ describe('slotManagerOrchestrateBroker', () => {
         completed: false,
         incompleteIds: ['work-item-failed'],
         failedIds: ['work-item-failed'],
+        sessionIds: {},
       });
     });
   });

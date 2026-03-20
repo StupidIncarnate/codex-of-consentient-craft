@@ -15,6 +15,7 @@ interface ProxyConfig {
 
 export const childProcessSpawnStreamJsonAdapterProxy = (): {
   setupSpawn: () => ChildProcess;
+  setupSpawnLazy: () => void;
   setupSuccess: (params: { exitCode: ExitCode; stdoutData?: readonly StreamJsonLine[] }) => void;
   setupExitOnKill: (params: { exitCode: ExitCode | null }) => void;
   setupError: (params: { error: Error }) => void;
@@ -68,6 +69,10 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
       const mockChildProcess = createMockChildProcess();
       mock.mockReturnValueOnce(mockChildProcess);
       return mockChildProcess;
+    },
+
+    setupSpawnLazy: (): void => {
+      mock.mockImplementationOnce(() => createMockChildProcess());
     },
 
     setupSuccess: ({

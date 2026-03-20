@@ -40,6 +40,7 @@ export const agentSpawnByRoleBroker = async ({
   resumeSessionId,
   continuationContext,
   onLine,
+  onSessionId,
 }: {
   workUnit: WorkUnit;
   timeoutMs: TimeoutMs;
@@ -47,6 +48,7 @@ export const agentSpawnByRoleBroker = async ({
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
   onLine?: (params: { line: string }) => void;
+  onSessionId?: (params: { sessionId: SessionId }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   const template = roleToPromptTemplateTransformer({ role: workUnit.role });
   const args = workUnitToArgumentsTransformer({ workUnit });
@@ -66,7 +68,7 @@ export const agentSpawnByRoleBroker = async ({
     return await new Promise<AgentSpawnStreamingResult>((resolve) => {
       const timeout: { handle: ReturnType<typeof setTimeout> | null } = { handle: null };
 
-      const { kill } = agentSpawnUnifiedBroker({
+      const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt,
         cwd: absoluteFilePathContract.parse(startPath),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
@@ -109,6 +111,14 @@ export const agentSpawnByRoleBroker = async ({
           );
         },
       });
+
+      if (onSessionId !== undefined) {
+        void sessionId$.then((sid) => {
+          if (sid !== null) {
+            onSessionId({ sessionId: sid });
+          }
+        });
+      }
 
       timeout.handle = setTimeout(() => {
         timedOut = true;

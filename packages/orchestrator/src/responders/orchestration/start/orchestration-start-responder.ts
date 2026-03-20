@@ -66,44 +66,38 @@ export const OrchestrationStartResponder = async ({
     },
   });
 
-  if (!alreadyInProgress) {
-    const modifyInput = modifyQuestInputContract.parse({ questId, status: 'in_progress' });
-    const modifyResult = await questModifyBroker({
-      input: modifyInput,
-    });
-
-    if (!modifyResult.success) {
-      throw new Error(`Failed to transition quest to in_progress: ${modifyResult.error}`);
-    }
-  }
-
   const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
 
-  if (!hasPathseeker) {
-    const chatItemIds = quest.workItems
-      .filter(
-        (wi) =>
-          (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.status === 'complete',
-      )
-      .map((wi) => wi.id);
+  const chatItemIds = quest.workItems
+    .filter(
+      (wi) =>
+        (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.status === 'complete',
+    )
+    .map((wi) => wi.id);
 
-    const pathseekerItem = workItemContract.parse({
-      id: crypto.randomUUID(),
-      role: 'pathseeker',
-      status: 'pending',
-      spawnerType: 'agent',
-      dependsOn: chatItemIds,
-      maxAttempts: 3,
-      timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
-      createdAt: new Date().toISOString(),
-    });
+  const pathseekerItem = hasPathseeker
+    ? undefined
+    : workItemContract.parse({
+        id: crypto.randomUUID(),
+        role: 'pathseeker',
+        status: 'pending',
+        spawnerType: 'agent',
+        dependsOn: chatItemIds,
+        maxAttempts: 3,
+        timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
+        createdAt: new Date().toISOString(),
+      });
 
-    const insertInput = modifyQuestInputContract.parse({ questId, workItems: [pathseekerItem] });
-    const insertResult = await questModifyBroker({ input: insertInput });
+  const modifyInput = modifyQuestInputContract.parse({
+    questId,
+    ...(!alreadyInProgress ? { status: 'in_progress' } : {}),
+    ...(pathseekerItem !== undefined ? { workItems: [pathseekerItem] } : {}),
+  });
 
-    if (!insertResult.success) {
-      throw new Error(`Failed to create pathseeker work item: ${insertResult.error}`);
-    }
+  const modifyResult = await questModifyBroker({ input: modifyInput });
+
+  if (!modifyResult.success) {
+    throw new Error(`Failed to start quest: ${modifyResult.error}`);
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });

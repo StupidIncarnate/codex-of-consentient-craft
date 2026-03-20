@@ -7,6 +7,9 @@ import { spawnAgentLayerBrokerProxy } from './spawn-agent-layer-broker.proxy';
 export const orchestrationLoopLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
   setupDateNow: (params: { timestamp: number }) => void;
 } => {
@@ -30,6 +33,27 @@ export const orchestrationLoopLayerBrokerProxy = (): {
       exitCode: ExitCode;
     }): void => {
       spawnProxy.setupSpawnAndMonitor({ lines, exitCode });
+    },
+    setupSpawnOnce: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      spawnProxy.setupSpawnOnce({ lines, exitCode });
+    },
+    setupSpawnAutoLines: ({
+      lines,
+      exitCode,
+    }: {
+      lines: readonly string[];
+      exitCode: ExitCode;
+    }): void => {
+      spawnProxy.setupSpawnAutoLines({ lines, exitCode });
+    },
+    setupSpawnOnceLazy: (): void => {
+      spawnProxy.setupSpawnOnceLazy();
     },
     setupSpawnFailure: (): void => {
       spawnProxy.setupSpawnFailure();

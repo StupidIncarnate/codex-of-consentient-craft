@@ -16,6 +16,7 @@ const HTTP_OK = 200;
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
+const PATHSEEKER_TIMEOUT = 10_000;
 
 const createQuestFile = ({
   guildId,
@@ -140,17 +141,20 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // Watch for a PATCH request that transitions status to in_progress
-    const patchPromise = page.waitForRequest(
-      (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
+    // Begin Quest must POST to the quest start endpoint (which creates the pathseeker
+    // work item via OrchestrationStartResponder). A PATCH to the modify endpoint would
+    // set status=in_progress but skip pathseeker creation — the H-1 root cause bug.
+    const startPromise = page.waitForRequest(
+      (req) =>
+        req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
 
     await page.getByText('Begin Quest').click();
 
-    const patchRequest = await patchPromise;
-    const body = patchRequest.postDataJSON();
-    expect(body).toHaveProperty('status', 'in_progress');
+    const startRequest = await startPromise;
+    expect(startRequest.method()).toBe('POST');
+    expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
 
     // Modal should close and execution view should appear
     await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
@@ -162,9 +166,16 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByTestId('dumpster-raccoon-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
+
+    // Pathseeker work item must appear in the execution panel.
+    // Without this check, the test passes even if the quest goes straight
+    // to complete with no pathseeker (the H-1 bug).
+    await expect(page.getByText('[PATHSEEKER]')).toBeVisible({
+      timeout: PATHSEEKER_TIMEOUT,
+    });
   });
 
-  test('clicking Begin Quest on design_approved sends PATCH to transition to in_progress', async ({
+  test('clicking Begin Quest on design_approved sends POST to quest start endpoint', async ({
     page,
     request,
   }) => {
@@ -192,16 +203,17 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    const patchPromise = page.waitForRequest(
-      (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
+    const startPromise = page.waitForRequest(
+      (req) =>
+        req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
 
     await page.getByText('Begin Quest').click();
 
-    const patchRequest = await patchPromise;
-    const body = patchRequest.postDataJSON();
-    expect(body).toHaveProperty('status', 'in_progress');
+    const startRequest = await startPromise;
+    expect(startRequest.method()).toBe('POST');
+    expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
 
     // Modal should close and execution view should appear
     await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
@@ -212,6 +224,11 @@ test.describe('Quest Begin Transition', () => {
     });
     await expect(page.getByTestId('dumpster-raccoon-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
+    });
+
+    // Pathseeker work item must appear in the execution panel
+    await expect(page.getByText('[PATHSEEKER]')).toBeVisible({
+      timeout: PATHSEEKER_TIMEOUT,
     });
   });
 });
