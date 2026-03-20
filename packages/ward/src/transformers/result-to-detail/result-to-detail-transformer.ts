@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Transforms a WardResult into a detailed error view for a specific file path with optional stack trace truncation
+ * PURPOSE: Transforms a WardResult into a detailed error view for a specific file path showing full untruncated output
  *
  * USAGE:
  * resultToDetailTransformer({wardResult: WardResultStub(), filePath: ErrorEntryStub().filePath});
@@ -14,17 +14,14 @@ import type { WardResult } from '../../contracts/ward-result/ward-result-contrac
 import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
-import { stackTraceTruncateTransformer } from '../stack-trace-truncate/stack-trace-truncate-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
 
 export const resultToDetailTransformer = ({
   wardResult,
   filePath,
-  verbose,
 }: {
   wardResult: WardResult;
   filePath: ErrorEntry['filePath'] | TestFailure['suitePath'];
-  verbose?: boolean;
 }): WardFileDetail => {
   const entries: ErrorEntry['message'][] = [];
 
@@ -43,10 +40,7 @@ export const resultToDetailTransformer = ({
       for (const failure of project.testFailures) {
         if (isPathSuffixMatchGuard({ storedPath: failure.suitePath, queryPath: filePath })) {
           entries.push(`  FAIL  "${failure.testName}"` as ErrorEntry['message']);
-          const displayMessage = verbose
-            ? failure.message
-            : stackTraceTruncateTransformer({ stackTrace: failure.message });
-          entries.push(`    ${displayMessage}` as ErrorEntry['message']);
+          entries.push(`    ${failure.message}` as ErrorEntry['message']);
         }
       }
     }

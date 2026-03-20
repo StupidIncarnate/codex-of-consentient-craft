@@ -40,7 +40,7 @@ parsing. Deduplication is automatic: `--only test,e2e` becomes `--only unit,inte
 
 ## Flags
 
-All flags apply to the `run` subcommand. The `detail` subcommand also accepts `--verbose`.
+All flags apply to the `run` subcommand.
 
 | Flag                                         | Description                                                                             |
 |----------------------------------------------|-----------------------------------------------------------------------------------------|

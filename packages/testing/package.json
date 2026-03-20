@@ -10,6 +10,12 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./register-mock": {
+      "source": "./src/register-mock.ts",
+      "import": "./dist/register-mock.js",
+      "require": "./dist/register-mock.js",
+      "types": "./dist/register-mock.d.ts"
     }
   },
   "scripts": {
@@ -24,6 +30,13 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
+  },
+  "typesVersions": {
+    "*": {
+      "register-mock": [
+        "dist/register-mock.d.ts"
+      ]
+    }
   },
   "dependencies": {
     "msw": "^2.12.10"

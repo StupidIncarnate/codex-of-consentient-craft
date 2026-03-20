@@ -1,19 +1,18 @@
 import { glob } from 'glob';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-jest.mock('glob');
 
 export const fsGlobAdapterProxy = (): {
   returns: ({ pattern, files }: { pattern: GlobPattern; files: FilePath[] }) => void;
 } => {
-  const mockGlob = jest.mocked(glob);
+  const handle = registerMock({ fn: glob });
 
-  mockGlob.mockImplementation(async () => Promise.resolve([]));
+  handle.mockImplementation(async () => Promise.resolve([]));
 
   return {
     returns: ({ files }: { pattern: GlobPattern; files: FilePath[] }): void => {
-      mockGlob.mockResolvedValueOnce(files);
+      handle.mockResolvedValueOnce(files);
     },
   };
 };

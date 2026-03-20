@@ -1,14 +1,13 @@
-jest.mock('child_process');
-
 import { exec } from 'child_process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessExecAdapterProxy = (): {
   getExecCalls: () => readonly unknown[];
 } => {
-  const mock = jest.mocked(exec);
-  mock.mockImplementation((() => undefined) as never);
+  const handle = registerMock({ fn: exec });
+  handle.mockImplementation((() => undefined) as never);
 
   return {
-    getExecCalls: (): readonly unknown[] => mock.mock.calls.map((call) => call[0]),
+    getExecCalls: (): readonly unknown[] => handle.mock.calls.map((call) => call[0]),
   };
 };

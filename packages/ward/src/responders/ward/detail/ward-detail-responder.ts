@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Parses runId, filePath, and verbose flag from CLI args and delegates to the command detail broker
+ * PURPOSE: Parses runId and filePath from CLI args and delegates to the command detail broker
  *
  * USAGE:
  * await WardDetailResponder({ args: ['node', 'ward', 'detail', '123-abc', 'src/index.ts'], rootPath: AbsoluteFilePathStub() });
@@ -8,10 +8,8 @@
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import { errorEntryContract } from '../../../contracts/error-entry/error-entry-contract';
-import { cliArgsParseTransformer } from '../../../transformers/cli-args-parse/cli-args-parse-transformer';
 import { commandDetailBroker } from '../../../brokers/command/detail/command-detail-broker';
 
 const FIRST_POSITIONAL_INDEX = 3;
@@ -28,16 +26,11 @@ export const WardDetailResponder = async ({
   const filePathArg = args[SECOND_POSITIONAL_INDEX];
 
   if (!runIdArg || !filePathArg) {
-    process.stderr.write('Usage: ward detail <run-id> <file-path> [--verbose]\n');
+    process.stderr.write('Usage: ward detail <run-id> <file-path>\n');
     return;
   }
 
   const runId = runIdContract.parse(runIdArg);
   const filePath = errorEntryContract.shape.filePath.parse(filePathArg);
-  const cliArgs = args.slice(SECOND_POSITIONAL_INDEX + 1).map((arg) => cliArgContract.parse(arg));
-  const flags = cliArgsParseTransformer({ args: cliArgs });
-  const detailArgs = flags.verbose
-    ? { rootPath, runId, filePath, verbose: flags.verbose }
-    : { rootPath, runId, filePath };
-  await commandDetailBroker(detailArgs);
+  await commandDetailBroker({ rootPath, runId, filePath });
 };
