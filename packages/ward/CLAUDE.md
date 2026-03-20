@@ -48,7 +48,6 @@ All flags apply to the `run` subcommand.
 | `--onlyTests <regex>`                        | Filter tests by name pattern. Maps to Jest `--testNamePattern` and Playwright `--grep`. |
 | `--changed`                                  | Scope checks to files changed in git (uses `git diff`).                                 |
 | `-- file1 file2`                             | Passthrough file list. Everything after `--` is treated as file paths.                  |
-| `--verbose`                                  | Enable verbose output.                                                                  |
 
 **`--onlyTests` accepts a regex pattern.** Use `|` for alternation: `--onlyTests "foo|bar"` runs tests matching either
 name. Ignored by lint and typecheck check types.

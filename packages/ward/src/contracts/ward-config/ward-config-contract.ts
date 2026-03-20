@@ -2,7 +2,7 @@
  * PURPOSE: Defines the configuration options for a ward run
  *
  * USAGE:
- * wardConfigContract.parse({only: ['lint'], verbose: true});
+ * wardConfigContract.parse({only: ['lint'], changed: true});
  * // Returns: WardConfig validated object
  */
 
@@ -13,7 +13,6 @@ export const wardConfigContract = z.object({
   only: z.array(checkTypeContract).optional(),
   onlyTests: z.string().brand<'TestNamePattern'>().optional(),
   changed: z.boolean().optional(),
-  verbose: z.boolean().optional(),
   passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
 });
 

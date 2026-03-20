@@ -162,18 +162,6 @@ describe('cliArgsParseTransformer', () => {
     });
   });
 
-  describe('--verbose flag', () => {
-    it('VALID: {args: ["--verbose"]} => returns config with verbose true', () => {
-      cliArgsParseTransformerProxy();
-
-      const result = cliArgsParseTransformer({
-        args: [CliArgStub({ value: '--verbose' })],
-      });
-
-      expect(result).toStrictEqual({ verbose: true });
-    });
-  });
-
   describe('-- passthrough separator', () => {
     it('VALID: {args: ["--", "path/to/file.test.ts"]} => returns config with passthrough', () => {
       cliArgsParseTransformerProxy();
@@ -239,7 +227,7 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('all flags combined', () => {
-    it('VALID: {--only test --changed --verbose -- file.ts} => returns complete config', () => {
+    it('VALID: {--only test --changed -- file.ts} => returns complete config', () => {
       cliArgsParseTransformerProxy();
 
       const result = cliArgsParseTransformer({
@@ -247,7 +235,6 @@ describe('cliArgsParseTransformer', () => {
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'test' }),
           CliArgStub({ value: '--changed' }),
-          CliArgStub({ value: '--verbose' }),
           CliArgStub({ value: '--' }),
           CliArgStub({ value: 'packages/hooks/src/foo.test.ts' }),
         ],
@@ -256,7 +243,6 @@ describe('cliArgsParseTransformer', () => {
       expect(result).toStrictEqual({
         only: ['unit', 'integration', 'e2e'],
         changed: true,
-        verbose: true,
         passthrough: ['packages/hooks/src/foo.test.ts'],
       });
     });
@@ -639,14 +625,12 @@ describe('cliArgsParseTransformer', () => {
           CliArgStub({ value: '--only' }),
           CliArgStub({ value: 'lint' }),
           CliArgStub({ value: '--changed' }),
-          CliArgStub({ value: '--verbose' }),
         ],
       });
 
       expect(result).toStrictEqual({
         only: ['lint'],
         changed: true,
-        verbose: true,
       });
     });
   });

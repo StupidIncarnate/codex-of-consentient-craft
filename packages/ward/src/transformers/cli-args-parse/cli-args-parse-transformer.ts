@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Parses CLI argument array into ward config flags (--only, --changed, --verbose)
+ * PURPOSE: Parses CLI argument array into ward config flags (--only, --changed)
  *
  * USAGE:
  * cliArgsParseTransformer({ args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })] });
@@ -13,7 +13,7 @@ import {
 } from '../../contracts/ward-config/ward-config-contract';
 import { checkTypeContract } from '../../contracts/check-type/check-type-contract';
 
-const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--verbose', '--']);
+const KNOWN_FLAGS = new Set(['--only', '--onlyTests', '--changed', '--']);
 
 export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfig => {
   const parsed: Partial<WardConfig> = {};
@@ -67,20 +67,15 @@ export const cliArgsParseTransformer = ({ args }: { args: CliArg[] }): WardConfi
       continue;
     }
 
-    if (arg === '--verbose') {
-      parsed.verbose = true;
-      continue;
-    }
-
     if (String(arg).startsWith('-')) {
       const flag = String(arg);
       throw new Error(
         `Unknown flag: ${flag}\n\nWard accepts only: ${[...KNOWN_FLAGS].filter((f) => f !== '--').join(', ')}\n\nCommon mistakes:\n` +
-          `  - Jest flags (--watch, --bail, --coverage, --verbose) are not supported\n` +
+          `  - Jest flags (--watch, --bail, --coverage) are not supported\n` +
           `  - ESLint flags (--fix, --quiet, --format) are not supported\n` +
           `  - tsc flags (--noEmit, --project, --strict) are not supported\n` +
           `  - Playwright flags (--headed, --debug, --ui) are not supported\n\n` +
-          `Usage: npm run ward -- [--only <check-types>] [--onlyTests <regex>] [--changed] [--verbose] [-- <files>]`,
+          `Usage: npm run ward -- [--only <check-types>] [--onlyTests <regex>] [--changed] [-- <files>]`,
       );
     }
 
