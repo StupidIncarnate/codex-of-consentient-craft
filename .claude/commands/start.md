@@ -18,6 +18,11 @@ dispatch a sub agent to gather it and report back.
 - **Terse responses** — Instruct all agents and sub agents to keep their response messages short. Only report what was
   done, what failed, and what needs attention. No explanations, no summaries of what they read, no restatements of the
   task.
+- **Single-purpose agents** — Never combine implementation and testing in one agent. An agent that writes code AND
+  writes
+  tests will spend its budget on implementation and produce weak or missing tests. Dispatch implementation first, then
+  dispatch a separate agent for test coverage. The same applies to cleanup work (merge conflicts, package-lock fixes,
+  ward debugging) — do not pile these onto a testing agent.
 
 ## Workflow
 
@@ -30,32 +35,81 @@ dispatch a sub agent to gather it and report back.
    d. **Update progress** — Edit the plan file directly to mark completed steps. Then **commit** the changes.
 3. Repeat until all plan steps are complete.
 
-## After All Steps Pass
+## After All Steps Pass — Manual E2E Verification
 
-Dispatch an agent with the full plan. Tell it to:
+Dispatch an agent with the full plan file path. Its job is to **design and execute manual E2E tests** that prove the
+plan's goals were achieved end-to-end. The agent must:
 
-- Produce manual E2E test cases covering both backend and frontend changes
-- Frontend test cases should include browser verification steps using Chrome automation tools (
-  `mcp__claude-in-chrome__*`)
-- Backend test cases should include endpoint verification steps using `curl` or `Bash` tool against the running server
+1. **Read the plan** and identify every user-facing behavior or system-level outcome the plan intended to deliver.
+2. **Think through and output a numbered list of concrete E2E test cases** before running anything. Each test case must
+   state: what to do, what to observe, and what counts as a pass. This list is the agent's contract — it runs every
+   case and reports pass/fail for each.
+3. **Execute each test case using real tools:**
+    - **Frontend:** Use Chrome automation tools (`mcp__claude-in-chrome__*`) to navigate the UI, interact with elements,
+      and verify visible outcomes (text, state changes, navigation, error messages).
+    - **Backend:** Use `curl` or `Bash` against the running dev server to hit endpoints, verify response shapes/status
+      codes, and confirm side effects (database writes, file creation, etc.).
+4. **Report results** — For each test case: pass/fail and a one-line reason if it failed.
 
-Then use those E2E test cases to drive manual validation. After all that is done, have a sub agent run a full `npm run ward` in the root of repo and to fix any issues that come out of it.
+The agent must NOT skip the design step. Writing out test cases first forces it to reason about what "success" looks
+like before it starts clicking around.
 
-After ward is passing, commit any remaining changes if any.
+**Assertion quality rule:** Tests must assert on **outcomes**, not **presence**. Checking that a UI element exists or a
+panel is visible is not a test — it proves the scaffold renders, not that the feature works. Every test case must assert
+on specific content, data, or state that could ONLY be correct if the feature is working. Example: "assert the streamed
+text 'Hello world' appears inside the codeweaver panel" — not "assert the codeweaver panel is visible." If an agent
+produces presence-only assertions, reject the tests and re-dispatch with explicit instructions about what content to
+assert on.
+
+After verification completes, dispatch a sub agent to run a full `npm run ward` at repo root and fix any issues.
+Commit any remaining changes.
 
 ## Plan Alignment Review
 
-After all work is done and ward is green, **review the implementation against the plan**:
+After all work is done and ward is green, **you (the orchestrator) personally verify the implementation against the
+plan.** This is not delegated — you own the final judgment.
 
-1. Re-read the full plan.
-2. For each plan step, dispatch a sub agent **with the full plan file path** and tell it which steps to review. The
-   agent
-   must read the plan to understand what was intended, then inspect the actual implementation to verify it matches —
-   checking for gaps, wrong implementations, missing pieces, or deviations from the plan's intent.
-3. Compile a list of issues found across all review agents.
-4. If issues exist, dispatch agents to fix them (giving them the plan file path and the specific issues to address).
-   After fixes, run `npm run ward` again and ensure it's fully green.
-5. Repeat until the implementation faithfully matches the plan with no remaining gaps.
+### Verification Loop
+
+1. **Re-read the full plan.** For each plan step, read the actual code changes yourself (diff or file reads via sub
+   agents). You must understand what was built, not just trust agent reports.
+2. **For each plan step, ask yourself:**
+    - Does the implementation match what the plan specified?
+    - Are there gaps — things the plan required that are missing or incomplete?
+    - Are there deviations — things built differently than the plan intended?
+    - Are there wrong implementations — code that looks related but doesn't fulfill the requirement?
+3. **Write issues directly onto the plan file.** Under each plan step that has a problem, append a `> [!] ...` line
+   describing the issue. This is your tracking mechanism — issues live next to the step they belong to, not in your
+   head or a separate list. Example:
+   ```
+   - [x] Step 3: Add validation to user-create responder
+     > [!] Missing 400 response for invalid email format — only checks required fields
+     > [!] Contract parse error not forwarded to response body
+   ```
+4. **If issues exist on the plan:**
+   a. Dispatch agents to fix them (giving them the plan file path — the issues are right there on the steps).
+   b. After fixes, dispatch a sub agent to run `npm run ward` and fix any failures.
+   c. **Return to step 1.** Re-read the plan, re-verify fixes, and remove resolved `> [!]` lines. Add new ones if
+   the fix introduced its own problems. Do not assume agents got it right.
+5. **If no `> [!]` lines remain on any step**, the review is complete.
+
+**You do NOT exit this loop until every `> [!]` is resolved and no new ones appear on re-verification.** Agents fix;
+you verify. That separation is non-negotiable. The plan file is your single source of truth for what's done, what's
+broken, and what's left.
+
+### Agent Rationalization Patterns
+
+Watch for these patterns in agent reports — they indicate the agent gave up or cut corners:
+
+- **"Pre-existing issue"** / **"unrelated to these changes"** — Master is green. Any failure after agent changes is the
+  agent's fault. Reject the report and dispatch a fix agent.
+- **"Tests may not be as deep as requested but they're reliable"** — The agent knowingly downgraded test quality. Reject
+  and re-dispatch with explicit assertion requirements.
+- **"Environment configuration issue"** — The agent likely broke something (package-lock, node_modules hoisting) and
+  blamed the environment instead of diagnosing it. Dispatch a sub agent to identify the actual root cause.
+- **Retreating to a different package** — If an agent can't get tests passing in package A, it may run tests only in
+  package B and claim success. Verify that ward passed for ALL affected packages, not just the ones the agent chose to
+  report on.
 
 ## Progress Tracking
 
