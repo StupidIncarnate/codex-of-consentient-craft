@@ -38,3 +38,7 @@ export { BaseNameStub } from './contracts/base-name/base-name.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';
 export { RelativePathStub } from './contracts/relative-path/relative-path.stub';
+
+// Mock dispatch
+export { jestRegisterMockAdapter as registerMock } from './adapters/jest/register-mock/jest-register-mock-adapter';
+export type { MockHandle } from './adapters/jest/register-mock/jest-register-mock-adapter';

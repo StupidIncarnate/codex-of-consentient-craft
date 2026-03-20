@@ -81,10 +81,10 @@ run: {runId}
 Every failure test case MUST verify the drill-down, not just the summary:
 
 1. **Run ward** — note the `run: {runId}` from the summary
-2. **ward-detail** — use MCP tool `ward-detail` with `runId` + `filePath`. Verify: drill-down shows complete error for
+2. **ward detail** — run `npm run ward -- detail <runId> <filePath>`. Verify: drill-down shows complete error for
    the specific file, including full error messages, jest diffs, and line numbers
 
-**Note on ward-detail paths:** `ward-detail` normalizes paths, so any format works (absolute, repo-relative,
+**Note on ward detail paths:** `ward detail` normalizes paths, so any format works (absolute, repo-relative,
 package-relative).
 
 ---

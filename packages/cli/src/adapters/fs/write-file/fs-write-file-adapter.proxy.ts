@@ -1,6 +1,5 @@
-jest.mock('fs/promises');
-
 import { writeFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsWriteFileAdapterProxy = (): {
   succeeds: () => void;
@@ -9,35 +8,35 @@ export const fsWriteFileAdapterProxy = (): {
   getWrittenPath: () => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
-  const mock = jest.mocked(writeFile);
+  const handle = registerMock({ fn: writeFile });
 
-  mock.mockResolvedValue(undefined);
+  handle.mockResolvedValue(undefined);
 
   return {
     succeeds: (): void => {
-      mock.mockResolvedValueOnce(undefined);
+      handle.mockResolvedValueOnce(undefined);
     },
 
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
 
     getWrittenContent: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return lastCall[1];
     },
 
     getWrittenPath: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return lastCall[0];
     },
 
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      mock.mock.calls.map((call) => ({
+      handle.mock.calls.map((call) => ({
         path: call[0],
         content: call[1],
       })),

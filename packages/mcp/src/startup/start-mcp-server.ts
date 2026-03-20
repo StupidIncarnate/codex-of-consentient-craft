@@ -8,16 +8,10 @@
 
 import { ArchitectureFlow } from '../flows/architecture/architecture-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
-import { WardFlow } from '../flows/ward/ward-flow';
 import { InteractionFlow } from '../flows/interaction/interaction-flow';
 import { McpServerFlow } from '../flows/mcp-server/mcp-server-flow';
 
 export const StartMcpServer = async (): Promise<void> => {
-  const registrations = [
-    ...ArchitectureFlow(),
-    ...QuestFlow(),
-    ...WardFlow(),
-    ...InteractionFlow(),
-  ];
+  const registrations = [...ArchitectureFlow(), ...QuestFlow(), ...InteractionFlow()];
   await McpServerFlow({ registrations });
 };

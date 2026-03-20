@@ -63,7 +63,7 @@ export const commandRunBroker = async ({
 
   if (hasFailing) {
     process.stdout.write(
-      `\nFull error details: Use MCP tool ward-detail with runId "${wardResult.runId}" and filePath for the failing file\n`,
+      `\nFull error details: npm run ward -- detail ${wardResult.runId} <filePath>\n`,
     );
     process.exit(1);
   }

@@ -1160,6 +1160,88 @@ export const fsReadFileAdapterProxy = () => {
 };
 ```
 
+### registerMock — Collision-Safe Mock Dispatch
+
+When two adapter proxies in the same broker both mock the **same function** from the **same module** (e.g., two proxies
+both wrapping `existsSync` from `fs`), `jest.mock()` creates a single shared mock. The second proxy's
+`mockImplementation` silently overwrites the first, breaking tests.
+
+`registerMock` solves this with stack-based dispatch: each proxy gets its own independent handle, and a dispatcher
+routes
+calls based on which adapter file appears in the call stack.
+
+**Import path:** `@dungeonmaster/testing/register-mock` (cross-package) or relative import (within testing package).
+
+The `/register-mock` subpath avoids pulling in MSW and other ESM-only dependencies from the main
+`@dungeonmaster/testing` barrel.
+
+```typescript
+// ❌ WRONG - Pulls in entire @dungeonmaster/testing barrel (MSW, ESM deps)
+import {registerMock} from '@dungeonmaster/testing';
+
+// ✅ CORRECT - Isolated subpath, no ESM dependency chain
+import {registerMock} from '@dungeonmaster/testing/register-mock';
+
+// ✅ CORRECT - Within @dungeonmaster/testing package, use relative import
+import {jestRegisterMockAdapter as registerMock} from '../../jest/register-mock/jest-register-mock-adapter';
+```
+
+**Adapter proxy pattern:**
+
+```typescript
+// adapters/fs/exists/fs-exists-adapter.proxy.ts
+import {existsSync} from 'fs';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
+// No jest.mock('fs') needed — the AST transformer auto-generates it
+// by tracing existsSync back to its import module
+
+export const fsExistsAdapterProxy = (): {
+   returns: ({exists}: { exists: boolean }) => void;
+} => {
+   const handle = registerMock({fn: existsSync});
+
+   handle.mockReturnValue(false);
+
+   return {
+      returns: ({exists}: { exists: boolean }): void => {
+         handle.mockReturnValueOnce(exists);
+      },
+   };
+};
+```
+
+**How it works:**
+
+1. `registerMock({ fn })` auto-derives the caller's identity from the call stack (file basename)
+2. Installs a dispatcher on the `jest.fn()` that routes each invocation by scanning the call stack
+3. Each proxy gets its own `MockHandle` with independent `mockImplementation`, `mockReturnValue`, `mock.calls`, etc.
+4. `jest.resetAllMocks()` between tests is handled automatically — `registerMock` re-installs the dispatcher on next
+   call
+
+**MockHandle API** (mirrors jest.Mock):
+
+- `handle.mockImplementation(fn)` — set base implementation for this handle
+- `handle.mockImplementationOnce(fn)` — queue a one-shot implementation
+- `handle.mockReturnValue(val)` — set base return value
+- `handle.mockReturnValueOnce(val)` — queue a one-shot return value
+- `handle.mockResolvedValue(val)` — set base resolved promise value
+- `handle.mockResolvedValueOnce(val)` — queue a one-shot resolved promise
+- `handle.mockRejectedValueOnce(val)` — queue a one-shot rejected promise
+- `handle.mock.calls` — array of call arguments for this handle only
+- `handle.mockClear()` — reset calls, queue, and base implementation
+
+**When to use `registerMock` vs `jest.mock()` + `jest.mocked()`:**
+
+| Scenario                                             | Use                                                                      |
+|------------------------------------------------------|--------------------------------------------------------------------------|
+| Only one proxy mocks a given function                | Either works — `jest.mock()` is fine                                     |
+| Two+ proxies mock the same function from same module | **Must use `registerMock`**                                              |
+| Migrating incrementally                              | Both patterns coexist — AST transformer deduplicates `jest.mock()` calls |
+
+**AST transformer integration:** The proxy-mock-transformer automatically detects `registerMock({ fn: IDENTIFIER })`
+calls, traces `IDENTIFIER` to its import declaration, and generates `jest.mock('module')` in the test file. No manual
+`jest.mock()` call needed in the proxy.
+
 ### jest.spyOn() for Globals Only
 
 Use `jest.spyOn()` for global objects (crypto, Date, console), not module imports:

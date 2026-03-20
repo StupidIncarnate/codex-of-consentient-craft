@@ -13,9 +13,7 @@ describe('WardDetailResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getStderrCalls()).toStrictEqual([
-        'Usage: ward detail <run-id> <file-path> [--verbose]\n',
-      ]);
+      expect(proxy.getStderrCalls()).toStrictEqual(['Usage: ward detail <run-id> <file-path>\n']);
     });
   });
 
@@ -28,9 +26,7 @@ describe('WardDetailResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getStderrCalls()).toStrictEqual([
-        'Usage: ward detail <run-id> <file-path> [--verbose]\n',
-      ]);
+      expect(proxy.getStderrCalls()).toStrictEqual(['Usage: ward detail <run-id> <file-path>\n']);
     });
   });
 
@@ -41,18 +37,6 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '1739625600000-a3f1', 'src/index.ts'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
-      });
-
-      expect(proxy.getStdoutCalls()).toStrictEqual(['src/index.ts\n']);
-    });
-
-    it('VALID: {args with runId, filePath, and --verbose} => delegates to broker with verbose flag', async () => {
-      const proxy = WardDetailResponderProxy();
-      proxy.setupWithResult({ content: JSON.stringify(WardResultStub()) });
-
-      await proxy.callResponder({
-        args: ['node', 'ward', 'detail', '1739625600000-a3f1', 'src/index.ts', '--verbose'],
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 

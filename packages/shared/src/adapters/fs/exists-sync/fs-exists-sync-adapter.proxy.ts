@@ -1,21 +1,18 @@
 import { existsSync } from 'fs';
-
-// Declare jest.mock() in proxy (auto-hoisted by Jest)
-jest.mock('fs');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsExistsSyncAdapterProxy = (): {
   returns: ({ result }: { result: boolean }) => void;
 } => {
-  // Mock the npm package, not the adapter
-  const mock = jest.mocked(existsSync);
+  const handle = registerMock({ fn: existsSync });
 
   // Default mock behavior - return false
-  mock.mockReturnValue(false);
+  handle.mockReturnValue(false);
 
   return {
     // Semantic method for setting return value
     returns: ({ result }: { result: boolean }) => {
-      mock.mockReturnValueOnce(result);
+      handle.mockReturnValueOnce(result);
     },
   };
 };
