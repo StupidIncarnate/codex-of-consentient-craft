@@ -11,6 +11,7 @@ describe('slotManagerResultContract', () => {
 
       expect(result).toStrictEqual({
         completed: true,
+        sessionIds: {},
       });
     });
 
@@ -19,6 +20,7 @@ describe('slotManagerResultContract', () => {
 
       expect(result).toStrictEqual({
         completed: true,
+        sessionIds: {},
       });
     });
   });
@@ -36,6 +38,7 @@ describe('slotManagerResultContract', () => {
         completed: false,
         incompleteIds: ['work-item-1'],
         failedIds: [],
+        sessionIds: {},
       });
     });
 
@@ -50,6 +53,7 @@ describe('slotManagerResultContract', () => {
         completed: false,
         incompleteIds: [],
         failedIds: [],
+        sessionIds: {},
       });
     });
 
@@ -60,6 +64,7 @@ describe('slotManagerResultContract', () => {
         completed: false,
         incompleteIds: ['work-item-0'],
         failedIds: [],
+        sessionIds: {},
       });
     });
 
@@ -75,6 +80,7 @@ describe('slotManagerResultContract', () => {
         completed: false,
         incompleteIds: [],
         failedIds: ['failed-item-1'],
+        sessionIds: {},
       });
     });
   });

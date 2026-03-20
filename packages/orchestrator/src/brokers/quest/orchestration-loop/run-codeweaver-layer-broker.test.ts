@@ -5,6 +5,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -431,6 +432,53 @@ describe('runCodeweaverLayerBroker', () => {
       expect(status3).toBe('failed');
       expect(status4).toBe('failed');
       expect(status5).toBe('failed');
+    });
+  });
+
+  describe('sessionId persistence', () => {
+    it('VALID: {1 codeweaver, agent has sessionId} => persists sessionId on quest work item', async () => {
+      const sessionId = SessionIdStub({ value: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c' });
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        session_id: String(sessionId),
+      });
+
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionIdLine, COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const persistedSessionId = proxy.getLastPersistedWorkItemSessionId({ workItemId });
+
+      expect(persistedSessionId).toBe(sessionId);
     });
   });
 });

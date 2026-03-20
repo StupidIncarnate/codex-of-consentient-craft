@@ -57,17 +57,34 @@ export const runSiegemasterLayerBroker = async ({
     workUnit,
     timeoutMs,
     startPath,
+    onSessionId: ({ sessionId }) => {
+      void questModifyBroker({
+        input: {
+          questId,
+          workItems: [{ id: workItem.id, sessionId }],
+        } as ModifyQuestInput,
+      });
+    },
   });
 
   const summary = spawnResult.signal?.summary ?? '';
   const hasFailed = summary.includes(FAILURE_MARKER);
   const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
 
+  const sessionId = spawnResult.sessionId ?? undefined;
+
   if (isComplete) {
     await questModifyBroker({
       input: {
         questId,
-        workItems: [{ id: workItem.id, status: 'complete', completedAt: new Date().toISOString() }],
+        workItems: [
+          {
+            id: workItem.id,
+            status: 'complete',
+            completedAt: new Date().toISOString(),
+            ...(sessionId === undefined ? {} : { sessionId }),
+          },
+        ],
       } as ModifyQuestInput,
     });
     return;
@@ -105,7 +122,13 @@ export const runSiegemasterLayerBroker = async ({
     input: {
       questId,
       workItems: [
-        { id: workItem.id, status: 'failed', completedAt, errorMessage },
+        {
+          id: workItem.id,
+          status: 'failed',
+          completedAt,
+          errorMessage,
+          ...(sessionId === undefined ? {} : { sessionId }),
+        },
         ...skippedItems,
         pathseekerReplan,
       ],

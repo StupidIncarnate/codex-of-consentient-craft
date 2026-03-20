@@ -6,7 +6,7 @@
  * // Returns { completed: true } when all work items done
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
@@ -15,6 +15,7 @@ import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contrac
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
+import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';
 
@@ -26,6 +27,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotOperations,
   startPath,
   onAgentEntry,
+  onWorkItemSessionId,
   abortSignal,
   maxFollowupDepth,
 }: {
@@ -36,6 +38,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotOperations: SlotOperations;
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
 }): Promise<SlotManagerResult> => {
@@ -47,7 +50,9 @@ export const slotManagerOrchestrateBroker = async ({
     slotOperations,
     activeAgents: [],
     startPath,
+    sessionIds: {},
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });

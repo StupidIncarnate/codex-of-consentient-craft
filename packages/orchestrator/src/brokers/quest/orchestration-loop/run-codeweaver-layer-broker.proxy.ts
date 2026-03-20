@@ -3,6 +3,7 @@ import {
   type ExitCode,
   type QuestStub,
   type QuestWorkItemId,
+  type SessionId,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
@@ -20,6 +21,9 @@ export const runCodeweaverLayerBrokerProxy = (): {
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
+  getLastPersistedWorkItemSessionId: (params: {
+    workItemId: QuestWorkItemId;
+  }) => SessionId | undefined;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -67,6 +71,21 @@ export const runCodeweaverLayerBrokerProxy = (): {
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
+    },
+    getLastPersistedWorkItemSessionId: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): SessionId | undefined => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return undefined;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
+      return item?.sessionId;
     },
   };
 };

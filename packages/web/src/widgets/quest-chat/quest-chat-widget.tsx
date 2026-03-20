@@ -24,7 +24,6 @@ import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
-import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
@@ -59,10 +58,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const resolvedGuildId = matchedGuild?.id ?? null;
 
   const { refresh: refreshGuild } = useGuildDetailBinding({
-    guildId: resolvedGuildId,
-  });
-
-  const { refresh: refreshSessionList } = useSessionListBinding({
     guildId: resolvedGuildId,
   });
 
@@ -118,11 +113,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {
       refreshGuild().catch(() => undefined);
-      refreshSessionList().catch(() => undefined);
       requestRefresh();
     }
     prevIsStreamingRef.current = isStreaming;
-  }, [isStreaming, refreshGuild, refreshSessionList, requestRefresh]);
+  }, [isStreaming, refreshGuild, requestRefresh]);
 
   const pipelineStartedRef = useRef(false);
 
@@ -139,6 +133,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
     questStartBroker({ questId: questData.id }).catch(() => undefined);
   }, [questData]);
 
+  const [workItemSessionEntries, setWorkItemSessionEntries] = useState<Map<SessionId, ChatEntry[]>>(
+    new Map(),
+  );
+
+  const replayedSessionsRef = useRef<Set<SessionId>>(new Set());
+
   useEffect(() => {
     if (!questData) return undefined;
     if (!isExecutionPhaseGuard({ status: questData.status })) return undefined;
@@ -152,25 +152,61 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
         const rawSlotIndex: unknown = Reflect.get(parsed.data.payload, 'slotIndex');
         const slotIndexParsed = slotIndexContract.safeParse(rawSlotIndex);
-        if (!slotIndexParsed.success) return;
+        if (slotIndexParsed.success) {
+          const rawEntry: unknown = Reflect.get(parsed.data.payload, 'entry');
+          if (typeof rawEntry !== 'object' || rawEntry === null) return;
 
-        const rawEntry: unknown = Reflect.get(parsed.data.payload, 'entry');
-        if (typeof rawEntry !== 'object' || rawEntry === null) return;
+          const rawLine: unknown = Reflect.get(rawEntry, 'raw');
+          if (typeof rawLine !== 'string') return;
 
-        const rawLine: unknown = Reflect.get(rawEntry, 'raw');
+          const result = streamJsonToChatEntryTransformer({ line: rawLine });
+          if (result.entries.length === 0) return;
+
+          handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
+          return;
+        }
+
+        const rawChatProcessId: unknown = Reflect.get(parsed.data.payload, 'chatProcessId');
+        if (typeof rawChatProcessId !== 'string') return;
+
+        const REPLAY_PREFIX = 'replay-';
+        if (!rawChatProcessId.startsWith(REPLAY_PREFIX)) return;
+
+        const replaySessionId = rawChatProcessId.slice(REPLAY_PREFIX.length) as SessionId;
+
+        const rawLine: unknown = Reflect.get(parsed.data.payload, 'line');
         if (typeof rawLine !== 'string') return;
 
         const result = streamJsonToChatEntryTransformer({ line: rawLine });
         if (result.entries.length === 0) return;
 
-        handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
+        setWorkItemSessionEntries((prev) => {
+          const updated = new Map(prev);
+          const existing = updated.get(replaySessionId) ?? [];
+          updated.set(replaySessionId, [...existing, ...result.entries]);
+          return updated;
+        });
       },
     });
+
+    if (resolvedGuildId) {
+      for (const wi of questData.workItems) {
+        if (!wi.sessionId) continue;
+        if (replayedSessionsRef.current.has(wi.sessionId)) continue;
+        replayedSessionsRef.current.add(wi.sessionId);
+        connection.send({
+          type: 'replay-history',
+          sessionId: wi.sessionId,
+          guildId: resolvedGuildId,
+          chatProcessId: `replay-${wi.sessionId}`,
+        });
+      }
+    }
 
     return (): void => {
       connection.close();
     };
-  }, [questData, handleAgentOutput]);
+  }, [questData, handleAgentOutput, resolvedGuildId]);
 
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })
@@ -188,12 +224,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
         : null;
 
   const sessionEntriesMap = useMemo(() => {
-    const map = new Map<SessionId, ChatEntry[]>();
+    const map = new Map<SessionId, ChatEntry[]>(workItemSessionEntries);
     if (currentSessionId && entries.length > 0) {
       map.set(currentSessionId, entries);
     }
     return map;
-  }, [currentSessionId, entries]);
+  }, [currentSessionId, entries, workItemSessionEntries]);
 
   if (questData && isExecutionPhaseGuard({ status: questData.status })) {
     return (

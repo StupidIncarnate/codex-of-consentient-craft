@@ -50,7 +50,7 @@ export const runPathseekerLayerBroker = async ({
   const slotIndex = slotIndexContract.parse(0);
   const timeoutMs = timeoutMsContract.parse(workItem.timeoutMs ?? PATHSEEKER_TIMEOUT_MS);
 
-  const spawnResult = await agentSpawnByRoleBroker({
+  await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     startPath,
@@ -62,18 +62,15 @@ export const runPathseekerLayerBroker = async ({
             onAgentEntry({ slotIndex, entry: { raw: line } });
           },
         }),
+    onSessionId: ({ sessionId }) => {
+      void questModifyBroker({
+        input: {
+          questId,
+          workItems: [{ id: workItem.id, sessionId }],
+        } as ModifyQuestInput,
+      });
+    },
   });
-
-  // Write sessionId back to work item
-  const sessionId = spawnResult.sessionId ?? undefined;
-  if (sessionId) {
-    await questModifyBroker({
-      input: {
-        questId,
-        workItems: [{ id: workItem.id, sessionId }],
-      } as ModifyQuestInput,
-    });
-  }
 
   // Verify quest
   const verifyInput = verifyQuestInputContract.parse({ questId });

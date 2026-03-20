@@ -21,6 +21,7 @@ export const spawnAgentLayerBroker = async ({
   timeoutMs,
   startPath,
   onLine,
+  onSessionId,
 }: {
   workUnit: WorkUnit;
   resumeSessionId?: SessionId;
@@ -28,6 +29,7 @@ export const spawnAgentLayerBroker = async ({
   timeoutMs: TimeoutMs;
   startPath: FilePath;
   onLine?: (params: { line: string }) => void;
+  onSessionId?: (params: { sessionId: SessionId }) => void;
 }): Promise<AgentSpawnStreamingResult> => {
   const result = await agentSpawnByRoleBroker({
     workUnit,
@@ -36,6 +38,7 @@ export const spawnAgentLayerBroker = async ({
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     ...(continuationContext === undefined ? {} : { continuationContext }),
     ...(onLine === undefined ? {} : { onLine }),
+    ...(onSessionId === undefined ? {} : { onSessionId }),
   });
   return result;
 };

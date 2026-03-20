@@ -3,6 +3,7 @@
  */
 
 import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import {
@@ -11,6 +12,7 @@ import {
   GuildStub,
   QuestStub,
   SessionListItemStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -1179,6 +1181,93 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasChatPanel()).toBe(true);
       expect(proxy.hasExecutionPanel()).toBe(false);
       expect(proxy.hasDumpsterRaccoon()).toBe(false);
+    });
+  });
+
+  describe('work item session entries in execution phase', () => {
+    it('VALID: {quest in execution phase with replay response for work item session} => shows entries in execution panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-replay-entries',
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-replay-entries' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'pathseeker',
+            status: 'complete',
+            sessionId: 'wi-session-bbb' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuestStart({ processId: 'proc-replay-entries' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-replay-entries',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-wi-session-bbb',
+              line: JSON.stringify({
+                type: 'assistant',
+                message: {
+                  role: 'assistant',
+                  content: [{ type: 'text', text: 'Exploring quest requirements...' }],
+                },
+              }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const pathseekerRow = stepRows.find((row) => row.textContent?.includes('PATHSEEKER'));
+      const rowHeader = pathseekerRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      const messages = screen.queryAllByTestId('CHAT_MESSAGE');
+
+      expect(messages).toHaveLength(1);
+      expect(messages[0]?.textContent).toMatch(/Exploring quest requirements/u);
     });
   });
 });

@@ -6,7 +6,7 @@
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -18,6 +18,7 @@ import type { SlotManagerResult } from '../../../contracts/slot-manager-result/s
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
+import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
@@ -40,7 +41,9 @@ export const orchestrationLoopLayerBroker = async ({
   activeAgents,
   startPath,
   onAgentEntry,
+  onWorkItemSessionId,
   maxFollowupDepth,
+  sessionIds,
 }: {
   questId: QuestId;
   workTracker: WorkTracker;
@@ -50,15 +53,17 @@ export const orchestrationLoopLayerBroker = async ({
   activeAgents: ActiveAgent[];
   startPath: FilePath;
   onAgentEntry?: (params: { slotIndex: SlotIndex; entry: ChatLineEntry['entry'] }) => void;
+  onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
   maxFollowupDepth?: FollowupDepth;
+  sessionIds: Record<WorkItemId, SessionId>;
 }): Promise<LoopResult> => {
   if (workTracker.isAllTerminal() && activeAgents.length === 0) {
     const failedIds = workTracker.getFailedIds();
     if (failedIds.length > 0) {
       const incompleteIds = workTracker.getIncompleteIds();
-      return { done: true, result: { completed: false, incompleteIds, failedIds } };
+      return { done: true, result: { completed: false, incompleteIds, failedIds, sessionIds } };
     }
-    return { done: true, result: { completed: true } };
+    return { done: true, result: { completed: true, sessionIds } };
   }
 
   const readyIds = workTracker.getReadyWorkIds();
@@ -82,6 +87,14 @@ export const orchestrationLoopLayerBroker = async ({
                 onAgentEntry({ slotIndex: availableSlotIndex, entry: { raw: line } });
               },
             }),
+        ...(onWorkItemSessionId === undefined
+          ? {}
+          : {
+              onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
+                Reflect.set(sessionIds, workItemId, sessionId);
+                onWorkItemSessionId({ workItemId, sessionId });
+              },
+            }),
       });
 
       activeAgents.push({
@@ -98,11 +111,11 @@ export const orchestrationLoopLayerBroker = async ({
   if (activeAgents.length === 0 && readyIds.length === 0) {
     const incompleteIds = workTracker.getIncompleteIds();
     const failedIds = workTracker.getFailedIds();
-    return { done: true, result: { completed: false, incompleteIds, failedIds } };
+    return { done: true, result: { completed: false, incompleteIds, failedIds, sessionIds } };
   }
 
   if (activeAgents.length === 0) {
-    return { done: true, result: { completed: true } };
+    return { done: true, result: { completed: true, sessionIds } };
   }
 
   const raceResult = await Promise.race(
@@ -118,6 +131,10 @@ export const orchestrationLoopLayerBroker = async ({
   activeAgents.splice(agentIndex, 1);
 
   slotOperations.releaseSlot({ slotIndex: completedAgent.slotIndex });
+
+  if (result.sessionId !== null) {
+    Reflect.set(sessionIds, completedAgent.workItemId, result.sessionId);
+  }
 
   if (result.crashed || result.timedOut) {
     const nextCrashRetries = (completedAgent.crashRetries + 1) as ActiveAgent['crashRetries'];
@@ -143,6 +160,14 @@ export const orchestrationLoopLayerBroker = async ({
           : {
               onLine: ({ line }: { line: string }) => {
                 onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
+              },
+            }),
+        ...(onWorkItemSessionId === undefined
+          ? {}
+          : {
+              onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
+                Reflect.set(sessionIds, completedAgent.workItemId, sessionId);
+                onWorkItemSessionId({ workItemId: completedAgent.workItemId, sessionId });
               },
             }),
       });
@@ -222,6 +247,14 @@ export const orchestrationLoopLayerBroker = async ({
               : {
                   onLine: ({ line }: { line: string }) => {
                     onAgentEntry({ slotIndex: newSlotIndex, entry: { raw: line } });
+                  },
+                }),
+            ...(onWorkItemSessionId === undefined
+              ? {}
+              : {
+                  onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
+                    Reflect.set(sessionIds, newWorkItemId, sessionId);
+                    onWorkItemSessionId({ workItemId: newWorkItemId, sessionId });
                   },
                 }),
           });

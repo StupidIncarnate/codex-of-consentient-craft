@@ -6,7 +6,7 @@
  * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs, floor-based step layout
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
@@ -28,6 +28,8 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
 import type { FloorNumber } from '../../contracts/floor-number/floor-number-contract';
+import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
+import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
@@ -64,6 +66,7 @@ const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
 const DANGER_VARIANT = 'danger' as ButtonVariant;
 const GHOST_VARIANT = 'ghost' as ButtonVariant;
 const ACTION_BAR_PADDING = 12;
+const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
 
 export const ExecutionPanelWidget = ({
   quest,
@@ -119,6 +122,114 @@ export const ExecutionPanelWidget = ({
     }
   }
 
+  const steppedWorkItemIds = new Set<WorkItem['id']>();
+  for (const wi of stepWorkItemMap.values()) {
+    steppedWorkItemIds.add(wi.id);
+  }
+
+  const nonStepWorkItemsByRole = new Map<ExecutionRole, WorkItem[]>();
+  for (const wi of quest.workItems) {
+    if (wi.role === 'pathseeker') continue;
+    if (steppedWorkItemIds.has(wi.id)) continue;
+    const existing = nonStepWorkItemsByRole.get(wi.role as ExecutionRole) ?? [];
+    existing.push(wi);
+    nonStepWorkItemsByRole.set(wi.role as ExecutionRole, existing);
+  }
+
+  const nonStepFloorCount = floorConfigs.filter((floor) =>
+    nonStepWorkItemsByRole.has(floor.role),
+  ).length;
+
+  const pathseekerWorkItem = quest.workItems.find((wi) => wi.role === 'pathseeker');
+
+  const workItemIdToRole = new Map<WorkItem['id'], WorkItem['role']>();
+  for (const wi of quest.workItems) {
+    workItemIdToRole.set(wi.id, wi.role);
+  }
+
+  const wardResultsById = new Map<
+    (typeof quest.wardResults)[0]['id'],
+    (typeof quest.wardResults)[0]
+  >();
+  for (const wr of quest.wardResults) {
+    wardResultsById.set(wr.id, wr);
+  }
+
+  const roleActiveCounts = new Map<ExecutionRole, SlotCount>();
+  const roleTotalCounts = new Map<ExecutionRole, SlotCount>();
+  for (const wi of quest.workItems) {
+    const { role } = wi;
+    const currentTotal = roleTotalCounts.get(role) ?? slotCountContract.parse(0);
+    roleTotalCounts.set(role, slotCountContract.parse(currentTotal + 1));
+    if (wi.status === 'in_progress') {
+      const currentActive = roleActiveCounts.get(role) ?? slotCountContract.parse(0);
+      roleActiveCounts.set(role, slotCountContract.parse(currentActive + 1));
+    }
+  }
+
+  const nonStepFloorElements = useMemo((): React.JSX.Element[] | null => {
+    if (hasWorkItemsOnly) return null;
+    if (nonStepWorkItemsByRole.size === 0) return null;
+
+    let floorCounter = 0;
+    return floorConfigs
+      .filter((floor) => nonStepWorkItemsByRole.has(floor.role))
+      .map((floor) => {
+        floorCounter += 1;
+        const floorItems = nonStepWorkItemsByRole.get(floor.role) ?? [];
+        return (
+          <Box key={`nonstep-${floor.role}`}>
+            <FloorHeaderLayerWidget
+              floorNumber={floorCounter as FloorNumber}
+              name={floor.name as FloorName}
+              {...(roleActiveCounts.has(floor.role)
+                ? {
+                    concurrent: {
+                      active: roleActiveCounts.get(floor.role) ?? slotCountContract.parse(0),
+                      max: roleTotalCounts.get(floor.role) ?? slotCountContract.parse(0),
+                    },
+                  }
+                : {})}
+            />
+            {floorItems.map((wi, wiIndex) => {
+              const wiEntries = wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [];
+              const wiDepLabels = wi.dependsOn
+                .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                .filter((label) => label.length > 0);
+              return (
+                <ExecutionRowLayerWidget
+                  key={wi.id}
+                  order={(wiIndex + 1) as StepOrder}
+                  name={
+                    `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                  }
+                  role={wi.role as unknown as ExecutionRole}
+                  status={wi.status as unknown as ExecutionStepStatus}
+                  files={[] as DisplayFilePath[]}
+                  dependsOn={wiDepLabels as unknown as DependencyLabel[]}
+                  isAdhoc={wi.insertedBy !== undefined}
+                  entries={wiEntries}
+                  attempt={wi.attempt}
+                  maxAttempts={wi.maxAttempts}
+                  startedAt={wi.startedAt}
+                  completedAt={wi.completedAt}
+                  {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                />
+              );
+            })}
+          </Box>
+        );
+      });
+  }, [
+    hasWorkItemsOnly,
+    nonStepWorkItemsByRole,
+    floorConfigs,
+    roleActiveCounts,
+    roleTotalCounts,
+    sessionEntries,
+    workItemIdToRole,
+  ]);
+
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">
       <Box
@@ -154,6 +265,19 @@ export const ExecutionPanelWidget = ({
         <QuestSpecPanelWidget quest={quest} readOnly={true} />
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <Text
+            ff="monospace"
+            data-testid="execution-panel-quest-title"
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: colors['loot-gold'],
+              padding: '8px 12px',
+              borderBottom: `1px solid ${colors.border}`,
+            }}
+          >
+            {quest.title}
+          </Text>
           <ExecutionStatusBarLayerWidget
             completedCount={completedCount}
             totalCount={totalCount}
@@ -203,22 +327,42 @@ export const ExecutionPanelWidget = ({
                           <FloorHeaderLayerWidget
                             floorNumber={floorCounter as FloorNumber}
                             name={floor.name as FloorName}
+                            {...(roleActiveCounts.has(floor.role)
+                              ? {
+                                  concurrent: {
+                                    active:
+                                      roleActiveCounts.get(floor.role) ??
+                                      slotCountContract.parse(0),
+                                    max:
+                                      roleTotalCounts.get(floor.role) ?? slotCountContract.parse(0),
+                                  },
+                                }
+                              : {})}
                           />
                           {floorItems.map((wi, wiIndex) => {
                             const wiEntries = wi.sessionId
                               ? (sessionEntries.get(wi.sessionId) ?? [])
                               : [];
+                            const wiDepLabels = wi.dependsOn
+                              .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                              .filter((label) => label.length > 0);
                             return (
                               <ExecutionRowLayerWidget
                                 key={wi.id}
                                 order={(wiIndex + 1) as StepOrder}
-                                name={wi.role as unknown as StepName}
+                                name={
+                                  `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                                }
                                 role={wi.role as unknown as ExecutionRole}
                                 status={wi.status as unknown as ExecutionStepStatus}
                                 files={[] as DisplayFilePath[]}
-                                dependsOn={[] as DependencyLabel[]}
+                                dependsOn={wiDepLabels as unknown as DependencyLabel[]}
                                 isAdhoc={wi.insertedBy !== undefined}
                                 entries={wiEntries}
+                                attempt={wi.attempt}
+                                maxAttempts={wi.maxAttempts}
+                                startedAt={wi.startedAt}
+                                completedAt={wi.completedAt}
                                 {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                               />
                             );
@@ -228,20 +372,43 @@ export const ExecutionPanelWidget = ({
                     });
                 })()
               : null}
+            {nonStepFloorElements}
             {isPlanning || hasWorkItemsOnly ? null : (
               <ExecutionRowLayerWidget
                 order={'--' as unknown as StepOrder}
                 name={`Planned ${String(totalCount)} steps` as StepName}
                 role={'pathseeker' as ExecutionRole}
-                status={'complete' as ExecutionStepStatus}
+                status={
+                  (pathseekerWorkItem?.status ?? 'complete') as unknown as ExecutionStepStatus
+                }
                 files={[] as DisplayFilePath[]}
                 dependsOn={[] as DependencyLabel[]}
                 isAdhoc={false}
+                entries={
+                  pathseekerWorkItem?.sessionId
+                    ? (sessionEntries.get(pathseekerWorkItem.sessionId) ?? [])
+                    : []
+                }
+                {...(pathseekerWorkItem
+                  ? {
+                      attempt: pathseekerWorkItem.attempt,
+                      maxAttempts: pathseekerWorkItem.maxAttempts,
+                      ...(pathseekerWorkItem.startedAt
+                        ? { startedAt: pathseekerWorkItem.startedAt }
+                        : {}),
+                      ...(pathseekerWorkItem.completedAt
+                        ? { completedAt: pathseekerWorkItem.completedAt }
+                        : {}),
+                      ...(pathseekerWorkItem.errorMessage
+                        ? { errorMessage: pathseekerWorkItem.errorMessage }
+                        : {}),
+                    }
+                  : {})}
               />
             )}
             {steps.length > 0
               ? (() => {
-                  let floorCounter = 0;
+                  let floorCounter = nonStepFloorCount;
                   return floorConfigs
                     .filter((floor) => stepRoleMap.has(floor.role))
                     .map((floor) => {
@@ -252,10 +419,36 @@ export const ExecutionPanelWidget = ({
                           <FloorHeaderLayerWidget
                             floorNumber={floorCounter as FloorNumber}
                             name={floor.name as FloorName}
+                            {...(roleActiveCounts.has(floor.role)
+                              ? {
+                                  concurrent: {
+                                    active:
+                                      roleActiveCounts.get(floor.role) ??
+                                      slotCountContract.parse(0),
+                                    max:
+                                      roleTotalCounts.get(floor.role) ?? slotCountContract.parse(0),
+                                  },
+                                }
+                              : {})}
                           />
                           {floorSteps.map((step, stepIndex) => {
                             const wi = stepWorkItemMap.get(step.id);
                             const wiStatus = (wi?.status ?? 'pending') as ExecutionStepStatus;
+                            const stepEntries = wi?.sessionId
+                              ? (sessionEntries.get(wi.sessionId) ?? [])
+                              : [];
+                            const wardRefs = wi
+                              ? wi.relatedDataItems.filter((ref) => ref.startsWith('wardResults/'))
+                              : [];
+                            const resolvedWardResults = wardRefs
+                              .map((ref) =>
+                                wardResultsById.get(
+                                  ref.slice(
+                                    WARD_RESULTS_PREFIX_LENGTH,
+                                  ) as (typeof quest.wardResults)[0]['id'],
+                                ),
+                              )
+                              .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
                             return (
                               <ExecutionRowLayerWidget
                                 key={step.id}
@@ -271,9 +464,24 @@ export const ExecutionPanelWidget = ({
                                 }
                                 dependsOn={step.dependsOn as unknown as DependencyLabel[]}
                                 isAdhoc={wi?.insertedBy !== undefined}
-                                entries={slotEntries.get(0 as SlotIndex) ?? []}
+                                entries={stepEntries}
                                 isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                                {...(wi?.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                                description={step.description}
+                                observablesSatisfied={step.observablesSatisfied}
+                                inputContracts={step.inputContracts}
+                                outputContracts={step.outputContracts}
+                                {...(wi
+                                  ? {
+                                      attempt: wi.attempt,
+                                      maxAttempts: wi.maxAttempts,
+                                      ...(wi.startedAt ? { startedAt: wi.startedAt } : {}),
+                                      ...(wi.completedAt ? { completedAt: wi.completedAt } : {}),
+                                      ...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {}),
+                                    }
+                                  : {})}
+                                {...(resolvedWardResults.length > 0
+                                  ? { wardResults: resolvedWardResults }
+                                  : {})}
                               />
                             );
                           })}

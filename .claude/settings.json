@@ -68,6 +68,7 @@
       "Bash(npx @modelcontextprotocol/inspector:*)",
       "Bash(npx --version)",
       "Bash(npx:*)",
+      "Bash(npm:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.npmjs.com)",

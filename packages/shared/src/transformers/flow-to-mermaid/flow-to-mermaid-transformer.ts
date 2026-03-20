@@ -13,18 +13,19 @@ import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
 import { collectNodeAssertionsTransformer } from '../collect-node-assertions/collect-node-assertions-transformer';
 import { escapeMermaidLabelTransformer } from '../escape-mermaid-label/escape-mermaid-label-transformer';
 import { renderMermaidNodeWithAssertionsTransformer } from '../render-mermaid-node-with-assertions/render-mermaid-node-with-assertions-transformer';
+import { sanitizeMermaidIdTransformer } from '../sanitize-mermaid-id/sanitize-mermaid-id-transformer';
 
 const CROSS_FLOW_REF_PATTERN = /^.+:(.+)$/u;
 
 const NODE_SHAPE_MAP = {
   decision: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
-    `${id}{${escapeMermaidLabelTransformer({ label })}}`,
+    `${sanitizeMermaidIdTransformer({ id: contentTextContract.parse(String(id)) })}{${escapeMermaidLabelTransformer({ label })}}`,
   state: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
-    `${id}[${escapeMermaidLabelTransformer({ label })}]`,
+    `${sanitizeMermaidIdTransformer({ id: contentTextContract.parse(String(id)) })}[${escapeMermaidLabelTransformer({ label })}]`,
   action: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
-    `${id}(${escapeMermaidLabelTransformer({ label })})`,
+    `${sanitizeMermaidIdTransformer({ id: contentTextContract.parse(String(id)) })}(${escapeMermaidLabelTransformer({ label })})`,
   terminal: ({ id, label }: Pick<FlowNode, 'id' | 'label'>) =>
-    `${id}((${escapeMermaidLabelTransformer({ label })}))`,
+    `${sanitizeMermaidIdTransformer({ id: contentTextContract.parse(String(id)) })}((${escapeMermaidLabelTransformer({ label })}))`,
 } as const;
 
 export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText => {
@@ -50,8 +51,12 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
   for (const edge of flow.edges) {
     const fromMatch = CROSS_FLOW_REF_PATTERN.exec(edge.from);
     const toMatch = CROSS_FLOW_REF_PATTERN.exec(edge.to);
-    const from = fromMatch?.[1] ?? edge.from;
-    const to = toMatch?.[1] ?? edge.to;
+    const from = sanitizeMermaidIdTransformer({
+      id: contentTextContract.parse(String(fromMatch?.[1] ?? edge.from)),
+    });
+    const to = sanitizeMermaidIdTransformer({
+      id: contentTextContract.parse(String(toMatch?.[1] ?? edge.to)),
+    });
 
     if (edge.label === undefined) {
       lines.push(contentTextContract.parse(`  ${from} --> ${to}`));
@@ -66,13 +71,16 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
 
   for (const node of flow.nodes) {
     const hasObservables = node.observables.length > 0;
+    const safeId = sanitizeMermaidIdTransformer({
+      id: contentTextContract.parse(String(node.id)),
+    });
 
     if (hasObservables) {
-      lines.push(contentTextContract.parse(`  style ${node.id} fill:#2d6a4f,color:#fff`));
+      lines.push(contentTextContract.parse(`  style ${safeId} fill:#2d6a4f,color:#fff`));
     } else if (node.type === 'action') {
-      lines.push(contentTextContract.parse(`  style ${node.id} fill:#1971c2,color:#fff`));
+      lines.push(contentTextContract.parse(`  style ${safeId} fill:#1971c2,color:#fff`));
     } else if (node.type === 'terminal') {
-      lines.push(contentTextContract.parse(`  style ${node.id} fill:#c92a2a,color:#fff`));
+      lines.push(contentTextContract.parse(`  style ${safeId} fill:#c92a2a,color:#fff`));
     }
   }
 
@@ -82,9 +90,12 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
     );
 
     if (designRefObservable !== undefined) {
+      const safeId = sanitizeMermaidIdTransformer({
+        id: contentTextContract.parse(String(node.id)),
+      });
       lines.push(
         contentTextContract.parse(
-          `  click ${node.id} href "${designRefObservable.designRef}" _blank`,
+          `  click ${safeId} href "${designRefObservable.designRef}" _blank`,
         ),
       );
     }

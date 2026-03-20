@@ -75,6 +75,17 @@ export const runLawbringerLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
+    onWorkItemSessionId: ({ workItemId, sessionId }) => {
+      const questItemId = slotToQuestMap.get(workItemId);
+      if (questItemId !== undefined) {
+        void questModifyBroker({
+          input: {
+            questId,
+            workItems: [{ id: questItemId, sessionId }],
+          } as ModifyQuestInput,
+        });
+      }
+    },
   });
 
   // Map results back to quest work items
@@ -89,10 +100,20 @@ export const runLawbringerLayerBroker = async ({
   }[] = [];
 
   for (const [slotId, questItemId] of slotToQuestMap) {
+    const sessionId = result.sessionIds[slotId];
     if (failedSlotIds.has(slotId)) {
-      workItemUpdates.push({ id: questItemId, status: 'failed' });
+      workItemUpdates.push({
+        id: questItemId,
+        status: 'failed',
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
     } else {
-      workItemUpdates.push({ id: questItemId, status: 'complete', completedAt });
+      workItemUpdates.push({
+        id: questItemId,
+        status: 'complete',
+        completedAt,
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
     }
   }
 
