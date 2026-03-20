@@ -42,6 +42,7 @@ export const orchestrationLoopLayerBroker = async ({
   startPath,
   onAgentEntry,
   onWorkItemSessionId,
+  onFollowupCreated,
   maxFollowupDepth,
   sessionIds,
 }: {
@@ -58,6 +59,11 @@ export const orchestrationLoopLayerBroker = async ({
     sessionId?: SessionId;
   }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
+  onFollowupCreated?: (params: {
+    followupWorkItemId: WorkItemId;
+    role: string;
+    failedWorkItemId: WorkItemId;
+  }) => void;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
 }): Promise<LoopResult> => {
@@ -249,6 +255,14 @@ export const orchestrationLoopLayerBroker = async ({
           `followup-${completedAgent.workItemId}-${String(Date.now())}`,
         );
         workTracker.addWorkItem({ workItemId: newWorkItemId, workUnit: followupWorkUnit });
+
+        if (onFollowupCreated !== undefined) {
+          onFollowupCreated({
+            followupWorkItemId: newWorkItemId,
+            role: signalResult.targetRole,
+            failedWorkItemId: completedAgent.workItemId,
+          });
+        }
 
         const newSlotIndex = slotOperations.getAvailableSlot({ slotCount });
         if (newSlotIndex !== undefined) {

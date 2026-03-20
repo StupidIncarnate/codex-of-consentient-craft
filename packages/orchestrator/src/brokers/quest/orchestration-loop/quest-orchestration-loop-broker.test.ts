@@ -43,19 +43,19 @@ describe('questOrchestrationLoopBroker', () => {
       expect(completedQuest).toBeDefined();
     });
 
-    it('T-STATUS-2: {blocked — pending items with failed deps} => quest status set to blocked', async () => {
+    it('T-STATUS-2: {blocked — pending items with skipped deps} => quest status set to blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const skippedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
         workItems: [
-          WorkItemStub({ id: failedId, role: 'pathseeker', status: 'failed' }),
+          WorkItemStub({ id: skippedId, role: 'pathseeker', status: 'skipped' }),
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' }),
             role: 'codeweaver',
             status: 'pending',
-            dependsOn: [failedId],
+            dependsOn: [skippedId],
           }),
         ],
       });
@@ -841,7 +841,7 @@ describe('questOrchestrationLoopBroker', () => {
       expect(wardDispatched).toBeUndefined();
     });
 
-    it('T-DEP-2: {failed dependency} => item never becomes ready, quest becomes blocked', async () => {
+    it('T-DEP-2: {skipped dependency} => item never becomes ready, quest becomes blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const cw1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const wardId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -852,7 +852,7 @@ describe('questOrchestrationLoopBroker', () => {
           WorkItemStub({
             id: cw1Id,
             role: 'codeweaver',
-            status: 'failed',
+            status: 'skipped',
           }),
           WorkItemStub({
             id: wardId,
@@ -975,6 +975,10 @@ describe('questOrchestrationLoopBroker', () => {
       });
       const cwId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
 
+      const skippedCwId = QuestWorkItemIdStub({
+        value: 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80',
+      });
+
       const blockedQuest = QuestStub({
         id: questId,
         status: 'blocked',
@@ -987,8 +991,14 @@ describe('questOrchestrationLoopBroker', () => {
           WorkItemStub({
             id: cwId,
             role: 'codeweaver',
-            status: 'pending',
+            status: 'skipped',
             dependsOn: [failedPsId],
+          }),
+          WorkItemStub({
+            id: skippedCwId,
+            role: 'ward',
+            status: 'pending',
+            dependsOn: [cwId],
           }),
           WorkItemStub({
             id: retryPsId,
@@ -1012,8 +1022,14 @@ describe('questOrchestrationLoopBroker', () => {
           WorkItemStub({
             id: cwId,
             role: 'codeweaver',
-            status: 'pending',
+            status: 'skipped',
             dependsOn: [failedPsId],
+          }),
+          WorkItemStub({
+            id: skippedCwId,
+            role: 'ward',
+            status: 'pending',
+            dependsOn: [cwId],
           }),
           WorkItemStub({
             id: retryPsId,

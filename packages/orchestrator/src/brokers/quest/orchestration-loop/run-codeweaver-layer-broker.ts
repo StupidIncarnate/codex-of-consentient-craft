@@ -6,12 +6,13 @@
  * // Resolves steps from relatedDataItems, runs codeweaver agents, updates work item + step statuses
  */
 
-import type {
-  FilePath,
-  QuestId,
-  QuestWorkItemId,
-  SessionId,
-  WorkItem,
+import {
+  workItemContract,
+  type FilePath,
+  type QuestId,
+  type QuestWorkItemId,
+  type SessionId,
+  type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
@@ -90,6 +91,27 @@ export const runCodeweaverLayerBroker = async ({
     startPath,
     maxFollowupDepth,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
+      const questItemId = slotToQuestMap.get(failedWorkItemId);
+      if (questItemId) {
+        const newItem = workItemContract.parse({
+          id: crypto.randomUUID(),
+          role,
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [questItemId],
+          insertedBy: questItemId,
+          createdAt: new Date().toISOString(),
+        });
+        slotToQuestMap.set(followupWorkItemId, newItem.id);
+        questModifyBroker({
+          input: {
+            questId,
+            workItems: [newItem],
+          } as ModifyQuestInput,
+        }).catch(() => undefined);
+      }
+    },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {

@@ -435,6 +435,47 @@ describe('runCodeweaverLayerBroker', () => {
     });
   });
 
+  describe('failure callback persistence', () => {
+    it('VALID: {1 codeweaver, null signal} => failed codeweaver quest work item persisted with failed status', async () => {
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('failed');
+    });
+  });
+
   describe('sessionId persistence', () => {
     it('VALID: {1 codeweaver, agent has sessionId} => persists sessionId on quest work item', async () => {
       const sessionId = SessionIdStub({ value: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c' });

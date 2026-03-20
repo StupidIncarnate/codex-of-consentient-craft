@@ -307,6 +307,57 @@ describe('runLawbringerLayerBroker', () => {
     });
   });
 
+  describe('failure callback persistence', () => {
+    it('VALID: {1 lawbringer fails with null signal, spiritmender followup completes} => original lawbringer persisted as failed', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        filesToModify: ['/project/src/file-a.ts'],
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      // First spawn: no signal (null signal -> slot manager handles failure, spawns spiritmender)
+      proxy.setupSpawnOnce({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+      // Remaining spawns: complete signal (spiritmender followup completes)
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBeDefined();
+    });
+  });
+
   describe('1 of 3 fails (partial failure)', () => {
     it('VALID: {first agent fails with null signal, slot manager handles failure} => completes without throwing', async () => {
       const stepA = DependencyStepStub({

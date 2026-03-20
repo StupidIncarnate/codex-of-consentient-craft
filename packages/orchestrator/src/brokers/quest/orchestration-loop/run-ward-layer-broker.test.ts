@@ -110,6 +110,54 @@ describe('runWardLayerBroker', () => {
     });
   });
 
+  describe('FAIL (retries left, no filePaths) ward retry and siege dependsOn assertions', () => {
+    it('VALID: {exitCode 1, no filePaths} => ward-retry dependsOn is empty array and siege depends on ward-retry via replacement', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const siegeItemId = QuestWorkItemIdStub({ value: SIEGE_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const siegeItem = WorkItemStub({
+        id: siegeItemId,
+        role: 'siegemaster',
+        status: 'pending',
+        dependsOn: [wardItemId],
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem, siegeItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardFailNoFilePaths({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+      });
+
+      const inserted = proxy.getInsertedWorkItems();
+      const wardRetries = inserted.filter((w) => w.attempt === 1);
+      const siegeItems = inserted.filter((w) => w.role === 'siegemaster');
+
+      expect(wardRetries).toHaveLength(1);
+      expect(wardRetries[0]?.role).toBe('ward');
+      expect(wardRetries[0]?.insertedBy).toBe(wardItemId);
+
+      expect(siegeItems).toHaveLength(1);
+      expect(siegeItems[0]?.dependsOn).toStrictEqual([wardRetries[0]?.id]);
+    });
+  });
+
   describe('FAIL (retries left, no filePaths)', () => {
     it('VALID: {exitCode 1, no filePaths} => ward-retry created with no spiritmender', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
@@ -254,7 +302,7 @@ describe('runWardLayerBroker', () => {
 
       expect(pathseeker).toBeDefined();
       expect(pathseeker?.status).toBe('pending');
-      expect(pathseeker?.dependsOn).toStrictEqual([]);
+      expect(pathseeker?.dependsOn).toStrictEqual([wardItem.id]);
     });
   });
 

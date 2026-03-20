@@ -134,7 +134,7 @@ export const runPathseekerLayerBroker = async ({
       role: 'pathseeker',
       status: 'pending',
       spawnerType: 'agent',
-      dependsOn: [],
+      dependsOn: [workItem.id],
       attempt: workItem.attempt + 1,
       maxAttempts: workItem.maxAttempts,
       timeoutMs: workItem.timeoutMs ?? PATHSEEKER_TIMEOUT_MS,

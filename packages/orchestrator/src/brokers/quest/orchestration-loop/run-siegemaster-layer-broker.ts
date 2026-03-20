@@ -111,7 +111,7 @@ export const runSiegemasterLayerBroker = async ({
     role: 'pathseeker',
     status: 'pending',
     spawnerType: 'agent',
-    dependsOn: [],
+    dependsOn: [workItem.id],
     maxAttempts: 3,
     timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
     createdAt: new Date().toISOString(),

@@ -99,7 +99,7 @@ describe('runSiegemasterLayerBroker', () => {
       );
     });
 
-    it('VALID: {signal: failed} => creates pathseeker replan with dependsOn empty and insertedBy siege', async () => {
+    it('VALID: {signal: failed} => creates pathseeker replan with dependsOn [siegeWorkItemId] and insertedBy siege', async () => {
       const observable = FlowObservableStub();
       const node = FlowNodeStub({ observables: [observable] });
       const flow = FlowStub({ nodes: [node] });
@@ -139,7 +139,7 @@ describe('runSiegemasterLayerBroker', () => {
 
       expect(pathseekerReplan).toBeDefined();
       expect(pathseekerReplan?.status).toBe('pending');
-      expect(pathseekerReplan?.dependsOn).toStrictEqual([]);
+      expect(pathseekerReplan?.dependsOn).toStrictEqual([siegeWorkItemId]);
       expect(pathseekerReplan?.insertedBy).toBe(siegeWorkItemId);
     });
   });
@@ -191,7 +191,9 @@ describe('runSiegemasterLayerBroker', () => {
       expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
         'skipped',
       );
-      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([]);
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([
+        siegeWorkItemId,
+      ]);
     });
   });
 
@@ -238,7 +240,9 @@ describe('runSiegemasterLayerBroker', () => {
       expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
         'skipped',
       );
-      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([]);
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([
+        siegeWorkItemId,
+      ]);
     });
   });
 

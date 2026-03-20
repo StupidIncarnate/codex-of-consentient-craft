@@ -30,6 +30,7 @@ export const runOrchestrationLayerBroker = async ({
   startPath,
   onAgentEntry,
   onWorkItemSessionId,
+  onFollowupCreated,
   abortSignal,
   maxFollowupDepth,
   sessionIds,
@@ -47,6 +48,11 @@ export const runOrchestrationLayerBroker = async ({
     sessionId?: SessionId;
   }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
+  onFollowupCreated?: (params: {
+    followupWorkItemId: WorkItemId;
+    role: string;
+    failedWorkItemId: WorkItemId;
+  }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
@@ -71,6 +77,7 @@ export const runOrchestrationLayerBroker = async ({
     sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
+    ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });
 
@@ -89,6 +96,7 @@ export const runOrchestrationLayerBroker = async ({
     sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
+    ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });

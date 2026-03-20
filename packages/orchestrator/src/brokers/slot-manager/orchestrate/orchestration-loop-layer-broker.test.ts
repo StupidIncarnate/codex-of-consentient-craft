@@ -1118,6 +1118,130 @@ describe('orchestrationLoopLayerBroker', () => {
     });
   });
 
+  describe('spawn_role path - onFollowupCreated callback', () => {
+    it('VALID: {codeweaver fails, onFollowupCreated provided} => callback fires with correct params', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'codeweaver-callback-1' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const mockOnFollowupCreated = jest.fn();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: jest.fn().mockReturnValue(undefined),
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Build error' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        onFollowupCreated: mockOnFollowupCreated,
+      });
+
+      expect(mockOnFollowupCreated).toHaveBeenCalledTimes(1);
+      expect(mockOnFollowupCreated).toHaveBeenCalledWith({
+        followupWorkItemId: 'followup-codeweaver-callback-1-1700000000000',
+        role: 'pathseeker',
+        failedWorkItemId: 'codeweaver-callback-1',
+      });
+      expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {lawbringer fails, onFollowupCreated provided} => callback fires with spiritmender role', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'lawbringer-callback-1' });
+      const lawbringerWorkUnit = LawbringerWorkUnitStub();
+      const mockOnFollowupCreated = jest.fn();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => lawbringerWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: jest.fn().mockReturnValue(undefined),
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Lint errors' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        onFollowupCreated: mockOnFollowupCreated,
+      });
+
+      expect(mockOnFollowupCreated).toHaveBeenCalledTimes(1);
+      expect(mockOnFollowupCreated).toHaveBeenCalledWith({
+        followupWorkItemId: 'followup-lawbringer-callback-1-1700000000000',
+        role: 'spiritmender',
+        failedWorkItemId: 'lawbringer-callback-1',
+      });
+    });
+  });
+
   describe('bubble_to_user path - pathseeker fails', () => {
     it('VALID: {pathseeker signals failed} => does NOT skip pending, does NOT spawn recovery', async () => {
       orchestrationLoopLayerBrokerProxy();

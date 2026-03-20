@@ -6,7 +6,13 @@
  * // Resolves steps from relatedDataItems, runs lawbringer agents, maps results back to quest work items
  */
 
-import type { FilePath, QuestId, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import {
+  workItemContract,
+  type FilePath,
+  type QuestId,
+  type QuestWorkItemId,
+  type WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
@@ -75,6 +81,27 @@ export const runLawbringerLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
+    onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
+      const questItemId = slotToQuestMap.get(failedWorkItemId);
+      if (questItemId) {
+        const newItem = workItemContract.parse({
+          id: crypto.randomUUID(),
+          role,
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [questItemId],
+          insertedBy: questItemId,
+          createdAt: new Date().toISOString(),
+        });
+        slotToQuestMap.set(followupWorkItemId, newItem.id);
+        questModifyBroker({
+          input: {
+            questId,
+            workItems: [newItem],
+          } as ModifyQuestInput,
+        }).catch(() => undefined);
+      }
+    },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {

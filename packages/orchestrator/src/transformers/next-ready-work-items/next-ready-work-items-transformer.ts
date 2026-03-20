@@ -11,7 +11,7 @@ import type { WorkItem } from '@dungeonmaster/shared/contracts';
 import type { NextReadyResult } from '../../contracts/next-ready-result/next-ready-result-contract';
 
 const TERMINAL_STATUSES = new Set(['complete', 'failed', 'skipped']);
-const SATISFIED_STATUSES = new Set(['complete']);
+const SATISFIED_STATUSES = new Set(['complete', 'failed']);
 
 export const nextReadyWorkItemsTransformer = ({
   workItems,

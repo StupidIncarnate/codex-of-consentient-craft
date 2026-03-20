@@ -28,6 +28,7 @@ export const slotManagerOrchestrateBroker = async ({
   startPath,
   onAgentEntry,
   onWorkItemSessionId,
+  onFollowupCreated,
   abortSignal,
   maxFollowupDepth,
 }: {
@@ -43,6 +44,11 @@ export const slotManagerOrchestrateBroker = async ({
     sessionId?: SessionId;
   }) => void;
   onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
+  onFollowupCreated?: (params: {
+    followupWorkItemId: WorkItemId;
+    role: string;
+    failedWorkItemId: WorkItemId;
+  }) => void;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
 }): Promise<SlotManagerResult> => {
@@ -57,6 +63,7 @@ export const slotManagerOrchestrateBroker = async ({
     sessionIds: {},
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
+    ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });
