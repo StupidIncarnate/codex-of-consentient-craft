@@ -3,6 +3,7 @@ import { globSync } from 'fs';
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   globSync: jest.fn(),
+  existsSync: jest.fn(),
 }));
 
 export const fsGlobSyncAdapterProxy = (): {

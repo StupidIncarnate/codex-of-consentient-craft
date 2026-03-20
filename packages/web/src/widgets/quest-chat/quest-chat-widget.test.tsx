@@ -11,7 +11,6 @@ import {
   GuildListItemStub,
   GuildStub,
   QuestStub,
-  SessionListItemStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -28,7 +27,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -50,7 +48,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -74,7 +71,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -99,7 +95,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -165,7 +160,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupChat({ chatProcessId: 'proc-1' as never });
 
       mantineRenderAdapter({
@@ -240,7 +234,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -279,7 +272,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -318,7 +310,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -354,14 +345,9 @@ describe('QuestChatWidget', () => {
         flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
-      const session = SessionListItemStub({
-        sessionId: 'chat-fallback' as never,
-        questId: quest.id as never,
-      });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [session] });
 
       mantineRenderAdapter({
         ui: (
@@ -400,7 +386,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -485,7 +470,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -526,7 +510,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
       proxy.setupChat({ chatProcessId: 'proc-approve-1' as never });
 
@@ -577,7 +560,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
       proxy.setupChat({ chatProcessId: 'proc-approve-2' as never });
 
@@ -630,7 +612,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
 
       mantineRenderAdapter({
@@ -682,7 +663,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
 
       mantineRenderAdapter({
@@ -734,7 +714,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -773,7 +752,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
       proxy.setupQuestStart({ processId: 'proc-modal-4' });
 
@@ -830,7 +808,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
 
       mantineRenderAdapter({
@@ -886,7 +863,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupModify();
 
       mantineRenderAdapter({
@@ -937,7 +913,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -961,7 +936,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -989,7 +963,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupQuestStart({ processId: 'proc-resume-1' });
 
       mantineRenderAdapter({
@@ -1050,7 +1023,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -1090,7 +1062,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -1154,7 +1125,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
 
       mantineRenderAdapter({
         ui: (
@@ -1211,7 +1181,6 @@ describe('QuestChatWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
-      proxy.setupSessions({ sessions: [] });
       proxy.setupQuestStart({ processId: 'proc-replay-entries' });
 
       mantineRenderAdapter({

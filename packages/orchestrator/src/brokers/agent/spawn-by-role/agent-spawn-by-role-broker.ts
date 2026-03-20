@@ -113,11 +113,13 @@ export const agentSpawnByRoleBroker = async ({
       });
 
       if (onSessionId !== undefined) {
-        void sessionId$.then((sid) => {
-          if (sid !== null) {
-            onSessionId({ sessionId: sid });
-          }
-        });
+        sessionId$
+          .then((sid) => {
+            if (sid !== null) {
+              onSessionId({ sessionId: sid });
+            }
+          })
+          .catch(() => undefined);
       }
 
       timeout.handle = setTimeout(() => {

@@ -62,7 +62,12 @@ describe('runOrchestrationLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({ completed: false, incompleteIds: [], failedIds: [], sessionIds: {} });
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteIds: [],
+        failedIds: [],
+        sessionIds: {},
+      });
     });
   });
 

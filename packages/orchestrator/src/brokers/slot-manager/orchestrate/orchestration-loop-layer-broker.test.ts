@@ -111,7 +111,12 @@ describe('orchestrationLoopLayerBroker', () => {
 
       expect(result).toStrictEqual({
         done: true,
-        result: { completed: false, incompleteIds: [], failedIds: ['work-item-failed'], sessionIds: {} },
+        result: {
+          completed: false,
+          incompleteIds: [],
+          failedIds: ['work-item-failed'],
+          sessionIds: {},
+        },
       });
     });
   });

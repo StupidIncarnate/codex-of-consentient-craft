@@ -71,9 +71,7 @@ describe('OrchestrationStartResponder', () => {
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupModifyFailure({ quest });
 
-      await expect(proxy.callResponder({ questId })).rejects.toThrow(
-        /Failed to start quest/u,
-      );
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(/Failed to start quest/u);
     });
   });
 
@@ -186,9 +184,7 @@ describe('OrchestrationStartResponder', () => {
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupPathseekerInsertFailure({ quest });
 
-      await expect(proxy.callResponder({ questId })).rejects.toThrow(
-        /Failed to start quest/u,
-      );
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(/Failed to start quest/u);
     });
 
     it('VALID: {approved quest with chaos and glyphsmith complete} => pathseeker depends on both', async () => {

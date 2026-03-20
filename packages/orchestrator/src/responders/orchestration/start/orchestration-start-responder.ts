@@ -90,8 +90,8 @@ export const OrchestrationStartResponder = async ({
 
   const modifyInput = modifyQuestInputContract.parse({
     questId,
-    ...(!alreadyInProgress ? { status: 'in_progress' } : {}),
-    ...(pathseekerItem !== undefined ? { workItems: [pathseekerItem] } : {}),
+    ...(alreadyInProgress ? {} : { status: 'in_progress' }),
+    ...(pathseekerItem === undefined ? {} : { workItems: [pathseekerItem] }),
   });
 
   const modifyResult = await questModifyBroker({ input: modifyInput });

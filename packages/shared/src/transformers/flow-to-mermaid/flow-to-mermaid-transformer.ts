@@ -52,10 +52,10 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
     const fromMatch = CROSS_FLOW_REF_PATTERN.exec(edge.from);
     const toMatch = CROSS_FLOW_REF_PATTERN.exec(edge.to);
     const from = sanitizeMermaidIdTransformer({
-      id: contentTextContract.parse(String(fromMatch?.[1] ?? edge.from)),
+      id: contentTextContract.parse(fromMatch?.[1] ?? edge.from),
     });
     const to = sanitizeMermaidIdTransformer({
-      id: contentTextContract.parse(String(toMatch?.[1] ?? edge.to)),
+      id: contentTextContract.parse(toMatch?.[1] ?? edge.to),
     });
 
     if (edge.label === undefined) {

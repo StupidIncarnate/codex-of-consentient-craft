@@ -63,12 +63,12 @@ export const runPathseekerLayerBroker = async ({
           },
         }),
     onSessionId: ({ sessionId }) => {
-      void questModifyBroker({
+      questModifyBroker({
         input: {
           questId,
           workItems: [{ id: workItem.id, sessionId }],
         } as ModifyQuestInput,
-      });
+      }).catch(() => undefined);
     },
   });
 

@@ -100,12 +100,12 @@ export const runSpiritmenderLayerBroker = async ({
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {
-        void questModifyBroker({
+        questModifyBroker({
           input: {
             questId,
             workItems: [{ id: questItemId, sessionId }],
           } as ModifyQuestInput,
-        });
+        }).catch(() => undefined);
       }
     },
   });

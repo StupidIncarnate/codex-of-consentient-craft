@@ -6,7 +6,9 @@
  * // Returns { shouldBlock: boolean, message?: string } indicating whether to block the bash command
  */
 import { isBlockedQualityCommandGuard } from '../../../guards/is-blocked-quality-command/is-blocked-quality-command-guard';
+import { isWardPipedCommandGuard } from '../../../guards/is-ward-piped-command/is-ward-piped-command-guard';
 import { wardSuggestionMessageTransformer } from '../../../transformers/ward-suggestion-message/ward-suggestion-message-transformer';
+import { wardPipeBlockedMessageTransformer } from '../../../transformers/ward-pipe-blocked-message/ward-pipe-blocked-message-transformer';
 import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-tool-input-contract';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -36,6 +38,15 @@ export const HookPreBashResponder = ({
   }
 
   const { command } = parseResult.data;
+
+  const isPiped = isWardPipedCommandGuard({ command });
+
+  if (isPiped) {
+    return hookPreEditResponderResultContract.parse({
+      shouldBlock: true,
+      message: wardPipeBlockedMessageTransformer({ command }),
+    });
+  }
 
   const isBlocked = isBlockedQualityCommandGuard({ command });
 

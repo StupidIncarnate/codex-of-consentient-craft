@@ -3,6 +3,54 @@ import { HookPreBashResponderProxy } from './hook-pre-bash-responder.proxy';
 import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
 
 describe('HookPreBashResponder', () => {
+  describe('piped ward commands', () => {
+    it('VALID: {command: "npm run ward | grep error"} => returns pipe blocked message', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward | grep error' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message:
+          `Blocked: piping ward output loses valuable information.\n` +
+          `You ran: \`npm run ward | grep error\`\n\n` +
+          `Ward already provides structured output with summaries and the \`detail\` subcommand for full errors.\n\n` +
+          `Instead, try:\n` +
+          `  npm run ward -- --only lint                           # Scope to specific check type\n` +
+          `  npm run ward -- --only unit -- path/to/file.test.ts   # Scope to specific file\n` +
+          `  npm run ward -- --only unit --onlyTests "test name"   # Scope to specific test name\n` +
+          `  npm run ward -- detail <runId> <filePath>             # Get full error details for a file`,
+      });
+    });
+
+    it('VALID: {command: "npm run ward -- --only lint | head -20"} => returns pipe blocked message', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward -- --only lint | head -20' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message:
+          `Blocked: piping ward output loses valuable information.\n` +
+          `You ran: \`npm run ward -- --only lint | head -20\`\n\n` +
+          `Ward already provides structured output with summaries and the \`detail\` subcommand for full errors.\n\n` +
+          `Instead, try:\n` +
+          `  npm run ward -- --only lint                           # Scope to specific check type\n` +
+          `  npm run ward -- --only unit -- path/to/file.test.ts   # Scope to specific file\n` +
+          `  npm run ward -- --only unit --onlyTests "test name"   # Scope to specific test name\n` +
+          `  npm run ward -- detail <runId> <filePath>             # Get full error details for a file`,
+      });
+    });
+  });
+
   describe('blocked commands', () => {
     it('VALID: {command: "jest"} => returns ward test suggestion', () => {
       HookPreBashResponderProxy();

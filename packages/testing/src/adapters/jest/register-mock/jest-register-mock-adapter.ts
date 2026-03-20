@@ -174,16 +174,21 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
     }
   }
 
-  const entry: MockHandleEntry = {
-    callerPath: mockCallerPathContract.parse(callerPath),
+  const parsedCallerPath = mockCallerPathContract.parse(callerPath);
+  const handles = handlesByMock.get(mock);
+
+  // Reuse existing entry when same callerPath is registered multiple times
+  // This happens when multiple sub-proxies independently create the same adapter proxy
+  const existingEntry = handles?.find((h) => h.callerPath === parsedCallerPath);
+
+  const entry: MockHandleEntry = existingEntry ?? {
+    callerPath: parsedCallerPath,
     baseImpl: null,
     onceQueue: [],
     calls: [],
   };
 
-  const handles = handlesByMock.get(mock);
-
-  if (handles) {
+  if (handles && !existingEntry) {
     handles.push(entry);
   }
 
