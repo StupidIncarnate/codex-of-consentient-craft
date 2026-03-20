@@ -17,38 +17,8 @@ const VALID_WARD_RESULT = JSON.stringify({
 });
 
 describe('WardFlow', () => {
-  describe('list command routing', () => {
-    it('VALID: {args: ["node", "ward", "list"]} with no ward results => routes to WardListResponder and resolves', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-list-no-results' });
-
-      await expect(WardFlow({ args: ['node', 'ward', 'list'], rootPath })).resolves.toBeUndefined();
-    });
-
-    it('VALID: {args: ["node", "ward", "list"]} with existing ward result => routes to WardListResponder and resolves', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'ward-flow-list-result' }),
-      });
-
-      const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
-
-      testbed.writeFile({
-        relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: VALID_WARD_RESULT }),
-      });
-
-      await WardFlow({
-        args: ['node', 'ward', 'list'],
-        rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
-      });
-
-      testbed.cleanup();
-
-      expect(testbed.readFile({ relativePath: wardResultRelativePath })).toBeNull();
-    });
-  });
-
   describe('detail command routing', () => {
-    it('ERROR: {args: ["node", "ward", "detail"]} with missing runId and filePath => routes to WardDetailResponder and resolves', async () => {
+    it('ERROR: {args: ["node", "ward", "detail"]} with missing runId => routes to WardDetailResponder and resolves', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-detail-missing' });
 
       await expect(

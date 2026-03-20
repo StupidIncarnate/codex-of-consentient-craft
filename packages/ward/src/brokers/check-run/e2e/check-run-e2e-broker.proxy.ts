@@ -13,8 +13,7 @@ export const checkRunE2eBrokerProxy = (): {
   setupPass: () => void;
   setupPassWithOutput: (params: { stdout: string }) => void;
   setupFail: (params: { stdout: string }) => void;
-  setupFailWithBadOutput: () => void;
-  setupFailWithInfraError: (params: { errorMessage: string }) => void;
+  setupFailWithEmptyOutput: () => void;
   setupNoPlaywrightConfig: () => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
@@ -32,53 +31,43 @@ export const checkRunE2eBrokerProxy = (): {
     freePortProxy.setupPort({ port: 40_000 });
   };
 
+  const setupPlaywrightConfigExists = (): void => {
+    existsProxy.returns({ result: true });
+  };
+
   return {
     setupPass: (): void => {
-      existsProxy.returns({ result: true });
+      setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: successCode,
-        stdout: '{"suites":[],"errors":[]}',
+        stdout: '',
         stderr: '',
       });
     },
 
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
-      existsProxy.returns({ result: true });
+      setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
-      existsProxy.returns({ result: true });
+      setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
-    setupFailWithBadOutput: (): void => {
-      existsProxy.returns({ result: true });
+    setupFailWithEmptyOutput: (): void => {
+      setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: failCode,
-        stdout: 'not valid json \x1b[31m',
-        stderr: '',
-      });
-    },
-
-    setupFailWithInfraError: ({ errorMessage }: { errorMessage: string }): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
-      queueFreePorts();
-      captureProxy.setupSuccess({
-        exitCode: failCode,
-        stdout: JSON.stringify({
-          suites: [],
-          errors: [{ message: errorMessage }],
-        }),
+        stdout: '',
         stderr: '',
       });
     },

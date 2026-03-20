@@ -38,5 +38,16 @@ describe('stripAnsiCodesTransformer', () => {
 
       expect(result).toBe(ErrorMessageStub({ value: '' }));
     });
+
+    it('VALID: {text with cursor movement sequences} => strips [1A and [2K sequences', () => {
+      const esc = String.fromCharCode(27);
+      const text = ErrorMessageStub({
+        value: `${esc}[1ALine cleared${esc}[2K`,
+      });
+
+      const result = stripAnsiCodesTransformer({ text });
+
+      expect(result).toBe(ErrorMessageStub({ value: 'Line cleared' }));
+    });
   });
 });

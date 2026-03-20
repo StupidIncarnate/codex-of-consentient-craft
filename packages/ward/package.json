@@ -9,10 +9,10 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/src/startup/*.js dist/bin/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "test": "dungeonmaster-ward run --only test",
-    "lint": "dungeonmaster-ward run --only lint",
-    "typecheck": "dungeonmaster-ward run --only typecheck",
-    "ward": "dungeonmaster-ward run"
+    "test": "dungeonmaster-ward --only test",
+    "lint": "dungeonmaster-ward --only lint",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "ward": "dungeonmaster-ward"
   },
   "files": [
     "bin/",

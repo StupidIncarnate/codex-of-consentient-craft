@@ -21,7 +21,7 @@ export const commandDetailBroker = async ({
 }: {
   rootPath: AbsoluteFilePath;
   runId: RunId;
-  filePath: ErrorEntry['filePath'] | TestFailure['suitePath'];
+  filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
 }): Promise<void> => {
   const wardResult = await storageLoadBroker({ rootPath, runId });
 
@@ -30,7 +30,9 @@ export const commandDetailBroker = async ({
     return;
   }
 
-  const detail = resultToDetailTransformer({ wardResult, filePath });
+  const detail = filePath
+    ? resultToDetailTransformer({ wardResult, filePath })
+    : resultToDetailTransformer({ wardResult });
 
   process.stdout.write(`${detail}\n`);
 };

@@ -25,12 +25,18 @@ export const WardDetailResponder = async ({
   const runIdArg = args[FIRST_POSITIONAL_INDEX];
   const filePathArg = args[SECOND_POSITIONAL_INDEX];
 
-  if (!runIdArg || !filePathArg) {
-    process.stderr.write('Usage: ward detail <run-id> <file-path>\n');
+  if (!runIdArg) {
+    process.stderr.write('Usage: ward detail <run-id> [file-path]\n');
     return;
   }
 
   const runId = runIdContract.parse(runIdArg);
-  const filePath = errorEntryContract.shape.filePath.parse(filePathArg);
-  await commandDetailBroker({ rootPath, runId, filePath });
+
+  if (filePathArg) {
+    const filePath = errorEntryContract.shape.filePath.parse(filePathArg);
+    await commandDetailBroker({ rootPath, runId, filePath });
+    return;
+  }
+
+  await commandDetailBroker({ rootPath, runId });
 };

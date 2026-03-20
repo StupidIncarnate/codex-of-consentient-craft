@@ -95,12 +95,11 @@ test.describe('Quest WS Update', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Quest exists but has no content — spec panel shows immediately with empty quest data
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -185,12 +184,11 @@ test.describe('Quest WS Update', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

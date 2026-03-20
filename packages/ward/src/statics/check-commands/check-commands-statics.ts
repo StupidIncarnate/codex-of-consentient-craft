@@ -44,7 +44,7 @@ export const checkCommandsStatics = {
   },
   e2e: {
     bin: 'playwright',
-    args: ['test', '--reporter=line,json'],
+    args: ['test', '--reporter=line'],
     discoverPatterns: ['tests/e2e/**/*.spec.ts', 'e2e/**/*.spec.ts'],
   },
 } as const;

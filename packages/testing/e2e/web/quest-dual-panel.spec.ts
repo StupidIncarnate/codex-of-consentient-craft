@@ -252,12 +252,11 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -321,12 +320,11 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -383,12 +381,11 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Bug B: spec panel should load quest data via WebSocket without user interaction
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -426,12 +423,11 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Wait for history to fully replay — the Phase 1 text from the final assistant entry
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -466,12 +462,11 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     // Wait for initial history load
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -484,8 +479,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Reload the page to test re-navigation timing
     const reloadResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.reload();
     await reloadResponsePromise;

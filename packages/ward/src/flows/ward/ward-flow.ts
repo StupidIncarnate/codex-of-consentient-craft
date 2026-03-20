@@ -9,7 +9,6 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
-import { WardListResponder } from '../../responders/ward/list/ward-list-responder';
 import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';
 import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';
 
@@ -17,7 +16,6 @@ const COMMAND_ARG_INDEX = 2;
 
 const COMMANDS = {
   run: 'run',
-  list: 'list',
   detail: 'detail',
   raw: 'raw',
 } as const;
@@ -29,15 +27,15 @@ export const WardFlow = async ({
   args: readonly string[];
   rootPath: AbsoluteFilePath;
 }): Promise<void> => {
-  const command = args[COMMAND_ARG_INDEX] ?? COMMANDS.run;
+  const rawCommand = args[COMMAND_ARG_INDEX];
+  const isImplicitRun = !rawCommand || rawCommand.startsWith('-');
+  const command = isImplicitRun ? COMMANDS.run : rawCommand;
 
   if (command === COMMANDS.run) {
-    await WardRunResponder({ args, rootPath });
-    return;
-  }
-
-  if (command === COMMANDS.list) {
-    await WardListResponder({ args, rootPath });
+    const normalizedArgs = isImplicitRun
+      ? [...args.slice(0, COMMAND_ARG_INDEX), COMMANDS.run, ...args.slice(COMMAND_ARG_INDEX)]
+      : args;
+    await WardRunResponder({ args: normalizedArgs, rootPath });
     return;
   }
 
@@ -52,5 +50,5 @@ export const WardFlow = async ({
   }
 
   process.stderr.write(`Unknown command: ${command}\n`);
-  process.stderr.write('Available commands: run, list, detail, raw\n');
+  process.stderr.write('Available commands: run, detail, raw\n');
 };

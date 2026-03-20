@@ -83,12 +83,11 @@ const navigateToSession = async ({
   urlSlug: string;
   sessionId: string;
 }): Promise<void> => {
-  const sessionResponsePromise = page.waitForResponse(
-    (r) =>
-      r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+  const guildsResponsePromise = page.waitForResponse(
+    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
   );
   await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await sessionResponsePromise;
+  await guildsResponsePromise;
 };
 
 test.describe('Quest Execution Streaming', () => {

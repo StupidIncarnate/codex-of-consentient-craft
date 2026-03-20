@@ -98,12 +98,11 @@ test.describe('Quest Spec Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const sessionResponsePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes('/api/guilds') && r.url().includes('/sessions') && r.status() === HTTP_OK,
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await sessionResponsePromise;
+    await guildsResponsePromise;
 
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 

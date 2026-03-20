@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Runs Playwright E2E tests on a project folder and parses the JSON output into a ProjectResult
+ * PURPOSE: Runs Playwright E2E tests on a project folder and parses the line output into a ProjectResult
  *
  * USAGE:
  * const result = await checkRunE2eBroker({ projectFolder: ProjectFolderStub(), fileList: [] });
@@ -22,26 +22,18 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
-import {
-  errorEntryContract,
-  type ErrorEntry,
-} from '../../../contracts/error-entry/error-entry-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
+import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
-import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
-import { playwrightJsonParseTransformer } from '../../../transformers/playwright-json-parse/playwright-json-parse-transformer';
+import { extractPlaywrightLineFilesTransformer } from '../../../transformers/extract-playwright-line-files/extract-playwright-line-files-transformer';
+import { parsePlaywrightCrashOutputTransformer } from '../../../transformers/parse-playwright-crash-output/parse-playwright-crash-output-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
-import { flattenPlaywrightProjectSuitesTransformer } from '../../../transformers/flatten-playwright-project-suites/flatten-playwright-project-suites-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
@@ -105,80 +97,27 @@ export const checkRunE2eBroker = async ({
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  let testFailures: ReturnType<typeof playwrightJsonParseTransformer> = [];
+  let testFailures: ReturnType<typeof parsePlaywrightCrashOutputTransformer> = [];
 
-  if (status === 'fail') {
+  if (status === 'fail' && result.output.length > 0) {
     try {
-      testFailures = playwrightJsonParseTransformer({ jsonOutput: result.output });
+      testFailures = parsePlaywrightCrashOutputTransformer({
+        output: errorMessageContract.parse(result.output),
+      });
     } catch {
       testFailures = [];
     }
   }
 
-  let filesCount = 0;
   const processedFiles: GitRelativePath[] = [];
-  const infrastructureErrors: ErrorEntry[] = [];
-
-  try {
-    const jsonSlice = extractJsonObjectTransformer({ output: result.output });
-    const parsed: unknown = JSON.parse(jsonSlice);
-    if (typeof parsed === 'object' && parsed !== null) {
-      if ('suites' in parsed) {
-        const topSuites: unknown = Reflect.get(parsed, 'suites');
-        if (Array.isArray(topSuites)) {
-          const fileSuites = flattenPlaywrightProjectSuitesTransformer({ suites: topSuites });
-          filesCount = fileSuites.length;
-          for (const suite of fileSuites) {
-            if (typeof suite === 'object' && suite !== null) {
-              const file: unknown = 'file' in suite ? Reflect.get(suite, 'file') : undefined;
-              const title: unknown = 'title' in suite ? Reflect.get(suite, 'title') : undefined;
-              const filePath = typeof file === 'string' && file.length > 0 ? file : title;
-              if (typeof filePath === 'string' && filePath.length > 0) {
-                processedFiles.push(gitRelativePathContract.parse(filePath));
-              }
-            }
-          }
-        }
-      }
-
-      if ('errors' in parsed) {
-        const pwErrors: unknown = Reflect.get(parsed, 'errors');
-        if (Array.isArray(pwErrors)) {
-          for (const entry of pwErrors) {
-            if (typeof entry !== 'object' || entry === null || !('message' in entry)) {
-              continue;
-            }
-            const msg: unknown = Reflect.get(entry, 'message');
-            if (typeof msg !== 'string' || msg.length === 0) {
-              continue;
-            }
-            infrastructureErrors.push(
-              errorEntryContract.parse({
-                filePath: 'playwright.config.ts',
-                line: 0,
-                column: 0,
-                message: errorMessageContract.parse(msg),
-                severity: 'error',
-              }),
-            );
-          }
-        }
-      }
-    }
-  } catch {
-    const MAX_CRASH_MESSAGE_LENGTH = 2_000;
-    if (status === 'fail' && result.output.length > 0) {
-      infrastructureErrors.push(
-        errorEntryContract.parse({
-          filePath: 'playwright.config.ts',
-          line: 0,
-          column: 0,
-          message: errorMessageContract.parse(result.output.slice(0, MAX_CRASH_MESSAGE_LENGTH)),
-          severity: 'error',
-        }),
-      );
-    }
+  const lineFiles =
+    result.output.length > 0
+      ? extractPlaywrightLineFilesTransformer({ output: result.output })
+      : [];
+  for (const file of lineFiles) {
+    processedFiles.push(file);
   }
+  const filesCount = lineFiles.length;
 
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
     discoveredFiles,
@@ -189,7 +128,7 @@ export const checkRunE2eBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status,
-    errors: infrastructureErrors,
+    errors: [],
     testFailures,
     filesCount,
     discoveredCount,

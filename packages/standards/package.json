@@ -9,7 +9,7 @@
     "test": "exit 0",
     "lint": "exit 0",
     "typecheck": "exit 0",
-    "ward": "dungeonmaster-ward run"
+    "ward": "dungeonmaster-ward"
   },
   "files": [
     "*.md",

@@ -442,6 +442,128 @@ describe('resultToDetailTransformer', () => {
     });
   });
 
+  describe('no filePath (all errors)', () => {
+    it('EMPTY: {wardResult: no checks, no filePath} => returns no errors found', () => {
+      const wardResult = WardResultStub({ checks: [] });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(WardFileDetailStub({ value: 'No errors found' }));
+    });
+
+    it('VALID: {wardResult: lint + test errors, no filePath} => returns all errors grouped by file', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: 'src/app.ts',
+                    line: 5,
+                    column: 1,
+                    rule: 'no-unused-vars',
+                    message: 'Unused variable x',
+                  }),
+                ],
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: 'src/app.test.ts',
+                    testName: 'should work',
+                    message: 'Expected true',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value:
+            'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused variable x\n\nsrc/app.test.ts\n  FAIL  "should work"\n    Expected true',
+        }),
+      );
+    });
+  });
+
+  describe('crash projects (no filePath)', () => {
+    it('VALID: {wardResult: fail with testFailures and stack traces} => returns failures with stack traces and not-run files', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'e2e',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [],
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: 'e2e/web/quest.spec.ts',
+                    testName: 'Quest › fails',
+                    message: 'Error: timeout exceeded',
+                    stackTrace: 'at /project/e2e/web/quest.spec.ts:25:10',
+                  }),
+                ],
+                onlyDiscovered: ['e2e/web/visual.spec.ts'],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'e2e/web/quest.spec.ts',
+            '  FAIL  "Quest › fails"',
+            '    Error: timeout exceeded',
+            '    at /project/e2e/web/quest.spec.ts:25:10',
+            '',
+            'not run (1 files):',
+            '  e2e/web/visual.spec.ts',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: fail with no output} => returns crash with no output captured message', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'e2e',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: '', stderr: '', exitCode: 1 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: 'ward\n  (crash) e2e\n    no output captured',
+        }),
+      );
+    });
+  });
+
   describe('multiple errors in same file', () => {
     it('VALID: {wardResult: lint + test errors for same file} => shows all entries', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/app.ts' });

@@ -54,6 +54,47 @@ describe('commandDetailBroker', () => {
     });
   });
 
+  describe('result found without filePath', () => {
+    it('VALID: {wardResult, no filePath} => writes all details to stdout', async () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: 'src/index.ts',
+                    line: 10,
+                    column: 5,
+                    message: 'Unexpected any',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const proxy = commandDetailBrokerProxy();
+      proxy.setupWithResult({ content: JSON.stringify(wardResult) });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const runId = RunIdStub();
+
+      await commandDetailBroker({
+        rootPath,
+        runId,
+      });
+
+      expect(process.stdout.write).toHaveBeenCalledWith(
+        expect.stringMatching(/^src\/index\.ts\n {2}lint/u),
+      );
+    });
+  });
+
   describe('no result found', () => {
     it('EMPTY: {missing run id} => writes error message to stderr', async () => {
       const proxy = commandDetailBrokerProxy();

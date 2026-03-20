@@ -3,7 +3,6 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
-import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 
 import { checkRunE2eBroker } from './check-run-e2e-broker';
 import { checkRunE2eBrokerProxy } from './check-run-e2e-broker.proxy';
@@ -38,7 +37,7 @@ describe('checkRunE2eBroker', () => {
   });
 
   describe('passing tests', () => {
-    it('VALID: {playwright exits 0} => returns pass result with no test failures', async () => {
+    it('VALID: {playwright exits 0 with empty output} => returns pass result with no test failures', async () => {
       const proxy = checkRunE2eBrokerProxy();
       proxy.setupPass();
 
@@ -58,7 +57,41 @@ describe('checkRunE2eBroker', () => {
           testFailures: [],
           onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
-            stdout: '{"suites":[],"errors":[]}',
+            stdout: '',
+            stderr: '',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {playwright exits 0 with line output} => returns pass result with filesCount from line output', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      const lineOutput = [
+        '[1/2] [chromium] › e2e/web/smoke.spec.ts:20:7 › Smoke › loads page',
+        '[2/2] [chromium] › e2e/web/chat.spec.ts:10:7 › Chat › sends message',
+      ].join('\n');
+      proxy.setupPassWithOutput({ stdout: lineOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 2,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['e2e/web/smoke.spec.ts', 'e2e/web/chat.spec.ts'],
+          rawOutput: RawOutputStub({
+            stdout: lineOutput,
             stderr: '',
             exitCode: 0,
           }),
@@ -68,30 +101,16 @@ describe('checkRunE2eBroker', () => {
   });
 
   describe('failing tests', () => {
-    it('VALID: {playwright exits 1 with failures} => returns fail result with parsed test failures', async () => {
+    it('VALID: {playwright exits 1 with failure output} => returns fail result with parsed test failures', async () => {
       const proxy = checkRunE2eBrokerProxy();
-      const playwrightOutput = JSON.stringify({
-        suites: [
-          {
-            title: 'login.spec.ts',
-            file: 'e2e/login.spec.ts',
-            suites: [],
-            specs: [
-              {
-                title: 'should display login form',
-                file: 'e2e/login.spec.ts',
-                tests: [
-                  {
-                    status: 'unexpected',
-                    results: [{ error: { message: 'Element not found' } }],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-      proxy.setupFail({ stdout: playwrightOutput });
+      const failOutput = [
+        '[1/1] [chromium] › e2e/login.spec.ts:10:7 › Login › should display login form',
+        '  1) [chromium] › e2e/login.spec.ts:10:7 › Login › should display login form ',
+        '',
+        '    Element not found',
+        '',
+      ].join('\n');
+      proxy.setupFail({ stdout: failOutput });
 
       const projectFolder = ProjectFolderStub();
 
@@ -109,23 +128,23 @@ describe('checkRunE2eBroker', () => {
           testFailures: [
             TestFailureStub({
               suitePath: 'e2e/login.spec.ts',
-              testName: 'login.spec.ts > should display login form',
+              testName: 'Login › should display login form',
               message: 'Element not found',
             }),
           ],
           filesCount: 1,
-          onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['e2e/login.spec.ts'],
-          rawOutput: RawOutputStub({ stdout: playwrightOutput, stderr: '', exitCode: 1 }),
+          onlyDiscovered: ['discovered.ts'],
+          rawOutput: RawOutputStub({ stdout: failOutput, stderr: '', exitCode: 1 }),
         }),
       );
     });
   });
 
-  describe('unparseable output', () => {
-    it('VALID: {playwright exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
+  describe('fail with empty output', () => {
+    it('VALID: {playwright exits 1 with empty output} => returns fail result with no test failures', async () => {
       const proxy = checkRunE2eBrokerProxy();
-      proxy.setupFailWithBadOutput();
+      proxy.setupFailWithEmptyOutput();
 
       const projectFolder = ProjectFolderStub();
 
@@ -139,87 +158,16 @@ describe('checkRunE2eBroker', () => {
           discoveredCount: 2,
           projectFolder,
           status: 'fail',
-          errors: [
-            ErrorEntryStub({
-              filePath: 'playwright.config.ts',
-              line: 0,
-              column: 0,
-              message: 'not valid json \x1b[31m',
-              severity: 'error',
-            }),
-          ],
+          errors: [],
           testFailures: [],
           onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({
-            stdout: 'not valid json \x1b[31m',
+            stdout: '',
             stderr: '',
             exitCode: 1,
           }),
         }),
       );
-    });
-  });
-
-  describe('infrastructure errors', () => {
-    it('VALID: {playwright exits 1 with errors array} => returns fail result with parsed infrastructure errors', async () => {
-      const proxy = checkRunE2eBrokerProxy();
-      const portError = 'http://localhost:5737 is already used';
-      proxy.setupFailWithInfraError({ errorMessage: portError });
-
-      const projectFolder = ProjectFolderStub();
-
-      const result = await checkRunE2eBroker({
-        projectFolder,
-        fileList: [],
-      });
-
-      const expectedOutput = JSON.stringify({
-        suites: [],
-        errors: [{ message: portError }],
-      });
-
-      expect(result).toStrictEqual(
-        ProjectResultStub({
-          discoveredCount: 2,
-          projectFolder,
-          status: 'fail',
-          errors: [
-            ErrorEntryStub({
-              filePath: 'playwright.config.ts',
-              line: 0,
-              column: 0,
-              message: portError,
-              severity: 'error',
-            }),
-          ],
-          testFailures: [],
-          onlyDiscovered: ['discovered.ts'],
-          rawOutput: RawOutputStub({ stdout: expectedOutput, stderr: '', exitCode: 1 }),
-        }),
-      );
-    });
-  });
-
-  describe('filesCount', () => {
-    it('VALID: {playwright output with suites} => returns filesCount from top-level suites', async () => {
-      const proxy = checkRunE2eBrokerProxy();
-      const expectedSuiteCount = 2;
-      const playwrightOutput = JSON.stringify({
-        suites: [
-          { title: 'a.spec.ts', suites: [], specs: [] },
-          { title: 'b.spec.ts', suites: [], specs: [] },
-        ],
-      });
-      proxy.setupPassWithOutput({ stdout: playwrightOutput });
-
-      const projectFolder = ProjectFolderStub();
-
-      const result = await checkRunE2eBroker({
-        projectFolder,
-        fileList: [],
-      });
-
-      expect(result.filesCount).toStrictEqual(expectedSuiteCount);
     });
   });
 
@@ -237,7 +185,26 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/login.spec.ts']);
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', 'e2e/login.spec.ts']);
+    });
+  });
+
+  describe('test name pattern', () => {
+    it('VALID: {testNamePattern provided} => adds --grep flag to playwright args', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'login',
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', '--grep', 'login']);
     });
   });
 });

@@ -18,7 +18,7 @@ export const stripAnsiCodesTransformer = ({ text }: { text: ErrorMessage }): Err
   while (i < text.length) {
     if (text.charCodeAt(i) === ESC_CHAR_CODE && text[i + 1] === '[') {
       i += ESC_SEQUENCE_PREFIX_LENGTH;
-      while (i < text.length && text[i] !== 'm') {
+      while (i < text.length && !/[A-Za-z]/u.test(text[i] ?? '')) {
         i++;
       }
       i++;

@@ -23,11 +23,11 @@
     "bundle": "npx esbuild dist/bin/cli-entry.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:@dungeonmaster/* --external:zod --define:__BUILD_TIMESTAMP__=\"\\\"$(date +'%b %d %I:%M %p')\\\"\"",
     "postbuild": "chmod +x dist/bin/*.js dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
-    "test": "dungeonmaster-ward run --only test",
-    "test:integration": "dungeonmaster-ward run --only integration",
-    "lint": "dungeonmaster-ward run --only lint",
-    "typecheck": "dungeonmaster-ward run --only typecheck",
-    "ward": "dungeonmaster-ward run"
+    "test": "dungeonmaster-ward --only test",
+    "test:integration": "dungeonmaster-ward --only integration",
+    "lint": "dungeonmaster-ward --only lint",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "ward": "dungeonmaster-ward"
   },
   "keywords": [
     "dungeonmaster",
