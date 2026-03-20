@@ -111,6 +111,25 @@ describe('ExecutionPanelWidget', () => {
             filesToModify: [],
           }),
         ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000010',
+            role: 'pathseeker',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000011',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000012',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: ['steps/step-2'],
+          }),
+        ],
       });
 
       mantineRenderAdapter({
@@ -358,6 +377,11 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000099',
+            role: 'pathseeker',
+            status: 'complete',
+          }),
+          WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
             role: 'codeweaver',
             status: 'complete',
@@ -536,13 +560,12 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(proxy.hasPlanningText()).toBe(false);
-      expect(proxy.getStepRows()).toHaveLength(1);
-      expect(proxy.getStepRows()[0]?.textContent).toMatch(/Planned 0 steps/u);
+      expect(proxy.getStepRows()).toHaveLength(0);
     });
   });
 
   describe('dynamic floor headers', () => {
-    it('VALID: {complete quest with chaoswhisperer work item} => renders SANCTUM floor header', () => {
+    it('VALID: {complete quest with chaoswhisperer work item} => renders HOMEBASE floor header', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -563,7 +586,7 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(1);
-      expect(floorHeaders[0]?.textContent).toMatch(/SANCTUM/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
     });
 
     it('VALID: {complete quest with two different role work items} => renders two floor headers in config order', () => {
@@ -592,11 +615,11 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(2);
-      expect(floorHeaders[0]?.textContent).toMatch(/FLOOR 1: SANCTUM/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/FLOOR 2: CARTOGRAPHY/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
     });
 
-    it('VALID: {steps with ward and codeweaver roles} => renders only FORGE and GAUNTLET floors', () => {
+    it('VALID: {steps with ward and codeweaver roles} => renders FORGE and MINI BOSS floors', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -610,12 +633,16 @@ describe('ExecutionPanelWidget', () => {
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: ['steps/step-1'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
             role: 'ward',
             status: 'pending',
             relatedDataItems: ['steps/step-2'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+            createdAt: '2024-01-15T10:01:00.000Z',
           }),
         ],
       });
@@ -628,7 +655,7 @@ describe('ExecutionPanelWidget', () => {
 
       expect(floorHeaders).toHaveLength(2);
       expect(floorHeaders[0]?.textContent).toMatch(/FORGE/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/GAUNTLET/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/MINI BOSS/u);
     });
 
     it('VALID: {multiple pathseeker work items} => renders single CARTOGRAPHY floor with both rows', () => {
@@ -657,14 +684,14 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(1);
-      expect(floorHeaders[0]?.textContent).toMatch(/CARTOGRAPHY/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
 
       const stepRows = proxy.getStepRows();
 
       expect(stepRows).toHaveLength(2);
     });
 
-    it('VALID: {multiple ward work items} => renders single GAUNTLET floor with both rows', () => {
+    it('VALID: {multiple ward work items} => renders single MINI BOSS floor with both rows', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -690,14 +717,14 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(1);
-      expect(floorHeaders[0]?.textContent).toMatch(/GAUNTLET/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/MINI BOSS/u);
 
       const stepRows = proxy.getStepRows();
 
       expect(stepRows).toHaveLength(2);
     });
 
-    it('VALID: {pathseeker and ward work items mixed} => renders CARTOGRAPHY then GAUNTLET floors', () => {
+    it('VALID: {pathseeker and ward work items mixed} => renders ENTRANCE: CARTOGRAPHY then MINI BOSS floors', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -733,8 +760,8 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(2);
-      expect(floorHeaders[0]?.textContent).toMatch(/FLOOR 1: CARTOGRAPHY/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/FLOOR 2: GAUNTLET/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/MINI BOSS/u);
 
       const stepRows = proxy.getStepRows();
 
@@ -842,7 +869,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = proxy.getStepRows();
-      const codeWeaverRow = stepRows[1]!;
+      const codeWeaverRow = stepRows[0]!;
       const rowHeader = codeWeaverRow.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(rowHeader);
@@ -880,7 +907,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = proxy.getStepRows();
-      const codeWeaverRow = stepRows[1]!;
+      const codeWeaverRow = stepRows[0]!;
       const rowHeader = codeWeaverRow.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(rowHeader);
@@ -927,7 +954,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = proxy.getStepRows();
-      const contractRow = stepRows[1]!;
+      const contractRow = stepRows[0]!;
       const contractHeader = contractRow.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(contractHeader);
@@ -1122,7 +1149,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[1]!.querySelector('[data-testid="execution-row-header"]')!;
+      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(stepRowHeader);
 
@@ -1157,7 +1184,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[1]!.querySelector('[data-testid="execution-row-header"]')!;
+      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(stepRowHeader);
 
@@ -1193,7 +1220,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[1]!.querySelector('[data-testid="execution-row-header"]')!;
+      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(stepRowHeader);
 
@@ -1234,7 +1261,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const wardRowHeader = stepRows[1]!.querySelector('[data-testid="execution-row-header"]')!;
+      const wardRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
 
       await userEvent.click(wardRowHeader);
 
@@ -1412,7 +1439,7 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(2);
-      expect(floorHeaders[0]?.textContent).toMatch(/SANCTUM/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/FORGE/u);
 
       const stepRows = proxy.getStepRows();
@@ -1459,9 +1486,9 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(3);
-      expect(floorHeaders[0]?.textContent).toMatch(/FLOOR 1: SANCTUM/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/FLOOR 2: INFIRMARY/u);
-      expect(floorHeaders[2]?.textContent).toMatch(/FLOOR 3: FORGE/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/INFIRMARY/u);
+      expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
     });
 
     it('VALID: {quest with steps and non-step work item with sessionId} => shows session entries for non-step work item on expand', async () => {
@@ -1530,7 +1557,7 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       expect(floorHeaders).toHaveLength(1);
-      expect(floorHeaders[0]?.textContent).toMatch(/SANCTUM/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
 
       expect(proxy.hasPlanningText()).toBe(true);
 

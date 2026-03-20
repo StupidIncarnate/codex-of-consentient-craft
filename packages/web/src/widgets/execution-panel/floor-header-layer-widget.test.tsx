@@ -90,4 +90,39 @@ describe('FloorHeaderLayerWidget', () => {
       expect(screen.queryByTestId('floor-header-concurrent')).toBeNull();
     });
   });
+
+  describe('null floor number', () => {
+    it('VALID: {floorNumber: null, name: "HOMEBASE"} => renders name without FLOOR prefix', () => {
+      FloorHeaderLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <FloorHeaderLayerWidget floorNumber={null} name={FloorNameStub({ value: 'HOMEBASE' })} />
+        ),
+      });
+
+      const header = screen.getByTestId('floor-header-layer-widget');
+
+      expect(header.textContent).toMatch(/HOMEBASE/u);
+      expect(header.textContent).not.toMatch(/FLOOR/u);
+    });
+
+    it('VALID: {floorNumber: null, name: "ENTRANCE: CARTOGRAPHY"} => renders entrance name', () => {
+      FloorHeaderLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <FloorHeaderLayerWidget
+            floorNumber={null}
+            name={FloorNameStub({ value: 'ENTRANCE: CARTOGRAPHY' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('floor-header-layer-widget');
+
+      expect(header.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
+      expect(header.textContent).not.toMatch(/FLOOR/u);
+    });
+  });
 });

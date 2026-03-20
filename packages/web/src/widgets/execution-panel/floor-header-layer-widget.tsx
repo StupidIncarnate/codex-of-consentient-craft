@@ -14,7 +14,7 @@ import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface FloorHeaderLayerWidgetProps {
-  floorNumber: FloorNumber;
+  floorNumber: FloorNumber | null;
   name: FloorName;
   concurrent?: {
     active: SlotCount;
@@ -56,7 +56,7 @@ export const FloorHeaderLayerWidget = ({
           fontWeight: LABEL_FONT_WEIGHT,
         }}
       >
-        FLOOR {floorNumber}: {name}
+        {floorNumber === null ? name : `FLOOR ${String(floorNumber)}: ${name}`}
       </Text>
       <Text
         ff="monospace"
