@@ -1,3 +1,5 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
 interface MockSocket {
   onopen: (() => void) | null;
   onmessage: ((event: MessageEvent) => void) | null;
@@ -39,9 +41,14 @@ export const websocketConnectAdapterProxy = (): {
 } => {
   const state: { sockets: MockSocket[] } = { sockets: [] };
 
-  const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout');
+  const setTimeoutSpy = registerSpyOn({
+    object: globalThis,
+    method: 'setTimeout',
+    passthrough: true,
+  });
 
-  jest.spyOn(globalThis as never, 'WebSocket').mockImplementation((() => {
+  const webSocketSpy = registerSpyOn({ object: globalThis as never, method: 'WebSocket' });
+  webSocketSpy.mockImplementation((() => {
     const socket = createMockSocket();
     state.sockets.push(socket);
     return socket;
