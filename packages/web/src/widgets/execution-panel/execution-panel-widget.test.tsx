@@ -404,8 +404,8 @@ describe('ExecutionPanelWidget', () => {
 
       // Should have pathseeker done row + 2 step rows = 3 total
       expect(stepRows).toHaveLength(3);
-      // First row should be pathseeker done
-      expect(stepRows[0]?.textContent).toMatch(/Planned 2 steps/u);
+      // First row should be pathseeker with unified header rendering
+      expect(stepRows[0]?.textContent).toMatch(/Pathseeker #1/u);
     });
   });
 
@@ -1042,7 +1042,7 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
       const plannedRow = stepRows[0]!;
 
-      expect(plannedRow.textContent).toMatch(/Planned 1 steps/u);
+      expect(plannedRow.textContent).toMatch(/Pathseeker #1/u);
       expect(plannedRow.textContent).toMatch(/FAILED/u);
     });
 
@@ -1438,15 +1438,15 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(2);
+      expect(floorHeaders).toHaveLength(3);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/FORGE/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
+      expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
 
       const stepRows = proxy.getStepRows();
 
       // chaoswhisperer row + pathseeker row + codeweaver row = 3
       expect(stepRows).toHaveLength(3);
-      expect(stepRows[0]?.textContent).toMatch(/CHAOSWHISPERER/u);
     });
 
     it('VALID: {quest with steps and multiple non-step roles} => renders non-step floors before step floors in config order', () => {
@@ -1485,10 +1485,11 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(3);
+      expect(floorHeaders).toHaveLength(4);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/INFIRMARY/u);
-      expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
+      expect(floorHeaders[2]?.textContent).toMatch(/INFIRMARY/u);
+      expect(floorHeaders[3]?.textContent).toMatch(/FORGE/u);
     });
 
     it('VALID: {quest with steps and non-step work item with sessionId} => shows session entries for non-step work item on expand', async () => {

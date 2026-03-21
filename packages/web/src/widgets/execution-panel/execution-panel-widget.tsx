@@ -345,28 +345,6 @@ export const ExecutionPanelWidget = ({
                     });
                     if (nonStepItems.length === 0) return null;
 
-                    const isPathseekerGroup = nonStepItems.every((wi) => wi.role === 'pathseeker');
-                    if (isPathseekerGroup) {
-                      return nonStepItems.map((wi) => (
-                        <ExecutionRowLayerWidget
-                          key={wi.id}
-                          order={'--' as unknown as StepOrder}
-                          name={`Planned ${String(totalCount)} steps` as StepName}
-                          role={'pathseeker' as ExecutionRole}
-                          status={wi.status as unknown as ExecutionStepStatus}
-                          files={[] as DisplayFilePath[]}
-                          dependsOn={[] as DependencyLabel[]}
-                          isAdhoc={false}
-                          entries={wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : []}
-                          attempt={wi.attempt}
-                          maxAttempts={wi.maxAttempts}
-                          {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
-                          {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
-                          {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                        />
-                      ));
-                    }
-
                     return (
                       <Box key={`nonstep-${group.floorName}-${String(group.floorNumber)}`}>
                         <FloorHeaderLayerWidget
