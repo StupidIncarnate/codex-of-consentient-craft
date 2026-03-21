@@ -325,173 +325,138 @@ export const ExecutionPanelWidget = ({
               : null}
             {isPlanning || hasWorkItemsOnly ? null : (
               <>
-                {floorGroups
-                  .filter((group) =>
-                    group.workItems.some((wi) => {
-                      if (wi.role === 'pathseeker') return true;
-                      const hasStepRef = wi.relatedDataItems.some((ref) =>
-                        ref.startsWith(STEPS_PREFIX),
-                      );
-                      return !hasStepRef;
-                    }),
-                  )
-                  .map((group) => {
-                    const nonStepItems = group.workItems.filter((wi) => {
-                      if (wi.role === 'pathseeker') return true;
-                      const hasStepRef = wi.relatedDataItems.some((ref) =>
-                        ref.startsWith(STEPS_PREFIX),
-                      );
-                      return !hasStepRef;
-                    });
-                    if (nonStepItems.length === 0) return null;
-
-                    return (
-                      <Box key={`nonstep-${group.floorName}-${String(group.floorNumber)}`}>
-                        <FloorHeaderLayerWidget
-                          floorNumber={group.floorNumber}
-                          name={group.floorName}
-                          {...(groupActiveCounts.has(group)
-                            ? {
-                                concurrent: {
-                                  active:
-                                    groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                                  max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                                },
-                              }
-                            : {})}
-                        />
-                        {nonStepItems.map((wi, wiIndex) => {
-                          const wiEntries = wi.sessionId
-                            ? (sessionEntries.get(wi.sessionId) ?? [])
-                            : [];
-                          const wiDepLabels = wi.dependsOn
-                            .map((depId) => workItemIdToRole.get(depId) ?? depId)
-                            .filter((label) => label.length > 0);
-                          return (
-                            <ExecutionRowLayerWidget
-                              key={wi.id}
-                              order={(wiIndex + 1) as StepOrder}
-                              name={
-                                `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
-                              }
-                              role={wi.role as unknown as ExecutionRole}
-                              status={wi.status as unknown as ExecutionStepStatus}
-                              files={[] as DisplayFilePath[]}
-                              dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                              isAdhoc={wi.insertedBy !== undefined}
-                              entries={wiEntries}
-                              attempt={wi.attempt}
-                              maxAttempts={wi.maxAttempts}
-                              startedAt={wi.startedAt}
-                              completedAt={wi.completedAt}
-                              {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                            />
-                          );
-                        })}
-                      </Box>
+                {floorGroups.map((group) => {
+                  const nonStepItems = group.workItems.filter((wi) => {
+                    if (wi.role === 'pathseeker') return true;
+                    const hasStepRef = wi.relatedDataItems.some((ref) =>
+                      ref.startsWith(STEPS_PREFIX),
                     );
-                  })}
-                {steps.length > 0
-                  ? floorGroups
-                      .filter((group) =>
-                        group.workItems.some((wi) =>
+                    return !hasStepRef;
+                  });
+                  const steppedItems =
+                    steps.length > 0
+                      ? group.workItems.filter((wi) =>
                           wi.relatedDataItems.some((ref) => ref.startsWith(STEPS_PREFIX)),
-                        ),
-                      )
-                      .map((group) => {
-                        const steppedItems = group.workItems.filter((wi) =>
-                          wi.relatedDataItems.some((ref) => ref.startsWith(STEPS_PREFIX)),
-                        );
+                        )
+                      : [];
+                  const allItems = [...nonStepItems, ...steppedItems];
+                  if (allItems.length === 0) return null;
+
+                  return (
+                    <Box key={`floor-${group.floorName}-${String(group.floorNumber)}`}>
+                      <FloorHeaderLayerWidget
+                        floorNumber={group.floorNumber}
+                        name={group.floorName}
+                        {...(groupActiveCounts.has(group)
+                          ? {
+                              concurrent: {
+                                active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
+                                max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
+                              },
+                            }
+                          : {})}
+                      />
+                      {nonStepItems.map((wi, wiIndex) => {
+                        const wiEntries = wi.sessionId
+                          ? (sessionEntries.get(wi.sessionId) ?? [])
+                          : [];
+                        const wiDepLabels = wi.dependsOn
+                          .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                          .filter((label) => label.length > 0);
                         return (
-                          <Box key={`step-${group.floorName}-${String(group.floorNumber)}`}>
-                            <FloorHeaderLayerWidget
-                              floorNumber={group.floorNumber}
-                              name={group.floorName}
-                              {...(groupActiveCounts.has(group)
-                                ? {
-                                    concurrent: {
-                                      active:
-                                        groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                                      max:
-                                        groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                                    },
-                                  }
-                                : {})}
-                            />
-                            {steppedItems.map((wi, stepIndex) => {
-                              const stepRef = wi.relatedDataItems.find((ref) =>
-                                ref.startsWith(STEPS_PREFIX),
-                              );
-                              const stepId = stepRef
-                                ? (stepRef.slice(STEPS_PREFIX_LENGTH) as StepId)
-                                : undefined;
-                              const step = stepId ? stepsById.get(stepId) : undefined;
-                              const wiStatus = wi.status as ExecutionStepStatus;
-                              const stepEntries = wi.sessionId
-                                ? (sessionEntries.get(wi.sessionId) ?? [])
-                                : [];
-                              const wardRefs = wi.relatedDataItems.filter((ref) =>
-                                ref.startsWith('wardResults/'),
-                              );
-                              const resolvedWardResults = wardRefs
-                                .map((ref) =>
-                                  wardResultsById.get(
-                                    ref.slice(
-                                      WARD_RESULTS_PREFIX_LENGTH,
-                                    ) as (typeof quest.wardResults)[0]['id'],
-                                  ),
-                                )
-                                .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
-                              return (
-                                <ExecutionRowLayerWidget
-                                  key={wi.id}
-                                  order={(stepIndex + 1) as StepOrder}
-                                  name={
-                                    step
-                                      ? (step.name as unknown as StepName)
-                                      : (`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(stepIndex + 1)}` as unknown as StepName)
-                                  }
-                                  role={wi.role as unknown as ExecutionRole}
-                                  status={wiStatus}
-                                  files={
-                                    step
-                                      ? ([
-                                          ...step.filesToCreate,
-                                          ...step.filesToModify,
-                                        ] as unknown as DisplayFilePath[])
-                                      : ([] as DisplayFilePath[])
-                                  }
-                                  dependsOn={
-                                    step
-                                      ? (step.dependsOn as unknown as DependencyLabel[])
-                                      : ([] as DependencyLabel[])
-                                  }
-                                  isAdhoc={wi.insertedBy !== undefined}
-                                  entries={stepEntries}
-                                  isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                                  {...(step
-                                    ? {
-                                        description: step.description,
-                                        observablesSatisfied: step.observablesSatisfied,
-                                        inputContracts: step.inputContracts,
-                                        outputContracts: step.outputContracts,
-                                      }
-                                    : {})}
-                                  attempt={wi.attempt}
-                                  maxAttempts={wi.maxAttempts}
-                                  {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
-                                  {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
-                                  {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                                  {...(resolvedWardResults.length > 0
-                                    ? { wardResults: resolvedWardResults }
-                                    : {})}
-                                />
-                              );
-                            })}
-                          </Box>
+                          <ExecutionRowLayerWidget
+                            key={wi.id}
+                            order={(wiIndex + 1) as StepOrder}
+                            name={
+                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                            }
+                            role={wi.role as unknown as ExecutionRole}
+                            status={wi.status as unknown as ExecutionStepStatus}
+                            files={[] as DisplayFilePath[]}
+                            dependsOn={wiDepLabels as unknown as DependencyLabel[]}
+                            isAdhoc={wi.insertedBy !== undefined}
+                            entries={wiEntries}
+                            attempt={wi.attempt}
+                            maxAttempts={wi.maxAttempts}
+                            startedAt={wi.startedAt}
+                            completedAt={wi.completedAt}
+                            {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                          />
                         );
-                      })
-                  : null}
+                      })}
+                      {steppedItems.map((wi, stepIndex) => {
+                        const stepRef = wi.relatedDataItems.find((ref) =>
+                          ref.startsWith(STEPS_PREFIX),
+                        );
+                        const stepId = stepRef
+                          ? (stepRef.slice(STEPS_PREFIX_LENGTH) as StepId)
+                          : undefined;
+                        const step = stepId ? stepsById.get(stepId) : undefined;
+                        const wiStatus = wi.status as ExecutionStepStatus;
+                        const stepEntries = wi.sessionId
+                          ? (sessionEntries.get(wi.sessionId) ?? [])
+                          : [];
+                        const wardRefs = wi.relatedDataItems.filter((ref) =>
+                          ref.startsWith('wardResults/'),
+                        );
+                        const resolvedWardResults = wardRefs
+                          .map((ref) =>
+                            wardResultsById.get(
+                              ref.slice(
+                                WARD_RESULTS_PREFIX_LENGTH,
+                              ) as (typeof quest.wardResults)[0]['id'],
+                            ),
+                          )
+                          .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
+                        return (
+                          <ExecutionRowLayerWidget
+                            key={wi.id}
+                            order={(stepIndex + 1) as StepOrder}
+                            name={
+                              step
+                                ? (step.name as unknown as StepName)
+                                : (`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(stepIndex + 1)}` as unknown as StepName)
+                            }
+                            role={wi.role as unknown as ExecutionRole}
+                            status={wiStatus}
+                            files={
+                              step
+                                ? ([
+                                    ...step.filesToCreate,
+                                    ...step.filesToModify,
+                                  ] as unknown as DisplayFilePath[])
+                                : ([] as DisplayFilePath[])
+                            }
+                            dependsOn={
+                              step
+                                ? (step.dependsOn as unknown as DependencyLabel[])
+                                : ([] as DependencyLabel[])
+                            }
+                            isAdhoc={wi.insertedBy !== undefined}
+                            entries={stepEntries}
+                            isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
+                            {...(step
+                              ? {
+                                  description: step.description,
+                                  observablesSatisfied: step.observablesSatisfied,
+                                  inputContracts: step.inputContracts,
+                                  outputContracts: step.outputContracts,
+                                }
+                              : {})}
+                            attempt={wi.attempt}
+                            maxAttempts={wi.maxAttempts}
+                            {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
+                            {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
+                            {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                            {...(resolvedWardResults.length > 0
+                              ? { wardResults: resolvedWardResults }
+                              : {})}
+                          />
+                        );
+                      })}
+                    </Box>
+                  );
+                })}
               </>
             )}
           </Box>

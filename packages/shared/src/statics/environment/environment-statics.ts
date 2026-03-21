@@ -12,6 +12,7 @@ export const environmentStatics = {
   hostname: 'dungeonmaster.localhost',
   dataDir: '.dungeonmaster',
   devDataDir: '.dungeonmaster-dev',
+  testDataDir: '.dungeonmaster-test',
   devPort: 4737,
   testPort: 5737,
   serverUrlPlaceholder: '{{SERVER_URL}}',

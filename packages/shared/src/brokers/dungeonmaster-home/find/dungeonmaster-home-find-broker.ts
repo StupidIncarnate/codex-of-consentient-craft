@@ -14,10 +14,14 @@ import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 export const dungeonmasterHomeFindBroker = (): { homePath: FilePath } => {
   const homeDir = osHomedirAdapter();
 
+  const env = process.env.DUNGEONMASTER_ENV;
+
   const dirName =
-    process.env.DUNGEONMASTER_ENV === 'dev'
+    env === 'dev'
       ? environmentStatics.devDataDir
-      : environmentStatics.dataDir;
+      : env === 'test'
+        ? environmentStatics.testDataDir
+        : environmentStatics.dataDir;
 
   const homePath = pathJoinAdapter({
     paths: [homeDir, dirName],
