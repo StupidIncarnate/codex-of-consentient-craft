@@ -476,6 +476,116 @@ describe('runCodeweaverLayerBroker', () => {
     });
   });
 
+  describe('onFollowupCreated callback persistence', () => {
+    it('VALID: {1 codeweaver signals failed} => pathseeker replan persisted via callback', async () => {
+      const FAILED_SIGNAL_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'Build error' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAutoLines({
+        lines: [FAILED_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const persisted = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(persisted).toBe('failed');
+    });
+
+    it('VALID: {1 codeweaver signals failed, followup also fails} => result-mapping sets final status on recovery item', async () => {
+      const FAILED_SIGNAL_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'Build error' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      // First spawn fails (codeweaver), subsequent spawns complete (pathseeker followup)
+      proxy.setupSpawnAutoLines({
+        lines: [FAILED_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      // Original codeweaver is failed, which is a terminal status (not stuck at pending)
+      expect(status).toBe('failed');
+    });
+  });
+
   describe('sessionId persistence', () => {
     it('VALID: {1 codeweaver, agent has sessionId} => persists sessionId on quest work item', async () => {
       const sessionId = SessionIdStub({ value: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c' });

@@ -1240,6 +1240,121 @@ describe('orchestrationLoopLayerBroker', () => {
         failedWorkItemId: 'lawbringer-callback-1',
       });
     });
+
+    it('VALID: {followup-of-followup, lawbringer then spiritmender fail} => callback fires twice with correct chain', async () => {
+      const FAILED_SIGNAL_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'Lint errors' },
+            },
+          ],
+        },
+      });
+
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+      proxy.setupSpawnAutoLines({
+        lines: [FAILED_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const workItemId = WorkItemIdStub({ value: 'lawbringer-chain-1' });
+      const lawbringerWorkUnit = LawbringerWorkUnitStub();
+      const spiritmenderWorkUnit = SpiritmenderWorkUnitStub();
+      const mockOnFollowupCreated = jest.fn();
+      const mockGetWorkUnit = jest.fn().mockReturnValue(lawbringerWorkUnit);
+
+      const activeAgentsList: ReturnType<typeof ActiveAgentStub>[] = [];
+
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: mockGetWorkUnit,
+        markStarted: jest.fn().mockResolvedValue(undefined),
+        markFailed: jest.fn().mockResolvedValue(undefined),
+        addWorkItem: jest.fn().mockReturnValue(undefined),
+        skipAllPending: jest.fn().mockReturnValue(undefined),
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Lint errors' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      activeAgentsList.push(activeAgent);
+
+      const startPath = FilePathStub({ value: '/project/src' });
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const sessionIds = SlotManagerResultStub().sessionIds as never;
+
+      // First call: lawbringer fails -> spawns spiritmender followup
+      const result1 = await orchestrationLoopLayerBroker({
+        questId,
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: activeAgentsList,
+        sessionIds,
+        onFollowupCreated: mockOnFollowupCreated,
+      });
+
+      expect(mockOnFollowupCreated).toHaveBeenCalledTimes(1);
+      expect(result1.done).toBe(false);
+
+      // Reconfigure getWorkUnit to return spiritmender for the followup agent
+      mockGetWorkUnit.mockReturnValue(spiritmenderWorkUnit);
+
+      // Second call: spiritmender followup fails -> spawns pathseeker followup
+      await orchestrationLoopLayerBroker({
+        questId,
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: activeAgentsList,
+        sessionIds,
+        onFollowupCreated: mockOnFollowupCreated,
+      });
+
+      expect(mockOnFollowupCreated).toHaveBeenCalledTimes(2);
+
+      // First: lawbringer -> spiritmender
+      expect(mockOnFollowupCreated).toHaveBeenNthCalledWith(1, {
+        followupWorkItemId: 'followup-lawbringer-chain-1-1700000000000',
+        role: 'spiritmender',
+        failedWorkItemId: 'lawbringer-chain-1',
+      });
+
+      // Second: spiritmender -> pathseeker, failedWorkItemId === first followup's id
+      expect(mockOnFollowupCreated).toHaveBeenNthCalledWith(2, {
+        followupWorkItemId: expect.any(String),
+        role: 'pathseeker',
+        failedWorkItemId: 'followup-lawbringer-chain-1-1700000000000',
+      });
+    });
   });
 
   describe('bubble_to_user path - pathseeker fails', () => {

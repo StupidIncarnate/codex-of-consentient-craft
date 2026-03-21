@@ -254,6 +254,8 @@ describe('runPathseekerLayerBroker', () => {
       expect(failedItem?.status).toBe('failed');
       expect(failedItem?.errorMessage).toBe('verification_failed');
       expect(proxy.getUuidCalls()).toHaveLength(1);
+
+      expect(proxy.getPersistedQuestJsons()).toHaveLength(1);
     });
   });
 

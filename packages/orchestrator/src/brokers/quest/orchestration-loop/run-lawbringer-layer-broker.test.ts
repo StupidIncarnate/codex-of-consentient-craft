@@ -440,6 +440,66 @@ describe('runLawbringerLayerBroker', () => {
     });
   });
 
+  describe('onFollowupCreated callback persistence', () => {
+    it('VALID: {1 lawbringer signals failed} => spiritmender persisted via callback', async () => {
+      const FAILED_SIGNAL_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'Lint errors found' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        filesToModify: ['/project/src/file-a.ts'],
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [FAILED_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+      });
+
+      // Original lawbringer is failed (spawn_role path taken, onFollowupCreated fired)
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('failed');
+    });
+  });
+
   describe('2 of 3 fail', () => {
     it('VALID: {first 2 agents fail with null signal} => completes without throwing', async () => {
       const stepA = DependencyStepStub({

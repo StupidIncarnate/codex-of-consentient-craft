@@ -26,6 +26,10 @@ const WARD_ID = 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5';
 const SIEGE_ID = 'b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5';
 const LAWBRINGER_ID = 'c1c1c1c1-d2d2-e3e3-f4f4-a5a5a5a5a5a5';
 
+const WARD_RESULT_UUID = '11111111-1111-1111-1111-111111111111';
+const SPIRITMENDER_UUID = '22222222-2222-2222-2222-222222222222';
+const WARD_RETRY_UUID = '33333333-3333-3333-3333-333333333333';
+
 describe('runWardLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
@@ -107,6 +111,153 @@ describe('runWardLayerBroker', () => {
       const wardResultExitCode = proxy.getPersistedWardResultExitCode();
 
       expect(wardResultExitCode).toBe(1);
+    });
+  });
+
+  describe('Failure (retries remaining): spiritmender has dependsOn: [wardWorkItemId]', () => {
+    it('VALID: {exitCode 1, filePaths present} => spiritmender depends on ward, role spiritmender, insertedBy ward', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const siegeItemId = QuestWorkItemIdStub({ value: SIEGE_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const siegeItem = WorkItemStub({
+        id: siegeItemId,
+        role: 'siegemaster',
+        status: 'pending',
+        dependsOn: [wardItemId],
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem, siegeItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardFailWithFilePaths({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        wardResultJson: WARD_JSON_WITH_FILES,
+        uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
+      });
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+      });
+
+      const inserted = proxy.getInsertedWorkItems();
+      const spiritItems = inserted.filter((w) => w.role === 'spiritmender');
+
+      expect(spiritItems).toHaveLength(1);
+
+      const [spiritmender] = spiritItems;
+
+      expect(spiritmender?.dependsOn).toStrictEqual([wardItem.id]);
+      expect(spiritmender?.role).toBe('spiritmender');
+      expect(spiritmender?.insertedBy).toBe(wardItem.id);
+    });
+  });
+
+  describe('Failure (retries remaining): wardRetry has dependsOn: [spiritmenderIds]', () => {
+    it('VALID: {exitCode 1, filePaths present} => wardRetry depends on spiritmender IDs and attempt incremented', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const siegeItemId = QuestWorkItemIdStub({ value: SIEGE_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const siegeItem = WorkItemStub({
+        id: siegeItemId,
+        role: 'siegemaster',
+        status: 'pending',
+        dependsOn: [wardItemId],
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem, siegeItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardFailWithFilePaths({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        wardResultJson: WARD_JSON_WITH_FILES,
+        uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
+      });
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+      });
+
+      const inserted = proxy.getInsertedWorkItems();
+      const spiritItems = inserted.filter((w) => w.role === 'spiritmender');
+      const wardRetries = inserted.filter((w) => w.attempt === 1);
+
+      expect(wardRetries).toHaveLength(1);
+
+      const [wardRetry] = wardRetries;
+
+      expect(wardRetry?.dependsOn).toStrictEqual(spiritItems.map((s) => s.id));
+      expect(wardRetry?.attempt).toBe(wardItem.attempt + 1);
+    });
+  });
+
+  describe('Failure (retries remaining): siege dependsOn updated via replacementMapping', () => {
+    it('VALID: {exitCode 1, filePaths present} => siege dependsOn replaced from ward to wardRetry', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const siegeItemId = QuestWorkItemIdStub({ value: SIEGE_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const siegeItem = WorkItemStub({
+        id: siegeItemId,
+        role: 'siegemaster',
+        status: 'pending',
+        dependsOn: [wardItemId],
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem, siegeItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardFailWithFilePaths({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        wardResultJson: WARD_JSON_WITH_FILES,
+        uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
+      });
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+      });
+
+      const inserted = proxy.getInsertedWorkItems();
+      const wardRetries = inserted.filter((w) => w.attempt === 1);
+      const siegeItems = inserted.filter((w) => w.role === 'siegemaster');
+
+      expect(wardRetries).toHaveLength(1);
+      expect(siegeItems).toHaveLength(1);
+      expect(siegeItems[0]?.dependsOn).toStrictEqual([wardRetries[0]?.id]);
     });
   });
 

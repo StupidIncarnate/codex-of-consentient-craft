@@ -22,6 +22,12 @@ export const runWardLayerBrokerProxy = (): {
     exitCode: ExitCode;
     wardResultJson: string;
   }) => void;
+  setupWardFailWithFilePaths: (params: {
+    quest: QuestInput;
+    exitCode: ExitCode;
+    wardResultJson: string;
+    uuids: readonly [string, string, string];
+  }) => void;
   setupWardFailRetryExhausted: (params: {
     quest: QuestInput;
     exitCode: ExitCode;
@@ -87,6 +93,31 @@ export const runWardLayerBrokerProxy = (): {
       wardResultJson: string;
     }): void => {
       clearEnv();
+      spawnProxy.setupWardFailure({ exitCode, wardResultJson });
+      // Fail w/ filePaths + retries: modify(wardResult), modify(failed), get(insert), modify(insert)
+      setupModify({ quest });
+      setupModify({ quest });
+      setupGet({ quest });
+      setupModify({ quest });
+    },
+
+    setupWardFailWithFilePaths: ({
+      quest,
+      exitCode,
+      wardResultJson,
+      uuids,
+    }: {
+      quest: QuestInput;
+      exitCode: ExitCode;
+      wardResultJson: string;
+      uuids: readonly [string, string, string];
+    }): void => {
+      clearEnv();
+      jest
+        .spyOn(crypto, 'randomUUID')
+        .mockReturnValueOnce(uuids[0] as ReturnType<typeof crypto.randomUUID>)
+        .mockReturnValueOnce(uuids[1] as ReturnType<typeof crypto.randomUUID>)
+        .mockReturnValueOnce(uuids[2] as ReturnType<typeof crypto.randomUUID>);
       spawnProxy.setupWardFailure({ exitCode, wardResultJson });
       // Fail w/ filePaths + retries: modify(wardResult), modify(failed), get(insert), modify(insert)
       setupModify({ quest });
