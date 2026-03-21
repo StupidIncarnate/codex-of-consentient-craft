@@ -234,7 +234,7 @@ export const ExecutionPanelWidget = ({
                             key={wi.id}
                             order={(wiIndex + 1) as StepOrder}
                             name={
-                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
                             }
                             role={wi.role as unknown as ExecutionRole}
                             status={wi.status as unknown as ExecutionStepStatus}
@@ -304,7 +304,7 @@ export const ExecutionPanelWidget = ({
                           key={wi.id}
                           order={(wiIndex + 1) as StepOrder}
                           name={
-                            `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                            `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
                           }
                           role={wi.role as unknown as ExecutionRole}
                           status={wi.status as unknown as ExecutionStepStatus}
@@ -368,7 +368,7 @@ export const ExecutionPanelWidget = ({
                             key={wi.id}
                             order={(wiIndex + 1) as StepOrder}
                             name={
-                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(wiIndex + 1)}` as unknown as StepName
+                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
                             }
                             role={wi.role as unknown as ExecutionRole}
                             status={wi.status as unknown as ExecutionStepStatus}
@@ -415,7 +415,7 @@ export const ExecutionPanelWidget = ({
                             name={
                               step
                                 ? (step.name as unknown as StepName)
-                                : (`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)} #${String(stepIndex + 1)}` as unknown as StepName)
+                                : (`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${steppedItems.length > 1 ? ` #${String(stepIndex + 1)}` : ''}` as unknown as StepName)
                             }
                             role={wi.role as unknown as ExecutionRole}
                             status={wiStatus}

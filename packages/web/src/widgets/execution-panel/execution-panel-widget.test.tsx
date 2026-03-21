@@ -404,8 +404,8 @@ describe('ExecutionPanelWidget', () => {
 
       // Should have pathseeker done row + 2 step rows = 3 total
       expect(stepRows).toHaveLength(3);
-      // First row should be pathseeker with unified header rendering
-      expect(stepRows[0]?.textContent).toMatch(/Pathseeker #1/u);
+      // First row should be pathseeker (no #1 since it's the only item in its group)
+      expect(stepRows[0]?.textContent).toMatch(/Pathseeker(?! #)/u);
     });
   });
 
@@ -1519,7 +1519,7 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
       const plannedRow = stepRows[0]!;
 
-      expect(plannedRow.textContent).toMatch(/Pathseeker #1/u);
+      expect(plannedRow.textContent).toMatch(/Pathseeker(?! #)/u);
       expect(plannedRow.textContent).toMatch(/FAILED/u);
     });
 
@@ -1859,7 +1859,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('work items only naming', () => {
-    it('VALID: {work item in hasWorkItemsOnly path} => shows capitalized role with index', () => {
+    it('VALID: {single work item in group} => shows capitalized role without index number', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -1879,7 +1879,36 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
 
-      expect(stepRows[0]?.textContent).toMatch(/Chaoswhisperer #1/u);
+      expect(stepRows[0]?.textContent).toMatch(/Chaoswhisperer(?! #)/u);
+    });
+
+    it('VALID: {multiple work items in same group} => shows #N index on each', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+
+      expect(stepRows[0]?.textContent).toMatch(/Codeweaver #1/u);
+      expect(stepRows[1]?.textContent).toMatch(/Codeweaver #2/u);
     });
   });
 
