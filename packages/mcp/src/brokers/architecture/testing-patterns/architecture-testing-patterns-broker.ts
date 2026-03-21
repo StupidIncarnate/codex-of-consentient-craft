@@ -587,7 +587,70 @@ jest.mock('fs/promises');
 // ✅ CORRECT - registerMock replaces all of the above
 const handle = registerMock({ fn: readFile });
 const uuidHandle = registerMock({ fn: randomUUID });
-\`\`\``;
+\`\`\`
+
+### registerSpyOn — Spy on Global Object Methods
+
+Use \`registerSpyOn\` to spy on methods of global objects (process, Date, crypto, Math, etc.). Returns a \`SpyOnHandle\` with the same API as \`MockHandle\`.
+
+\`\`\`typescript
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
+// Spy on process.stdout.write
+const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+
+// Spy with passthrough — records calls but delegates to real implementation
+const timerSpy = registerSpyOn({ object: globalThis, method: 'setTimeout', passthrough: true });
+\`\`\`
+
+**\`passthrough: true\`** — Spy records calls but delegates to the real implementation by default. Use for globals that must keep working (setTimeout, WebSocket). You can still override with \`.mockImplementation()\`.
+
+**SpyOnHandle API:** Same as MockHandle — \`.mockImplementation()\`, \`.mockReturnValue()\`, \`.mockReturnValueOnce()\`, \`.mockResolvedValue()\`, \`.mockRejectedValueOnce()\`, \`.mock.calls\`, \`.mockClear()\`.
+
+**Common targets:** \`process.stdout.write\`, \`Date.now\`, \`crypto.randomUUID\`, \`Math.random\`
+
+### registerModuleMock — Replace Module Before Load
+
+Use \`registerModuleMock\` to replace an entire module before it loads. Runtime no-op — the AST transformer hoists it as \`jest.mock()\`.
+
+\`\`\`typescript
+import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({
+  module: 'eslint-plugin-jest',
+  factory: () => ({ rules: {} }),
+});
+\`\`\`
+
+**When to use:** A module must be replaced before import to prevent crashes or side effects.
+
+### requireActual — Access Real Module Under Mock
+
+Use \`requireActual\` to access real module exports when a module is mocked. Wraps \`jest.requireActual\`.
+
+\`\`\`typescript
+import { requireActual } from '@dungeonmaster/testing/register-mock';
+
+const realPath = requireActual({ module: 'path' });
+handle.mockImplementation((...args) => realPath.join(...args));
+\`\`\`
+
+**When to use:** A parent proxy needs the real implementation of something mocked by a child proxy.
+
+### registerIsolateModules — Test Entry Points with Side Effects
+
+Use \`registerIsolateModules\` to test entry points that have top-level side effects. Wraps \`jest.isolateModules\` + \`jest.doMock\`.
+
+\`\`\`typescript
+import { registerIsolateModules } from '@dungeonmaster/testing/register-mock';
+
+registerIsolateModules({
+  mocks: [{ module: './start-server', factory: () => ({ startServer: mockStart }) }],
+  entrypoint: require.resolve('./index'),
+});
+\`\`\`
+
+**When to use:** Testing a module that calls functions at import time (like \`index.ts\` that starts a server).`;
 
   // Integration Testing
   const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files**. They validate that startup files correctly wire up the entire application. Use \`.integration.test.ts\` extension.
@@ -797,7 +860,7 @@ Before writing any test, verify:
 
 - [ ] Created fresh proxy in test (not shared)
 - [ ] Used ReturnType<typeof Stub> for types (not contract imports)
-- [ ] Proxies use registerMock (not jest.mocked/jest.spyOn) and set up in constructor
+- [ ] Proxies use registerMock/registerSpyOn (not jest.mocked/jest.spyOn) and set up in constructor
 - [ ] Tests use semantic proxy methods (never registerMock/jest.mocked directly in tests)
 - [ ] Used toStrictEqual for objects/arrays (no weak matchers)
 - [ ] No beforeEach/afterEach hooks

@@ -239,6 +239,17 @@ export const dbPoolStateProxy = () => {
 };
 ```
 
+**Additional Mock APIs (import all from `@dungeonmaster/testing/register-mock`):**
+
+- `registerSpyOn({ object, method, passthrough? })` — Spy on global object methods (process.stdout.write, Date.now,
+  etc.). `passthrough: true` records calls but delegates to real implementation.
+- `registerModuleMock({ module, factory })` — Replace a module before load (AST transformer hoists as jest.mock). Use
+  when a module must be replaced before import.
+- `requireActual({ module })` — Access real module exports when a module is mocked. Use when a parent proxy needs the
+  real implementation.
+- `registerIsolateModules({ mocks, entrypoint })` — Test entry points with top-level side effects. Wraps
+  jest.isolateModules + jest.doMock.
+
 **Key principles:**
 
 - Clear state in constructor for test isolation
