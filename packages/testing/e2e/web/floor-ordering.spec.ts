@@ -200,7 +200,6 @@ test.describe('Floor Ordering', () => {
     createQuestFile({
       guildId,
       questId: crypto.randomUUID(),
-      sessionId: mainSessionId,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [
@@ -282,7 +281,6 @@ test.describe('Floor Ordering', () => {
     createQuestFile({
       guildId,
       questId: crypto.randomUUID(),
-      sessionId: mainSessionId,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [
@@ -372,7 +370,6 @@ test.describe('Floor Ordering', () => {
     createQuestFile({
       guildId,
       questId: crypto.randomUUID(),
-      sessionId: mainSessionId,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [
