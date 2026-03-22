@@ -297,6 +297,309 @@ describe('wardDetailToSpiritmenderBatchesTransformer', () => {
     });
   });
 
+  describe('non-object input', () => {
+    it('EDGE: {parsed JSON is array} => returns empty array', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify([1, 2, 3]),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {parsed JSON is string} => returns empty array', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify('just a string'),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('batch size boundary', () => {
+    it('EDGE: {batchSize larger than file count} => all files in one batch', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              projectResults: [
+                {
+                  errors: [
+                    { filePath: '/src/a.ts', line: 1, column: 1, message: 'err a' },
+                    { filePath: '/src/b.ts', line: 2, column: 2, message: 'err b' },
+                  ],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const batchSizeTen = 10;
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: batchSizeTen,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/src/a.ts', '/src/b.ts'],
+          errors: ['/src/a.ts:1:1 err a', '/src/b.ts:2:2 err b'],
+        },
+      ]);
+    });
+
+    it('EDGE: {file count exactly divisible by batchSize} => even batches', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              projectResults: [
+                {
+                  errors: [
+                    { filePath: '/src/a.ts', line: 1, column: 1, message: 'err a' },
+                    { filePath: '/src/b.ts', line: 1, column: 1, message: 'err b' },
+                    { filePath: '/src/c.ts', line: 1, column: 1, message: 'err c' },
+                  ],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/src/a.ts', '/src/b.ts', '/src/c.ts'],
+          errors: ['/src/a.ts:1:1 err a', '/src/b.ts:1:1 err b', '/src/c.ts:1:1 err c'],
+        },
+      ]);
+    });
+  });
+
+  describe('malformed nested structures', () => {
+    it('EDGE: {non-object check entry} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: ['not-an-object', null, { projectResults: [] }],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {non-object projectResult entry} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              projectResults: ['not-an-object', null],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {non-object error entry} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              projectResults: [
+                {
+                  errors: ['not-an-object', null, 42],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {error with non-string filePath} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              projectResults: [
+                {
+                  errors: [{ filePath: 123, message: 'err' }],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {testFailure with non-string suitePath} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              projectResults: [
+                {
+                  errors: [],
+                  testFailures: [{ suitePath: 42, testName: 'test', message: 'fail' }],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EDGE: {non-object testFailure entry} => skips it', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              projectResults: [
+                {
+                  errors: [],
+                  testFailures: ['not-an-object', null],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('test failure formatting variations', () => {
+    it('EDGE: {test failure with empty stackTrace} => formats without stack prefix', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'unit',
+              projectResults: [
+                {
+                  errors: [],
+                  testFailures: [
+                    {
+                      suitePath: '/src/test.test.ts',
+                      testName: 'case',
+                      message: 'failed',
+                      stackTrace: '',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/src/test.test.ts'],
+          errors: ['/src/test.test.ts - case: failed'],
+        },
+      ]);
+    });
+
+    it('EDGE: {test failure without testName or message} => formats with suitePath only', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'unit',
+              projectResults: [
+                {
+                  errors: [],
+                  testFailures: [
+                    {
+                      suitePath: '/src/test.test.ts',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_TWO,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/src/test.test.ts'],
+          errors: ['/src/test.test.ts'],
+        },
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {error without line/column/rule} => formats with file path and message only', () => {
       const detailJson = ErrorMessageStub({

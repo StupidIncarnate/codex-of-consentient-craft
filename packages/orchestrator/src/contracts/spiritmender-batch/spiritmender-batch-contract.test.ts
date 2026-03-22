@@ -84,5 +84,11 @@ describe('spiritmenderBatchContract', () => {
         }),
       ).toThrow(/Path must be absolute/u);
     });
+
+    it('INVALID_TYPE: {errors: string} => throws validation error', () => {
+      expect(() => spiritmenderBatchContract.parse({ filePaths: [], errors: 'not-array' })).toThrow(
+        /Expected array/u,
+      );
+    });
   });
 });

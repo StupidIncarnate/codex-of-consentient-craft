@@ -73,7 +73,18 @@ describe('workItemContract', () => {
 
       const result = workItemContract.parse(item);
 
-      expect(result.wardMode).toBe('full');
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'ward',
+        status: 'pending',
+        spawnerType: 'command',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        wardMode: 'full',
+      });
     });
 
     it('VALID: work item with relatedDataItems => parses successfully', () => {
@@ -189,6 +200,58 @@ describe('workItemContract', () => {
           relatedDataItems: ['invalid-format'],
         });
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
+    });
+
+    it('INVALID_WARD_MODE: invalid wardMode => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'invalid',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID_ATTEMPT: negative attempt => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          attempt: -1,
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID_MAX_ATTEMPTS: zero maxAttempts => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          maxAttempts: 0,
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID_TIMEOUT_MS: negative timeoutMs => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          timeoutMs: -1,
+        });
+      }).toThrow(/too_small/u);
     });
   });
 });

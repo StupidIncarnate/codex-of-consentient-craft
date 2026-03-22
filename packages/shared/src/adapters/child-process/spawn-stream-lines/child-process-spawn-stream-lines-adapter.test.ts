@@ -1,4 +1,8 @@
-import { AbsoluteFilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ErrorMessageStub,
+  ExitCodeStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamLinesAdapter } from './child-process-spawn-stream-lines-adapter';
 import { childProcessSpawnStreamLinesAdapterProxy } from './child-process-spawn-stream-lines-adapter.proxy';
@@ -24,12 +28,65 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       });
 
       expect(lines).toStrictEqual(['run: 123-abc', 'lint: PASS', 'unit: FAIL']);
-      expect(result.exitCode).toStrictEqual(ExitCodeStub({ value: 0 }));
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: 'run: 123-abc\nlint: PASS\nunit: FAIL' }),
+      });
+    });
+  });
+
+  describe('no onLine callback', () => {
+    it('VALID: {stdout with lines, no onLine} => returns accumulated output without callback', async () => {
+      const proxy = childProcessSpawnStreamLinesAdapterProxy();
+
+      proxy.setupSuccess({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: ['line-one', 'line-two'],
+      });
+
+      const result = await childProcessSpawnStreamLinesAdapter({
+        command: 'dungeonmaster-ward',
+        args: ['run'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: 'line-one\nline-two' }),
+      });
+    });
+  });
+
+  describe('stderr streaming', () => {
+    it('VALID: {stderr chunks} => calls onLine for stderr and includes in output', async () => {
+      const proxy = childProcessSpawnStreamLinesAdapterProxy();
+      const lines: unknown[] = [];
+
+      proxy.setupSuccess({
+        exitCode: ExitCodeStub({ value: 1 }),
+        stdoutLines: ['stdout-line'],
+        stderrChunks: ['stderr-chunk'],
+      });
+
+      const result = await childProcessSpawnStreamLinesAdapter({
+        command: 'dungeonmaster-ward',
+        args: ['run'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: (line: string) => {
+          lines.push(line);
+        },
+      });
+
+      expect(lines).toStrictEqual(['stdout-line', 'stderr-chunk']);
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: 'stdout-line\nstderr-chunk' }),
+      });
     });
   });
 
   describe('failure exit code', () => {
-    it('VALID: {exit code 1} => returns exit code 1', async () => {
+    it('VALID: {exit code 1} => returns exit code 1 with output', async () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
@@ -43,7 +100,32 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result.exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: 'run: 456-def' }),
+      });
+    });
+  });
+
+  describe('empty output', () => {
+    it('EDGE: {no stdout lines} => returns empty output string', async () => {
+      const proxy = childProcessSpawnStreamLinesAdapterProxy();
+
+      proxy.setupSuccess({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: [],
+      });
+
+      const result = await childProcessSpawnStreamLinesAdapter({
+        command: 'dungeonmaster-ward',
+        args: ['run'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: '' }),
+      });
     });
   });
 
@@ -69,7 +151,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
   });
 
   describe('error handling', () => {
-    it('ERROR: {spawn error} => returns exit code 1', async () => {
+    it('ERROR: {spawn error} => returns exit code 1 with empty output', async () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupError({ error: new Error('spawn failed') });
@@ -80,7 +162,10 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result.exitCode).toStrictEqual(ExitCodeStub({ value: 1 }));
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: '' }),
+      });
     });
   });
 });

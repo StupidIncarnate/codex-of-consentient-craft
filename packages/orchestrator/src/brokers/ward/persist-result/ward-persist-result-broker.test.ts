@@ -34,6 +34,21 @@ describe('wardPersistResultBroker', () => {
     });
   });
 
+  describe('file path construction', () => {
+    it('VALID: {questFolderPath, wardResultId} => writes to ward-results/{wardResultId}.json', async () => {
+      const proxy = wardPersistResultBrokerProxy();
+      const questFolderPath = FilePathStub({ value: '/quests/quest-003' });
+      const wardResultId = 'result-xyz';
+      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+
+      proxy.setupSuccess();
+
+      await wardPersistResultBroker({ questFolderPath, wardResultId, detailJson });
+
+      expect(proxy.getWrittenPath()).toBe('/quests/quest-003/ward-results/result-xyz.json');
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {write fails} => throws write error', async () => {
       const proxy = wardPersistResultBrokerProxy();

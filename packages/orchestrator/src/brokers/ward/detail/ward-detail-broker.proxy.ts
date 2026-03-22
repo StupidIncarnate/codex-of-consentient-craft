@@ -4,6 +4,8 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 export const wardDetailBrokerProxy = (): {
   setupSuccess: (params: { output: string }) => void;
   setupFailure: () => void;
+  getSpawnedArgs: () => unknown;
+  getSpawnedCommand: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
@@ -17,5 +19,9 @@ export const wardDetailBrokerProxy = (): {
     setupFailure: (): void => {
       captureProxy.setupSuccess({ exitCode: failCode, stdout: '', stderr: '' });
     },
+
+    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+
+    getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand(),
   };
 };

@@ -1,7 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import {
+  ContractNameStub,
+  ErrorMessageStub,
+  ObservableIdStub,
+  WardResultStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
@@ -376,6 +381,296 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
       expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
       expect(screen.getAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
+    });
+  });
+
+  describe('ward results rendering', () => {
+    it('VALID: {wardResults with exitCode 0} => renders ward exit code with success', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            wardResults={[WardResultStub({ exitCode: 0 as never })]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const wardResultEl = screen.getByTestId('execution-row-ward-result');
+
+      expect(wardResultEl.textContent).toBe('Ward exit code: 0');
+    });
+
+    it('VALID: {wardResults with exitCode 1 and wardMode "changed"} => renders exit code and ward mode', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            wardResults={[WardResultStub({ exitCode: 1 as never, wardMode: 'changed' })]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const wardResultEl = screen.getByTestId('execution-row-ward-result');
+
+      expect(wardResultEl.textContent).toBe('Ward exit code: 1 (changed)');
+    });
+
+    it('VALID: {wardResults with wardMode "full"} => renders ward mode in parentheses', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            wardResults={[WardResultStub({ exitCode: 0 as never, wardMode: 'full' })]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const wardResultEl = screen.getByTestId('execution-row-ward-result');
+
+      expect(wardResultEl.textContent).toBe('Ward exit code: 0 (full)');
+    });
+
+    it('EMPTY: {no wardResults} => does not render ward result elements', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-ward-result')).toBeNull();
+    });
+  });
+
+  describe('description rendering', () => {
+    it('VALID: {description provided} => renders description in expanded view', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            description={'Implement login flow with OAuth' as never}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const descEl = screen.getByTestId('execution-row-description');
+
+      expect(descEl.textContent).toBe('Implement login flow with OAuth');
+    });
+
+    it('EMPTY: {no description} => does not render description element', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-description')).toBeNull();
+    });
+  });
+
+  describe('observables rendering', () => {
+    it('VALID: {observablesSatisfied with items} => renders observables list', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            observablesSatisfied={[
+              ObservableIdStub({ value: 'login-redirects' }),
+              ObservableIdStub({ value: 'session-persists' }),
+            ]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const obsEl = screen.getByTestId('execution-row-observables');
+
+      expect(obsEl.textContent).toBe('Satisfies: login-redirects, session-persists');
+    });
+
+    it('EMPTY: {empty observablesSatisfied} => does not render observables element', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            observablesSatisfied={[]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-observables')).toBeNull();
+    });
+  });
+
+  describe('contracts rendering', () => {
+    it('VALID: {inputContracts provided} => renders input contracts list', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            inputContracts={[ContractNameStub({ value: 'LoginCredentials' })]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const inputEl = screen.getByTestId('execution-row-input-contracts');
+
+      expect(inputEl.textContent).toBe('Inputs: LoginCredentials');
+    });
+
+    it('VALID: {outputContracts provided} => renders output contracts list', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            outputContracts={[
+              ContractNameStub({ value: 'AuthToken' }),
+              ContractNameStub({ value: 'UserProfile' }),
+            ]}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const outputEl = screen.getByTestId('execution-row-output-contracts');
+
+      expect(outputEl.textContent).toBe('Outputs: AuthToken, UserProfile');
+    });
+  });
+
+  describe('retry badge', () => {
+    it('VALID: {attempt: 1, maxAttempts: 3} => renders retry badge', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            attempt={1 as never}
+            maxAttempts={3 as never}
+          />
+        ),
+      });
+
+      const retryBadge = screen.getByTestId('execution-row-retry-badge');
+
+      expect(retryBadge.textContent).toBe('retry 1/3');
+    });
+
+    it('EMPTY: {attempt: 0, maxAttempts: 3} => does not render retry badge', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            attempt={0 as never}
+            maxAttempts={3 as never}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-retry-badge')).toBeNull();
+    });
+  });
+
+  describe('duration display', () => {
+    it('VALID: {startedAt and completedAt provided} => renders duration', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            startedAt={'2024-01-15T10:00:00.000Z' as never}
+            completedAt={'2024-01-15T10:00:12.000Z' as never}
+          />
+        ),
+      });
+
+      const durationEl = screen.getByTestId('execution-row-duration');
+
+      expect(durationEl.textContent).toBe('12s');
+    });
+
+    it('EMPTY: {no startedAt or completedAt} => does not render duration', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-duration')).toBeNull();
     });
   });
 });

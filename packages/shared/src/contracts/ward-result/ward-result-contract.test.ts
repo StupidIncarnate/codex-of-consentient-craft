@@ -39,7 +39,12 @@ describe('wardResultContract', () => {
 
       const parsed = wardResultContract.parse(result);
 
-      expect(parsed.wardMode).toBe('full');
+      expect(parsed).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        exitCode: 1,
+        wardMode: 'full',
+      });
     });
 
     it('VALID: ward result with exitCode 0 => parses successfully', () => {
@@ -47,7 +52,11 @@ describe('wardResultContract', () => {
 
       const parsed = wardResultContract.parse(result);
 
-      expect(parsed.exitCode).toBe(0);
+      expect(parsed).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        exitCode: 0,
+      });
     });
   });
 
@@ -99,6 +108,35 @@ describe('wardResultContract', () => {
           wardMode: 'invalid',
         });
       }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: non-integer exitCode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 1.5,
+        });
+      }).toThrow(/Expected integer/u);
+    });
+
+    it('INVALID: string exitCode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 'not-a-number',
+        });
+      }).toThrow(/Expected number/u);
+    });
+
+    it('INVALID: missing createdAt => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          exitCode: 1,
+        });
+      }).toThrow(/Required/u);
     });
   });
 });

@@ -90,4 +90,59 @@ describe('spawnWardLayerBroker', () => {
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
     });
   });
+
+  describe('onLine callback', () => {
+    it('VALID: {onLine provided, output has lines} => calls onLine for each non-empty line', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardSuccess({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: ['run: 1739625600000-a3f1', 'lint:      PASS', 'typecheck: PASS'],
+      });
+
+      const collectedLines: unknown[] = [];
+
+      await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: (line) => {
+          collectedLines.push(line);
+        },
+      });
+
+      expect(collectedLines).toStrictEqual([
+        'run: 1739625600000-a3f1',
+        'lint:      PASS',
+        'typecheck: PASS',
+      ]);
+    });
+
+    it('VALID: {onLine provided, output has empty lines} => skips empty lines', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardSuccess({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: ['run: 1739625600000-a3f1', '', 'lint:      PASS'],
+      });
+
+      const collectedLines: unknown[] = [];
+
+      await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: (line) => {
+          collectedLines.push(line);
+        },
+      });
+
+      expect(collectedLines).toStrictEqual(['run: 1739625600000-a3f1', 'lint:      PASS']);
+    });
+
+    it('VALID: {no onLine callback} => does not throw', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      const result = await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result.exitCode).toBe(0);
+    });
+  });
 });

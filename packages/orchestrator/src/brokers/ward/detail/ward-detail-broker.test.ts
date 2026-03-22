@@ -32,6 +32,22 @@ describe('wardDetailBroker', () => {
     });
   });
 
+  describe('command arguments', () => {
+    it('VALID: {startPath, runId} => spawns with detail, runId, and --json args', async () => {
+      const proxy = wardDetailBrokerProxy();
+      const startPath = AbsoluteFilePathStub({ value: '/project' });
+      const runId = FileNameStub({ value: '1773805659495-6b06' });
+      const jsonOutput = JSON.stringify({ checks: [] });
+
+      proxy.setupSuccess({ output: jsonOutput });
+
+      await wardDetailBroker({ startPath, runId });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['detail', '1773805659495-6b06', '--json']);
+      expect(proxy.getSpawnedCommand()).toBe('dungeonmaster-ward');
+    });
+  });
+
   describe('failure cases', () => {
     it('ERROR: {non-zero exit code} => returns null', async () => {
       const proxy = wardDetailBrokerProxy();
@@ -63,6 +79,18 @@ describe('wardDetailBroker', () => {
       const runId = FileNameStub({ value: 'run-bad' });
 
       proxy.setupSuccess({ output: 'not valid json' });
+
+      const result = await wardDetailBroker({ startPath, runId });
+
+      expect(result).toBeNull();
+    });
+
+    it('ERROR: {whitespace-only output} => returns null', async () => {
+      const proxy = wardDetailBrokerProxy();
+      const startPath = AbsoluteFilePathStub({ value: '/project' });
+      const runId = FileNameStub({ value: 'run-whitespace' });
+
+      proxy.setupSuccess({ output: '   \n  \t  ' });
 
       const result = await wardDetailBroker({ startPath, runId });
 
