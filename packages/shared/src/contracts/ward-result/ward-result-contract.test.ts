@@ -12,17 +12,15 @@ describe('wardResultContract', () => {
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
         createdAt: '2024-01-15T10:00:00.000Z',
         exitCode: 1,
-        filePaths: [],
       });
     });
 
     it('VALID: ward result with all fields => parses successfully', () => {
       const result = WardResultStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        exitCode: 2,
-        filePaths: ['src/brokers/user/user-broker.ts', 'src/guards/auth/auth-guard.ts'],
-        errorSummary: 'Type error in user-broker.ts',
-        runId: 'ward-run-abc',
+        exitCode: 0,
+        runId: '1739625600000-a3f1',
+        wardMode: 'changed',
       });
 
       const parsed = wardResultContract.parse(result);
@@ -30,11 +28,18 @@ describe('wardResultContract', () => {
       expect(parsed).toStrictEqual({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         createdAt: '2024-01-15T10:00:00.000Z',
-        exitCode: 2,
-        filePaths: ['src/brokers/user/user-broker.ts', 'src/guards/auth/auth-guard.ts'],
-        errorSummary: 'Type error in user-broker.ts',
-        runId: 'ward-run-abc',
+        exitCode: 0,
+        runId: '1739625600000-a3f1',
+        wardMode: 'changed',
       });
+    });
+
+    it('VALID: ward result with wardMode full => parses successfully', () => {
+      const result = WardResultStub({ wardMode: 'full' });
+
+      const parsed = wardResultContract.parse(result);
+
+      expect(parsed.wardMode).toBe('full');
     });
 
     it('VALID: ward result with exitCode 0 => parses successfully', () => {
@@ -52,7 +57,6 @@ describe('wardResultContract', () => {
         wardResultContract.parse({
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Required/u);
     });
@@ -63,7 +67,6 @@ describe('wardResultContract', () => {
           id: 'not-a-uuid',
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Invalid uuid/u);
     });
@@ -74,7 +77,6 @@ describe('wardResultContract', () => {
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           createdAt: 'not-a-timestamp',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Invalid datetime/u);
     });
@@ -84,9 +86,19 @@ describe('wardResultContract', () => {
         wardResultContract.parse({
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           createdAt: '2024-01-15T10:00:00.000Z',
-          filePaths: [],
         });
       }).toThrow(/Required/u);
+    });
+
+    it('INVALID: invalid wardMode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 1,
+          wardMode: 'invalid',
+        });
+      }).toThrow(/Invalid enum value/u);
     });
   });
 });

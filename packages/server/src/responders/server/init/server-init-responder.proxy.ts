@@ -2,6 +2,10 @@ import { Hono } from 'hono';
 import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
+import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { honoServeAdapterProxy } from '../../../adapters/hono/serve/hono-serve-adapter.proxy';
 import { orchestratorEventsOnAdapterProxy } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter.proxy';
@@ -48,6 +52,9 @@ export const ServerInitResponderProxy = (): {
   orchestratorRecoverActiveQuestsAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   processDevLogAdapterProxy();
+  pathJoinAdapterProxy();
+  fsReadFileAdapterProxy();
+  orchestratorFindQuestPathAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   designProcessStateProxy();
 

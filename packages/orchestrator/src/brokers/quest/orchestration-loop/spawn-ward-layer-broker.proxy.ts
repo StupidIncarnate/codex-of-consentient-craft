@@ -2,54 +2,54 @@ import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-
 export const spawnWardLayerBrokerProxy = (): {
-  setupWardSuccess: (params: { exitCode: ExitCode; wardResultJson: string }) => void;
-  setupWardFailure: (params: { exitCode: ExitCode; wardResultJson: string }) => void;
-  setupWardNoRunId: (params: { exitCode: ExitCode }) => void;
+  setupWardSuccess: (params: { exitCode: ExitCode; stdoutLines?: string[] }) => void;
+  setupWardFailure: (params: { exitCode: ExitCode; stdoutLines?: string[] }) => void;
+  setupWardNoRunId: () => void;
   setupWardKilled: () => void;
+  getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
-  const fileProxy = fsReadFileAdapterProxy();
 
   return {
     setupWardSuccess: ({
       exitCode,
-      wardResultJson,
+      stdoutLines,
     }: {
       exitCode: ExitCode;
-      wardResultJson: string;
+      stdoutLines?: string[];
     }): void => {
+      const lines = stdoutLines ?? ['run: 1739625600000-a3f1', 'lint:      PASS'];
       captureProxy.setupSuccess({
         exitCode,
-        stdout: 'run: 1739625600000-a3f1\nlint:      PASS',
+        stdout: lines.join('\n'),
         stderr: '',
       });
-      fileProxy.resolves({ content: wardResultJson });
     },
 
     setupWardFailure: ({
       exitCode,
-      wardResultJson,
+      stdoutLines,
     }: {
       exitCode: ExitCode;
-      wardResultJson: string;
+      stdoutLines?: string[];
     }): void => {
+      const lines = stdoutLines ?? ['run: 1739625600000-a3f1', 'lint:      FAIL'];
       captureProxy.setupSuccess({
         exitCode,
-        stdout: 'run: 1739625600000-a3f1\nlint:      FAIL',
+        stdout: lines.join('\n'),
         stderr: '',
       });
-      fileProxy.resolves({ content: wardResultJson });
     },
 
-    setupWardNoRunId: ({ exitCode }: { exitCode: ExitCode }): void => {
-      captureProxy.setupSuccess({ exitCode, stdout: 'some error without run id', stderr: '' });
+    setupWardNoRunId: (): void => {
+      captureProxy.setupError({ error: new Error('Process crashed') });
     },
 
     setupWardKilled: (): void => {
       captureProxy.setupError({ error: new Error('Process was killed') });
     },
+
+    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
   };
 };

@@ -39,6 +39,7 @@ describe('workItemContract', () => {
         completedAt: '2024-01-15T10:05:00.000Z',
         errorMessage: 'verification_failed',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        wardMode: 'changed',
       });
 
       const result = workItemContract.parse(item);
@@ -59,7 +60,20 @@ describe('workItemContract', () => {
         completedAt: '2024-01-15T10:05:00.000Z',
         errorMessage: 'verification_failed',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        wardMode: 'changed',
       });
+    });
+
+    it('VALID: ward item with wardMode full => parses successfully', () => {
+      const item = WorkItemStub({
+        role: 'ward',
+        spawnerType: 'command',
+        wardMode: 'full',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result.wardMode).toBe('full');
     });
 
     it('VALID: work item with relatedDataItems => parses successfully', () => {

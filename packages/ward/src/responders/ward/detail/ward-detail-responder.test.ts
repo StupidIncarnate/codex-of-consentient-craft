@@ -13,7 +13,9 @@ describe('WardDetailResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getStderrCalls()).toStrictEqual(['Usage: ward detail <run-id> [file-path]\n']);
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'Usage: ward detail <run-id> [file-path] [--json]\n',
+      ]);
     });
   });
 

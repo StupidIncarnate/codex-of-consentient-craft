@@ -5,6 +5,7 @@ export { StartOrchestrator } from './startup/start-orchestrator';
 export { questAddBroker } from './brokers/quest/add/quest-add-broker';
 export { questGetBroker } from './brokers/quest/get/quest-get-broker';
 export { questFolderFindBroker } from './brokers/quest/folder-find/quest-folder-find-broker';
+export { questFindQuestPathBroker } from './brokers/quest/find-quest-path/quest-find-quest-path-broker';
 export { questListBroker } from './brokers/quest/list/quest-list-broker';
 export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
 export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';

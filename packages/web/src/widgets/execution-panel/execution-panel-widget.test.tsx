@@ -1234,13 +1234,12 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('ward results', () => {
-    it('VALID: {ward work item with wardResults} => shows ward exit code and error in expanded content', async () => {
+    it('VALID: {ward work item with wardResults} => shows ward exit code and mode in expanded content', async () => {
       ExecutionPanelWidgetProxy();
       const wardResult = WardResultStub({
         id: 'b0000000-0000-0000-0000-000000000001',
         exitCode: 1,
-        filePaths: ['src/broker.ts', 'src/adapter.ts'],
-        errorSummary: 'Lint failed: 2 errors',
+        wardMode: 'changed',
       });
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -1267,9 +1266,7 @@ describe('ExecutionPanelWidget', () => {
 
       const wardResultEl = screen.getByTestId('execution-row-ward-result');
 
-      expect(wardResultEl.textContent).toMatch(/Ward exit code: 1/u);
-      expect(wardResultEl.textContent).toMatch(/Lint failed: 2 errors/u);
-      expect(wardResultEl.textContent).toMatch(/Failed files: src\/broker\.ts, src\/adapter\.ts/u);
+      expect(wardResultEl.textContent).toMatch(/Ward exit code: 1 \(changed\)/u);
     });
   });
 

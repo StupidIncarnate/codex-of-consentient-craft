@@ -42,7 +42,6 @@ describe('resolveRelatedDataItemTransformer', () => {
       const wardResult = WardResultStub({
         id: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
         exitCode: 1,
-        filePaths: ['/src/test.ts'],
       });
       const quest = QuestStub({ wardResults: [wardResult] });
       const ref = RelatedDataItemStub({

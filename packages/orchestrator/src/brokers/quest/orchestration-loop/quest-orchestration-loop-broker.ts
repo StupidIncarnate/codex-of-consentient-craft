@@ -191,6 +191,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
       });
     } else if (roleName === 'siegemaster') {
       await runSiegemasterLayerBroker({

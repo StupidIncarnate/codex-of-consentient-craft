@@ -1,41 +1,48 @@
 /**
- * PURPOSE: Spawns dungeonmaster-ward run and reads structured WardResult JSON from disk
+ * PURPOSE: Spawns dungeonmaster-ward with streaming output and returns exit code + run ID
  *
  * USAGE:
- * const result = await spawnWardLayerBroker({startPath: AbsoluteFilePathStub({value: '/project'})});
- * // Returns {exitCode, wardResultJson} where wardResultJson is the parsed ward result or null
+ * const result = await spawnWardLayerBroker({startPath, wardMode: 'changed', onLine: (line) => emit(line)});
+ * // Returns {exitCode, runId} — runId extracted from stdout for subsequent `ward detail` calls
  */
 
-import type { AbsoluteFilePath, ExitCode, FileContents } from '@dungeonmaster/shared/contracts';
-import { exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ExitCode, FileName } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 
 export const spawnWardLayerBroker = async ({
   startPath,
+  wardMode,
+  onLine,
 }: {
   startPath: AbsoluteFilePath;
-}): Promise<{ exitCode: ExitCode; wardResultJson: FileContents | null }> => {
+  wardMode?: 'changed' | 'full';
+  onLine?: (line: string) => void;
+}): Promise<{ exitCode: ExitCode; runId: FileName | null }> => {
+  const args = wardMode === 'changed' ? ['run', '--changed'] : ['run'];
+
   const { exitCode: rawExitCode, output } = await childProcessSpawnCaptureAdapter({
     command: 'dungeonmaster-ward',
-    args: ['run'],
+    args,
     cwd: startPath,
   });
+
+  // Replay captured output line-by-line for streaming consumers
+  if (onLine) {
+    const lines = String(output).split('\n');
+    for (const line of lines) {
+      if (line.length > 0) {
+        onLine(line);
+      }
+    }
+  }
 
   const exitCode = rawExitCode ?? exitCodeContract.parse(1);
 
   const runId = wardOutputToRunIdTransformer({ output });
 
-  if (!runId) {
-    return { exitCode, wardResultJson: null };
-  }
-
-  const resultFilePath = filePathContract.parse(`${startPath}/.ward/run-${runId}.json`);
-
-  const wardResultJson = await fsReadFileAdapter({ filePath: resultFilePath });
-
-  return { exitCode, wardResultJson };
+  return { exitCode, runId };
 };

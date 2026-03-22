@@ -13,6 +13,10 @@ jest.mock('@dungeonmaster/orchestrator', () => ({
     emit: jest.fn(),
     removeAllListeners: jest.fn(),
   },
+  questFindQuestPathBroker: jest.fn().mockResolvedValue({
+    questPath: '/default/quest/path',
+    guildId: 'default-guild',
+  }),
 }));
 
 import { orchestrationEventsState } from '@dungeonmaster/orchestrator';

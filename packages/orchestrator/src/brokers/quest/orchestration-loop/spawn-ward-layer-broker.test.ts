@@ -5,45 +5,43 @@ import { spawnWardLayerBrokerProxy } from './spawn-ward-layer-broker.proxy';
 
 describe('spawnWardLayerBroker', () => {
   describe('ward execution', () => {
-    it('VALID: {ward exits 0 with run ID} => returns exitCode 0 and populated wardResultJson', async () => {
+    it('VALID: {ward exits 0 with run ID} => returns exitCode 0 and runId', async () => {
       const proxy = spawnWardLayerBrokerProxy();
-      const wardResultJson = '{"lint":"PASS","typecheck":"PASS"}';
-      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }), wardResultJson });
+      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result.exitCode).toBe(0);
-      expect(result.wardResultJson).toBe(wardResultJson);
+      expect(result.runId).toBe('1739625600000-a3f1');
     });
 
-    it('VALID: {ward exits 1 with run ID} => returns exitCode 1 and populated wardResultJson', async () => {
+    it('VALID: {ward exits 1 with run ID} => returns exitCode 1 and runId', async () => {
       const proxy = spawnWardLayerBrokerProxy();
-      const wardResultJson = '{"lint":"FAIL","typecheck":"PASS"}';
-      proxy.setupWardFailure({ exitCode: ExitCodeStub({ value: 1 }), wardResultJson });
+      proxy.setupWardFailure({ exitCode: ExitCodeStub({ value: 1 }) });
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.wardResultJson).toBe(wardResultJson);
+      expect(result.runId).toBe('1739625600000-a3f1');
     });
 
-    it('VALID: {ward exits 1 without run ID} => returns exitCode 1 and null wardResultJson', async () => {
+    it('VALID: {ward exits 1 without run ID} => returns exitCode 1 and null runId', async () => {
       const proxy = spawnWardLayerBrokerProxy();
-      proxy.setupWardNoRunId({ exitCode: ExitCodeStub({ value: 1 }) });
+      proxy.setupWardNoRunId();
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.wardResultJson).toBeNull();
+      expect(result.runId).toBeNull();
     });
 
-    it('VALID: {ward process is killed (null exitCode)} => returns exitCode 1 and null wardResultJson', async () => {
+    it('VALID: {ward process is killed} => returns exitCode 1 and null runId', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       proxy.setupWardKilled();
 
@@ -52,19 +50,44 @@ describe('spawnWardLayerBroker', () => {
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.wardResultJson).toBeNull();
+      expect(result.runId).toBeNull();
+    });
+  });
+
+  describe('wardMode flag', () => {
+    it('VALID: {wardMode: changed} => spawns with --changed arg', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+        wardMode: 'changed',
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', '--changed']);
     });
 
-    it('VALID: {adapter normalizes null exitCode to 1} => returns exitCode 1 (adapter-level guarantee)', async () => {
+    it('VALID: {wardMode: full} => spawns with run only', async () => {
       const proxy = spawnWardLayerBrokerProxy();
-      proxy.setupWardNoRunId({ exitCode: ExitCodeStub({ value: 1 }) });
+      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const result = await spawnWardLayerBroker({
+      await spawnWardLayerBroker({
+        startPath: AbsoluteFilePathStub({ value: '/project' }),
+        wardMode: 'full',
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
+    });
+
+    it('VALID: {no wardMode} => spawns with run only', async () => {
+      const proxy = spawnWardLayerBrokerProxy();
+      proxy.setupWardSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.wardResultJson).toBeNull();
+      expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
     });
   });
 });

@@ -95,7 +95,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFail({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
       });
 
       await runWardLayerBroker({
@@ -141,7 +141,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFailWithFilePaths({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
         uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
       });
 
@@ -191,7 +191,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFailWithFilePaths({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
         uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
       });
 
@@ -241,7 +241,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFailWithFilePaths({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
         uuids: [WARD_RESULT_UUID, SPIRITMENDER_UUID, WARD_RETRY_UUID],
       });
 
@@ -388,7 +388,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFailRetryExhausted({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
       });
 
       await runWardLayerBroker({
@@ -435,7 +435,7 @@ describe('runWardLayerBroker', () => {
       proxy.setupWardFailRetryExhausted({
         quest,
         exitCode: ExitCodeStub({ value: 1 }),
-        wardResultJson: WARD_JSON_WITH_FILES,
+        wardDetailJson: WARD_JSON_WITH_FILES,
       });
 
       await runWardLayerBroker({

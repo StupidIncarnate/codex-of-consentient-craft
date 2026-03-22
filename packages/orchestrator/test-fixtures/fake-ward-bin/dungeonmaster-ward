@@ -3,6 +3,27 @@
 const fs = require('fs');
 const path = require('path');
 
+// Handle "detail <runId> [--json]" subcommand
+const subcommand = process.argv[2];
+if (subcommand === 'detail') {
+    const runId = process.argv[3];
+    if (!runId) {
+        process.stderr.write('Usage: dungeonmaster-ward detail <run-id> [--json]\n');
+        process.exit(1);
+    }
+    const cwd = process.cwd();
+    const resultFile = path.join(cwd, '.ward', `run-${runId}.json`);
+    try {
+        const contents = fs.readFileSync(resultFile, 'utf-8');
+        // Use writeFileSync to fd 1 (stdout) to ensure flush
+        fs.writeFileSync(1, contents);
+        process.exit(0);
+    } catch {
+        process.stderr.write(`Ward result file not found: ${resultFile}\n`);
+        process.exit(1);
+    }
+}
+
 const queueDir = process.env.FAKE_WARD_QUEUE_DIR;
 
 if (!queueDir) {
@@ -37,9 +58,6 @@ const exitCode = response.exitCode ?? 0;
 const runId = response.runId || `fake-${Date.now()}`;
 const wardResultJson = response.wardResultJson || null;
 
-// Write run ID to stdout (ward output format: "run: <id>")
-process.stdout.write(`run: ${runId}\n`);
-
 // Write ward result JSON file to <cwd>/.ward/run-<runId>.json
 if (wardResultJson) {
     const cwd = process.cwd();
@@ -50,5 +68,9 @@ if (wardResultJson) {
         JSON.stringify(wardResultJson),
     );
 }
+
+// Write run ID to stdout (ward output format: "run: <id>")
+// Use fs.writeFileSync(1, ...) to ensure synchronous write to stdout fd
+fs.writeFileSync(1, `run: ${runId}\n`);
 
 process.exit(exitCode);

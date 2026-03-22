@@ -64,6 +64,7 @@ export const stepsToWorkItemsTransformer = ({
     dependsOn: allCwIds,
     maxAttempts: slotManagerStatics.ward.maxRetries,
     createdAt: now,
+    wardMode: 'changed',
   });
 
   const siegeItem = workItemContract.parse({
@@ -102,6 +103,7 @@ export const stepsToWorkItemsTransformer = ({
     dependsOn: finalWardDeps,
     maxAttempts: slotManagerStatics.ward.maxRetries,
     createdAt: now,
+    wardMode: 'full',
   });
 
   return [...cwItems, wardItem, siegeItem, ...lawItems, finalWardItem];
