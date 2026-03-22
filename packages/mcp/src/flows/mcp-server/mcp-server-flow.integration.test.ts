@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
 import { JsonRpcResponseStub } from '../../contracts/json-rpc-response/json-rpc-response.stub';
 import { RpcIdStub } from '../../contracts/rpc-id/rpc-id.stub';
@@ -403,7 +404,7 @@ describe('McpServerFlow', () => {
 
       const questDir = path.join(
         client.dungeonmasterHome,
-        '.dungeonmaster',
+        environmentStatics.testDataDir,
         'guilds',
         guildId,
         'quests',
@@ -458,7 +459,7 @@ describe('McpServerFlow', () => {
 
       const questDir = path.join(
         client.dungeonmasterHome,
-        '.dungeonmaster',
+        environmentStatics.testDataDir,
         'guilds',
         guildId,
         'quests',
@@ -599,7 +600,7 @@ describe('McpServerFlow', () => {
 
       const questDir = path.join(
         client.dungeonmasterHome,
-        '.dungeonmaster',
+        environmentStatics.testDataDir,
         'guilds',
         guildId,
         'quests',

@@ -124,3 +124,8 @@ See `packages/standards/define/testing-standards.md` § "E2E Testing" for full p
 - **Wait for `/api/guilds` response** before sending chat — otherwise `guildId` isn't resolved yet and the message
   silently does nothing
 - **Queue responses before triggering chat** — if the queue is empty, the fake CLI exits with code 1
+- **Quest→session linking requires a chaoswhisperer work item** — the `questActiveSessionTransformer` derives
+  `activeSessionId` by looking for `chaoswhisperer` or `glyphsmith` work items with a `sessionId`. If your test quest
+  has no chaoswhisperer/glyphsmith work item, the server cannot match the quest to the session, and the execution panel
+  will show "Awaiting quest activity..." instead of rendering. Always include a chaoswhisperer work item with the
+  session's `sessionId` in test quest data.

@@ -404,8 +404,8 @@ describe('ExecutionPanelWidget', () => {
 
       // Should have pathseeker done row + 2 step rows = 3 total
       expect(stepRows).toHaveLength(3);
-      // First row should be pathseeker with unified header rendering
-      expect(stepRows[0]?.textContent).toMatch(/Pathseeker #1/u);
+      // First row should be pathseeker (no #1 since it's the only item in its group)
+      expect(stepRows[0]?.textContent).toMatch(/Pathseeker(?! #)/u);
     });
   });
 
@@ -784,6 +784,483 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
+  describe('floor ordering with mixed step and non-step work items', () => {
+    const getFloorNames = () =>
+      screen.queryAllByTestId('floor-header-layer-widget').map((h) =>
+        (h.textContent ?? '')
+          .replace(/──+/gu, '')
+          .replace(/Concurrent.*$/u, '')
+          .trim(),
+      );
+
+    it('VALID: {happy path chain with steps} => floors in topological order', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'pathseeker',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'ward',
+            status: 'in_progress',
+            dependsOn: ['a0000000-0000-0000-0000-000000000003'],
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'HOMEBASE',
+        'ENTRANCE: CARTOGRAPHY',
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+      ]);
+    });
+
+    it('VALID: {ward fail → spiritmender → ward retry} => FORGE before MINI BOSS, INFIRMARY between bosses', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000010',
+            role: 'pathseeker',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000011',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000010'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000012',
+            role: 'ward',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000011'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000013',
+            role: 'spiritmender',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000012'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000012' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000014',
+            role: 'ward',
+            status: 'in_progress',
+            dependsOn: ['a0000000-0000-0000-0000-000000000013'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000012' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:04:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'ENTRANCE: CARTOGRAPHY',
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'FLOOR 3: INFIRMARY',
+        'FLOOR 4: MINI BOSS',
+      ]);
+    });
+
+    it('VALID: {ward exhausts retries → pathseeker replan} => CARTOGRAPHY reappears after MINI BOSS', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000030',
+            role: 'pathseeker',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000031',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000030'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000032',
+            role: 'ward',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000031'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+            attempt: 2,
+            maxAttempts: 3,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000033',
+            role: 'pathseeker',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000032'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000032' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'ENTRANCE: CARTOGRAPHY',
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'ENTRANCE: CARTOGRAPHY',
+      ]);
+    });
+
+    it('VALID: {siegemaster fail → pathseeker replan} => CARTOGRAPHY after ARENA, skipped excluded', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000040',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000041',
+            role: 'ward',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000040'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000042',
+            role: 'siegemaster',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000041'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000043',
+            role: 'lawbringer',
+            status: 'skipped',
+            dependsOn: ['a0000000-0000-0000-0000-000000000042'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000044',
+            role: 'ward',
+            status: 'skipped',
+            dependsOn: ['a0000000-0000-0000-0000-000000000043'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000045',
+            role: 'pathseeker',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000042'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000042' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'FLOOR 3: ARENA',
+        'ENTRANCE: CARTOGRAPHY',
+      ]);
+    });
+
+    it('VALID: {lawbringer fail → spiritmender} => INFIRMARY after TRIBUNAL', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000050',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000051',
+            role: 'ward',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000050'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000052',
+            role: 'siegemaster',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000051'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000053',
+            role: 'lawbringer',
+            status: 'failed',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000052'],
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000054',
+            role: 'spiritmender',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000053'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000053' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:04:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'FLOOR 3: ARENA',
+        'FLOOR 4: TRIBUNAL',
+        'FLOOR 5: INFIRMARY',
+      ]);
+    });
+
+    it('VALID: {spiritmender fail → pathseeker replan} => CARTOGRAPHY after INFIRMARY', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000060',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000061',
+            role: 'ward',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000060'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000062',
+            role: 'spiritmender',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000061'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000061' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000063',
+            role: 'pathseeker',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000062'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000062' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'FLOOR 3: INFIRMARY',
+        'ENTRANCE: CARTOGRAPHY',
+      ]);
+    });
+
+    it('VALID: {pathseeker retry after ward exhaustion} => two CARTOGRAPHY entrances at different depths', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Build module' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000070',
+            role: 'pathseeker',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000071',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000070'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000072',
+            role: 'ward',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000071'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+            attempt: 2,
+            maxAttempts: 3,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000073',
+            role: 'pathseeker',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000072'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000072' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:03:00.000Z',
+            attempt: 0,
+            maxAttempts: 3,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000074',
+            role: 'pathseeker',
+            status: 'in_progress',
+            dependsOn: ['a0000000-0000-0000-0000-000000000073'],
+            insertedBy: 'a0000000-0000-0000-0000-000000000073' as ReturnType<
+              typeof QuestWorkItemIdStub
+            >,
+            createdAt: '2024-01-15T10:04:00.000Z',
+            attempt: 1,
+            maxAttempts: 3,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'ENTRANCE: CARTOGRAPHY',
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: CARTOGRAPHY',
+      ]);
+    });
+
+    it('VALID: {full happy chain with lawbringer step ref} => TRIBUNAL between ARENA and FLOOR BOSS', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000020',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000021',
+            role: 'ward',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000020'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000022',
+            role: 'siegemaster',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000021'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000023',
+            role: 'lawbringer',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000022'],
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000024',
+            role: 'ward',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000023'],
+            createdAt: '2024-01-15T10:04:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect(getFloorNames()).toStrictEqual([
+        'FLOOR 1: FORGE',
+        'FLOOR 2: MINI BOSS',
+        'FLOOR 3: ARENA',
+        'FLOOR 4: TRIBUNAL',
+        'FLOOR 5: FLOOR BOSS',
+      ]);
+    });
+  });
+
   describe('session entries for work items', () => {
     it('VALID: {work item with sessionId and matching sessionEntries} => passes entries to row', async () => {
       const proxy = ExecutionPanelWidgetProxy();
@@ -1042,7 +1519,7 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
       const plannedRow = stepRows[0]!;
 
-      expect(plannedRow.textContent).toMatch(/Pathseeker #1/u);
+      expect(plannedRow.textContent).toMatch(/Pathseeker(?! #)/u);
       expect(plannedRow.textContent).toMatch(/FAILED/u);
     });
 
@@ -1379,7 +1856,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('work items only naming', () => {
-    it('VALID: {work item in hasWorkItemsOnly path} => shows capitalized role with index', () => {
+    it('VALID: {single work item in group} => shows capitalized role without index number', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -1399,7 +1876,36 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
 
-      expect(stepRows[0]?.textContent).toMatch(/Chaoswhisperer #1/u);
+      expect(stepRows[0]?.textContent).toMatch(/Chaoswhisperer(?! #)/u);
+    });
+
+    it('VALID: {multiple work items in same group} => shows #N index on each', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+
+      expect(stepRows[0]?.textContent).toMatch(/Codeweaver #1/u);
+      expect(stepRows[1]?.textContent).toMatch(/Codeweaver #2/u);
     });
   });
 
@@ -1446,7 +1952,7 @@ describe('ExecutionPanelWidget', () => {
       expect(stepRows).toHaveLength(3);
     });
 
-    it('VALID: {quest with steps and multiple non-step roles} => renders non-step floors before step floors in config order', () => {
+    it('VALID: {quest with steps and multiple non-step roles} => renders all floors in topological order', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -1482,11 +1988,12 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
+      // All at depth 0, sorted by role config index: chaoswhisperer, pathseeker, codeweaver, spiritmender
       expect(floorHeaders).toHaveLength(4);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
-      expect(floorHeaders[2]?.textContent).toMatch(/INFIRMARY/u);
-      expect(floorHeaders[3]?.textContent).toMatch(/FORGE/u);
+      expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
+      expect(floorHeaders[3]?.textContent).toMatch(/INFIRMARY/u);
     });
 
     it('VALID: {quest with steps and non-step work item with sessionId} => shows session entries for non-step work item on expand', async () => {

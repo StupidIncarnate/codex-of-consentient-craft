@@ -1,5 +1,8 @@
 // Global Jest setup for consistent test environment
 
+// Ensure tests use .dungeonmaster-test data directory, not dev or production
+process.env.DUNGEONMASTER_ENV = 'test';
+
 // Detect .todo and .skip usage and fail immediately
 const originalDescribe = global.describe;
 const originalIt = global.it;

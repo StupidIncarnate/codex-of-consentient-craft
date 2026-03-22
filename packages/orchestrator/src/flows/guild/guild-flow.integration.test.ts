@@ -3,11 +3,12 @@ import { join } from 'path';
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { GuildIdStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { GuildFlow } from './guild-flow';
 
 const setupGuildHome = (guildPath: string): void => {
-  const dungeonmasterDir = join(guildPath, '.dungeonmaster');
+  const dungeonmasterDir = join(guildPath, environmentStatics.testDataDir);
   mkdirSync(dungeonmasterDir, { recursive: true });
   writeFileSync(join(dungeonmasterDir, 'config.json'), JSON.stringify({ guilds: [] }));
 };

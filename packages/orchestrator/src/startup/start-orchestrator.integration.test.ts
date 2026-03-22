@@ -1,11 +1,39 @@
+import { mkdirSync, writeFileSync } from 'fs';
+import { join } from 'path';
+
 import { GuildPathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { StartOrchestrator } from './start-orchestrator';
+
+const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
+  const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
+  const testbed = installTestbedCreateBroker({
+    baseName: BaseNameStub({ value: baseName }),
+  });
+  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const dmDir = join(testbed.guildPath, environmentStatics.testDataDir);
+  mkdirSync(dmDir, { recursive: true });
+  writeFileSync(join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
+
+  return (): void => {
+    if (savedDungeonmasterHome === undefined) {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+    } else {
+      process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
+    }
+  };
+};
 
 describe('StartOrchestrator', () => {
   describe('guild wiring', () => {
     it('VALID: {listGuilds} => delegates to GuildFlow.list and returns array', async () => {
+      const restore = setupTestHome({ baseName: 'start-orch-list' });
+
       const result = await StartOrchestrator.listGuilds();
+
+      restore();
 
       expect(Array.isArray(result)).toBe(true);
     });
@@ -13,13 +41,21 @@ describe('StartOrchestrator', () => {
 
   describe('quest wiring', () => {
     it('VALID: {nonexistent questId} => getQuest delegates to QuestFlow.get and returns error', async () => {
+      const restore = setupTestHome({ baseName: 'start-orch-quest' });
+
       const result = await StartOrchestrator.getQuest({ questId: 'nonexistent-quest-id' });
+
+      restore();
 
       expect(result.success).toBe(false);
     });
 
     it('VALID: {nonexistent questId} => verifyQuest delegates to QuestFlow.verify and returns error', async () => {
+      const restore = setupTestHome({ baseName: 'start-orch-verify' });
+
       const result = await StartOrchestrator.verifyQuest({ questId: 'nonexistent-quest-id' });
+
+      restore();
 
       expect(result.success).toBe(false);
     });

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import {
   ArrayIndexStub,
   DependencyStepStub,
@@ -249,7 +250,7 @@ const setupTestEnv = (tempDir: string) => {
   // Without this, all tests share the same config file and concurrent writes corrupt it.
   process.env.DUNGEONMASTER_HOME = tempDir;
   // Pre-create the .dungeonmaster directory and empty config so guildConfigReadBroker finds it
-  const dmDir = path.join(tempDir, '.dungeonmaster');
+  const dmDir = path.join(tempDir, environmentStatics.testDataDir);
   fs.mkdirSync(dmDir, { recursive: true });
   fs.writeFileSync(path.join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
 
@@ -473,7 +474,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orchestration-non-approved' }),
       });
       process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      const dmDir1 = path.join(testbed.guildPath, '.dungeonmaster');
+      const dmDir1 = path.join(testbed.guildPath, environmentStatics.testDataDir);
       fs.mkdirSync(dmDir1, { recursive: true });
       fs.writeFileSync(path.join(dmDir1, 'config.json'), JSON.stringify({ guilds: [] }));
 
@@ -504,7 +505,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orchestration-approved' }),
       });
       process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      const dmDir2 = path.join(testbed.guildPath, '.dungeonmaster');
+      const dmDir2 = path.join(testbed.guildPath, environmentStatics.testDataDir);
       fs.mkdirSync(dmDir2, { recursive: true });
       fs.writeFileSync(path.join(dmDir2, 'config.json'), JSON.stringify({ guilds: [] }));
 

@@ -50,4 +50,22 @@ describe('dungeonmasterHomeFindBroker', () => {
       expect(result).toStrictEqual({ homePath: '/home/user/.dungeonmaster-dev' });
     });
   });
+
+  describe('test environment', () => {
+    it('VALID: {DUNGEONMASTER_ENV: "test"} => returns path to ~/.dungeonmaster-test', () => {
+      const proxy = dungeonmasterHomeFindBrokerProxy();
+
+      proxy.setEnv({ key: 'DUNGEONMASTER_ENV', value: 'test' });
+      proxy.setupHomePath({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster-test' }),
+      });
+
+      const result = dungeonmasterHomeFindBroker();
+
+      proxy.clearEnv();
+
+      expect(result).toStrictEqual({ homePath: '/home/user/.dungeonmaster-test' });
+    });
+  });
 });
