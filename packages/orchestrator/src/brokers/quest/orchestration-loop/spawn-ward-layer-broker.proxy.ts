@@ -1,6 +1,6 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
+import { childProcessSpawnStreamLinesAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const spawnWardLayerBrokerProxy = (): {
   setupWardSuccess: (params: { exitCode: ExitCode; stdoutLines?: string[] }) => void;
@@ -9,7 +9,7 @@ export const spawnWardLayerBrokerProxy = (): {
   setupWardKilled: () => void;
   getSpawnedArgs: () => unknown;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const streamProxy = childProcessSpawnStreamLinesAdapterProxy();
 
   return {
     setupWardSuccess: ({
@@ -20,10 +20,9 @@ export const spawnWardLayerBrokerProxy = (): {
       stdoutLines?: string[];
     }): void => {
       const lines = stdoutLines ?? ['run: 1739625600000-a3f1', 'lint:      PASS'];
-      captureProxy.setupSuccess({
+      streamProxy.setupSuccess({
         exitCode,
-        stdout: lines.join('\n'),
-        stderr: '',
+        stdoutLines: lines,
       });
     },
 
@@ -35,21 +34,20 @@ export const spawnWardLayerBrokerProxy = (): {
       stdoutLines?: string[];
     }): void => {
       const lines = stdoutLines ?? ['run: 1739625600000-a3f1', 'lint:      FAIL'];
-      captureProxy.setupSuccess({
+      streamProxy.setupSuccess({
         exitCode,
-        stdout: lines.join('\n'),
-        stderr: '',
+        stdoutLines: lines,
       });
     },
 
     setupWardNoRunId: (): void => {
-      captureProxy.setupError({ error: new Error('Process crashed') });
+      streamProxy.setupError({ error: new Error('Process crashed') });
     },
 
     setupWardKilled: (): void => {
-      captureProxy.setupError({ error: new Error('Process was killed') });
+      streamProxy.setupError({ error: new Error('Process was killed') });
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown => streamProxy.getSpawnedArgs(),
   };
 };

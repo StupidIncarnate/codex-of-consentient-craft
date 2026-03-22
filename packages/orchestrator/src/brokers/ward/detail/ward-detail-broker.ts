@@ -25,7 +25,7 @@ export const wardDetailBroker = async ({
   runId: FileName;
 }): Promise<ErrorMessage | null> => {
   const { exitCode, output } = await childProcessSpawnCaptureAdapter({
-    command: WARD_COMMAND,
+    command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
     args: ['detail', runId, JSON_FLAG],
     cwd: startPath,
   });

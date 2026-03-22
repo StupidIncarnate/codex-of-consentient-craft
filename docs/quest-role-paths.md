@@ -227,16 +227,19 @@ status from work items, never sets it directly.
   │
   ├─ FAIL (retries left) ─────────────────────────────────────────────────
   │   ward → failed
-  │   CREATES wardResult on quest (exitCode, filePaths, errorSummary)
+  │   CREATES wardResult on quest (exitCode, runId, wardMode)
+  │   PERSISTS full detail to {questFolder}/ward-results/{id}.json
   │   CREATES:
-  │     1 × spiritmender (dependsOn: [], relatedDataItems: ['wardResults/<id>'])
-  │     1 × ward-retry   (dependsOn: [spiritmender-id], attempt: +1, insertedBy: failed-ward-id)
+  │     N × spiritmender (dependsOn: [failed-ward-id], batched by file count)
+  │     1 × ward-retry   (dependsOn: [ALL spiritmender IDs], attempt: +1, insertedBy: failed-ward-id)
+  │   Batch files written to {questFolder}/spiritmender-batches/{spiritmenderId}.json
   │   Siege dependsOn REWIRED to ward-retry
   │
   │   workItems: [
   │     ..., { ward, failed },
-  │     { spiritmender, pending, dependsOn: [] },
-  │     { ward-retry, pending, dependsOn: [spiritmender-id], attempt: 1 },
+  │     { spiritmender-1, pending, dependsOn: [failed-ward-id] },
+  │     { spiritmender-2, pending, dependsOn: [failed-ward-id] },
+  │     { ward-retry, pending, dependsOn: [spirit-1, spirit-2], attempt: 1 },
   │     { siege, pending, dependsOn: [ward-retry-id] },  ◄── rewired
   │     ...
   │   ]
@@ -258,13 +261,15 @@ status from work items, never sets it directly.
 ### Phase 2c-recovery: Spiritmender (quest-level, from ward failure)
 
 ```
-⑧a Spiritmender dispatched (pending → in_progress)
-    Reads ward errors from relatedDataItems. Fixes 1 file per agent slot.
+⑧a Spiritmenders dispatched (pending → in_progress, batched)
+    Each reads its batch file from {questFolder}/spiritmender-batches/{workItemId}.json.
+    N spiritmenders run in parallel (up to 3 slots).
 
     workItems: [
       ..., { ward, failed },
-      { spiritmender, in_progress, dependsOn: [], relatedDataItems: ['wardResults/<id>'] },
-      { ward-retry, pending, dependsOn: [spiritmender-id] },
+      { spiritmender-1, in_progress, dependsOn: [failed-ward-id] },
+      { spiritmender-2, in_progress, dependsOn: [failed-ward-id] },
+      { ward-retry, pending, dependsOn: [spirit-1, spirit-2] },
       { siege, pending, dependsOn: [ward-retry-id] },
       ...
     ]
@@ -388,24 +393,24 @@ ABANDONED: User manually abandons.
 
 ### Work Item Creation Summary
 
-| When                                   | Creates                 | dependsOn                             |
-|----------------------------------------|-------------------------|---------------------------------------|
-| User creates quest via web UI          | 1 × chaoswhisperer      | `[]`                                  |
-| needsDesign === true after approved    | 1 × glyphsmith          | `[]`                                  |
-| User clicks Start                      | 1 × pathseeker          | `[completed chat IDs]`                |
-| PathSeeker verify passes               | N × codeweaver          | `[pathseeker-id + inter-step chains]` |
-| PathSeeker verify passes               | 1 × ward                | `[ALL codeweaver IDs]`                |
-| PathSeeker verify passes               | 1 × siege               | `[ward-id]`                           |
-| PathSeeker verify passes               | N × lawbringer          | `[siege-id]`                          |
-| PathSeeker verify passes               | 1 × final-ward          | `[ALL lawbringer IDs]`                |
-| PathSeeker verify fails (retries left) | 1 × pathseeker-retry    | `[]`                                  |
-| Codeweaver fails                       | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
-| Ward fails (retries left)              | 1 × spiritmender        | `[]`                                  |
-| Ward fails (retries left)              | 1 × ward-retry          | `[spiritmender-id]`                   |
-| Ward fails (no retries left)           | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
-| Spiritmender fails (ward recovery)     | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
-| Siege fails                            | 1 × pathseeker (replan) | `[]` + pending items → skipped        |
-| Lawbringer fails                       | 1 × spiritmender        | `[]`                                  |
+| When                                   | Creates                    | dependsOn                             |
+|----------------------------------------|----------------------------|---------------------------------------|
+| User creates quest via web UI          | 1 × chaoswhisperer         | `[]`                                  |
+| needsDesign === true after approved    | 1 × glyphsmith             | `[]`                                  |
+| User clicks Start                      | 1 × pathseeker             | `[completed chat IDs]`                |
+| PathSeeker verify passes               | N × codeweaver             | `[pathseeker-id + inter-step chains]` |
+| PathSeeker verify passes               | 1 × ward                   | `[ALL codeweaver IDs]`                |
+| PathSeeker verify passes               | 1 × siege                  | `[ward-id]`                           |
+| PathSeeker verify passes               | N × lawbringer             | `[siege-id]`                          |
+| PathSeeker verify passes               | 1 × final-ward             | `[ALL lawbringer IDs]`                |
+| PathSeeker verify fails (retries left) | 1 × pathseeker-retry       | `[]`                                  |
+| Codeweaver fails                       | 1 × pathseeker (replan)    | `[]` + pending items → skipped        |
+| Ward fails (retries left)              | N × spiritmender (batched) | `[failed-ward-id]`                    |
+| Ward fails (retries left)              | 1 × ward-retry             | `[ALL spiritmender IDs]`              |
+| Ward fails (no retries left)           | 1 × pathseeker (replan)    | `[]` + pending items → skipped        |
+| Spiritmender fails (ward recovery)     | 1 × pathseeker (replan)    | `[]` + pending items → skipped        |
+| Siege fails                            | 1 × pathseeker (replan)    | `[]` + pending items → skipped        |
+| Lawbringer fails                       | 1 × spiritmender           | `[]`                                  |
 
 ### Who sets quest status
 
@@ -642,8 +647,8 @@ PathSeeker (on verify success)
   └─► N × lawbringer (dependsOn: siege ID)
 
 Ward (on failure, attempts remain)
-  ├─► 1 × spiritmender (dependsOn: [], immediately ready)
-  └─► 1 × ward-retry (dependsOn: [spiritmender ID])
+  ├─► N × spiritmender (dependsOn: [failed-ward-id], batched by file count)
+  └─► 1 × ward-retry (dependsOn: [ALL spiritmender IDs])
 
 Siege (on failure)
   └─► 1 × pathseeker replan (dependsOn: [], pending items → skipped)
@@ -657,10 +662,11 @@ Siege (on failure)
     - 1 siege item with `timeoutMs: 300000`
     - N lawbringer items, each with `relatedDataItems: ['steps/<stepId>']`
 
-- [ ] **T-SPAWN-2: Ward failure generates spiritmender + retry**
+- [ ] **T-SPAWN-2: Ward failure generates batched spiritmenders + retry**
   After ward fails (attempt < max), quest.json should contain:
-    - 1 new spiritmender with `dependsOn: []` and `relatedDataItems: ['wardResults/<id>']`
-    - 1 new ward-retry with `dependsOn: [spiritmender ID]` and `attempt: previous + 1`
+  - N new spiritmenders with `dependsOn: [failed-ward-id]`, batch files at
+    `{questFolder}/spiritmender-batches/{id}.json`
+  - 1 new ward-retry with `dependsOn: [ALL spiritmender IDs]` and `attempt: previous + 1`
     - Siege `dependsOn` rewired to ward-retry ID
 
 - [ ] **T-SPAWN-3: Siege failure skips pending + spawns pathseeker replan**
@@ -826,12 +832,13 @@ These walk the entire quest lifecycle. Verify quest.json at each checkpoint.
 ```
 ⑦ Ward runs → fails (exit code 1)
    ward-A → failed, errorMessage: 'ward_failed'
-   NEW: spiritmender-1 (pending, dependsOn: [], relatedDataItems: ['wardResults/<id>'])
-   NEW: ward-B (pending, dependsOn: [spiritmender-1], attempt: 1)
+   NEW: spiritmender-1..N (pending, dependsOn: [ward-A], batched by file count)
+   NEW: ward-B (pending, dependsOn: [ALL spiritmender IDs], attempt: 1)
+   Batch files at {questFolder}/spiritmender-batches/{spiritmenderId}.json
    siege dependsOn rewired: [ward-B] (was [ward-A])
   │
   ▼
-⑦a Spiritmender runs → fixes files → complete
+⑦a Spiritmenders run (parallel, up to 3 slots) → fix files → complete
   │
   ▼
 ⑦b Ward-B runs → passes (exit code 0)
@@ -844,9 +851,11 @@ These walk the entire quest lifecycle. Verify quest.json at each checkpoint.
 
 **What to check in quest.json after ⑦:**
 
-- `quest.wardResults` has an entry with exitCode, filePaths, errorSummary
-- Spiritmender's `relatedDataItems` points to that wardResult
+- `quest.wardResults` has an entry with exitCode, runId, wardMode
+- Full detail persisted to `{questFolder}/ward-results/{id}.json`
+- Spiritmender batch files exist at `{questFolder}/spiritmender-batches/`
 - Ward-B has `attempt: 1`, `insertedBy: ward-A-id`
+- Ward-B `dependsOn` includes ALL spiritmender IDs
 - Siege `dependsOn` contains ward-B id (NOT ward-A)
 
 ---
@@ -1078,15 +1087,16 @@ spiritmender + retry cycle.
 **Role-specific quirks:**
 
 - Only non-agent role — spawns a shell command, not a Claude process
-- Extracts `runId` from stdout via regex `^run: (.+)$`, reads `.ward/run-<id>.json` for structured results
-- If regex fails or file missing → `wardResultJson` is null → falls back to quest step file paths for spiritmender
-- Stores `wardResult` on quest (exitCode, filePaths, errorSummary) before creating recovery items
-- Exactly ONE spiritmender per ward failure (regardless of file count). The spiritmender fans out to 1-per-file
-  internally.
-- Ward retry `dependsOn: [spiritmender IDs]`. If no file paths found → no spiritmender → retry `dependsOn: []` (
-  immediately ready)
-- exitCode null (process killed) → stored as 1 via `?? 1` fallback
-- File paths extracted from `checks[].projectResults[].errors[].filePath` and `testFailures[].suitePath`, deduplicated
+- Streams ward output to web UI via synthetic sessionId (`ward-{uuid}`)
+- Supports `wardMode` field on work item (`'changed'` or `'full'`) — passed through to ward CLI
+- Stores lightweight `wardResult` on quest (exitCode, runId, wardMode) — no inline file paths or error details
+- Full detail persisted to `{questFolder}/ward-results/{id}.json` via `wardPersistResultBroker`
+- On failure: creates **batched spiritmenders** (N spiritmenders, one per batch of files) via
+  `wardDetailToSpiritmenderBatchesTransformer`
+- Each spiritmender's batch file written to `{questFolder}/spiritmender-batches/{spiritmenderWorkItemId}.json`
+- Ward retry `dependsOn: [ALL spiritmender IDs]`
+- If no detail available → zero spiritmenders → ward retry `dependsOn: []` (immediately ready)
+- On retries exhausted: skips all pending items, creates pathseeker replan with `dependsOn: [failed-ward-id]`
 
 ---
 
@@ -1102,14 +1112,15 @@ spiritmender + retry cycle.
 
 **Two distinct paths exist:**
 
-1. **Quest-level:** Dispatched by orchestration loop. Resolves wardResult from `relatedDataItems`. Creates 1 work unit
-   per file path. Each agent sees ALL concatenated errors (not just its own file's).
-2. **Inline:** Spawned inside slot manager via `needs-role-followup` signal. Uses file paths from `signal.context`. Does
-   NOT create quest work items. Operates purely within slot manager's WorkTracker.
+1. **Quest-level (from ward failure):** Created by `runWardLayerBroker`. Each spiritmender reads its batch file from
+   `{questFolder}/spiritmender-batches/{workItemId}.json` containing `filePaths` and `errors` for its assigned files.
+2. **Inline (from slot manager):** Spawned inside slot manager via `needs-role-followup` signal. Uses file paths from
+   `signal.context`. Does NOT create quest work items. Operates purely within slot manager's WorkTracker.
 
 **Role-specific quirks:**
 
-- Empty `relatedDataItems` → zero work units → instant "complete" with no actual work
+- Quest-level spiritmenders are **batched** — ward failure can create N spiritmenders (one per batch of files)
+- Batch files stored externally, not in `relatedDataItems` (which now only reference `wardResults/<id>`)
 - Inline spiritmender: `signal.context` undefined → falls back to `[startPath]`
 - `maxFollowupDepth` varies by caller: codeweaver=5, lawbringer=3, spiritmender=3
 

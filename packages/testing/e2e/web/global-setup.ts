@@ -7,4 +7,5 @@ const TEST_HOME = process.env.DUNGEONMASTER_HOME ?? path.join(os.tmpdir(), `dm-e
 export default function globalSetup(): void {
   mkdirSync(path.join(TEST_HOME, '.dungeonmaster'), { recursive: true });
   mkdirSync(path.join(TEST_HOME, 'claude-queue'), { recursive: true });
+  mkdirSync(path.join(TEST_HOME, 'ward-queue'), { recursive: true });
 }

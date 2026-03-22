@@ -4,6 +4,7 @@ import * as path from 'path';
 import type { APIRequestContext } from '@playwright/test';
 
 export { queueClaudeResponse, clearClaudeQueue } from '../harness/claude-mock/queue-helpers';
+export { queueWardResponse, clearWardQueue } from '../harness/ward-mock/queue-helpers';
 export {
   SimpleTextResponseStub,
   ToolUseChainResponseStub,

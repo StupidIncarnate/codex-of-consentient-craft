@@ -115,7 +115,7 @@ describe('spawnWardLayerBroker', () => {
       ]);
     });
 
-    it('VALID: {onLine provided, output has empty lines} => skips empty lines', async () => {
+    it('VALID: {onLine provided, output has empty lines} => passes all lines including empty', async () => {
       const proxy = spawnWardLayerBrokerProxy();
       proxy.setupWardSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
@@ -131,7 +131,7 @@ describe('spawnWardLayerBroker', () => {
         },
       });
 
-      expect(collectedLines).toStrictEqual(['run: 1739625600000-a3f1', 'lint:      PASS']);
+      expect(collectedLines).toStrictEqual(['run: 1739625600000-a3f1', '', 'lint:      PASS']);
     });
 
     it('VALID: {no onLine callback} => does not throw', async () => {

@@ -9,9 +9,11 @@
 import type { AbsoluteFilePath, ExitCode, FileName } from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
 
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
+
+const WARD_COMMAND = 'dungeonmaster-ward';
 
 export const spawnWardLayerBroker = async ({
   startPath,
@@ -24,21 +26,12 @@ export const spawnWardLayerBroker = async ({
 }): Promise<{ exitCode: ExitCode; runId: FileName | null }> => {
   const args = wardMode === 'changed' ? ['run', '--changed'] : ['run'];
 
-  const { exitCode: rawExitCode, output } = await childProcessSpawnCaptureAdapter({
-    command: 'dungeonmaster-ward',
+  const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
+    command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
     args,
     cwd: startPath,
+    ...(onLine === undefined ? {} : { onLine }),
   });
-
-  // Replay captured output line-by-line for streaming consumers
-  if (onLine) {
-    const lines = String(output).split('\n');
-    for (const line of lines) {
-      if (line.length > 0) {
-        onLine(line);
-      }
-    }
-  }
 
   const exitCode = rawExitCode ?? exitCodeContract.parse(1);
 
