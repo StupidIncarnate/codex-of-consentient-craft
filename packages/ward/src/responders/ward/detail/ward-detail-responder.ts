@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Parses runId and filePath from CLI args and delegates to the command detail broker
+ * PURPOSE: Parses runId, filePath, and --json flag from CLI args and delegates to the command detail broker
  *
  * USAGE:
- * await WardDetailResponder({ args: ['node', 'ward', 'detail', '123-abc', 'src/index.ts'], rootPath: AbsoluteFilePathStub() });
- * // Loads and displays detailed errors for the specified file in the specified run
+ * await WardDetailResponder({ args: ['node', 'ward', 'detail', '123-abc', '--json'], rootPath: AbsoluteFilePathStub() });
+ * // Loads and displays detailed errors in JSON format
  */
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -13,7 +13,7 @@ import { errorEntryContract } from '../../../contracts/error-entry/error-entry-c
 import { commandDetailBroker } from '../../../brokers/command/detail/command-detail-broker';
 
 const FIRST_POSITIONAL_INDEX = 3;
-const SECOND_POSITIONAL_INDEX = 4;
+const JSON_FLAG = '--json';
 
 export const WardDetailResponder = async ({
   args,
@@ -22,11 +22,13 @@ export const WardDetailResponder = async ({
   args: readonly string[];
   rootPath: AbsoluteFilePath;
 }): Promise<void> => {
-  const runIdArg = args[FIRST_POSITIONAL_INDEX];
-  const filePathArg = args[SECOND_POSITIONAL_INDEX];
+  const positionalArgs = args.slice(FIRST_POSITIONAL_INDEX).filter((arg) => arg !== JSON_FLAG);
+  const json = args.includes(JSON_FLAG);
+
+  const [runIdArg, filePathArg] = positionalArgs;
 
   if (!runIdArg) {
-    process.stderr.write('Usage: ward detail <run-id> [file-path]\n');
+    process.stderr.write('Usage: ward detail <run-id> [file-path] [--json]\n');
     return;
   }
 
@@ -34,9 +36,9 @@ export const WardDetailResponder = async ({
 
   if (filePathArg) {
     const filePath = errorEntryContract.shape.filePath.parse(filePathArg);
-    await commandDetailBroker({ rootPath, runId, filePath });
+    await commandDetailBroker({ rootPath, runId, filePath, json });
     return;
   }
 
-  await commandDetailBroker({ rootPath, runId });
+  await commandDetailBroker({ rootPath, runId, json });
 };

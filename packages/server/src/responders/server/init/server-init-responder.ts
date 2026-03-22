@@ -10,11 +10,15 @@ import {
   guildIdContract,
   orchestrationEventTypeContract,
   processIdContract,
+  questIdContract,
   sessionIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
 import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';
@@ -24,6 +28,7 @@ import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/o
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
 import { orchestratorRecoverActiveQuestsAdapter } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter';
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
+import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -94,6 +99,36 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
               .catch(() => {
                 processDevLogAdapter({
                   message: `quest-by-session-request failed for session ${sessionId}`,
+                });
+              });
+          }
+          if (type === 'ward-detail-request') {
+            const questId = questIdContract.parse(Reflect.get(raw, 'questId'));
+            const wardResultId = String(Reflect.get(raw, 'wardResultId'));
+
+            orchestratorFindQuestPathAdapter({ questId })
+              .then(async ({ questPath }) => {
+                const detailFilePath = pathJoinAdapter({
+                  paths: [questPath, 'ward-results', `${wardResultId}.json`],
+                });
+
+                const contents = await fsReadFileAdapter({
+                  filepath: filePathContract.parse(detailFilePath),
+                });
+
+                const detail: unknown = JSON.parse(contents);
+
+                (_ws as WsClient).send(
+                  JSON.stringify({
+                    type: 'ward-detail-response',
+                    wardResultId,
+                    detail,
+                  }),
+                );
+              })
+              .catch(() => {
+                processDevLogAdapter({
+                  message: `ward-detail-request failed for quest ${questId}, ward ${wardResultId}`,
                 });
               });
           }

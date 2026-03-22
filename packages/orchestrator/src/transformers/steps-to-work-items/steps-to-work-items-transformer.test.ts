@@ -59,6 +59,7 @@ describe('stepsToWorkItemsTransformer', () => {
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'changed',
         },
         {
           id: '00000000-0000-4000-8000-000000000003',
@@ -94,6 +95,7 @@ describe('stepsToWorkItemsTransformer', () => {
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'full',
         },
       ]);
     });
@@ -168,6 +170,7 @@ describe('stepsToWorkItemsTransformer', () => {
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'changed',
         },
         {
           id: '00000000-0000-4000-8000-000000000004',
@@ -218,6 +221,7 @@ describe('stepsToWorkItemsTransformer', () => {
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'full',
         },
       ]);
     });

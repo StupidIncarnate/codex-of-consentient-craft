@@ -1,16 +1,18 @@
 /**
- * PURPOSE: Runs spiritmender agents via slot manager, resolves wardResults via relatedDataItems
+ * PURPOSE: Runs spiritmender agents via slot manager, reads batch files written by runWardLayerBroker
  *
  * USAGE:
  * await runSpiritmenderLayerBroker({ questId, workItems, startPath, slotCount, slotOperations });
- * // Resolves ward error references, runs spiritmender agents, updates work item statuses
+ * // Reads batch files from quest folder, creates work units, runs spiritmender agents
+ *
+ * NOTE: This is orchestrator code. The spiritmender AGENT never reads files — it receives
+ * filePaths + errors in its prompt via $ARGUMENTS. The orchestrator is responsible for
+ * feeding the agent exactly what it needs.
  */
 
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
-  absoluteFilePathContract,
-  errorMessageContract,
   filePathContract,
-  type AbsoluteFilePath,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -18,22 +20,24 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
-import { filePathsToSpiritmenderWorkUnitsTransformer } from '../../../transformers/file-paths-to-spiritmender-work-units/file-paths-to-spiritmender-work-units-transformer';
-import { resolveRelatedDataItemTransformer } from '../../../transformers/resolve-related-data-item/resolve-related-data-item-transformer';
+import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
-import { questGetBroker } from '../get/quest-get-broker';
+import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { parseBatchFileTransformer } from '../../../transformers/parse-batch-file/parse-batch-file-transformer';
 
 const MAX_FOLLOWUP_DEPTH = 3;
+const SPIRITMENDER_BATCHES_DIR = 'spiritmender-batches';
+const JSON_EXTENSION = '.json';
 
 export const runSpiritmenderLayerBroker = async ({
   questId,
@@ -48,46 +52,39 @@ export const runSpiritmenderLayerBroker = async ({
   slotCount: SlotCount;
   slotOperations: SlotOperations;
 }): Promise<void> => {
-  const questInput = getQuestInputContract.parse({ questId });
-  const questResult = await questGetBroker({ input: questInput });
-  if (!questResult.success || !questResult.quest) {
-    throw new Error(`Quest not found: ${questId}`);
-  }
-  const { quest } = questResult;
-
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.ward.spiritmenderTimeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(MAX_FOLLOWUP_DEPTH);
-
-  const allFilePaths: AbsoluteFilePath[] = [];
-  const allErrors: ReturnType<typeof errorMessageContract.parse>[] = [];
 
   // Build slot mapping for result tracking
   const slotToQuestMap = new Map<WorkItemId, QuestWorkItemId>();
 
-  for (const [i, wi] of workItems.entries()) {
-    const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
-    slotToQuestMap.set(slotId, wi.id);
+  // Read batch files for each spiritmender work item (orchestrator reads, not the agent)
+  const { questPath } = await questFindQuestPathBroker({ questId });
+  const batchesDir = pathJoinAdapter({ paths: [questPath, SPIRITMENDER_BATCHES_DIR] });
 
-    for (const ref of wi.relatedDataItems) {
-      const resolved = resolveRelatedDataItemTransformer({ ref, quest });
-      if (resolved.collection === 'wardResults') {
-        const wardResult = resolved.item;
-        for (const fp of wardResult.filePaths) {
-          allFilePaths.push(absoluteFilePathContract.parse(fp));
-        }
-        if (wardResult.errorSummary) {
-          allErrors.push(errorMessageContract.parse(wardResult.errorSummary));
-        }
+  const workUnits = await Promise.all(
+    workItems.map(async (wi, i) => {
+      const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
+      slotToQuestMap.set(slotId, wi.id);
+
+      // Read batch file keyed by work item ID
+      const batchFilePath = pathJoinAdapter({
+        paths: [batchesDir, `${String(wi.id)}${JSON_EXTENSION}`],
+      });
+
+      try {
+        const batchContents = await fsReadFileAdapter({ filePath: batchFilePath });
+        const { filePaths, errors } = parseBatchFileTransformer({ contents: batchContents });
+
+        return workUnitContract.parse({ role: 'spiritmender', filePaths, errors });
+      } catch {
+        // Batch file not found or invalid — create empty work unit
+        return workUnitContract.parse({ role: 'spiritmender', filePaths: [], errors: [] });
       }
-    }
-  }
+    }),
+  );
 
-  const spiritmenderWorkUnits = filePathsToSpiritmenderWorkUnitsTransformer({
-    filePaths: allFilePaths,
-    errors: allErrors,
-  });
-
-  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits: spiritmenderWorkUnits });
+  const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
 
   const result = await slotManagerOrchestrateBroker({
     questId,
@@ -111,8 +108,6 @@ export const runSpiritmenderLayerBroker = async ({
   });
 
   // Map results back to quest work items
-  // Spiritmender has 1 quest work item that fans out to N file-based work units.
-  // Use the overall completion flag — if ANY file fix failed, the whole spiritmender failed.
   const completedAt = new Date().toISOString();
 
   const workItemUpdates: {

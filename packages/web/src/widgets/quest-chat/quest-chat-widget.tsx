@@ -13,7 +13,7 @@ import { Box, Text } from '@mantine/core';
 
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import { chatEntryContract, type ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
@@ -159,7 +159,18 @@ export const QuestChatWidget = (): React.JSX.Element => {
           const rawLine: unknown = Reflect.get(rawEntry, 'raw');
           if (typeof rawLine !== 'string') return;
 
-          const result = streamJsonToChatEntryTransformer({ line: rawLine });
+          const result = ((): ReturnType<typeof streamJsonToChatEntryTransformer> => {
+            try {
+              return streamJsonToChatEntryTransformer({ line: rawLine });
+            } catch {
+              const plainTextEntry = chatEntryContract.parse({
+                role: 'assistant',
+                type: 'text',
+                content: rawLine,
+              });
+              return { entries: [plainTextEntry], sessionId: null };
+            }
+          })();
           if (result.entries.length === 0) return;
 
           handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
@@ -200,9 +211,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
       },
     });
 
+    const WARD_SESSION_PREFIX = 'ward-';
+
     if (resolvedGuildId) {
       for (const wi of questData.workItems) {
         if (!wi.sessionId) continue;
+        if (wi.sessionId.startsWith(WARD_SESSION_PREFIX)) continue;
         if (replayedSessionsRef.current.has(wi.sessionId)) continue;
         replayedSessionsRef.current.add(wi.sessionId);
         connection.send({

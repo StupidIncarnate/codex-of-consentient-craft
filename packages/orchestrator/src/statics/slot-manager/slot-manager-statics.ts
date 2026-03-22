@@ -30,6 +30,7 @@ export const slotManagerStatics = {
     maxRetries: 3,
     spiritmenderTimeoutMs: 600000,
     spiritmenderMaxConcurrent: 3,
+    spiritmenderBatchSize: 3,
   },
   pathseeker: {
     timeoutMs: 600000,

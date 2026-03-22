@@ -24,6 +24,7 @@ export * from './src/adapters/os/user-homedir/os-user-homedir-adapter';
 // Child Process Adapters
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter';
+export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter';
 
 // Net Adapters
 export * from './src/adapters/net/free-port/net-free-port-adapter';

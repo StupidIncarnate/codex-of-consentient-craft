@@ -384,26 +384,8 @@ export const ExecutionRowLayerWidget = ({
                     }}
                   >
                     Ward exit code: {String(wr.exitCode)}
+                    {wr.wardMode ? ` (${wr.wardMode})` : ''}
                   </Text>
-                  {wr.errorSummary ? (
-                    <Text
-                      ff="monospace"
-                      style={{ fontSize: EXPANDED_DETAIL_FONT_SIZE, color: colors.danger }}
-                    >
-                      {wr.errorSummary}
-                    </Text>
-                  ) : null}
-                  {wr.filePaths.length > 0 ? (
-                    <Text
-                      ff="monospace"
-                      style={{
-                        fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                        color: colors['text-dim'],
-                      }}
-                    >
-                      Failed files: {wr.filePaths.join(', ')}
-                    </Text>
-                  ) : null}
                 </Box>
               ))
             : null}

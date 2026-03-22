@@ -1431,6 +1431,172 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('plain-text fallback for non-JSON lines', () => {
+    it('VALID: {chat-output with non-JSON raw line} => falls back to plain text entry without crashing', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-plaintext-1',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-plaintext-1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-plaintext-1',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              slotIndex: 0,
+              sessionId: 'chat-plaintext-1',
+              entry: {
+                raw: 'This is plain text, not JSON',
+              },
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryAllByTestId('CHAT_MESSAGE').length).toBeGreaterThan(0);
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('ward session replay skip', () => {
+    it('VALID: {work item with ward- prefixed sessionId, replay response for ward session} => does not render ward replay entries', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-ward-skip',
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-ward-skip' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-normal-session' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'ward',
+            status: 'complete',
+            sessionId: 'ward-session-abc' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-ward-skip' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-ward-skip',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-wi-normal-session',
+              line: JSON.stringify({
+                type: 'assistant',
+                message: {
+                  role: 'assistant',
+                  content: [{ type: 'text', text: 'Normal codeweaver output...' }],
+                },
+              }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRow = stepRows.find((row) => row.textContent?.includes('CODEWEAVER'));
+      const codeweaverHeader = codeweaverRow!.querySelector(
+        '[data-testid="execution-row-header"]',
+      )!;
+
+      await userEvent.click(codeweaverHeader);
+
+      const codeweaverMessages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(codeweaverMessages).toHaveLength(1);
+      expect(codeweaverMessages[0]?.textContent).toMatch(/Normal codeweaver output/u);
+
+      const wardRow = stepRows.find((row) => row.textContent?.includes('WARD'));
+      const wardHeader = wardRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(wardHeader);
+
+      const wardMessages = wardRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(wardMessages).toHaveLength(0);
+    });
+  });
+
   describe('work item session entries in execution phase', () => {
     it('VALID: {quest in execution phase with replay response for work item session} => shows entries in execution panel', async () => {
       const proxy = QuestChatWidgetProxy();

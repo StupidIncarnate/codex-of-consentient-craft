@@ -12,17 +12,15 @@ describe('wardResultContract', () => {
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
         createdAt: '2024-01-15T10:00:00.000Z',
         exitCode: 1,
-        filePaths: [],
       });
     });
 
     it('VALID: ward result with all fields => parses successfully', () => {
       const result = WardResultStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        exitCode: 2,
-        filePaths: ['src/brokers/user/user-broker.ts', 'src/guards/auth/auth-guard.ts'],
-        errorSummary: 'Type error in user-broker.ts',
-        runId: 'ward-run-abc',
+        exitCode: 0,
+        runId: '1739625600000-a3f1',
+        wardMode: 'changed',
       });
 
       const parsed = wardResultContract.parse(result);
@@ -30,10 +28,22 @@ describe('wardResultContract', () => {
       expect(parsed).toStrictEqual({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         createdAt: '2024-01-15T10:00:00.000Z',
-        exitCode: 2,
-        filePaths: ['src/brokers/user/user-broker.ts', 'src/guards/auth/auth-guard.ts'],
-        errorSummary: 'Type error in user-broker.ts',
-        runId: 'ward-run-abc',
+        exitCode: 0,
+        runId: '1739625600000-a3f1',
+        wardMode: 'changed',
+      });
+    });
+
+    it('VALID: ward result with wardMode full => parses successfully', () => {
+      const result = WardResultStub({ wardMode: 'full' });
+
+      const parsed = wardResultContract.parse(result);
+
+      expect(parsed).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        exitCode: 1,
+        wardMode: 'full',
       });
     });
 
@@ -42,7 +52,11 @@ describe('wardResultContract', () => {
 
       const parsed = wardResultContract.parse(result);
 
-      expect(parsed.exitCode).toBe(0);
+      expect(parsed).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        exitCode: 0,
+      });
     });
   });
 
@@ -52,7 +66,6 @@ describe('wardResultContract', () => {
         wardResultContract.parse({
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Required/u);
     });
@@ -63,7 +76,6 @@ describe('wardResultContract', () => {
           id: 'not-a-uuid',
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Invalid uuid/u);
     });
@@ -74,7 +86,6 @@ describe('wardResultContract', () => {
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           createdAt: 'not-a-timestamp',
           exitCode: 1,
-          filePaths: [],
         });
       }).toThrow(/Invalid datetime/u);
     });
@@ -84,7 +95,46 @@ describe('wardResultContract', () => {
         wardResultContract.parse({
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           createdAt: '2024-01-15T10:00:00.000Z',
-          filePaths: [],
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: invalid wardMode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 1,
+          wardMode: 'invalid',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: non-integer exitCode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 1.5,
+        });
+      }).toThrow(/Expected integer/u);
+    });
+
+    it('INVALID: string exitCode => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 'not-a-number',
+        });
+      }).toThrow(/Expected number/u);
+    });
+
+    it('INVALID: missing createdAt => throws validation error', () => {
+      expect(() => {
+        wardResultContract.parse({
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          exitCode: 1,
         });
       }).toThrow(/Required/u);
     });

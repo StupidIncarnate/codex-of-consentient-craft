@@ -1,19 +1,26 @@
 import {
   questContract,
+  FileContentsStub,
+  FileNameStub,
+  FilePathStub,
+  GuildIdStub,
   type ExitCode,
   type QuestStub,
   type QuestWorkItemId,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
-import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const runSpiritmenderLayerBrokerProxy = (): {
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest; batchContents?: readonly string[] }) => void;
   setupQuestNotFound: () => void;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
@@ -23,19 +30,93 @@ export const runSpiritmenderLayerBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
 } => {
-  const getProxy = questGetBrokerProxy();
+  const findQuestPathProxy = questFindQuestPathBrokerProxy();
+  const readFileProxy = fsReadFileAdapterProxy();
+  const extraPathJoin = pathJoinAdapterProxy();
   const modifyProxy = questModifyBrokerProxy();
   const slotProxy = slotManagerOrchestrateBrokerProxy();
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
+  const setupFindQuestPath = ({ quest }: { quest: Quest }): void => {
+    const guildId = GuildIdStub();
+    const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+    const guildsDir = FilePathStub({
+      value: '/home/testuser/.dungeonmaster/guilds',
+    });
+    const questsDirPath = FilePathStub({
+      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+    });
+    const questFolderPath = FilePathStub({
+      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
+    });
+    const questFilePath = FilePathStub({
+      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
+    });
+
+    findQuestPathProxy.setupQuestFound({
+      homeDir: '/home/testuser',
+      homePath,
+      guildsDir,
+      guilds: [
+        {
+          dirName: FileNameStub({ value: guildId }),
+          questsDirPath,
+          questFolders: [
+            {
+              folderName: FileNameStub({ value: quest.folder }),
+              questFilePath,
+              questFolderPath,
+              contents: FileContentsStub({ value: JSON.stringify(quest) }),
+            },
+          ],
+        },
+      ],
+    });
+  };
+
   return {
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
+    setupQuestFound: ({
+      quest,
+      batchContents,
+    }: {
+      quest: Quest;
+      batchContents?: readonly string[];
+    }): void => {
+      // Step 1: findQuestPath (direct call for batch dir)
+      setupFindQuestPath({ quest });
+
+      // Step 2-3: pathJoin for batchesDir and batch files
+      // These pathJoin calls consume from the shared queue, so we must queue them
+      // to prevent consuming values intended for the modify call below
+      const batchCount = batchContents ? batchContents.length : 1;
+      extraPathJoin.returns({
+        result: FilePathStub({ value: '/home/testuser/spiritmender-batches' }),
+      });
+      Array.from({ length: batchCount }).forEach(() => {
+        extraPathJoin.returns({
+          result: FilePathStub({ value: '/home/testuser/spiritmender-batches/batch.json' }),
+        });
+      });
+
+      if (batchContents) {
+        for (const content of batchContents) {
+          readFileProxy.resolves({ content });
+        }
+      } else {
+        // No batch contents — simulate ENOENT for each work item's batch file read
+        readFileProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      }
+
+      // Step 5: questModifyBroker (status update) — internally calls findQuestPath
       modifyProxy.setupQuestFound({ quest });
     },
     setupQuestNotFound: (): void => {
-      getProxy.setupEmptyFolder();
+      findQuestPathProxy.setupNoGuilds({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' }),
+      });
     },
     setupSpawnAndMonitor: ({
       lines,

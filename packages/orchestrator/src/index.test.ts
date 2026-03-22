@@ -21,6 +21,7 @@ describe('orchestrator', () => {
       'orchestrationProcessesState',
       'pathseekerPromptStatics',
       'questAddBroker',
+      'questFindQuestPathBroker',
       'questFolderFindBroker',
       'questGetBroker',
       'questListBroker',

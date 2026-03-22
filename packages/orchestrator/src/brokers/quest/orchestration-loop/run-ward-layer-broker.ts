@@ -1,40 +1,121 @@
 /**
- * PURPOSE: Executes ward phase — runs ward, stores wardResult on failure, creates spiritmender + retry items
+ * PURPOSE: Executes ward phase — streams output to web, persists trimmed detail, creates batched spiritmenders on failure
  *
  * USAGE:
- * await runWardLayerBroker({questId, workItem, startPath});
- * // Runs ward command, on failure creates spiritmender items and ward retry via insertBroker
+ * await runWardLayerBroker({questId, workItem, startPath, onAgentEntry});
+ * // Runs ward, streams output, saves detail to quest folder, creates spiritmender batches on failure
  */
 
+import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
+  fileContentsContract,
+  filePathContract,
+  sessionIdContract,
   wardResultContract,
   workItemContract,
   type FilePath,
   type QuestId,
+  type SessionId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
+import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+
+import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import { questStepsToAbsoluteFilePathsTransformer } from '../../../transformers/quest-steps-to-absolute-file-paths/quest-steps-to-absolute-file-paths-transformer';
-import { wardOutputToFilePathsTransformer } from '../../../transformers/ward-output-to-file-paths/ward-output-to-file-paths-transformer';
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
+import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
+import { wardPersistResultBroker } from '../../ward/persist-result/ward-persist-result-broker';
+import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
 import { spawnWardLayerBroker } from './spawn-ward-layer-broker';
 
+const WARD_SESSION_PREFIX = 'ward-';
+const WARD_SLOT_INDEX = slotIndexContract.parse(0);
+
 export const runWardLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  onAgentEntry,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  onAgentEntry?: (params: {
+    slotIndex: SlotIndex;
+    entry: ChatLineEntry['entry'];
+    sessionId?: SessionId;
+  }) => void;
 }): Promise<void> => {
   const absoluteStartPath = absoluteFilePathContract.parse(startPath);
-  const { exitCode, wardResultJson } = await spawnWardLayerBroker({ startPath: absoluteStartPath });
+
+  // Generate synthetic session ID for ward output streaming
+  const wardSessionId = sessionIdContract.parse(WARD_SESSION_PREFIX + crypto.randomUUID());
+
+  // Store session ID on work item before spawning
+  await questModifyBroker({
+    input: {
+      questId,
+      workItems: [{ id: workItem.id, sessionId: wardSessionId }],
+    } as ModifyQuestInput,
+  });
+
+  // Create onLine wrapper for streaming to web
+  const onLine =
+    onAgentEntry === undefined
+      ? undefined
+      : (line: string): void => {
+          onAgentEntry({
+            slotIndex: WARD_SLOT_INDEX,
+            entry: { raw: line },
+            sessionId: wardSessionId,
+          });
+        };
+
+  // Spawn ward with streaming
+  const { exitCode, runId } = await spawnWardLayerBroker({
+    startPath: absoluteStartPath,
+    ...(workItem.wardMode === undefined ? {} : { wardMode: workItem.wardMode }),
+    ...(onLine === undefined ? {} : { onLine }),
+  });
+
+  // Fetch and persist ward detail (pass or fail)
+  const detailJson = runId ? await wardDetailBroker({ startPath: absoluteStartPath, runId }) : null;
+
+  const wardResultId = crypto.randomUUID();
+
+  if (detailJson) {
+    const { questPath } = await questFindQuestPathBroker({ questId });
+    await wardPersistResultBroker({
+      questFolderPath: filePathContract.parse(questPath),
+      wardResultId,
+      detailJson,
+    });
+  }
+
+  // Store lightweight ward result in quest.json
+  const wardResult = wardResultContract.parse({
+    id: wardResultId,
+    createdAt: new Date().toISOString(),
+    exitCode,
+    ...(runId ? { runId: String(runId) } : {}),
+    ...(workItem.wardMode ? { wardMode: workItem.wardMode } : {}),
+  });
+
+  await questModifyBroker({
+    input: {
+      questId,
+      wardResults: [wardResult],
+    } as ModifyQuestInput,
+  });
 
   if (exitCode === 0) {
     // Ward passed — mark complete
@@ -47,34 +128,7 @@ export const runWardLayerBroker = async ({
     return;
   }
 
-  // Ward failed — extract file paths
-  let filePaths = wardResultJson ? wardOutputToFilePathsTransformer({ wardResultJson }) : [];
-
-  if (filePaths.length === 0) {
-    const questInput = getQuestInputContract.parse({ questId });
-    const questResult = await questGetBroker({ input: questInput });
-    if (questResult.success && questResult.quest) {
-      filePaths = questStepsToAbsoluteFilePathsTransformer({ steps: questResult.quest.steps });
-    }
-  }
-
-  // Store ward result at quest level
-  const wardResult = wardResultContract.parse({
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    exitCode,
-    filePaths,
-    ...(wardResultJson ? { errorSummary: wardResultJson } : {}),
-  });
-
-  await questModifyBroker({
-    input: {
-      questId,
-      wardResults: [wardResult],
-    } as ModifyQuestInput,
-  });
-
-  // Mark current ward as failed
+  // Ward failed — mark as failed
   const completedAt = new Date().toISOString();
   await questModifyBroker({
     input: {
@@ -126,35 +180,70 @@ export const runWardLayerBroker = async ({
     return;
   }
 
-  // Create spiritmender work items referencing the ward result
-  const spiritItems =
-    filePaths.length > 0
-      ? [
-          workItemContract.parse({
-            id: crypto.randomUUID(),
-            role: 'spiritmender',
-            status: 'pending',
-            spawnerType: 'agent',
-            relatedDataItems: [`wardResults/${String(wardResult.id)}`],
-            dependsOn: [workItem.id],
-            maxAttempts: 1,
-            createdAt: new Date().toISOString(),
-            insertedBy: workItem.id,
-          }),
-        ]
-      : [];
+  // Create batched spiritmender work items
+  const batches = detailJson
+    ? wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: slotManagerStatics.ward.spiritmenderBatchSize,
+      })
+    : [];
+
+  const spiritItems = batches.map((batch) => {
+    const spiritId = crypto.randomUUID();
+
+    return {
+      workItem: workItemContract.parse({
+        id: spiritId,
+        role: 'spiritmender',
+        status: 'pending',
+        spawnerType: 'agent',
+        dependsOn: [workItem.id],
+        maxAttempts: 1,
+        createdAt: new Date().toISOString(),
+        insertedBy: workItem.id,
+      }),
+      batch,
+    };
+  });
+
+  // Write batch files for each spiritmender (keyed by work item ID)
+  if (spiritItems.length > 0) {
+    const { questPath } = await questFindQuestPathBroker({ questId });
+    const batchesDir = pathJoinAdapter({ paths: [questPath, 'spiritmender-batches'] });
+    await fsMkdirAdapter({ filepath: batchesDir });
+
+    await Promise.all(
+      spiritItems.map(async (spiritItem) => {
+        const batchFilePath = pathJoinAdapter({
+          paths: [batchesDir, `${String(spiritItem.workItem.id)}.json`],
+        });
+        const batchContent = JSON.stringify({
+          filePaths: spiritItem.batch.filePaths,
+          errors: spiritItem.batch.errors,
+        });
+
+        return fsWriteFileAdapter({
+          filePath: batchFilePath,
+          contents: fileContentsContract.parse(batchContent),
+        });
+      }),
+    );
+  }
 
   // Create ward retry that depends on all spiritmender items
+  const spiritWorkItems = spiritItems.map((s) => s.workItem);
+
   const wardRetry = workItemContract.parse({
     id: crypto.randomUUID(),
     role: 'ward',
     status: 'pending',
     spawnerType: 'command',
-    dependsOn: spiritItems.map((s) => s.id),
+    dependsOn: spiritWorkItems.map((s) => s.id),
     attempt: workItem.attempt + 1,
     maxAttempts: workItem.maxAttempts,
     createdAt: new Date().toISOString(),
     insertedBy: workItem.id,
+    ...(workItem.wardMode ? { wardMode: workItem.wardMode } : {}),
   });
 
   // Update downstream (siege) to depend on wardRetry instead of this ward
@@ -166,7 +255,7 @@ export const runWardLayerBroker = async ({
     await questWorkItemInsertBroker({
       questId,
       quest: questResult.quest,
-      newWorkItems: [...spiritItems, wardRetry],
+      newWorkItems: [...spiritWorkItems, wardRetry],
       replacementMapping: replacementMapping.map((m) => ({
         oldId: m.oldId,
         newId: m.newId,
