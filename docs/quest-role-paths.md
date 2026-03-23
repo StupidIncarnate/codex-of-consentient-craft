@@ -148,10 +148,10 @@ status from work items, never sets it directly.
   │   pathseeker → complete
   │   CREATES:
   │     N × codeweaver   (dependsOn: [pathseeker-id] + inter-step chains)
-  │     1 × ward         (dependsOn: [ALL codeweaver IDs], spawnerType: 'command', maxAttempts: 3)
+  │     1 × ward         (dependsOn: [ALL codeweaver IDs], spawnerType: 'command', maxAttempts: 3, wardMode: 'changed')
   │     1 × siege        (dependsOn: [ward-id], timeoutMs: 300000)
   │     N × lawbringer   (dependsOn: [siege-id])
-  │     1 × final-ward   (dependsOn: [ALL lawbringer IDs], spawnerType: 'command', maxAttempts: 3)
+  │     1 × final-ward   (dependsOn: [ALL lawbringer IDs], spawnerType: 'command', maxAttempts: 3, wardMode: 'full')
   │
   ├─ VERIFY FAILS (attempt < maxAttempts - 1) ───────────────────────────────
   │   pathseeker → failed
@@ -216,7 +216,7 @@ status from work items, never sets it directly.
    workItems: [
      { chaos, complete }, { pathseeker, complete },
      { cw-1, complete }, { cw-2, complete }, { cw-3, complete },
-     { ward, in_progress, dependsOn: [cw-1, cw-2, cw-3], maxAttempts: 3 },
+     { ward, in_progress, dependsOn: [cw-1, cw-2, cw-3], maxAttempts: 3, wardMode: 'changed' },
      { siege, pending, dependsOn: [ward-id] },
      { law-1, pending, dependsOn: [siege-id] }, ...
    ]
@@ -362,7 +362,7 @@ status from work items, never sets it directly.
 
    workItems: [
      ..., { law-1, complete }, { law-2, complete }, ...,
-     { final-ward, in_progress, dependsOn: [ALL lawbringer IDs], maxAttempts: 3 },
+     { final-ward, in_progress, dependsOn: [ALL lawbringer IDs], maxAttempts: 3, wardMode: 'full' },
    ]
   │
   ├─ PASS (exit code 0) ──────────────────────────────────────────────────
@@ -658,9 +658,10 @@ Siege (on failure)
 - [ ] **T-SPAWN-1: PathSeeker generates correct item shapes**
   After verify passes with N steps, quest.json should contain:
     - N codeweaver items, each with `relatedDataItems: ['steps/<stepId>']`
-    - 1 ward item with `spawnerType: 'command'`, `maxAttempts: 3`
+  - 1 ward item with `spawnerType: 'command'`, `maxAttempts: 3`, `wardMode: 'changed'`
     - 1 siege item with `timeoutMs: 300000`
     - N lawbringer items, each with `relatedDataItems: ['steps/<stepId>']`
+  - 1 final-ward item with `spawnerType: 'command'`, `maxAttempts: 3`, `wardMode: 'full'`
 
 - [ ] **T-SPAWN-2: Ward failure generates batched spiritmenders + retry**
   After ward fails (attempt < max), quest.json should contain:

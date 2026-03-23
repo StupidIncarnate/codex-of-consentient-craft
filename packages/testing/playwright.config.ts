@@ -56,6 +56,7 @@ export default defineConfig({
       env: {
         DUNGEONMASTER_PORT: String(TEST_PORT),
         DUNGEONMASTER_HOME: TEST_HOME,
+        DUNGEONMASTER_ENV: 'test',
         HOME: TEST_HOME,
         CLAUDE_CLI_PATH: FAKE_CLAUDE_CLI,
         FAKE_CLAUDE_QUEUE_DIR,
