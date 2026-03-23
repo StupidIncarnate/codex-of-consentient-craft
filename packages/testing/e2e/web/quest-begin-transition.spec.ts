@@ -132,8 +132,7 @@ test.describe('Quest Begin Transition', () => {
     // work item via OrchestrationStartResponder). A PATCH to the modify endpoint would
     // set status=in_progress but skip pathseeker creation — the H-1 root cause bug.
     const startPromise = page.waitForRequest(
-      (req) =>
-        req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
+      (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
 
@@ -238,8 +237,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const startPromise = page.waitForRequest(
-      (req) =>
-        req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
+      (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
 

@@ -53,7 +53,8 @@ const writeQuestFile = ({
       status: wi.status ?? 'complete',
       spawnerType: 'agent',
       sessionId: wi.sessionId,
-      createdAt: wi.createdAt ?? new Date(Date.now() + index * CREATED_AT_INTERVAL_MS).toISOString(),
+      createdAt:
+        wi.createdAt ?? new Date(Date.now() + index * CREATED_AT_INTERVAL_MS).toISOString(),
       relatedDataItems: wi.relatedDataItems ?? [],
       dependsOn: wi.dependsOn ?? [],
       attempt: 0,

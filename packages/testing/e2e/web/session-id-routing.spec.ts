@@ -207,10 +207,7 @@ test.describe('Session ID Routing', () => {
         createSessionWithAssistantText({
           guildPath: GUILD_PATH,
           sessionId: mainSessionId,
-          text:
-            role === 'chaoswhisperer'
-              ? roleText
-              : `Chaoswhisperer analysis for ${role} test`,
+          text: role === 'chaoswhisperer' ? roleText : `Chaoswhisperer analysis for ${role} test`,
         });
 
         // Create session file for the target role (if not chaoswhisperer)

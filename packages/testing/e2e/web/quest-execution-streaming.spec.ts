@@ -122,8 +122,8 @@ test.describe('Quest Execution Streaming', () => {
     await expect(page.getByText('Planning steps...')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // The actual streamed text content should appear in the execution row — not just "streaming..."
-    await expect(
-      page.getByText('Analyzing quest requirements and planning steps'),
-    ).toBeVisible({ timeout: STREAMING_TEXT_TIMEOUT });
+    await expect(page.getByText('Analyzing quest requirements and planning steps')).toBeVisible({
+      timeout: STREAMING_TEXT_TIMEOUT,
+    });
   });
 });
