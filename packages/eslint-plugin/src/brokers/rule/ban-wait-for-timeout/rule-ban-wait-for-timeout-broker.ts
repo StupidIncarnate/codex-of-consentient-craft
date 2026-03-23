@@ -25,7 +25,7 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
         noWaitForTimeout:
           'Do not use waitForTimeout() in e2e tests — it causes flaky tests. Wait for specific elements or events instead: await expect(locator).toBeVisible({timeout})',
         noSetTimeout:
-          'Do not use setTimeout() as a delay in e2e tests — it causes flaky tests. Wait for specific elements or events instead. If you need to configure test timeout, use test.setTimeout().',
+          'Do not use setTimeout() or test.setTimeout() in tests — arbitrary delays cause flaky tests. Use the testing framework\'s built-in wait mechanisms instead: await expect(locator).toBeVisible({timeout})',
       },
       schema: [],
     },

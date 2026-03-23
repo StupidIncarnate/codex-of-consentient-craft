@@ -45,9 +45,49 @@ describe('isInTestDirGuard', () => {
     });
   });
 
+  describe('test as substring (not directory)', () => {
+    it('VALID: {filename: "/project/src/brokers/test-utils/helper.ts"} => returns false', () => {
+      const result = isInTestDirGuard({
+        filename: '/project/src/brokers/test-utils/helper.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {filename: "/project/contest/file.ts"} => returns false', () => {
+      const result = isInTestDirGuard({
+        filename: '/project/contest/file.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {filename: "/project/tests/helpers/file.ts"} => returns false (tests/ plural, not test/)', () => {
+      const result = isInTestDirGuard({
+        filename: '/project/tests/helpers/file.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {filename: "/project/__tests__/file.ts"} => returns false', () => {
+      const result = isInTestDirGuard({
+        filename: '/project/__tests__/file.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('edge cases', () => {
     it('EMPTY: {filename: undefined} => returns false', () => {
       const result = isInTestDirGuard({ filename: undefined });
+
+      expect(result).toBe(false);
+    });
+
+    it('EMPTY: {filename: ""} => returns false', () => {
+      const result = isInTestDirGuard({ filename: '' });
 
       expect(result).toBe(false);
     });

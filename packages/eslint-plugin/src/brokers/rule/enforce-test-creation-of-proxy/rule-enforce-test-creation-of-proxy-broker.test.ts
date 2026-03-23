@@ -135,6 +135,32 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename: '/project/src/tests/login.e2e.test.ts',
     },
 
+    // Harness import in integration test - ALLOWED (harnesses are for integration/e2e)
+    {
+      code: `
+        import { questHarness } from '../../test/harnesses/quest/quest.harness';
+
+        it('should complete quest flow', () => {
+          const harness = questHarness();
+          harness.create({ guildId: '123' });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+    },
+
+    // Harness import in e2e test - ALLOWED
+    {
+      code: `
+        import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+
+        it('should display guilds', () => {
+          const harness = guildHarness();
+          harness.create({ name: 'Test' });
+        });
+      `,
+      filename: '/project/src/tests/guilds.e2e.test.ts',
+    },
+
     // Proxy called without assignment (empty proxy, no setup needed)
     {
       code: `
@@ -390,6 +416,42 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
         {
           messageId: 'noProxyInIntegrationTest',
           data: { importSource: './login.proxy' },
+        },
+      ],
+    },
+
+    // Unit test importing harness file - FORBIDDEN
+    {
+      code: `
+        import { questHarness } from '../../test/harnesses/quest/quest.harness';
+
+        it('should not use harness', () => {
+          const harness = questHarness();
+        });
+      `,
+      filename: '/project/src/brokers/quest/quest-broker.test.ts',
+      errors: [
+        {
+          messageId: 'noHarnessInUnitTest',
+          data: { importSource: '../../test/harnesses/quest/quest.harness' },
+        },
+      ],
+    },
+
+    // Unit test importing harness via .harness.ts extension - FORBIDDEN
+    {
+      code: `
+        import { guildHarness } from '../test/harnesses/guild/guild.harness.ts';
+
+        it('test', () => {
+          guildHarness();
+        });
+      `,
+      filename: '/project/src/brokers/guild/guild-broker.test.ts',
+      errors: [
+        {
+          messageId: 'noHarnessInUnitTest',
+          data: { importSource: '../test/harnesses/guild/guild.harness.ts' },
         },
       ],
     },

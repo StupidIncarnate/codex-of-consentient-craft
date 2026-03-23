@@ -109,6 +109,13 @@ ruleTester.run('enforce-harness-patterns', ruleEnforceHarnessPatternsBroker(), {
       errors: [{ messageId: 'harnessNoProxyImports' }, { messageId: 'harnessNoContractImports' }],
     },
 
+    // --- Harness importing contract value via scoped package path ---
+    {
+      code: "import { questContract } from '@dungeonmaster/shared/contracts/quest/quest-contract'; export const questHarness = () => { return { create: () => {} }; };",
+      filename: '/project/test/harnesses/quest/quest.harness.ts',
+      errors: [{ messageId: 'harnessNoContractImports' }],
+    },
+
     // --- Harness not returning object (returns void / no return) ---
     {
       code: "export const guildHarness = () => { console.log('no return'); };",

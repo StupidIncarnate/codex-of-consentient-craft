@@ -23,7 +23,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (26 rules)
+  // @dungeonmaster - PRE-EDIT (31 rules)
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',

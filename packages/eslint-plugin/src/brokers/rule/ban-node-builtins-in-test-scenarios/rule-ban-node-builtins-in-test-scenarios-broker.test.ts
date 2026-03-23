@@ -15,6 +15,12 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
       filename: '/project/src/brokers/guild/guild-broker.ts',
     },
 
+    // Plain unit test file (.test.ts, not .integration.test.ts) — NOT in scope
+    {
+      code: "import fs from 'fs';",
+      filename: '/project/src/brokers/guild/guild-broker.test.ts',
+    },
+
     // Harness file inside test/ directory importing fs — allowed
     {
       code: "import fs from 'fs';",

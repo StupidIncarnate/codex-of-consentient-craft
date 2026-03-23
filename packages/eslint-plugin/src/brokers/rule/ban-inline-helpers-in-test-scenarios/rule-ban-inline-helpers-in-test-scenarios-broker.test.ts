@@ -88,6 +88,12 @@ ruleTester.run(
         code: "const ROLE_FLOOR_MAP: Record<string, string> = { chaoswhisperer: 'SANCTUM' };",
         filename: '/project/e2e/web/session-id-routing.spec.ts',
       },
+
+      // --- function declarations are not flagged (rule only targets arrow functions) ---
+      {
+        code: 'function createQuest() { return { id: "test" }; }',
+        filename: '/project/e2e/web/quest-creation.spec.ts',
+      },
     ],
 
     invalid: [
