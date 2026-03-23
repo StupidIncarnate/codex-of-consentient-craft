@@ -51,6 +51,11 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/no-mutable-state-in-proxy-factory': 'pre-edit',
   '@dungeonmaster/ban-fetch-in-proxies': 'pre-edit',
   '@dungeonmaster/ban-startup-branching': 'pre-edit',
+  '@dungeonmaster/enforce-harness-patterns': 'pre-edit',
+  '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'pre-edit',
+  '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'pre-edit',
+  '@dungeonmaster/ban-wait-for-timeout': 'pre-edit',
+  '@dungeonmaster/ban-page-route-in-e2e': 'pre-edit',
   // '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit', // TODO: Enable after migrating existing proxies to registerMock
 
   // @dungeonmaster - POST-EDIT (4 rules)

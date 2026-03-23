@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 32 rule names', () => {
+    it('VALID: {} => returns plugin with all 37 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -39,6 +39,11 @@ describe('EslintPluginCreateResponder', () => {
         'ban-fetch-in-proxies',
         'ban-startup-branching',
         'ban-jest-mock-in-proxies',
+        'enforce-harness-patterns',
+        'ban-node-builtins-in-test-scenarios',
+        'ban-inline-helpers-in-test-scenarios',
+        'ban-wait-for-timeout',
+        'ban-page-route-in-e2e',
       ]);
     });
 
@@ -147,7 +152,14 @@ describe('EslintPluginCreateResponder', () => {
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
 
-      expect(fileOverrides).toHaveLength(6);
+      expect(fileOverrides.map((o) => o.files)).toStrictEqual([
+        ['**/*.proxy.ts', '**/*.proxy.tsx'],
+        ['**/*.stub.ts', '**/*.stub.tsx'],
+        ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
+        ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
+        ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
+        ['**/startup/start-*.ts'],
+      ]);
     });
 
     it('VALID: {} => returns fileOverrides with proxy files override', () => {
