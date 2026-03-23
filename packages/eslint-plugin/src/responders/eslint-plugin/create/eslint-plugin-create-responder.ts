@@ -37,6 +37,11 @@ import { ruleEnforceFileMetadataBroker } from '../../../brokers/rule/enforce-fil
 import { ruleBanFetchInProxiesBroker } from '../../../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker';
 import { ruleBanStartupBranchingBroker } from '../../../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker';
 import { ruleBanJestMockInProxiesBroker } from '../../../brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker';
+import { ruleEnforceHarnessPatternsBroker } from '../../../brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker';
+import { ruleBanNodeBuiltinsInTestScenariosBroker } from '../../../brokers/rule/ban-node-builtins-in-test-scenarios/rule-ban-node-builtins-in-test-scenarios-broker';
+import { ruleBanInlineHelpersInTestScenariosBroker } from '../../../brokers/rule/ban-inline-helpers-in-test-scenarios/rule-ban-inline-helpers-in-test-scenarios-broker';
+import { ruleBanWaitForTimeoutBroker } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker';
+import { ruleBanPageRouteInE2eBroker } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -74,6 +79,11 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-fetch-in-proxies': EslintRule;
     readonly 'ban-startup-branching': EslintRule;
     readonly 'ban-jest-mock-in-proxies': EslintRule;
+    readonly 'enforce-harness-patterns': EslintRule;
+    readonly 'ban-node-builtins-in-test-scenarios': EslintRule;
+    readonly 'ban-inline-helpers-in-test-scenarios': EslintRule;
+    readonly 'ban-wait-for-timeout': EslintRule;
+    readonly 'ban-page-route-in-e2e': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -114,6 +124,11 @@ export const EslintPluginCreateResponder = (): {
       'ban-fetch-in-proxies': ruleBanFetchInProxiesBroker(),
       'ban-startup-branching': ruleBanStartupBranchingBroker(),
       'ban-jest-mock-in-proxies': ruleBanJestMockInProxiesBroker(),
+      'enforce-harness-patterns': ruleEnforceHarnessPatternsBroker(),
+      'ban-node-builtins-in-test-scenarios': ruleBanNodeBuiltinsInTestScenariosBroker(),
+      'ban-inline-helpers-in-test-scenarios': ruleBanInlineHelpersInTestScenariosBroker(),
+      'ban-wait-for-timeout': ruleBanWaitForTimeoutBroker(),
+      'ban-page-route-in-e2e': ruleBanPageRouteInE2eBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

@@ -108,6 +108,9 @@ export const jestRuleStatics = {
         'any(String)': 'Test actual string value instead',
         'any(Number)': 'Test actual number instead',
         'any(Object)': 'Test complete object shape instead',
+        toBeDefined: 'Test actual value with .toBe() or .toStrictEqual() instead',
+        toBeUndefined: 'Use .toBe(undefined) instead',
+        toHaveLength: 'Test complete array with .toStrictEqual() instead',
       },
     ],
 

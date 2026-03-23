@@ -24,7 +24,6 @@ module.exports = [
       'dist/**',
       'coverage/**',
       'tests/**',
-      'packages/testing/e2e/**',
       'packages/testing/playwright.config.ts',
       '**/.test-tmp/**',
       'packages/*/dist/**',
@@ -41,7 +40,6 @@ module.exports = [
       '.git/**',
       'v1/**',
       'scripts/**',
-      '**/test/**',
       '**/*.d.ts',
       '*.md',
       '**/*.md',
@@ -87,7 +85,7 @@ module.exports = [
   ...dungeonmasterConfigs.fileOverrides,
   // Test files can be more relaxed
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**/*.ts'],
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.harness.ts', '**/tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

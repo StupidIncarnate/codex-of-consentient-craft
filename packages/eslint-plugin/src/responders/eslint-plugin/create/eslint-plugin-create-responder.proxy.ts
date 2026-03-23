@@ -41,6 +41,11 @@ import { ruleEnforceFileMetadataBrokerProxy } from '../../../brokers/rule/enforc
 import { ruleBanFetchInProxiesBrokerProxy } from '../../../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.proxy';
 import { ruleBanStartupBranchingBrokerProxy } from '../../../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker.proxy';
 import { ruleBanJestMockInProxiesBrokerProxy } from '../../../brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker.proxy';
+import { ruleEnforceHarnessPatternsBrokerProxy } from '../../../brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.proxy';
+import { ruleBanNodeBuiltinsInTestScenariosBrokerProxy } from '../../../brokers/rule/ban-node-builtins-in-test-scenarios/rule-ban-node-builtins-in-test-scenarios-broker.proxy';
+import { ruleBanInlineHelpersInTestScenariosBrokerProxy } from '../../../brokers/rule/ban-inline-helpers-in-test-scenarios/rule-ban-inline-helpers-in-test-scenarios-broker.proxy';
+import { ruleBanWaitForTimeoutBrokerProxy } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker.proxy';
+import { ruleBanPageRouteInE2eBrokerProxy } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -79,6 +84,11 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanFetchInProxiesBrokerProxy();
   ruleBanStartupBranchingBrokerProxy();
   ruleBanJestMockInProxiesBrokerProxy();
+  ruleEnforceHarnessPatternsBrokerProxy();
+  ruleBanNodeBuiltinsInTestScenariosBrokerProxy();
+  ruleBanInlineHelpersInTestScenariosBrokerProxy();
+  ruleBanWaitForTimeoutBrokerProxy();
+  ruleBanPageRouteInE2eBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {
