@@ -147,7 +147,7 @@ describe('EslintPluginCreateResponder', () => {
       expect(typeof test.rules).toBe('object');
     });
 
-    it('VALID: {} => returns fileOverrides with 6 override configs', () => {
+    it('VALID: {} => returns fileOverrides with 8 override configs', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
@@ -159,6 +159,8 @@ describe('EslintPluginCreateResponder', () => {
         ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
         ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
         ['**/startup/start-*.ts'],
+        ['**/*.spec.ts'],
+        ['**/*.harness.ts'],
       ]);
     });
 

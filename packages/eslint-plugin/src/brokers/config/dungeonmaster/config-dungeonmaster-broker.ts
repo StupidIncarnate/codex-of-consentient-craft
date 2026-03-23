@@ -109,6 +109,11 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
     '@dungeonmaster/ban-startup-branching': 'error',
+    '@dungeonmaster/enforce-harness-patterns': 'error',
+    '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'error',
+    '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'error',
+    '@dungeonmaster/ban-wait-for-timeout': 'error',
+    '@dungeonmaster/ban-page-route-in-e2e': 'error',
     // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
@@ -220,6 +225,43 @@ export const configDungeonmasterBroker = ({
     },
   });
 
+  // Playwright spec files — relax jest rules that conflict with Playwright
+  const specOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.spec.ts'],
+    rules: {
+      'jest/no-hooks': 'off',
+      'jest/require-hook': 'off',
+      'jest/expect-expect': 'off',
+      'jest/valid-expect': 'off',
+      'jest/max-expects': 'off',
+      'jest/require-top-level-describe': 'off',
+      'jest/consistent-test-it': 'off',
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+      '@dungeonmaster/enforce-test-colocation': 'off',
+      '@dungeonmaster/enforce-stub-usage': 'off',
+      '@dungeonmaster/enforce-file-metadata': 'off',
+      '@dungeonmaster/ban-jest-mock-in-tests': 'off',
+      '@dungeonmaster/enforce-stub-patterns': 'off',
+      '@dungeonmaster/enforce-test-proxy-imports': 'off',
+    },
+  });
+
+  // Harness files — allowed to use hooks (they own lifecycle)
+  const harnessOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.harness.ts'],
+    rules: {
+      'jest/no-hooks': 'off',
+      'jest/require-hook': 'off',
+      '@dungeonmaster/enforce-file-metadata': 'off',
+      '@dungeonmaster/enforce-test-colocation': 'off',
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+      '@dungeonmaster/enforce-stub-usage': 'off',
+      '@dungeonmaster/ban-jest-mock-in-tests': 'off',
+      '@dungeonmaster/enforce-stub-patterns': 'off',
+      '@dungeonmaster/enforce-test-proxy-imports': 'off',
+    },
+  });
+
   return {
     typescript: typescriptConfig,
     test: testConfig,
@@ -230,6 +272,8 @@ export const configDungeonmasterBroker = ({
       e2eOverrides,
       startupTestOverrides,
       startupShortCircuitOverrides,
+      specOverrides,
+      harnessOverrides,
     ],
     ruleEnforceOn: dungeonmasterRuleEnforceOnStatics,
   };
