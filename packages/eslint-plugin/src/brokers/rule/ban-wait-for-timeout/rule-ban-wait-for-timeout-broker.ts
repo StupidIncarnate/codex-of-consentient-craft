@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Bans waitForTimeout() calls in e2e spec files to prevent flaky tests
+ * PURPOSE: Bans arbitrary delay patterns in e2e spec files to prevent flaky tests
  *
  * USAGE:
  * const rule = ruleBanWaitForTimeoutBroker();
- * // Returns ESLint rule that prevents waitForTimeout() in *.spec.ts files
+ * // Returns ESLint rule that prevents waitForTimeout() and setTimeout() delays in *.spec.ts files
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -16,38 +16,99 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
     meta: {
       type: 'problem',
       docs: {
-        description: 'Ban waitForTimeout() in e2e spec files to prevent flaky tests.',
+        description:
+          'Ban arbitrary delay patterns (waitForTimeout, setTimeout) in e2e spec files to prevent flaky tests.',
       },
       messages: {
         noWaitForTimeout:
           'Do not use waitForTimeout() in e2e tests — it causes flaky tests. Wait for specific elements or events instead: await expect(locator).toBeVisible({timeout})',
+        noSetTimeout:
+          'Do not use setTimeout() as a delay in e2e tests — it causes flaky tests. Wait for specific elements or events instead. If you need to configure test timeout, use test.setTimeout().',
       },
       schema: [],
     },
   }),
   create: (context: EslintContext) => {
     const ctx = context;
+    const filename = ctx.filename ?? '';
+
+    if (!isSpecFileGuard({ filename })) {
+      return {};
+    }
+
+    // Track whether we're inside a page.evaluate() callback — setTimeout inside
+    // browser-evaluated code is a different concern (runs in the browser, not the test)
+    let pageEvaluateDepth = 0;
+
     return {
       CallExpression: (node: Tsestree): void => {
-        const isSpecFile = isSpecFileGuard({ filename: ctx.filename ?? '' });
-
-        if (!isSpecFile) {
-          return;
-        }
-
         const { callee } = node;
 
-        const isWaitForTimeoutCall =
-          callee?.type === 'MemberExpression' && callee.property?.name === 'waitForTimeout';
+        if (!callee) return;
 
-        if (!isWaitForTimeoutCall) {
+        // Track page.evaluate() entry
+        if (
+          callee.type === 'MemberExpression' &&
+          callee.property?.name === 'evaluate'
+        ) {
+          pageEvaluateDepth += 1;
+        }
+
+        // Ban .waitForTimeout() calls
+        if (
+          callee.type === 'MemberExpression' &&
+          callee.property?.name === 'waitForTimeout'
+        ) {
+          ctx.report({
+            node,
+            messageId: 'noWaitForTimeout',
+          });
           return;
         }
 
-        ctx.report({
-          node,
-          messageId: 'noWaitForTimeout',
-        });
+        // Ban setTimeout() calls — but NOT test.setTimeout() (Playwright timeout config)
+        // and NOT inside page.evaluate() (browser-side code)
+        if (pageEvaluateDepth > 0) {
+          return;
+        }
+
+        const isBareSetTimeout =
+          callee.type === 'Identifier' && callee.name === 'setTimeout';
+
+        const isGlobalSetTimeout =
+          callee.type === 'MemberExpression' &&
+          callee.object?.name === 'globalThis' &&
+          callee.property?.name === 'setTimeout';
+
+        // Allow test.setTimeout() — Playwright per-test timeout configuration
+        const isTestSetTimeout =
+          callee.type === 'MemberExpression' &&
+          callee.object?.name === 'test' &&
+          callee.property?.name === 'setTimeout';
+
+        if (isTestSetTimeout) {
+          return;
+        }
+
+        if (isBareSetTimeout || isGlobalSetTimeout) {
+          ctx.report({
+            node,
+            messageId: 'noSetTimeout',
+          });
+        }
+      },
+
+      'CallExpression:exit': (node: Tsestree): void => {
+        const { callee } = node;
+
+        if (!callee) return;
+
+        if (
+          callee.type === 'MemberExpression' &&
+          callee.property?.name === 'evaluate'
+        ) {
+          pageEvaluateDepth -= 1;
+        }
       },
     };
   },
