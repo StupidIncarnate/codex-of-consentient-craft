@@ -15,10 +15,12 @@ export const harnessPatternsStatics = {
     'path',
     'os',
     'crypto',
+    'child_process',
     'node:fs',
     'node:fs/promises',
     'node:path',
     'node:os',
     'node:crypto',
+    'node:child_process',
   ],
 } as const;

@@ -31,6 +31,24 @@ describe('isHarnessImportGuard', () => {
     });
   });
 
+  describe('scoped package harness imports', () => {
+    it('VALID: {importSource: "@dungeonmaster/testing/test/harnesses/quest/quest.harness"} => returns true', () => {
+      const result = isHarnessImportGuard({
+        importSource: '@dungeonmaster/testing/test/harnesses/quest/quest.harness',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importSource: "@my-org/test-utils/test/harnesses/guild/guild.harness"} => returns true', () => {
+      const result = isHarnessImportGuard({
+        importSource: '@my-org/test-utils/test/harnesses/guild/guild.harness',
+      });
+
+      expect(result).toBe(true);
+    });
+  });
+
   describe('non-harness imports', () => {
     it('VALID: {importSource: "./guild-broker"} => returns false', () => {
       const result = isHarnessImportGuard({ importSource: './guild-broker' });

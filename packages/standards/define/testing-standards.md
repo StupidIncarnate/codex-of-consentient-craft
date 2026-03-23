@@ -2462,16 +2462,6 @@ export const questHarness = () => {
 - **Returns an object** — with setup, interaction, and inspection methods
 - **Owns its own lifecycle** — cleanup hooks registered inside the factory, not in the test file
 
-#### Comparison to `.proxy.ts`:
-
-| Aspect | `.proxy.ts` (unit tests) | `.harness.ts` (integration/e2e) |
-|--------|--------------------------|----------------------------------|
-| Wraps | npm package boundary (jest.mock) | External service or real API |
-| Mock mechanism | `registerMock` / `jest.mocked()` | Fake binaries, file queues, real HTTP calls |
-| Located in | `src/` co-located with implementation | `test/harnesses/{domain}/` |
-| Imported by | `.test.ts` files | `.spec.ts` and `.integration.test.ts` files |
-| Cannot import | Other proxies cross-domain | `.proxy.ts` files |
-
 #### What is NOT a harness
 
 - **Stubs** — typed data factories live in `src/contracts/` as `.stub.ts` files. Harnesses import stubs,
@@ -2481,30 +2471,8 @@ export const questHarness = () => {
 
 ### Directory Structure
 
-#### `test/harnesses/` — flat domain folders
-
-Test infrastructure is organized by domain inside `test/harnesses/`. Each domain folder is **flat** — no nesting
-within domain folders.
-
-```
-test/
-└── harnesses/
-    ├── claude-mock/
-    │   ├── claude-mock.harness.ts    # factory: queueResponse, clearQueue
-    │   └── bin-claude.js             # fake binary (non-TS artifact)
-    ├── quest/
-    │   └── quest.harness.ts          # factory: create, approve, pollStatus, clean
-    ├── guild/
-    │   └── guild.harness.ts          # factory: create, clean
-    ├── session/
-    │   └── session.harness.ts        # factory: createFile, createMultiEntry, clean
-    ├── environment/
-    │   └── environment.harness.ts    # factory: setup (env vars, dirs), restore
-    └── navigation/
-        └── navigation.harness.ts     # factory: navigateToSession, extractUrlSlug
-```
-
-#### Single-package repo
+Harnesses are organized by domain inside `test/harnesses/`. Each domain folder is **flat** — no nesting within domain
+folders. Non-TS artifacts (fake binaries) live alongside the harness file.
 
 ```
 my-project/
@@ -2512,57 +2480,20 @@ my-project/
 ├── test/
 │   └── harnesses/
 │       ├── claude-mock/
+│       │   ├── claude-mock.harness.ts    # factory: queueResponse, clearQueue
+│       │   └── bin-claude.js             # fake binary (non-TS artifact)
 │       ├── quest/
-│       └── ...
-└── e2e/                              # E2E test scenarios
+│       │   └── quest.harness.ts          # factory: create, approve, pollStatus, clean
+│       ├── guild/
+│       │   └── guild.harness.ts          # factory: create, clean
+│       └── environment/
+│           └── environment.harness.ts    # factory: setup (env vars, dirs), restore
+└── e2e/                              # E2E specs live with their project
     └── *.spec.ts
 ```
 
-#### Monorepo — package with `src/` and `test/`
-
-When a package publishes code AND provides test infrastructure. The `src/` ships with npm, the `test/` does not.
-
-```
-packages/testing/
-├── src/                              # Published test utilities (testbed brokers, etc.)
-│   ├── brokers/
-│   ├── contracts/
-│   └── statics/
-├── test/
-│   └── harnesses/
-│       ├── claude-mock/              # Fake CLI + queue harness
-│       ├── quest/                    # Quest lifecycle harness
-│       └── environment/              # Env var isolation harness
-└── package.json                      # "files": ["dist/"] excludes test/
-```
-
-#### Monorepo — project with `e2e/` and `test/`
-
-```
-packages/web/
-├── src/                              # Application code
-├── test/
-│   └── harnesses/
-│       ├── session/                  # Web-specific session harness
-│       └── navigation/               # Playwright navigation harness
-├── e2e/                              # E2E test scenarios
-│   └── *.spec.ts
-└── package.json
-```
-
-#### Cross-package imports
-
-Local `test/` can import from a shared workspace package's `test/`. Shared `test/` cannot import from local `test/`.
-
-```
-packages/web/e2e/*.spec.ts
-  → imports from packages/web/test/harnesses/navigation/
-  → imports from packages/testing/test/harnesses/claude-mock/
-
-packages/orchestrator/src/flows/*.integration.test.ts
-  → imports from packages/testing/test/harnesses/quest/
-  → imports from packages/testing/test/harnesses/environment/
-```
+In monorepos, each package can have its own `test/` directory. A shared test package can also have `test/` for
+cross-package harnesses. Local `test/` can import from shared `test/`. Shared `test/` cannot import from local `test/`.
 
 ### Import Boundaries
 
@@ -2725,6 +2656,7 @@ They contain test blocks and assertions. They do NOT contain infrastructure.
 | `import * as path from 'path'` | Path construction belongs in harness | `.harness.ts` |
 | `import * as os from 'os'` | Home dir resolution belongs in harness | `.harness.ts` |
 | `import * as crypto from 'crypto'` | ID generation belongs in stubs | Contract stubs |
+| `import {execFile} from 'child_process'` | Process spawning belongs in harness | `.harness.ts` |
 | Top-level `const fn = (...) => {...}` | Inline helpers become duplicated | `.harness.ts` |
 | `page.waitForTimeout(N)` (e2e) | Arbitrary delays cause flaky tests | `await expect(locator).toBeVisible()` |
 | `page.route(...)` (e2e) | Intercepting responses bypasses real server | `request.patch()` to drive real state |
@@ -2740,37 +2672,20 @@ They contain test blocks and assertions. They do NOT contain infrastructure.
 | Constants (`const TIMEOUT = 5_000`) | Named values for readability |
 | Test data literals (`{name: 'Test Guild'}`) | Simple inline data is fine |
 
-### Harness Lint Rules
+### Lint Rules
 
-#### `enforce-harness-patterns` (pre-edit)
+These `@dungeonmaster` rules enforce the harness pattern:
 
-**Scope:** `*.harness.ts` files
+- `enforce-harness-patterns` — `.harness.ts` must export factory returning object, no proxy/contract imports
+- `ban-node-builtins-in-test-scenarios` — no `fs`/`path`/`os`/`crypto`/`child_process` in scenario files
+- `ban-inline-helpers-in-test-scenarios` — no top-level helper functions in scenario files
+- `ban-wait-for-timeout` — no `waitForTimeout()`/`setTimeout()` in scenario files
+- `ban-page-route-in-e2e` — no `page.route()` in spec files
 
-**What:** Must export factory function returning object. Ban `.proxy.ts` imports. Ban contract value imports (use stubs).
+Existing jest rules also apply to scenario files when the jest config includes `*.spec.ts`:
 
-#### `ban-node-builtins-in-test-scenarios` (pre-edit)
-
-**Scope:** `*.spec.ts`, `*.integration.test.ts` (excluding files inside `test/` directories)
-
-**What:** Ban imports of `fs`, `fs/promises`, `path`, `os`, `crypto`.
-
-#### `ban-inline-helpers-in-test-scenarios` (pre-edit)
-
-**Scope:** `*.spec.ts`, `*.integration.test.ts`
-
-**What:** Ban top-level arrow function declarations with block bodies outside test/describe blocks.
-
-#### `ban-wait-for-timeout` (pre-edit)
-
-**Scope:** `*.spec.ts`
-
-**What:** Ban `page.waitForTimeout()` calls.
-
-#### `ban-page-route-in-e2e` (pre-edit)
-
-**Scope:** `*.spec.ts`
-
-**What:** Ban `page.route()` calls.
+- `jest/no-conditional-in-test` — no conditionals in test bodies
+- `jest/no-restricted-matchers` — no weak matchers (`toEqual`, `toBeDefined`, etc.)
 
 ### Harness vs Unit Test Summary
 
