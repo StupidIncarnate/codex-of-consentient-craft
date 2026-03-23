@@ -45,6 +45,8 @@ describe('runLawbringerLayerBroker', () => {
           startPath: FilePathStub({ value: '/project' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Quest not found/u);
     });
@@ -86,6 +88,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -143,6 +147,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const statusA = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdA });
@@ -210,6 +216,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       expect(proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdA })).toBe('complete');
@@ -297,6 +305,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       expect(proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdA })).toBe('complete');
@@ -350,6 +360,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -421,6 +433,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       // Verify work items were persisted (function completed without throwing)
@@ -491,12 +505,106 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       // Original lawbringer is failed (spawn_role path taken, onFollowupCreated fired)
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
       expect(status).toBe('failed');
+    });
+  });
+
+  describe('onAgentEntry wiring', () => {
+    it('VALID: {onAgentEntry provided, agent signals complete} => completes without error', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        filesToModify: ['/project/src/file-a.ts'],
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
+    });
+
+    it('VALID: {both params provided with default values} => completes without error', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        filesToModify: ['/project/src/file-a.ts'],
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
     });
   });
 
@@ -568,6 +676,8 @@ describe('runLawbringerLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       // Verify work items were persisted (function completed without throwing)

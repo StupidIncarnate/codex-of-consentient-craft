@@ -11,8 +11,12 @@ import {
   workItemContract,
   type FilePath,
   type QuestId,
+  type SessionId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
+
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
+import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
@@ -29,12 +33,14 @@ export const runSiegemasterLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const questInput = getQuestInputContract.parse({ questId });
   const questResult = await questGetBroker({ input: questInput });
@@ -55,12 +61,23 @@ export const runSiegemasterLayerBroker = async ({
     workItem.timeoutMs ?? slotManagerStatics.siegemaster.timeoutMs,
   );
 
+  const slotIndex = slotIndexContract.parse(0);
+  let trackedSessionId: SessionId | null = null;
+
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     timeoutMs,
     startPath,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    abortSignal,
+    onLine: ({ line }: { line: string }) => {
+      onAgentEntry({
+        slotIndex,
+        entry: { raw: line },
+        ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+      });
+    },
     onSessionId: ({ sessionId }) => {
+      trackedSessionId = sessionId;
       questModifyBroker({
         input: {
           questId,
@@ -71,7 +88,7 @@ export const runSiegemasterLayerBroker = async ({
   });
 
   // If aborted (paused), bail out without creating follow-up items
-  if (abortSignal?.aborted) {
+  if (abortSignal.aborted) {
     return;
   }
 

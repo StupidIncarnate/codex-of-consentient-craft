@@ -231,6 +231,8 @@ const pollUntilWorkItemsSettled = async ({
 // Env setup / teardown
 // ---------------------------------------------------------------------------
 
+const FAKE_WARD_CLI = path.join(FAKE_WARD_BIN_DIR, 'dungeonmaster-ward');
+
 const setupTestEnv = (tempDir: string) => {
   counters.clear();
   const claudeQueueDir = createQueueDir(tempDir, 'claude-queue');
@@ -241,11 +243,13 @@ const setupTestEnv = (tempDir: string) => {
   const savedFakeWardQueueDir = process.env.FAKE_WARD_QUEUE_DIR;
   const savedPath = process.env.PATH;
   const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
+  const savedWardCliPath = process.env.WARD_CLI_PATH;
 
   process.env.CLAUDE_CLI_PATH = FAKE_CLAUDE_CLI;
   process.env.FAKE_CLAUDE_QUEUE_DIR = String(claudeQueueDir);
   process.env.FAKE_WARD_QUEUE_DIR = String(wardQueueDir);
   process.env.PATH = `${FAKE_WARD_BIN_DIR}:${process.env.PATH ?? ''}`;
+  process.env.WARD_CLI_PATH = FAKE_WARD_CLI;
   // Isolate guild config to this test's temp directory instead of the real ~/.dungeonmaster.
   // Without this, all tests share the same config file and concurrent writes corrupt it.
   process.env.DUNGEONMASTER_HOME = tempDir;
@@ -259,6 +263,11 @@ const setupTestEnv = (tempDir: string) => {
     process.env.FAKE_CLAUDE_QUEUE_DIR = savedFakeClaudeQueueDir;
     process.env.FAKE_WARD_QUEUE_DIR = savedFakeWardQueueDir;
     process.env.PATH = savedPath;
+    if (savedWardCliPath === undefined) {
+      Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
+    } else {
+      process.env.WARD_CLI_PATH = savedWardCliPath;
+    }
     if (savedDungeonmasterHome === undefined) {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     } else {
@@ -1801,6 +1810,325 @@ describe('OrchestrationFlow', () => {
 
       expect(quest.workItems.filter((wi) => wi.role === 'codeweaver')).toHaveLength(3);
       expect(quest.workItems.filter((wi) => wi.role === 'lawbringer')).toHaveLength(3);
+    });
+  });
+
+  describe('agent output streaming', () => {
+    // Access orchestrationEventsState singleton via require (allowed in test files).
+    // The import hierarchy rule prevents flows/ from importing state/ via ESM,
+    // but require() is not checked by ImportDeclaration visitors.
+    const eventsModule = require('../../state/orchestration-events/orchestration-events-state');
+    const eventsState = Reflect.get(eventsModule, 'orchestrationEventsState');
+
+    const subscribeChatOutput = (): {
+      captured: unknown[];
+      handler: (event: unknown) => void;
+      unsubscribe: () => void;
+    } => {
+      const captured: unknown[] = [];
+      const handler = (event: unknown): void => {
+        captured.push(event);
+      };
+      Reflect.get(eventsState, 'on').call(eventsState, { type: 'chat-output', handler });
+      return {
+        captured,
+        handler,
+        unsubscribe: (): void => {
+          Reflect.get(eventsState, 'off').call(eventsState, { type: 'chat-output', handler });
+        },
+      };
+    };
+
+    const getPayload = (event: unknown): Record<PropertyKey, unknown> =>
+      Reflect.get(event as object, 'payload') as Record<PropertyKey, unknown>;
+
+    const getEntryRaw = (event: unknown): unknown => {
+      const payload = getPayload(event);
+      const entry = Reflect.get(payload, 'entry') as Record<PropertyKey, unknown> | undefined;
+      return entry ? Reflect.get(entry, 'raw') : undefined;
+    };
+
+    const getSessionId = (event: unknown): unknown => {
+      const payload = getPayload(event);
+      return Reflect.get(payload, 'sessionId');
+    };
+
+    const getSlotIndex = (event: unknown): unknown => {
+      const payload = getPayload(event);
+      return Reflect.get(payload, 'slotIndex');
+    };
+
+    it('VALID: {happy path, 2 steps} => chat-output events emitted for all roles', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-stream-happy' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const sub = subscribeChatOutput();
+
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 2,
+        });
+
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-stream') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-stream-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-stream-1') }));
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-stream') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-stream-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-stream-1') }));
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await pollForQuestStatus({
+          questId,
+          targetStatuses: ['complete'],
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      sub.unsubscribe();
+
+      const { workItems } = quest;
+
+      // Pathseeker events
+      const pathseekerItem = workItems.find((wi) => wi.role === 'pathseeker')!;
+      const pathseekerEvents = sub.captured.filter(
+        (e) => getSessionId(e) === pathseekerItem.sessionId,
+      );
+
+      expect(pathseekerEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(pathseekerEvents[0])).toBe('string');
+      expect(String(getEntryRaw(pathseekerEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(pathseekerEvents[0])).toBe(pathseekerItem.sessionId);
+
+      // Codeweaver events (one per step, 2 steps)
+      const codeweaverItems = workItems.filter((wi) => wi.role === 'codeweaver');
+
+      expect(codeweaverItems).toHaveLength(2);
+
+      const cw0Events = sub.captured.filter(
+        (e) => getSessionId(e) === codeweaverItems[0]!.sessionId,
+      );
+
+      expect(cw0Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(cw0Events[0])).toBe('string');
+      expect(String(getEntryRaw(cw0Events[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(cw0Events[0])).toBe(codeweaverItems[0]!.sessionId);
+
+      const cw1Events = sub.captured.filter(
+        (e) => getSessionId(e) === codeweaverItems[1]!.sessionId,
+      );
+
+      expect(cw1Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(cw1Events[0])).toBe('string');
+      expect(String(getEntryRaw(cw1Events[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(cw1Events[0])).toBe(codeweaverItems[1]!.sessionId);
+
+      // Ward events (at least 1 per ward run)
+      const wardItems = workItems.filter((wi) => wi.role === 'ward');
+      const ward0Events = sub.captured.filter((e) => getSessionId(e) === wardItems[0]!.sessionId);
+
+      expect(ward0Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(ward0Events[0])).toBe('string');
+      expect(String(getEntryRaw(ward0Events[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(ward0Events[0])).toBe(wardItems[0]!.sessionId);
+
+      const ward1Events = sub.captured.filter((e) => getSessionId(e) === wardItems[1]!.sessionId);
+
+      expect(ward1Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(ward1Events[0])).toBe('string');
+      expect(String(getEntryRaw(ward1Events[0])).length).toBeGreaterThan(0);
+
+      // Siegemaster events
+      const siegeItem = workItems.find((wi) => wi.role === 'siegemaster')!;
+      const siegeEvents = sub.captured.filter((e) => getSessionId(e) === siegeItem.sessionId);
+
+      expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(siegeEvents[0])).toBe('string');
+      expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(siegeEvents[0])).toBe(siegeItem.sessionId);
+
+      // Lawbringer events (one per step, 2 steps)
+      const lawbringerItems = workItems.filter((wi) => wi.role === 'lawbringer');
+
+      expect(lawbringerItems).toHaveLength(2);
+
+      const lb0Events = sub.captured.filter(
+        (e) => getSessionId(e) === lawbringerItems[0]!.sessionId,
+      );
+
+      expect(lb0Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(lb0Events[0])).toBe('string');
+      expect(String(getEntryRaw(lb0Events[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(lb0Events[0])).toBe(lawbringerItems[0]!.sessionId);
+
+      const lb1Events = sub.captured.filter(
+        (e) => getSessionId(e) === lawbringerItems[1]!.sessionId,
+      );
+
+      expect(lb1Events.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(lb1Events[0])).toBe('string');
+      expect(String(getEntryRaw(lb1Events[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(lb1Events[0])).toBe(lawbringerItems[1]!.sessionId);
+
+      // Every event has a valid slotIndex (number)
+      expect(sub.captured.length).toBeGreaterThanOrEqual(8);
+      expect(sub.captured.every((e) => typeof getSlotIndex(e) === 'number')).toBe(true);
+    });
+
+    it('VALID: {ward fails with retries} => chat-output events for ward, spiritmender, and ward retry', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-stream-ward-fail' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const sub = subscribeChatOutput();
+
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 1,
+        });
+
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-wf') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-wf') }));
+        queueResponse(
+          env.wardQueueDir,
+          wardFailResponse({ filePaths: [FilePathStub({ value: '/src/file.ts' })] }),
+        );
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-wf') }));
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-wf') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-wf') }));
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await pollUntilWorkItemsSettled({
+          questId,
+          minItems: 9,
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      sub.unsubscribe();
+
+      const { workItems } = quest;
+
+      // Failed ward events
+      const wardItems = workItems.filter((wi) => wi.role === 'ward');
+      const failedWard = wardItems.find((wi) => wi.status === 'failed')!;
+      const failedWardEvents = sub.captured.filter((e) => getSessionId(e) === failedWard.sessionId);
+
+      expect(failedWardEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(failedWardEvents[0])).toBe('string');
+      expect(String(getEntryRaw(failedWardEvents[0])).length).toBeGreaterThan(0);
+
+      // Spiritmender events
+      const spiritmenderItems = workItems.filter((wi) => wi.role === 'spiritmender');
+
+      expect(spiritmenderItems.length).toBeGreaterThanOrEqual(1);
+
+      const smEvents = sub.captured.filter(
+        (e) => getSessionId(e) === spiritmenderItems[0]!.sessionId,
+      );
+
+      expect(smEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(smEvents[0])).toBe('string');
+      expect(String(getEntryRaw(smEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(smEvents[0])).toBe(spiritmenderItems[0]!.sessionId);
+
+      // Ward retry events (completed ward)
+      const completedWards = wardItems.filter((wi) => wi.status === 'complete');
+
+      expect(completedWards.length).toBeGreaterThanOrEqual(1);
+
+      const retryEvents = sub.captured.filter(
+        (e) => getSessionId(e) === completedWards[0]!.sessionId,
+      );
+
+      expect(retryEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(retryEvents[0])).toBe('string');
+      expect(String(getEntryRaw(retryEvents[0])).length).toBeGreaterThan(0);
+    });
+
+    it('VALID: {siege fails} => chat-output events for siegemaster and pathseeker replan', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-stream-siege-fail' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const sub = subscribeChatOutput();
+
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 1,
+        });
+
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-sf') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-sf') }));
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        queueResponse(
+          env.claudeQueueDir,
+          agentFailedResponse({
+            sessionId: sid('siege-fail-sf'),
+            summary: 'FAILED OBSERVABLES: login redirect broken',
+          }),
+        );
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-replan-sf') }));
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await pollForQuestStatus({
+          questId,
+          targetStatuses: ['blocked'],
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      sub.unsubscribe();
+
+      const { workItems } = quest;
+
+      // Failed siegemaster events
+      const siegeItems = workItems.filter((wi) => wi.role === 'siegemaster');
+      const failedSiege = siegeItems.find((wi) => wi.status === 'failed')!;
+      const siegeEvents = sub.captured.filter((e) => getSessionId(e) === failedSiege.sessionId);
+
+      expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(siegeEvents[0])).toBe('string');
+      expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(siegeEvents[0])).toBe(failedSiege.sessionId);
+
+      // Pathseeker replan events
+      const pathseekerItems = workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(pathseekerItems.length).toBeGreaterThanOrEqual(2);
+
+      // The last pathseeker is the replan
+      const replanPathseeker = pathseekerItems[pathseekerItems.length - 1]!;
+      const replanEvents = sub.captured.filter(
+        (e) => getSessionId(e) === replanPathseeker.sessionId,
+      );
+
+      expect(replanEvents.length).toBeGreaterThanOrEqual(1);
+      expect(typeof getEntryRaw(replanEvents[0])).toBe('string');
+      expect(String(getEntryRaw(replanEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(replanEvents[0])).toBe(replanPathseeker.sessionId);
     });
   });
 });

@@ -17,9 +17,8 @@ import {
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
@@ -38,11 +37,7 @@ export const runChatLayerBroker = async ({
   workItem: WorkItem;
   startPath: FilePath;
   userMessage?: UserInput;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
+  onAgentEntry: OnAgentEntryCallback;
 }): Promise<void> => {
   const slotIndex = slotIndexContract.parse(0);
 
@@ -65,7 +60,7 @@ export const runChatLayerBroker = async ({
         cwd: absoluteFilePathContract.parse(startPath),
         ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
         onLine: ({ line }) => {
-          onAgentEntry?.({
+          onAgentEntry({
             slotIndex,
             entry: { raw: line },
             ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),

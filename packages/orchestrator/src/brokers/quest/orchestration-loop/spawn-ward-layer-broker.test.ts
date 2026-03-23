@@ -11,6 +11,7 @@ describe('spawnWardLayerBroker', () => {
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(result.exitCode).toBe(0);
@@ -23,6 +24,7 @@ describe('spawnWardLayerBroker', () => {
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(result.exitCode).toBe(1);
@@ -35,6 +37,7 @@ describe('spawnWardLayerBroker', () => {
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(result.exitCode).toBe(1);
@@ -47,6 +50,7 @@ describe('spawnWardLayerBroker', () => {
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(result.exitCode).toBe(1);
@@ -62,6 +66,7 @@ describe('spawnWardLayerBroker', () => {
       await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
         wardMode: 'changed',
+        abortSignal: new AbortController().signal,
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run', '--changed']);
@@ -74,6 +79,7 @@ describe('spawnWardLayerBroker', () => {
       await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
         wardMode: 'full',
+        abortSignal: new AbortController().signal,
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
@@ -85,6 +91,7 @@ describe('spawnWardLayerBroker', () => {
 
       await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run']);
@@ -106,6 +113,7 @@ describe('spawnWardLayerBroker', () => {
         onLine: (line) => {
           collectedLines.push(line);
         },
+        abortSignal: new AbortController().signal,
       });
 
       expect(collectedLines).toStrictEqual([
@@ -129,6 +137,7 @@ describe('spawnWardLayerBroker', () => {
         onLine: (line) => {
           collectedLines.push(line);
         },
+        abortSignal: new AbortController().signal,
       });
 
       expect(collectedLines).toStrictEqual(['run: 1739625600000-a3f1', '', 'lint:      PASS']);
@@ -140,6 +149,7 @@ describe('spawnWardLayerBroker', () => {
 
       const result = await spawnWardLayerBroker({
         startPath: AbsoluteFilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
       });
 
       expect(result.exitCode).toBe(0);

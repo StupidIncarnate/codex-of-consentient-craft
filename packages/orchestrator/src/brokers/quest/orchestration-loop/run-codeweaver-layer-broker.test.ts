@@ -46,6 +46,8 @@ describe('runCodeweaverLayerBroker', () => {
           startPath: FilePathStub({ value: '/project' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Quest not found/u);
     });
@@ -75,6 +77,8 @@ describe('runCodeweaverLayerBroker', () => {
           startPath: FilePathStub({ value: '/project' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/has no relatedDataItems/u);
     });
@@ -112,6 +116,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -162,6 +168,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
@@ -224,6 +232,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
@@ -266,6 +276,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -331,6 +343,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
@@ -418,6 +432,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub({ value: 3 }),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status1 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId1 });
@@ -468,6 +484,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -523,6 +541,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const persisted = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -577,6 +597,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -625,6 +647,8 @@ describe('runCodeweaverLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const persistedSessionId = proxy.getLastPersistedWorkItemSessionId({ workItemId });

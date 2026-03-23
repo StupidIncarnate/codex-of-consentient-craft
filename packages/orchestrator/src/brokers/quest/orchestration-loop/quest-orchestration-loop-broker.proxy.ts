@@ -89,6 +89,16 @@ export const questOrchestrationLoopBrokerProxy = (): {
   }) => WorkItem | undefined;
   wasChatLayerCalled: () => boolean;
   wasCodeweaverLayerCalled: () => boolean;
+  wasOnAgentEntryPassedTo: (params: {
+    role:
+      | 'chat'
+      | 'pathseeker'
+      | 'codeweaver'
+      | 'ward'
+      | 'siegemaster'
+      | 'lawbringer'
+      | 'spiritmender';
+  }) => boolean;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -324,5 +334,36 @@ export const questOrchestrationLoopBrokerProxy = (): {
     wasChatLayerCalled: (): boolean => jest.mocked(chatLayer).mock.calls.length > 0,
 
     wasCodeweaverLayerCalled: (): boolean => jest.mocked(cwLayer).mock.calls.length > 0,
+
+    wasOnAgentEntryPassedTo: ({
+      role,
+    }: {
+      role:
+        | 'chat'
+        | 'pathseeker'
+        | 'codeweaver'
+        | 'ward'
+        | 'siegemaster'
+        | 'lawbringer'
+        | 'spiritmender';
+    }): boolean => {
+      const getCalls = (): readonly unknown[][] => {
+        if (role === 'chat') return jest.mocked(chatLayer).mock.calls;
+        if (role === 'pathseeker') return jest.mocked(psLayer).mock.calls;
+        if (role === 'codeweaver') return jest.mocked(cwLayer).mock.calls;
+        if (role === 'ward') return jest.mocked(wardLayer).mock.calls;
+        if (role === 'siegemaster') return jest.mocked(smLayer).mock.calls;
+        if (role === 'lawbringer') return jest.mocked(lbLayer).mock.calls;
+        return jest.mocked(spLayer).mock.calls;
+      };
+      const calls = getCalls();
+      if (calls.length === 0) return false;
+      const firstCallArgs = calls[0]?.[0];
+      return (
+        firstCallArgs !== null &&
+        typeof firstCallArgs === 'object' &&
+        'onAgentEntry' in firstCallArgs
+      );
+    },
   };
 };

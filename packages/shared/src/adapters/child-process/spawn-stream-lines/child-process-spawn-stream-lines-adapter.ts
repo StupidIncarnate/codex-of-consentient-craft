@@ -33,6 +33,7 @@ export const childProcessSpawnStreamLinesAdapter = async ({
     const child = spawn(command, args, {
       cwd,
       stdio: ['inherit', 'pipe', 'pipe'],
+      env: { ...process.env },
       ...(abortSignal === undefined ? {} : { signal: abortSignal }),
     });
 

@@ -11,16 +11,14 @@ import {
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
-  type SessionId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
@@ -47,12 +45,8 @@ export const runCodeweaverLayerBroker = async ({
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.codeweaver.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
@@ -92,8 +86,8 @@ export const runCodeweaverLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
-    ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+    abortSignal,
+    onAgentEntry,
     onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
       const questItemId = slotToQuestMap.get(failedWorkItemId);
       if (questItemId) {

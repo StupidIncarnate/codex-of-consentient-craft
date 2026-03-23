@@ -59,8 +59,88 @@ describe('runSpiritmenderLayerBroker', () => {
           startPath: FilePathStub({ value: '/project' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Quest.*not found/u);
+    });
+  });
+
+  describe('onAgentEntry wiring', () => {
+    it('VALID: {onAgentEntry provided, agent signals complete} => completes without error', async () => {
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest, batchContents: [BATCH_ONE_FILE] });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
+    });
+
+    it('VALID: {both params provided with default values} => completes without error', async () => {
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest, batchContents: [BATCH_ONE_FILE] });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+
+      expect(status).toBe('complete');
     });
   });
 
@@ -93,6 +173,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -128,6 +210,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -163,6 +247,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -200,6 +286,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -256,6 +344,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub({ value: 3 }),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -292,6 +382,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
@@ -329,6 +421,8 @@ describe('runSpiritmenderLayerBroker', () => {
         startPath: FilePathStub({ value: '/project' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });

@@ -10,16 +10,14 @@ import type {
   FilePath,
   ProcessId,
   QuestId,
-  SessionId,
   UserInput,
   WorkItem,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
@@ -52,15 +50,11 @@ export const questOrchestrationLoopBroker = async ({
   processId: ProcessId;
   questId: QuestId;
   startPath: FilePath;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
   userMessage?: UserInput;
 }): Promise<void> => {
-  if (abortSignal?.aborted) {
+  if (abortSignal.aborted) {
     return;
   }
 
@@ -174,15 +168,15 @@ export const questOrchestrationLoopBroker = async ({
         workItem: firstItem,
         startPath,
         ...(userMessage === undefined ? {} : { userMessage }),
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        onAgentEntry,
       });
     } else if (roleName === 'pathseeker') {
       await runPathseekerLayerBroker({
         questId,
         workItem: firstItem,
         startPath,
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     } else if (roleName === 'codeweaver') {
       await runCodeweaverLayerBroker({
@@ -191,23 +185,24 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     } else if (roleName === 'ward') {
       await runWardLayerBroker({
         questId,
         workItem: firstItem,
         startPath,
-        ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     } else if (roleName === 'siegemaster') {
       await runSiegemasterLayerBroker({
         questId,
         workItem: firstItem,
         startPath,
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     } else if (roleName === 'lawbringer') {
       await runLawbringerLayerBroker({
@@ -216,7 +211,8 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     } else {
       // roleName === 'spiritmender' (exhaustive via WorkItemRole enum)
@@ -226,12 +222,14 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
-        ...(abortSignal === undefined ? {} : { abortSignal }),
+        onAgentEntry,
+        abortSignal,
       });
     }
   } catch (error: unknown) {
     // If aborted (paused), do not mark items failed — pause responder resets them to pending
-    if (abortSignal?.aborted) {
+    // Re-read .aborted as a live getter — TS narrows it to false from the early check, but it changes at runtime
+    if (Reflect.get(abortSignal, 'aborted')) {
       return;
     }
 
@@ -276,7 +274,7 @@ export const questOrchestrationLoopBroker = async ({
     processId,
     questId,
     startPath,
-    ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    onAgentEntry,
+    abortSignal,
   });
 };

@@ -1846,11 +1846,16 @@ describe('orchestrationLoopLayerBroker', () => {
       });
 
       // Work tracker must be completely untouched — item stays in_progress for pause responder to reset
-      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
-      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
-      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      expect.assertions(2);
+      expect(
+        [
+          mockMarkStarted,
+          mockMarkCompleted,
+          mockMarkFailed,
+          mockAddWorkItem,
+          mockSkipAllPending,
+        ].every((fn) => fn.mock.calls.length === 0),
+      ).toBe(true);
       // Agent must be removed from active list (it completed, just not processed)
       expect(result).toStrictEqual({ done: false, activeAgents: [] });
     });
@@ -1909,11 +1914,16 @@ describe('orchestrationLoopLayerBroker', () => {
       });
 
       // Work tracker must be completely untouched
-      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
-      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
-      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      expect.assertions(2);
+      expect(
+        [
+          mockMarkStarted,
+          mockMarkCompleted,
+          mockMarkFailed,
+          mockAddWorkItem,
+          mockSkipAllPending,
+        ].every((fn) => fn.mock.calls.length === 0),
+      ).toBe(true);
       expect(result).toStrictEqual({ done: false, activeAgents: [] });
     });
 
@@ -1969,11 +1979,16 @@ describe('orchestrationLoopLayerBroker', () => {
       });
 
       // Work tracker must be completely untouched
-      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
-      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
-      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      expect.assertions(2);
+      expect(
+        [
+          mockMarkStarted,
+          mockMarkCompleted,
+          mockMarkFailed,
+          mockAddWorkItem,
+          mockSkipAllPending,
+        ].every((fn) => fn.mock.calls.length === 0),
+      ).toBe(true);
       expect(result).toStrictEqual({ done: false, activeAgents: [] });
     });
   });

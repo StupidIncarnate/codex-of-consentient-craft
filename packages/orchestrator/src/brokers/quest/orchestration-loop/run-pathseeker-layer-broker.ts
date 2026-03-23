@@ -14,10 +14,9 @@ import {
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { verifyQuestInputContract } from '../../../contracts/verify-quest-input/verify-quest-input-contract';
@@ -42,12 +41,8 @@ export const runPathseekerLayerBroker = async ({
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const workUnit = workUnitContract.parse({
     role: 'pathseeker',
@@ -62,19 +57,15 @@ export const runPathseekerLayerBroker = async ({
     workUnit,
     timeoutMs,
     startPath,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    abortSignal,
     ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
-    ...(onAgentEntry === undefined
-      ? {}
-      : {
-          onLine: ({ line }: { line: string }) => {
-            onAgentEntry({
-              slotIndex,
-              entry: { raw: line },
-              ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
-            });
-          },
-        }),
+    onLine: ({ line }: { line: string }) => {
+      onAgentEntry({
+        slotIndex,
+        entry: { raw: line },
+        ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+      });
+    },
     onSessionId: ({ sessionId }) => {
       trackedSessionId = sessionId;
       questModifyBroker({
@@ -87,7 +78,7 @@ export const runPathseekerLayerBroker = async ({
   });
 
   // If aborted (paused), bail out without creating follow-up items
-  if (abortSignal?.aborted) {
+  if (abortSignal.aborted) {
     return;
   }
 

@@ -16,16 +16,14 @@ import {
   workItemContract,
   type FilePath,
   type QuestId,
-  type SessionId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
@@ -51,12 +49,8 @@ export const runWardLayerBroker = async ({
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const absoluteStartPath = absoluteFilePathContract.parse(startPath);
 
@@ -64,7 +58,7 @@ export const runWardLayerBroker = async ({
   const wardSessionId = sessionIdContract.parse(WARD_SESSION_PREFIX + crypto.randomUUID());
 
   process.stderr.write(
-    `[dev] ward:start questId=${questId} workItemId=${workItem.id} sessionId=${wardSessionId} hasOnAgentEntry=${String(onAgentEntry !== undefined)}\n`,
+    `[dev] ward:start questId=${questId} workItemId=${workItem.id} sessionId=${wardSessionId} hasOnAgentEntry=true\n`,
   );
 
   // Store session ID on work item before spawning
@@ -75,37 +69,27 @@ export const runWardLayerBroker = async ({
     } as ModifyQuestInput,
   });
 
-  // Create onLine wrapper for streaming to web
-  const onLine =
-    onAgentEntry === undefined
-      ? (line: string): void => {
-          process.stderr.write(
-            `[dev] ward:output (no relay) ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`,
-          );
-        }
-      : (line: string): void => {
-          process.stderr.write(`[dev] ward:output ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`);
-          onAgentEntry({
-            slotIndex: WARD_SLOT_INDEX,
-            entry: { raw: line },
-            sessionId: wardSessionId,
-          });
-        };
-
   // Spawn ward with streaming
   const { exitCode, runId } = await spawnWardLayerBroker({
     startPath: absoluteStartPath,
     ...(workItem.wardMode === undefined ? {} : { wardMode: workItem.wardMode }),
-    onLine,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    onLine: (line: string) => {
+      process.stderr.write(`[dev] ward:output ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`);
+      onAgentEntry({
+        slotIndex: WARD_SLOT_INDEX,
+        entry: { raw: line },
+        sessionId: wardSessionId,
+      });
+    },
+    abortSignal,
   });
 
   process.stderr.write(
-    `[dev] ward:complete exitCode=${String(exitCode)} runId=${String(runId)} workItemId=${workItem.id} aborted=${String(abortSignal?.aborted ?? false)}\n`,
+    `[dev] ward:complete exitCode=${String(exitCode)} runId=${String(runId)} workItemId=${workItem.id} aborted=${String(abortSignal.aborted)}\n`,
   );
 
   // If aborted (paused), bail out without creating follow-up items
-  if (abortSignal?.aborted) {
+  if (abortSignal.aborted) {
     return;
   }
 

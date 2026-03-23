@@ -17,6 +17,7 @@ import {
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
@@ -36,6 +37,7 @@ export const runLawbringerLayerBroker = async ({
   startPath,
   slotCount,
   slotOperations,
+  onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
@@ -43,7 +45,8 @@ export const runLawbringerLayerBroker = async ({
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.lawbringer.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
@@ -83,7 +86,8 @@ export const runLawbringerLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    abortSignal,
+    onAgentEntry,
     onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
       const questItemId = slotToQuestMap.get(failedWorkItemId);
       if (questItemId) {

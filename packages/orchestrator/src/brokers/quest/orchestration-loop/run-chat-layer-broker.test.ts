@@ -30,6 +30,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          onAgentEntry: jest.fn(),
         }),
       ).resolves.toBeUndefined();
     });
@@ -51,6 +52,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Design the login page' }),
+          onAgentEntry: jest.fn(),
         }),
       ).resolves.toBeUndefined();
     });
@@ -73,6 +75,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/spawn claude ENOENT/u);
 
@@ -99,6 +102,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/Chat agent exited with code 1/u);
 
@@ -127,6 +131,7 @@ describe('runChatLayerBroker', () => {
         workItem,
         startPath: FilePathStub({ value: '/project/src' }),
         userMessage,
+        onAgentEntry: jest.fn(),
       });
 
       const spawnedArgs = proxy.getSpawnedArgs();

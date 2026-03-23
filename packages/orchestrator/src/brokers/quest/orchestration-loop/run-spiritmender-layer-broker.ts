@@ -21,6 +21,7 @@ import {
 
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
@@ -45,6 +46,7 @@ export const runSpiritmenderLayerBroker = async ({
   startPath,
   slotCount,
   slotOperations,
+  onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
@@ -52,7 +54,8 @@ export const runSpiritmenderLayerBroker = async ({
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
-  abortSignal?: AbortSignal;
+  onAgentEntry: OnAgentEntryCallback;
+  abortSignal: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.ward.spiritmenderTimeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(MAX_FOLLOWUP_DEPTH);
@@ -96,7 +99,8 @@ export const runSpiritmenderLayerBroker = async ({
     slotOperations,
     startPath: filePathContract.parse(startPath),
     maxFollowupDepth,
-    ...(abortSignal === undefined ? {} : { abortSignal }),
+    abortSignal,
+    onAgentEntry,
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {

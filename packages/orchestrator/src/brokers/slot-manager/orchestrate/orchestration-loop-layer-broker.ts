@@ -11,9 +11,12 @@ import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contrac
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
+import type {
+  OnAgentEntryCallback,
+  OnFollowupCreatedCallback,
+  OnWorkItemSessionIdCallback,
+} from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
@@ -54,17 +57,9 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentEntry?: (params: {
-    slotIndex: SlotIndex;
-    entry: ChatLineEntry['entry'];
-    sessionId?: SessionId;
-  }) => void;
-  onWorkItemSessionId?: (params: { workItemId: WorkItemId; sessionId: SessionId }) => void;
-  onFollowupCreated?: (params: {
-    followupWorkItemId: WorkItemId;
-    role: string;
-    failedWorkItemId: WorkItemId;
-  }) => void;
+  onAgentEntry?: OnAgentEntryCallback;
+  onWorkItemSessionId?: OnWorkItemSessionIdCallback;
+  onFollowupCreated?: OnFollowupCreatedCallback;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
   abortSignal?: AbortSignal;

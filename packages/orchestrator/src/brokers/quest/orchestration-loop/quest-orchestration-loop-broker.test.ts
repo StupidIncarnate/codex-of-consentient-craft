@@ -34,6 +34,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-1' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -67,6 +69,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-2' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -107,6 +111,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-status-3' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -137,6 +143,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-status-4' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -173,6 +181,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-status-5' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -204,6 +214,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-3' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -231,6 +243,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-4' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Quest not found/u);
     });
@@ -250,6 +264,7 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-5' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
           abortSignal: abortController.signal,
         }),
       ).resolves.toBeUndefined();
@@ -278,6 +293,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-6' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
     });
@@ -307,6 +324,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-fail-1' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/spawn crashed/u);
 
@@ -346,6 +365,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-fail-3' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/original layer error/u);
     });
@@ -377,6 +398,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-fail-6' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Agent timed out/u);
 
@@ -421,6 +444,8 @@ describe('questOrchestrationLoopBroker', () => {
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'test message' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -464,6 +489,8 @@ describe('questOrchestrationLoopBroker', () => {
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'build auth flow' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -533,6 +560,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-dispatch-4' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -582,6 +611,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-dispatch-5' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -641,6 +672,8 @@ describe('questOrchestrationLoopBroker', () => {
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'build auth flow' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -689,6 +722,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-in-progress' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -747,6 +782,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-h1-dispatch' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -782,6 +819,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-h1-terminal' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -829,6 +868,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-dep-1' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -870,6 +911,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-dep-2' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -951,6 +994,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-dep-5' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -1047,6 +1092,8 @@ describe('questOrchestrationLoopBroker', () => {
           processId: ProcessIdStub({ value: 'proc-test-recovery' }),
           questId,
           startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
         }),
       ).resolves.toBeUndefined();
 
@@ -1057,6 +1104,284 @@ describe('questOrchestrationLoopBroker', () => {
       });
 
       expect(retryDispatched).toBeDefined();
+    });
+  });
+
+  describe('onAgentEntry wiring', () => {
+    it('VALID: {onAgentEntry provided, pathseeker dispatches} => pathseeker layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: psId, role: 'pathseeker', status: 'pending', spawnerType: 'agent' }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: psId,
+            role: 'pathseeker',
+            status: 'complete',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-ps' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'pathseeker' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, codeweaver dispatches} => codeweaver layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const depId = QuestWorkItemIdStub({ value: 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80' });
+      const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: depId, role: 'pathseeker', status: 'complete' }),
+          WorkItemStub({
+            id: cwId,
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: [depId],
+          }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: depId, role: 'pathseeker', status: 'complete' }),
+          WorkItemStub({
+            id: cwId,
+            role: 'codeweaver',
+            status: 'complete',
+            dependsOn: [depId],
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-cw' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'codeweaver' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, ward dispatches} => ward layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const wardId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: wardId, role: 'ward', status: 'pending', spawnerType: 'command' }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: wardId,
+            role: 'ward',
+            status: 'complete',
+            spawnerType: 'command',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-ward' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'ward' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, siegemaster dispatches} => siegemaster layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const siegeId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: siegeId,
+            role: 'siegemaster',
+            status: 'pending',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: siegeId,
+            role: 'siegemaster',
+            status: 'complete',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-siege' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'siegemaster' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, lawbringer dispatches} => lawbringer layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const lbId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: lbId,
+            role: 'lawbringer',
+            status: 'pending',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: lbId,
+            role: 'lawbringer',
+            status: 'complete',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-lb' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'lawbringer' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, spiritmender dispatches} => spiritmender layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const spId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: spId,
+            role: 'spiritmender',
+            status: 'pending',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: spId,
+            role: 'spiritmender',
+            status: 'complete',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-sp' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'spiritmender' })).toBe(true);
+    });
+
+    it('VALID: {onAgentEntry provided, chat dispatches} => chat layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'created',
+        workItems: [WorkItemStub({ id: chaosId, role: 'chaoswhisperer', status: 'pending' })],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupMultipleChatItemsReady({ quest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-chat' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        userMessage: UserInputStub({ value: 'test' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'chat' })).toBe(true);
     });
   });
 });

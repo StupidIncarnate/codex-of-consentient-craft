@@ -150,7 +150,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const codeweavers = lastQuest.workItems.filter((item) => item.role === 'codeweaver');
@@ -178,7 +184,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const wards = lastQuest.workItems.filter((item) => item.role === 'ward');
@@ -214,7 +226,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const sieges = lastQuest.workItems.filter((item) => item.role === 'siegemaster');
@@ -246,7 +264,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
       const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
@@ -278,7 +302,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
       const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
@@ -307,7 +337,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const failedItem = lastQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
@@ -332,7 +368,13 @@ describe('runPathseekerLayerBroker', () => {
       proxy.setupDeterministicUuids({ uuids: ['bbbbbbbb-cccc-4ddd-8eee-ffffffffffff'] });
       proxy.setupSpawnFailure({ quest: buildVerifyFailQuest({ workItem }) });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       const allWorkItems = proxy
         .getPersistedQuestJsons()
@@ -357,7 +399,13 @@ describe('runPathseekerLayerBroker', () => {
       const proxy = runPathseekerLayerBrokerProxy();
       proxy.setupQuestNotFound();
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       expect(proxy.getPersistedQuestJsons()).toHaveLength(0);
     });
@@ -385,7 +433,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       expect(proxy.getPersistedQuestJsons().length).toBeGreaterThan(0);
     });
@@ -415,7 +469,13 @@ describe('runPathseekerLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await runPathseekerLayerBroker({ questId, workItem, startPath: '/project/src' as never });
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
@@ -451,6 +511,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });
 

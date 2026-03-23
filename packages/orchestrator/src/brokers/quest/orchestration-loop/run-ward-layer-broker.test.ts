@@ -60,6 +60,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const status = proxy.getPersistedWorkItemStatus({ workItemId });
@@ -102,6 +104,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const wardStatus = proxy.getPersistedWorkItemStatus({ workItemId: wardItemId });
@@ -149,6 +153,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -199,6 +205,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -249,6 +257,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -294,6 +304,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -342,6 +354,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -395,6 +409,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const wardStatus = proxy.getPersistedWorkItemStatus({ workItemId: wardItemId });
@@ -442,6 +458,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const inserted = proxy.getInsertedWorkItems();
@@ -480,6 +498,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const exitCode = proxy.getPersistedWardResultExitCode();
@@ -518,6 +538,8 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
       });
 
       const wardStatus = proxy.getPersistedWorkItemStatus({ workItemId: wardItemId });
@@ -552,6 +574,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });
 
