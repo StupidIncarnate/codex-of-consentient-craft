@@ -21,6 +21,8 @@ import {
   StepIdStub,
   SystemInitStreamLineStub,
   ResultStreamLineStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import type { ClaudeQueueResponseStub } from '../../contracts/claude-queue-response/claude-queue-response.stub';
@@ -371,6 +373,31 @@ const completeChaosWorkItem = async ({ questId }: { questId: string }) => {
   });
 };
 
+const completeGlyphWorkItem = async ({ questId }: { questId: string }): Promise<void> => {
+  const typedQuestId = questId as ReturnType<typeof QuestIdStub>;
+  const questResult = await QuestGetResponder({ questId: typedQuestId });
+  if (!questResult.success || !questResult.quest) {
+    return;
+  }
+  const glyphItem = WorkItemStub({
+    id: QuestWorkItemIdStub({ value: crypto.randomUUID() }),
+    role: 'glyphsmith' as ReturnType<typeof WorkItemStub>['role'],
+    status: 'complete' as ReturnType<typeof WorkItemStub>['status'],
+    spawnerType: 'agent' as ReturnType<typeof WorkItemStub>['spawnerType'],
+    dependsOn: [],
+    maxAttempts: 1 as ReturnType<typeof WorkItemStub>['maxAttempts'],
+    createdAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+  });
+  await QuestModifyResponder({
+    questId: typedQuestId,
+    input: ModifyQuestInputStub({
+      questId: typedQuestId,
+      workItems: [...questResult.quest.workItems, glyphItem],
+    }),
+  });
+};
+
 const approveQuest = async ({
   questId,
   observableIds,
@@ -506,7 +533,7 @@ describe('OrchestrationFlow', () => {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
       testbed.cleanup();
 
-      expect(addResult.questId).toBeDefined();
+      expect(typeof addResult.questId).toBe('string');
     });
 
     it('VALID: {approved quest} => start returns processId and getStatus returns idle orchestration status', async () => {
@@ -736,13 +763,24 @@ describe('OrchestrationFlow', () => {
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(failedCw.length).toBeGreaterThanOrEqual(1);
+      expect(failedCw).toHaveLength(1);
       expect(cwItems).toHaveLength(2);
       // Downstream items completed (ward + final ward)
-      expect(wardItems.length).toBeGreaterThanOrEqual(2);
-      expect(wardItems.every((wi) => wi.status === 'complete')).toBe(true);
+      expect(wardItems).toHaveLength(2);
+      expect(wardItems[0]?.status).toBe('complete');
+      expect(wardItems[1]?.status).toBe('complete');
       // Pathseeker replan persisted by callback
-      expect(pathseekerItems.length).toBeGreaterThanOrEqual(2);
+      expect(pathseekerItems).toHaveLength(2);
+
+      // Verify skipped items exist (drain+skip model)
+      const skippedItems = quest.workItems.filter((wi) => wi.status === 'skipped');
+
+      expect(skippedItems).toHaveLength(0);
+
+      // Verify pathseeker replan has insertedBy
+      const replanPs = pathseekerItems.find((wi) => wi.insertedBy !== undefined);
+
+      expect(replanPs?.role).toBe('pathseeker');
     });
 
     // Test 2b: Codeweaver failure (6 items, 3 slots)
@@ -805,10 +843,14 @@ describe('OrchestrationFlow', () => {
       const failedCw = cwItems.filter((wi) => wi.status === 'failed');
       const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(failedCw.length).toBeGreaterThanOrEqual(1);
+      expect(failedCw).toHaveLength(1);
       expect(cwItems).toHaveLength(6);
       // Pathseeker replan was persisted by onFollowupCreated callback
-      expect(pathseekerItems.length).toBeGreaterThanOrEqual(1);
+      expect(pathseekerItems).toHaveLength(2);
+
+      const replanPs = pathseekerItems.find((wi) => wi.insertedBy !== undefined);
+
+      expect(replanPs?.role).toBe('pathseeker');
     });
 
     // Test 3: Ward failure → spiritmender → ward retry → siege
@@ -872,9 +914,14 @@ describe('OrchestrationFlow', () => {
       // workItemsToQuestStatusTransformer requires ALL items complete/skipped for 'complete'.
       expect(wardItems).toHaveLength(3);
       expect(spiritmenderItems).toHaveLength(1);
-      expect(wardItems.filter((wi) => wi.status === 'failed')).toHaveLength(1);
-      expect(wardItems.filter((wi) => wi.status === 'complete')).toHaveLength(2);
-      expect(siegeItems.some((wi) => wi.status === 'complete')).toBe(true);
+      expect(spiritmenderItems[0]?.status).toBe('complete');
+
+      const failedWards = wardItems.filter((wi) => wi.status === 'failed');
+      const completeWards = wardItems.filter((wi) => wi.status === 'complete');
+
+      expect(failedWards).toHaveLength(1);
+      expect(completeWards).toHaveLength(2);
+      expect(siegeItems[0]?.status).toBe('complete');
     });
 
     // Test 4: Ward exhausts retries → pathseeker replan
@@ -931,11 +978,14 @@ describe('OrchestrationFlow', () => {
       const skippedItems = quest.workItems.filter((wi) => wi.status === 'skipped');
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      // 3 original ward failures (attempts 0, 1, 2), pending items skipped, pathseeker replan
+      // 3 ward failures (attempts 0, 1, 2). On exhaustion: siege + LB + final-ward skipped.
+      // Pathseeker replan runs and creates new downstream items that then crash → quest blocks.
       expect(quest.status).toBe('blocked');
-      expect(failedWards.length).toBeGreaterThanOrEqual(3);
-      expect(skippedItems.length).toBeGreaterThanOrEqual(1);
-      expect(pathseekers.length).toBeGreaterThanOrEqual(2);
+      expect(failedWards).toHaveLength(3);
+      // Skipped: siege + LB + final-ward from the original flow
+      expect(skippedItems).toHaveLength(3);
+      // Original pathseeker + replan pathseeker from exhausted ward
+      expect(pathseekers).toHaveLength(2);
     });
 
     // Test 5: Siege failure → pathseeker replan
@@ -992,8 +1042,11 @@ describe('OrchestrationFlow', () => {
         .filter((wi) => wi.status === 'skipped');
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(failedSiege.length).toBeGreaterThanOrEqual(1);
+      expect(failedSiege).toHaveLength(1);
+      // Original LB skipped + possible replan LBs skipped (non-deterministic due to
+      // fire-and-forget replan writes racing with the orchestration loop)
       expect(skippedLawbringers.length).toBeGreaterThanOrEqual(1);
+      // Original pathseeker + replan(s) from siege failure (non-deterministic recovery depth)
       expect(pathseekers.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -1053,8 +1106,12 @@ describe('OrchestrationFlow', () => {
       const completedLb = lawbringerItems.filter((wi) => wi.status === 'complete');
 
       expect(quest.status).toBe('blocked');
-      expect(failedLb.length).toBeGreaterThanOrEqual(1);
-      expect(completedLb.length).toBeGreaterThanOrEqual(1);
+      // lb-0 failed, lb-1 mapped to 'complete' at quest level (slot-internal skip)
+      // NOTE: Spec says "no drain" for lawbringers, but slot manager DOES skip remaining
+      // items internally. At quest level, skipped items appear as 'complete' because
+      // the layer broker maps non-failed as complete.
+      expect(failedLb).toHaveLength(1);
+      expect(completedLb).toHaveLength(1);
     });
 
     // Test 6b: Lawbringer failure (6 items, 3 slots)
@@ -1114,8 +1171,8 @@ describe('OrchestrationFlow', () => {
       // At the quest level, lb-0 is 'failed'. The rest are mapped to 'complete'
       // by the layer broker (slot-manager-internal skips are not visible at quest level).
       expect(quest.status).toBe('blocked');
-      expect(failedLb.length).toBeGreaterThanOrEqual(1);
-      expect(completedLb.length).toBeGreaterThanOrEqual(1);
+      expect(failedLb).toHaveLength(1);
+      expect(completedLb).toHaveLength(5);
     });
 
     // Test 7: Multi-step concurrent codeweavers
@@ -1166,7 +1223,9 @@ describe('OrchestrationFlow', () => {
 
       expect(quest.status).toBe('complete');
       expect(codeweaverItems).toHaveLength(3);
-      expect(codeweaverItems.every((wi) => wi.status === 'complete')).toBe(true);
+      expect(codeweaverItems[0]?.status).toBe('complete');
+      expect(codeweaverItems[1]?.status).toBe('complete');
+      expect(codeweaverItems[2]?.status).toBe('complete');
     });
 
     // Test 8: Lawbringers complete → final ward → complete
@@ -1212,56 +1271,44 @@ describe('OrchestrationFlow', () => {
 
       expect(quest.status).toBe('complete');
       expect(wardItems).toHaveLength(2);
-      expect(wardItems.every((wi) => wi.status === 'complete')).toBe(true);
+      expect(wardItems[0]?.status).toBe('complete');
+      expect(wardItems[1]?.status).toBe('complete');
     });
 
-    // Test 9: Ward fails → spiritmender + retry → all items settle
-    // The first ward (between codeweavers and siege) fails and is retried.
-    // After lawbringers, the final ward also passes. Quest stays in_progress
-    // because the original ward is 'failed' (status transformer requires ALL complete/skipped).
-    it('VALID: {ward fails} => spiritmender + ward retry + all items settle', async () => {
+    // Test 9: Structural verification — dependency chain, session IDs, ward modes
+    // Runs the full happy path with 2 steps and verifies the internal wiring of all work items.
+    it('VALID: {happy path, 2 steps} => correct dependency chain, session IDs, and ward modes', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'orch-ward-fail-retry' }),
+        baseName: BaseNameStub({ value: 'orch-dep-chain' }),
       });
       const env = setupTestEnv(testbed.guildPath);
       const quest = await withEnvRestore(env, async () => {
         const { guild, questId } = await createTestQuest({
           testbed,
           observableIds: ['obs-1'],
-          stepCount: 1,
+          stepCount: 2,
         });
 
         // pathseeker
-        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps') }));
-        // codeweaver
-        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw') }));
-        // ward fails (attempt 0) — creates spiritmender + ward retry
-        queueResponse(
-          env.wardQueueDir,
-          wardFailResponse({ filePaths: [FilePathStub({ value: '/src/file.ts' })] }),
-        );
-        // spiritmender fixes the ward errors
-        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm') }));
-        // ward retry passes (attempt 1)
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-dc') }));
+        // 2 codeweavers
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-dc-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-dc-1') }));
+        // ward (changed mode)
         queueResponse(env.wardQueueDir, wardPassResponse());
-        // siege (depends on ward retry)
-        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege') }));
-        // lawbringer
-        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb') }));
-        // final ward (after lawbringers)
+        // siege
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-dc') }));
+        // 2 lawbringers
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-dc-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-dc-1') }));
+        // final ward (full mode)
         queueResponse(env.wardQueueDir, wardPassResponse());
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await OrchestrationFlow.start({ questId });
 
-        // Ward failure leaves a 'failed' work item, preventing 'complete' status.
-        // Poll until all work items settle instead.
-        const { quest: result } = await pollUntilWorkItemsSettled({
+        const { quest: result } = await pollForQuestStatus({
           questId,
-
-          // chaos + ps + cw + ward(fail) + spiritmender + wardRetry + siege + lb + finalWard
-          minItems: 9,
+          targetStatuses: ['complete'],
         });
 
         await GuildRemoveResponder({ guildId: guild.id });
@@ -1269,14 +1316,56 @@ describe('OrchestrationFlow', () => {
         return result;
       });
 
-      const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
-      const spiritmenderItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
+      const { workItems } = quest;
+      const chaosItem = workItems.find((wi) => wi.role === 'chaoswhisperer')!;
+      const psItem = workItems.find((wi) => wi.role === 'pathseeker')!;
+      const cwItems = workItems.filter((wi) => wi.role === 'codeweaver');
+      const wardItems = workItems.filter((wi) => wi.role === 'ward');
+      const siegeItem = workItems.find((wi) => wi.role === 'siegemaster')!;
+      const lbItems = workItems.filter((wi) => wi.role === 'lawbringer');
 
-      // Original ward failed (attempt 0), retry succeeded (attempt 1), final ward passed
-      expect(wardItems).toHaveLength(3);
-      expect(wardItems.filter((wi) => wi.status === 'failed')).toHaveLength(1);
-      expect(wardItems.filter((wi) => wi.status === 'complete')).toHaveLength(2);
-      expect(spiritmenderItems.length).toBeGreaterThanOrEqual(1);
+      // Dependency chain: pathseeker depends on chaos
+      expect(psItem.dependsOn).toStrictEqual([chaosItem.id]);
+
+      // Each codeweaver depends on pathseeker (no inter-step deps in this test)
+      expect(cwItems[0]!.dependsOn).toStrictEqual([psItem.id]);
+      expect(cwItems[1]!.dependsOn).toStrictEqual([psItem.id]);
+
+      // Ward depends on ALL codeweaver IDs
+      const cwIds = cwItems.map((wi) => wi.id);
+
+      expect(wardItems[0]!.dependsOn).toStrictEqual(cwIds);
+
+      // Siege depends on ward
+      expect(siegeItem.dependsOn).toStrictEqual([wardItems[0]!.id]);
+
+      // Each lawbringer depends on siege
+      expect(lbItems[0]!.dependsOn).toStrictEqual([siegeItem.id]);
+      expect(lbItems[1]!.dependsOn).toStrictEqual([siegeItem.id]);
+
+      // Final ward depends on ALL lawbringer IDs
+      const lbIds = lbItems.map((wi) => wi.id);
+
+      expect(wardItems[1]!.dependsOn).toStrictEqual(lbIds);
+
+      // Ward modes: first ward = 'changed', final ward = 'full'
+      expect(wardItems[0]!.wardMode).toBe('changed');
+      expect(wardItems[1]!.wardMode).toBe('full');
+
+      // Session IDs persisted on all agent work items
+      expect(typeof psItem.sessionId).toBe('string');
+      expect(typeof cwItems[0]!.sessionId).toBe('string');
+      expect(typeof cwItems[1]!.sessionId).toBe('string');
+      expect(typeof siegeItem.sessionId).toBe('string');
+      expect(typeof lbItems[0]!.sessionId).toBe('string');
+      expect(typeof lbItems[1]!.sessionId).toBe('string');
+      // Ward items get synthetic session IDs
+      expect(typeof wardItems[0]!.sessionId).toBe('string');
+      expect(typeof wardItems[1]!.sessionId).toBe('string');
+
+      // All items have timestamps
+      expect(typeof psItem.startedAt).toBe('string');
+      expect(typeof psItem.completedAt).toBe('string');
     });
 
     // Test 10: ChaosWhisperer → approved → Start → pathseeker
@@ -1335,8 +1424,8 @@ describe('OrchestrationFlow', () => {
       expect(pathseekers[0]?.dependsOn).toStrictEqual([chaosItems[0]?.id]);
     });
 
-    // Test 11: Glyphsmith flow (needsDesign=true)
-    it('VALID: {glyphsmith flow} => design completes, pathseeker depends on chaos+glyph', async () => {
+    // Test 11: Glyphsmith work item present → pathseeker depends on both chaos + glyph
+    it('VALID: {glyphsmith work item} => pathseeker dependsOn includes both chaos and glyph IDs', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orch-glyph' }),
       });
@@ -1393,6 +1482,7 @@ describe('OrchestrationFlow', () => {
           input: ModifyQuestInputStub({ questId: typedQuestId, steps }),
         });
         await completeChaosWorkItem({ questId });
+        await completeGlyphWorkItem({ questId });
 
         // Queue full flow: pathseeker + codeweaver + ward + siege + lawbringer + final ward
         queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-sess') }));
@@ -1418,12 +1508,20 @@ describe('OrchestrationFlow', () => {
 
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
       const chaosItems = quest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
+      const glyphItems = quest.workItems.filter((wi) => wi.role === 'glyphsmith');
 
       expect(quest.status).toBe('complete');
       expect(chaosItems[0]?.status).toBe('complete');
-      expect(pathseekers[0]?.role).toBe('pathseeker');
+      expect(glyphItems[0]?.status).toBe('complete');
       expect(pathseekers[0]?.status).toBe('complete');
-      expect(pathseekers[0]?.dependsOn).toStrictEqual([chaosItems[0]?.id]);
+      // PathSeeker depends on BOTH chaos and glyph IDs
+      expect(pathseekers[0]?.dependsOn.length).toBe(2);
+
+      const psDeps = pathseekers[0]!.dependsOn;
+      const sortedDeps = [...psDeps].sort();
+      const sortedExpected = [String(chaosItems[0]!.id), String(glyphItems[0]!.id)].sort();
+
+      expect(sortedDeps).toStrictEqual(sortedExpected);
     });
 
     // Test 12a: Spiritmender failure (2 files)
@@ -1480,7 +1578,10 @@ describe('OrchestrationFlow', () => {
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const failedWards = wardItems.filter((wi) => wi.status === 'failed');
 
-      expect(failedSm.length).toBeGreaterThanOrEqual(1);
+      // SM failure triggers ward-retry chain (failed satisfies deps): ward-0 fails → retries
+      // eventually exhaust → skip pending + PS replan. Exact ward count is non-deterministic
+      // due to fire-and-forget writes racing with the orchestration loop.
+      expect(failedSm).toHaveLength(1);
       expect(wardItems.length).toBeGreaterThanOrEqual(2);
       expect(failedWards.length).toBeGreaterThanOrEqual(2);
     });
@@ -1539,7 +1640,9 @@ describe('OrchestrationFlow', () => {
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const failedWards = wardItems.filter((wi) => wi.status === 'failed');
 
+      // With 6 files and 3 slots, multiple SMs may start before failure is detected.
       expect(failedSm.length).toBeGreaterThanOrEqual(1);
+      // Ward-retry chain: non-deterministic count due to recovery loop timing
       expect(wardItems.length).toBeGreaterThanOrEqual(2);
       expect(failedWards.length).toBeGreaterThanOrEqual(2);
     });
@@ -1630,10 +1733,29 @@ describe('OrchestrationFlow', () => {
         .filter((wi) => wi.role === 'pathseeker')
         .filter((wi) => wi.status === 'failed');
 
-      // All 3 pathseeker attempts failed verification. Quest stays in_progress
-      // because workItemsToQuestStatusTransformer doesn't transition to 'blocked'
-      // when there are no pending items (all terminal with some failed).
+      // All 3 pathseeker attempts failed verification.
       expect(failedPs).toHaveLength(3);
+
+      // Verify retry chain properties
+      const pathseekerItems = quest.workItems
+        .filter((wi) => wi.role === 'pathseeker')
+        .sort((a, b) => a.attempt - b.attempt);
+
+      expect(pathseekerItems[0]?.attempt).toBe(0);
+      expect(pathseekerItems[0]?.status).toBe('failed');
+      expect(pathseekerItems[0]?.errorMessage).toBe('verification_failed');
+
+      expect(pathseekerItems[1]?.attempt).toBe(1);
+      expect(pathseekerItems[1]?.status).toBe('failed');
+      expect(pathseekerItems[1]?.errorMessage).toBe('verification_failed');
+      expect(pathseekerItems[1]?.dependsOn).toStrictEqual([pathseekerItems[0]?.id]);
+      expect(pathseekerItems[1]?.insertedBy).toBe(pathseekerItems[0]?.id);
+
+      expect(pathseekerItems[2]?.attempt).toBe(2);
+      expect(pathseekerItems[2]?.status).toBe('failed');
+      expect(pathseekerItems[2]?.errorMessage).toBe('verification_failed');
+      expect(pathseekerItems[2]?.dependsOn).toStrictEqual([pathseekerItems[1]?.id]);
+      expect(pathseekerItems[2]?.insertedBy).toBe(pathseekerItems[1]?.id);
     });
 
     // Test 14: PathSeeker creates 0 steps (edge case)
@@ -1740,8 +1862,10 @@ describe('OrchestrationFlow', () => {
       expect(quest.status).toBe('complete');
       expect(codeweavers).toHaveLength(0);
       expect(wardItems).toHaveLength(2);
-      expect(wardItems.every((wi) => wi.status === 'complete')).toBe(true);
-      expect(siegeItems.every((wi) => wi.status === 'complete')).toBe(true);
+      expect(wardItems[0]?.status).toBe('complete');
+      expect(wardItems[1]?.status).toBe('complete');
+      expect(siegeItems).toHaveLength(1);
+      expect(siegeItems[0]?.status).toBe('complete');
     });
 
     // Test 15: Invariant — lawbringer count matches codeweaver count
@@ -1810,6 +1934,342 @@ describe('OrchestrationFlow', () => {
 
       expect(quest.workItems.filter((wi) => wi.role === 'codeweaver')).toHaveLength(3);
       expect(quest.workItems.filter((wi) => wi.role === 'lawbringer')).toHaveLength(3);
+    });
+
+    // Test 16: Codeweavers with inter-step dependencies
+    // step-1 depends on step-0, so cw-1 must depend on both pathseeker AND cw-0.
+    it('VALID: {3 steps, step-1 depends on step-0} => cw-1 dependsOn includes cw-0 ID', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-cw-deps' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const quest = await withEnvRestore(env, async () => {
+        const guild = await GuildAddResponder({
+          name: GuildNameStub({ value: 'CW Deps Guild' }),
+          path: GuildPathStub({ value: testbed.guildPath }),
+        });
+
+        const addResult = await QuestAddResponder({
+          title: 'CW Deps Quest',
+          userRequest: 'Test codeweaver inter-step dependencies',
+          guildId: guild.id,
+        });
+
+        const questId = addResult.questId!;
+        const typedQuestId = questId;
+        const flows = buildValidFlows({ observableIds: ['obs-1'] });
+
+        // Create 3 steps: step-1 depends on step-0, step-2 is independent
+        const step0Id = StepIdStub({ value: 'step-0' });
+        const step1Id = StepIdStub({ value: 'step-1' });
+        const step2Id = StepIdStub({ value: 'step-2' });
+        const coveredObs = [ObservableIdStub({ value: 'obs-1' })];
+        const steps = [
+          DependencyStepStub({
+            id: step0Id,
+            name: 'Step 0',
+            observablesSatisfied: coveredObs,
+            dependsOn: [],
+            filesToCreate: [],
+            filesToModify: [],
+          }),
+          DependencyStepStub({
+            id: step1Id,
+            name: 'Step 1',
+            observablesSatisfied: coveredObs,
+            dependsOn: [step0Id],
+            filesToCreate: [],
+            filesToModify: [],
+          }),
+          DependencyStepStub({
+            id: step2Id,
+            name: 'Step 2',
+            observablesSatisfied: coveredObs,
+            dependsOn: [],
+            filesToCreate: [],
+            filesToModify: [],
+          }),
+        ];
+
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_flows' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, flows }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_flows' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'flows_approved' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_observables' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_observables' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'approved' }),
+        });
+        await QuestModifyResponder({
+          questId: typedQuestId,
+          input: ModifyQuestInputStub({ questId: typedQuestId, steps }),
+        });
+        await completeChaosWorkItem({ questId });
+
+        // pathseeker
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-cd') }));
+        // 3 codeweavers (cw-1 runs after cw-0 due to dependency)
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-cd-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-cd-1') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-cd-2') }));
+        // ward
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        // siege
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-cd') }));
+        // 3 lawbringers
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-cd-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-cd-1') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-cd-2') }));
+        // final ward
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await pollForQuestStatus({
+          questId,
+          targetStatuses: ['complete'],
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      const psItem = quest.workItems.find((wi) => wi.role === 'pathseeker')!;
+      const cwItems = quest.workItems.filter((wi) => wi.role === 'codeweaver');
+
+      expect(quest.status).toBe('complete');
+      expect(cwItems).toHaveLength(3);
+
+      // cw-0 (step-0, no step deps) depends only on pathseeker
+      expect(cwItems[0]!.dependsOn).toStrictEqual([psItem.id]);
+      // cw-1 (step-1, depends on step-0) depends on pathseeker AND cw-0
+      expect(cwItems[1]!.dependsOn).toStrictEqual([psItem.id, cwItems[0]!.id]);
+      // cw-2 (step-2, no step deps) depends only on pathseeker
+      expect(cwItems[2]!.dependsOn).toStrictEqual([psItem.id]);
+    });
+
+    // Test 17: Multiple spiritmenders all succeed → ward-retry fires
+    // Ward fails with 3 file paths → spiritmenders → all succeed → ward-retry passes.
+    it('VALID: {ward fails, 3 error files} => spiritmenders succeed + ward-retry passes', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-multi-sm' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 1,
+        });
+
+        // pathseeker
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-ms') }));
+        // codeweaver
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-ms') }));
+        // ward fails with 3 file paths → creates spiritmender batch(es) + ward-retry
+        queueResponse(
+          env.wardQueueDir,
+          wardFailResponse({
+            filePaths: [
+              FilePathStub({ value: '/src/file-a.ts' }),
+              FilePathStub({ value: '/src/file-b.ts' }),
+              FilePathStub({ value: '/src/file-c.ts' }),
+            ],
+          }),
+        );
+        // spiritmenders succeed (one per batch — exact count depends on batching config)
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-ms-0') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-ms-1') }));
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-ms-2') }));
+        // ward-retry passes
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        // siege
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-ms') }));
+        // lawbringer
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-ms') }));
+        // final ward
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await pollUntilWorkItemsSettled({
+          questId,
+          minItems: 8,
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
+      const smItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
+      const completedSm = smItems.filter((wi) => wi.status === 'complete');
+
+      // All spiritmenders completed
+      expect(smItems).toHaveLength(completedSm.length);
+
+      // Ward-retry completed (find the completed changed-mode ward)
+      const completedWards = wardItems.filter((wi) => wi.status === 'complete');
+      const changedWards = completedWards.filter((wi) => wi.wardMode === 'changed');
+
+      expect(changedWards).toHaveLength(1);
+
+      // Ward-retry dependsOn includes spiritmender IDs
+      const smIds = smItems.map((wi) => wi.id);
+
+      expect(changedWards[0]!.dependsOn).toStrictEqual(smIds);
+    });
+
+    // Test 18: Final ward fails → spiritmender + retry cycle
+    // Full happy path until final ward fails, then spiritmender fixes it, final ward retry passes.
+    it('VALID: {final ward fails} => spiritmender + final ward retry passes', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-final-ward-fail' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 1,
+        });
+
+        // pathseeker
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-fw') }));
+        // codeweaver
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-fw') }));
+        // first ward passes
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        // siege passes
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-fw') }));
+        // lawbringer passes
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-fw') }));
+        // final ward FAILS with file path
+        queueResponse(
+          env.wardQueueDir,
+          wardFailResponse({ filePaths: [FilePathStub({ value: '/src/file.ts' })] }),
+        );
+        // spiritmender fixes the final ward errors
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-fw') }));
+        // final ward retry passes
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        // chaos + PS + CW + ward(pass) + siege + LB + final-ward(fail) + SM + final-ward-retry(pass)
+        const { quest: result } = await pollUntilWorkItemsSettled({
+          questId,
+          minItems: 9,
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
+      const smItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
+
+      // 3 ward items: first ward (complete), final ward (failed), final ward retry (complete)
+      expect(wardItems).toHaveLength(3);
+      // First ward (changed mode) passed
+      expect(wardItems[0]!.wardMode).toBe('changed');
+      expect(wardItems[0]!.status).toBe('complete');
+
+      // Find full-mode wards (failed + completed retry)
+      const fullWards = wardItems.filter((wi) => wi.wardMode === 'full');
+
+      expect(fullWards).toHaveLength(2);
+
+      const failedFullWards = fullWards.filter((wi) => wi.status === 'failed');
+      const completedFullWards = fullWards.filter((wi) => wi.status === 'complete');
+
+      expect(failedFullWards).toHaveLength(1);
+      expect(completedFullWards).toHaveLength(1);
+      // Spiritmender created and completed
+      expect(smItems).toHaveLength(1);
+      expect(smItems[0]!.status).toBe('complete');
+    });
+
+    // Test 19: Ward failure — siege dependsOn rewired to ward-retry + wardResult persisted
+    it('VALID: {ward fails} => siege dependsOn rewired to ward-retry, wardResult persisted', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-ward-rewire' }),
+      });
+      const env = setupTestEnv(testbed.guildPath);
+      const quest = await withEnvRestore(env, async () => {
+        const { guild, questId } = await createTestQuest({
+          testbed,
+          observableIds: ['obs-1'],
+          stepCount: 1,
+        });
+
+        // pathseeker
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('ps-rw') }));
+        // codeweaver
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('cw-rw') }));
+        // ward fails → spiritmender + ward-retry, siege rewired
+        queueResponse(
+          env.wardQueueDir,
+          wardFailResponse({ filePaths: [FilePathStub({ value: '/src/file.ts' })] }),
+        );
+        // spiritmender
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('sm-rw') }));
+        // ward retry passes
+        queueResponse(env.wardQueueDir, wardPassResponse());
+        // siege (now depends on ward-retry)
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('siege-rw') }));
+        // lawbringer
+        queueResponse(env.claudeQueueDir, agentSuccessResponse({ sessionId: sid('lb-rw') }));
+        // final ward
+        queueResponse(env.wardQueueDir, wardPassResponse());
+
+        await OrchestrationFlow.start({ questId });
+
+        // chaos + PS + CW + ward(fail) + SM + ward-retry(pass) + siege + LB + final-ward
+        const { quest: result } = await pollUntilWorkItemsSettled({
+          questId,
+          minItems: 9,
+        });
+
+        await GuildRemoveResponder({ guildId: guild.id });
+        testbed.cleanup();
+        return result;
+      });
+
+      const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
+      const siegeItem = quest.workItems.find((wi) => wi.role === 'siegemaster')!;
+      const failedWard = wardItems.find((wi) => wi.status === 'failed')!;
+      const completedWards = wardItems.filter((wi) => wi.status === 'complete');
+      const completedChangedWards = completedWards.filter((wi) => wi.wardMode === 'changed');
+
+      // Siege dependsOn rewired to ward-retry ID (NOT the failed ward)
+      expect(siegeItem.dependsOn).toStrictEqual([completedChangedWards[0]!.id]);
+      expect(siegeItem.dependsOn).not.toStrictEqual([failedWard.id]);
+
+      // wardResult persisted on quest (one per ward run — all 3 wards write results)
+      expect(quest.wardResults).toHaveLength(3);
     });
   });
 
