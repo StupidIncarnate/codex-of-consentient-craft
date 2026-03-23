@@ -61,6 +61,12 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
       filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
     },
 
+    // Crypto is allowed in spec files (data generation, not infrastructure)
+    {
+      code: "import crypto from 'crypto';",
+      filename: '/project/e2e/web/smoke.spec.ts',
+    },
+
     // File in test/ directory that is a spec file — test/ exclusion takes priority
     {
       code: "import fs from 'fs';",
@@ -116,14 +122,14 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
       ],
     },
 
-    // Spec file importing crypto
+    // Spec file importing child_process
     {
-      code: "import crypto from 'crypto';",
+      code: "import { execFile } from 'child_process';",
       filename: '/project/e2e/web/smoke.spec.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
-          data: { module: 'crypto' },
+          data: { module: 'child_process' },
         },
       ],
     },
@@ -170,12 +176,12 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
       ],
     },
     {
-      code: "import crypto from 'node:crypto';",
+      code: "import { execFile } from 'node:child_process';",
       filename: '/project/e2e/web/smoke.spec.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
-          data: { module: 'node:crypto' },
+          data: { module: 'node:child_process' },
         },
       ],
     },

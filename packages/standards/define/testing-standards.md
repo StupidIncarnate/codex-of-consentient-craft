@@ -2505,7 +2505,7 @@ src/**/*.integration.test.ts → test/harnesses/*.harness.ts, application contra
 
 **Test scenario files (`*.spec.ts`, `*.integration.test.ts`) CANNOT import:**
 
-- `node:fs`, `node:path`, `node:os`, `node:crypto`
+- `node:fs`, `node:path`, `node:os`, `node:child_process`
 - `.proxy.ts` files (already enforced by `enforce-test-creation-of-proxy`)
 - Application internals (brokers, adapters — except integration tests that test flows/startup directly)
 
@@ -2655,7 +2655,6 @@ They contain test blocks and assertions. They do NOT contain infrastructure.
 | `import {writeFileSync} from 'fs'` | Filesystem setup belongs in harness | `.harness.ts` |
 | `import * as path from 'path'` | Path construction belongs in harness | `.harness.ts` |
 | `import * as os from 'os'` | Home dir resolution belongs in harness | `.harness.ts` |
-| `import * as crypto from 'crypto'` | ID generation belongs in stubs | Contract stubs |
 | `import {execFile} from 'child_process'` | Process spawning belongs in harness | `.harness.ts` |
 | Top-level `const fn = (...) => {...}` | Inline helpers become duplicated | `.harness.ts` |
 | `page.waitForTimeout(N)` (e2e) | Arbitrary delays cause flaky tests | `await expect(locator).toBeVisible()` |
@@ -2671,21 +2670,6 @@ They contain test blocks and assertions. They do NOT contain infrastructure.
 | `await page.*` (Playwright APIs) | Direct UI interaction in e2e tests |
 | Constants (`const TIMEOUT = 5_000`) | Named values for readability |
 | Test data literals (`{name: 'Test Guild'}`) | Simple inline data is fine |
-
-### Lint Rules
-
-These `@dungeonmaster` rules enforce the harness pattern:
-
-- `enforce-harness-patterns` — `.harness.ts` must export factory returning object, no proxy/contract imports
-- `ban-node-builtins-in-test-scenarios` — no `fs`/`path`/`os`/`crypto`/`child_process` in scenario files
-- `ban-inline-helpers-in-test-scenarios` — no top-level helper functions in scenario files
-- `ban-wait-for-timeout` — no `waitForTimeout()`/`setTimeout()` in scenario files
-- `ban-page-route-in-e2e` — no `page.route()` in spec files
-
-Existing jest rules also apply to scenario files when the jest config includes `*.spec.ts`:
-
-- `jest/no-conditional-in-test` — no conditionals in test bodies
-- `jest/no-restricted-matchers` — no weak matchers (`toEqual`, `toBeDefined`, etc.)
 
 ### Harness vs Unit Test Summary
 
