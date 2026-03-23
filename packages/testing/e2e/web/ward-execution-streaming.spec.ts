@@ -61,7 +61,7 @@ test.describe('Ward Execution Streaming', () => {
       title: 'E2E Ward mini-boss Streaming',
       userRequest: 'Test ward streaming',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -186,6 +186,7 @@ test.describe('Ward Execution Streaming', () => {
 
     // Wait for ward row to appear with DONE status
     const wardRow = page.getByText('[WARD]').first();
+
     await expect(wardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
     // Click the ward row to expand it and reveal streamed entries
@@ -219,7 +220,7 @@ test.describe('Ward Execution Streaming', () => {
       title: 'E2E Ward floor-boss Streaming',
       userRequest: 'Test ward streaming',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -380,6 +381,7 @@ test.describe('Ward Execution Streaming', () => {
 
     // Wait for floor boss ward row — find the last [WARD] badge
     const wardRows = page.getByText('[WARD]');
+
     await expect(wardRows.last()).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
     // Click the floor boss ward row to expand it

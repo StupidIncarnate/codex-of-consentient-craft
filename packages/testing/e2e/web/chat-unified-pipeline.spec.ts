@@ -135,6 +135,7 @@ test.describe('Unified JSONL Pipeline', () => {
 
     // User message renders in the chat panel (confirms user entries go through processor)
     const chatPanel = page.getByTestId('CHAT_PANEL');
+
     await expect(chatPanel.getByText('Stream test message')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     // Assistant response renders (confirms chat-output WS events deliver streamed entries)
@@ -186,6 +187,7 @@ test.describe('Unified JSONL Pipeline', () => {
 
   test('old HTTP chat history endpoint returns 404', async ({ request }) => {
     const response = await request.get('/api/sessions/fake-session-id/chat/history');
+
     expect(response.status()).toBe(HTTP_NOT_FOUND);
   });
 });

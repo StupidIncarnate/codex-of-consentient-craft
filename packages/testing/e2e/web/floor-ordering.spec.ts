@@ -29,7 +29,7 @@ const writeQuestFile = ({
   questFolder: string;
   questFilePath: string;
   status: string;
-  workItems: Array<{
+  workItems: {
     id: string;
     role: string;
     sessionId: string;
@@ -38,8 +38,8 @@ const writeQuestFile = ({
     relatedDataItems?: string[];
     insertedBy?: string;
     createdAt?: string;
-  }>;
-  steps?: Array<{ id: string; name: string }>;
+  }[];
+  steps?: { id: string; name: string }[];
 }): void => {
   const quest = {
     id: questId,
@@ -111,7 +111,7 @@ const createSessionFileForQuest = ({
     type: 'user',
     message: { role: 'user', content: 'Build the feature' },
   });
-  writeFileSync(jsonlPath, entry + '\n');
+  writeFileSync(jsonlPath, `${entry}\n`);
 };
 
 const navigateToSession = async ({
@@ -197,7 +197,7 @@ test.describe('Floor Ordering', () => {
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -287,7 +287,7 @@ test.describe('Floor Ordering', () => {
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -386,7 +386,7 @@ test.describe('Floor Ordering', () => {
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -478,9 +478,7 @@ test.describe('Floor Ordering', () => {
       'ENTRANCE: CARTOGRAPHY',
     ]);
 
-    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual([
-      '[SIEGEMASTER]',
-    ]);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[SIEGEMASTER]']);
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 4 })).toStrictEqual(['[PATHSEEKER]']);
   });
 });

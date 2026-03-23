@@ -4,8 +4,11 @@ import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 test.describe('Smoke Tests', () => {
   test('health endpoint responds', async ({ request }) => {
     const response = await request.get('/api/health');
+
     expect(response.status()).toBe(200);
+
     const body = await response.json();
+
     expect(body.status).toBe('ok');
     expect(typeof body.timestamp).toBe('string');
   });
@@ -15,6 +18,7 @@ test.describe('Smoke Tests', () => {
     page.on('pageerror', (error) => errors.push(error.message));
 
     await page.goto('/');
+
     await expect(page.getByTestId('LOGO_ASCII')).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -35,6 +39,7 @@ test.describe('Smoke Tests', () => {
     await createGuild(request, { name: 'Guild Beta', path: '/tmp/beta' });
 
     await page.goto('/');
+
     await expect(page.getByText('Guild Alpha')).toBeVisible();
     await expect(page.getByText('Guild Beta')).toBeVisible();
     await expect(page.locator('button:has-text("+")')).toBeVisible();
@@ -45,6 +50,7 @@ test.describe('Smoke Tests', () => {
     await createGuild(request, { name: 'Some Guild', path: '/tmp/some' });
 
     await page.goto('/');
+
     await expect(page.getByText('Select a guild')).toBeVisible();
   });
 });

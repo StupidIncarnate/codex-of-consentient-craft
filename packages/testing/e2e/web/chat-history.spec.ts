@@ -67,6 +67,7 @@ test.describe('Chat History & Sessions', () => {
     // Send first message
     await page.getByTestId('CHAT_INPUT').fill('First message');
     await page.getByTestId('SEND_BUTTON').click();
+
     await expect(page.getByText('First reply')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     // Queue second response (resume — no init)
@@ -75,6 +76,7 @@ test.describe('Chat History & Sessions', () => {
     // Send second message
     await page.getByTestId('CHAT_INPUT').fill('Second message');
     await page.getByTestId('SEND_BUTTON').click();
+
     await expect(page.getByText('Second reply')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 });

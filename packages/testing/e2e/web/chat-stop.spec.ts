@@ -53,6 +53,7 @@ test.describe('Chat Stop', () => {
 
     // Stop button should be visible while streaming
     const stopButton = page.getByTestId('STOP_BUTTON');
+
     await expect(stopButton).toBeVisible();
 
     // Click stop

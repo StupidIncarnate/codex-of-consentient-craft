@@ -66,7 +66,7 @@ export const createSessionFile = ({
     type: 'user',
     message: { role: 'user', content: userMessage },
   });
-  fs.writeFileSync(jsonlPath, entry + '\n');
+  fs.writeFileSync(jsonlPath, `${entry}\n`);
 };
 
 /**
@@ -88,7 +88,7 @@ export const createMultiEntrySessionFile = ({
   const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
 
   fs.mkdirSync(jsonlDir, { recursive: true });
-  fs.writeFileSync(jsonlPath, lines.join('\n') + '\n');
+  fs.writeFileSync(jsonlPath, `${lines.join('\n')}\n`);
 };
 
 /**
@@ -190,7 +190,7 @@ export const createSubagentSessionFiles = ({
   ];
 
   fs.mkdirSync(jsonlDir, { recursive: true });
-  fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), mainLines.join('\n') + '\n');
+  fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
 
   // Subagent JSONL in subagents/ directory
   const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
@@ -207,5 +207,5 @@ export const createSubagentSessionFiles = ({
     }),
   ];
 
-  fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), subagentLines.join('\n') + '\n');
+  fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), `${subagentLines.join('\n')}\n`);
 };

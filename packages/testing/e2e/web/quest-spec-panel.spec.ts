@@ -38,7 +38,7 @@ test.describe('Quest Spec Panel', () => {
       title: 'E2E Spec Panel Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 

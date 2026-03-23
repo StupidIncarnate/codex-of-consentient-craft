@@ -58,7 +58,7 @@ test.describe('Quest Execution Streaming', () => {
       title: 'E2E Execution Streaming Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 

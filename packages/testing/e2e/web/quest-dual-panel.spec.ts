@@ -182,7 +182,9 @@ test.describe('Quest Dual Panel', () => {
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
+
     await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+
     await keepChattingBtn.click();
 
     // Send a message to trigger the queued clarification response
@@ -201,6 +203,7 @@ test.describe('Quest Dual Panel', () => {
 
     // Verify options are visible and clickable
     const options = page.getByTestId('CLARIFY_OPTION');
+
     await expect(options.first()).toBeVisible();
     await expect(options.first()).toContainText('PostgreSQL');
 
@@ -293,7 +296,9 @@ test.describe('Quest Dual Panel', () => {
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
+
     await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+
     await keepChattingBtn.click();
 
     // Send a message to trigger the clarification

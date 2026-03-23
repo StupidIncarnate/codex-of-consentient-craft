@@ -95,11 +95,13 @@ test.describe('Chat Advanced Features', () => {
     // Send first message
     await page.getByTestId('CHAT_INPUT').fill('First question');
     await page.getByTestId('SEND_BUTTON').click();
+
     await expect(page.getByText('First response')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     // Send second message
     await page.getByTestId('CHAT_INPUT').fill('Second question');
     await page.getByTestId('SEND_BUTTON').click();
+
     await expect(page.getByText('Second response')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
@@ -124,6 +126,7 @@ test.describe('Chat Advanced Features', () => {
       await page.waitForTimeout(SETTLE_DELAY);
       // Chat panel should have no message content beyond any default state
       const chatPanel = page.getByTestId('CHAT_PANEL');
+
       await expect(chatPanel).toBeVisible();
     }
   });
@@ -144,6 +147,7 @@ test.describe('Chat Advanced Features', () => {
 
     // User's own message should appear in the chat panel
     const chatPanel = page.getByTestId('CHAT_PANEL');
+
     await expect(chatPanel.getByText('My unique message text')).toBeVisible({
       timeout: USER_MSG_TIMEOUT,
     });

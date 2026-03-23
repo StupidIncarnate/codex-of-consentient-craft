@@ -38,7 +38,7 @@ test.describe('Quest Approve Button', () => {
       title: 'E2E Approve Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -104,6 +104,7 @@ test.describe('Quest Approve Button', () => {
 
     const patchRequest = await patchPromise;
     const body = patchRequest.postDataJSON();
+
     expect(body).toHaveProperty('status', 'flows_approved');
   });
 });

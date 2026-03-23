@@ -35,6 +35,7 @@ test.describe('Chat Smoke', () => {
 
     // User message should appear in the chat panel
     const chatPanel = page.getByTestId('CHAT_PANEL');
+
     await expect(chatPanel.getByText('Hello Claude')).toBeVisible();
 
     // Wait for Claude response to appear

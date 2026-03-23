@@ -32,7 +32,7 @@ test.describe('Quest Start Pipeline', () => {
       title: 'E2E Start Quest',
       userRequest: 'Build feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
@@ -76,13 +76,19 @@ test.describe('Quest Start Pipeline', () => {
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const startResponse = await request.post(`/api/quests/${questId}/start`);
+
     expect(startResponse.status()).toBe(HTTP_OK);
+
     const startData = await startResponse.json();
+
     expect(startData.processId).toBeTruthy();
 
     const questResponse = await request.get(`/api/quests/${questId}`);
+
     expect(questResponse.status()).toBe(HTTP_OK);
+
     const questData = await questResponse.json();
+
     expect(questData.quest.status).toBe('in_progress');
   });
 
@@ -99,7 +105,7 @@ test.describe('Quest Start Pipeline', () => {
       title: 'E2E Pipeline Quest',
       userRequest: 'Build feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
@@ -143,12 +149,17 @@ test.describe('Quest Start Pipeline', () => {
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const startResponse = await request.post(`/api/quests/${questId}/start`);
+
     expect(startResponse.status()).toBe(HTTP_OK);
+
     const { processId } = await startResponse.json();
 
     const statusResponse = await request.get(`/api/process/${processId}`);
+
     expect(statusResponse.status()).toBe(HTTP_OK);
+
     const status = await statusResponse.json();
+
     expect(status.processId).toBe(processId);
     expect(status.questId).toBe(questId);
   });

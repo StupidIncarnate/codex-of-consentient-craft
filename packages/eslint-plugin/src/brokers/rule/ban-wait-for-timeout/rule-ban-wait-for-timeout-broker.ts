@@ -25,7 +25,7 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
         noWaitForTimeout:
           'Do not use waitForTimeout() in e2e tests — it causes flaky tests. Wait for specific elements or events instead: await expect(locator).toBeVisible({timeout})',
         noSetTimeout:
-          'Do not use setTimeout() or test.setTimeout() in tests — arbitrary delays cause flaky tests. Use the testing framework\'s built-in wait mechanisms instead: await expect(locator).toBeVisible({timeout})',
+          "Do not use setTimeout() or test.setTimeout() in tests — arbitrary delays cause flaky tests. Use the testing framework's built-in wait mechanisms instead: await expect(locator).toBeVisible({timeout})",
       },
       schema: [],
     },
@@ -53,18 +53,12 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
         if (!callee) return;
 
         // Track page.evaluate() entry
-        if (
-          callee.type === 'MemberExpression' &&
-          callee.property?.name === 'evaluate'
-        ) {
+        if (callee.type === 'MemberExpression' && callee.property?.name === 'evaluate') {
           pageEvaluateDepth += 1;
         }
 
         // Ban .waitForTimeout() calls
-        if (
-          callee.type === 'MemberExpression' &&
-          callee.property?.name === 'waitForTimeout'
-        ) {
+        if (callee.type === 'MemberExpression' && callee.property?.name === 'waitForTimeout') {
           ctx.report({
             node,
             messageId: 'noWaitForTimeout',
@@ -78,8 +72,7 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
           return;
         }
 
-        const isBareSetTimeout =
-          callee.type === 'Identifier' && callee.name === 'setTimeout';
+        const isBareSetTimeout = callee.type === 'Identifier' && callee.name === 'setTimeout';
 
         const isGlobalSetTimeout =
           callee.type === 'MemberExpression' &&
@@ -104,10 +97,7 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
 
         if (!callee) return;
 
-        if (
-          callee.type === 'MemberExpression' &&
-          callee.property?.name === 'evaluate'
-        ) {
+        if (callee.type === 'MemberExpression' && callee.property?.name === 'evaluate') {
           pageEvaluateDepth -= 1;
         }
       },

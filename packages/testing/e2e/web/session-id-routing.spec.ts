@@ -136,12 +136,12 @@ const buildQuestJson = ({
   questId: ReturnType<typeof crypto.randomUUID>;
   questFolder: ReturnType<typeof String>;
   status: ReturnType<typeof String>;
-  workItems: Array<{
+  workItems: {
     id: ReturnType<typeof crypto.randomUUID>;
     role: ReturnType<typeof String>;
     sessionId: ReturnType<typeof String>;
     status?: ReturnType<typeof String>;
-  }>;
+  }[];
 }): Record<PropertyKey, unknown> => ({
   id: questId,
   folder: questFolder,
@@ -267,6 +267,7 @@ test.describe('Session ID Routing', () => {
         const roleBadge = page
           .getByTestId('execution-row-role-badge')
           .filter({ hasText: `[${role.toUpperCase()}]` });
+
         await expect(roleBadge).toBeVisible({ timeout: PANEL_TIMEOUT });
 
         // Trigger replay from browser to ensure WS is connected when messages are sent
@@ -283,6 +284,7 @@ test.describe('Session ID Routing', () => {
             .filter({ hasText: `[${role.toUpperCase()}]` }),
         });
         await roleRow.first().getByTestId('execution-row-header').click();
+
         await expect(roleRow.first().getByTestId('execution-row-expanded')).toBeVisible({
           timeout: PANEL_TIMEOUT,
         });
@@ -450,6 +452,7 @@ test.describe('Session ID Routing', () => {
     const cwRows = page.getByTestId('execution-row-layer-widget').filter({
       has: page.getByTestId('execution-row-role-badge').filter({ hasText: '[CODEWEAVER]' }),
     });
+
     await expect(cwRows).toHaveCount(2, { timeout: PANEL_TIMEOUT });
 
     // Trigger replay from browser to ensure WS is connected when messages are sent
@@ -464,12 +467,14 @@ test.describe('Session ID Routing', () => {
 
     // Expand first codeweaver row
     await cwRows.nth(0).getByTestId('execution-row-header').click();
+
     await expect(cwRows.nth(0).getByTestId('execution-row-expanded')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
     // Expand second codeweaver row
     await cwRows.nth(1).getByTestId('execution-row-header').click();
+
     await expect(cwRows.nth(1).getByTestId('execution-row-expanded')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });

@@ -32,7 +32,7 @@ test.describe('Quest Pause and Resume', () => {
       title: 'E2E Pause Quest',
       userRequest: 'Build feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
@@ -85,18 +85,25 @@ test.describe('Quest Pause and Resume', () => {
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
+
     expect(pauseResponse.status()).toBe(HTTP_OK);
+
     const pauseData = await pauseResponse.json();
+
     expect(pauseData.paused).toBe(true);
 
     const questResponse = await request.get(`/api/quests/${questId}`);
+
     expect(questResponse.status()).toBe(HTTP_OK);
+
     const questData = await questResponse.json();
+
     expect(questData.quest.status).toBe('blocked');
 
     const codeweaverItem = questData.quest.workItems.find(
       (wi: { id: string }) => wi.id === 'e2e00000-0000-4000-8000-000000000002',
     );
+
     expect(codeweaverItem.status).toBe('pending');
   });
 
@@ -111,7 +118,7 @@ test.describe('Quest Pause and Resume', () => {
       title: 'E2E Resume Quest',
       userRequest: 'Build feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
@@ -155,19 +162,23 @@ test.describe('Quest Pause and Resume', () => {
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
+
     expect(pauseResponse.status()).toBe(HTTP_OK);
 
     const blockedResponse = await request.get(`/api/quests/${questId}`);
     const blockedData = await blockedResponse.json();
+
     expect(blockedData.quest.status).toBe('blocked');
 
     const resumeResponse = await request.patch(`/api/quests/${questId}`, {
       data: { status: 'in_progress' },
     });
+
     expect(resumeResponse.status()).toBe(HTTP_OK);
 
     const resumedResponse = await request.get(`/api/quests/${questId}`);
     const resumedData = await resumedResponse.json();
+
     expect(resumedData.quest.status).not.toBe('blocked');
   });
 });

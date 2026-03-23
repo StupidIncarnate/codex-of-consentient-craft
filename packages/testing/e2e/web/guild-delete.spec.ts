@@ -21,6 +21,7 @@ test.describe('Guild Deletion', () => {
 
     // Refresh and verify only Guild Beta remains
     await page.goto('/');
+
     await expect(page.getByText('Guild Beta')).toBeVisible();
     await expect(page.getByText('Guild Alpha')).not.toBeVisible();
   });
@@ -49,6 +50,7 @@ test.describe('Guild Deletion', () => {
 
     // Refresh and verify inline creation form appears
     await page.goto('/');
+
     await expect(page.getByText('NEW GUILD')).toBeVisible();
     await expect(page.getByTestId('GUILD_NAME_INPUT')).toBeVisible();
     await expect(page.getByTestId('GUILD_PATH_INPUT')).toBeVisible();

@@ -44,7 +44,7 @@ ruleTester.run(
         filename: '/project/e2e/web/smoke.spec.ts',
       },
       {
-        code: "const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;",
+        code: 'const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;',
         filename: '/project/e2e/web/chat-features.spec.ts',
       },
 
@@ -57,8 +57,7 @@ ruleTester.run(
       // --- Helpers inside it() callbacks are fine ---
       {
         code: "it('VALID: creates guild', async () => { const buildPayload = () => { return { name: 'Test' }; }; buildPayload(); });",
-        filename:
-          '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+        filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
       },
 
       // --- Helpers inside describe() callbacks are fine ---
@@ -107,8 +106,7 @@ ruleTester.run(
       // --- Top-level block-body arrow in integration test ---
       {
         code: 'const setupEnv = () => { process.env.HOME = "/tmp"; };',
-        filename:
-          '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+        filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 

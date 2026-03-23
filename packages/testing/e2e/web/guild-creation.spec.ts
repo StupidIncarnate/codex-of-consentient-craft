@@ -48,12 +48,16 @@ test.describe('Guild Creation Flow', () => {
     // must still show the actual filesystem home so users can pick project paths.
     const pathText = await page.getByTestId('CURRENT_PATH_DISPLAY').textContent();
     const userHome = process.env.E2E_SERVER_HOME;
+
     expect(pathText).toBe(userHome);
 
     // Directory entries MUST be visible — the user home always has subdirectories
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
+
     await expect(dirEntries.first()).toBeVisible({ timeout: 3000 });
+
     const count = await dirEntries.count();
+
     expect(count).toBeGreaterThan(0);
 
     // "No subdirectories found" must NOT be shown
@@ -65,10 +69,12 @@ test.describe('Guild Creation Flow', () => {
     await page.goto('/');
 
     await page.getByText('BROWSE').click();
+
     await expect(page.getByText('Browse Directory')).toBeVisible();
 
     // Wait for entries to load
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
+
     await expect(dirEntries.first()).toBeVisible({ timeout: 3000 });
 
     // Click into a directory
@@ -84,7 +90,9 @@ test.describe('Guild Creation Flow', () => {
 
     // Modal closes, path input populated with selected directory
     await expect(page.getByText('Browse Directory')).not.toBeVisible();
+
     const pathValue = await page.getByTestId('GUILD_PATH_INPUT').inputValue();
+
     expect(pathValue.length).toBeGreaterThan(0);
     expect(pathValue).toContain(String(entryName));
   });
@@ -105,6 +113,7 @@ test.describe('Guild Creation Flow', () => {
 
     // Click CANCEL returns to main view
     await page.getByText('CANCEL').click();
+
     await expect(page.getByText('NEW GUILD')).not.toBeVisible();
     await expect(page.getByText('Existing Guild')).toBeVisible();
   });

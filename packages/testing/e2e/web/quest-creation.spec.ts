@@ -76,6 +76,7 @@ test.describe('Session Creation', () => {
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
+
     await expect(sessionItem).toBeVisible();
     await expect(sessionItem).toBeEnabled();
   });

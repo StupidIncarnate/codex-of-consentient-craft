@@ -77,10 +77,12 @@ test.describe('Guild Selection & Session Loading', () => {
     await page.goto('/');
     await page.getByText('Guild A').click();
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
+
     await expect(page.getByTestId(`SESSION_ITEM_${sessionIdA}`)).toBeVisible();
 
     await page.getByText('Guild B').click();
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
+
     await expect(page.getByTestId(`SESSION_ITEM_${sessionIdA}`)).not.toBeVisible();
     await expect(page.getByTestId(`SESSION_ITEM_${sessionIdB}`)).toBeVisible();
   });

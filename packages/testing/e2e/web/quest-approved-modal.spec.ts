@@ -120,7 +120,7 @@ const setupTest = async ({
     title: 'E2E Approved Modal Quest',
     userRequest: 'Build the feature',
   });
-  const questId = created.questId;
+  const { questId } = created;
   const questFolder = String(Reflect.get(created, 'questFolder'));
   const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -218,6 +218,7 @@ test.describe('Quest Approved Modal', () => {
     await page.getByText('Begin Quest').click();
 
     const startRequest = await startRequestPromise;
+
     expect(startRequest.method()).toBe('POST');
 
     // Modal should close after clicking
@@ -258,6 +259,7 @@ test.describe('Quest Approved Modal', () => {
 
     const patchRequest = await patchPromise;
     const body = patchRequest.postDataJSON();
+
     expect(body).toHaveProperty('status', 'review_observables');
 
     // Modal should close
@@ -300,6 +302,7 @@ test.describe('Quest Approved Modal', () => {
 
     const patchRequest = await patchPromise;
     const body = patchRequest.postDataJSON();
+
     expect(body).toHaveProperty('status', 'explore_design');
   });
 
@@ -326,6 +329,7 @@ test.describe('Quest Approved Modal', () => {
 
     // Should navigate to the guild session page (no sessionId)
     await page.waitForURL(`**/${urlSlug}/session`, { timeout: REQUEST_TIMEOUT });
+
     expect(page.url()).toContain(`/${urlSlug}/session`);
     expect(page.url()).not.toContain(sessionId);
   });

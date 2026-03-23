@@ -26,7 +26,7 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
       filename: '/project/e2e/web/quest-approve.spec.ts',
     },
     {
-      code: "page.waitForURL(/\\/session\\//u, { timeout: 5000 });",
+      code: 'page.waitForURL(/\\/session\\//u, { timeout: 5000 });',
       filename: '/project/e2e/web/chat-history.spec.ts',
     },
     {
@@ -40,11 +40,11 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
 
     // --- setTimeout inside page.evaluate() is browser-side code ---
     {
-      code: "page.evaluate(() => { globalThis.setTimeout(() => { ws.close(); }, 500); });",
+      code: 'page.evaluate(() => { globalThis.setTimeout(() => { ws.close(); }, 500); });',
       filename: '/project/e2e/web/session-id-routing.spec.ts',
     },
     {
-      code: "page.evaluate(() => { setTimeout(() => resolve(), 100); });",
+      code: 'page.evaluate(() => { setTimeout(() => resolve(), 100); });',
       filename: '/project/e2e/web/session-id-routing.spec.ts',
     },
 
@@ -80,7 +80,7 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
       errors: [{ messageId: 'noSetTimeout' }],
     },
     {
-      code: "setTimeout(resolve, 250);",
+      code: 'setTimeout(resolve, 250);',
       filename: '/project/e2e/web/quest-start.spec.ts',
       errors: [{ messageId: 'noSetTimeout' }],
     },

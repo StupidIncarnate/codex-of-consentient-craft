@@ -69,9 +69,11 @@ test.describe('Not Found', () => {
 
   test('GET /api/guilds/:guildId returns 404 for nonexistent guild', async ({ request }) => {
     const response = await request.get('/api/guilds/91c4944d-55e3-4231-bd48-140245f11867');
+
     expect(response.status()).toBe(HTTP_NOT_FOUND);
 
     const body = await response.json();
+
     expect(body.error).toMatch(/^Guild not found/u);
   });
 });

@@ -73,12 +73,14 @@ test.describe('Quest Detail Navigation', () => {
     await page.getByText('Back Guild').click();
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
+
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 
     await page.goBack();
 
     await page.getByText('Back Guild').click();
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
+
     await expect(page.getByText('Test back')).toBeVisible();
     await expect(page.getByTestId('GUILD_SESSION_LIST')).toBeVisible();
   });

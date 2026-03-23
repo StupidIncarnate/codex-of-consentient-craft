@@ -71,7 +71,7 @@ test.describe('Quest Begin Transition', () => {
       title: 'E2E Begin Transition Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -139,6 +139,7 @@ test.describe('Quest Begin Transition', () => {
     await page.getByRole('button', { name: 'Begin Quest' }).click();
 
     const startRequest = await startPromise;
+
     expect(startRequest.method()).toBe('POST');
     expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
 
@@ -179,7 +180,7 @@ test.describe('Quest Begin Transition', () => {
       title: 'E2E Design Begin Quest',
       userRequest: 'Build the feature',
     });
-    const questId = created.questId;
+    const { questId } = created;
     const questFolder = String(Reflect.get(created, 'questFolder'));
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
@@ -244,6 +245,7 @@ test.describe('Quest Begin Transition', () => {
     await page.getByRole('button', { name: 'Begin Quest' }).click();
 
     const startRequest = await startPromise;
+
     expect(startRequest.method()).toBe('POST');
     expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
 

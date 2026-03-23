@@ -30,14 +30,18 @@ test.describe('Status Badges & Visual', () => {
 
     // Selected guild should have gold-colored styling
     const selectedGuild = page.getByTestId(`GUILD_ITEM_${guildA.id}`);
+
     await expect(selectedGuild).toBeVisible();
+
     // Check it has a distinct style (gold color on text)
     const color = await selectedGuild.evaluate((el) => getComputedStyle(el).color);
+
     expect(color).toBeTruthy();
 
     // Unselected guild should have different styling
     const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildB.id}`);
     const unselectedColor = await unselectedGuild.evaluate((el) => getComputedStyle(el).color);
+
     expect(color).not.toBe(unselectedColor);
   });
 
@@ -56,6 +60,7 @@ test.describe('Status Badges & Visual', () => {
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
+
     await expect(sessionItem).toBeVisible();
     await expect(page.getByText('Test status')).toBeVisible();
   });
