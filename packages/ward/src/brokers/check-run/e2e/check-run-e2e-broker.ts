@@ -34,6 +34,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import { extractPlaywrightLineFilesTransformer } from '../../../transformers/extract-playwright-line-files/extract-playwright-line-files-transformer';
 import { parsePlaywrightCrashOutputTransformer } from '../../../transformers/parse-playwright-crash-output/parse-playwright-crash-output-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
+import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
@@ -68,10 +69,29 @@ export const checkRunE2eBroker = async ({
     patterns: discoverPatterns,
     cwd,
   });
+
+  const e2eFiles = fileList.filter((f) => isE2eTestPathGuard({ filePath: String(f) }));
+
+  if (fileList.length > 0 && e2eFiles.length === 0) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no matching e2e test files in passthrough',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
+
   const finalArgs =
     testNamePattern === undefined
-      ? [...args, ...fileList]
-      : [...args, '--grep', testNamePattern, ...fileList];
+      ? [...args, ...e2eFiles]
+      : [...args, '--grep', testNamePattern, ...e2eFiles];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const serverPort = await netFreePortAdapter();

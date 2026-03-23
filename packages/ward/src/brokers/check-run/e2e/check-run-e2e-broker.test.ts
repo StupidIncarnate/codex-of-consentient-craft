@@ -172,7 +172,7 @@ describe('checkRunE2eBroker', () => {
   });
 
   describe('file list filtering', () => {
-    it('VALID: {fileList provided} => appends file paths to playwright args', async () => {
+    it('VALID: {fileList with e2e spec files} => appends only e2e file paths to playwright args', async () => {
       const proxy = checkRunE2eBrokerProxy();
       proxy.setupPass();
 
@@ -186,6 +186,55 @@ describe('checkRunE2eBroker', () => {
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
       expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', 'e2e/login.spec.ts']);
+    });
+
+    it('VALID: {fileList with no e2e files} => returns skip result', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/brokers/user/user-broker.ts' }),
+          GitRelativePathStub({ value: 'src/guards/is-admin/is-admin-guard.test.ts' }),
+        ],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching e2e test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {fileList with mixed files} => passes only e2e files to playwright', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunE2eBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/brokers/user/user-broker.ts' }),
+          GitRelativePathStub({ value: 'e2e/web/smoke.spec.ts' }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', 'e2e/web/smoke.spec.ts']);
     });
   });
 
