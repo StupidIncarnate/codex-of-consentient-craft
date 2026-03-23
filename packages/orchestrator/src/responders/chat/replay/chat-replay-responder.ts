@@ -25,24 +25,28 @@ export const ChatReplayResponder = async ({
   const chatProcessId =
     clientChatProcessId ?? processIdContract.parse(`replay-${crypto.randomUUID()}`);
 
-  await chatHistoryReplayBroker({
-    sessionId,
-    guildId,
-    onEntry: ({ entry }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-output',
-        processId: chatProcessId,
-        payload: { chatProcessId, line: JSON.stringify(entry) },
-      });
-    },
-    onPatch: ({ toolUseId, agentId }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-patch',
-        processId: chatProcessId,
-        payload: { chatProcessId, toolUseId, agentId },
-      });
-    },
-  });
+  try {
+    await chatHistoryReplayBroker({
+      sessionId,
+      guildId,
+      onEntry: ({ entry }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-output',
+          processId: chatProcessId,
+          payload: { chatProcessId, line: JSON.stringify(entry) },
+        });
+      },
+      onPatch: ({ toolUseId, agentId }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-patch',
+          processId: chatProcessId,
+          payload: { chatProcessId, toolUseId, agentId },
+        });
+      },
+    });
+  } catch {
+    // Session JSONL file may not exist — continue to emit chat-history-complete
+  }
 
   try {
     const quests = await questListBroker({ guildId });

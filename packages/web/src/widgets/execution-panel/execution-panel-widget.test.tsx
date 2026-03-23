@@ -200,7 +200,26 @@ describe('ExecutionPanelWidget', () => {
       expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
     });
 
-    it('VALID: {in_progress quest with onStatusChange} => shows ABANDON QUEST button only', () => {
+    it('VALID: {in_progress quest with onStatusChange and onPause} => shows PAUSE QUEST and ABANDON QUEST buttons', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onStatusChange = jest.fn();
+      const onPause = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
+        ),
+      });
+
+      expect(proxy.hasActionBar()).toBe(true);
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['PAUSE QUEST', 'ABANDON QUEST']);
+    });
+
+    it('VALID: {in_progress quest without onPause} => shows ABANDON QUEST button only', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onStatusChange = jest.fn();
@@ -214,6 +233,24 @@ describe('ExecutionPanelWidget', () => {
       const labels = proxy.getActionButtons().map((btn) => btn.textContent);
 
       expect(labels).toStrictEqual(['ABANDON QUEST']);
+    });
+
+    it('VALID: {click PAUSE QUEST} => calls onPause', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onStatusChange = jest.fn();
+      const onPause = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
+        ),
+      });
+
+      await proxy.clickButtonByLabel({ label: 'PAUSE QUEST' });
+
+      expect(onPause).toHaveBeenCalledTimes(1);
+      expect(onStatusChange).not.toHaveBeenCalled();
     });
 
     it('VALID: {complete quest} => does not show action bar', () => {

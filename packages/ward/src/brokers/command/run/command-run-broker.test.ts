@@ -22,4 +22,19 @@ describe('commandRunBroker', () => {
       expect(process.exit).not.toHaveBeenCalled();
     });
   });
+
+  describe('failing run', () => {
+    it('VALID: {checks fail} => sets process.exitCode to 1 instead of calling process.exit', async () => {
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackageFail();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect(process.exitCode).toBe(1);
+      expect(process.exit).not.toHaveBeenCalled();
+    });
+  });
 });

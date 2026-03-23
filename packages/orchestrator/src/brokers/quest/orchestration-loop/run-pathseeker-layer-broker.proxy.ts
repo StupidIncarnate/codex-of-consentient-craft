@@ -18,6 +18,7 @@ export const runPathseekerLayerBrokerProxy = (): {
     exitCode: ExitCode;
   }) => void;
   setupSpawnFailure: (params: { quest: Quest }) => void;
+  setupSpawnAborted: (params: { quest: Quest }) => void;
   setupVerifyFail: (params: {
     quest: Quest;
     spawnLines: Parameters<
@@ -94,6 +95,11 @@ export const runPathseekerLayerBrokerProxy = (): {
       insertProxy.setupQuestModify({ quest });
       insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
+    },
+
+    setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnFailureOnce();
     },
 
     setupQuestNotFound: (): void => {

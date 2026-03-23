@@ -261,4 +261,36 @@ describe('runSiegemasterLayerBroker', () => {
       ).rejects.toThrow(/Quest not found/u);
     });
   });
+
+  describe('ABORT (pause during siegemaster)', () => {
+    it('VALID: {siegemaster killed by abort signal} => quest state unchanged, siegemaster stays in_progress', async () => {
+      const questId = 'add-auth' as never;
+      const workItemId = QuestWorkItemIdStub({ value: 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5' });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        maxAttempts: 1,
+      });
+      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupSpawnAborted({ quest });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      await runSiegemasterLayerBroker({
+        questId,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        abortSignal: abortController.signal,
+      });
+
+      const modifyContents = proxy.getModifyContents();
+
+      // Quest must be untouched — no failed marking, no pathseeker replan, no skipped items
+      expect(modifyContents).toHaveLength(0);
+    });
+  });
 });

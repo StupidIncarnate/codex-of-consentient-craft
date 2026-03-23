@@ -10,6 +10,7 @@ import {
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
 } from '../../contracts/chat-entry/chat-entry.stub';
+import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ChatMessageWidget } from './chat-message-widget';
 import { ChatMessageWidgetProxy } from './chat-message-widget.proxy';
@@ -662,6 +663,160 @@ describe('ChatMessageWidget', () => {
       const message = screen.getByTestId('CHAT_MESSAGE');
 
       expect(message.textContent).toMatch(/claude-opus-4-6/u);
+    });
+  });
+
+  describe('roleLabel prop', () => {
+    it('VALID: {roleLabel: chaoswhisperer} => renders CHAOSWHISPERER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget
+            entry={entry}
+            roleLabel={ExecutionRoleStub({ value: 'chaoswhisperer' })}
+          />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^CHAOSWHISPERER/u);
+    });
+
+    it('VALID: {roleLabel: glyphsmith} => renders GLYPHSMITH label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'glyphsmith' })} />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^GLYPHSMITH/u);
+    });
+
+    it('VALID: {roleLabel: pathseeker} => renders PATHSEEKER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'pathseeker' })} />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^PATHSEEKER/u);
+    });
+
+    it('VALID: {roleLabel: codeweaver} => renders CODEWEAVER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'codeweaver' })} />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^CODEWEAVER/u);
+    });
+
+    it('VALID: {roleLabel: ward} => renders WARD label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'ward' })} />,
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^WARD/u);
+    });
+
+    it('VALID: {roleLabel: spiritmender} => renders SPIRITMENDER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget
+            entry={entry}
+            roleLabel={ExecutionRoleStub({ value: 'spiritmender' })}
+          />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^SPIRITMENDER/u);
+    });
+
+    it('VALID: {roleLabel: siegemaster} => renders SIEGEMASTER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget
+            entry={entry}
+            roleLabel={ExecutionRoleStub({ value: 'siegemaster' })}
+          />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^SIEGEMASTER/u);
+    });
+
+    it('VALID: {roleLabel: lawbringer} => renders LAWBRINGER label', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'lawbringer' })} />
+        ),
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^LAWBRINGER/u);
+    });
+
+    it('VALID: {no roleLabel} => defaults to CHAOSWHISPERER', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^CHAOSWHISPERER/u);
+    });
+
+    it('VALID: {roleLabel provided, source: subagent} => renders SUB-AGENT label instead of roleLabel', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: 'response', source: 'subagent' });
+
+      mantineRenderAdapter({
+        ui: <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'ward' })} />,
+      });
+
+      const message = screen.getByTestId('CHAT_MESSAGE');
+
+      expect(message.textContent).toMatch(/^SUB-AGENT/u);
+      expect(message.textContent).not.toMatch(/WARD/u);
     });
   });
 

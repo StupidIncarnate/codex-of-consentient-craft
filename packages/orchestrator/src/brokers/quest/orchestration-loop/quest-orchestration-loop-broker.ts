@@ -82,6 +82,11 @@ export const questOrchestrationLoopBroker = async ({
     workItems: quest.workItems,
   });
 
+  const workItemSummary = quest.workItems.map((wi) => `${wi.role}:${wi.status}`).join(', ');
+  process.stderr.write(
+    `[dev] orchestration-loop questId=${questId} ready=${String(ready.length)} terminal=${String(questTerminal)} blocked=${String(questBlocked)} items=[${workItemSummary}]\n`,
+  );
+
   // 3. Handle terminal states
   if (questTerminal) {
     const newStatus = workItemsToQuestStatusTransformer({
@@ -100,6 +105,7 @@ export const questOrchestrationLoopBroker = async ({
   }
 
   if (ready.length === 0) {
+    process.stderr.write(`[dev] orchestration-loop questId=${questId} no ready items, exiting\n`);
     return; // items in_progress elsewhere, or waiting for user
   }
 
@@ -176,6 +182,7 @@ export const questOrchestrationLoopBroker = async ({
         workItem: firstItem,
         startPath,
         ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     } else if (roleName === 'codeweaver') {
       await runCodeweaverLayerBroker({
@@ -185,6 +192,7 @@ export const questOrchestrationLoopBroker = async ({
         slotCount,
         slotOperations,
         ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     } else if (roleName === 'ward') {
       await runWardLayerBroker({
@@ -192,12 +200,14 @@ export const questOrchestrationLoopBroker = async ({
         workItem: firstItem,
         startPath,
         ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     } else if (roleName === 'siegemaster') {
       await runSiegemasterLayerBroker({
         questId,
         workItem: firstItem,
         startPath,
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     } else if (roleName === 'lawbringer') {
       await runLawbringerLayerBroker({
@@ -206,6 +216,7 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     } else {
       // roleName === 'spiritmender' (exhaustive via WorkItemRole enum)
@@ -215,9 +226,15 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
     }
   } catch (error: unknown) {
+    // If aborted (paused), do not mark items failed — pause responder resets them to pending
+    if (abortSignal?.aborted) {
+      return;
+    }
+
     // On unhandled error: mark all in_progress items as failed to prevent zombies
     // Wrapped in inner try/catch to ensure original error always propagates (double fault safety)
     try {

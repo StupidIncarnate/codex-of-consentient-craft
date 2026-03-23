@@ -40,6 +40,7 @@ export const runCodeweaverLayerBroker = async ({
   slotCount,
   slotOperations,
   onAgentEntry,
+  abortSignal,
 }: {
   questId: QuestId;
   workItems: WorkItem[];
@@ -51,6 +52,7 @@ export const runCodeweaverLayerBroker = async ({
     entry: ChatLineEntry['entry'];
     sessionId?: SessionId;
   }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.codeweaver.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
@@ -90,6 +92,7 @@ export const runCodeweaverLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
       const questItemId = slotToQuestMap.get(failedWorkItemId);

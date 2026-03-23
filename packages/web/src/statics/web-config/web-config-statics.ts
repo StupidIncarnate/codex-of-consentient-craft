@@ -21,6 +21,7 @@ export const webConfigStatics = {
       sessionChatHistory: '/api/sessions/:sessionId/chat/history',
       processStatus: '/api/process/:processId',
       questStart: '/api/quests/:questId/start',
+      questPause: '/api/quests/:questId/pause',
       designStart: '/api/quests/:questId/design/start',
       designStop: '/api/quests/:questId/design/stop',
       designSession: '/api/quests/:questId/design/session',

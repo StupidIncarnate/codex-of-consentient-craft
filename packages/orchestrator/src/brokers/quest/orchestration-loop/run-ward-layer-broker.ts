@@ -39,12 +39,14 @@ import { spawnWardLayerBroker } from './spawn-ward-layer-broker';
 
 const WARD_SESSION_PREFIX = 'ward-';
 const WARD_SLOT_INDEX = slotIndexContract.parse(0);
+const LOG_SNIPPET_LENGTH = 200;
 
 export const runWardLayerBroker = async ({
   questId,
   workItem,
   startPath,
   onAgentEntry,
+  abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
@@ -54,11 +56,16 @@ export const runWardLayerBroker = async ({
     entry: ChatLineEntry['entry'];
     sessionId?: SessionId;
   }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const absoluteStartPath = absoluteFilePathContract.parse(startPath);
 
   // Generate synthetic session ID for ward output streaming
   const wardSessionId = sessionIdContract.parse(WARD_SESSION_PREFIX + crypto.randomUUID());
+
+  process.stderr.write(
+    `[dev] ward:start questId=${questId} workItemId=${workItem.id} sessionId=${wardSessionId} hasOnAgentEntry=${String(onAgentEntry !== undefined)}\n`,
+  );
 
   // Store session ID on work item before spawning
   await questModifyBroker({
@@ -71,8 +78,13 @@ export const runWardLayerBroker = async ({
   // Create onLine wrapper for streaming to web
   const onLine =
     onAgentEntry === undefined
-      ? undefined
+      ? (line: string): void => {
+          process.stderr.write(
+            `[dev] ward:output (no relay) ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`,
+          );
+        }
       : (line: string): void => {
+          process.stderr.write(`[dev] ward:output ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`);
           onAgentEntry({
             slotIndex: WARD_SLOT_INDEX,
             entry: { raw: line },
@@ -84,8 +96,18 @@ export const runWardLayerBroker = async ({
   const { exitCode, runId } = await spawnWardLayerBroker({
     startPath: absoluteStartPath,
     ...(workItem.wardMode === undefined ? {} : { wardMode: workItem.wardMode }),
-    ...(onLine === undefined ? {} : { onLine }),
+    onLine,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
+
+  process.stderr.write(
+    `[dev] ward:complete exitCode=${String(exitCode)} runId=${String(runId)} workItemId=${workItem.id} aborted=${String(abortSignal?.aborted ?? false)}\n`,
+  );
+
+  // If aborted (paused), bail out without creating follow-up items
+  if (abortSignal?.aborted) {
+    return;
+  }
 
   // Fetch and persist ward detail (pass or fail)
   const detailJson = runId ? await wardDetailBroker({ startPath: absoluteStartPath, runId }) : null;

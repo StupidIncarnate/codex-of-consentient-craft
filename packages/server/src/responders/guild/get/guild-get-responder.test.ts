@@ -65,9 +65,25 @@ describe('GuildGetResponder', () => {
   });
 
   describe('error cases', () => {
-    it('ERROR: {adapter throws} => returns 500 with error message', async () => {
+    it('ERROR: {guild not found} => returns 404 with error message', async () => {
       const proxy = GuildGetResponderProxy();
-      proxy.setupGetGuildError({ message: 'Guild not found' });
+      proxy.setupGetGuildError({
+        message: 'Guild not found: f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const result = await proxy.callResponder({
+        params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 404,
+        data: { error: 'Guild not found: f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+      });
+    });
+
+    it('ERROR: {adapter throws unexpected error} => returns 500 with error message', async () => {
+      const proxy = GuildGetResponderProxy();
+      proxy.setupGetGuildError({ message: 'Config file corrupted' });
 
       const result = await proxy.callResponder({
         params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
@@ -75,7 +91,7 @@ describe('GuildGetResponder', () => {
 
       expect(result).toStrictEqual({
         status: 500,
-        data: { error: 'Guild not found' },
+        data: { error: 'Config file corrupted' },
       });
     });
   });

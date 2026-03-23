@@ -93,6 +93,7 @@ export const runWardLayerBrokerProxy = (): {
   }) => void;
   setupWardFailNullExit: (params: { quest: QuestInput }) => void;
   setupWardFailNoFilePaths: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
+  setupWardAborted: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
   getPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -337,6 +338,15 @@ export const runWardLayerBrokerProxy = (): {
       setupGet({ quest });
       // 9. modify(insert via questWorkItemInsertBroker)
       setupModify({ quest });
+    },
+
+    setupWardAborted: ({ quest, exitCode }: { quest: QuestInput; exitCode: ExitCode }): void => {
+      clearEnv();
+      // 1. modify(session ID)
+      setupModify({ quest });
+      // 2. spawn ward (killed by abort, exits non-zero)
+      spawnProxy.setupWardFailure({ exitCode });
+      // Aborted: no further calls (no detail, no persist, no follow-ups)
     },
 
     getPersistedWorkItemStatus: ({

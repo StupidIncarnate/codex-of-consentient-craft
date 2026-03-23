@@ -45,6 +45,7 @@ export interface ExecutionPanelWidgetProps {
   slotEntries?: Map<SlotIndex, ChatEntry[]>;
   sessionEntries?: Map<SessionId, ChatEntry[]>;
   onStatusChange?: (params: { status: QuestStatus }) => void;
+  onPause?: () => void;
 }
 
 const TABS = [
@@ -56,6 +57,7 @@ const TAB_FONT_SIZE = 10;
 const TAB_FONT_WEIGHT = 600;
 const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
+const PAUSE_LABEL = 'PAUSE QUEST' as ButtonLabel;
 const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
 const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
 const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
@@ -72,6 +74,7 @@ export const ExecutionPanelWidget = ({
   slotEntries = new Map(),
   sessionEntries = new Map(),
   onStatusChange,
+  onPause,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
@@ -470,6 +473,14 @@ export const ExecutionPanelWidget = ({
               }}
             >
               <Group gap="xs">
+                {quest.status === 'in_progress' && !confirmingAbandon && onPause && (
+                  <PixelBtnWidget
+                    label={PAUSE_LABEL}
+                    onClick={() => {
+                      onPause();
+                    }}
+                  />
+                )}
                 {quest.status === 'blocked' && !confirmingAbandon && (
                   <PixelBtnWidget
                     label={RESUME_LABEL}

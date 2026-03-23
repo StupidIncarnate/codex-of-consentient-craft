@@ -24,6 +24,7 @@ export const sessionListBrokerProxy = (): {
   setupFileContentError: (params: { error: Error }) => void;
   setupFileStatError: (params: { error: Error }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupGuildNotFound: (params: { guildId: string }) => void;
 } => {
   const guildProxy = orchestratorGetGuildAdapterProxy();
   const questsProxy = orchestratorListQuestsAdapterProxy();
@@ -65,6 +66,9 @@ export const sessionListBrokerProxy = (): {
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.returns({ quests });
+    },
+    setupGuildNotFound: ({ guildId }: { guildId: string }): void => {
+      guildProxy.throws({ error: new Error(`Guild not found: ${guildId}`) });
     },
   };
 };

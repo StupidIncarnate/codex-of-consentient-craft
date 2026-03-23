@@ -6,6 +6,7 @@ import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broke
 
 export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
+  setupSinglePackageFail: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
 } => {
   jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
@@ -23,6 +24,11 @@ export const commandRunBrokerProxy = (): {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupAllChecksPass();
+    },
+    setupSinglePackageFail: (): void => {
+      workspaceProxy.setupSinglePackage();
+      folderProxy.setupReturnsPackage({ name: 'test-pkg' });
+      singleProxy.setupLintOnlyFail({ stdout: '[]' });
     },
     setupMultiPackagePass: ({
       packageCount,

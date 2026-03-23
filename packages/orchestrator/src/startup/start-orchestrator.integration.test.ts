@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { GuildPathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
@@ -68,6 +68,20 @@ describe('StartOrchestrator', () => {
       expect(() => StartOrchestrator.getQuestStatus({ processId })).toThrow(
         /Process not found: proc-nonexistent/u,
       );
+    });
+
+    it('ERROR: {nonexistent questId} => pauseQuest delegates to OrchestrationFlow.pause and throws', async () => {
+      const restore = setupTestHome({ baseName: 'start-orch-pause' });
+      const questId = QuestIdStub({ value: 'nonexistent-quest-id' });
+
+      const thrownError = await StartOrchestrator.pauseQuest({ questId }).catch(
+        (error: unknown) => error,
+      );
+
+      restore();
+
+      expect(thrownError).toBeInstanceOf(Error);
+      expect((thrownError as Error).message).toMatch(/Quest not found/u);
     });
   });
 

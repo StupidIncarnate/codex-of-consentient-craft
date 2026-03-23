@@ -129,3 +129,15 @@ See `packages/standards/define/testing-standards.md` § "E2E Testing" for full p
   has no chaoswhisperer/glyphsmith work item, the server cannot match the quest to the session, and the execution panel
   will show "Awaiting quest activity..." instead of rendering. Always include a chaoswhisperer work item with the
   session's `sessionId` in test quest data.
+- **Quest status determines when the WS execution listener activates** — the browser's WebSocket listener for execution
+  streaming (`quest-chat-widget.tsx`) is gated by `isExecutionPhaseGuard`, which only returns `true` for `in_progress`,
+  `blocked`, `complete`, or `abandoned`. If a test creates a quest with `status: 'approved'` and then POSTs to start it,
+  the browser won't have a WS connection until it receives the `quest-modified` event with `status: 'in_progress'`
+  (delivered via the file outbox — slower than the in-memory event bus). Fast-executing work items (like the fake ward
+  binary) will broadcast their output before the browser's WS is connected, and those events are lost with no replay.
+  **For tests that need to observe streamed output, create the quest with `status: 'in_progress'`** so the WS listener
+  activates immediately on navigation. The widget auto-starts the orchestration loop when it detects an `in_progress`
+  quest. Tests that only need to verify the start API response (not streamed output) can use `status: 'approved'`.
+- **Step IDs must be kebab-case** — `stepIdContract` validates against `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`. Do NOT use
+  `crypto.randomUUID()` for step IDs in test quest data — UUIDs starting with a digit fail silently during
+  `questContract.parse()`, making the quest invisible to `questFindQuestPathBroker`.

@@ -28,6 +28,7 @@ describe('useSessionChatBinding', () => {
 
         chatProcessId: null,
         pendingClarification: null,
+        sessionNotFound: false,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -1020,6 +1021,7 @@ describe('useSessionChatBinding', () => {
 
         chatProcessId: null,
         pendingClarification: null,
+        sessionNotFound: false,
         sendMessage: expect.any(Function),
         stopChat: expect.any(Function),
       });

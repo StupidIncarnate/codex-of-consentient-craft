@@ -65,6 +65,6 @@ export const commandRunBroker = async ({
     process.stdout.write(
       `\nFull error details: npm run ward -- detail ${wardResult.runId} <filePath>\n`,
     );
-    process.exit(1);
+    process.exitCode = 1;
   }
 };

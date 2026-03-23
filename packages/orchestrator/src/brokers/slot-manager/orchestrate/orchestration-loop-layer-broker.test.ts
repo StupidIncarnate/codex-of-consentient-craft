@@ -1790,4 +1790,191 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(sessionIds).toStrictEqual({ 'work-item-crash-session': 'crash-session-789' });
     });
   });
+
+  describe('ABORT (pause during slot manager agents)', () => {
+    it('VALID: {codeweaver crashed while aborted} => work tracker untouched, agent removed from active list', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-aborted' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const crashSessionId = SessionIdStub();
+      const mockMarkStarted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn();
+      const mockSkipAllPending = jest.fn();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: mockMarkStarted,
+        markCompleted: mockMarkCompleted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: crashSessionId,
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath: FilePathStub({ value: '/project/src' }),
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        abortSignal: abortController.signal,
+      });
+
+      // Work tracker must be completely untouched — item stays in_progress for pause responder to reset
+      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
+      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
+      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      // Agent must be removed from active list (it completed, just not processed)
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+    });
+
+    it('VALID: {lawbringer signal-failed while aborted} => work tracker untouched, agent removed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-law-aborted' });
+      const lawbringerWorkUnit = LawbringerWorkUnitStub();
+      const mockMarkStarted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn();
+      const mockSkipAllPending = jest.fn();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => lawbringerWorkUnit,
+        markStarted: mockMarkStarted,
+        markCompleted: mockMarkCompleted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failSignal = StreamSignalStub({ signal: 'failed', summary: 'lint error' as never });
+      const agentResult = AgentSpawnStreamingResultStub({
+        exitCode: ExitCodeStub({ value: 0 }),
+        crashed: false as never,
+        timedOut: false as never,
+        signal: failSignal,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath: FilePathStub({ value: '/project/src' }),
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        abortSignal: abortController.signal,
+      });
+
+      // Work tracker must be completely untouched
+      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
+      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
+      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+    });
+
+    it('VALID: {spiritmender crashed while aborted} => work tracker untouched, agent removed', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-spirit-aborted' });
+      const spiritmenderWorkUnit = SpiritmenderWorkUnitStub();
+      const mockMarkStarted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn();
+      const mockSkipAllPending = jest.fn();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => spiritmenderWorkUnit,
+        markStarted: mockMarkStarted,
+        markCompleted: mockMarkCompleted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const agentResult = AgentSpawnStreamingResultStub({
+        exitCode: ExitCodeStub({ value: 1 }),
+        crashed: true as never,
+        timedOut: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath: FilePathStub({ value: '/project/src' }),
+        slotCount: SlotCountStub({ value: 2 }),
+        timeoutMs: TimeoutMsStub({ value: 60000 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        abortSignal: abortController.signal,
+      });
+
+      // Work tracker must be completely untouched
+      expect(mockMarkStarted).toHaveBeenCalledTimes(0);
+      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
+      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
+      expect(mockAddWorkItem).toHaveBeenCalledTimes(0);
+      expect(mockSkipAllPending).toHaveBeenCalledTimes(0);
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+    });
+  });
 });

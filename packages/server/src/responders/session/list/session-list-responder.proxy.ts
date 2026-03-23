@@ -14,6 +14,7 @@ export const SessionListResponderProxy = (): {
   setupFileContent: (params: { content: string }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupGuildError: () => void;
+  setupGuildNotFound: (params: { guildId: string }) => void;
   callResponder: typeof SessionListResponder;
 } => {
   const brokerProxy = sessionListBrokerProxy();
@@ -40,6 +41,9 @@ export const SessionListResponderProxy = (): {
     },
     setupGuildError: (): void => {
       brokerProxy.setupGuild({ guild: {} as never });
+    },
+    setupGuildNotFound: ({ guildId }: { guildId: string }): void => {
+      brokerProxy.setupGuildNotFound({ guildId });
     },
     callResponder: SessionListResponder,
   };

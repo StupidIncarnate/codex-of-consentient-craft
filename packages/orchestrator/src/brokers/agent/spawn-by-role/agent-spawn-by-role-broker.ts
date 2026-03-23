@@ -41,6 +41,7 @@ export const agentSpawnByRoleBroker = async ({
   continuationContext,
   onLine,
   onSessionId,
+  abortSignal,
 }: {
   workUnit: WorkUnit;
   timeoutMs: TimeoutMs;
@@ -49,6 +50,7 @@ export const agentSpawnByRoleBroker = async ({
   continuationContext?: ContinuationContext;
   onLine?: (params: { line: string }) => void;
   onSessionId?: (params: { sessionId: SessionId }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<AgentSpawnStreamingResult> => {
   const template = roleToPromptTemplateTransformer({ role: workUnit.role });
   const args = workUnitToArgumentsTransformer({ workUnit });
@@ -126,6 +128,12 @@ export const agentSpawnByRoleBroker = async ({
         timedOut = true;
         kill();
       }, timeoutMs);
+
+      if (abortSignal && !abortSignal.aborted) {
+        abortSignal.addEventListener('abort', kill, { once: true });
+      } else if (abortSignal?.aborted) {
+        kill();
+      }
     });
   } catch {
     return agentSpawnStreamingResultContract.parse({

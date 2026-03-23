@@ -19,10 +19,12 @@ export const spawnWardLayerBroker = async ({
   startPath,
   wardMode,
   onLine,
+  abortSignal,
 }: {
   startPath: AbsoluteFilePath;
   wardMode?: 'changed' | 'full';
   onLine?: (line: string) => void;
+  abortSignal?: AbortSignal;
 }): Promise<{ exitCode: ExitCode; runId: FileName | null }> => {
   const args = wardMode === 'changed' ? ['run', '--changed'] : ['run'];
 
@@ -31,6 +33,7 @@ export const spawnWardLayerBroker = async ({
     args,
     cwd: startPath,
     ...(onLine === undefined ? {} : { onLine }),
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 
   const exitCode = rawExitCode ?? exitCodeContract.parse(1);

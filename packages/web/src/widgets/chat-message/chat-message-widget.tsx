@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
@@ -26,6 +27,7 @@ export interface ChatMessageWidgetProps {
   isLoading?: boolean;
   tokenBadgeLabel?: FormattedTokenLabel;
   compact?: boolean;
+  roleLabel?: ExecutionRole;
 }
 
 const BORDER_WIDTH = '2px solid';
@@ -36,6 +38,7 @@ export const ChatMessageWidget = ({
   isLoading,
   tokenBadgeLabel,
   compact,
+  roleLabel,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = 'source' in entry && entry.source === 'subagent';
@@ -219,7 +222,7 @@ export const ChatMessageWidget = ({
 
   if (entry.type === 'text') {
     const textBorderColor = isSubagent ? colors['loot-rare'] : colors.primary;
-    const textLabel = isSubagent ? 'SUB-AGENT' : 'CHAOSWHISPERER';
+    const textLabel = isSubagent ? 'SUB-AGENT' : (roleLabel ?? 'chaoswhisperer').toUpperCase();
 
     return (
       <Box

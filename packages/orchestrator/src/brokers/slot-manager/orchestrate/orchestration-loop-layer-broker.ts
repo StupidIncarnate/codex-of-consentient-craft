@@ -45,6 +45,7 @@ export const orchestrationLoopLayerBroker = async ({
   onFollowupCreated,
   maxFollowupDepth,
   sessionIds,
+  abortSignal,
 }: {
   questId: QuestId;
   workTracker: WorkTracker;
@@ -66,6 +67,7 @@ export const orchestrationLoopLayerBroker = async ({
   }) => void;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
+  abortSignal?: AbortSignal;
 }): Promise<LoopResult> => {
   if (workTracker.isAllTerminal() && activeAgents.length === 0) {
     const failedIds = workTracker.getFailedIds();
@@ -110,6 +112,7 @@ export const orchestrationLoopLayerBroker = async ({
                 onWorkItemSessionId({ workItemId, sessionId });
               },
             }),
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
 
       activeAgents.push({
@@ -149,6 +152,11 @@ export const orchestrationLoopLayerBroker = async ({
 
   if (result.sessionId !== null) {
     Reflect.set(sessionIds, completedAgent.workItemId, result.sessionId);
+  }
+
+  // If aborted (paused), do not mark failed, retry, or spawn followups — just exit cleanly
+  if (abortSignal?.aborted) {
+    return { done: false, activeAgents };
   }
 
   if (result.crashed || result.timedOut) {
@@ -192,6 +200,7 @@ export const orchestrationLoopLayerBroker = async ({
                 onWorkItemSessionId({ workItemId: completedAgent.workItemId, sessionId });
               },
             }),
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
 
       activeAgents.push({
@@ -294,6 +303,7 @@ export const orchestrationLoopLayerBroker = async ({
                     onWorkItemSessionId({ workItemId: newWorkItemId, sessionId });
                   },
                 }),
+            ...(abortSignal === undefined ? {} : { abortSignal }),
           });
 
           const nextDepth = followupDepthContract.parse(completedAgent.followupDepth + 1);

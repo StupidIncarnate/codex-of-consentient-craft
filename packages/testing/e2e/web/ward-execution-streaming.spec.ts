@@ -12,6 +12,7 @@ import {
   queueWardResponse,
   clearWardQueue,
 } from './fixtures/test-helpers';
+import { DelayMillisecondsStub } from '../../src/contracts/delay-milliseconds/delay-milliseconds.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-ward-execution-streaming';
 const JSON_INDENT = 2;
@@ -137,14 +138,14 @@ const createWardQuestFile = ({
     id: questId,
     folder: questFolder,
     title: `E2E Ward ${wardType} Streaming`,
-    status: 'approved',
+    status: 'in_progress',
     createdAt: now,
     workItems: [...baseWorkItems, ...additionalItems],
     userRequest: 'Test ward streaming',
     designDecisions: [],
     steps: [
       {
-        id: crypto.randomUUID(),
+        id: 'implement-feature',
         name: 'Implement feature',
         description: 'Build the feature',
         observablesSatisfied: [],
@@ -212,10 +213,13 @@ test.describe('Ward Execution Streaming', () => {
     const questId = crypto.randomUUID();
     createWardQuestFile({ guildId, questId, sessionId, wardType: 'mini-boss' });
 
-    // Queue ward response with output lines that should stream to the frontend
+    // Queue ward response with output lines that should stream to the frontend.
+    // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
+    // and reconnect its WS listener before ward output lines are broadcast.
     queueWardResponse({
       exitCode: 0,
       runId: 'e2e-mini-boss-run-001',
+      delayMs: DelayMillisecondsStub({ value: 500 }),
       outputLines: [
         'lint        @dungeonmaster/shared PASS  42 files',
         'typecheck   @dungeonmaster/shared PASS',
@@ -227,19 +231,13 @@ test.describe('Ward Execution Streaming', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    // Navigate first so the browser connects to WS before ward runs
+    // Navigate — quest is already in_progress so execution panel + WS listener activate immediately.
+    // The widget auto-starts the orchestration loop, which picks up the pending ward.
+    // Because the WS listener is set up BEFORE the HTTP POST reaches the server,
+    // ward output lines arrive on an already-connected socket.
     await navigateToSession({ page, urlSlug, sessionId });
 
-    // Wait for page to fully load and WS to connect
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-
-    // Start the quest — triggers orchestration loop which runs the pending ward
-    const startResponse = await request.post(`/api/quests/${questId}/start`);
-    expect(startResponse.status()).toBe(HTTP_OK);
-
-    // Execution panel should appear after quest transitions to in_progress via WS
+    // Execution panel renders immediately since quest is in_progress
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
@@ -276,10 +274,13 @@ test.describe('Ward Execution Streaming', () => {
     const questId = crypto.randomUUID();
     createWardQuestFile({ guildId, questId, sessionId, wardType: 'floor-boss' });
 
-    // Queue ward response with output lines for the floor boss ward
+    // Queue ward response with output lines for the floor boss ward.
+    // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
+    // and reconnect its WS listener before ward output lines are broadcast.
     queueWardResponse({
       exitCode: 0,
       runId: 'e2e-floor-boss-run-001',
+      delayMs: DelayMillisecondsStub({ value: 500 }),
       outputLines: [
         'lint        @dungeonmaster/orchestrator PASS  128 files',
         'typecheck   @dungeonmaster/orchestrator PASS',
@@ -292,19 +293,11 @@ test.describe('Ward Execution Streaming', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    // Navigate first so the browser connects to WS before ward runs
+    // Navigate — quest is already in_progress so execution panel + WS listener activate immediately.
+    // The widget auto-starts the orchestration loop, which picks up the pending ward.
     await navigateToSession({ page, urlSlug, sessionId });
 
-    // Wait for the page to fully load and WS to connect
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-
-    // Start the quest — triggers orchestration loop which runs the pending ward
-    const startResponse = await request.post(`/api/quests/${questId}/start`);
-    expect(startResponse.status()).toBe(HTTP_OK);
-
-    // Execution panel should appear after quest transitions to in_progress via WS
+    // Execution panel renders immediately since quest is in_progress
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });

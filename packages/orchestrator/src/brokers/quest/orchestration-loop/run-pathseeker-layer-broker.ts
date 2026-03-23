@@ -37,6 +37,7 @@ export const runPathseekerLayerBroker = async ({
   workItem,
   startPath,
   onAgentEntry,
+  abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
@@ -46,6 +47,7 @@ export const runPathseekerLayerBroker = async ({
     entry: ChatLineEntry['entry'];
     sessionId?: SessionId;
   }) => void;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const workUnit = workUnitContract.parse({
     role: 'pathseeker',
@@ -60,6 +62,7 @@ export const runPathseekerLayerBroker = async ({
     workUnit,
     timeoutMs,
     startPath,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
     ...(onAgentEntry === undefined
       ? {}
@@ -82,6 +85,11 @@ export const runPathseekerLayerBroker = async ({
       }).catch(() => undefined);
     },
   });
+
+  // If aborted (paused), bail out without creating follow-up items
+  if (abortSignal?.aborted) {
+    return;
+  }
 
   // Verify quest
   const verifyInput = verifyQuestInputContract.parse({ questId });

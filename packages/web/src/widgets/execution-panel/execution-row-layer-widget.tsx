@@ -352,7 +352,9 @@ export const ExecutionRowLayerWidget = ({
             </Text>
           ) : null}
           {entries && entries.length > 0
-            ? entries.map((entry, i) => <ChatMessageWidget key={i} entry={entry} compact={true} />)
+            ? entries.map((entry, i) => (
+                <ChatMessageWidget key={i} entry={entry} compact={true} roleLabel={role} />
+              ))
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
           <div ref={scrollEndRef} />

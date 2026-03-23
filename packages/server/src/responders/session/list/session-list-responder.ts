@@ -48,8 +48,11 @@ export const SessionListResponder = async ({
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to list sessions';
+    const isNotFound = message.startsWith('Guild not found');
     return responderResultContract.parse({
-      status: httpStatusStatics.serverError.internal,
+      status: isNotFound
+        ? httpStatusStatics.clientError.notFound
+        : httpStatusStatics.serverError.internal,
       data: { error: message },
     });
   }

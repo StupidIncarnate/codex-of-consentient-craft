@@ -68,6 +68,21 @@ describe('SessionListResponder', () => {
     });
   });
 
+  describe('error cases', () => {
+    it('ERROR: {guild not found} => returns 404 with error message', async () => {
+      const proxy = SessionListResponderProxy();
+      const guildId = GuildIdStub();
+      proxy.setupGuildNotFound({ guildId });
+
+      const result = await proxy.callResponder({ params: { guildId } });
+
+      expect(result).toStrictEqual({
+        status: 404,
+        data: { error: `Guild not found: ${guildId}` },
+      });
+    });
+  });
+
   describe('empty results', () => {
     it('EMPTY: {guild with no sessions} => returns 200 with empty array', async () => {
       const proxy = SessionListResponderProxy();

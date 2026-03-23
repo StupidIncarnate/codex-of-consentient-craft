@@ -28,6 +28,7 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
+import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/is-design-start-visible-guard';
@@ -51,7 +52,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
 
-  const { guilds } = useGuildsBinding();
+  const { guilds, loading: guildsLoading } = useGuildsBinding();
   const matchedGuild = guilds.find(
     (guild) => guild.urlSlug === guildSlug || guild.id === guildSlug,
   );
@@ -61,11 +62,18 @@ export const QuestChatWidget = (): React.JSX.Element => {
     guildId: resolvedGuildId,
   });
 
-  const { entries, isStreaming, currentSessionId, pendingClarification, sendMessage, stopChat } =
-    useSessionChatBinding({
-      guildId: resolvedGuildId,
-      sessionId,
-    });
+  const {
+    entries,
+    isStreaming,
+    currentSessionId,
+    pendingClarification,
+    sessionNotFound,
+    sendMessage,
+    stopChat,
+  } = useSessionChatBinding({
+    guildId: resolvedGuildId,
+    sessionId,
+  });
 
   const { questData, requestRefresh } = useQuestEventsBinding({
     sessionId: currentSessionId ?? sessionId,
@@ -73,6 +81,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
   });
 
   const { slotEntries, handleAgentOutput } = useAgentOutputBinding();
+
+  const isGuildNotFound = !guildsLoading && !matchedGuild && Boolean(guildSlug);
+  const isNotFound = isGuildNotFound || sessionNotFound;
 
   const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
@@ -256,6 +267,44 @@ export const QuestChatWidget = (): React.JSX.Element => {
     return map;
   }, [currentSessionId, entries, workItemSessionEntries]);
 
+  if (isNotFound) {
+    return (
+      <Box
+        data-testid="NOT_FOUND"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
+          gap: 8,
+        }}
+      >
+        <Text ff="monospace" size="lg" style={{ color: colors.danger }}>
+          NOT FOUND
+        </Text>
+        <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+          The guild or session you are looking for does not exist.
+        </Text>
+      </Box>
+    );
+  }
+
+  if (sessionId && !questData) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT_LOADING"
+        style={{
+          display: 'flex',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <DumpsterRaccoonWidget />
+      </Box>
+    );
+  }
+
   if (questData && isExecutionPhaseGuard({ status: questData.status })) {
     return (
       <Box
@@ -278,6 +327,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
                   questId: questWithContent.id,
                   modifications: { status },
                 }).catch(() => undefined);
+              }}
+              onPause={(): void => {
+                questPauseBroker({ questId: questWithContent.id }).catch(() => undefined);
               }}
             />
           ) : null}

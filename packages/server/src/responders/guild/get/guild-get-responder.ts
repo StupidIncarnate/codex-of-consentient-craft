@@ -39,8 +39,11 @@ export const GuildGetResponder = async ({
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guild });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get guild';
+    const isNotFound = message.startsWith('Guild not found');
     return responderResultContract.parse({
-      status: httpStatusStatics.serverError.internal,
+      status: isNotFound
+        ? httpStatusStatics.clientError.notFound
+        : httpStatusStatics.serverError.internal,
       data: { error: message },
     });
   }

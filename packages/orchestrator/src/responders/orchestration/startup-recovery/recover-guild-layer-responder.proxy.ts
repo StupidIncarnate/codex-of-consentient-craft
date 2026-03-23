@@ -20,6 +20,7 @@ import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
+import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
@@ -38,11 +39,13 @@ export const RecoverGuildLayerResponderProxy = (): {
     existingProcessQuestId: QuestId;
   }) => void;
   getRegisteredProcessIds: () => readonly ProcessId[];
+  getAllPersistedContents: () => readonly unknown[];
 } => {
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   questOrchestrationLoopBrokerProxy();
+  orchestrationEventsStateProxy();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
@@ -90,7 +93,15 @@ export const RecoverGuildLayerResponderProxy = (): {
         }),
       });
 
-      // Step 5: questModifyBroker for pathseeker insertion (in_progress quests without pathseeker)
+      // Step 5: questModifyBroker for resetting orphaned in_progress work items
+      for (const quest of quests) {
+        const hasOrphanedItems = quest.workItems.some((wi) => wi.status === 'in_progress');
+        if (hasOrphanedItems) {
+          modifyProxy.setupQuestFound({ quest });
+        }
+      }
+
+      // Step 6: questModifyBroker for pathseeker insertion (in_progress quests without pathseeker)
       for (const quest of quests) {
         const needsPathseeker =
           quest.status === 'in_progress' && !quest.workItems.some((wi) => wi.role === 'pathseeker');
@@ -144,5 +155,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     },
 
     getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
+
+    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
   };
 };

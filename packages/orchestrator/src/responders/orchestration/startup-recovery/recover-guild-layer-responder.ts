@@ -20,6 +20,7 @@ import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { recoverableQuestStatusesStatics } from '../../../statics/recoverable-quest-statuses/recoverable-quest-statuses-statics';
 
@@ -47,6 +48,23 @@ export const RecoverGuildLayerResponder = async ({
       const existingProcess = orchestrationProcessesState.findByQuestId({ questId: quest.id });
       return !existingProcess;
     });
+
+    // Reset orphaned in_progress work items to pending (their processes died on restart)
+    const orphanResets = recoverableQuests
+      .filter((quest) => quest.workItems.some((wi) => wi.status === 'in_progress'))
+      .map(async (quest) => {
+        const orphanedItems = quest.workItems
+          .filter((wi) => wi.status === 'in_progress')
+          .map((wi) => ({ id: wi.id, status: 'pending' as const }));
+
+        const resetInput = modifyQuestInputContract.parse({
+          questId: quest.id,
+          workItems: orphanedItems,
+        });
+        return questModifyBroker({ input: resetInput });
+      });
+
+    await Promise.all(orphanResets);
 
     // Insert pathseeker work items for in_progress quests that are missing them
     const pathseekerInsertions = recoverableQuests
@@ -101,6 +119,18 @@ export const RecoverGuildLayerResponder = async ({
         processId,
         questId: quest.id,
         startPath,
+        onAgentEntry: ({ slotIndex, entry, sessionId }) => {
+          orchestrationEventsState.emit({
+            type: 'chat-output',
+            processId,
+            payload: {
+              processId,
+              slotIndex,
+              entry,
+              ...(sessionId === undefined ? {} : { sessionId }),
+            },
+          });
+        },
         abortSignal: abortController.signal,
       })
         .then(() => {

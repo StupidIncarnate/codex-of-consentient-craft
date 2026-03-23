@@ -428,4 +428,36 @@ describe('runPathseekerLayerBroker', () => {
       ]);
     });
   });
+
+  describe('ABORT (pause during pathseeker)', () => {
+    it('VALID: {pathseeker killed by abort signal} => quest state unchanged, pathseeker stays in_progress', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5' });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'pathseeker',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupSpawnAborted({ quest });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project' as never,
+        abortSignal: abortController.signal,
+      });
+
+      const persisted = proxy.getPersistedQuestJsons();
+
+      // Quest must be untouched — no status changes, no new work items, no verify
+      expect(persisted).toHaveLength(0);
+    });
+  });
 });

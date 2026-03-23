@@ -29,10 +29,12 @@ export const runSiegemasterLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const questInput = getQuestInputContract.parse({ questId });
   const questResult = await questGetBroker({ input: questInput });
@@ -57,6 +59,7 @@ export const runSiegemasterLayerBroker = async ({
     workUnit,
     timeoutMs,
     startPath,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
     onSessionId: ({ sessionId }) => {
       questModifyBroker({
         input: {
@@ -66,6 +69,11 @@ export const runSiegemasterLayerBroker = async ({
       }).catch(() => undefined);
     },
   });
+
+  // If aborted (paused), bail out without creating follow-up items
+  if (abortSignal?.aborted) {
+    return;
+  }
 
   const summary = spawnResult.signal?.summary ?? '';
   const hasFailed = summary.includes(FAILURE_MARKER);

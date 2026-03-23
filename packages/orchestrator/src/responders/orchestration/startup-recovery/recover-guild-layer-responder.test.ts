@@ -11,6 +11,7 @@ import {
   GuildPathStub,
   QuestIdStub,
   QuestStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
@@ -365,6 +366,48 @@ describe('RecoverGuildLayerResponder', () => {
 
       // Only the pre-existing process should be registered, no new ones
       expect(processIds).toStrictEqual(['proc-existing-process']);
+    });
+  });
+
+  describe('orphaned in_progress work items', () => {
+    it('VALID: {quest with ward in_progress work item, no running process} => resets ward item to pending before launching loop', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-orphaned-ward' });
+      const wardItemId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+      const wardWorkItem = WorkItemStub({
+        id: wardItemId as never,
+        role: 'ward' as never,
+        status: 'in_progress',
+        spawnerType: 'command' as never,
+        startedAt: '2026-03-21T19:31:34.754Z',
+      });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-orphaned-ward-quest',
+        status: 'in_progress',
+        workItems: [wardWorkItem],
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      await RecoverGuildLayerResponder({ guildItem });
+
+      const persisted = proxy.getAllPersistedContents();
+      const persistedQuests = persisted.map(
+        (content) => JSON.parse(content as never) as Record<PropertyKey, unknown>,
+      );
+
+      const resetQuest = persistedQuests.find((q) => q.id === questId);
+
+      expect(resetQuest).toBeDefined();
+
+      const workItems = resetQuest?.workItems as Record<PropertyKey, unknown>[];
+      const wardItem = workItems.find((wi) => wi.id === wardItemId);
+
+      expect(wardItem?.status).toBe('pending');
     });
   });
 });

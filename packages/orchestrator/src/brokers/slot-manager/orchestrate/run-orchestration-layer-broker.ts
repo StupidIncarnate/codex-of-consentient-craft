@@ -79,6 +79,7 @@ export const runOrchestrationLayerBroker = async ({
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
+    ...(abortSignal === undefined ? {} : { abortSignal }),
   });
 
   if (loopResult.done) {

@@ -525,4 +525,43 @@ describe('runWardLayerBroker', () => {
       expect(wardStatus).toBe('failed');
     });
   });
+
+  describe('ABORT (pause during ward)', () => {
+    it('VALID: {ward killed by abort signal} => ward item stays in_progress, work items unchanged', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardAborted({ quest, exitCode: ExitCodeStub({ value: 1 }) });
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+        abortSignal: abortController.signal,
+      });
+
+      const insertedItems = proxy.getInsertedWorkItems();
+
+      // Ward must stay in_progress with only a sessionId added (set before spawn)
+      expect(insertedItems).toHaveLength(1);
+      expect(insertedItems[0]?.role).toBe('ward');
+      expect(insertedItems[0]?.status).toBe('in_progress');
+      expect(insertedItems[0]?.id).toBe(wardItemId);
+    });
+  });
 });

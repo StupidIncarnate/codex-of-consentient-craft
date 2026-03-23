@@ -31,11 +31,13 @@ export const useSessionChatBinding = ({
   currentSessionId: SessionId | null;
   chatProcessId: ProcessId | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
+  sessionNotFound: boolean;
   sendMessage: (params: { message: UserInput }) => void;
   stopChat: () => void;
 } => {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [sessionNotFound, setSessionNotFound] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<SessionId | null>(
     initialSessionId ?? null,
   );
@@ -48,6 +50,12 @@ export const useSessionChatBinding = ({
     null,
   );
   const historyLoadedRef = useRef(false);
+  const replayReceivedEntriesRef = useRef(false);
+  const wsOpenRef = useRef(false);
+  const guildIdRef = useRef(guildId);
+  const initialSessionIdRef = useRef(initialSessionId);
+  guildIdRef.current = guildId;
+  initialSessionIdRef.current = initialSessionId;
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
     const parsed = wsMessageContract.safeParse(message);
@@ -70,6 +78,7 @@ export const useSessionChatBinding = ({
       }
 
       if (result.entries.length > 0) {
+        replayReceivedEntriesRef.current = true;
         setEntries((prev) => [...prev, ...result.entries]);
       }
     }
@@ -109,6 +118,10 @@ export const useSessionChatBinding = ({
 
       if (rawChatProcessId !== chatProcessIdRef.current) return;
 
+      if (!replayReceivedEntriesRef.current && initialSessionIdRef.current) {
+        setSessionNotFound(true);
+      }
+
       chatProcessIdRef.current = null;
     }
 
@@ -131,12 +144,6 @@ export const useSessionChatBinding = ({
       );
     }
   }, []);
-
-  const wsOpenRef = useRef(false);
-  const guildIdRef = useRef(guildId);
-  const initialSessionIdRef = useRef(initialSessionId);
-  guildIdRef.current = guildId;
-  initialSessionIdRef.current = initialSessionId;
 
   useEffect(() => {
     wsRef.current = websocketConnectAdapter({
@@ -252,6 +259,7 @@ export const useSessionChatBinding = ({
     currentSessionId,
     chatProcessId: chatProcessIdRef.current,
     pendingClarification,
+    sessionNotFound,
     sendMessage,
     stopChat,
   };

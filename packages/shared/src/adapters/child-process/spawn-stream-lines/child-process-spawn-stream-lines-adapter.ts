@@ -21,16 +21,19 @@ export const childProcessSpawnStreamLinesAdapter = async ({
   args,
   cwd,
   onLine,
+  abortSignal,
 }: {
   command: string;
   args: string[];
   cwd: AbsoluteFilePath;
   onLine?: (line: string) => void;
+  abortSignal?: AbortSignal;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd,
       stdio: ['inherit', 'pipe', 'pipe'],
+      ...(abortSignal === undefined ? {} : { signal: abortSignal }),
     });
 
     const stdoutChunks: ErrorMessage[] = [];

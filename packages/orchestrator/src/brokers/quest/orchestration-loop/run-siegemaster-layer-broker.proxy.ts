@@ -41,6 +41,7 @@ const parseLastPersisted = (persisted: readonly unknown[]): Quest | undefined =>
 export const runSiegemasterLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
+  setupSpawnAborted: (params: { quest: Quest }) => void;
   setupSpawnSuccess: (params: { quest: Quest; exitCode: ExitCode }) => void;
   setupSpawnWithSignal: (params: {
     quest: Quest;
@@ -68,6 +69,10 @@ export const runSiegemasterLayerBrokerProxy = (): {
     },
     setupQuestNotFound: (): void => {
       getProxy.setupEmptyFolder();
+    },
+    setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnFailureOnce();
     },
     setupSpawnSuccess: ({ quest, exitCode }: { quest: Quest; exitCode: ExitCode }): void => {
       getProxy.setupQuestFound({ quest });

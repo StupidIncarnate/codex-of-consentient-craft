@@ -36,12 +36,14 @@ export const runLawbringerLayerBroker = async ({
   startPath,
   slotCount,
   slotOperations,
+  abortSignal,
 }: {
   questId: QuestId;
   workItems: WorkItem[];
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.lawbringer.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
@@ -81,6 +83,7 @@ export const runLawbringerLayerBroker = async ({
     slotOperations,
     startPath,
     maxFollowupDepth,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
     onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
       const questItemId = slotToQuestMap.get(failedWorkItemId);
       if (questItemId) {

@@ -28,6 +28,7 @@ import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-
 import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
 import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
+import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
@@ -89,6 +90,7 @@ export const QuestChatWidgetProxy = (): {
   QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
+  questPauseBrokerProxy();
   const startProxy = questStartBrokerProxy();
   const designStartProxy = designStartBrokerProxy();
   const designSessionProxy = designSessionBrokerProxy();

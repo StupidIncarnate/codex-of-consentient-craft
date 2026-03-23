@@ -70,13 +70,24 @@ if (wardResultJson) {
 }
 
 // Write optional output lines before the run ID (for streaming tests)
+// delayMs allows e2e tests to wait for browser WS reconnection before output arrives
 const outputLines = response.outputLines || [];
-for (const line of outputLines) {
-    fs.writeFileSync(1, `${line}\n`);
+const delayMs = response.delayMs || 0;
+
+const writeOutputAndExit = () => {
+    for (const line of outputLines) {
+        fs.writeFileSync(1, `${line}\n`);
+    }
+
+    // Write run ID to stdout (ward output format: "run: <id>")
+    // Use fs.writeFileSync(1, ...) to ensure synchronous write to stdout fd
+    fs.writeFileSync(1, `run: ${runId}\n`);
+
+    process.exit(exitCode);
+};
+
+if (delayMs > 0) {
+    setTimeout(writeOutputAndExit, delayMs);
+} else {
+    writeOutputAndExit();
 }
-
-// Write run ID to stdout (ward output format: "run: <id>")
-// Use fs.writeFileSync(1, ...) to ensure synchronous write to stdout fd
-fs.writeFileSync(1, `run: ${runId}\n`);
-
-process.exit(exitCode);

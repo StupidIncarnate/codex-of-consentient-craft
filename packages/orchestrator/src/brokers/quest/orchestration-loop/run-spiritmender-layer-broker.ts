@@ -45,12 +45,14 @@ export const runSpiritmenderLayerBroker = async ({
   startPath,
   slotCount,
   slotOperations,
+  abortSignal,
 }: {
   questId: QuestId;
   workItems: WorkItem[];
   startPath: FilePath;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
+  abortSignal?: AbortSignal;
 }): Promise<void> => {
   const timeoutMs = timeoutMsContract.parse(slotManagerStatics.ward.spiritmenderTimeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(MAX_FOLLOWUP_DEPTH);
@@ -94,6 +96,7 @@ export const runSpiritmenderLayerBroker = async ({
     slotOperations,
     startPath: filePathContract.parse(startPath),
     maxFollowupDepth,
+    ...(abortSignal === undefined ? {} : { abortSignal }),
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {
