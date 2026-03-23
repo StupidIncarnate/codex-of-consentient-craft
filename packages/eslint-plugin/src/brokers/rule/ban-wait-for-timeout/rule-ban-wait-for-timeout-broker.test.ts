@@ -14,10 +14,7 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
       code: 'setTimeout(() => {}, 1000);',
       filename: '/project/src/brokers/delay/delay-broker.ts',
     },
-    {
-      code: 'setTimeout(() => {}, 250);',
-      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
-    },
+    // (integration tests ARE checked — setTimeout is banned there too)
 
     // --- Different Playwright methods are fine ---
     {
@@ -39,12 +36,6 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
     {
       code: 'someObj.doSomething();',
       filename: '/project/e2e/web/navigation.spec.ts',
-    },
-
-    // --- test.setTimeout() is Playwright config, not a delay ---
-    {
-      code: 'test.setTimeout(30000);',
-      filename: '/project/e2e/web/ward-execution-streaming.spec.ts',
     },
 
     // --- setTimeout inside page.evaluate() is browser-side code ---
@@ -101,10 +92,29 @@ ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
       errors: [{ messageId: 'noSetTimeout' }],
     },
 
+    // --- test.setTimeout() — no artificial timeout manipulation ---
+    {
+      code: 'test.setTimeout(30000);',
+      filename: '/project/e2e/web/ward-execution-streaming.spec.ts',
+      errors: [{ messageId: 'noSetTimeout' }],
+    },
+
     // --- new Promise with setTimeout (the delay wrapper pattern) ---
     {
       code: 'await new Promise((resolve) => { setTimeout(resolve, 500); });',
       filename: '/project/e2e/web/quest-approved-modal.spec.ts',
+      errors: [{ messageId: 'noSetTimeout' }],
+    },
+
+    // --- setTimeout in integration tests ---
+    {
+      code: 'setTimeout(() => {}, 250);',
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [{ messageId: 'noSetTimeout' }],
+    },
+    {
+      code: 'await new Promise((resolve) => { setTimeout(resolve, 250); });',
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
       errors: [{ messageId: 'noSetTimeout' }],
     },
 

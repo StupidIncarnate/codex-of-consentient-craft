@@ -10,6 +10,8 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
+import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -17,7 +19,7 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Ban arbitrary delay patterns (waitForTimeout, setTimeout) in e2e spec files to prevent flaky tests.',
+          'Ban arbitrary delay patterns (waitForTimeout, setTimeout) in e2e and integration test files to prevent flaky tests.',
       },
       messages: {
         noWaitForTimeout:
@@ -31,8 +33,12 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
   create: (context: EslintContext) => {
     const ctx = context;
     const filename = ctx.filename ?? '';
+    const isSpec = isSpecFileGuard({ filename });
+    const isIntegration = isIntegrationTestFileGuard({
+      filePath: filePathContract.parse(filename),
+    });
 
-    if (!isSpecFileGuard({ filename })) {
+    if (!isSpec && !isIntegration) {
       return {};
     }
 
@@ -80,17 +86,12 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
           callee.object?.name === 'globalThis' &&
           callee.property?.name === 'setTimeout';
 
-        // Allow test.setTimeout() — Playwright per-test timeout configuration
         const isTestSetTimeout =
           callee.type === 'MemberExpression' &&
           callee.object?.name === 'test' &&
           callee.property?.name === 'setTimeout';
 
-        if (isTestSetTimeout) {
-          return;
-        }
-
-        if (isBareSetTimeout || isGlobalSetTimeout) {
+        if (isBareSetTimeout || isGlobalSetTimeout || isTestSetTimeout) {
           ctx.report({
             node,
             messageId: 'noSetTimeout',
