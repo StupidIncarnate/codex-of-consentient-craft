@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
   clearClaudeQueue,
@@ -20,159 +18,6 @@ const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
 const TEST_TIMEOUT = 30_000;
-
-const createWardQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-  wardType,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-  wardType: 'mini-boss' | 'floor-boss';
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = `001-e2e-ward-${wardType}`;
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
-  const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
-  const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
-  const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
-  const siegemasterId = 'e2e00000-0000-4000-8000-000000000005';
-  const lawbringerId = 'e2e00000-0000-4000-8000-000000000006';
-  const wardFloorBossId = 'e2e00000-0000-4000-8000-000000000007';
-
-  const now = new Date().toISOString();
-
-  const baseWorkItems = [
-    {
-      id: chaoswhispererId,
-      role: 'chaoswhisperer',
-      status: 'complete',
-      spawnerType: 'agent',
-      sessionId,
-      createdAt: now,
-      relatedDataItems: [],
-      dependsOn: [],
-      completedAt: now,
-    },
-    {
-      id: pathseekerId,
-      role: 'pathseeker',
-      status: 'complete',
-      spawnerType: 'agent',
-      sessionId: `ps-${sessionId}`,
-      createdAt: now,
-      relatedDataItems: [],
-      dependsOn: [chaoswhispererId],
-      completedAt: now,
-    },
-    {
-      id: codeweaver1Id,
-      role: 'codeweaver',
-      status: 'complete',
-      spawnerType: 'agent',
-      sessionId: `cw-${sessionId}`,
-      createdAt: now,
-      relatedDataItems: [],
-      dependsOn: [pathseekerId],
-      completedAt: now,
-    },
-    {
-      id: wardMiniBossId,
-      role: 'ward',
-      status: wardType === 'mini-boss' ? 'pending' : 'complete',
-      spawnerType: 'command',
-      createdAt: now,
-      relatedDataItems: [],
-      dependsOn: [codeweaver1Id],
-      attempt: 0,
-      maxAttempts: 3,
-      ...(wardType === 'mini-boss' ? {} : { completedAt: now }),
-    },
-  ];
-
-  const additionalItems =
-    wardType === 'floor-boss'
-      ? [
-          {
-            id: siegemasterId,
-            role: 'siegemaster',
-            status: 'complete',
-            spawnerType: 'agent',
-            sessionId: `siege-${sessionId}`,
-            createdAt: now,
-            relatedDataItems: [],
-            dependsOn: [wardMiniBossId],
-            completedAt: now,
-          },
-          {
-            id: lawbringerId,
-            role: 'lawbringer',
-            status: 'complete',
-            spawnerType: 'agent',
-            sessionId: `lb-${sessionId}`,
-            createdAt: now,
-            relatedDataItems: [],
-            dependsOn: [siegemasterId],
-            completedAt: now,
-          },
-          {
-            id: wardFloorBossId,
-            role: 'ward',
-            status: 'pending',
-            spawnerType: 'command',
-            createdAt: now,
-            relatedDataItems: [],
-            dependsOn: [lawbringerId],
-            attempt: 0,
-            maxAttempts: 3,
-          },
-        ]
-      : [];
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: `E2E Ward ${wardType} Streaming`,
-    status: 'in_progress',
-    createdAt: now,
-    workItems: [...baseWorkItems, ...additionalItems],
-    userRequest: 'Test ward streaming',
-    designDecisions: [],
-    steps: [
-      {
-        id: 'implement-feature',
-        name: 'Implement feature',
-        description: 'Build the feature',
-        observablesSatisfied: [],
-        dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
-      },
-    ],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'test-flow',
-        name: 'Test Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 const navigateToSession = async ({
   page,
@@ -210,8 +55,105 @@ test.describe('Ward Execution Streaming', () => {
     const sessionId = `e2e-ward-mini-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Test ward streaming' });
 
-    const questId = crypto.randomUUID();
-    createWardQuestFile({ guildId, questId, sessionId, wardType: 'mini-boss' });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Ward mini-boss Streaming',
+      userRequest: 'Test ward streaming',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
+    const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
+    const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
+    const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
+    const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
+    const now = new Date().toISOString();
+
+    // Overwrite quest.json with in_progress status and work items including a pending ward
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Ward mini-boss Streaming',
+      status: 'in_progress',
+      createdAt: now,
+      workItems: [
+        {
+          id: chaoswhispererId,
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [],
+          completedAt: now,
+        },
+        {
+          id: pathseekerId,
+          role: 'pathseeker',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `ps-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [chaoswhispererId],
+          completedAt: now,
+        },
+        {
+          id: codeweaver1Id,
+          role: 'codeweaver',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `cw-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [pathseekerId],
+          completedAt: now,
+        },
+        {
+          id: wardMiniBossId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [codeweaver1Id],
+          attempt: 0,
+          maxAttempts: 3,
+        },
+      ],
+      userRequest: 'Test ward streaming',
+      designDecisions: [],
+      steps: [
+        {
+          id: 'implement-feature',
+          name: 'Implement feature',
+          description: 'Build the feature',
+          observablesSatisfied: [],
+          dependsOn: [],
+          filesToCreate: [],
+          filesToModify: [],
+        },
+      ],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue ward response with output lines that should stream to the frontend.
     // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
@@ -271,8 +213,142 @@ test.describe('Ward Execution Streaming', () => {
     const sessionId = `e2e-ward-floor-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Test ward streaming' });
 
-    const questId = crypto.randomUUID();
-    createWardQuestFile({ guildId, questId, sessionId, wardType: 'floor-boss' });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Ward floor-boss Streaming',
+      userRequest: 'Test ward streaming',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
+    const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
+    const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
+    const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
+    const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
+    const siegemasterId = 'e2e00000-0000-4000-8000-000000000005';
+    const lawbringerId = 'e2e00000-0000-4000-8000-000000000006';
+    const wardFloorBossId = 'e2e00000-0000-4000-8000-000000000007';
+    const now = new Date().toISOString();
+
+    // Overwrite quest.json with in_progress status and work items including a pending floor boss ward
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Ward floor-boss Streaming',
+      status: 'in_progress',
+      createdAt: now,
+      workItems: [
+        {
+          id: chaoswhispererId,
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [],
+          completedAt: now,
+        },
+        {
+          id: pathseekerId,
+          role: 'pathseeker',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `ps-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [chaoswhispererId],
+          completedAt: now,
+        },
+        {
+          id: codeweaver1Id,
+          role: 'codeweaver',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `cw-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [pathseekerId],
+          completedAt: now,
+        },
+        {
+          id: wardMiniBossId,
+          role: 'ward',
+          status: 'complete',
+          spawnerType: 'command',
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [codeweaver1Id],
+          attempt: 0,
+          maxAttempts: 3,
+          completedAt: now,
+        },
+        {
+          id: siegemasterId,
+          role: 'siegemaster',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `siege-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [wardMiniBossId],
+          completedAt: now,
+        },
+        {
+          id: lawbringerId,
+          role: 'lawbringer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId: `lb-${sessionId}`,
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [siegemasterId],
+          completedAt: now,
+        },
+        {
+          id: wardFloorBossId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          createdAt: now,
+          relatedDataItems: [],
+          dependsOn: [lawbringerId],
+          attempt: 0,
+          maxAttempts: 3,
+        },
+      ],
+      userRequest: 'Test ward streaming',
+      designDecisions: [],
+      steps: [
+        {
+          id: 'implement-feature',
+          name: 'Implement feature',
+          description: 'Build the feature',
+          observablesSatisfied: [],
+          dependsOn: [],
+          filesToCreate: [],
+          filesToModify: [],
+        },
+      ],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue ward response with output lines for the floor boss ward.
     // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)

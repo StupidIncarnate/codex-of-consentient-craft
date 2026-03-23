@@ -54,10 +54,12 @@ export const useSessionChatBinding = ({
   const wsOpenRef = useRef(false);
   const guildIdRef = useRef(guildId);
   const initialSessionIdRef = useRef(initialSessionId);
+  const pendingChatProcessIdRef = useRef(false);
+  const wsBufferRef = useRef<unknown[]>([]);
   guildIdRef.current = guildId;
   initialSessionIdRef.current = initialSessionId;
 
-  const handleWebSocketMessage = useCallback((message: unknown): void => {
+  const processWebSocketMessage = useCallback((message: unknown): void => {
     const parsed = wsMessageContract.safeParse(message);
     if (!parsed.success) return;
 
@@ -145,6 +147,18 @@ export const useSessionChatBinding = ({
     }
   }, []);
 
+  const handleWebSocketMessage = useCallback(
+    (message: unknown): void => {
+      if (pendingChatProcessIdRef.current && chatProcessIdRef.current === null) {
+        wsBufferRef.current.push(message);
+        return;
+      }
+
+      processWebSocketMessage(message);
+    },
+    [processWebSocketMessage],
+  );
+
   useEffect(() => {
     wsRef.current = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
@@ -218,6 +232,9 @@ export const useSessionChatBinding = ({
 
       const activeSessionId = sessionIdRef.current;
 
+      pendingChatProcessIdRef.current = true;
+      wsBufferRef.current = [];
+
       sessionChatBroker({
         guildId,
         message,
@@ -225,8 +242,17 @@ export const useSessionChatBinding = ({
       })
         .then(({ chatProcessId }) => {
           chatProcessIdRef.current = chatProcessId;
+          pendingChatProcessIdRef.current = false;
+
+          const buffered = wsBufferRef.current;
+          wsBufferRef.current = [];
+          for (const bufferedMessage of buffered) {
+            processWebSocketMessage(bufferedMessage);
+          }
         })
         .catch((err: unknown) => {
+          pendingChatProcessIdRef.current = false;
+          wsBufferRef.current = [];
           setIsStreaming(false);
           const errorMessage = err instanceof Error ? err.message : String(err);
           const errorEntry = chatEntryContract.parse({
@@ -237,7 +263,7 @@ export const useSessionChatBinding = ({
           setEntries((prev) => [...prev, errorEntry]);
         });
     },
-    [guildId],
+    [guildId, processWebSocketMessage],
   );
 
   const stopChat = useCallback((): void => {

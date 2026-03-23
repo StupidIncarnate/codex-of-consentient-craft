@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
 } from './fixtures/test-helpers';
@@ -17,63 +15,6 @@ const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
 const PATHSEEKER_TIMEOUT = 10_000;
-
-const createQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-  status,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-  status: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-begin-transition';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Begin Transition Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'test-flow',
-        name: 'Test Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 const navigateToSession = async ({
   page,
@@ -124,8 +65,55 @@ test.describe('Quest Begin Transition', () => {
     const sessionId = `e2e-begin-transition-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Begin Transition Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
+    // Overwrite quest.json with desired status
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Begin Transition Quest',
+      status: 'review_observables',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -149,7 +137,7 @@ test.describe('Quest Begin Transition', () => {
       { timeout: REQUEST_TIMEOUT },
     );
 
-    await page.getByText('Begin Quest').click();
+    await page.getByRole('button', { name: 'Begin Quest' }).click();
 
     const startRequest = await startPromise;
     expect(startRequest.method()).toBe('POST');
@@ -186,8 +174,55 @@ test.describe('Quest Begin Transition', () => {
     const sessionId = `e2e-design-begin-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_design' });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Design Begin Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
+    // Overwrite quest.json with desired status
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Design Begin Quest',
+      status: 'review_design',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -208,7 +243,7 @@ test.describe('Quest Begin Transition', () => {
       { timeout: REQUEST_TIMEOUT },
     );
 
-    await page.getByText('Begin Quest').click();
+    await page.getByRole('button', { name: 'Begin Quest' }).click();
 
     const startRequest = await startPromise;
     expect(startRequest.method()).toBe('POST');

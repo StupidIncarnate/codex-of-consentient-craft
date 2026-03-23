@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
 } from './fixtures/test-helpers';
@@ -18,22 +16,19 @@ const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
 const WS_PROPAGATION_DELAY = 2000;
 
-const createQuestFile = ({
-  guildId,
+const writeQuestFile = ({
   questId,
+  questFolder,
+  questFilePath,
   sessionId,
   status,
 }: {
-  guildId: string;
   questId: string;
+  questFolder: string;
+  questFilePath: string;
   sessionId: string;
   status: string;
 }): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-approved-modal';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
   const quest = {
     id: questId,
     folder: questFolder,
@@ -72,7 +67,7 @@ const createQuestFile = ({
     ],
   };
 
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
+  writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 };
 
 const navigateToSession = async ({
@@ -105,6 +100,39 @@ const patchQuestStatus = async ({
   });
 };
 
+const setupTest = async ({
+  request,
+  guildName,
+  sessionId,
+  status,
+}: {
+  request: Parameters<Parameters<typeof test>[2]>[0]['request'];
+  guildName: string;
+  sessionId: string;
+  status: string;
+}) => {
+  const guild = await createGuild(request, { name: guildName, path: GUILD_PATH });
+  const guildId = String(guild.id);
+  createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+
+  const created = await createQuest(request, {
+    guildId,
+    title: 'E2E Approved Modal Quest',
+    userRequest: 'Build the feature',
+  });
+  const questId = created.questId;
+  const questFolder = String(Reflect.get(created, 'questFolder'));
+  const questFilePath = String(Reflect.get(created, 'filePath'));
+
+  writeQuestFile({ questId, questFolder, questFilePath, sessionId, status });
+
+  const urlSlug = String(guild.urlSlug ?? guild.name)
+    .toLowerCase()
+    .replace(/\s+/gu, '-');
+
+  return { guild, questId, urlSlug };
+};
+
 test.describe('Quest Approved Modal', () => {
   test.beforeEach(async ({ request }) => {
     await cleanGuilds(request);
@@ -116,17 +144,14 @@ test.describe('Quest Approved Modal', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'Approved Modal Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-approved-modal-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Approved Modal Guild',
+      sessionId,
+      status: 'review_observables',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -146,20 +171,14 @@ test.describe('Quest Approved Modal', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Design Approved Guild',
-      path: GUILD_PATH,
-    });
-    const guildId = String(guild.id);
     const sessionId = `e2e-design-approved-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Design Approved Guild',
+      sessionId,
+      status: 'review_design',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_design' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -172,17 +191,14 @@ test.describe('Quest Approved Modal', () => {
   });
 
   test('clicking Begin Quest sends POST to quest start endpoint', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Begin Quest Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-begin-quest-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Begin Quest Guild',
+      sessionId,
+      status: 'review_observables',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -214,17 +230,14 @@ test.describe('Quest Approved Modal', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'Keep Chatting Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-keep-chatting-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Keep Chatting Guild',
+      sessionId,
+      status: 'review_observables',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -260,20 +273,14 @@ test.describe('Quest Approved Modal', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Keep Chatting Design Guild',
-      path: GUILD_PATH,
-    });
-    const guildId = String(guild.id);
     const sessionId = `e2e-keep-design-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Keep Chatting Design Guild',
+      sessionId,
+      status: 'review_design',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_design' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -297,17 +304,14 @@ test.describe('Quest Approved Modal', () => {
   });
 
   test('clicking Start a new Quest navigates to /:guildSlug/session', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'New Quest Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-new-quest-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'New Quest Guild',
+      sessionId,
+      status: 'review_observables',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -327,17 +331,14 @@ test.describe('Quest Approved Modal', () => {
   });
 
   test('modal does not appear for non-approved status transitions', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'No Modal Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-no-modal-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'No Modal Guild',
+      sessionId,
+      status: 'review_flows',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_flows' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -356,17 +357,14 @@ test.describe('Quest Approved Modal', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'Execution View Guild', path: GUILD_PATH });
-    const guildId = String(guild.id);
     const sessionId = `e2e-execution-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    const { questId, urlSlug } = await setupTest({
+      request,
+      guildName: 'Execution View Guild',
+      sessionId,
+      status: 'review_observables',
+    });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_observables' });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
     await navigateToSession({ page, urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
 } from './fixtures/test-helpers';
@@ -13,63 +11,6 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-start';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-
-const createQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-  status,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-  status: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-start';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Start Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'test-flow',
-        name: 'Test Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 test.describe('Quest Start Pipeline', () => {
   test.beforeEach(async ({ request }) => {
@@ -86,8 +27,53 @@ test.describe('Quest Start Pipeline', () => {
     const sessionId = `e2e-session-start-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build feature' });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'approved' });
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Start Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = created.questId;
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Start Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const startResponse = await request.post(`/api/quests/${questId}/start`);
     expect(startResponse.status()).toBe(HTTP_OK);
@@ -108,8 +94,53 @@ test.describe('Quest Start Pipeline', () => {
     const sessionId = `e2e-session-pipeline-${Date.now()}`;
     createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build feature' });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'approved' });
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Pipeline Quest',
+      userRequest: 'Build feature',
+    });
+    const questId = created.questId;
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Pipeline Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const startResponse = await request.post(`/api/quests/${questId}/start`);
     expect(startResponse.status()).toBe(HTTP_OK);

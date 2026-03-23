@@ -44,7 +44,10 @@ export const ChatReplayResponder = async ({
         });
       },
     });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('Guild not found')) {
+      throw error;
+    }
     // Session JSONL file may not exist — continue to emit chat-history-complete
   }
 

@@ -1,4 +1,6 @@
-import { mkdirSync } from 'fs';
+import { mkdirSync, existsSync, readdirSync } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
@@ -31,6 +33,9 @@ test.describe('Guild Selection & Session Loading', () => {
       sessionId,
       userMessage: 'Quest Alpha session',
     });
+
+    // Assert that test worker HOME is the isolated test home
+    expect(os.homedir()).toContain('dm-e2e');
 
     await page.goto('/');
     await page.getByText('Guild A').click();

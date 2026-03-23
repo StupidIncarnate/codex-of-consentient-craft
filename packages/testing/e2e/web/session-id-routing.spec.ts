@@ -1,11 +1,10 @@
 import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   createMultiEntrySessionFile,
   cleanSessionDirectory,
@@ -34,73 +33,6 @@ const ROLE_FLOOR_MAP: Record<string, string> = {
 };
 
 const VISIBLE_ROLES = Object.keys(ROLE_FLOOR_MAP);
-
-/**
- * Creates a quest.json with given work items and status.
- * Uses 001- prefixed folder so questListBroker's isQuestFolderGuard allows it.
- */
-const createQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-  status,
-  workItems,
-  questFolder = '001-e2e-session-routing',
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-  status: string;
-  workItems: Array<{
-    id: string;
-    role: string;
-    sessionId: string;
-    status?: string;
-  }>;
-  questFolder?: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Session Routing Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: workItems.map((wi) => ({
-      id: wi.id,
-      role: wi.role,
-      status: wi.status ?? 'complete',
-      spawnerType: 'agent',
-      sessionId: wi.sessionId,
-      createdAt: new Date().toISOString(),
-      relatedDataItems: [],
-      dependsOn: [],
-    })),
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'routing-flow',
-        name: 'Session Routing Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 /**
  * Creates a JSONL session file with an assistant text entry that will be replayed.
@@ -191,6 +123,61 @@ const triggerReplayFromBrowser = async ({
   );
 };
 
+/**
+ * Builds a quest JSON object with the given parameters.
+ * The quest is written to the server-resolved filePath from createQuest.
+ */
+const buildQuestJson = ({
+  questId,
+  questFolder,
+  status,
+  workItems,
+}: {
+  questId: ReturnType<typeof crypto.randomUUID>;
+  questFolder: ReturnType<typeof String>;
+  status: ReturnType<typeof String>;
+  workItems: Array<{
+    id: ReturnType<typeof crypto.randomUUID>;
+    role: ReturnType<typeof String>;
+    sessionId: ReturnType<typeof String>;
+    status?: ReturnType<typeof String>;
+  }>;
+}): Record<PropertyKey, unknown> => ({
+  id: questId,
+  folder: questFolder,
+  title: 'E2E Session Routing Quest',
+  status,
+  createdAt: new Date().toISOString(),
+  workItems: workItems.map((wi) => ({
+    id: wi.id,
+    role: wi.role,
+    status: wi.status ?? 'complete',
+    spawnerType: 'agent',
+    sessionId: wi.sessionId,
+    createdAt: new Date().toISOString(),
+    relatedDataItems: [],
+    dependsOn: [],
+  })),
+  userRequest: 'Build the feature',
+  designDecisions: [],
+  steps: [],
+  toolingRequirements: [],
+  contracts: [],
+  flows: [
+    {
+      id: 'routing-flow',
+      name: 'Session Routing Flow',
+      entryPoint: 'start',
+      exitPoints: ['end'],
+      nodes: [
+        { id: 'start', label: 'Start', type: 'state', observables: [] },
+        { id: 'end', label: 'End', type: 'terminal', observables: [] },
+      ],
+      edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+    },
+  ],
+});
+
 test.describe('Session ID Routing', () => {
   test.beforeEach(async ({ request }) => {
     await cleanGuilds(request);
@@ -235,7 +222,6 @@ test.describe('Session ID Routing', () => {
           });
         }
 
-        const questId = crypto.randomUUID();
         const workItems = [
           {
             id: crypto.randomUUID(),
@@ -253,13 +239,22 @@ test.describe('Session ID Routing', () => {
               ]),
         ];
 
-        createQuestFile({
+        // Create quest via API to get the server-resolved file path
+        const created = await createQuest(request, {
           guildId,
-          questId,
-          sessionId: mainSessionId,
+          title: 'E2E Session Routing Quest',
+          userRequest: 'Build the feature',
+        });
+        const questFilePath = String(Reflect.get(created, 'filePath'));
+        const questFolder = String(Reflect.get(created, 'questFolder'));
+
+        const quest = buildQuestJson({
+          questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+          questFolder,
           status: 'complete',
           workItems,
         });
+        writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
         const urlSlug = String(guild.urlSlug ?? guild.name)
           .toLowerCase()
@@ -321,14 +316,20 @@ test.describe('Session ID Routing', () => {
       userMessage: 'Build the feature',
     });
 
-    const questId = crypto.randomUUID();
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Session Routing Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
 
     // Create quest with in_progress status and only chaoswhisperer complete.
     // The orchestrator will auto-create and run a pathseeker.
-    createQuestFile({
-      guildId,
-      questId,
-      sessionId: mainSessionId,
+    const quest = buildQuestJson({
+      questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+      questFolder,
       status: 'in_progress',
       workItems: [
         {
@@ -338,6 +339,7 @@ test.describe('Session ID Routing', () => {
         },
       ],
     });
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue a response for the pathseeker agent with unique text
     const pathseekerText = `Pathseeker routing verification ${Date.now()}`;
@@ -404,12 +406,18 @@ test.describe('Session ID Routing', () => {
       text: betaText,
     });
 
-    const questId = crypto.randomUUID();
-
-    createQuestFile({
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
       guildId,
-      questId,
-      sessionId: mainSessionId,
+      title: 'E2E Session Routing Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    const quest = buildQuestJson({
+      questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+      questFolder,
       status: 'complete',
       workItems: [
         {
@@ -428,8 +436,8 @@ test.describe('Session ID Routing', () => {
           sessionId: cwSessionId2,
         },
       ],
-      questFolder: '002-e2e-multi-content',
     });
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()

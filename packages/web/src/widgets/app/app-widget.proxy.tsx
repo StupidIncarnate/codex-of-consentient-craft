@@ -98,6 +98,8 @@ export const AppWidgetProxy = (): {
     clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
       await homeProxy.clickSessionItem({ testId });
     },
-    isQuestChatVisible: (): boolean => screen.queryByTestId('QUEST_CHAT') !== null,
+    isQuestChatVisible: (): boolean =>
+      screen.queryByTestId('QUEST_CHAT') !== null ||
+      screen.queryByTestId('QUEST_CHAT_LOADING') !== null,
   };
 };

@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
 } from './fixtures/test-helpers';
@@ -13,63 +11,8 @@ import {
 const GUILD_PATH = '/tmp/dm-e2e-quest-approve';
 const JSON_INDENT = 2;
 const HTTP_OK = 200;
-
-const createQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-  status,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-  status: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-approve';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Approve Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'test-flow',
-        name: 'Test Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
+const SPEC_PANEL_TIMEOUT = 5_000;
+const PATCH_TIMEOUT = 3_000;
 
 test.describe('Quest Approve Button', () => {
   test.beforeEach(async ({ request }) => {
@@ -89,8 +32,55 @@ test.describe('Quest Approve Button', () => {
       userMessage: 'Build the feature',
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId, status: 'review_flows' });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Approve Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
+    // Overwrite quest.json with desired status, work items, and flows
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E Approve Quest',
+      status: 'review_flows',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'test-flow',
+          name: 'Test Flow',
+          entryPoint: 'start',
+          exitPoints: ['end'],
+          nodes: [
+            { id: 'start', label: 'Start', type: 'state', observables: [] },
+            { id: 'end', label: 'End', type: 'terminal', observables: [] },
+          ],
+          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -101,13 +91,13 @@ test.describe('Quest Approve Button', () => {
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await guildsResponsePromise;
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: SPEC_PANEL_TIMEOUT });
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');
 
     // Intercept the PATCH request to verify it sends the status transition
     const patchPromise = page.waitForRequest(
       (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
-      { timeout: 3000 },
+      { timeout: PATCH_TIMEOUT },
     );
 
     await page.getByRole('button', { name: 'APPROVE' }).click();

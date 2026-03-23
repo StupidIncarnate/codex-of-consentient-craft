@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   clearClaudeQueue,
   cleanSessionDirectory,
 } from './fixtures/test-helpers';
@@ -16,16 +17,17 @@ const HTTP_OK = 200;
 const PANEL_TIMEOUT = 15_000;
 const CREATED_AT_INTERVAL_MS = 1000;
 
-const createQuestFile = ({
-  guildId,
+const writeQuestFile = ({
   questId,
+  questFolder,
+  questFilePath,
   status,
   workItems,
   steps = [],
-  questFolder = '001-e2e-floor-ordering',
 }: {
-  guildId: string;
   questId: string;
+  questFolder: string;
+  questFilePath: string;
   status: string;
   workItems: Array<{
     id: string;
@@ -38,12 +40,7 @@ const createQuestFile = ({
     createdAt?: string;
   }>;
   steps?: Array<{ id: string; name: string }>;
-  questFolder?: string;
 }): void => {
-  const homeDir = os.homedir();
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
   const quest = {
     id: questId,
     folder: questFolder,
@@ -94,7 +91,7 @@ const createQuestFile = ({
     wardResults: [],
   };
 
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
+  writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 };
 
 const createSessionFileForQuest = ({
@@ -194,12 +191,22 @@ test.describe('Floor Ordering', () => {
 
     createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
 
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Floor Ordering Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
 
-    createQuestFile({
-      guildId,
-      questId: crypto.randomUUID(),
+    writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [
@@ -274,13 +281,23 @@ test.describe('Floor Ordering', () => {
 
     createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
 
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Floor Ordering Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
     const spiritId = crypto.randomUUID();
 
-    createQuestFile({
-      guildId,
-      questId: crypto.randomUUID(),
+    writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [
@@ -363,13 +380,23 @@ test.describe('Floor Ordering', () => {
 
     createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
 
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Floor Ordering Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
     const siegeId = crypto.randomUUID();
 
-    createQuestFile({
-      guildId,
-      questId: crypto.randomUUID(),
+    writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       status: 'complete',
       steps: [{ id: 'step-1', name: 'Build module' }],
       workItems: [

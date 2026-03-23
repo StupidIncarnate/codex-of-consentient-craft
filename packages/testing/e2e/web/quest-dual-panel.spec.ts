@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   createMultiEntrySessionFile,
   cleanSessionDirectory,
@@ -20,125 +18,6 @@ const JSON_INDENT = 2;
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
-
-/**
- * Writes a quest.json to disk with flows populated so the spec panel renders.
- * Uses a 001- prefixed folder so questListBroker's isQuestFolderGuard allows it.
- */
-const createQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-dual-panel';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Dual Panel Quest',
-    status: 'approved',
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'dual-panel-flow',
-        name: 'Dual Panel Flow',
-        entryPoint: 'Start',
-        exitPoints: ['End'],
-        nodes: [],
-        edges: [],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
-
-/**
- * Writes a quest.json with flows so the spec panel renders
- * during history replay tests. Uses a 002- prefixed folder to avoid collisions.
- */
-const createQuestFileWithFlows = ({
-  guildId,
-  questId,
-  sessionId,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '002-e2e-dual-panel-history';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Dual Panel History Quest',
-    status: 'approved',
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'main-flow',
-        name: 'Main Flow',
-        entryPoint: 'User request',
-        exitPoints: ['Success response'],
-        nodes: [
-          { id: 'user-req', label: 'User Request', type: 'state', observables: [] },
-          { id: 'system', label: 'System', type: 'action', observables: [] },
-          { id: 'database', label: 'Database', type: 'action', observables: [] },
-        ],
-        edges: [
-          { id: 'user-req-to-system', from: 'user-req', to: 'system' },
-          { id: 'system-to-database', from: 'system', to: 'database' },
-        ],
-      },
-    ],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 /**
  * Builds the JSONL lines for a session history that contains
@@ -242,8 +121,51 @@ test.describe('Quest Dual Panel', () => {
       userMessage: 'Build the login feature',
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Dual Panel Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Overwrite quest.json with desired test data
+    const quest = {
+      id: created.questId,
+      folder: questFolder,
+      title: 'E2E Dual Panel Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'dual-panel-flow',
+          name: 'Dual Panel Flow',
+          entryPoint: 'Start',
+          exitPoints: ['End'],
+          nodes: [],
+          edges: [],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue a clarification response that triggers the clarify panel
     queueClaudeResponse(ClarificationResponseStub({ sessionId }));
@@ -306,8 +228,51 @@ test.describe('Quest Dual Panel', () => {
       userMessage: 'Build the login feature',
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Dual Panel Stale Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Overwrite quest.json with desired test data
+    const quest = {
+      id: created.questId,
+      folder: questFolder,
+      title: 'E2E Dual Panel Stale Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'dual-panel-flow',
+          name: 'Dual Panel Flow',
+          entryPoint: 'Start',
+          exitPoints: ['End'],
+          nodes: [],
+          edges: [],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue TWO responses:
     // 1. Clarification question
@@ -373,8 +338,51 @@ test.describe('Quest Dual Panel', () => {
       userMessage: 'Build the feature',
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFile({ guildId, questId, sessionId });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Dual Panel Load Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Overwrite quest.json with desired test data
+    const quest = {
+      id: created.questId,
+      folder: questFolder,
+      title: 'E2E Dual Panel Load Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'dual-panel-flow',
+          name: 'Dual Panel Flow',
+          entryPoint: 'Start',
+          exitPoints: ['End'],
+          nodes: [],
+          edges: [],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Do NOT queue any claude responses — this test validates initial load only
 
@@ -415,8 +423,58 @@ test.describe('Quest Dual Panel', () => {
       lines: historyLines,
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFileWithFlows({ guildId, questId, sessionId });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Dual Panel History Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Overwrite quest.json with flows for the spec panel
+    const quest = {
+      id: created.questId,
+      folder: questFolder,
+      title: 'E2E Dual Panel History Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'main-flow',
+          name: 'Main Flow',
+          entryPoint: 'User request',
+          exitPoints: ['Success response'],
+          nodes: [
+            { id: 'user-req', label: 'User Request', type: 'state', observables: [] },
+            { id: 'system', label: 'System', type: 'action', observables: [] },
+            { id: 'database', label: 'Database', type: 'action', observables: [] },
+          ],
+          edges: [
+            { id: 'user-req-to-system', from: 'user-req', to: 'system' },
+            { id: 'system-to-database', from: 'system', to: 'database' },
+          ],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Do NOT queue any claude responses — this is pure history replay
 
@@ -456,8 +514,58 @@ test.describe('Quest Dual Panel', () => {
       lines: historyLines,
     });
 
-    const questId = crypto.randomUUID();
-    createQuestFileWithFlows({ guildId, questId, sessionId });
+    // Create quest via API to get the server-resolved file path
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E Dual Panel Reload Quest',
+      userRequest: 'Build the feature',
+    });
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Overwrite quest.json with flows for the spec panel
+    const quest = {
+      id: created.questId,
+      folder: questFolder,
+      title: 'E2E Dual Panel Reload Quest',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [
+        {
+          id: 'main-flow',
+          name: 'Main Flow',
+          entryPoint: 'User request',
+          exitPoints: ['Success response'],
+          nodes: [
+            { id: 'user-req', label: 'User Request', type: 'state', observables: [] },
+            { id: 'system', label: 'System', type: 'action', observables: [] },
+            { id: 'database', label: 'Database', type: 'action', observables: [] },
+          ],
+          edges: [
+            { id: 'user-req-to-system', from: 'user-req', to: 'system' },
+            { id: 'system-to-database', from: 'system', to: 'database' },
+          ],
+        },
+      ],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()

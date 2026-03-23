@@ -1,11 +1,9 @@
-import * as crypto from 'crypto';
 import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { test, expect } from '@playwright/test';
 import {
   cleanGuilds,
   createGuild,
+  createQuest,
   createSessionFile,
   cleanSessionDirectory,
   queueClaudeResponse,
@@ -18,53 +16,6 @@ const JSON_INDENT = 2;
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 5_000;
 const CHAT_TIMEOUT = 5_000;
-
-/**
- * Writes a quest.json with NO content (empty flows/designDecisions)
- * so the spec panel shows "Awaiting quest activity..." even though the quest exists.
- */
-const createEmptyQuestFile = ({
-  guildId,
-  questId,
-  sessionId,
-}: {
-  guildId: string;
-  questId: string;
-  sessionId: string;
-}): void => {
-  const homeDir = os.homedir();
-  const questFolder = '001-e2e-ws-update';
-  const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-  mkdirSync(questDir, { recursive: true });
-
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E WS Update Quest',
-    status: 'created',
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [],
-  };
-
-  writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
-};
 
 test.describe('Quest WS Update', () => {
   test.beforeEach(async ({ request }) => {
@@ -88,8 +39,42 @@ test.describe('Quest WS Update', () => {
       userMessage: 'Build the feature',
     });
 
-    const questId = crypto.randomUUID();
-    createEmptyQuestFile({ guildId, questId, sessionId });
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E WS Update Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
+
+    // Write quest with no content (empty flows) so spec panel shows with empty quest data
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'E2E WS Update Quest',
+      status: 'created',
+      createdAt: new Date().toISOString(),
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          status: 'complete',
+          spawnerType: 'agent',
+          sessionId,
+          createdAt: new Date().toISOString(),
+          relatedDataItems: [],
+          dependsOn: [],
+        },
+      ],
+      userRequest: 'Build the feature',
+      designDecisions: [],
+      steps: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [],
+    };
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -138,13 +123,16 @@ test.describe('Quest WS Update', () => {
       userMessage: 'Build the feature',
     });
 
-    // Create quest with one flow so the spec panel renders immediately
-    const questId = crypto.randomUUID();
-    const homeDir = os.homedir();
-    const questFolder = '001-e2e-ws-incremental';
-    const questDir = path.join(homeDir, '.dungeonmaster', 'guilds', guildId, 'quests', questFolder);
-    mkdirSync(questDir, { recursive: true });
+    const created = await createQuest(request, {
+      guildId,
+      title: 'E2E WS Incremental Quest',
+      userRequest: 'Build the feature',
+    });
+    const questId = created.questId;
+    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const questFolder = String(Reflect.get(created, 'questFolder'));
 
+    // Create quest with one flow so the spec panel renders immediately
     const quest = {
       id: questId,
       folder: questFolder,
@@ -179,7 +167,7 @@ test.describe('Quest WS Update', () => {
         },
       ],
     };
-    writeFileSync(path.join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT));
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()

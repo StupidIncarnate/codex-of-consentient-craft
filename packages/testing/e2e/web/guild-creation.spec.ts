@@ -1,4 +1,3 @@
-import * as os from 'os';
 import { test, expect } from '@playwright/test';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
@@ -48,7 +47,7 @@ test.describe('Guild Creation Flow', () => {
     // When DUNGEONMASTER_HOME is set (worktree isolation), the directory browser
     // must still show the actual filesystem home so users can pick project paths.
     const pathText = await page.getByTestId('CURRENT_PATH_DISPLAY').textContent();
-    const userHome = os.homedir();
+    const userHome = process.env.E2E_SERVER_HOME;
     expect(pathText).toBe(userHome);
 
     // Directory entries MUST be visible — the user home always has subdirectories

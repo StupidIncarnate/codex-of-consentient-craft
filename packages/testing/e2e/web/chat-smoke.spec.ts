@@ -9,6 +9,8 @@ import {
 } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-guild';
+const HTTP_OK = 200;
+const CHAT_TIMEOUT = 5_000;
 
 test.describe('Chat Smoke', () => {
   test.beforeEach(async ({ request }) => {
@@ -24,15 +26,11 @@ test.describe('Chat Smoke', () => {
     queueClaudeResponse(SimpleTextResponseStub({ text: 'I can help with that!' }));
 
     await page.goto(`/${guildId}/quest`);
-    await expect(page.getByTestId('CHAT_PANEL')).toBeVisible();
-
-    // Wait for guilds API so guildId resolves before sending
     await page.waitForResponse(
-      (resp) => resp.url().includes('/api/guilds') && resp.status() === 200,
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );
 
-    const input = page.getByTestId('CHAT_INPUT');
-    await input.fill('Hello Claude');
+    await page.getByTestId('CHAT_INPUT').fill('Hello Claude');
     await page.getByTestId('SEND_BUTTON').click();
 
     // User message should appear in the chat panel
@@ -40,6 +38,8 @@ test.describe('Chat Smoke', () => {
     await expect(chatPanel.getByText('Hello Claude')).toBeVisible();
 
     // Wait for Claude response to appear
-    await expect(chatPanel.getByText('I can help with that!')).toBeVisible({ timeout: 5_000 });
+    await expect(chatPanel.getByText('I can help with that!')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
   });
 });

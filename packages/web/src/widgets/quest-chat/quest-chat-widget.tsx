@@ -83,7 +83,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const { slotEntries, handleAgentOutput } = useAgentOutputBinding();
 
   const isGuildNotFound = !guildsLoading && !matchedGuild && Boolean(guildSlug);
-  const isNotFound = isGuildNotFound || sessionNotFound;
+  const isNotFound = isGuildNotFound || (sessionNotFound && !questData);
 
   const [activeTab, setActiveTab] = useState<'spec' | 'design'>('spec');
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
@@ -290,7 +290,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     );
   }
 
-  if (sessionId && !questData) {
+  if (sessionId && !questData && entries.length === 0) {
     return (
       <Box
         data-testid="QUEST_CHAT_LOADING"

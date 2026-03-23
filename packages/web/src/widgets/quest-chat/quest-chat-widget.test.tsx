@@ -20,10 +20,11 @@ import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
 describe('QuestChatWidget', () => {
   describe('layout structure', () => {
-    it('VALID: {sessionId in URL} => renders ChatPanelWidget', () => {
+    it('VALID: {sessionId in URL, quest loaded} => renders ChatPanelWidget', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-q1', status: 'pending' });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -38,13 +39,22 @@ describe('QuestChatWidget', () => {
         ),
       });
 
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
       expect(proxy.hasChatPanel()).toBe(true);
     });
 
-    it('VALID: {sessionId in URL} => renders vertical divider', () => {
+    it('VALID: {sessionId in URL, quest loaded} => renders vertical divider', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-q2', status: 'pending' });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -59,12 +69,20 @@ describe('QuestChatWidget', () => {
         ),
       });
 
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasDivider()).toBe(true);
+      });
+
       expect(proxy.hasDivider()).toBe(true);
     });
   });
 
   describe('right panel', () => {
-    it('VALID: {sessionId in URL, no questId in state} => renders activity placeholder text', () => {
+    it('VALID: {sessionId in URL, no quest data} => renders loading state', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const guildDetail = GuildStub({ id: guild.id });
@@ -82,8 +100,38 @@ describe('QuestChatWidget', () => {
         ),
       });
 
+      expect(screen.queryByTestId('QUEST_CHAT_LOADING')).not.toBeNull();
+      expect(proxy.hasDumpsterRaccoon()).toBe(true);
+    });
+
+    it('VALID: {sessionId in URL, quest loaded, no quest content} => renders activity placeholder text', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-q3b', status: 'pending' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/chat-q3b']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasActivityPlaceholder()).toBe(true);
+      });
+
       expect(proxy.hasActivityPlaceholder()).toBe(true);
-      expect(proxy.getActivityText()).toBe('Awaiting quest activity...');
     });
   });
 
@@ -92,6 +140,7 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-q4', status: 'pending' });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -104,6 +153,10 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
@@ -157,6 +210,7 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-q5', status: 'pending' });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupGuild({ guild: guildDetail });
@@ -170,6 +224,10 @@ describe('QuestChatWidget', () => {
             </Routes>
           </MemoryRouter>
         ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
       });
 
       await waitFor(() => {
