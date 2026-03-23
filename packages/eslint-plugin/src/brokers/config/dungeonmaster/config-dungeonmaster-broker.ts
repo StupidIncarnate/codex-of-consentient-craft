@@ -109,6 +109,11 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
     '@dungeonmaster/ban-startup-branching': 'error',
+    '@dungeonmaster/enforce-harness-patterns': 'error',
+    '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'error',
+    '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'error',
+    '@dungeonmaster/ban-wait-for-timeout': 'error',
+    '@dungeonmaster/ban-page-route-in-e2e': 'error',
     // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
@@ -220,6 +225,44 @@ export const configDungeonmasterBroker = ({
     },
   });
 
+  // Playwright spec files — relax rules that conflict with Playwright's test API.
+  // isTestFileGuard matches *.spec.ts, so test-scoped @dungeonmaster rules fire on specs.
+  const specOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.spec.ts'],
+    rules: {
+      // Jest API conflicts — Playwright uses test() not it(), has own expect/hooks/describe
+      'jest/no-hooks': 'off',
+      'jest/require-hook': 'off',
+      'jest/expect-expect': 'off',
+      'jest/valid-expect': 'off',
+      'jest/max-expects': 'off',
+      'jest/require-top-level-describe': 'off',
+      'jest/consistent-test-it': 'off',
+      // Proxy rules — specs use harnesses, not proxies
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+      '@dungeonmaster/enforce-test-proxy-imports': 'off',
+      // Colocation — specs live in e2e/, not co-located with implementation
+      '@dungeonmaster/enforce-test-colocation': 'off',
+      // Stubs — specs can use inline test data, not everything needs a stub
+      '@dungeonmaster/enforce-stub-usage': 'off',
+      // Jest mock — specs don't use jest.mock
+      '@dungeonmaster/ban-jest-mock-in-tests': 'off',
+    },
+  });
+
+  // Harness files — not matched by isTestFileGuard (*.harness.ts has no .test/.spec suffix),
+  // so test-scoped @dungeonmaster rules already skip them. Only jest rules need overrides
+  // because the jest plugin config includes *.harness.ts in its files pattern.
+  const harnessOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/*.harness.ts'],
+    rules: {
+      // Harnesses register afterEach/beforeEach internally — lifecycle ownership pattern
+      'jest/no-hooks': 'off',
+      // Harness factory body has statements outside hooks (state tracking, imports)
+      'jest/require-hook': 'off',
+    },
+  });
+
   return {
     typescript: typescriptConfig,
     test: testConfig,
@@ -230,6 +273,8 @@ export const configDungeonmasterBroker = ({
       e2eOverrides,
       startupTestOverrides,
       startupShortCircuitOverrides,
+      specOverrides,
+      harnessOverrides,
     ],
     ruleEnforceOn: dungeonmasterRuleEnforceOnStatics,
   };

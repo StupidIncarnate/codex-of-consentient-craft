@@ -2405,4 +2405,282 @@ than the test expects — not by the system being slow.
   legitimately needs more wall-clock time (e.g., spawning N sequential subprocesses), increase
   the timeout with a comment explaining why.
 
+## Test Infrastructure (Harness Pattern)
+
+### Purpose
+
+Define the `test/` directory structure and the `.harness.ts` file pattern — the e2e/integration equivalent of the
+`.proxy.ts` pattern used in unit tests. This prevents test infrastructure from becoming an unstructured dumping ground
+of duplicated inline helpers.
+
+### The `test/` Directory
+
+Just as `src/` is the enforced location for application code, `test/` is the enforced location for test infrastructure.
+Every package that has integration tests or e2e tests MUST have a `test/` directory.
+
+The `test/` directory is **not published to npm**. It is excluded from the build via `tsconfig.json` and from the npm
+package via `.npmignore` / `files` field.
+
+#### E2E Specs Live With Their Project
+
+E2E test scenario files (`*.spec.ts`) live alongside the project they test — not in a centralized location:
+
+- `packages/web/e2e/*.spec.ts` — tests for the web UI
+- `packages/server/e2e/*.spec.ts` — tests for the server API
+- `my-project/e2e/*.spec.ts` — single-package repo
+
+E2E specs import from `test/` for their infrastructure needs. They never contain infrastructure code themselves.
+
+### The `.harness.ts` Pattern
+
+Harness files are the e2e/integration equivalent of `.proxy.ts` files. They follow the same factory function pattern:
+
+```typescript
+// test/harnesses/quest/quest.harness.ts
+export const questHarness = () => {
+  return {
+    create: async ({request, guildId}) => {
+      const response = await request.post('/api/quests', {
+        data: {guildId, title: 'Test Quest', userRequest: 'Build feature'},
+      });
+      return response.json();
+    },
+    approve: async ({request, questId}) => {
+      await request.patch(`/api/quests/${questId}`, {data: {status: 'approved'}});
+    },
+    pollForStatus: async ({request, questId, targetStatuses}) => { /* ... */ },
+    clean: async ({request}) => { /* ... */ },
+  };
+};
 ```
+
+#### Key properties (same as proxies):
+
+- **Factory function** — `export const fooHarness = () => ({methods})`
+- **Fresh per test** — create a new harness instance inside each `test()` block
+- **Semantic methods** — named for what they do, not how they do it
+- **Returns an object** — with setup, interaction, and inspection methods
+- **Owns its own lifecycle** — cleanup hooks registered inside the factory, not in the test file
+
+#### What is NOT a harness
+
+- **Stubs** — typed data factories live in `src/contracts/` as `.stub.ts` files. Harnesses import stubs,
+  they don't define them.
+- **Non-TS artifacts** — fake binaries (shell scripts, node scripts) live alongside their harness but are not
+  `.harness.ts` files themselves.
+
+### Directory Structure
+
+Harnesses are organized by domain inside `test/harnesses/`. Each domain folder is **flat** — no nesting within domain
+folders. Non-TS artifacts (fake binaries) live alongside the harness file.
+
+```
+my-project/
+├── src/                              # Application code
+├── test/
+│   └── harnesses/
+│       ├── claude-mock/
+│       │   ├── claude-mock.harness.ts    # factory: queueResponse, clearQueue
+│       │   └── bin-claude.js             # fake binary (non-TS artifact)
+│       ├── quest/
+│       │   └── quest.harness.ts          # factory: create, approve, pollStatus, clean
+│       ├── guild/
+│       │   └── guild.harness.ts          # factory: create, clean
+│       └── environment/
+│           └── environment.harness.ts    # factory: setup (env vars, dirs), restore
+└── e2e/                              # E2E specs live with their project
+    └── *.spec.ts
+```
+
+In monorepos, each package can have its own `test/` directory. A shared test package can also have `test/` for
+cross-package harnesses. Local `test/` can import from shared `test/`. Shared `test/` cannot import from local `test/`.
+
+### Import Boundaries
+
+```
+test/harnesses/*.harness.ts → node:fs/path/os, application contracts/stubs, other harnesses, test framework APIs
+e2e/*.spec.ts               → test/harnesses/*.harness.ts, application contracts/stubs (types only)
+src/**/*.integration.test.ts → test/harnesses/*.harness.ts, application contracts/stubs (types only)
+```
+
+**Test scenario files (`*.spec.ts`, `*.integration.test.ts`) CANNOT import:**
+
+- `node:fs`, `node:path`, `node:os`, `node:child_process`
+- `.proxy.ts` files (already enforced by `enforce-test-creation-of-proxy`)
+- Application internals (brokers, adapters — except integration tests that test flows/startup directly)
+
+**`.harness.ts` files CANNOT import:**
+
+- `.proxy.ts` files (different mock mechanism — harnesses don't use jest.mock)
+- Contract value imports (use `.stub.ts` instead, same rule as proxies)
+
+**Unit test files (`.test.ts`) CANNOT import:**
+
+- `.harness.ts` files (harnesses are for integration/e2e, not unit tests)
+
+### Mock Boundary Rules
+
+#### What Can Be Mocked (Replaced with Fakes)
+
+Only external services that meet ALL of these criteria:
+
+1. **Not under your control** — 3rd party API, external CLI, cloud service
+2. **No test mode available** — the service doesn't provide a sandbox/test endpoint
+3. **Non-deterministic or costly** — calling the real service in tests is impractical
+
+**Examples of valid mocks:**
+
+- LLM CLI (Claude, GPT) → fake binary that reads queued responses
+- Payment processor without sandbox → stub HTTP server
+- Email delivery service → response queue
+
+**Examples of invalid mocks:**
+
+- Your own HTTP endpoints → use `request.post()` to call the real server
+- Your own WebSocket messages → drive real state, observe real events
+- Your own brokers/adapters → that's unit testing with proxies, not integration testing
+- Browser navigation → don't stub `page.route()`
+
+#### Prefer API-driven setup over file-driven setup
+
+Writing raw JSON to disk couples tests to storage implementation. When possible, create state through the same API the
+application uses:
+
+```typescript
+// ✅ PREFERRED — drives the real API
+export const questHarness = () => ({
+  create: async ({request, guildId}) => {
+    const response = await request.post('/api/quests', {data: {guildId, title: 'Test', userRequest: 'Build'}});
+    return response.json();
+  },
+});
+
+// ⚠️ ACCEPTABLE — when the API doesn't support creation (e.g., session JSONL files
+// are written by the CLI, not an API endpoint)
+export const sessionHarness = () => ({
+  createFile: ({guildPath, sessionId, userMessage}) => {
+    const encodedPath = guildPath.replace(/\//gu, '-');
+    const jsonlDir = path.join(os.homedir(), '.claude', 'projects', encodedPath);
+    fs.mkdirSync(jsonlDir, {recursive: true});
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), /* ... */);
+  },
+});
+```
+
+### Harness Lifecycle — Cleanup Belongs in the Harness, Not the Test
+
+Tests never write `beforeEach`, `afterEach`, `beforeAll`, or `afterAll`. Harnesses own their own lifecycle by
+registering cleanup hooks internally when instantiated. This keeps test files as pure scenario descriptions.
+
+**For Jest (integration tests):**
+
+The harness factory registers `afterEach` directly. Jest discovers and calls the hook automatically.
+
+```typescript
+// test/harnesses/guild/guild.harness.ts
+export const guildHarness = () => {
+  const createdGuildIds: string[] = [];
+
+  afterEach(async () => {
+    for (const id of createdGuildIds) {
+      await request.delete(`/api/guilds/${id}`);
+    }
+    createdGuildIds.length = 0;
+  });
+
+  return {
+    create: async ({request, name, path}) => {
+      const response = await request.post('/api/guilds', {data: {name, path}});
+      const guild = await response.json();
+      createdGuildIds.push(guild.id);
+      return guild;
+    },
+  };
+};
+
+// In the test file — no hooks, no cleanup
+it('VALID: {guild created} => appears in list', async () => {
+    const guilds = guildHarness();
+    const guild = await guilds.create({request, name: 'Test', path: '/tmp/test'});
+    // ... assertions
+    // cleanup happens automatically via harness afterEach
+});
+```
+
+**For Playwright (e2e tests):**
+
+Same pattern — harness tracks state and exposes `cleanup()`. A shared `test.beforeEach`/`test.afterEach` in the
+Playwright config or a base spec file calls cleanup on all harnesses.
+
+```typescript
+// test/harnesses/guild/guild.harness.ts
+export const guildHarness = ({request}) => {
+  const createdGuildIds: string[] = [];
+
+  return {
+    create: async ({name, path}) => {
+      const response = await request.post('/api/guilds', {data: {name, path}});
+      const guild = await response.json();
+      createdGuildIds.push(guild.id);
+      return guild;
+    },
+    cleanup: async () => {
+      for (const id of createdGuildIds) {
+        await request.delete(`/api/guilds/${id}`);
+      }
+    },
+  };
+};
+
+// In the spec file — harness created per test, cleanup called via shared hook
+test('guild appears in list', async ({page, request}) => {
+    const guilds = guildHarness({request});
+    const guild = await guilds.create({name: 'Test', path: '/tmp/test'});
+    // ... assertions
+});
+```
+
+**Lint enforcement:** `jest/no-hooks` stays enforced in test files. Hooks are only allowed inside `.harness.ts` files
+(which are excluded from the `jest/no-hooks` rule via eslint config override).
+
+### Test Scenario File Rules
+
+Test scenario files (`*.spec.ts` for e2e, `*.integration.test.ts` for integration) are **scenario descriptions only**.
+They contain test blocks and assertions. They do NOT contain infrastructure.
+
+#### Banned in Scenario Files
+
+| Banned | Why | Use Instead |
+|--------|-----|-------------|
+| `import {writeFileSync} from 'fs'` | Filesystem setup belongs in harness | `.harness.ts` |
+| `import * as path from 'path'` | Path construction belongs in harness | `.harness.ts` |
+| `import * as os from 'os'` | Home dir resolution belongs in harness | `.harness.ts` |
+| `import {execFile} from 'child_process'` | Process spawning belongs in harness | `.harness.ts` |
+| Top-level `const fn = (...) => {...}` | Inline helpers become duplicated | `.harness.ts` |
+| `page.waitForTimeout(N)` (e2e) | Arbitrary delays cause flaky tests | `await expect(locator).toBeVisible()` |
+| `page.route(...)` (e2e) | Intercepting responses bypasses real server | `request.patch()` to drive real state |
+
+#### Allowed in Scenario Files
+
+| Allowed | Why |
+|---------|-----|
+| `import` from `test/harnesses/` | Structured test infrastructure |
+| `test()`, `test.describe()` | Test framework API |
+| `expect()` with strict matchers | Inline assertions are the default |
+| `await page.*` (Playwright APIs) | Direct UI interaction in e2e tests |
+| Constants (`const TIMEOUT = 5_000`) | Named values for readability |
+| Test data literals (`{name: 'Test Guild'}`) | Simple inline data is fine |
+
+### Harness vs Unit Test Summary
+
+| Concern | Unit Tests (`.test.ts`) | Integration/E2E Scenario Files |
+|---------|--------------------------|-------------------------------|
+| Infrastructure location | Co-located `.proxy.ts` in `src/` | `.harness.ts` in `test/harnesses/` |
+| Mock mechanism | `registerMock` in `.proxy.ts` | Fake binaries/services + real APIs |
+| Mock boundary | Adapters only (npm packages) | External services only (3rd party) |
+| State setup | Inline in each test | Harness methods |
+| Hooks in test file | Forbidden | Forbidden — harness owns lifecycle |
+| Conditionals | Forbidden (`jest/no-conditional-in-test`) | Forbidden (same jest rule) |
+| Weak matchers | Forbidden (`jest/no-restricted-matchers`) | Forbidden (same jest rule) |
+| `fs`/`path`/`os` in test file | Allowed (inline setup) | Forbidden (must use `.harness.ts`) |
+| Fresh per test | Proxy created per test | Harness created per test |

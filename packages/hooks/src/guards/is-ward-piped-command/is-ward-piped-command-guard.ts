@@ -6,16 +6,25 @@
  * // Returns true because piping ward output loses valuable information
  */
 
-const WARD_COMMAND_PATTERN = /npm\s+run\s+ward/u;
+// Matches "npm run ward" at a command position:
+// - start of string (with optional whitespace)
+// - after && or || or ; or | (shell command separators)
+const WARD_AT_COMMAND_POSITION = /(?:^|[&|;]\s*|&&\s*|\|\|\s*|\|\s*)npm\s+run\s+ward/u;
+
+// Matches a pipe character after ward arguments (not inside quotes).
+// Splits on unquoted pipe to find if ward output is being piped.
+const PIPE_AFTER_WARD = /npm\s+run\s+ward\b[^"']*\|/u;
 
 export const isWardPipedCommandGuard = ({ command }: { command?: string }): boolean => {
   if (!command) {
     return false;
   }
 
-  if (!WARD_COMMAND_PATTERN.test(command)) {
+  // "npm run ward" must appear at a command position, not inside a string argument
+  if (!WARD_AT_COMMAND_POSITION.test(command)) {
     return false;
   }
 
-  return command.includes('|');
+  // There must be a pipe after ward that isn't inside quotes
+  return PIPE_AFTER_WARD.test(command);
 };

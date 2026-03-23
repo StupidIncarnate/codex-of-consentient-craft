@@ -53,6 +53,69 @@ describe('isWardPipedCommandGuard', () => {
     });
   });
 
+  describe('ward piped from another command input', () => {
+    it('VALID: {command: "cat file | npm run ward | grep error"} => returns true', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'cat file | npm run ward | grep error',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {command: "cat file | npm run ward"} => returns false (input piped, output not)', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'cat file | npm run ward',
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('ward after shell operators', () => {
+    it('VALID: {command: "echo hello && npm run ward | tail"} => returns true', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'echo hello && npm run ward | tail',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {command: "echo hello && npm run ward"} => returns false', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'echo hello && npm run ward',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {command: "echo \\"hello\\" && npm run ward | head"} => returns true (quotes before ward in different command)', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'echo "hello" && npm run ward | head',
+      });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('ward mentioned in string arguments (not actual ward command)', () => {
+    it('VALID: {command: gh pr create with ward in body heredoc} => returns false', () => {
+      const result = isWardPipedCommandGuard({
+        command:
+          'gh pr create --title "Add lint rules" --body "$(cat <<\'EOF\'\nnpm run ward -- --only unit | passes\nEOF\n)"',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {command: echo with ward in string} => returns false', () => {
+      const result = isWardPipedCommandGuard({
+        command: 'echo "npm run ward -- --only lint | head -20"',
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('non-ward commands', () => {
     it('VALID: {command: "echo hello | grep hello"} => returns false', () => {
       const result = isWardPipedCommandGuard({ command: 'echo hello | grep hello' });

@@ -17,6 +17,7 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
+import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
@@ -40,6 +41,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           'Implementation {{implementationName}} called without creating {{proxyName}} first. Create the proxy before calling the implementation: const proxy = {{proxyName}}(); proxy.setup(...); {{implementationName}}();',
         noProxyInIntegrationTest:
           'Integration and e2e tests must not import proxy files. Integration tests run real code without mocking. Remove the proxy import: {{importSource}}',
+        noHarnessInUnitTest:
+          'Unit tests must not import harness files. Harness files are for integration/e2e tests. Use proxy files (.proxy.ts) for unit test mocking instead. Remove the harness import: {{importSource}}',
       },
       schema: [],
     },
@@ -113,6 +116,23 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       });
 
     return {
+      // Ban harness imports in unit tests
+      ImportDeclaration: (node: Tsestree): void => {
+        const { source } = node;
+        if (!source) return;
+
+        const importSource = source.value;
+        if (typeof importSource !== 'string') return;
+
+        if (isHarnessImportGuard({ importSource })) {
+          ctx.report({
+            node,
+            messageId: 'noHarnessInUnitTest',
+            data: { importSource },
+          });
+        }
+      },
+
       // Track when we enter a test block (it/test calls) or hook block
       CallExpression: (node: Tsestree): void => {
         const { callee } = node;
