@@ -108,7 +108,7 @@ describe('assistantStreamLineContract', () => {
 
       const result = assistantStreamLineContract.parse(streamLine);
 
-      expect(result.message.usage).toBeUndefined();
+      expect(result.message.usage).toBe(undefined);
     });
   });
 

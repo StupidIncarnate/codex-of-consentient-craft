@@ -28,6 +28,6 @@ describe('treeItemContract', () => {
     expect(result.name).toBe('plain-transformer');
     expect(result.type).toBe('transformer');
     expect(result.path).toBe('/src/transformers/plain-transformer.ts');
-    expect(result.purpose).toBeUndefined();
+    expect(result.purpose).toBe(undefined);
   });
 });

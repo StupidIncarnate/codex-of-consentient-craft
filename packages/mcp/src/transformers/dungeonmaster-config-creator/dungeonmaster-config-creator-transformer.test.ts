@@ -22,8 +22,9 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
 
     expect(dungeonmasterConfig.type).toBe('stdio');
     expect(dungeonmasterConfig.command).toBe('npx');
-    expect(dungeonmasterConfig.args).toHaveLength(2);
-    expect(dungeonmasterConfig.args[0]).toBe('tsx');
-    expect(dungeonmasterConfig.args[1]).toBe('node_modules/@dungeonmaster/mcp/src/index.ts');
+    expect(dungeonmasterConfig.args).toStrictEqual([
+      'tsx',
+      'node_modules/@dungeonmaster/mcp/src/index.ts',
+    ]);
   });
 });

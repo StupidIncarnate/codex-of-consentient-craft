@@ -160,12 +160,11 @@ describe('runWardLayerBroker', () => {
       const inserted = proxy.getInsertedWorkItems();
       const spiritItems = inserted.filter((w) => w.role === 'spiritmender');
 
-      expect(spiritItems).toHaveLength(1);
+      expect(spiritItems.map((s) => s.role)).toStrictEqual(['spiritmender']);
 
       const [spiritmender] = spiritItems;
 
       expect(spiritmender?.dependsOn).toStrictEqual([wardItem.id]);
-      expect(spiritmender?.role).toBe('spiritmender');
       expect(spiritmender?.insertedBy).toBe(wardItem.id);
     });
   });
@@ -213,7 +212,7 @@ describe('runWardLayerBroker', () => {
       const spiritItems = inserted.filter((w) => w.role === 'spiritmender');
       const wardRetries = inserted.filter((w) => w.attempt === 1);
 
-      expect(wardRetries).toHaveLength(1);
+      expect(wardRetries.map((w) => w.role)).toStrictEqual(['ward']);
 
       const [wardRetry] = wardRetries;
 
@@ -265,8 +264,8 @@ describe('runWardLayerBroker', () => {
       const wardRetries = inserted.filter((w) => w.attempt === 1);
       const siegeItems = inserted.filter((w) => w.role === 'siegemaster');
 
-      expect(wardRetries).toHaveLength(1);
-      expect(siegeItems).toHaveLength(1);
+      expect(wardRetries.map((w) => w.role)).toStrictEqual(['ward']);
+      expect(siegeItems.map((w) => w.role)).toStrictEqual(['siegemaster']);
       expect(siegeItems[0]?.dependsOn).toStrictEqual([wardRetries[0]?.id]);
     });
   });
@@ -312,11 +311,10 @@ describe('runWardLayerBroker', () => {
       const wardRetries = inserted.filter((w) => w.attempt === 1);
       const siegeItems = inserted.filter((w) => w.role === 'siegemaster');
 
-      expect(wardRetries).toHaveLength(1);
-      expect(wardRetries[0]?.role).toBe('ward');
+      expect(wardRetries.map((w) => w.role)).toStrictEqual(['ward']);
       expect(wardRetries[0]?.insertedBy).toBe(wardItemId);
 
-      expect(siegeItems).toHaveLength(1);
+      expect(siegeItems.map((w) => w.role)).toStrictEqual(['siegemaster']);
       expect(siegeItems[0]?.dependsOn).toStrictEqual([wardRetries[0]?.id]);
     });
   });
@@ -362,7 +360,6 @@ describe('runWardLayerBroker', () => {
       const roles = inserted.map((w) => w.role).sort();
 
       // Original ward + siege + ward-retry = 3 (no spiritmender)
-      expect(inserted).toHaveLength(3);
       expect(roles).toStrictEqual(['siegemaster', 'ward', 'ward']);
     });
   });
@@ -465,11 +462,10 @@ describe('runWardLayerBroker', () => {
       const inserted = proxy.getInsertedWorkItems();
       const pathseekerItems = inserted.filter((w) => w.role === 'pathseeker');
 
-      expect(pathseekerItems).toHaveLength(1);
+      expect(pathseekerItems.map((p) => p.role)).toStrictEqual(['pathseeker']);
 
       const [pathseeker] = pathseekerItems;
 
-      expect(pathseeker).toBeDefined();
       expect(pathseeker?.status).toBe('pending');
       expect(pathseeker?.dependsOn).toStrictEqual([wardItem.id]);
     });
@@ -581,8 +577,7 @@ describe('runWardLayerBroker', () => {
       const insertedItems = proxy.getInsertedWorkItems();
 
       // Ward must stay in_progress with only a sessionId added (set before spawn)
-      expect(insertedItems).toHaveLength(1);
-      expect(insertedItems[0]?.role).toBe('ward');
+      expect(insertedItems.map((w) => w.role)).toStrictEqual(['ward']);
       expect(insertedItems[0]?.status).toBe('in_progress');
       expect(insertedItems[0]?.id).toBe(wardItemId);
     });

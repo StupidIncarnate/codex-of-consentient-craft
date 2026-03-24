@@ -59,8 +59,22 @@ describe('installRunBroker', () => {
 
       const results = await installRunBroker({ context });
 
-      expect(results).toHaveLength(2);
-      expect(results[0]?.success).toBe(true);
+      expect(results).toStrictEqual([
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+      ]);
     });
 
     it('VALID: {context with no packages} => returns empty array', async () => {

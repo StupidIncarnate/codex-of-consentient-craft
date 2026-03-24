@@ -113,8 +113,6 @@ describe('StubArgument', () => {
         },
       });
 
-      expect(result.overrides).toBeDefined();
-
       // Verify data using runtime access since output has branded keys
       const overridesObj = result.overrides as Record<string, unknown>;
       const keys = Object.keys(overridesObj);
@@ -309,7 +307,7 @@ describe('StubArgument', () => {
       const result2 = OptionalUserIdStub();
 
       expect(result1).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
-      expect(result2).toBeUndefined();
+      expect(result2).toBe(undefined);
     });
   });
 

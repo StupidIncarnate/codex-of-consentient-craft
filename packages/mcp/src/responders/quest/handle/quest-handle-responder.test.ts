@@ -212,9 +212,9 @@ describe('QuestHandleResponder', () => {
         args: { questId: 'add-auth' },
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
 
     it('ERROR: {adapter throws} => returns error response', async () => {
@@ -251,9 +251,9 @@ describe('QuestHandleResponder', () => {
         args: { processId: 'proc-12345' },
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
 
     it('ERROR: {adapter throws} => returns error response', async () => {
@@ -357,9 +357,9 @@ describe('QuestHandleResponder', () => {
         args: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
 
     it('ERROR: {adapter throws} => returns error response', async () => {
@@ -396,9 +396,9 @@ describe('QuestHandleResponder', () => {
         args: {},
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
 
     it('ERROR: {adapter throws} => returns error response', async () => {

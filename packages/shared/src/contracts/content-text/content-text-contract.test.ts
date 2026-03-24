@@ -23,7 +23,7 @@ Line 3`;
     expect(result).toBe(multiline);
   });
 
-  it('VALID: contract is defined', () => {
-    expect(contentTextContract).toBeDefined();
+  it('VALID: contract is a ZodBranded string schema', () => {
+    expect(contentTextContract.parse('hello')).toBe('hello');
   });
 });

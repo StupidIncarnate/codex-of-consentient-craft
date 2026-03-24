@@ -1296,7 +1296,9 @@ describe('QuestChatWidget', () => {
 
       const messages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
-      expect(messages).toHaveLength(1);
+      expect(Array.from(messages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+      ]);
       expect(messages[0]?.textContent).toMatch(/Live codeweaver output/u);
     });
 
@@ -1390,7 +1392,9 @@ describe('QuestChatWidget', () => {
 
       const firstRowMessages = firstRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
-      expect(firstRowMessages).toHaveLength(1);
+      expect(Array.from(firstRowMessages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+      ]);
       expect(firstRowMessages[0]?.textContent).toMatch(/Codeweaver instance one working/u);
     });
 
@@ -1484,7 +1488,9 @@ describe('QuestChatWidget', () => {
 
       const secondRowMessages = secondRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
-      expect(secondRowMessages).toHaveLength(1);
+      expect(Array.from(secondRowMessages).map((m) => m.getAttribute('data-testid'))).toStrictEqual(
+        ['CHAT_MESSAGE'],
+      );
       expect(secondRowMessages[0]?.textContent).toMatch(/Codeweaver instance two working/u);
     });
   });
@@ -1641,7 +1647,9 @@ describe('QuestChatWidget', () => {
 
       const codeweaverMessages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
-      expect(codeweaverMessages).toHaveLength(1);
+      expect(
+        Array.from(codeweaverMessages).map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE']);
       expect(codeweaverMessages[0]?.textContent).toMatch(/Normal codeweaver output/u);
 
       const wardRow = stepRows.find((row) => row.textContent?.includes('WARD'));
@@ -1651,7 +1659,7 @@ describe('QuestChatWidget', () => {
 
       const wardMessages = wardRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
-      expect(wardMessages).toHaveLength(0);
+      expect(Array.from(wardMessages)).toStrictEqual([]);
     });
   });
 
@@ -1736,7 +1744,7 @@ describe('QuestChatWidget', () => {
 
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
-      expect(messages).toHaveLength(1);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
       expect(messages[0]?.textContent).toMatch(/Exploring quest requirements/u);
     });
   });

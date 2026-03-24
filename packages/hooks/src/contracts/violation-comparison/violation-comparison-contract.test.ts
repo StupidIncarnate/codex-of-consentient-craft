@@ -27,7 +27,7 @@ describe('violationComparisonContract', () => {
       message: undefined,
     });
 
-    expect(result.message).toBeUndefined();
+    expect(result.message).toBe(undefined);
   });
 
   describe('invalid input', () => {

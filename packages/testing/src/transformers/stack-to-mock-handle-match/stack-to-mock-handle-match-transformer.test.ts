@@ -52,7 +52,7 @@ describe('stackToMockHandleMatchTransformer', () => {
 
       const result = stackToMockHandleMatchTransformer({ stack, handles: [handle] });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('EMPTY: {empty handles array} => returns undefined', () => {
@@ -60,7 +60,7 @@ describe('stackToMockHandleMatchTransformer', () => {
 
       const result = stackToMockHandleMatchTransformer({ stack, handles: [] });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -73,7 +73,7 @@ describe('stackToMockHandleMatchTransformer', () => {
 
       const result = stackToMockHandleMatchTransformer({ stack, handles: [catchAllHandle] });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

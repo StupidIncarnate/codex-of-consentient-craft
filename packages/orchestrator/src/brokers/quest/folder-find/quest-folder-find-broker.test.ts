@@ -93,8 +93,8 @@ describe('questFolderFindBroker', () => {
       });
 
       expect(result.found).toBe(false);
-      expect(result.folderPath).toBeUndefined();
-      expect(result.quest).toBeUndefined();
+      expect(result.folderPath).toBe(undefined);
+      expect(result.quest).toBe(undefined);
     });
 
     it('VALID: {empty folder} => returns not found', async () => {
@@ -106,8 +106,8 @@ describe('questFolderFindBroker', () => {
       const result = await questFolderFindBroker({ questId: 'any-quest' as never, questsPath });
 
       expect(result.found).toBe(false);
-      expect(result.folderPath).toBeUndefined();
-      expect(result.quest).toBeUndefined();
+      expect(result.folderPath).toBe(undefined);
+      expect(result.quest).toBe(undefined);
     });
   });
 

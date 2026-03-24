@@ -14,7 +14,6 @@ describe('childProcessSpawnAdapter', () => {
         options: { stdio: 'inherit' },
       });
 
-      expect(result).toBeDefined();
       expect(typeof result.on).toBe('function');
     });
 
@@ -27,7 +26,6 @@ describe('childProcessSpawnAdapter', () => {
         args: ['-v'],
       });
 
-      expect(result).toBeDefined();
       expect(typeof result.on).toBe('function');
     });
 
@@ -41,7 +39,6 @@ describe('childProcessSpawnAdapter', () => {
         options: { cwd: '/project' },
       });
 
-      expect(result).toBeDefined();
       expect(typeof result.on).toBe('function');
     });
   });

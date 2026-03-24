@@ -118,7 +118,7 @@ describe('SubagentChainWidget', () => {
       await proxy.clickHeader();
       await proxy.clickHeader();
 
-      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(0);
+      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toStrictEqual([]);
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -159,8 +159,10 @@ describe('SubagentChainWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(screen.queryAllByTestId('TOOL_GROUP_HEADER')).toHaveLength(0);
-      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(2);
+      expect(screen.queryAllByTestId('TOOL_GROUP_HEADER')).toStrictEqual([]);
+      expect(
+        screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE', 'CHAT_MESSAGE']);
     });
 
     it('VALID: {expanded with single innerGroup} => renders ChatMessageWidget', async () => {
@@ -180,7 +182,9 @@ describe('SubagentChainWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
+      expect(
+        screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE']);
     });
 
     it('VALID: {expanded with task notification} => renders notification at bottom', async () => {
@@ -223,7 +227,9 @@ describe('SubagentChainWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(screen.queryAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
+      expect(
+        screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE']);
     });
   });
 
@@ -256,8 +262,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
-      expect(badges[0]?.textContent).toBe('5.0k context');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
     });
 
     it('VALID: {second assistant entry} => shows delta not absolute', async () => {
@@ -301,9 +306,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(2);
-      expect(badges[0]?.textContent).toBe('5.0k context');
-      expect(badges[1]?.textContent).toBe('1.2k context');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context', '1.2k context']);
     });
 
     it('VALID: {delta zero from same API call} => no badge on second entry', async () => {
@@ -347,7 +350,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
+      expect(badges.map((b) => b.getAttribute('data-testid'))).toStrictEqual(['TOKEN_BADGE']);
     });
 
     it('VALID: {tool result with content} => shows estimated badge', async () => {
@@ -373,8 +376,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
-      expect(badges[0]?.textContent).toBe('~200 est');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
     });
 
     it('VALID: {tool result with large content} => shows abbreviated estimate', async () => {
@@ -400,8 +402,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
-      expect(badges[0]?.textContent).toBe('~1.0k est');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['~1.0k est']);
     });
 
     it('VALID: {user prompt entry} => no badge', async () => {
@@ -423,7 +424,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(0);
+      expect(badges).toStrictEqual([]);
     });
 
     it('VALID: {full chain with mixed entries} => correct delta tracking across entry types', async () => {
@@ -513,11 +514,12 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(4);
-      expect(badges[0]?.textContent).toBe('15.5k context');
-      expect(badges[1]?.textContent).toBe('~541 est');
-      expect(badges[2]?.textContent).toBe('~217 est');
-      expect(badges[3]?.textContent).toBe('1.9k context');
+      expect(badges.map((b) => b.textContent)).toStrictEqual([
+        '15.5k context',
+        '~541 est',
+        '~217 est',
+        '1.9k context',
+      ]);
     });
   });
 });

@@ -110,7 +110,7 @@ describe('extractSessionFileSummaryTransformer', () => {
         }),
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -123,7 +123,7 @@ describe('extractSessionFileSummaryTransformer', () => {
         }),
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {fileContent: empty string} => returns undefined', () => {
@@ -131,7 +131,7 @@ describe('extractSessionFileSummaryTransformer', () => {
         fileContent: FileContentsStub({ value: '' }),
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

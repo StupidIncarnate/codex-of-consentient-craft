@@ -14,12 +14,13 @@ describe('typescriptAstToMockCallsAdapter', () => {
 
       const result = typescriptAstToMockCallsAdapter({ sourceFile });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual({
-        moduleName: 'fs',
-        factory: null,
-        sourceFile: 'test.proxy.ts',
-      });
+      expect(result).toStrictEqual([
+        {
+          moduleName: 'fs',
+          factory: null,
+          sourceFile: 'test.proxy.ts',
+        },
+      ]);
     });
 
     it('VALID: {jest.mock with factory} => returns mock call with factory', () => {
@@ -36,10 +37,13 @@ describe('typescriptAstToMockCallsAdapter', () => {
 
       const result = typescriptAstToMockCallsAdapter({ sourceFile });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.moduleName).toBe('axios');
-      expect(result[0]?.factory).toMatch(/get.*jest\.fn/u);
-      expect(result[0]?.sourceFile).toBe('adapter.proxy.ts');
+      expect(result).toStrictEqual([
+        {
+          moduleName: 'axios',
+          factory: '() => ({ get: jest.fn() })',
+          sourceFile: 'adapter.proxy.ts',
+        },
+      ]);
     });
 
     it('VALID: {multiple jest.mock calls} => returns all mock calls', () => {
@@ -55,10 +59,11 @@ jest.mock('axios', () => ({}));
 
       const result = typescriptAstToMockCallsAdapter({ sourceFile });
 
-      expect(result).toHaveLength(3);
-      expect(result[0]?.moduleName).toBe('fs');
-      expect(result[1]?.moduleName).toBe('path');
-      expect(result[2]?.moduleName).toBe('axios');
+      expect(result).toStrictEqual([
+        { moduleName: 'fs', factory: null, sourceFile: 'test.proxy.ts' },
+        { moduleName: 'path', factory: null, sourceFile: 'test.proxy.ts' },
+        { moduleName: 'axios', factory: '() => ({})', sourceFile: 'test.proxy.ts' },
+      ]);
     });
   });
 

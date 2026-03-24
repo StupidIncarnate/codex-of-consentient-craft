@@ -139,7 +139,11 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = proxy.getStepRows();
 
       // pathseeker done row + 2 step rows = 3
-      expect(stepRows).toHaveLength(3);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {quest with completed steps} => shows correct count in status bar', () => {
@@ -440,7 +444,11 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = proxy.getStepRows();
 
       // Should have pathseeker done row + 2 step rows = 3 total
-      expect(stepRows).toHaveLength(3);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
       // First row should be pathseeker (no #1 since it's the only item in its group)
       expect(stepRows[0]?.textContent).toMatch(/Pathseeker(?! #)/u);
     });
@@ -534,7 +542,9 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = proxy.getStepRows();
 
-      expect(stepRows).toHaveLength(1);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+      ]);
       expect(stepRows[0]?.textContent).toMatch(/CHAOSWHISPERER/u);
       expect(stepRows[0]?.textContent).toMatch(/DONE/u);
     });
@@ -581,7 +591,9 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(proxy.hasPlanningText()).toBe(false);
-      expect(proxy.getStepRows()).toHaveLength(1);
+      expect(proxy.getStepRows().map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {complete quest with no work items and no steps} => renders no planning text and no step rows', () => {
@@ -597,7 +609,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(proxy.hasPlanningText()).toBe(false);
-      expect(proxy.getStepRows()).toHaveLength(0);
+      expect(proxy.getStepRows()).toStrictEqual([]);
     });
   });
 
@@ -622,7 +634,9 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(1);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
     });
 
@@ -651,7 +665,10 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(2);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
     });
@@ -690,7 +707,10 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(2);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/FORGE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/MINI BOSS/u);
     });
@@ -720,12 +740,17 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(1);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
 
       const stepRows = proxy.getStepRows();
 
-      expect(stepRows).toHaveLength(2);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {multiple ward work items} => renders single MINI BOSS floor with both rows', () => {
@@ -753,12 +778,17 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(1);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/MINI BOSS/u);
 
       const stepRows = proxy.getStepRows();
 
-      expect(stepRows).toHaveLength(2);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {pathseeker and ward work items mixed} => renders ENTRANCE: CARTOGRAPHY then MINI BOSS floors', () => {
@@ -796,13 +826,21 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(2);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
       expect(floorHeaders[1]?.textContent).toMatch(/MINI BOSS/u);
 
       const stepRows = proxy.getStepRows();
 
-      expect(stepRows).toHaveLength(4);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {complete quest with no work items} => renders no floor headers', () => {
@@ -817,7 +855,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.getFloorHeaders()).toHaveLength(0);
+      expect(proxy.getFloorHeaders()).toStrictEqual([]);
     });
   });
 
@@ -1325,7 +1363,7 @@ describe('ExecutionPanelWidget', () => {
 
       const messages = proxy.getExecutionMessages();
 
-      expect(messages).toHaveLength(1);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
       expect(messages[0]?.textContent).toMatch(/Exploring codebase/u);
     });
 
@@ -1347,7 +1385,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.getExecutionMessages()).toHaveLength(0);
+      expect(proxy.getExecutionMessages()).toStrictEqual([]);
     });
   });
 
@@ -1390,7 +1428,7 @@ describe('ExecutionPanelWidget', () => {
 
       const messages = proxy.getExecutionMessages();
 
-      expect(messages).toHaveLength(1);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
       expect(messages[0]?.textContent).toMatch(/Writing auth-login-broker/u);
     });
 
@@ -1426,7 +1464,7 @@ describe('ExecutionPanelWidget', () => {
 
       await userEvent.click(rowHeader);
 
-      expect(proxy.getExecutionMessages()).toHaveLength(0);
+      expect(proxy.getExecutionMessages()).toStrictEqual([]);
     });
 
     it('VALID: {two steps with different sessionIds} => each step shows its own session logs', async () => {
@@ -1475,7 +1513,9 @@ describe('ExecutionPanelWidget', () => {
 
       const messagesAfterFirst = proxy.getExecutionMessages();
 
-      expect(messagesAfterFirst).toHaveLength(1);
+      expect(messagesAfterFirst.map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+      ]);
       expect(messagesAfterFirst[0]?.textContent).toMatch(/Building contracts/u);
     });
 
@@ -1508,7 +1548,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} slotEntries={slotEntries} />,
       });
 
-      expect(proxy.getExecutionMessages()).toHaveLength(0);
+      expect(proxy.getExecutionMessages()).toStrictEqual([]);
     });
   });
 
@@ -1595,7 +1635,7 @@ describe('ExecutionPanelWidget', () => {
 
       const messages = proxy.getExecutionMessages();
 
-      expect(messages).toHaveLength(1);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
       expect(messages[0]?.textContent).toMatch(/Mapping dependency graph/u);
     });
   });
@@ -1631,7 +1671,9 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(1);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/Concurrent: 2\/2/u);
     });
   });
@@ -1978,7 +2020,11 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(3);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
       expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
@@ -1986,7 +2032,11 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = proxy.getStepRows();
 
       // chaoswhisperer row + pathseeker row + codeweaver row = 3
-      expect(stepRows).toHaveLength(3);
+      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+        'execution-row-layer-widget',
+      ]);
     });
 
     it('VALID: {quest with steps and multiple non-step roles} => renders all floors in topological order', () => {
@@ -2026,7 +2076,12 @@ describe('ExecutionPanelWidget', () => {
       const floorHeaders = proxy.getFloorHeaders();
 
       // All at depth 0, sorted by role config index: chaoswhisperer, pathseeker, codeweaver, spiritmender
-      expect(floorHeaders).toHaveLength(4);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
       expect(floorHeaders[1]?.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
       expect(floorHeaders[2]?.textContent).toMatch(/FORGE/u);
@@ -2069,7 +2124,7 @@ describe('ExecutionPanelWidget', () => {
 
       const messages = proxy.getExecutionMessages();
 
-      expect(messages).toHaveLength(1);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
       expect(messages[0]?.textContent).toMatch(/Defining quest spec/u);
     });
 
@@ -2098,7 +2153,9 @@ describe('ExecutionPanelWidget', () => {
 
       const floorHeaders = proxy.getFloorHeaders();
 
-      expect(floorHeaders).toHaveLength(1);
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+      ]);
       expect(floorHeaders[0]?.textContent).toMatch(/HOMEBASE/u);
 
       expect(proxy.hasPlanningText()).toBe(true);

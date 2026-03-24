@@ -29,7 +29,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(config.framework).toBe('node-library');
-      expect(config.routing).toBeUndefined();
+      expect(config.routing).toBe(undefined);
     });
   });
 
@@ -174,7 +174,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(parsed.framework).toBe('node-library');
-      expect(parsed.routing).toBeUndefined();
+      expect(parsed.routing).toBe(undefined);
     });
   });
 
@@ -205,7 +205,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(config.framework).toBe('svelte');
-      expect(config.routing).toBeUndefined();
+      expect(config.routing).toBe(undefined);
     });
 
     it('VALID: CLI config without routing => parses successfully', () => {
@@ -214,7 +214,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(config.framework).toBe('cli');
-      expect(config.routing).toBeUndefined();
+      expect(config.routing).toBe(undefined);
     });
 
     it('VALID: Ink CLI config without routing => parses successfully', () => {
@@ -223,7 +223,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(config.framework).toBe('ink-cli');
-      expect(config.routing).toBeUndefined();
+      expect(config.routing).toBe(undefined);
     });
 
     it('VALID: Monorepo config without routing => parses successfully', () => {
@@ -232,7 +232,7 @@ describe('dungeonmaster-config-contract', () => {
       });
 
       expect(config.framework).toBe('monorepo');
-      expect(config.routing).toBeUndefined();
+      expect(config.routing).toBe(undefined);
     });
   });
 
@@ -244,7 +244,10 @@ describe('dungeonmaster-config-contract', () => {
 
       const result = dungeonmasterConfigContract.parse(config);
 
-      expect(result).toBeDefined();
+      expect(result).toStrictEqual({
+        framework: 'react',
+        schema: 'zod',
+      });
     });
   });
 
@@ -254,7 +257,7 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'react',
       });
 
-      expect(config.orchestration).toBeUndefined();
+      expect(config.orchestration).toBe(undefined);
     });
 
     it('VALID: config with orchestration slotCount and timeoutMs => parses successfully', () => {

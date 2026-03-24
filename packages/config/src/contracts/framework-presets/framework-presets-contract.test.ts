@@ -85,9 +85,27 @@ describe('FRAMEWORK_PRESETS', () => {
     });
 
     it('VALID: has correct number of presets => matches framework count', () => {
-      const allFrameworks = frameworkStatics.frameworks.all;
-
-      expect(Object.keys(FRAMEWORK_PRESETS)).toHaveLength(allFrameworks.length);
+      expect(Object.keys(FRAMEWORK_PRESETS).sort()).toStrictEqual([
+        'angular',
+        'cli',
+        'express',
+        'fastify',
+        'hapi',
+        'ink-cli',
+        'koa',
+        'monorepo',
+        'nestjs',
+        'nextjs',
+        'node-library',
+        'nuxtjs',
+        'preact',
+        'react',
+        'react-library',
+        'remix',
+        'solid',
+        'svelte',
+        'vue',
+      ]);
     });
   });
 

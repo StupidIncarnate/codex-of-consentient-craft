@@ -7,6 +7,6 @@ describe('eslintPluginEslintCommentsLoadAdapter', () => {
 
     const result = eslintPluginEslintCommentsLoadAdapter();
 
-    expect(result.rules).toBeDefined();
+    expect(typeof result.rules).toBe('object');
   });
 });

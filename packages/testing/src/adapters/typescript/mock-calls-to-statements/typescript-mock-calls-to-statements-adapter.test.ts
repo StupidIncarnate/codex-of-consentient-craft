@@ -23,18 +23,14 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/jest\.mock\(['"]fs['"]\)/u);
-      expect(output).toMatch(/Auto-hoisted from.*test\.proxy\.ts/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u)]);
+      expect(outputs[0]).toMatch(/Auto-hoisted from.*test\.proxy\.ts/u);
     });
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
@@ -52,18 +48,14 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/jest\.mock\(['"]axios['"]/u);
-      expect(output).toMatch(/get.*jest\.fn/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]axios['"]/u)]);
+      expect(outputs[0]).toMatch(/get.*jest\.fn/u);
     });
 
     it('VALID: {factory with nested property access} => clones correctly', () => {
@@ -81,19 +73,15 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/jest\.mock\(['"]fs['"]/u);
-      expect(output).toMatch(/readFile.*jest\.fn/u);
-      expect(output).toMatch(/mockResolvedValue/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]/u)]);
+      expect(outputs[0]).toMatch(/readFile.*jest\.fn/u);
+      expect(outputs[0]).toMatch(/mockResolvedValue/u);
     });
 
     it('VALID: {factory with spread assignment} => clones correctly', () => {
@@ -111,18 +99,14 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/\.\.\.actualConfig/u);
-      expect(output).toMatch(/override.*true/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/\.\.\.actualConfig/u)]);
+      expect(outputs[0]).toMatch(/override.*true/u);
     });
 
     it('VALID: {factory with arrow function parameters} => clones correctly', () => {
@@ -140,18 +124,14 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/fetch.*url/u);
-      expect(output).toMatch(/json/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/fetch.*url/u)]);
+      expect(outputs[0]).toMatch(/json/u);
     });
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {
@@ -169,17 +149,13 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/myFunc/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/myFunc/u)]);
     });
 
     it('VALID: {factory with parenthesized expression} => clones correctly', () => {
@@ -197,17 +173,13 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/add.*jest\.fn/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/add.*jest\.fn/u)]);
     });
 
     it('VALID: {factory with numeric literal} => clones correctly', () => {
@@ -225,17 +197,13 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         nodeFactory,
       });
 
-      expect(statements).toHaveLength(1);
-
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
-      const output = printer.printNode(
-        ts.EmitHint.Unspecified,
-        statements[0] as unknown as ts.Node,
-        sourceFile,
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(output).toMatch(/value.*42/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/value.*42/u)]);
     });
 
     it('VALID: {multiple mock calls} => returns multiple statements', () => {
@@ -257,7 +225,16 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
       const statements = typescriptMockCallsToStatementsAdapter({ mockCalls, nodeFactory });
 
-      expect(statements).toHaveLength(2);
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u),
+        expect.stringMatching(/jest\.mock\(['"]path['"]\)/u),
+      ]);
     });
   });
 

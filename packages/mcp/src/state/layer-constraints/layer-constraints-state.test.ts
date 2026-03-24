@@ -21,7 +21,7 @@ describe('layerConstraintsState', () => {
 
     const result = layerConstraintsState.get();
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(undefined);
   });
 
   it('VALID: clear() => removes stored content', () => {
@@ -34,6 +34,6 @@ describe('layerConstraintsState', () => {
     layerConstraintsState.clear();
     const result = layerConstraintsState.get();
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(undefined);
   });
 });

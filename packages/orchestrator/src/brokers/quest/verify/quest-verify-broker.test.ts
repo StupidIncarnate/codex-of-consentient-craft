@@ -64,7 +64,20 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.checks).toHaveLength(12);
+      expect(result.checks.map((c) => c.name)).toStrictEqual([
+        'Observable Coverage',
+        'Dependency Integrity',
+        'No Circular Dependencies',
+        'No Orphan Steps',
+        'File Companion Completeness',
+        'No Raw Primitives in Contracts',
+        'Step Contract Declarations',
+        'Valid Contract References',
+        'Step Export Names',
+        'Valid Flow References',
+        'No Orphan Flow Nodes',
+        'Node Observable Coverage',
+      ]);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
 
@@ -116,7 +129,20 @@ describe('questVerifyBroker', () => {
       const result = await questVerifyBroker({ input });
 
       expect(result.success).toBe(false);
-      expect(result.checks).toHaveLength(12);
+      expect(result.checks.map((c) => c.name)).toStrictEqual([
+        'Observable Coverage',
+        'Dependency Integrity',
+        'No Circular Dependencies',
+        'No Orphan Steps',
+        'File Companion Completeness',
+        'No Raw Primitives in Contracts',
+        'Step Contract Declarations',
+        'Valid Contract References',
+        'Step Export Names',
+        'Valid Flow References',
+        'No Orphan Flow Nodes',
+        'Node Observable Coverage',
+      ]);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });
   });

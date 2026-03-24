@@ -132,7 +132,7 @@ describe('slotOperationsContract', () => {
 
         const result = getAvailableSlot({ slotCount });
 
-        expect(result).toBeUndefined();
+        expect(result).toBe(undefined);
       });
 
       it('VALID: {custom releaseSlot} => uses provided function', () => {

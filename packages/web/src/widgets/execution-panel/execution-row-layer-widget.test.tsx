@@ -338,7 +338,9 @@ describe('ExecutionRowLayerWidget', () => {
       });
 
       expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
-      expect(screen.getAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
+      expect(
+        screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE']);
     });
 
     it('VALID: {isStreaming true} => renders streaming bar', () => {
@@ -380,7 +382,9 @@ describe('ExecutionRowLayerWidget', () => {
       expect(row.style.borderLeft).toMatch(/dashed/u);
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
       expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
-      expect(screen.getAllByTestId('CHAT_MESSAGE')).toHaveLength(1);
+      expect(
+        screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
+      ).toStrictEqual(['CHAT_MESSAGE']);
     });
   });
 

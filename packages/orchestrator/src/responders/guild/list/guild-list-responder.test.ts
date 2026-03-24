@@ -24,8 +24,17 @@ describe('GuildListResponder', () => {
 
       const result = await proxy.callResponder();
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe(guild.name);
+      expect(result).toStrictEqual([
+        {
+          id: guild.id,
+          name: guild.name,
+          path: guild.path,
+          urlSlug: guild.urlSlug,
+          createdAt: guild.createdAt,
+          valid: true,
+          questCount: 0,
+        },
+      ]);
     });
   });
 });

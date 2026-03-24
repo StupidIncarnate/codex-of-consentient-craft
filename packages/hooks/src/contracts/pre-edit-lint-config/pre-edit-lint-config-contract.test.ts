@@ -15,7 +15,7 @@ describe('preEditLintConfigContract', () => {
       rules: ['rule1', 'rule2', 'rule3'],
     });
 
-    expect(result.rules).toHaveLength(3);
+    expect(result.rules).toStrictEqual(['rule1', 'rule2', 'rule3']);
   });
 
   describe('invalid input', () => {

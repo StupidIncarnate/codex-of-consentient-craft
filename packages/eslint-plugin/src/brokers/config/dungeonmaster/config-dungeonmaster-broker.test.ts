@@ -8,11 +8,10 @@ describe('configDungeonmasterBroker', () => {
 
       const result = configDungeonmasterBroker();
 
-      expect(result.typescript).toBeDefined();
-      expect(result.test).toBeDefined();
-      expect(result.fileOverrides).toBeDefined();
+      expect(typeof result.typescript).toBe('object');
+      expect(typeof result.test).toBe('object');
       expect(Array.isArray(result.fileOverrides)).toBe(true);
-      expect(result.ruleEnforceOn).toBeDefined();
+      expect(typeof result.ruleEnforceOn).toBe('object');
     });
 
     it('VALID: {} => typescript config contains main rules', () => {
@@ -20,8 +19,8 @@ describe('configDungeonmasterBroker', () => {
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typescript).toBeDefined();
-      expect(typescript.rules).toBeDefined();
+      expect(typeof typescript).toBe('object');
+      expect(typeof typescript.rules).toBe('object');
       expect(typescript.rules?.['@dungeonmaster/enforce-contract-usage-in-tests']).toBe('error');
       expect(typescript.rules?.['@dungeonmaster/enforce-object-destructuring-params']).toBe(
         'error',
@@ -40,7 +39,6 @@ describe('configDungeonmasterBroker', () => {
         );
       });
 
-      expect(stubConfig).toBeDefined();
       expect(stubConfig?.files).toStrictEqual(['**/*.stub.ts', '**/*.stub.tsx']);
       expect(stubConfig?.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
@@ -50,9 +48,12 @@ describe('configDungeonmasterBroker', () => {
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typescript).toBeDefined();
+      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['@typescript-eslint/no-explicit-any']).toBe('error');
-      expect(typescript.rules?.['@typescript-eslint/explicit-function-return-type']).toBeDefined();
+      expect(typescript.rules?.['@typescript-eslint/explicit-function-return-type']).toStrictEqual([
+        'error',
+        { allowExpressions: true },
+      ]);
     });
 
     it('VALID: {} => typescript config includes eslint-comments rules', () => {
@@ -60,9 +61,9 @@ describe('configDungeonmasterBroker', () => {
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typescript).toBeDefined();
+      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['eslint-comments/no-unlimited-disable']).toBe('error');
-      expect(typescript.rules?.['eslint-comments/no-use']).toBeDefined();
+      expect(typescript.rules?.['eslint-comments/no-use']).toStrictEqual(['error', { allow: [] }]);
     });
 
     it('VALID: {} => ruleEnforceOn contains pre-edit rules', () => {
@@ -102,7 +103,6 @@ describe('configDungeonmasterBroker', () => {
         );
       });
 
-      expect(startupConfig).toBeDefined();
       expect(startupConfig?.rules?.['@typescript-eslint/no-unused-expressions']).toStrictEqual([
         'error',
         { allowShortCircuit: true },
@@ -131,9 +131,9 @@ describe('configDungeonmasterBroker', () => {
 
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
-      expect(test).toBeDefined();
-      expect(test.plugins).toBeDefined();
-      expect(test.plugins?.jest).toBeDefined();
+      expect(typeof test).toBe('object');
+      expect(typeof test.plugins).toBe('object');
+      expect(typeof test.plugins?.jest).toBe('object');
     });
 
     it('VALID: {forTesting: true} => test config disables magic numbers', () => {
@@ -141,7 +141,7 @@ describe('configDungeonmasterBroker', () => {
 
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
-      expect(test).toBeDefined();
+      expect(typeof test).toBe('object');
       expect(test.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
@@ -150,7 +150,7 @@ describe('configDungeonmasterBroker', () => {
 
       const { typescript } = configDungeonmasterBroker({ forTesting: false });
 
-      expect(typescript).toBeDefined();
+      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).not.toBe('off');
     });
   });

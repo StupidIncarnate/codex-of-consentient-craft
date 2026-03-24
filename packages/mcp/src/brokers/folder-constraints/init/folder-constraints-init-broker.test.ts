@@ -9,7 +9,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
 
     expect(result.folderConstraints.size).toBe(14);
-    expect(result.layerConstraints).toBeDefined();
     expect(result.layerConstraints).toMatch(/LAYER FILES - Decomposing Complex Components/u);
   });
 
@@ -19,7 +18,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const adaptersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'adapters' }));
 
-    expect(adaptersConstraints).toBeDefined();
     expect(adaptersConstraints).toMatch(/TRANSLATION BOUNDARY:/u);
   });
 
@@ -29,7 +27,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const brokersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'brokers' }));
 
-    expect(brokersConstraints).toBeDefined();
     expect(brokersConstraints).toMatch(/PROXY PATTERN:/u);
   });
 
@@ -39,7 +36,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const guardsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'guards' }));
 
-    expect(guardsConstraints).toBeDefined();
     expect(guardsConstraints).toMatch(/OBJECT ARGUMENTS FOR STATICS:/u);
   });
 
@@ -51,7 +47,6 @@ describe('folderConstraintsInitBroker', () => {
       FolderTypeStub({ value: 'contracts' }),
     );
 
-    expect(contractsConstraints).toBeDefined();
     expect(contractsConstraints).toMatch(/CRITICAL - TEST IMPORTS:/u);
   });
 
@@ -61,7 +56,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const staticsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'statics' }));
 
-    expect(staticsConstraints).toBeDefined();
     expect(staticsConstraints).toMatch(/CRITICAL RULES:/u);
   });
 });

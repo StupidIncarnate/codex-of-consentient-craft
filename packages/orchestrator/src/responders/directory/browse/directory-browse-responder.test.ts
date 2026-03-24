@@ -19,8 +19,9 @@ describe('DirectoryBrowseResponder', () => {
         path: GuildPathStub({ value: '/home/user/projects' }),
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('app');
+      expect(result).toStrictEqual([
+        { name: 'app', path: '/home/user/projects/app', isDirectory: true },
+      ]);
     });
 
     it('VALID: {path: undefined} => delegates with empty object for default homedir', () => {
@@ -32,8 +33,7 @@ describe('DirectoryBrowseResponder', () => {
 
       const result = proxy.callResponder({});
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('docs');
+      expect(result).toStrictEqual([{ name: 'docs', path: '/home/user/docs', isDirectory: true }]);
     });
   });
 });

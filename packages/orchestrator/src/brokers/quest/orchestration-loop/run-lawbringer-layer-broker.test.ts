@@ -366,7 +366,7 @@ describe('runLawbringerLayerBroker', () => {
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
-      expect(status).toBeDefined();
+      expect(typeof status).toBe('string');
     });
   });
 
@@ -440,7 +440,7 @@ describe('runLawbringerLayerBroker', () => {
       // Verify work items were persisted (function completed without throwing)
       const allStatuses = proxy.getAllPersistedWorkItemStatuses();
 
-      expect(allStatuses).toHaveLength(3);
+      expect(allStatuses.map((s) => s.id)).toStrictEqual([workItemIdA, workItemIdB, workItemIdC]);
 
       // Verify each work item reached a terminal status via per-item inspection
       // Spiritmender followup recovers failed items, so all end up complete
@@ -448,9 +448,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(statusA).toBeDefined();
-      expect(statusB).toBeDefined();
-      expect(statusC).toBeDefined();
+      expect(typeof statusA).toBe('string');
+      expect(typeof statusB).toBe('string');
+      expect(typeof statusC).toBe('string');
     });
   });
 
@@ -683,7 +683,7 @@ describe('runLawbringerLayerBroker', () => {
       // Verify work items were persisted (function completed without throwing)
       const allStatuses = proxy.getAllPersistedWorkItemStatuses();
 
-      expect(allStatuses).toHaveLength(3);
+      expect(allStatuses.map((s) => s.id)).toStrictEqual([workItemIdA, workItemIdB, workItemIdC]);
 
       // Verify each work item reached a terminal status via per-item inspection
       // Spiritmender followup recovers failed items, so all end up complete
@@ -691,9 +691,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(statusA).toBeDefined();
-      expect(statusB).toBeDefined();
-      expect(statusC).toBeDefined();
+      expect(typeof statusA).toBe('string');
+      expect(typeof statusB).toBe('string');
+      expect(typeof statusC).toBe('string');
     });
   });
 });

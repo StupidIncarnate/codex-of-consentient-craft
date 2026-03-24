@@ -213,10 +213,36 @@ describe('eslintLintRunTargetedBroker()', () => {
         config,
       });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.messages).toHaveLength(3);
-      expect(results[0]?.errorCount).toBe(2);
-      expect(results[0]?.warningCount).toBe(1);
+      expect(results).toStrictEqual([
+        {
+          filePath: '/test/multi.ts',
+          messages: [
+            {
+              line: 1,
+              column: 1,
+              message: 'Unexpected any',
+              severity: 2,
+              ruleId: '@typescript-eslint/no-explicit-any',
+            },
+            {
+              line: 1,
+              column: 12,
+              message: 'Prefer const',
+              severity: 1,
+              ruleId: 'prefer-const',
+            },
+            {
+              line: 1,
+              column: 25,
+              message: 'Missing return type',
+              severity: 2,
+              ruleId: '@typescript-eslint/explicit-function-return-type',
+            },
+          ],
+          errorCount: 2,
+          warningCount: 1,
+        },
+      ]);
     });
 
     it('VALID: {eslint result with undefined ruleId} => handles undefined ruleId', async () => {

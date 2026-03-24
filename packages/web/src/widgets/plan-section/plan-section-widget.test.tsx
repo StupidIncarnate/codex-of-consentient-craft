@@ -126,7 +126,7 @@ describe('PlanSectionWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const removeButtons = buttons.filter((button) => button.textContent === 'x');
 
-      expect(removeButtons).toHaveLength(2);
+      expect(removeButtons.map((b) => b.textContent)).toStrictEqual(['x', 'x']);
     });
 
     it('VALID: {editing: true, onRemove, click remove} => calls onRemove with index', async () => {

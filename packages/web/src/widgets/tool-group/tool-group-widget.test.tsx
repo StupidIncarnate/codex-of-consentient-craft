@@ -185,8 +185,7 @@ describe('ToolGroupWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
-      expect(badges[0]?.textContent).toBe('5.0k context');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
     });
 
     it('VALID: {tool_result entry with content} => shows estimated badge', async () => {
@@ -208,8 +207,7 @@ describe('ToolGroupWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
-      expect(badges[0]?.textContent).toBe('~200 est');
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
     });
 
     it('VALID: {mixed tool_use and tool_result entries} => correct delta tracking', async () => {
@@ -252,10 +250,11 @@ describe('ToolGroupWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(3);
-      expect(badges[0]?.textContent).toBe('5.0k context');
-      expect(badges[1]?.textContent).toBe('~200 est');
-      expect(badges[2]?.textContent).toBe('~100 est');
+      expect(badges.map((b) => b.textContent)).toStrictEqual([
+        '5.0k context',
+        '~200 est',
+        '~100 est',
+      ]);
     });
 
     it('VALID: {tool_use with delta zero} => no badge on second entry', async () => {
@@ -291,7 +290,7 @@ describe('ToolGroupWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges).toHaveLength(1);
+      expect(badges.map((b) => b.getAttribute('data-testid'))).toStrictEqual(['TOKEN_BADGE']);
     });
   });
 });

@@ -161,9 +161,10 @@ describe('runPathseekerLayerBroker', () => {
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const codeweavers = lastQuest.workItems.filter((item) => item.role === 'codeweaver');
 
-      expect(codeweavers).toHaveLength(2);
-      expect(codeweavers[0]?.dependsOn).toStrictEqual([PS_WORK_ITEM_ID]);
-      expect(codeweavers[1]?.dependsOn).toStrictEqual([PS_WORK_ITEM_ID]);
+      expect(codeweavers.map((c) => c.dependsOn)).toStrictEqual([
+        [PS_WORK_ITEM_ID],
+        [PS_WORK_ITEM_ID],
+      ]);
     });
   });
 
@@ -195,7 +196,6 @@ describe('runPathseekerLayerBroker', () => {
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
       const wards = lastQuest.workItems.filter((item) => item.role === 'ward');
 
-      expect(wards).toHaveLength(2);
       expect(
         wards.map((w) => ({
           spawnerType: w.spawnerType,
@@ -238,11 +238,8 @@ describe('runPathseekerLayerBroker', () => {
       const sieges = lastQuest.workItems.filter((item) => item.role === 'siegemaster');
       const lawbringers = lastQuest.workItems.filter((item) => item.role === 'lawbringer');
 
-      expect(sieges).toHaveLength(1);
-      expect(sieges[0]?.dependsOn).toStrictEqual([WARD_UUID]);
-      expect(lawbringers).toHaveLength(2);
-      expect(lawbringers[0]?.dependsOn).toStrictEqual([SIEGE_UUID]);
-      expect(lawbringers[1]?.dependsOn).toStrictEqual([SIEGE_UUID]);
+      expect(sieges.map((s) => s.dependsOn)).toStrictEqual([[WARD_UUID]]);
+      expect(lawbringers.map((l) => l.dependsOn)).toStrictEqual([[SIEGE_UUID], [SIEGE_UUID]]);
     });
   });
 
@@ -277,9 +274,9 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(failedItem?.status).toBe('failed');
       expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(proxy.getUuidCalls()).toHaveLength(1);
+      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
 
-      expect(proxy.getPersistedQuestJsons()).toHaveLength(1);
+      expect(proxy.getPersistedQuestJsons().map(() => true)).toStrictEqual([true]);
     });
   });
 
@@ -315,8 +312,8 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(failedItem?.status).toBe('failed');
       expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(failedItem?.completedAt).toBeDefined();
-      expect(proxy.getUuidCalls()).toHaveLength(1);
+      expect(failedItem?.completedAt).toBe('2024-01-15T10:00:00.000Z');
+      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
     });
   });
 
@@ -350,7 +347,9 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(failedItem?.status).toBe('failed');
       expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(lastQuest.workItems.filter((item) => item.role === 'pathseeker')).toHaveLength(1);
+      expect(
+        lastQuest.workItems.filter((item) => item.role === 'pathseeker').map((item) => item.id),
+      ).toStrictEqual([PS_WORK_ITEM_ID]);
     });
   });
 
@@ -383,7 +382,7 @@ describe('runPathseekerLayerBroker', () => {
       const markedFailed = failedItems.find((item) => item.status === 'failed');
 
       expect(markedFailed?.errorMessage).toBe('verification_failed');
-      expect(proxy.getUuidCalls()).toHaveLength(1);
+      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
     });
   });
 
@@ -407,7 +406,7 @@ describe('runPathseekerLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(proxy.getPersistedQuestJsons()).toHaveLength(0);
+      expect(proxy.getPersistedQuestJsons()).toStrictEqual([]);
     });
   });
 
@@ -518,7 +517,7 @@ describe('runPathseekerLayerBroker', () => {
       const persisted = proxy.getPersistedQuestJsons();
 
       // Quest must be untouched — no status changes, no new work items, no verify
-      expect(persisted).toHaveLength(0);
+      expect(persisted).toStrictEqual([]);
     });
   });
 });

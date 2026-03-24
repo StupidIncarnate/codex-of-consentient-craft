@@ -28,7 +28,15 @@ describe('folderDependencyTreeContract', () => {
     expect(result.graph).toStrictEqual({});
   });
 
-  it('VALID: contract is defined', () => {
-    expect(folderDependencyTreeContract).toBeDefined();
+  it('VALID: contract parses a full object', () => {
+    const stub = FolderDependencyTreeStub();
+
+    const result = folderDependencyTreeContract.parse(stub);
+
+    expect(result).toStrictEqual({
+      hierarchy: 'statics/          # Can import: nothing (leaf node)',
+      graph: {},
+      matrix: 'FROM \\ TO',
+    });
   });
 });

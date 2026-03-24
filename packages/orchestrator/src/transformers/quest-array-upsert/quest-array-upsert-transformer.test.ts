@@ -13,23 +13,23 @@ type Flow = ReturnType<typeof FlowStub>;
 describe('questArrayUpsertTransformer', () => {
   describe('adding new items', () => {
     it('VALID: {new item} => adds to array', () => {
-      const existing = [FlowStub({ id: 'flow-a', name: 'Flow A' })];
-      const updates = [FlowStub({ id: 'flow-b', name: 'Flow B' })];
+      const flowA = FlowStub({ id: 'flow-a', name: 'Flow A' });
+      const flowB = FlowStub({ id: 'flow-b', name: 'Flow B' });
+      const existing = [flowA];
+      const updates = [flowB];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(2);
-      expect(result[0]?.name).toBe('Flow A');
-      expect(result[1]?.name).toBe('Flow B');
+      expect(result).toStrictEqual([flowA, flowB]);
     });
 
     it('VALID: {empty existing} => adds all updates', () => {
-      const updates = [DependencyStepStub({ name: 'Step 1' })];
+      const step = DependencyStepStub({ name: 'Step 1' });
+      const updates = [step];
 
       const result = questArrayUpsertTransformer({ existing: [], updates });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('Step 1');
+      expect(result).toStrictEqual([step]);
     });
   });
 
@@ -40,37 +40,33 @@ describe('questArrayUpsertTransformer', () => {
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('New');
+      expect(result).toStrictEqual([FlowStub({ id: 'flow-a', name: 'New' })]);
     });
   });
 
   describe('delete operations', () => {
     it('VALID: {_delete: true} => removes item from array', () => {
-      const existing = [
-        FlowStub({ id: 'flow-a', name: 'Keep' }),
-        FlowStub({ id: 'flow-b', name: 'Remove' }),
-      ];
+      const flowKeep = FlowStub({ id: 'flow-a', name: 'Keep' });
+      const existing = [flowKeep, FlowStub({ id: 'flow-b', name: 'Remove' })];
       const flowToDelete = FlowStub({ id: 'flow-b' });
       Object.assign(flowToDelete, { _delete: true });
       const updates = [flowToDelete];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('Keep');
+      expect(result).toStrictEqual([flowKeep]);
     });
 
     it('VALID: {_delete: true, id not found} => no-op', () => {
-      const existing = [FlowStub({ id: 'flow-a', name: 'Keep' })];
+      const flowKeep = FlowStub({ id: 'flow-a', name: 'Keep' });
+      const existing = [flowKeep];
       const flowToDelete = FlowStub({ id: 'nonexistent' });
       Object.assign(flowToDelete, { _delete: true });
       const updates = [flowToDelete];
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('Keep');
+      expect(result).toStrictEqual([flowKeep]);
     });
   });
 
@@ -85,17 +81,10 @@ describe('questArrayUpsertTransformer', () => {
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(1);
-
       const { nodes } = result[0]!;
-
-      expect(nodes).toHaveLength(1);
-
       const { observables } = nodes[0]!;
 
-      expect(observables).toHaveLength(2);
-      expect(observables[0]?.id).toBe('obs-1');
-      expect(observables[1]?.id).toBe('obs-2');
+      expect(observables).toStrictEqual([existingObs, newObs]);
     });
 
     it('VALID: {update observable description without touching other nodes} => preserves siblings', () => {
@@ -112,14 +101,12 @@ describe('questArrayUpsertTransformer', () => {
 
       const { nodes } = result[0]!;
 
-      expect(nodes).toHaveLength(2);
       expect(nodes[0]?.id).toBe('n1');
       expect(nodes[1]?.id).toBe('n2');
 
       const { observables } = nodes[0]!;
 
-      expect(observables).toHaveLength(1);
-      expect(observables[0]?.description).toBe('Updated');
+      expect(observables).toStrictEqual([updatedObs]);
     });
 
     it('VALID: {nested delete: remove observable from node} => removes nested item', () => {
@@ -142,8 +129,7 @@ describe('questArrayUpsertTransformer', () => {
       const { nodes } = result[0]!;
       const { observables } = nodes[0]!;
 
-      expect(observables).toHaveLength(1);
-      expect(observables[0]?.id).toBe('obs-1');
+      expect(observables).toStrictEqual([obs1]);
     });
   });
 
@@ -158,9 +144,7 @@ describe('questArrayUpsertTransformer', () => {
 
       const { edges } = result[0]!;
 
-      expect(edges).toHaveLength(2);
-      expect(edges[0]?.id).toBe('e1');
-      expect(edges[1]?.id).toBe('e2');
+      expect(edges).toStrictEqual([existingEdge, newEdge]);
     });
 
     it('VALID: {update edge label} => merges edge fields', () => {
@@ -173,8 +157,7 @@ describe('questArrayUpsertTransformer', () => {
 
       const { edges } = result[0]!;
 
-      expect(edges).toHaveLength(1);
-      expect(edges[0]?.label).toBe('New');
+      expect(edges).toStrictEqual([updatedEdge]);
     });
   });
 
@@ -193,10 +176,7 @@ describe('questArrayUpsertTransformer', () => {
 
       const result = questArrayUpsertTransformer({ existing, updates });
 
-      expect(result).toHaveLength(3);
-      expect(result[0]?.name).toBe('Flow A Updated');
-      expect(result[1]?.name).toBe('Flow C');
-      expect(result[2]?.name).toBe('Flow D');
+      expect(result).toStrictEqual([flowAUpdated, flowC, flowD]);
     });
   });
 
@@ -214,9 +194,8 @@ describe('questArrayUpsertTransformer', () => {
 
       const { nodes, edges } = result[0]!;
 
-      expect(nodes).toHaveLength(2);
-      expect(edges).toHaveLength(1);
-      expect(edges[0]?.id).toBe('e1');
+      expect(nodes).toStrictEqual([existingNode, newNode]);
+      expect(edges).toStrictEqual([existingEdge]);
     });
 
     it('VALID: {flow update with only edges} => nodes preserved', () => {
@@ -232,9 +211,8 @@ describe('questArrayUpsertTransformer', () => {
 
       const { nodes, edges } = result[0]!;
 
-      expect(nodes).toHaveLength(1);
-      expect(nodes[0]?.id).toBe('n1');
-      expect(edges).toHaveLength(2);
+      expect(nodes).toStrictEqual([existingNode]);
+      expect(edges).toStrictEqual([existingEdge, newEdge]);
     });
 
     it('VALID: {node update without observables} => existing observables preserved', () => {
@@ -254,8 +232,7 @@ describe('questArrayUpsertTransformer', () => {
       const { nodes } = result[0]!;
 
       expect(nodes[0]?.label).toBe('New');
-      expect(nodes[0]?.observables).toHaveLength(1);
-      expect(nodes[0]?.observables[0]?.id).toBe('obs-1');
+      expect(nodes[0]?.observables).toStrictEqual([existingObs]);
     });
   });
 
@@ -281,8 +258,7 @@ describe('questArrayUpsertTransformer', () => {
       const { nodes } = result[0]!;
       const { observables } = nodes[0]!;
 
-      expect(observables).toHaveLength(1);
-      expect(observables[0]?.id).toBe('obs-1');
+      expect(observables).toStrictEqual([obs1]);
     });
 
     it('VALID: {delete edge via _delete within flow} => removes edge', () => {
@@ -302,8 +278,7 @@ describe('questArrayUpsertTransformer', () => {
 
       const { edges } = result[0]!;
 
-      expect(edges).toHaveLength(1);
-      expect(edges[0]?.id).toBe('e1');
+      expect(edges).toStrictEqual([edge1]);
     });
   });
 
@@ -318,12 +293,12 @@ describe('questArrayUpsertTransformer', () => {
     });
 
     it('VALID: {empty updates} => preserves existing', () => {
-      const existing = [FlowStub({ name: 'Existing' })];
+      const flow = FlowStub({ name: 'Existing' });
+      const existing = [flow];
 
       const result = questArrayUpsertTransformer({ existing, updates: [] });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('Existing');
+      expect(result).toStrictEqual([flow]);
     });
   });
 });

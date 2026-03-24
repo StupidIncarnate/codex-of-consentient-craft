@@ -25,11 +25,10 @@ describe('ESLint Plugin Module Loading', () => {
   it('should return valid config from configDungeonmasterBroker', () => {
     const config = configDungeonmasterBroker();
 
-    expect(config).toBeDefined();
-    expect(config.typescript).toBeDefined();
-    expect(config.test).toBeDefined();
-    expect(config.ruleEnforceOn).toBeDefined();
-    expect(config.fileOverrides).toBeDefined();
+    expect(typeof config.typescript).toBe('object');
+    expect(typeof config.test).toBe('object');
+    expect(typeof config.ruleEnforceOn).toBe('object');
+    expect(Array.isArray(config.fileOverrides)).toBe(true);
   });
 
   it('should be able to require the built package from node_modules', () => {
@@ -43,6 +42,6 @@ describe('ESLint Plugin Module Loading', () => {
 
     const module = importPlugin();
 
-    expect(module).toBeDefined();
+    expect(typeof module).toBe('object');
   });
 });

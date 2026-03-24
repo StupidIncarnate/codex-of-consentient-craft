@@ -7,7 +7,6 @@ describe('configTsconfigBroker', () => {
 
     const result = configTsconfigBroker();
 
-    expect(result).toBeDefined();
     expect(result.target).toBe('ES2020');
     expect(result.module).toBe('commonjs');
     expect(result.strict).toBe(true);

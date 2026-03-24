@@ -33,9 +33,7 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes } = result as Flow;
 
-      expect(nodes).toHaveLength(2);
-      expect(nodes[0]?.id).toBe('n1');
-      expect(nodes[1]?.id).toBe('n2');
+      expect(nodes).toStrictEqual([existingNode, newNode]);
     });
 
     it('VALID: {update modifies nested node by id} => merges nested node', () => {
@@ -48,8 +46,7 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes } = result as Flow;
 
-      expect(nodes).toHaveLength(1);
-      expect(nodes[0]?.label).toBe('New Label');
+      expect(nodes).toStrictEqual([updatedNode]);
     });
 
     it('VALID: {update adds observable to existing node} => deep recurse into node observables', () => {
@@ -65,9 +62,7 @@ describe('questItemDeepMergeTransformer', () => {
       const { nodes } = result as Flow;
       const { observables } = nodes[0]!;
 
-      expect(observables).toHaveLength(2);
-      expect(observables[0]?.id).toBe('obs-1');
-      expect(observables[1]?.id).toBe('obs-2');
+      expect(observables).toStrictEqual([existingObs, newObs]);
     });
   });
 
@@ -96,8 +91,7 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes } = result as Flow;
 
-      expect(nodes).toHaveLength(1);
-      expect(nodes[0]?.id).toBe('n1');
+      expect(nodes).toStrictEqual([nodeKeep]);
     });
   });
 
@@ -114,11 +108,8 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes, edges } = result as Flow;
 
-      expect(nodes).toHaveLength(2);
-      expect(nodes[0]?.id).toBe('n1');
-      expect(nodes[1]?.id).toBe('n2');
-      expect(edges).toHaveLength(1);
-      expect(edges[0]?.id).toBe('e1');
+      expect(nodes).toStrictEqual([existingNode, newNode]);
+      expect(edges).toStrictEqual([existingEdge]);
     });
 
     it('VALID: {update has edges but no nodes key} => preserves existing nodes', () => {
@@ -133,11 +124,8 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes, edges } = result as Flow;
 
-      expect(nodes).toHaveLength(1);
-      expect(nodes[0]?.id).toBe('n1');
-      expect(edges).toHaveLength(2);
-      expect(edges[0]?.id).toBe('e1');
-      expect(edges[1]?.id).toBe('e2');
+      expect(nodes).toStrictEqual([existingNode]);
+      expect(edges).toStrictEqual([existingEdge, newEdge]);
     });
 
     it('VALID: {update node without observables key} => preserves existing observables', () => {
@@ -159,10 +147,8 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { nodes } = result as Flow;
 
-      expect(nodes).toHaveLength(1);
       expect(nodes[0]?.label).toBe('New Label');
-      expect(nodes[0]?.observables).toHaveLength(1);
-      expect(nodes[0]?.observables[0]?.id).toBe('obs-1');
+      expect(nodes[0]?.observables).toStrictEqual([existingObs]);
     });
   });
 
@@ -222,9 +208,7 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { edges } = result as Flow;
 
-      expect(edges).toHaveLength(2);
-      expect(edges[0]?.id).toBe('e1');
-      expect(edges[1]?.id).toBe('e2');
+      expect(edges).toStrictEqual([existingEdge, newEdge]);
     });
 
     it('VALID: {update modifies edge label} => merges edge', () => {
@@ -237,8 +221,7 @@ describe('questItemDeepMergeTransformer', () => {
 
       const { edges } = result as Flow;
 
-      expect(edges).toHaveLength(1);
-      expect(edges[0]?.label).toBe('New');
+      expect(edges).toStrictEqual([updatedEdge]);
     });
   });
 });

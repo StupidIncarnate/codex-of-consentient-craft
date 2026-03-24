@@ -11,9 +11,9 @@ describe('ArchitectureHandleResponder', () => {
         args: {},
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
   });
 
@@ -26,9 +26,9 @@ describe('ArchitectureHandleResponder', () => {
         args: {},
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
   });
 
@@ -41,9 +41,9 @@ describe('ArchitectureHandleResponder', () => {
         args: {},
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
   });
 
@@ -56,9 +56,9 @@ describe('ArchitectureHandleResponder', () => {
         args: { folderType: 'brokers' },
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.isError).toBeUndefined();
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
     });
   });
 

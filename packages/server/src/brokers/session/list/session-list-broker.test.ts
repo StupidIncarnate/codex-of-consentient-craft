@@ -35,7 +35,13 @@ describe('sessionListBroker', () => {
         setCache: setCacheMock,
       });
 
-      expect(result).toHaveLength(1);
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'session-1',
+          startedAt: undefined,
+          summary: 'Built login page',
+        },
+      ]);
     });
 
     it('EMPTY: {no jsonl files} => returns empty array', async () => {
@@ -89,7 +95,13 @@ describe('sessionListBroker', () => {
         setCache: setCacheMock,
       });
 
-      expect(result).toHaveLength(1);
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'session-1',
+          startedAt: undefined,
+          summary: 'Cached summary',
+        },
+      ]);
       expect(setCacheMock).not.toHaveBeenCalled();
     });
 
@@ -124,7 +136,7 @@ describe('sessionListBroker', () => {
 
       const setCacheFirstCallArg: unknown = setCacheMock.mock.calls[0]?.[0];
 
-      expect(Reflect.get(setCacheFirstCallArg as object, 'summary')).toBeUndefined();
+      expect(Reflect.get(setCacheFirstCallArg as object, 'summary')).toBe(undefined);
     });
 
     it('ERROR: {stat throws} => session entry is null and filtered out', async () => {
@@ -190,13 +202,16 @@ describe('sessionListBroker', () => {
         setCache: setCacheMock,
       });
 
-      expect(result).toHaveLength(1);
-
-      const session: unknown = result[0];
-
-      expect(Reflect.get(session as object, 'questId')).toBe('add-auth');
-      expect(Reflect.get(session as object, 'questTitle')).toBe('Add Authentication');
-      expect(Reflect.get(session as object, 'questStatus')).toBe('in_progress');
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'session-1',
+          startedAt: undefined,
+          summary: 'Built login page',
+          questId: 'add-auth',
+          questTitle: 'Add Authentication',
+          questStatus: 'in_progress',
+        },
+      ]);
     });
 
     it('VALID: {quest with userRequest} => overrides session summary with userRequest', async () => {
@@ -232,11 +247,16 @@ describe('sessionListBroker', () => {
         setCache: setCacheMock,
       });
 
-      expect(result).toHaveLength(1);
-
-      const session: unknown = result[0];
-
-      expect(Reflect.get(session as object, 'summary')).toBe('Implement OAuth login flow');
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'session-1',
+          startedAt: undefined,
+          summary: 'Implement OAuth login flow',
+          questId: 'add-auth',
+          questTitle: 'Add Authentication',
+          questStatus: 'in_progress',
+        },
+      ]);
     });
 
     it('VALID: {quest without matching session} => session has no quest fields', async () => {
@@ -271,13 +291,13 @@ describe('sessionListBroker', () => {
         setCache: setCacheMock,
       });
 
-      expect(result).toHaveLength(1);
-
-      const session: unknown = result[0];
-
-      expect(Reflect.get(session as object, 'questId')).toBeUndefined();
-      expect(Reflect.get(session as object, 'questTitle')).toBeUndefined();
-      expect(Reflect.get(session as object, 'questStatus')).toBeUndefined();
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'session-1',
+          startedAt: undefined,
+          summary: 'Built login page',
+        },
+      ]);
     });
   });
 });

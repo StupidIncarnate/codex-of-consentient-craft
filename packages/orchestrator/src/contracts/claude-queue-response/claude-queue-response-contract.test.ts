@@ -17,7 +17,7 @@ describe('claudeQueueResponseContract', () => {
       });
 
       expect(result.sessionId).toBe(SessionIdStub());
-      expect(result.lines).toHaveLength(1);
+      expect(result.lines).toStrictEqual([StreamJsonLineStub()]);
     });
 
     it('VALID: {all fields} => parses response with all optional fields', () => {

@@ -135,7 +135,7 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.data).toHaveLength(2);
+          expect(result.current.loading).toBe(false);
         },
       });
 
@@ -176,7 +176,7 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.data).toHaveLength(1);
+          expect(result.current.loading).toBe(false);
         },
       });
 

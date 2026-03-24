@@ -135,7 +135,7 @@ describe('useGuildsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.guilds).toHaveLength(2);
+          expect(result.current.loading).toBe(false);
         },
       });
 

@@ -56,9 +56,7 @@ describe('questListBroker', () => {
 
       const result = await questListBroker({ guildId });
 
-      expect(result).toHaveLength(2);
-      expect(result[0]?.id).toBe('quest-1');
-      expect(result[1]?.id).toBe('quest-2');
+      expect(result.map((q) => q.id)).toStrictEqual(['quest-1', 'quest-2']);
     });
 
     it('VALID: {guildId} => returns empty array when no quest folders exist', async () => {
@@ -132,8 +130,7 @@ describe('questListBroker', () => {
 
       const result = await questListBroker({ guildId });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.id).toBe('hidden-quest');
+      expect(result.map((q) => q.id)).toStrictEqual(['hidden-quest']);
     });
   });
 });

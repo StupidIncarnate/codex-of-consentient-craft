@@ -202,7 +202,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
 
       throwErrorIfViolationsFound(violatingRules);
 
-      expect(violatingRules).toHaveLength(0);
+      expect(violatingRules).toStrictEqual([]);
     });
   });
 
@@ -213,13 +213,18 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
 
       throwErrorIfRulesWithoutFs(rulesWithoutFsOps);
 
-      expect(rulesWithoutFsOps).toHaveLength(0);
+      expect(rulesWithoutFsOps).toStrictEqual([]);
     });
 
     it('VALID: all post-edit rules count => matches expected 4 rules', () => {
       const postEditRules = getAllPostEditRules();
 
-      expect(postEditRules).toHaveLength(4);
+      expect(postEditRules).toStrictEqual([
+        ['@dungeonmaster/enforce-proxy-patterns', 'post-edit'],
+        ['@dungeonmaster/enforce-proxy-child-creation', 'post-edit'],
+        ['@dungeonmaster/enforce-implementation-colocation', 'post-edit'],
+        ['@dungeonmaster/enforce-test-colocation', 'post-edit'],
+      ]);
     });
   });
 
@@ -247,7 +252,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
 
       throwErrorIfMissingRules(missingRules);
 
-      expect(missingRules).toHaveLength(0);
+      expect(missingRules).toStrictEqual([]);
     });
 
     it('VALID: dungeonmasterRuleEnforceOnStatics => does not contain unregistered rules', () => {
@@ -257,7 +262,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
 
       throwErrorIfExtraRules(extraRules);
 
-      expect(extraRules).toHaveLength(0);
+      expect(extraRules).toStrictEqual([]);
     });
   });
 });

@@ -128,8 +128,14 @@ describe('packageDiscoverBroker', () => {
 
       const result = packageDiscoverBroker({ dungeonmasterRoot });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.packageName).toBe('@dungeonmaster/cli');
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          installPath: FilePathStub({
+            value: '/path/with spaces/packages/cli/dist/startup/start-install.js',
+          }),
+        },
+      ]);
     });
   });
 });

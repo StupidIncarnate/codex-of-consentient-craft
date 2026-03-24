@@ -7,6 +7,6 @@ describe('eslintPluginJestLoadAdapter', () => {
 
     const result = eslintPluginJestLoadAdapter();
 
-    expect(result.rules).toBeDefined();
+    expect(typeof result.rules).toBe('object');
   });
 });

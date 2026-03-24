@@ -30,9 +30,28 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
-      expect(results[0]?.purpose).toBe('Validates that user has permission to edit resource');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates that user has permission to edit resource',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'resource?': 'Resource', 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
+        },
+      ]);
     });
 
     it('VALID: {name: "has-permission-guard"} => returns single specific file', async () => {
@@ -57,8 +76,28 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
       const results = await fileScannerBroker({ name: 'has-permission-guard' });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates that user has permission to edit resource',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'resource?': 'Resource', 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
+        },
+      ]);
     });
   });
 
@@ -75,10 +114,19 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('plain-transformer');
-      expect(results[0]?.purpose).toBeUndefined();
-      expect(results[0]?.usage).toBeUndefined();
+      expect(results).toStrictEqual([
+        {
+          fileType: 'transformer',
+          metadata: undefined,
+          name: 'plain-transformer',
+          path: '/project/src/transformers/plain-transformer.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: undefined,
+          source: 'project',
+          usage: undefined,
+        },
+      ]);
     });
   });
 
@@ -121,8 +169,28 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({ path });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: 'src/guards/has-permission-guard.ts',
+          purpose: 'Validates permission',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
     });
   });
 
@@ -144,9 +212,28 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({ fileType });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
-      expect(results[0]?.fileType).toBe('guard');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates permission',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
     });
   });
 
@@ -167,8 +254,28 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({ search: 'permission' });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates that user has permission to edit resource',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
     });
 
     it('VALID: {search: "PERMISSION"} => matches case-insensitively', async () => {
@@ -187,8 +294,28 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({ search: 'PERMISSION' });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates that user has permission to edit resource',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
     });
 
     it('EMPTY: {search: "nonexistent"} => returns empty array', async () => {
@@ -222,9 +349,19 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({ search: 'plain' });
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('plain-transformer');
-      expect(results[0]?.purpose).toBeUndefined();
+      expect(results).toStrictEqual([
+        {
+          fileType: 'transformer',
+          metadata: undefined,
+          name: 'plain-transformer',
+          path: '/project/src/transformers/plain-transformer.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: undefined,
+          source: 'project',
+          usage: undefined,
+        },
+      ]);
     });
   });
 
@@ -270,11 +407,27 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('user-broker');
-      expect(results[0]?.relatedFiles).toStrictEqual([
-        'user-broker.proxy.ts',
-        'user-broker.test.ts',
+      expect(results).toStrictEqual([
+        {
+          fileType: 'broker',
+          metadata: {},
+          name: 'user-broker',
+          path: '/project/src/brokers/user-broker.ts',
+          purpose: 'Manages user operations',
+          relatedFiles: ['user-broker.proxy.ts', 'user-broker.test.ts'],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { userId: 'string' },
+              },
+            ],
+            raw: 'export const userBroker = ({ userId }: { userId: string }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'userBroker({ userId })',
+        },
       ]);
     });
 
@@ -311,9 +464,28 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
-      expect(results[0]?.relatedFiles).toStrictEqual(['has-permission-guard.test.ts']);
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Checks permissions',
+          relatedFiles: ['has-permission-guard.test.ts'],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
     });
 
     it('VALID: implementation file with no related files => relatedFiles is empty', async () => {
@@ -339,9 +511,23 @@ export const orphanGuard = (): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('orphan-guard');
-      expect(results[0]?.relatedFiles).toStrictEqual([]);
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'orphan-guard',
+          path: '/project/src/guards/orphan-guard.ts',
+          purpose: 'Orphaned guard',
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const orphanGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'orphanGuard()',
+        },
+      ]);
     });
 
     it('VALID: relatedFiles are sorted alphabetically', async () => {
@@ -385,11 +571,22 @@ export const userBroker = (): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.relatedFiles).toStrictEqual([
-        'user-broker.proxy.ts',
-        'user-broker.stub.ts',
-        'user-broker.test.ts',
+      expect(results).toStrictEqual([
+        {
+          fileType: 'broker',
+          metadata: {},
+          name: 'user-broker',
+          path: '/project/src/brokers/user-broker.ts',
+          purpose: 'User broker',
+          relatedFiles: ['user-broker.proxy.ts', 'user-broker.stub.ts', 'user-broker.test.ts'],
+          signature: {
+            parameters: [],
+            raw: 'export const userBroker = (): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'userBroker()',
+        },
       ]);
     });
 
@@ -434,9 +631,23 @@ ruleTester.run('my-rule', myRuleBroker(), {
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('my-rule-broker');
-      expect(results[0]?.relatedFiles).toStrictEqual(['my-rule-broker.test.ts']);
+      expect(results).toStrictEqual([
+        {
+          fileType: 'broker',
+          metadata: {},
+          name: 'my-rule-broker',
+          path: '/project/src/brokers/rule/my-rule-broker.ts',
+          purpose: 'Custom ESLint rule',
+          relatedFiles: ['my-rule-broker.test.ts'],
+          signature: {
+            parameters: [],
+            raw: 'export const myRuleBroker = (): RuleModule =>',
+            returnType: 'RuleModule',
+          },
+          source: 'project',
+          usage: 'myRuleBroker()',
+        },
+      ]);
     });
 
     it('VALID: proxy file without exported function => included in relatedFiles', async () => {
@@ -476,9 +687,28 @@ mockAxios.mockResolvedValue({ data: {} });`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('http-adapter');
-      expect(results[0]?.relatedFiles).toStrictEqual(['http-adapter.proxy.ts']);
+      expect(results).toStrictEqual([
+        {
+          fileType: 'adapter',
+          metadata: {},
+          name: 'http-adapter',
+          path: '/project/src/adapters/http/http-adapter.ts',
+          purpose: 'HTTP adapter',
+          relatedFiles: ['http-adapter.proxy.ts'],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { url: 'string' },
+              },
+            ],
+            raw: 'export const httpAdapter = async ({ url }: { url: string }): Promise<Response> =>',
+            returnType: 'Promise<Response>',
+          },
+          source: 'project',
+          usage: 'httpAdapter({ url })',
+        },
+      ]);
     });
 
     it('VALID: implementation file without exported function => not returned in results', async () => {
@@ -525,8 +755,23 @@ export const myGuard = (): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.source).toBe('project');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'my-guard',
+          path: '/project/src/guards/my-guard.ts',
+          purpose: 'My guard',
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const myGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'myGuard()',
+        },
+      ]);
     });
 
     it('VALID: shared package not found => only project files returned', async () => {
@@ -546,8 +791,23 @@ export const myGuard = (): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.source).toBe('project');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'my-guard',
+          path: '/project/src/guards/my-guard.ts',
+          purpose: 'My guard',
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const myGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          source: 'project',
+          usage: 'myGuard()',
+        },
+      ]);
     });
   });
 
@@ -611,9 +871,19 @@ export const hasPermissionGuard = ({ user, resource }) => {
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('has-permission-guard');
-      expect(results[0]?.purpose).toBe('Validates that user has permission to edit resource');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.js',
+          purpose: 'Validates that user has permission to edit resource',
+          relatedFiles: [],
+          signature: undefined,
+          source: 'project',
+          usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
+        },
+      ]);
     });
 
     it('VALID: scans .jsx files => returns jsx files with metadata', async () => {
@@ -636,9 +906,19 @@ export const UserWidget = ({ user }) => {
 
       const results = await fileScannerBroker({});
 
-      expect(results).toHaveLength(1);
-      expect(results[0]?.name).toBe('user-widget');
-      expect(results[0]?.fileType).toBe('widget');
+      expect(results).toStrictEqual([
+        {
+          fileType: 'widget',
+          metadata: {},
+          name: 'user-widget',
+          path: '/project/src/widgets/user-widget.jsx',
+          purpose: 'Displays user profile information',
+          relatedFiles: [],
+          signature: undefined,
+          source: 'project',
+          usage: '<UserWidget user={user} />',
+        },
+      ]);
     });
   });
 });

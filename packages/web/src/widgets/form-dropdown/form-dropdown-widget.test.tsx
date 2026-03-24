@@ -43,7 +43,11 @@ describe('FormDropdownWidget', () => {
       const select = screen.getByTestId('FORM_DROPDOWN');
       const optionElements = select.querySelectorAll('option');
 
-      expect(optionElements).toHaveLength(3);
+      expect(Array.from(optionElements).map((el) => el.getAttribute('value'))).toStrictEqual([
+        'a',
+        'b',
+        'c',
+      ]);
     });
 
     it('VALID: {color: "#ff0000"} => renders with custom color', () => {

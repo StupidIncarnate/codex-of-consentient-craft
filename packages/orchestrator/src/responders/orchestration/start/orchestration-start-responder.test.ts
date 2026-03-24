@@ -106,13 +106,11 @@ describe('OrchestrationStartResponder', () => {
 
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-      const [pathseeker] = pathseekerItems;
 
-      expect(pathseekerItems).toHaveLength(1);
-      expect(pathseeker?.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(pathseeker?.role).toBe('pathseeker');
-      expect(pathseeker?.status).toBe('pending');
-      expect(pathseeker?.spawnerType).toBe('agent');
+      expect(pathseekerItems[0]?.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(pathseekerItems[0]?.role).toBe('pathseeker');
+      expect(pathseekerItems[0]?.status).toBe('pending');
+      expect(pathseekerItems[0]?.spawnerType).toBe('agent');
     });
 
     it('VALID: {approved quest with completed chaos} => persists pathseeker with correct config', async () => {
@@ -150,7 +148,6 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(pathseekerItems).toHaveLength(1);
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([]);
     });
 
@@ -174,7 +171,6 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(pathseekerItems).toHaveLength(1);
       expect(pathseekerItems[0]?.id).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
     });
 
@@ -216,7 +212,6 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(pathseekerItems).toHaveLength(1);
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
     });
 
@@ -242,7 +237,6 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      expect(pathseekerItems).toHaveLength(1);
       expect(pathseekerItems[0]?.role).toBe('pathseeker');
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
     });

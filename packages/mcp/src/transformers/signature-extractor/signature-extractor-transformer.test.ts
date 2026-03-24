@@ -11,7 +11,12 @@ describe('signatureExtractorTransformer', () => {
     const result = signatureExtractorTransformer({ fileContents });
 
     expect(result?.returnType).toBe('Promise<User>');
-    expect(result?.parameters).toHaveLength(1);
+    expect(result?.parameters).toStrictEqual([
+      {
+        name: 'destructured object',
+        type: { userId: 'UserId' },
+      },
+    ]);
   });
 
   it('VALID: {export const with no parameters} => extracts signature', () => {

@@ -21,7 +21,13 @@ describe('treeNodeContract', () => {
 
     expect(result.name).toBe('brokers');
     expect(result.children).toBeInstanceOf(Map);
-    expect(result.items).toHaveLength(1);
+    expect(result.items).toStrictEqual([
+      {
+        name: 'example-guard',
+        type: 'guard',
+        path: '/project/src/guards/example-guard.ts',
+      },
+    ]);
   });
 
   it('VALID: {name: "", children: Map, items: []} => parses successfully with empty name', () => {

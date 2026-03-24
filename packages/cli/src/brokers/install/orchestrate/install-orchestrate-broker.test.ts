@@ -9,6 +9,7 @@ import {
   PackageNameStub,
   InstallContextStub,
   InstallResultStub,
+  ErrorMessageStub,
 } from '@dungeonmaster/shared/contracts';
 
 describe('installOrchestrateBroker', () => {
@@ -48,9 +49,22 @@ describe('installOrchestrateBroker', () => {
 
       const results = await installOrchestrateBroker({ packages, context });
 
-      expect(results).toHaveLength(2);
-      expect(results[0]?.success).toBe(true);
-      expect(results[1]?.success).toBe(true);
+      expect(results).toStrictEqual([
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+      ]);
     });
 
     it('VALID: {packages: [], context} => returns empty array for no packages', async () => {
@@ -107,14 +121,23 @@ describe('installOrchestrateBroker', () => {
 
       const results = await installOrchestrateBroker({ packages, context });
 
-      expect(results).toHaveLength(2);
-
-      // Results are returned in order but one succeeds and one fails
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.filter((r) => !r.success).length;
-
-      expect(successCount).toBe(1);
-      expect(failureCount).toBe(1);
+      expect(results).toStrictEqual([
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/hooks',
+            success: false,
+            action: 'failed',
+            error: ErrorMessageStub({ value: 'Install failed' }),
+          },
+        }),
+      ]);
     });
   });
 });

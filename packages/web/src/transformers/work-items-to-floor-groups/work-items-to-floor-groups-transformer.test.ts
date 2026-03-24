@@ -58,8 +58,6 @@ describe('workItemsToFloorGroupsTransformer', () => {
       const items = [chaos, pathseeker, cw1, ward1, siege, lawbringer, ward2];
       const result = workItemsToFloorGroupsTransformer({ workItems: items });
 
-      expect(result).toHaveLength(7);
-
       const floorNames = result.map((g) => g.floorName);
 
       expect(floorNames).toStrictEqual([
@@ -161,8 +159,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const forgeGroups = result.filter((g) => g.floorName === 'FORGE');
 
-      expect(forgeGroups).toHaveLength(1);
-      expect(forgeGroups[0]!.workItems).toHaveLength(2);
+      expect(forgeGroups.map((g) => g.workItems)).toStrictEqual([[cw1, cw2]]);
     });
   });
 
@@ -201,9 +198,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const cartographyGroups = result.filter((g) => g.floorName === 'ENTRANCE: CARTOGRAPHY');
 
-      expect(cartographyGroups).toHaveLength(2);
-      expect(cartographyGroups[0]!.workItems[0]!.id).toBe(ps1.id);
-      expect(cartographyGroups[1]!.workItems[0]!.id).toBe(ps2.id);
+      expect(cartographyGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
     });
   });
 
@@ -253,9 +248,13 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const homebaseGroups = result.filter((g) => g.floorName === 'HOMEBASE');
 
-      expect(homebaseGroups).toHaveLength(1);
-      expect(homebaseGroups[0]!.workItems).toHaveLength(2);
-      expect(homebaseGroups[0]!.floorNumber).toBeNull();
+      expect(homebaseGroups).toStrictEqual([
+        {
+          floorName: 'HOMEBASE',
+          floorNumber: null,
+          workItems: [chaos, glyph],
+        },
+      ]);
     });
   });
 
@@ -271,9 +270,13 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const result = workItemsToFloorGroupsTransformer({ workItems: [chaos] });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.floorName).toBe('HOMEBASE');
-      expect(result[0]!.workItems).toHaveLength(1);
+      expect(result).toStrictEqual([
+        {
+          floorName: 'HOMEBASE',
+          floorNumber: null,
+          workItems: [chaos],
+        },
+      ]);
     });
   });
 
@@ -554,7 +557,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
         .flatMap((g) => g.workItems)
         .filter((wi) => wi.status === 'skipped');
 
-      expect(skippedInOutput).toHaveLength(0);
+      expect(skippedInOutput).toStrictEqual([]);
       expect(result[result.length - 1]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
       expect(result[result.length - 1]!.workItems[0]!.id).toBe(ps2.id);
     });
@@ -589,7 +592,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       const forgeIdx = result.findIndex((g) => g.floorName === 'FORGE');
       const cartographyGroups = result.filter((g) => g.floorName === 'ENTRANCE: CARTOGRAPHY');
 
-      expect(cartographyGroups).toHaveLength(2);
+      expect(cartographyGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
       expect(cartographyGroups[1]!.workItems[0]!.dependsOn).toStrictEqual([cw.id]);
 
       const lastCartoIdx = result.lastIndexOf(cartographyGroups[1]!);
@@ -669,8 +672,13 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const result = workItemsToFloorGroupsTransformer({ workItems: [item] });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.floorNumber).toBe(1);
+      expect(result).toStrictEqual([
+        {
+          floorName: 'FORGE',
+          floorNumber: 1,
+          workItems: [item],
+        },
+      ]);
     });
   });
 
@@ -693,9 +701,18 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const result = workItemsToFloorGroupsTransformer({ workItems: [chaos, ps] });
 
-      expect(result).toHaveLength(2);
-      expect(result[0]!.floorName).toBe('HOMEBASE');
-      expect(result[1]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
+      expect(result).toStrictEqual([
+        {
+          floorName: 'HOMEBASE',
+          floorNumber: null,
+          workItems: [chaos],
+        },
+        {
+          floorName: 'ENTRANCE: CARTOGRAPHY',
+          floorNumber: null,
+          workItems: [ps],
+        },
+      ]);
     });
   });
 });

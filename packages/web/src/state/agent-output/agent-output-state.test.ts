@@ -36,8 +36,9 @@ describe('agentOutputState', () => {
       agentOutputState.append({ slotIndex, entries: extraEntries });
       const result = agentOutputState.get({ slotIndex });
 
-      expect(result).toHaveLength(500);
-      expect(result[499]?.role).toBe('assistant');
+      const expectedEntries = [...initialEntries.slice(1), ...extraEntries];
+
+      expect(result).toStrictEqual(expectedEntries);
     });
   });
 

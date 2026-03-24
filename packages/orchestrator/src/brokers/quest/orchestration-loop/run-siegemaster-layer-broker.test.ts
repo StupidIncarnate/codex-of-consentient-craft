@@ -46,7 +46,7 @@ describe('runSiegemasterLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(proxy.getModifyContents()).toHaveLength(1);
+      expect(proxy.getModifyContents().map(() => true)).toStrictEqual([true]);
 
       const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
 
@@ -143,7 +143,6 @@ describe('runSiegemasterLayerBroker', () => {
 
       const pathseekerReplan = proxy.getPersistedWorkItemByRole({ role: 'pathseeker' });
 
-      expect(pathseekerReplan).toBeDefined();
       expect(pathseekerReplan?.status).toBe('pending');
       expect(pathseekerReplan?.dependsOn).toStrictEqual([siegeWorkItemId]);
       expect(pathseekerReplan?.insertedBy).toBe(siegeWorkItemId);
@@ -367,7 +366,7 @@ describe('runSiegemasterLayerBroker', () => {
       const modifyContents = proxy.getModifyContents();
 
       // Quest must be untouched — no failed marking, no pathseeker replan, no skipped items
-      expect(modifyContents).toHaveLength(0);
+      expect(modifyContents).toStrictEqual([]);
     });
   });
 });

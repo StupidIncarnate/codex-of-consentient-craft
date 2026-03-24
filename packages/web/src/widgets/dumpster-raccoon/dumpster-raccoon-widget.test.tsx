@@ -25,7 +25,10 @@ describe('DumpsterRaccoonWidget', () => {
 
       const sprites = screen.getAllByTestId('PIXEL_SPRITE');
 
-      expect(sprites).toHaveLength(2);
+      expect(sprites.map((s) => s.getAttribute('data-testid'))).toStrictEqual([
+        'PIXEL_SPRITE',
+        'PIXEL_SPRITE',
+      ]);
     });
 
     it('VALID: {default} => renders loading text', () => {

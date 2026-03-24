@@ -12,8 +12,8 @@ describe('wardQueueResponseContract', () => {
     it('VALID: {empty object} => parses response with no fields', () => {
       const result = wardQueueResponseContract.parse({});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.runId).toBeUndefined();
+      expect(result.exitCode).toBe(undefined);
+      expect(result.runId).toBe(undefined);
     });
 
     it('VALID: {all fields} => parses response with all fields', () => {
@@ -32,7 +32,7 @@ describe('wardQueueResponseContract', () => {
     it('VALID: stub default => returns default response', () => {
       const response: WardQueueResponse = WardQueueResponseStub();
 
-      expect(response).toBeDefined();
+      expect(response).toStrictEqual({});
     });
   });
 

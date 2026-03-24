@@ -6,8 +6,15 @@ describe('RuleViolationStub', () => {
     const result = RuleViolationStub();
 
     expect(result.message).toBe('Violation message');
-    expect(result.node).toBeDefined();
-    expect(result.messageId).toBeUndefined();
+    expect(result.node).toStrictEqual({
+      type: 'Identifier',
+      range: [0, 10],
+      loc: {
+        start: { line: 1, column: 0 },
+        end: { line: 1, column: 10 },
+      },
+    });
+    expect(result.messageId).toBe(undefined);
   });
 
   it('VALID: {message: "Custom message"} => returns RuleViolation with custom message', () => {

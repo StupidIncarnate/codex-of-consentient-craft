@@ -113,7 +113,7 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.designPort).toBeUndefined();
+      expect(result.designPort).toBe(undefined);
     });
 
     it('VALID: quest with design fields => parses successfully', () => {

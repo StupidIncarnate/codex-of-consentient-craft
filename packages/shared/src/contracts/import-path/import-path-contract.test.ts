@@ -20,7 +20,7 @@ describe('importPathContract', () => {
     expect(result).toBe('node_modules');
   });
 
-  it('VALID: contract is defined', () => {
-    expect(importPathContract).toBeDefined();
+  it('VALID: contract parses a string to branded ImportPath', () => {
+    expect(importPathContract.parse('guards')).toBe('guards');
   });
 });

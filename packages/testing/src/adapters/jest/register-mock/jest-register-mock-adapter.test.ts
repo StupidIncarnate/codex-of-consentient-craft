@@ -152,7 +152,7 @@ describe('jestRegisterMockAdapter', () => {
 
       const result = mockFn();
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -234,7 +234,7 @@ describe('jestRegisterMockAdapter', () => {
 
       const result = mockFn();
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 

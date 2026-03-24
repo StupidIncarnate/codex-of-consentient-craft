@@ -102,7 +102,9 @@ describe('ChatPanelWidget', () => {
 
       const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
 
-      expect(loadingIndicators).toHaveLength(1);
+      expect(loadingIndicators.map((el) => el.getAttribute('data-testid'))).toStrictEqual([
+        'TOOL_LOADING',
+      ]);
     });
 
     it('VALID: {previous turn tool_use, new turn streaming} => does not show Running on previous turn tools', () => {
@@ -132,7 +134,9 @@ describe('ChatPanelWidget', () => {
 
       const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
 
-      expect(loadingIndicators).toHaveLength(1);
+      expect(loadingIndicators.map((el) => el.getAttribute('data-testid'))).toStrictEqual([
+        'TOOL_LOADING',
+      ]);
     });
 
     it('VALID: {tool_use with text response after, isStreaming true} => does not show Running when text response exists', () => {
@@ -160,7 +164,7 @@ describe('ChatPanelWidget', () => {
 
       const loadingIndicators = screen.queryAllByTestId('TOOL_LOADING');
 
-      expect(loadingIndicators).toHaveLength(0);
+      expect(loadingIndicators).toStrictEqual([]);
     });
 
     it('VALID: {tool_use as last entry, isStreaming false} => does not show Running indicator', () => {

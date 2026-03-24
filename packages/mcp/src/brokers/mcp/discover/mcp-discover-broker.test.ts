@@ -186,16 +186,19 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', name: 'has-permission-guard' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(Array.isArray(result.results)).toBe(true);
-      expect(result.results).toHaveLength(1);
-      expect(result.results[0]).toStrictEqual({
-        name: 'has-permission-guard',
-        path: 'src/guards/has-permission-guard.ts',
-        type: 'guard',
-        purpose: 'Validates permission',
-        usage: 'hasPermissionGuard({ user })',
-        signature: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
-        relatedFiles: [],
+      expect(result).toStrictEqual({
+        results: [
+          {
+            name: 'has-permission-guard',
+            path: 'src/guards/has-permission-guard.ts',
+            type: 'guard',
+            purpose: 'Validates permission',
+            usage: 'hasPermissionGuard({ user })',
+            signature: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            relatedFiles: [],
+          },
+        ],
+        count: 1,
       });
     });
 

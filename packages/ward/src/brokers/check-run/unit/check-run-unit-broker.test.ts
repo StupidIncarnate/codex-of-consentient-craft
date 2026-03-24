@@ -362,7 +362,7 @@ describe('checkRunUnitBroker', () => {
         }),
       );
 
-      expect(proxy.getSpawnedArgs()).toBeUndefined();
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
 
     it('VALID: {fileList with mix of unit and integration files} => only passes unit files to --findRelatedTests', async () => {
@@ -424,7 +424,7 @@ describe('checkRunUnitBroker', () => {
         }),
       );
 
-      expect(proxy.getSpawnedArgs()).toBeUndefined();
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
   });
 

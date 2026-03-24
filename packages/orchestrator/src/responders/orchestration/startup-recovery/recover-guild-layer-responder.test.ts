@@ -402,9 +402,9 @@ describe('RecoverGuildLayerResponder', () => {
 
       const resetQuest = persistedQuests.find((q) => q.id === questId);
 
-      expect(resetQuest).toBeDefined();
+      expect(resetQuest?.id).toBe(questId);
 
-      const workItems = resetQuest?.workItems as Record<PropertyKey, unknown>[];
+      const workItems = resetQuest!.workItems as Record<PropertyKey, unknown>[];
       const wardItem = workItems.find((wi) => wi.id === wardItemId);
 
       expect(wardItem?.status).toBe('pending');
