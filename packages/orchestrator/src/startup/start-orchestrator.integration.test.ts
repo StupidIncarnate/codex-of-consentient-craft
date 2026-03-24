@@ -1,35 +1,19 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
 import { GuildPathStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+
+import { orchestrationEnvironmentHarness } from '../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
 import { StartOrchestrator } from './start-orchestrator';
 
-const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
-  const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
-  const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: baseName }),
-  });
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-  const dmDir = join(testbed.guildPath, environmentStatics.testDataDir);
-  mkdirSync(dmDir, { recursive: true });
-  writeFileSync(join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
-
-  return (): void => {
-    if (savedDungeonmasterHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
-    } else {
-      process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
-    }
-  };
-};
-
 describe('StartOrchestrator', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+
   describe('guild wiring', () => {
     it('VALID: {listGuilds} => delegates to GuildFlow.list and returns array', async () => {
-      const restore = setupTestHome({ baseName: 'start-orch-list' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-list' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const result = await StartOrchestrator.listGuilds();
 
@@ -41,7 +25,10 @@ describe('StartOrchestrator', () => {
 
   describe('quest wiring', () => {
     it('VALID: {nonexistent questId} => getQuest delegates to QuestFlow.get and returns error', async () => {
-      const restore = setupTestHome({ baseName: 'start-orch-quest' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-quest' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const result = await StartOrchestrator.getQuest({ questId: 'nonexistent-quest-id' });
 
@@ -51,7 +38,10 @@ describe('StartOrchestrator', () => {
     });
 
     it('VALID: {nonexistent questId} => verifyQuest delegates to QuestFlow.verify and returns error', async () => {
-      const restore = setupTestHome({ baseName: 'start-orch-verify' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-verify' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const result = await StartOrchestrator.verifyQuest({ questId: 'nonexistent-quest-id' });
 
@@ -71,7 +61,10 @@ describe('StartOrchestrator', () => {
     });
 
     it('ERROR: {nonexistent questId} => pauseQuest delegates to OrchestrationFlow.pause and throws', async () => {
-      const restore = setupTestHome({ baseName: 'start-orch-pause' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-pause' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const questId = QuestIdStub({ value: 'nonexistent-quest-id' });
 
       const thrownError = await StartOrchestrator.pauseQuest({ questId }).catch(

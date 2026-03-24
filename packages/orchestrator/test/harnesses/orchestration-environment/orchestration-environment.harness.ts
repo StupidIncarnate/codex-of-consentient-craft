@@ -32,6 +32,9 @@ const FAKE_WARD_CLI = path.join(FAKE_WARD_BIN_DIR, 'dungeonmaster-ward');
 export const orchestrationEnvironmentHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
+  setupHome: (params: { tempDir: GuildPath }) => {
+    restore: () => void;
+  };
   setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
     claudeQueueDir: FilePath;
     wardQueueDir: FilePath;
@@ -62,6 +65,27 @@ export const orchestrationEnvironmentHarness = (): {
         }
       }
     },
+    setupHome: ({ tempDir }: { tempDir: GuildPath }): { restore: () => void } => {
+      const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
+      process.env.DUNGEONMASTER_HOME = tempDir;
+
+      const dmDir = path.join(tempDir, environmentStatics.testDataDir);
+      fs.mkdirSync(dmDir, { recursive: true });
+      fs.writeFileSync(path.join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
+
+      const restore = (): void => {
+        if (savedDungeonmasterHome === undefined) {
+          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+        } else {
+          process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
+        }
+      };
+
+      currentRestore = restore;
+
+      return { restore };
+    },
+
     setup: ({
       tempDir,
       queueHarness,

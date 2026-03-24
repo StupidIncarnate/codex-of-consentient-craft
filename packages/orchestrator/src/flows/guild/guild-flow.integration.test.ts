@@ -1,26 +1,19 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { GuildIdStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
+
+import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
 import { GuildFlow } from './guild-flow';
 
-const setupGuildHome = (guildPath: string): void => {
-  const dungeonmasterDir = join(guildPath, environmentStatics.testDataDir);
-  mkdirSync(dungeonmasterDir, { recursive: true });
-  writeFileSync(join(dungeonmasterDir, 'config.json'), JSON.stringify({ guilds: [] }));
-};
-
 describe('GuildFlow', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+
   describe('delegation to responders', () => {
     it('VALID: {name, path} => add delegates to GuildAddResponder and returns new guild', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-add' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'My Test App' });
       const path = GuildPathStub({ value: '/home/user/my-test-app' });
@@ -28,7 +21,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.add({ name, path });
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual({
         id: result.id,
@@ -43,8 +36,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-get' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'Findable Guild' });
       const path = GuildPathStub({ value: '/home/user/findable-guild' });
@@ -55,7 +47,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.get({ guildId });
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual({
         id: added.id,
@@ -70,13 +62,12 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-list-empty' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const result = await GuildFlow.list();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual([]);
     });
@@ -85,8 +76,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-list-one' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'Listed Guild' });
       const path = GuildPathStub({ value: '/home/user/listed-guild' });
@@ -96,7 +86,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.list();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual([
         {
@@ -115,8 +105,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-list-many' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const first = await GuildFlow.add({
         name: GuildNameStub({ value: 'First Guild' }),
@@ -130,7 +119,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.list();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual([
         {
@@ -158,8 +147,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-update-name' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'Original Name' }),
@@ -171,7 +159,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.update({ guildId, name: newName });
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual({
         id: added.id,
@@ -186,8 +174,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-update-path' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'Guild With Path' }),
@@ -199,7 +186,7 @@ describe('GuildFlow', () => {
       const result = await GuildFlow.update({ guildId, path: newPath });
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual({
         id: added.id,
@@ -214,8 +201,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-remove' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'To Be Removed' }),
@@ -228,7 +214,7 @@ describe('GuildFlow', () => {
       const remaining = await GuildFlow.list();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(remaining).toStrictEqual([]);
     });
@@ -237,8 +223,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-lifecycle' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const first = await GuildFlow.add({
         name: GuildNameStub({ value: 'First' }),
@@ -254,7 +239,7 @@ describe('GuildFlow', () => {
       const listed = await GuildFlow.list();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(listed).toStrictEqual([
         {
@@ -273,8 +258,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-get-error' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
       const errorMessage = await GuildFlow.get({ guildId }).catch(
@@ -282,7 +266,7 @@ describe('GuildFlow', () => {
       );
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(errorMessage).toMatch(/Guild not found/u);
     });
@@ -291,8 +275,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-remove-error' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
       const errorMessage = await GuildFlow.remove({ guildId }).catch(
@@ -300,7 +283,7 @@ describe('GuildFlow', () => {
       );
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(errorMessage).toMatch(/Guild not found/u);
     });
@@ -309,8 +292,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-update-error' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
       const errorMessage = await GuildFlow.update({ guildId }).catch(
@@ -318,7 +300,7 @@ describe('GuildFlow', () => {
       );
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(errorMessage).toMatch(/Guild not found/u);
     });
@@ -327,8 +309,7 @@ describe('GuildFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'guild-flow-duplicate' }),
       });
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-      setupGuildHome(testbed.guildPath);
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const path = GuildPathStub({ value: '/home/user/duplicate-path' });
 
@@ -343,7 +324,7 @@ describe('GuildFlow', () => {
       }).catch((thrown: unknown) => (thrown as Error).message);
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(errorMessage).toMatch(
         /A guild with path \/home\/user\/duplicate-path already exists/u,

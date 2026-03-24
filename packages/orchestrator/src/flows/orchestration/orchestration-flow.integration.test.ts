@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   DependencyStepStub,
-  ExitCodeStub,
   FilePathStub,
   FlowEdgeStub,
   FlowNodeStub,
@@ -14,14 +13,8 @@ import {
   QuestIdStub,
   SessionIdStub,
   StepIdStub,
-  SystemInitStreamLineStub,
-  ResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ClaudeQueueResponseStub } from '../../contracts/claude-queue-response/claude-queue-response.stub';
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
-import type { WardQueueResponseStub } from '../../contracts/ward-queue-response/ward-queue-response.stub';
-import { WardRunIdStub } from '../../contracts/ward-run-id/ward-run-id.stub';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
@@ -31,9 +24,8 @@ import { OrchestrationFlow } from './orchestration-flow';
 import { orchestrationQueueHarness } from '../../../test/harnesses/orchestration-queue/orchestration-queue.harness';
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
+import { orchestrationJsonlHarness } from '../../../test/harnesses/orchestration-jsonl/orchestration-jsonl.harness';
 
-type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
-type WardQueueResponse = ReturnType<typeof WardQueueResponseStub>;
 type QuestType = NonNullable<Awaited<ReturnType<typeof QuestGetResponder>>['quest']>;
 
 // Short branding helper to keep call-sites concise
@@ -42,96 +34,14 @@ const sid = (
 ): ReturnType<typeof SessionIdStub> => SessionIdStub({ value });
 
 // ---------------------------------------------------------------------------
-// JSONL line builders (using shared stubs)
-// ---------------------------------------------------------------------------
-
-const signalBackLine = ({
-  signal,
-  summary,
-}: {
-  signal: 'complete' | 'failed';
-  summary?: string;
-}): ReturnType<typeof StreamJsonLineStub> =>
-  StreamJsonLineStub({
-    value: JSON.stringify({
-      type: 'assistant',
-      message: {
-        content: [
-          {
-            type: 'tool_use',
-            name: 'mcp__dungeonmaster__signal-back',
-            input: { signal, ...(summary === undefined ? {} : { summary }) },
-          },
-        ],
-      },
-    }),
-  });
-
-const agentSuccessResponse = ({
-  sessionId = SessionIdStub({ value: 'sess-integ-001' }),
-}: { sessionId?: ClaudeQueueResponse['sessionId'] } = {}): ClaudeQueueResponse => ({
-  sessionId,
-  lines: [
-    StreamJsonLineStub({
-      value: JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
-    }),
-    signalBackLine({ signal: 'complete', summary: 'Task completed successfully' }),
-    StreamJsonLineStub({ value: JSON.stringify(ResultStreamLineStub({ session_id: sessionId })) }),
-  ],
-});
-
-const agentFailedResponse = ({
-  sessionId = SessionIdStub({ value: 'sess-integ-fail' }),
-  summary = 'Task failed',
-  exitCode = ExitCodeStub({ value: 0 }),
-}: {
-  sessionId?: ClaudeQueueResponse['sessionId'];
-  summary?: Parameters<typeof signalBackLine>[0]['summary'];
-  exitCode?: ReturnType<typeof ExitCodeStub>;
-} = {}): ClaudeQueueResponse => ({
-  sessionId,
-  exitCode,
-  lines: [
-    StreamJsonLineStub({
-      value: JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
-    }),
-    signalBackLine({ signal: 'failed', summary }),
-    StreamJsonLineStub({ value: JSON.stringify(ResultStreamLineStub({ session_id: sessionId })) }),
-  ],
-});
-
-const wardPassResponse = (): WardQueueResponse => ({
-  exitCode: ExitCodeStub({ value: 0 }),
-  runId: WardRunIdStub({ value: `ward-${String(Date.now())}` }),
-  wardResultJson: { checks: [] },
-});
-
-const wardFailResponse = ({
-  filePaths = [],
-}: { filePaths?: ReturnType<typeof FilePathStub>[] } = {}): WardQueueResponse => ({
-  exitCode: ExitCodeStub({ value: 1 }),
-  runId: WardRunIdStub({ value: `ward-fail-${String(Date.now())}` }),
-  wardResultJson: {
-    checks: [
-      {
-        projectResults: [
-          {
-            errors: filePaths.map((fp) => ({ filePath: fp })),
-            testFailures: [],
-          },
-        ],
-      },
-    ],
-  },
-});
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('OrchestrationFlow', () => {
   const queue = orchestrationQueueHarness();
   const envHarness = orchestrationEnvironmentHarness();
+  const jsonl = orchestrationJsonlHarness();
+  const { agentSuccessResponse, agentFailedResponse, wardPassResponse, wardFailResponse } = jsonl;
   const questHelper = orchestrationQuestHarness();
 
   describe('delegation to responders', () => {

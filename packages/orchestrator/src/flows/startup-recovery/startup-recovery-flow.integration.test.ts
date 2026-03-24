@@ -1,12 +1,12 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
+
+import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
 import { StartupRecoveryFlow } from './startup-recovery-flow';
 
 describe('StartupRecoveryFlow', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+
   describe('export', () => {
     it('VALID: StartupRecoveryFlow => exports an async function', () => {
       expect(typeof StartupRecoveryFlow).toBe('function');
@@ -18,17 +18,12 @@ describe('StartupRecoveryFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'startup-recovery' }),
       });
-
-      process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-
-      const dungeonmasterDir = join(testbed.guildPath, environmentStatics.testDataDir);
-      mkdirSync(dungeonmasterDir, { recursive: true });
-      writeFileSync(join(dungeonmasterDir, 'config.json'), JSON.stringify({ guilds: [] }));
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const result = await StartupRecoveryFlow();
 
       testbed.cleanup();
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      restore();
 
       expect(result).toStrictEqual([]);
     });

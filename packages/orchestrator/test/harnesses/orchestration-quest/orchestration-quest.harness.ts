@@ -264,7 +264,15 @@ export const orchestrationQuestHarness = (): {
     afterEach: async (): Promise<void> => {
       const idsToRemove = [...createdGuildIds];
       createdGuildIds.length = 0;
-      await Promise.all(idsToRemove.map(async (guildId) => GuildRemoveResponder({ guildId })));
+      await Promise.all(
+        idsToRemove.map(async (guildId) => {
+          try {
+            await GuildRemoveResponder({ guildId });
+          } catch {
+            // Guild config may be unavailable if test environment was already cleaned up
+          }
+        }),
+      );
     },
     buildValidFlows,
     buildValidSteps,
