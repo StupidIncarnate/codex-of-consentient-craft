@@ -44,7 +44,9 @@ ruleTester.run(
         filename: '/project/e2e/web/smoke.spec.ts',
       },
       {
-        code: 'const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;',
+        code: ['const extractGuildId = (guild: Record<string, unknown>) => `', '{guild.id}`;'].join(
+          '$',
+        ),
         filename: '/project/e2e/web/chat-features.spec.ts',
       },
 
