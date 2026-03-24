@@ -7,7 +7,6 @@ describe('QuestFlow', () => {
 
       const names = registrations.map(({ name }) => name);
 
-      expect(registrations).toHaveLength(7);
       expect(names).toStrictEqual([
         'get-quest',
         'modify-quest',

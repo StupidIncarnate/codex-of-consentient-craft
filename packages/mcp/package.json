@@ -2,13 +2,13 @@
   "name": "@dungeonmaster/mcp",
   "version": "0.1.0",
   "description": "MCP server for discovering utilities, brokers, and standards across the codebase",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "exports": {
     ".": {
       "source": "./src/index.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
     },
     "./brokers": {
       "source": "./brokers.ts",
@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",

@@ -3,175 +3,42 @@
  * No mocks - spawns real server and communicates via stdio
  */
 
-import { spawn } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import type { InstallTestbed } from '@dungeonmaster/testing';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
+
 import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
-import { JsonRpcResponseStub } from '../../contracts/json-rpc-response/json-rpc-response.stub';
 import { RpcIdStub } from '../../contracts/rpc-id/rpc-id.stub';
 import { RpcMethodStub } from '../../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverTreeResultStub } from '../../contracts/discover-tree-result/discover-tree-result.stub';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
 import { GetQuestResultStub } from '../../contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '../../contracts/modify-quest-result/modify-quest-result.stub';
-import { mcpServerStatics } from '../../statics/mcp-server/mcp-server-statics';
-import type { McpServerClientStub } from '../../contracts/mcp-server-client/mcp-server-client.stub';
-import { BufferStateStub } from '../../contracts/buffer-state/buffer-state.stub';
 
-type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
-type JsonRpcRequest = ReturnType<typeof JsonRpcRequestStub>;
-type RpcId = ReturnType<typeof RpcIdStub>;
-type McpServerClient = ReturnType<typeof McpServerClientStub>;
-
-const JSON_INDENT_SPACES = 2;
-
-const createMcpClient = async (): Promise<
-  McpServerClient & { dungeonmasterHome: InstallTestbed['guildPath'] }
-> => {
-  const serverEntryPoint = path.join(__dirname, '../../index.ts');
-
-  // Create isolated temp directory using testbed
-  const testbed = installTestbedCreateBroker({
-    baseName: BaseNameStub({ value: 'mcp-server' }),
-  });
-
-  const serverProcess = spawn('npx', ['tsx', serverEntryPoint], {
-    stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: testbed.guildPath,
-    env: { ...process.env, DUNGEONMASTER_HOME: testbed.guildPath },
-  });
-
-  const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
-  const pendingTimeouts = new Map<RpcId, NodeJS.Timeout>();
-  const bufferState = BufferStateStub();
-
-  const dataHandler = (chunk: Buffer): void => {
-    bufferState.value = (bufferState.value + chunk.toString()) as typeof bufferState.value;
-
-    const lines = bufferState.value.split('\n');
-    const remaining = lines.pop() ?? '';
-    bufferState.value = remaining as typeof bufferState.value;
-
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) {
-        continue;
-      }
-
-      try {
-        const parsed: unknown = JSON.parse(trimmedLine);
-        const response = JsonRpcResponseStub(parsed as never);
-        const resolver = pendingResponses.get(response.id);
-        if (resolver) {
-          const timeoutId = pendingTimeouts.get(response.id);
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            pendingTimeouts.delete(response.id);
-          }
-
-          resolver(response);
-          pendingResponses.delete(response.id);
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  };
-
-  serverProcess.stdout.on('data', dataHandler);
-
-  await new Promise((resolve) => {
-    setTimeout(resolve, mcpServerStatics.timeouts.startupMs);
-  });
-
-  return {
-    dungeonmasterHome: testbed.guildPath,
-    process: serverProcess,
-    sendRequest: async (request: JsonRpcRequest): Promise<JsonRpcResponse> =>
-      new Promise((resolve, reject) => {
-        pendingResponses.set(request.id, resolve);
-
-        const requestJson = `${JSON.stringify(request)}\n`;
-        serverProcess.stdin.write(requestJson);
-
-        const timeoutId = setTimeout(() => {
-          if (pendingResponses.has(request.id)) {
-            pendingResponses.delete(request.id);
-            pendingTimeouts.delete(request.id);
-            reject(new Error(`Request ${request.id} timed out`));
-          }
-        }, mcpServerStatics.timeouts.requestMs);
-
-        pendingTimeouts.set(request.id, timeoutId);
-      }),
-    close: async (): Promise<void> =>
-      new Promise((resolve) => {
-        for (const timeoutId of pendingTimeouts.values()) {
-          clearTimeout(timeoutId);
-        }
-        pendingTimeouts.clear();
-
-        pendingResponses.clear();
-
-        serverProcess.once('close', () => {
-          serverProcess.stdout.removeAllListeners();
-          serverProcess.stderr.removeAllListeners();
-          serverProcess.stdin.removeAllListeners();
-
-          // Clean up temp directory
-          testbed.cleanup();
-
-          resolve();
-        });
-
-        serverProcess.stdout.off('data', dataHandler);
-
-        serverProcess.kill();
-      }),
-  };
-};
+import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.harness';
 
 describe('McpServerFlow', () => {
+  const mcp = mcpServerHarness();
+
   describe('initialization', () => {
     it('VALID: Server starts and responds to initialize request', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 1 }),
-        method: RpcMethodStub({ value: 'initialize' }),
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: {
-            name: 'test-client',
-            version: '1.0.0',
-          },
-        },
-      });
+      const request = mcp.buildInitRequest();
 
       const response = await client.sendRequest(request);
 
       await client.close();
 
       expect(response.error).toBeUndefined();
-      expect(response.result).toBeDefined();
+      expect(response.result).not.toBeUndefined();
     });
   });
 
   describe('tools/list', () => {
     it('VALID: Returns at least 5 tools including all expected tools', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 2 }),
-        method: RpcMethodStub({ value: 'tools/list' }),
-        params: {},
-      });
+      const request = mcp.buildToolListRequest();
 
       const response = await client.sendRequest(request);
 
@@ -186,12 +53,12 @@ describe('McpServerFlow', () => {
       const discoverTool = result.tools.find((tool) => tool.name === 'discover');
       const architectureTool = result.tools.find((tool) => tool.name === 'get-architecture');
 
-      expect(discoverTool).toBeDefined();
-      expect(architectureTool).toBeDefined();
+      expect(discoverTool).not.toBeUndefined();
+      expect(architectureTool).not.toBeUndefined();
     });
 
     it('VALID: All tool inputSchemas have type: "object" at root (required by Claude Code)', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 100 }),
@@ -215,7 +82,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-architecture', () => {
     it('VALID: Returns architecture overview markdown', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3 }),
@@ -241,7 +108,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-testing-patterns', () => {
     it('VALID: Returns testing patterns markdown', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 13 }),
@@ -267,7 +134,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with discover', () => {
     it('VALID: {type: files, path: src/brokers} => returns tree format', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4 }),
@@ -290,7 +157,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).toBeDefined();
+      expect(firstContent).not.toBeUndefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -300,7 +167,7 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: {type: files, fileType: adapter} => returns adapters from @dungeonmaster/shared', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5 }),
@@ -323,7 +190,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).toBeDefined();
+      expect(firstContent).not.toBeUndefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -332,7 +199,7 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 6 }),
@@ -355,7 +222,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).toBeDefined();
+      expect(firstContent).not.toBeUndefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -366,7 +233,7 @@ describe('McpServerFlow', () => {
 
   describe('invalid tool calls', () => {
     it('ERROR: {name: unknown-tool} => returns error', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 999 }),
@@ -381,14 +248,14 @@ describe('McpServerFlow', () => {
 
       await client.close();
 
-      expect(response.error).toBeDefined();
+      expect(response.error).not.toBeUndefined();
       expect(response.error?.message).toMatch(/^.*Unknown tool.*$/u);
     });
   });
 
   describe('quest tools storage consistency', () => {
     it('VALID: get-quest => retrieves a pre-seeded quest', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const questId = 'storage-test-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -402,19 +269,12 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing storage consistency' as never,
       });
 
-      const questDir = path.join(
-        client.dungeonmasterHome,
-        environmentStatics.testDataDir,
-        'guilds',
+      mcp.seedQuest({
+        dungeonmasterHome: client.dungeonmasterHome,
         guildId,
-        'quests',
         questFolder,
-      );
-      fs.mkdirSync(questDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(questDir, 'quest.json'),
-        JSON.stringify(quest, null, JSON_INDENT_SPACES),
-      );
+        quest,
+      });
 
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 1004 }),
@@ -443,7 +303,7 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: modify-quest => get-quest => retrieves modified quest with new design decision', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const questId = 'modify-flow-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -457,19 +317,12 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing modify flow' as never,
       });
 
-      const questDir = path.join(
-        client.dungeonmasterHome,
-        environmentStatics.testDataDir,
-        'guilds',
+      mcp.seedQuest({
+        dungeonmasterHome: client.dungeonmasterHome,
         guildId,
-        'quests',
         questFolder,
-      );
-      fs.mkdirSync(questDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(questDir, 'quest.json'),
-        JSON.stringify(quest, null, JSON_INDENT_SPACES),
-      );
+        quest,
+      });
 
       const modifyQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 2002 }),
@@ -532,7 +385,7 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: get-quest with non-existent questId => returns error', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3001 }),
@@ -560,7 +413,7 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3002 }),
@@ -584,7 +437,7 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: get-quest with existing quest => does not set isError', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const questId = 'is-error-success-test';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -598,19 +451,12 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing isError not set on success' as never,
       });
 
-      const questDir = path.join(
-        client.dungeonmasterHome,
-        environmentStatics.testDataDir,
-        'guilds',
+      mcp.seedQuest({
+        dungeonmasterHome: client.dungeonmasterHome,
         guildId,
-        'quests',
         questFolder,
-      );
-      fs.mkdirSync(questDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(questDir, 'quest.json'),
-        JSON.stringify(quest, null, JSON_INDENT_SPACES),
-      );
+        quest,
+      });
 
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3003 }),
@@ -636,7 +482,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-folder-detail', () => {
     it('VALID: {folderType: brokers} => returns brokers folder documentation', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4001 }),
@@ -664,7 +510,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-syntax-rules', () => {
     it('VALID: {} => returns syntax rules markdown', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5001 }),
@@ -690,7 +536,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with discover standards', () => {
     it('VALID: {type: standards} => returns JSON response with results array', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 7001 }),
@@ -724,7 +570,7 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with ask-user-question', () => {
     it('VALID: {questions array with single question} => returns instruction text', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 9001 }),
@@ -760,7 +606,7 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {
-      const client = await createMcpClient();
+      const client = await mcp.createClient();
 
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 9002 }),
@@ -777,7 +623,7 @@ describe('McpServerFlow', () => {
 
       await client.close();
 
-      expect(response.error).toBeDefined();
+      expect(response.error).not.toBeUndefined();
     });
   });
 });

@@ -7,7 +7,6 @@ describe('ArchitectureFlow', () => {
 
       const names = registrations.map(({ name }) => name);
 
-      expect(registrations).toHaveLength(5);
       expect(names).toStrictEqual([
         'discover',
         'get-architecture',

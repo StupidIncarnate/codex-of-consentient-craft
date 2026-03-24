@@ -7,7 +7,6 @@ describe('InteractionFlow', () => {
 
       const names = registrations.map(({ name }) => name);
 
-      expect(registrations).toHaveLength(2);
       expect(names).toStrictEqual(['signal-back', 'ask-user-question']);
     });
 

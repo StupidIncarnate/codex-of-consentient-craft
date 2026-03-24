@@ -22,7 +22,7 @@ describe('folderConstraintsState', () => {
 
     const retrieved = folderConstraintsState.get({ folderType });
 
-    expect(retrieved).toBe(undefined);
+    expect(retrieved).toBeUndefined();
   });
 
   it('VALID: clear() => removes all stored constraints', () => {
@@ -38,8 +38,8 @@ describe('folderConstraintsState', () => {
 
     folderConstraintsState.clear();
 
-    expect(folderConstraintsState.get({ folderType: folderType1 })).toBe(undefined);
-    expect(folderConstraintsState.get({ folderType: folderType2 })).toBe(undefined);
+    expect(folderConstraintsState.get({ folderType: folderType1 })).toBeUndefined();
+    expect(folderConstraintsState.get({ folderType: folderType2 })).toBeUndefined();
   });
 
   it('VALID: getAll() => returns Map with all stored constraints', () => {

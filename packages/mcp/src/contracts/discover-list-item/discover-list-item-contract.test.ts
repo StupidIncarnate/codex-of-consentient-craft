@@ -37,6 +37,6 @@ describe('discoverListItemContract', () => {
 
     expect(result.name).toBe('my-broker');
     expect(result.type).toBe('broker');
-    expect(result.purpose).toBe(undefined);
+    expect(result.purpose).toBeUndefined();
   });
 });
