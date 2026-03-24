@@ -1,61 +1,15 @@
-import * as path from 'path';
-import { execSync } from 'child_process';
 import {
   integrationEnvironmentCreateBroker,
   BaseNameStub,
   FileNameStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { CommandResultStub } from '../../contracts/command-result/command-result.stub';
-import { ExitCodeStub } from '../../contracts/exit-code/exit-code.stub';
-import { ProcessOutputStub } from '../../contracts/process-output/process-output.stub';
-import type { ExecErrorStub } from '../../contracts/exec-error/exec-error.stub';
 
-type ExecError = ReturnType<typeof ExecErrorStub>;
-
-const isExecError = (error: unknown): error is ExecError => {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as Record<PropertyKey, unknown>).status === 'number'
-  );
-};
-
-const entryPath = path.join(process.cwd(), 'bin', 'detect-duplicate-primitives.ts');
-
-const runStartup = ({ args }: { args: readonly string[] }) => {
-  const command = `npx tsx ${entryPath} ${args.join(' ')}`;
-
-  try {
-    const stdout = execSync(command, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: process.cwd(),
-    });
-    return CommandResultStub({
-      exitCode: ExitCodeStub({ value: 0 }),
-      stdout: ProcessOutputStub({ value: stdout }),
-      stderr: ProcessOutputStub({ value: '' }),
-    });
-  } catch (error) {
-    if (!isExecError(error)) {
-      throw error;
-    }
-    const execError = error;
-    const DEFAULT_EXIT_CODE = 1;
-    const exitCode = execError.status ?? DEFAULT_EXIT_CODE;
-    const stdout = execError.stdout?.toString() ?? '';
-    const stderr = execError.stderr?.toString() ?? '';
-    return CommandResultStub({
-      exitCode: ExitCodeStub({ value: exitCode }),
-      stdout: ProcessOutputStub({ value: stdout }),
-      stderr: ProcessOutputStub({ value: stderr }),
-    });
-  }
-};
+import { toolingRunnerHarness } from '../../../test/harnesses/tooling-runner/tooling-runner.harness';
 
 describe('StartPrimitiveDuplicateDetection', () => {
+  const harness = toolingRunnerHarness();
+
   describe('with no duplicates', () => {
     it('VALID: {pattern: "**/*.ts", files: unique strings} => returns exit code 0 with success message', () => {
       const env = integrationEnvironmentCreateBroker({
@@ -74,7 +28,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         content: FileContentStub({ value: `export const message2 = 'unique message two';` }),
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
@@ -112,7 +66,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         content: FileContentStub({ value: `export const text = 'duplicate string';` }),
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
@@ -142,7 +96,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         content: FileContentStub({ value: `export const text = 'twice only';` }),
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`, `--threshold=2`],
       });
 
@@ -163,7 +117,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         },
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
@@ -193,7 +147,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         content: FileContentStub({ value: `export const msg3 = '${longString}';` }),
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
@@ -228,7 +182,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         content: FileContentStub({ value: `export const pattern3 = /^[a-z]+$/;` }),
       });
 
-      const result = runStartup({
+      const result = harness.runStartup({
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
