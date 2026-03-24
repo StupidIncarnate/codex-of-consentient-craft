@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { APIRequestContext } from '@playwright/test';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 export { queueClaudeResponse, clearClaudeQueue } from '../harness/claude-mock/queue-helpers';
 export { queueWardResponse, clearWardQueue } from '../harness/ward-mock/queue-helpers';
@@ -15,32 +16,45 @@ export {
 } from '../harness/claude-mock/claude-response-stubs';
 export { wireHarnessLifecycle } from './harness-wire';
 
-export const cleanGuilds = async (request: APIRequestContext): Promise<void> => {
+export const cleanGuilds = async ({ request }: { request: APIRequestContext }): Promise<void> => {
   const response = await request.get('/api/guilds');
-  const guilds = await response.json();
+  const data: unknown = await response.json();
+  const guilds = Array.isArray(data) ? (data as Record<PropertyKey, unknown>[]) : [];
   for (const guild of guilds) {
-    await request.delete(`/api/guilds/${guild.id}`);
+    await request.delete(`/api/guilds/${String(guild.id)}`);
   }
 };
 
-export const createGuild = async (
-  request: APIRequestContext,
-  { name, path: guildPath }: { name: string; path: string },
-): Promise<Record<string, unknown>> => {
+export const createGuild = async ({
+  request,
+  name,
+  path: guildPath,
+}: {
+  request: APIRequestContext;
+  name: string;
+  path: string;
+}): Promise<Record<PropertyKey, unknown>> => {
   const response = await request.post('/api/guilds', {
     data: { name, path: guildPath },
   });
-  return response.json();
+  return response.json() as Promise<Record<PropertyKey, unknown>>;
 };
 
-export const createQuest = async (
-  request: APIRequestContext,
-  { guildId, title, userRequest }: { guildId: string; title: string; userRequest: string },
-): Promise<{ questId: string; success: boolean }> => {
+export const createQuest = async ({
+  request,
+  guildId,
+  title,
+  userRequest,
+}: {
+  request: APIRequestContext;
+  guildId: string;
+  title: string;
+  userRequest: string;
+}): Promise<{ questId: QuestId; success: boolean }> => {
   const response = await request.post('/api/quests', {
     data: { guildId, title, userRequest },
   });
-  return response.json();
+  return response.json() as Promise<{ questId: QuestId; success: boolean }>;
 };
 
 /**

@@ -1,6 +1,11 @@
+import type { SessionId } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+
 import type { StreamJsonUsage, ToolUseConfig } from './types';
 
-const DEFAULT_SESSION_ID = 'e2e-session-00000000-0000-0000-0000-000000000000';
+const DEFAULT_SESSION_ID = SessionIdStub({
+  value: 'e2e-session-00000000-0000-0000-0000-000000000000',
+});
 
 const DEFAULT_USAGE: StreamJsonUsage = {
   input_tokens: 100,
@@ -11,7 +16,7 @@ const DEFAULT_USAGE: StreamJsonUsage = {
 
 export const SessionInitLineStub = ({
   sessionId = DEFAULT_SESSION_ID,
-}: { sessionId?: string } = {}): string =>
+}: { sessionId?: SessionId } = {}): string =>
   JSON.stringify({
     type: 'system',
     subtype: 'init',
@@ -55,7 +60,7 @@ export const ToolResultLineStub = ({
 
 export const ResultLineStub = ({
   sessionId = DEFAULT_SESSION_ID,
-}: { sessionId?: string } = {}): string =>
+}: { sessionId?: SessionId } = {}): string =>
   JSON.stringify({
     type: 'result',
     session_id: sessionId,

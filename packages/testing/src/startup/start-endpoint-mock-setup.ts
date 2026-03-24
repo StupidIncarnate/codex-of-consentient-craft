@@ -7,17 +7,22 @@
  */
 
 import { EndpointMockSetupFlow } from '../flows/endpoint-mock-setup/endpoint-mock-setup-flow';
+import { NetworkRecordLifecycleFlow } from '../flows/network-record-lifecycle/network-record-lifecycle-flow';
 
 const lifecycle = EndpointMockSetupFlow();
+const recorder = NetworkRecordLifecycleFlow();
 
 beforeAll(() => {
   lifecycle.listen();
+  recorder.start();
 });
 
-afterEach(() => {
+afterEach(async () => {
+  await recorder.afterEach();
   lifecycle.resetHandlers();
 });
 
 afterAll(() => {
+  recorder.stop();
   lifecycle.close();
 });

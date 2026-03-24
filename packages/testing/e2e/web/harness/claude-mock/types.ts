@@ -1,3 +1,5 @@
+import type { ExitCode, SessionId } from '@dungeonmaster/shared/contracts';
+
 export interface StreamJsonUsage {
   input_tokens: number;
   output_tokens: number;
@@ -12,8 +14,8 @@ export interface ToolUseConfig {
 }
 
 export interface ClaudeResponse {
-  sessionId: string;
+  sessionId: SessionId;
   lines: string[];
-  exitCode?: number;
+  exitCode?: ExitCode;
   delayMs?: number;
 }

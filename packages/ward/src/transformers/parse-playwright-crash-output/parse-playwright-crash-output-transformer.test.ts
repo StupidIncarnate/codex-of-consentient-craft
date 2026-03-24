@@ -52,8 +52,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           suitePath: 'e2e/web/quest.spec.ts',
           testName: 'Quest › starts quest',
           message: [
-            'Test timeout of 10000ms exceeded.',
-            'Error: page.waitForResponse: Test timeout of 10000ms exceeded.',
+            'Error: page.waitForResponse: ',
             '85 |   sessionId: string;',
             '86 | }): Promise<void> => {',
             '> 87 |   const sessionResponsePromise = page.waitForResponse(',

@@ -20,7 +20,7 @@ describe('typescriptSourceFileGetterAdapter', () => {
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
-      expect(result).not.toBe(undefined);
+      expect(result).not.toBeUndefined();
       expect(result?.fileName).toBe(filePath);
     });
   });
@@ -42,7 +42,7 @@ describe('typescriptSourceFileGetterAdapter', () => {
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
       // Should parse the file directly since it exists on disk
-      expect(result).not.toBe(undefined);
+      expect(result).not.toBeUndefined();
       expect(result?.fileName).toBe(filePath);
     });
 
@@ -59,7 +59,7 @@ describe('typescriptSourceFileGetterAdapter', () => {
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 });

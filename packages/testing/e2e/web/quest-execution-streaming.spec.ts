@@ -1,59 +1,44 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  cleanSessionDirectory,
-  queueClaudeResponse,
-  clearClaudeQueue,
+  claudeMockHarness,
   SimpleTextResponseStub,
-} from './fixtures/test-helpers';
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-execution-streaming';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const PANEL_TIMEOUT = 5_000;
 const STREAMING_TEXT_TIMEOUT = 5_000;
 
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
+const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 
 test.describe('Quest Execution Streaming', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
   });
 
   test('execution panel renders streamed LLM text content from pathseeker', async ({
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Streaming Guild',
-      path: GUILD_PATH,
-    });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await createGuild({ request, name: 'Streaming Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
     const sessionId = `e2e-exec-stream-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Execution Streaming Quest',
       userRequest: 'Build the feature',
@@ -62,56 +47,31 @@ test.describe('Quest Execution Streaming', () => {
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
-    const quest = {
-      id: questId,
-      folder: questFolder,
-      title: 'E2E Execution Streaming Quest',
+    quests.writeQuestFile({
+      questId: String(questId),
+      questFolder,
+      questFilePath,
       status: 'in_progress',
-      createdAt: new Date().toISOString(),
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
           sessionId,
-          createdAt: new Date().toISOString(),
-          relatedDataItems: [],
-          dependsOn: [],
         },
       ],
-      userRequest: 'Build the feature',
-      designDecisions: [],
-      steps: [],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'test-flow',
-          name: 'Test Flow',
-          entryPoint: 'start',
-          exitPoints: ['end'],
-          nodes: [
-            { id: 'start', label: 'Start', type: 'state', observables: [] },
-            { id: 'end', label: 'End', type: 'terminal', observables: [] },
-          ],
-          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    });
 
     // Queue response for pathseeker with delay so the text is visible before CLI exits
     const response = SimpleTextResponseStub({
       text: 'Analyzing quest requirements and planning steps',
     });
     response.delayMs = 500;
-    queueClaudeResponse(response);
+    claudeMock.queueResponse({ response });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     // Execution panel should appear since quest is in_progress
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({

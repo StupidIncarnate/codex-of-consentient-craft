@@ -1,25 +1,19 @@
 import * as crypto from 'crypto';
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  createMultiEntrySessionFile,
-  cleanSessionDirectory,
-  queueClaudeResponse,
-  clearClaudeQueue,
+  claudeMockHarness,
   SimpleTextResponseStub,
-} from './fixtures/test-helpers';
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-session-id-routing';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const STREAMING_TEXT_TIMEOUT = 10_000;
-const REPLAY_SETTLE_MS = 2000;
-
 /**
  * Roles visible in the execution panel UI, mapped to their dungeon floor names.
  */
@@ -34,156 +28,16 @@ const ROLE_FLOOR_MAP: Record<string, string> = {
 
 const VISIBLE_ROLES = Object.keys(ROLE_FLOOR_MAP);
 
-/**
- * Creates a JSONL session file with an assistant text entry that will be replayed.
- * The replay mechanism reads these files and broadcasts them as chat-output WS events.
- */
-const createSessionWithAssistantText = ({
-  guildPath,
-  sessionId,
-  text,
-}: {
-  guildPath: string;
-  sessionId: string;
-  text: string;
-}): void => {
-  createMultiEntrySessionFile({
-    guildPath,
-    sessionId,
-    lines: [
-      JSON.stringify({
-        type: 'user',
-        message: { role: 'user', content: 'Build the feature' },
-      }),
-      JSON.stringify({
-        type: 'assistant',
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text }],
-          usage: { input_tokens: 100, output_tokens: 50 },
-        },
-      }),
-    ],
-  });
-};
-
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
-
-/**
- * Sends replay-history WS messages from the browser for each sessionId.
- * This is needed because the frontend's built-in replay fires before the WS
- * connection is fully open. By sending from page.evaluate after the page has
- * settled, we ensure the WS is connected and the replays succeed.
- */
-const triggerReplayFromBrowser = async ({
-  page,
-  guildId,
-  sessionIds,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  guildId: string;
-  sessionIds: string[];
-}): Promise<void> => {
-  await page.evaluate(
-    ({ guildId: gId, sessionIds: sIds }) => {
-      const wsUrl = `ws://${globalThis.location.host}/ws`;
-      const ws = new globalThis.WebSocket(wsUrl);
-      ws.onopen = (): void => {
-        for (const sid of sIds) {
-          ws.send(
-            JSON.stringify({
-              type: 'replay-history',
-              sessionId: sid,
-              guildId: gId,
-              chatProcessId: `replay-${sid}`,
-            }),
-          );
-        }
-        // Close after a brief delay to ensure messages are sent
-        globalThis.setTimeout(() => {
-          ws.close();
-        }, 500);
-      };
-    },
-    { guildId, sessionIds },
-  );
-};
-
-/**
- * Builds a quest JSON object with the given parameters.
- * The quest is written to the server-resolved filePath from createQuest.
- */
-const buildQuestJson = ({
-  questId,
-  questFolder,
-  status,
-  workItems,
-}: {
-  questId: ReturnType<typeof crypto.randomUUID>;
-  questFolder: ReturnType<typeof String>;
-  status: ReturnType<typeof String>;
-  workItems: {
-    id: ReturnType<typeof crypto.randomUUID>;
-    role: ReturnType<typeof String>;
-    sessionId: ReturnType<typeof String>;
-    status?: ReturnType<typeof String>;
-  }[];
-}): Record<PropertyKey, unknown> => ({
-  id: questId,
-  folder: questFolder,
-  title: 'E2E Session Routing Quest',
-  status,
-  createdAt: new Date().toISOString(),
-  workItems: workItems.map((wi) => ({
-    id: wi.id,
-    role: wi.role,
-    status: wi.status ?? 'complete',
-    spawnerType: 'agent',
-    sessionId: wi.sessionId,
-    createdAt: new Date().toISOString(),
-    relatedDataItems: [],
-    dependsOn: [],
-  })),
-  userRequest: 'Build the feature',
-  designDecisions: [],
-  steps: [],
-  toolingRequirements: [],
-  contracts: [],
-  flows: [
-    {
-      id: 'routing-flow',
-      name: 'Session Routing Flow',
-      entryPoint: 'start',
-      exitPoints: ['end'],
-      nodes: [
-        { id: 'start', label: 'Start', type: 'state', observables: [] },
-        { id: 'end', label: 'End', type: 'terminal', observables: [] },
-      ],
-      edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-    },
-  ],
+const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
 });
 
 test.describe('Session ID Routing', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
   });
 
   test.describe('per-role streamed text content appears in correct work item panel', () => {
@@ -192,10 +46,9 @@ test.describe('Session ID Routing', () => {
         page,
         request,
       }) => {
-        const guild = await createGuild(request, {
-          name: `Role ${role} Guild`,
-          path: GUILD_PATH,
-        });
+        const quests = questHarness({ request });
+        const nav = navigationHarness({ page });
+        const guild = await createGuild({ request, name: `Role ${role} Guild`, path: GUILD_PATH });
         const guildId = String(guild.id);
         const mainSessionId = `e2e-role-${role}-${Date.now()}`;
         const roleSessionId =
@@ -204,16 +57,14 @@ test.describe('Session ID Routing', () => {
         const roleText = `Unique ${role} output text ${Date.now()}`;
 
         // Create main session file (chaoswhisperer session)
-        createSessionWithAssistantText({
-          guildPath: GUILD_PATH,
+        sessions.createSessionWithAssistantText({
           sessionId: mainSessionId,
           text: role === 'chaoswhisperer' ? roleText : `Chaoswhisperer analysis for ${role} test`,
         });
 
         // Create session file for the target role (if not chaoswhisperer)
         if (role !== 'chaoswhisperer') {
-          createSessionWithAssistantText({
-            guildPath: GUILD_PATH,
+          sessions.createSessionWithAssistantText({
             sessionId: roleSessionId,
             text: roleText,
           });
@@ -237,7 +88,8 @@ test.describe('Session ID Routing', () => {
         ];
 
         // Create quest via API to get the server-resolved file path
-        const created = await createQuest(request, {
+        const created = await createQuest({
+          request,
           guildId,
           title: 'E2E Session Routing Quest',
           userRequest: 'Build the feature',
@@ -245,18 +97,18 @@ test.describe('Session ID Routing', () => {
         const questFilePath = String(Reflect.get(created, 'filePath'));
         const questFolder = String(Reflect.get(created, 'questFolder'));
 
-        const quest = buildQuestJson({
-          questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+        quests.writeQuestFile({
+          questId: String(created.questId),
           questFolder,
+          questFilePath,
           status: 'complete',
           workItems,
         });
-        writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
         const urlSlug = String(guild.urlSlug ?? guild.name)
           .toLowerCase()
           .replace(/\s+/gu, '-');
-        await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+        await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
         // Execution panel should appear (complete status is an execution phase)
         await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -272,10 +124,7 @@ test.describe('Session ID Routing', () => {
 
         // Trigger replay from browser to ensure WS is connected when messages are sent
         const replaySessionIds = workItems.map((wi) => wi.sessionId);
-        await triggerReplayFromBrowser({ page, guildId, sessionIds: replaySessionIds });
-
-        // Wait for replay events to propagate through the WS pipeline
-        await page.waitForTimeout(REPLAY_SETTLE_MS);
+        await nav.triggerReplayFromBrowser({ guildId, sessionIds: replaySessionIds });
 
         // Find the execution row for this role and expand it
         const roleRow = page.getByTestId('execution-row-layer-widget').filter({
@@ -302,21 +151,20 @@ test.describe('Session ID Routing', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Streaming Route Guild',
-      path: GUILD_PATH,
-    });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await createGuild({ request, name: 'Streaming Route Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
     const mainSessionId = `e2e-stream-route-${Date.now()}`;
 
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId: mainSessionId,
       userMessage: 'Build the feature',
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',
@@ -326,9 +174,10 @@ test.describe('Session ID Routing', () => {
 
     // Create quest with in_progress status and only chaoswhisperer complete.
     // The orchestrator will auto-create and run a pathseeker.
-    const quest = buildQuestJson({
-      questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+    quests.writeQuestFile({
+      questId: String(created.questId),
       questFolder,
+      questFilePath,
       status: 'in_progress',
       workItems: [
         {
@@ -338,18 +187,17 @@ test.describe('Session ID Routing', () => {
         },
       ],
     });
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Queue a response for the pathseeker agent with unique text
     const pathseekerText = `Pathseeker routing verification ${Date.now()}`;
     const response = SimpleTextResponseStub({ text: pathseekerText });
     response.delayMs = 500;
-    queueClaudeResponse(response);
+    claudeMock.queueResponse({ response });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     // Execution panel should appear
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -376,10 +224,9 @@ test.describe('Session ID Routing', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Multi Content Guild',
-      path: GUILD_PATH,
-    });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await createGuild({ request, name: 'Multi Content Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
     const mainSessionId = `e2e-multi-content-${Date.now()}`;
     const cwSessionId1 = `e2e-cw1-${Date.now()}`;
@@ -389,24 +236,22 @@ test.describe('Session ID Routing', () => {
     const alphaText = `Alpha message for codeweaver-1 ${Date.now()}`;
     const betaText = `Beta message for codeweaver-2 ${Date.now()}`;
 
-    createSessionWithAssistantText({
-      guildPath: GUILD_PATH,
+    sessions.createSessionWithAssistantText({
       sessionId: mainSessionId,
       text: 'Chaoswhisperer analysis complete',
     });
-    createSessionWithAssistantText({
-      guildPath: GUILD_PATH,
+    sessions.createSessionWithAssistantText({
       sessionId: cwSessionId1,
       text: alphaText,
     });
-    createSessionWithAssistantText({
-      guildPath: GUILD_PATH,
+    sessions.createSessionWithAssistantText({
       sessionId: cwSessionId2,
       text: betaText,
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',
@@ -414,9 +259,10 @@ test.describe('Session ID Routing', () => {
     const questFilePath = String(Reflect.get(created, 'filePath'));
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
-    const quest = buildQuestJson({
-      questId: created.questId as ReturnType<typeof crypto.randomUUID>,
+    quests.writeQuestFile({
+      questId: String(created.questId),
       questFolder,
+      questFilePath,
       status: 'complete',
       workItems: [
         {
@@ -436,12 +282,11 @@ test.describe('Session ID Routing', () => {
         },
       ],
     });
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     // Execution panel should appear
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -456,14 +301,10 @@ test.describe('Session ID Routing', () => {
     await expect(cwRows).toHaveCount(2, { timeout: PANEL_TIMEOUT });
 
     // Trigger replay from browser to ensure WS is connected when messages are sent
-    await triggerReplayFromBrowser({
-      page,
+    await nav.triggerReplayFromBrowser({
       guildId,
       sessionIds: [mainSessionId, cwSessionId1, cwSessionId2],
     });
-
-    // Wait for replay events to propagate
-    await page.waitForTimeout(REPLAY_SETTLE_MS);
 
     // Expand first codeweaver row
     await cwRows.nth(0).getByTestId('execution-row-header').click();

@@ -14,10 +14,10 @@ const path = require('path');
 
 const {
   typescriptProxyMockTransformerMiddleware,
-} = require('../dist/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
+} = require('../dist/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
 const {
   typescriptProgramContract,
-} = require('../dist/contracts/typescript-program/typescript-program-contract');
+} = require('../dist/src/contracts/typescript-program/typescript-program-contract');
 
 // Compute version from shared/testing.ts barrel AND all proxy files across the monorepo,
 // so cache invalidates when any proxy file's jest.mock() calls change.

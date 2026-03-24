@@ -1,45 +1,48 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  cleanSessionDirectory,
-  queueClaudeResponse,
-  clearClaudeQueue,
+  claudeMockHarness,
   SimpleTextResponseStub,
-} from './fixtures/test-helpers';
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const PANEL_TIMEOUT = 5_000;
 const CHAT_TIMEOUT = 5_000;
 
+const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
+
 test.describe('Quest WS Update', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
   });
 
   test('spec panel appears via WebSocket when quest gains content after page load', async ({
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'WS Update Guild', path: GUILD_PATH });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await createGuild({ request, name: 'WS Update Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E WS Update Quest',
       userRequest: 'Build the feature',
@@ -49,45 +52,28 @@ test.describe('Quest WS Update', () => {
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
     // Write quest with no content (empty flows) so spec panel shows with empty quest data
-    const quest = {
-      id: questId,
-      folder: questFolder,
-      title: 'E2E WS Update Quest',
+    quests.writeQuestFile({
+      questId: String(questId),
+      questFolder,
+      questFilePath,
       status: 'created',
-      createdAt: new Date().toISOString(),
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
           sessionId,
-          createdAt: new Date().toISOString(),
-          relatedDataItems: [],
-          dependsOn: [],
         },
       ],
-      userRequest: 'Build the feature',
-      designDecisions: [],
-      steps: [],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-    );
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await guildsResponsePromise;
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     // Quest exists but has no content — spec panel shows immediately with empty quest data
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
 
     // PATCH the quest to add a flow — this triggers quest-modified WS broadcast
     await request.patch(`/api/quests/${questId}`, {
@@ -113,17 +99,19 @@ test.describe('Quest WS Update', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'WS Incremental Guild', path: GUILD_PATH });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const guild = await createGuild({ request, name: 'WS Incremental Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-inc-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E WS Incremental Quest',
       userRequest: 'Build the feature',
@@ -133,54 +121,28 @@ test.describe('Quest WS Update', () => {
     const questFolder = String(Reflect.get(created, 'questFolder'));
 
     // Create quest with one flow so the spec panel renders immediately
-    const quest = {
-      id: questId,
-      folder: questFolder,
-      title: 'E2E WS Incremental Quest',
+    quests.writeQuestFile({
+      questId: String(questId),
+      questFolder,
+      questFilePath,
       status: 'approved',
-      createdAt: new Date().toISOString(),
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
           sessionId,
-          createdAt: new Date().toISOString(),
-          relatedDataItems: [],
-          dependsOn: [],
         },
       ],
-      userRequest: 'Build the feature',
-      designDecisions: [],
-      steps: [],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'initial-flow',
-          name: 'Initial Flow',
-          entryPoint: 'Start',
-          exitPoints: ['End'],
-          nodes: [],
-          edges: [],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-    );
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await guildsResponsePromise;
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByText('Initial Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // PATCH the quest to add a second flow via WS broadcast
     await request.patch(`/api/quests/${questId}`, {
@@ -206,10 +168,7 @@ test.describe('Quest WS Update', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Quest Link Race Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Quest Link Race Guild', path: GUILD_PATH });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -218,11 +177,14 @@ test.describe('Quest WS Update', () => {
     // Queue a Claude response for the new-session flow.
     // The sessionId must be unique; the fake CLI writes a JSONL file using it.
     const sessionId = `e2e-session-link-race-${Date.now()}`;
-    queueClaudeResponse(SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }));
+    claudeMock.queueResponse({
+      response: SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }),
+    });
 
     // Navigate to the guild session page WITHOUT a sessionId — this is a new chat
+    const _nav = navigationHarness({ page });
     const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+      (r) => r.url().includes('/api/guilds') && r.status() === 200,
     );
     await page.goto(`/${urlSlug}/session`);
     await guildsResponsePromise;
@@ -251,7 +213,7 @@ test.describe('Quest WS Update', () => {
     const guildId = String(guild.id);
     const questsResponse = await request.get(`/api/quests?guildId=${guildId}`);
     const quests = await questsResponse.json();
-    const createdQuest = quests[0];
+    const [createdQuest] = quests;
     const questId = String(createdQuest.id);
 
     // PATCH the quest to add a flow and advance status — this triggers quest-modified WS broadcast.

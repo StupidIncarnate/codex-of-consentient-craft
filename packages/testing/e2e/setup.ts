@@ -11,6 +11,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+
 // Testbed directory for E2E tests
 const E2E_TESTBED_ROOT = path.join(__dirname, '..', 'tmp');
 
@@ -29,18 +31,18 @@ const E2E_ENV_VARS = {
 /**
  * Set up environment variables for E2E tests
  */
-function setupEnvironment(): void {
+const setupEnvironment = (): void => {
   for (const [key, value] of Object.entries(E2E_ENV_VARS)) {
     if (process.env[key] === undefined) {
       process.env[key] = value;
     }
   }
-}
+};
 
 /**
  * Clean up all testbed directories created during E2E tests
  */
-function cleanupTestbeds(): void {
+const cleanupTestbeds = (): void => {
   if (fs.existsSync(E2E_TESTBED_ROOT)) {
     try {
       // Get all directories in testbed root
@@ -51,26 +53,25 @@ function cleanupTestbeds(): void {
           const dirPath = path.join(E2E_TESTBED_ROOT, entry.name);
           try {
             fs.rmSync(dirPath, { recursive: true, force: true });
-          } catch (error) {
-            // Log but don't fail - cleanup is best effort
-            console.warn(`Failed to clean up testbed directory: ${dirPath}`, error);
+          } catch {
+            // Cleanup is best effort — directory may be locked or already removed
           }
         }
       }
-    } catch (error) {
-      console.warn('Failed to clean up testbed root:', error);
+    } catch {
+      // Testbed root may not exist or may be inaccessible
     }
   }
-}
+};
 
 /**
  * Ensure testbed root directory exists
  */
-function ensureTestbedRoot(): void {
+const ensureTestbedRoot = (): void => {
   if (!fs.existsSync(E2E_TESTBED_ROOT)) {
     fs.mkdirSync(E2E_TESTBED_ROOT, { recursive: true });
   }
-}
+};
 
 /**
  * Global setup - runs before all E2E tests
@@ -84,14 +85,14 @@ beforeAll(() => {
 
   // Log E2E test environment info
   if (process.env.DEBUG_E2E === 'true') {
-    console.log('\n========================================');
-    console.log('E2E Test Environment');
-    console.log('========================================');
-    console.log(`Testbed Root: ${E2E_TESTBED_ROOT}`);
-    console.log(`Node Version: ${process.version}`);
-    console.log(`Platform: ${process.platform}`);
-    console.log(`CI Mode: ${process.env.CI}`);
-    console.log('========================================\n');
+    process.stderr.write('\n========================================\n');
+    process.stderr.write('E2E Test Environment\n');
+    process.stderr.write('========================================\n');
+    process.stderr.write(`Testbed Root: ${E2E_TESTBED_ROOT}\n`);
+    process.stderr.write(`Node Version: ${process.version}\n`);
+    process.stderr.write(`Platform: ${process.platform}\n`);
+    process.stderr.write(`CI Mode: ${process.env.CI ?? 'undefined'}\n`);
+    process.stderr.write('========================================\n\n');
   }
 });
 
@@ -103,7 +104,7 @@ afterAll(() => {
   if (process.env.KEEP_TESTBEDS !== 'true') {
     cleanupTestbeds();
   } else if (process.env.DEBUG_E2E === 'true') {
-    console.log(`\nTestbeds preserved at: ${E2E_TESTBED_ROOT}`);
+    process.stderr.write(`\nTestbeds preserved at: ${E2E_TESTBED_ROOT}\n`);
   }
 });
 
@@ -119,13 +120,13 @@ afterEach(() => {
 export { E2E_TESTBED_ROOT, E2E_ENV_VARS, cleanupTestbeds, ensureTestbedRoot };
 
 // Export helper for creating isolated test directories
-export function createE2ETestDir(testName: string): string {
+export const createE2ETestDir = ({ testName }: { testName: string }): { dirPath: FilePath } => {
   const timestamp = Date.now();
-  const sanitizedName = testName.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
+  const sanitizedName = testName.replace(/[^a-zA-Z0-9\-_]/gu, '-').toLowerCase();
   const dirName = `e2e-${sanitizedName}-${timestamp}`;
-  const dirPath = path.join(E2E_TESTBED_ROOT, dirName);
+  const dirPath = path.join(E2E_TESTBED_ROOT, dirName) as FilePath;
 
   fs.mkdirSync(dirPath, { recursive: true });
 
-  return dirPath;
-}
+  return { dirPath };
+};

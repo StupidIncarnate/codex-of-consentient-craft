@@ -1,72 +1,43 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  cleanSessionDirectory,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-begin-transition';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
 const PATHSEEKER_TIMEOUT = 10_000;
 
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
-
-const patchQuestStatus = async ({
-  request,
-  questId,
-  status,
-}: {
-  request: Parameters<Parameters<typeof test>[2]>[0]['request'];
-  questId: string;
-  status: string;
-}): Promise<void> => {
-  await request.patch(`/api/quests/${questId}`, {
-    data: { status },
-  });
-};
+const sessions = sessionHarness({ guildPath: GUILD_PATH });
+wireHarnessLifecycle({ harness: sessions, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
+    sessions.cleanSessionDirectory();
   });
 
   test('clicking Begin Quest sends PATCH to transition quest status to in_progress', async ({
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Begin Transition Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Begin Transition Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
     const sessionId = `e2e-begin-transition-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Begin Transition Quest',
       userRequest: 'Build the feature',
@@ -76,53 +47,27 @@ test.describe('Quest Begin Transition', () => {
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
     // Overwrite quest.json with desired status
-    const quest = {
-      id: questId,
-      folder: questFolder,
-      title: 'E2E Begin Transition Quest',
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       status: 'review_observables',
-      createdAt: new Date().toISOString(),
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
           sessionId,
-          createdAt: new Date().toISOString(),
-          relatedDataItems: [],
-          dependsOn: [],
+          status: 'complete',
         },
       ],
-      userRequest: 'Build the feature',
-      designDecisions: [],
-      steps: [],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'test-flow',
-          name: 'Test Flow',
-          entryPoint: 'start',
-          exitPoints: ['end'],
-          nodes: [
-            { id: 'start', label: 'Start', type: 'state', observables: [] },
-            { id: 'end', label: 'End', type: 'terminal', observables: [] },
-          ],
-          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    });
 
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -166,16 +111,17 @@ test.describe('Quest Begin Transition', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Design Begin Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Design Begin Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
     const sessionId = `e2e-design-begin-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
+    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Design Begin Quest',
       userRequest: 'Build the feature',
@@ -185,53 +131,27 @@ test.describe('Quest Begin Transition', () => {
     const questFilePath = String(Reflect.get(created, 'filePath'));
 
     // Overwrite quest.json with desired status
-    const quest = {
-      id: questId,
-      folder: questFolder,
-      title: 'E2E Design Begin Quest',
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       status: 'review_design',
-      createdAt: new Date().toISOString(),
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
           sessionId,
-          createdAt: new Date().toISOString(),
-          relatedDataItems: [],
-          dependsOn: [],
+          status: 'complete',
         },
       ],
-      userRequest: 'Build the feature',
-      designDecisions: [],
-      steps: [],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'test-flow',
-          name: 'Test Flow',
-          entryPoint: 'start',
-          exitPoints: ['end'],
-          nodes: [
-            { id: 'start', label: 'Start', type: 'state', observables: [] },
-            { id: 'end', label: 'End', type: 'terminal', observables: [] },
-          ],
-          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    });
 
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'design_approved' });
+    await quests.patchQuestStatus({ questId, status: 'design_approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,

@@ -1,27 +1,27 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createSessionFile,
-  cleanSessionFiles,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-detail';
 
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
+
 test.describe('Quest Detail Navigation', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionFiles({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
   });
 
   test('click session item opens quest chat view', async ({ page, request }) => {
-    await createGuild(request, { name: 'Test Guild', path: GUILD_PATH });
+    await createGuild({ request, name: 'Test Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-detail-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Build something',
     });
@@ -39,11 +39,10 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('quest chat view has input and activity panel', async ({ page, request }) => {
-    await createGuild(request, { name: 'Tab Guild', path: GUILD_PATH });
+    await createGuild({ request, name: 'Tab Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-tab-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Test tabs',
     });
@@ -60,11 +59,10 @@ test.describe('Quest Detail Navigation', () => {
   });
 
   test('browser back returns to session list', async ({ page, request }) => {
-    await createGuild(request, { name: 'Back Guild', path: GUILD_PATH });
+    await createGuild({ request, name: 'Back Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-back-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Test back',
     });

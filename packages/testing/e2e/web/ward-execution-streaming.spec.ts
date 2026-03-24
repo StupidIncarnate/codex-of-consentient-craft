@@ -1,62 +1,42 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  cleanSessionDirectory,
-  clearClaudeQueue,
-  queueWardResponse,
-  clearWardQueue,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { wardMockHarness } from '../../test/harnesses/ward-mock/ward-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 import { DelayMillisecondsStub } from '../../src/contracts/delay-milliseconds/delay-milliseconds.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-ward-execution-streaming';
-const JSON_INDENT = 2;
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
-const TEST_TIMEOUT = 30_000;
 
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
+wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const wardMock = wireHarnessLifecycle({ harness: wardMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 
 test.describe('Ward Execution Streaming', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    clearWardQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
   });
 
   test('mini boss ward streams output lines to execution panel', async ({ page, request }) => {
-    test.setTimeout(TEST_TIMEOUT);
+    test.slow();
 
-    const guild = await createGuild(request, {
-      name: 'Ward Mini Boss Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Ward Mini Boss Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
     const sessionId = `e2e-ward-mini-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Test ward streaming' });
+    sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Ward mini-boss Streaming',
       userRequest: 'Test ward streaming',
@@ -72,12 +52,14 @@ test.describe('Ward Execution Streaming', () => {
     const now = new Date().toISOString();
 
     // Overwrite quest.json with in_progress status and work items including a pending ward
-    const quest = {
-      id: questId,
-      folder: questFolder,
+    const quests = questHarness({ request });
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       title: 'E2E Ward mini-boss Streaming',
       status: 'in_progress',
-      createdAt: now,
+      userRequest: 'Test ward streaming',
       workItems: [
         {
           id: chaoswhispererId,
@@ -86,8 +68,6 @@ test.describe('Ward Execution Streaming', () => {
           spawnerType: 'agent',
           sessionId,
           createdAt: now,
-          relatedDataItems: [],
-          dependsOn: [],
           completedAt: now,
         },
         {
@@ -96,9 +76,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `ps-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [chaoswhispererId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -107,9 +86,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `cw-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [pathseekerId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -118,55 +96,28 @@ test.describe('Ward Execution Streaming', () => {
           status: 'pending',
           spawnerType: 'command',
           createdAt: now,
-          relatedDataItems: [],
           dependsOn: [codeweaver1Id],
           attempt: 0,
           maxAttempts: 3,
         },
       ],
-      userRequest: 'Test ward streaming',
-      designDecisions: [],
-      steps: [
-        {
-          id: 'implement-feature',
-          name: 'Implement feature',
-          description: 'Build the feature',
-          observablesSatisfied: [],
-          dependsOn: [],
-          filesToCreate: [],
-          filesToModify: [],
-        },
-      ],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'test-flow',
-          name: 'Test Flow',
-          entryPoint: 'start',
-          exitPoints: ['end'],
-          nodes: [
-            { id: 'start', label: 'Start', type: 'state', observables: [] },
-            { id: 'end', label: 'End', type: 'terminal', observables: [] },
-          ],
-          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+      steps: [{ id: 'implement-feature', name: 'Implement feature' }],
+    });
 
     // Queue ward response with output lines that should stream to the frontend.
     // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
     // and reconnect its WS listener before ward output lines are broadcast.
-    queueWardResponse({
-      exitCode: 0,
-      runId: 'e2e-mini-boss-run-001',
-      delayMs: DelayMillisecondsStub({ value: 500 }),
-      outputLines: [
-        'lint        @dungeonmaster/shared PASS  42 files',
-        'typecheck   @dungeonmaster/shared PASS',
-        'unit        @dungeonmaster/shared PASS  15 tests passed',
-      ],
+    wardMock.queueResponse({
+      response: {
+        exitCode: 0,
+        runId: 'e2e-mini-boss-run-001',
+        delayMs: DelayMillisecondsStub({ value: 500 }),
+        outputLines: [
+          'lint        @dungeonmaster/shared PASS  42 files',
+          'typecheck   @dungeonmaster/shared PASS',
+          'unit        @dungeonmaster/shared PASS  15 tests passed',
+        ],
+      },
     });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
@@ -177,7 +128,11 @@ test.describe('Ward Execution Streaming', () => {
     // The widget auto-starts the orchestration loop, which picks up the pending ward.
     // Because the WS listener is set up BEFORE the HTTP POST reaches the server,
     // ward output lines arrive on an already-connected socket.
-    await navigateToSession({ page, urlSlug, sessionId });
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await guildsResponsePromise;
 
     // Execution panel renders immediately since quest is in_progress
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -204,18 +159,16 @@ test.describe('Ward Execution Streaming', () => {
   });
 
   test('floor boss ward streams output lines to execution panel', async ({ page, request }) => {
-    test.setTimeout(TEST_TIMEOUT);
+    test.slow();
 
-    const guild = await createGuild(request, {
-      name: 'Ward Floor Boss Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Ward Floor Boss Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
     const sessionId = `e2e-ward-floor-${Date.now()}`;
-    createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Test ward streaming' });
+    sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Ward floor-boss Streaming',
       userRequest: 'Test ward streaming',
@@ -234,12 +187,14 @@ test.describe('Ward Execution Streaming', () => {
     const now = new Date().toISOString();
 
     // Overwrite quest.json with in_progress status and work items including a pending floor boss ward
-    const quest = {
-      id: questId,
-      folder: questFolder,
+    const quests = questHarness({ request });
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
       title: 'E2E Ward floor-boss Streaming',
       status: 'in_progress',
-      createdAt: now,
+      userRequest: 'Test ward streaming',
       workItems: [
         {
           id: chaoswhispererId,
@@ -248,8 +203,6 @@ test.describe('Ward Execution Streaming', () => {
           spawnerType: 'agent',
           sessionId,
           createdAt: now,
-          relatedDataItems: [],
-          dependsOn: [],
           completedAt: now,
         },
         {
@@ -258,9 +211,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `ps-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [chaoswhispererId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -269,9 +221,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `cw-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [pathseekerId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -279,12 +230,11 @@ test.describe('Ward Execution Streaming', () => {
           role: 'ward',
           status: 'complete',
           spawnerType: 'command',
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [codeweaver1Id],
+          createdAt: now,
+          completedAt: now,
           attempt: 0,
           maxAttempts: 3,
-          completedAt: now,
         },
         {
           id: siegemasterId,
@@ -292,9 +242,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `siege-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [wardMiniBossId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -303,9 +252,8 @@ test.describe('Ward Execution Streaming', () => {
           status: 'complete',
           spawnerType: 'agent',
           sessionId: `lb-${sessionId}`,
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [siegemasterId],
+          createdAt: now,
           completedAt: now,
         },
         {
@@ -313,57 +261,30 @@ test.describe('Ward Execution Streaming', () => {
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
-          createdAt: now,
-          relatedDataItems: [],
           dependsOn: [lawbringerId],
+          createdAt: now,
           attempt: 0,
           maxAttempts: 3,
         },
       ],
-      userRequest: 'Test ward streaming',
-      designDecisions: [],
-      steps: [
-        {
-          id: 'implement-feature',
-          name: 'Implement feature',
-          description: 'Build the feature',
-          observablesSatisfied: [],
-          dependsOn: [],
-          filesToCreate: [],
-          filesToModify: [],
-        },
-      ],
-      toolingRequirements: [],
-      contracts: [],
-      flows: [
-        {
-          id: 'test-flow',
-          name: 'Test Flow',
-          entryPoint: 'start',
-          exitPoints: ['end'],
-          nodes: [
-            { id: 'start', label: 'Start', type: 'state', observables: [] },
-            { id: 'end', label: 'End', type: 'terminal', observables: [] },
-          ],
-          edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-        },
-      ],
-    };
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+      steps: [{ id: 'implement-feature', name: 'Implement feature' }],
+    });
 
     // Queue ward response with output lines for the floor boss ward.
     // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
     // and reconnect its WS listener before ward output lines are broadcast.
-    queueWardResponse({
-      exitCode: 0,
-      runId: 'e2e-floor-boss-run-001',
-      delayMs: DelayMillisecondsStub({ value: 500 }),
-      outputLines: [
-        'lint        @dungeonmaster/orchestrator PASS  128 files',
-        'typecheck   @dungeonmaster/orchestrator PASS',
-        'unit        @dungeonmaster/orchestrator PASS  87 tests passed',
-        'integration @dungeonmaster/orchestrator PASS  12 tests passed',
-      ],
+    wardMock.queueResponse({
+      response: {
+        exitCode: 0,
+        runId: 'e2e-floor-boss-run-001',
+        delayMs: DelayMillisecondsStub({ value: 500 }),
+        outputLines: [
+          'lint        @dungeonmaster/orchestrator PASS  128 files',
+          'typecheck   @dungeonmaster/orchestrator PASS',
+          'unit        @dungeonmaster/orchestrator PASS  87 tests passed',
+          'integration @dungeonmaster/orchestrator PASS  12 tests passed',
+        ],
+      },
     });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
@@ -372,20 +293,24 @@ test.describe('Ward Execution Streaming', () => {
 
     // Navigate — quest is already in_progress so execution panel + WS listener activate immediately.
     // The widget auto-starts the orchestration loop, which picks up the pending ward.
-    await navigateToSession({ page, urlSlug, sessionId });
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
+    await page.goto(`/${urlSlug}/session/${sessionId}`);
+    await guildsResponsePromise;
 
     // Execution panel renders immediately since quest is in_progress
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
-    // Wait for floor boss ward row — find the last [WARD] badge
+    // Wait for floor boss ward row — there should be 2 [WARD] badges (mini boss + floor boss)
     const wardRows = page.getByText('[WARD]');
 
-    await expect(wardRows.last()).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
+    await expect(wardRows.nth(1)).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
-    // Click the floor boss ward row to expand it
-    await wardRows.last().click();
+    // Click the floor boss ward row (second [WARD] badge) to expand it
+    await wardRows.nth(1).click();
 
     // Ward output lines should be visible in the expanded row after streaming
     await expect(

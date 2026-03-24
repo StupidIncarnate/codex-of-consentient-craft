@@ -1,198 +1,80 @@
 import * as crypto from 'crypto';
-import { mkdirSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  clearClaudeQueue,
-  cleanSessionDirectory,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-floor-ordering';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const PANEL_TIMEOUT = 15_000;
-const CREATED_AT_INTERVAL_MS = 1000;
 
-const writeQuestFile = ({
-  questId,
-  questFolder,
-  questFilePath,
-  status,
-  workItems,
-  steps = [],
-}: {
-  questId: string;
-  questFolder: string;
-  questFilePath: string;
-  status: string;
-  workItems: {
-    id: string;
-    role: string;
-    sessionId: string;
-    status?: string;
-    dependsOn?: string[];
-    relatedDataItems?: string[];
-    insertedBy?: string;
-    createdAt?: string;
-  }[];
-  steps?: { id: string; name: string }[];
-}): void => {
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Floor Ordering Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: workItems.map((wi, index) => ({
-      id: wi.id,
-      role: wi.role,
-      status: wi.status ?? 'complete',
-      spawnerType: 'agent',
-      sessionId: wi.sessionId,
-      createdAt:
-        wi.createdAt ?? new Date(Date.now() + index * CREATED_AT_INTERVAL_MS).toISOString(),
-      relatedDataItems: wi.relatedDataItems ?? [],
-      dependsOn: wi.dependsOn ?? [],
-      attempt: 0,
-      maxAttempts: 1,
-      ...(wi.insertedBy ? { insertedBy: wi.insertedBy } : {}),
-    })),
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: steps.map((s) => ({
-      id: s.id,
-      name: s.name,
-      description: 'Test step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: [],
-    })),
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'floor-flow',
-        name: 'Floor Ordering Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-    wardResults: [],
-  };
+wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const sessions = sessionHarness({ guildPath: GUILD_PATH });
+wireHarnessLifecycle({ harness: sessions, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
-  writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
-};
-
-const createSessionFileForQuest = ({
-  guildPath,
-  sessionId,
-}: {
-  guildPath: string;
-  sessionId: string;
-}): void => {
-  const homeDir = os.homedir();
-  const encodedPath = guildPath.replace(/\//gu, '-');
-  const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
-  const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
-  mkdirSync(jsonlDir, { recursive: true });
-  const entry = JSON.stringify({
-    type: 'user',
-    message: { role: 'user', content: 'Build the feature' },
-  });
-  writeFileSync(jsonlPath, `${entry}\n`);
-};
-
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
-
-const getFloorHeaderTexts = async ({
-  page,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-}) => {
-  const headers = page.getByTestId('floor-header-layer-widget');
-  const count = await headers.count();
-  const texts = [];
-  for (let i = 0; i < count; i++) {
-    const raw = (await headers.nth(i).textContent()) ?? '';
-    texts.push(
-      raw
+test.describe('Floor Ordering', () => {
+  const getFloorHeaderTexts = async ({
+    page,
+  }: {
+    page: Parameters<Parameters<typeof test>[2]>[0]['page'];
+  }) => {
+    const headers = page.getByTestId('floor-header-layer-widget');
+    const count = await headers.count();
+    const rawTexts = await Promise.all(
+      Array.from({ length: count }, async (_, i) => headers.nth(i).textContent()),
+    );
+    return rawTexts.map((raw) =>
+      (raw ?? '')
         .replace(/──+/gu, '')
         .replace(/Concurrent.*$/u, '')
         .trim(),
     );
-  }
-  return texts;
-};
+  };
 
-const getRoleBadgesUnderFloor = async ({
-  page,
-  floorIndex,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  floorIndex: number;
-}) => {
-  const floorContent = page.getByTestId('execution-panel-floor-content');
-  const headers = floorContent.getByTestId('floor-header-layer-widget');
-  const header = headers.nth(floorIndex);
-  const parentBox = header.locator('..');
-  const badges = parentBox.getByTestId('execution-row-role-badge');
-  const badgeCount = await badges.count();
-  const result = [];
-  for (let i = 0; i < badgeCount; i++) {
-    const text = (await badges.nth(i).textContent()) ?? '';
-    result.push(text.trim());
-  }
-  return result;
-};
+  const getRoleBadgesUnderFloor = async ({
+    page,
+    floorIndex,
+  }: {
+    page: Parameters<Parameters<typeof test>[2]>[0]['page'];
+    floorIndex: number;
+  }) => {
+    const floorContent = page.getByTestId('execution-panel-floor-content');
+    const headers = floorContent.getByTestId('floor-header-layer-widget');
+    const header = headers.nth(floorIndex);
+    const parentBox = header.locator('..');
+    const badges = parentBox.getByTestId('execution-row-role-badge');
+    const badgeCount = await badges.count();
+    const badgeTexts = await Promise.all(
+      Array.from({ length: badgeCount }, async (_, i) => badges.nth(i).textContent()),
+    );
+    return badgeTexts.map((text) => (text ?? '').trim());
+  };
 
-test.describe('Floor Ordering', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
+    sessions.cleanSessionDirectory();
   });
 
   test('happy path: floor headers in topological order with roles under correct headers', async ({
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Floor Order Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Floor Order Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
     const mainSessionId = `e2e-floor-order-${Date.now()}`;
 
-    createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
@@ -204,7 +86,7 @@ test.describe('Floor Ordering', () => {
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
 
-    writeQuestFile({
+    quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -243,10 +125,8 @@ test.describe('Floor Ordering', () => {
       ],
     });
 
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -273,16 +153,17 @@ test.describe('Floor Ordering', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Ward Retry Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Ward Retry Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
     const mainSessionId = `e2e-ward-retry-${Date.now()}`;
 
-    createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
@@ -295,7 +176,7 @@ test.describe('Floor Ordering', () => {
     const wardId = crypto.randomUUID();
     const spiritId = crypto.randomUUID();
 
-    writeQuestFile({
+    quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -344,10 +225,8 @@ test.describe('Floor Ordering', () => {
       ],
     });
 
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -372,16 +251,17 @@ test.describe('Floor Ordering', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild(request, {
-      name: 'Siege Fail Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await createGuild({ request, name: 'Siege Fail Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
     const mainSessionId = `e2e-siege-fail-${Date.now()}`;
 
-    createSessionFileForQuest({ guildPath: GUILD_PATH, sessionId: mainSessionId });
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest(request, {
+    const created = await createQuest({
+      request,
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
@@ -394,7 +274,7 @@ test.describe('Floor Ordering', () => {
     const wardId = crypto.randomUUID();
     const siegeId = crypto.randomUUID();
 
-    writeQuestFile({
+    quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -459,10 +339,8 @@ test.describe('Floor Ordering', () => {
       ],
     });
 
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-    await navigateToSession({ page, urlSlug, sessionId: mainSessionId });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

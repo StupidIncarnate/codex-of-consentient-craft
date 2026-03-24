@@ -1,35 +1,47 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createSessionFile,
-  cleanSessionFiles,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_A_PATH = '/tmp/dm-e2e-visual-a';
 const GUILD_B_PATH = '/tmp/dm-e2e-visual-b';
 const GUILD_C_PATH = '/tmp/dm-e2e-visual-c';
 const STATUS_GUILD_PATH = '/tmp/dm-e2e-visual-status';
+const HTTP_OK = 200;
+
+// Wire environment harnesses to create guild directories before each test
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_A_PATH }), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_B_PATH }), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_C_PATH }), testObj: test });
+wireHarnessLifecycle({
+  harness: environmentHarness({ guildPath: STATUS_GUILD_PATH }),
+  testObj: test,
+});
+
+const sessions = wireHarnessLifecycle({
+  harness: sessionHarness({ guildPath: STATUS_GUILD_PATH }),
+  testObj: test,
+});
 
 test.describe('Status Badges & Visual', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    for (const p of [GUILD_A_PATH, GUILD_B_PATH, GUILD_C_PATH, STATUS_GUILD_PATH]) {
-      mkdirSync(p, { recursive: true });
-      cleanSessionFiles({ guildPath: p });
-    }
+    await cleanGuilds({ request });
   });
 
   test('selected guild has gold highlight', async ({ page, request }) => {
-    const guildA = await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
-    const guildB = await createGuild(request, { name: 'Guild B', path: GUILD_B_PATH });
+    const guilds = guildHarness({ request });
+    const guildA = await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
+    const guildB = await createGuild({ request, name: 'Guild B', path: GUILD_B_PATH });
+    const guildAId = guilds.extractGuildId({ guild: guildA });
+    const guildBId = guilds.extractGuildId({ guild: guildB });
 
     await page.goto('/');
-    await page.getByTestId(`GUILD_ITEM_${guildA.id}`).click();
+    await page.getByTestId(`GUILD_ITEM_${guildAId}`).click();
 
     // Selected guild should have gold-colored styling
-    const selectedGuild = page.getByTestId(`GUILD_ITEM_${guildA.id}`);
+    const selectedGuild = page.getByTestId(`GUILD_ITEM_${guildAId}`);
 
     await expect(selectedGuild).toBeVisible();
 
@@ -39,24 +51,33 @@ test.describe('Status Badges & Visual', () => {
     expect(color).toBeTruthy();
 
     // Unselected guild should have different styling
-    const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildB.id}`);
+    const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildBId}`);
     const unselectedColor = await unselectedGuild.evaluate((el) => getComputedStyle(el).color);
 
     expect(color).not.toBe(unselectedColor);
   });
 
   test('session items display summary text', async ({ page, request }) => {
-    await createGuild(request, { name: 'Status Guild', path: STATUS_GUILD_PATH });
+    await createGuild({ request, name: 'Status Guild', path: STATUS_GUILD_PATH });
 
     const sessionId = `e2e-session-visual-${Date.now()}`;
-    createSessionFile({
-      guildPath: STATUS_GUILD_PATH,
+    sessions.createSessionFile({
       sessionId,
       userMessage: 'Test status',
     });
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto('/');
+    await guildsResponsePromise;
+
+    await expect(page.getByText('Status Guild')).toBeVisible();
+
     await page.getByText('Status Guild').click();
+
+    await expect(page.getByTestId('SESSION_FILTER')).toBeVisible();
+
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
 
     const sessionItem = page.getByTestId(`SESSION_ITEM_${sessionId}`);
@@ -66,11 +87,15 @@ test.describe('Status Badges & Visual', () => {
   });
 
   test('multiple guilds all visible', async ({ page, request }) => {
-    await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
-    await createGuild(request, { name: 'Guild B', path: GUILD_B_PATH });
-    await createGuild(request, { name: 'Guild C', path: GUILD_C_PATH });
+    await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
+    await createGuild({ request, name: 'Guild B', path: GUILD_B_PATH });
+    await createGuild({ request, name: 'Guild C', path: GUILD_C_PATH });
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto('/');
+    await guildsResponsePromise;
 
     await expect(page.getByText('Guild A')).toBeVisible();
     await expect(page.getByText('Guild B')).toBeVisible();

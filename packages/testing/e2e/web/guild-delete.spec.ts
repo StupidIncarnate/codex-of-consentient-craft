@@ -1,23 +1,25 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 const GUILD_PATH_A = '/tmp/dm-e2e-guild-del-a';
 const GUILD_PATH_B = '/tmp/dm-e2e-guild-del-b';
 
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH_A }), testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH_B }), testObj: test });
+
 test.describe('Guild Deletion', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_PATH_A, { recursive: true });
-    mkdirSync(GUILD_PATH_B, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('delete guild via API removes from list', async ({ page, request }) => {
-    const guildA = await createGuild(request, { name: 'Guild Alpha', path: GUILD_PATH_A });
-    await createGuild(request, { name: 'Guild Beta', path: GUILD_PATH_B });
+    const guildA = await createGuild({ request, name: 'Guild Alpha', path: GUILD_PATH_A });
+    await createGuild({ request, name: 'Guild Beta', path: GUILD_PATH_B });
 
     // Delete guild A via API
-    await request.delete(`/api/guilds/${guildA.id}`);
+    await request.delete(`/api/guilds/${String(guildA.id)}`);
 
     // Refresh and verify only Guild Beta remains
     await page.goto('/');
@@ -27,13 +29,13 @@ test.describe('Guild Deletion', () => {
   });
 
   test('delete selected guild clears quest panel', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Selected Guild', path: GUILD_PATH_A });
+    const guild = await createGuild({ request, name: 'Selected Guild', path: GUILD_PATH_A });
 
     await page.goto('/');
     await page.getByText('Selected Guild').click();
 
     // Delete the selected guild via API
-    await request.delete(`/api/guilds/${guild.id}`);
+    await request.delete(`/api/guilds/${String(guild.id)}`);
 
     // Refresh to see updated state
     await page.goto('/');
@@ -43,10 +45,10 @@ test.describe('Guild Deletion', () => {
   });
 
   test('delete last guild shows empty state', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Only Guild', path: GUILD_PATH_A });
+    const guild = await createGuild({ request, name: 'Only Guild', path: GUILD_PATH_A });
 
     // Delete the only guild
-    await request.delete(`/api/guilds/${guild.id}`);
+    await request.delete(`/api/guilds/${String(guild.id)}`);
 
     // Refresh and verify inline creation form appears
     await page.goto('/');

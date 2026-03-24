@@ -3,6 +3,9 @@ import * as path from 'path';
 
 import type { ClaudeResponse } from './types';
 
+const COUNTER_START = 0;
+const PAD_LENGTH = 4;
+
 const getQueueDir = (): string => {
   const home = process.env.DUNGEONMASTER_HOME;
   if (!home) {
@@ -19,21 +22,21 @@ const getCounter = (): number => {
     const raw = JSON.parse(fs.readFileSync(metaPath, 'utf-8')) as { counter: number };
     return raw.counter;
   }
-  return 0;
+  return COUNTER_START;
 };
 
-const setCounter = (counter: number): void => {
+const setCounter = ({ counter }: { counter: number }): void => {
   fs.writeFileSync(getMetadataPath(), JSON.stringify({ counter }));
 };
 
-export const queueClaudeResponse = (response: ClaudeResponse): void => {
+export const queueClaudeResponse = ({ response }: { response: ClaudeResponse }): void => {
   const queueDir = getQueueDir();
   fs.mkdirSync(queueDir, { recursive: true });
 
   const counter = getCounter();
-  const filePath = path.join(queueDir, `${String(counter).padStart(4, '0')}.json`);
+  const filePath = path.join(queueDir, `${String(counter).padStart(PAD_LENGTH, '0')}.json`);
   fs.writeFileSync(filePath, JSON.stringify(response));
-  setCounter(counter + 1);
+  setCounter({ counter: counter + 1 });
 };
 
 export const clearClaudeQueue = (): void => {

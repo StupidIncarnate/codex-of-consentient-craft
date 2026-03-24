@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 test.describe('Smoke Tests', () => {
@@ -24,7 +24,7 @@ test.describe('Smoke Tests', () => {
   });
 
   test('first-time empty state shows inline form', async ({ page, request }) => {
-    await cleanGuilds(request);
+    await cleanGuilds({ request });
     await page.goto('/');
 
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -34,9 +34,9 @@ test.describe('Smoke Tests', () => {
   });
 
   test('existing guilds load in guild list', async ({ page, request }) => {
-    await cleanGuilds(request);
-    await createGuild(request, { name: 'Guild Alpha', path: '/tmp/alpha' });
-    await createGuild(request, { name: 'Guild Beta', path: '/tmp/beta' });
+    await cleanGuilds({ request });
+    await createGuild({ request, name: 'Guild Alpha', path: '/tmp/alpha' });
+    await createGuild({ request, name: 'Guild Beta', path: '/tmp/beta' });
 
     await page.goto('/');
 
@@ -46,8 +46,8 @@ test.describe('Smoke Tests', () => {
   });
 
   test('no guild selected shows guidance text', async ({ page, request }) => {
-    await cleanGuilds(request);
-    await createGuild(request, { name: 'Some Guild', path: '/tmp/some' });
+    await cleanGuilds({ request });
+    await createGuild({ request, name: 'Some Guild', path: '/tmp/some' });
 
     await page.goto('/');
 

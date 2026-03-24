@@ -1,38 +1,39 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  queueClaudeResponse,
-  clearClaudeQueue,
-  cleanSessionDirectory,
-  createSubagentSessionFiles,
-  SimpleTextResponseStub,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { cleanGuilds, createGuild, SimpleTextResponseStub } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-unified-pipeline';
 const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 const CHAT_TIMEOUT = 5_000;
 
-const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({ harness: claudeMock, testObj: test });
+const sessions = sessionHarness({ guildPath: GUILD_PATH });
+wireHarnessLifecycle({ harness: sessions, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Unified JSONL Pipeline', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
+    sessions.cleanSessionDirectory();
   });
 
   test('chat entries reload via WS replay after navigating away and back', async ({
     page,
     request,
   }) => {
-    const guild = await createGuild(request, { name: 'Replay Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Replay Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'Replayed via WebSocket' }));
+    claudeMock.queueResponse({
+      response: SimpleTextResponseStub({ text: 'Replayed via WebSocket' }),
+    });
 
     // Track HTTP requests to verify no /chat/history calls
     const httpChatHistoryRequests: URL[] = [];
@@ -76,10 +77,13 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('page refresh replays assistant response via WS history', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Refresh Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Refresh Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'Persistent after refresh' }));
+    claudeMock.queueResponse({
+      response: SimpleTextResponseStub({ text: 'Persistent after refresh' }),
+    });
 
     // Track requests to confirm replay goes through WS, not HTTP
     const httpChatHistoryRequests: URL[] = [];
@@ -120,10 +124,13 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('live streaming entries arrive via unified processor', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Stream Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Stream Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'Streamed through processor' }));
+    claudeMock.queueResponse({
+      response: SimpleTextResponseStub({ text: 'Streamed through processor' }),
+    });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -145,15 +152,15 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('sub-agent entries appear in replayed session history', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Subagent Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Subagent Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
     const sessionId = 'e2e-subagent-session-001';
     const agentId = 'e2e-subagent-agent-001';
     const toolUseId = 'toolu_e2e_subagent_001';
 
-    createSubagentSessionFiles({
-      guildPath: GUILD_PATH,
+    sessions.createSubagentSessionFiles({
       sessionId,
       agentId,
       toolUseId,

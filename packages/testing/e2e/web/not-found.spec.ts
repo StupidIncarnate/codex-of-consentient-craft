@@ -1,22 +1,27 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-not-found';
 const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+
 test.describe('Not Found', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('bogus guild slug shows NOT FOUND', async ({ page, request }) => {
-    await createGuild(request, { name: 'Real Guild', path: GUILD_PATH });
+    await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto('/bogus-guild-slug/session');
-    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
+    await guildsResponsePromise;
 
     await expect(page.getByTestId('NOT_FOUND')).toBeVisible();
     await expect(page.getByText('NOT FOUND')).toBeVisible();
@@ -28,10 +33,13 @@ test.describe('Not Found', () => {
   });
 
   test('bogus guild slug with session ID shows NOT FOUND', async ({ page, request }) => {
-    await createGuild(request, { name: 'Real Guild', path: GUILD_PATH });
+    await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto('/bogus-guild-slug/session/91c4944d-55e3-4231-bd48-140245f11867');
-    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
+    await guildsResponsePromise;
 
     await expect(page.getByTestId('NOT_FOUND')).toBeVisible();
     await expect(page.getByText('NOT FOUND')).toBeVisible();
@@ -40,26 +48,32 @@ test.describe('Not Found', () => {
   });
 
   test('valid guild slug renders chat (no false positive)', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Real Guild', path: GUILD_PATH });
+    const guild = await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto(`/${urlSlug}/session`);
-    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
+    await guildsResponsePromise;
 
+    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('NOT_FOUND')).not.toBeVisible();
-    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
   });
 
   test('valid guild slug with bogus session ID shows NOT FOUND', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Real Guild', path: GUILD_PATH });
+    const guild = await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
     await page.goto(`/${urlSlug}/session/91c4944d-55e3-4231-bd48-140245f11`);
-    await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK);
+    await guildsResponsePromise;
 
     await expect(page.getByTestId('NOT_FOUND')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('NOT FOUND')).toBeVisible();

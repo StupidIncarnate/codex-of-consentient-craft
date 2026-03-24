@@ -51,7 +51,7 @@ afterEach(() => {
     // Load from dist folder (jest.setup.js is in src, compiled files in dist)
     const {
       integrationEnvironmentCleanupAllBroker,
-    } = require('../dist/brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker.js');
+    } = require('../dist/src/brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker.js');
     integrationEnvironmentCleanupAllBroker();
   } catch (error) {
     // Module might not be built yet, skip cleanup functionality

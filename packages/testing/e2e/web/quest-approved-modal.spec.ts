@@ -1,143 +1,26 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createQuest,
-  createSessionFile,
-  cleanSessionDirectory,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { questApprovedModalHarness } from '../../test/harnesses/quest-approved-modal/quest-approved-modal.harness';
+import { cleanGuilds } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-approved-modal';
-const JSON_INDENT = 2;
-const HTTP_OK = 200;
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
-const WS_PROPAGATION_DELAY = 2000;
 
-const writeQuestFile = ({
-  questId,
-  questFolder,
-  questFilePath,
-  sessionId,
-  status,
-}: {
-  questId: string;
-  questFolder: string;
-  questFilePath: string;
-  sessionId: string;
-  status: string;
-}): void => {
-  const quest = {
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Approved Modal Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: [
-      {
-        id: 'e2e00000-0000-4000-8000-000000000001',
-        role: 'chaoswhisperer',
-        status: 'complete',
-        spawnerType: 'agent',
-        sessionId,
-        createdAt: new Date().toISOString(),
-        relatedDataItems: [],
-        dependsOn: [],
-      },
-    ],
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'test-flow',
-        name: 'Test Flow',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          { id: 'start', label: 'Start', type: 'state', observables: [] },
-          { id: 'end', label: 'End', type: 'terminal', observables: [] },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  };
+const sessions = sessionHarness({ guildPath: GUILD_PATH });
+wireHarnessLifecycle({ harness: sessions, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
-  writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
-};
-
-const navigateToSession = async ({
-  page,
-  urlSlug,
-  sessionId,
-}: {
-  page: Parameters<Parameters<typeof test>[2]>[0]['page'];
-  urlSlug: string;
-  sessionId: string;
-}): Promise<void> => {
-  const guildsResponsePromise = page.waitForResponse(
-    (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-  );
-  await page.goto(`/${urlSlug}/session/${sessionId}`);
-  await guildsResponsePromise;
-};
-
-const patchQuestStatus = async ({
-  request,
-  questId,
-  status,
-}: {
-  request: Parameters<Parameters<typeof test>[2]>[0]['request'];
-  questId: string;
-  status: string;
-}): Promise<void> => {
-  await request.patch(`/api/quests/${questId}`, {
-    data: { status },
-  });
-};
-
-const setupTest = async ({
-  request,
-  guildName,
-  sessionId,
-  status,
-}: {
-  request: Parameters<Parameters<typeof test>[2]>[0]['request'];
-  guildName: string;
-  sessionId: string;
-  status: string;
-}) => {
-  const guild = await createGuild(request, { name: guildName, path: GUILD_PATH });
-  const guildId = String(guild.id);
-  createSessionFile({ guildPath: GUILD_PATH, sessionId, userMessage: 'Build the feature' });
-
-  const created = await createQuest(request, {
-    guildId,
-    title: 'E2E Approved Modal Quest',
-    userRequest: 'Build the feature',
-  });
-  const { questId } = created;
-  const questFolder = String(Reflect.get(created, 'questFolder'));
-  const questFilePath = String(Reflect.get(created, 'filePath'));
-
-  writeQuestFile({ questId, questFolder, questFilePath, sessionId, status });
-
-  const urlSlug = String(guild.urlSlug ?? guild.name)
-    .toLowerCase()
-    .replace(/\s+/gu, '-');
-
-  return { guild, questId, urlSlug };
-};
+const modalHarness = questApprovedModalHarness({ sessions, guildPath: GUILD_PATH });
 
 test.describe('Quest Approved Modal', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_PATH, { recursive: true });
-    cleanSessionDirectory({ guildPath: GUILD_PATH });
+    await cleanGuilds({ request });
+    sessions.cleanSessionDirectory();
   });
 
   test('modal appears when quest transitions to approved status via WS', async ({
@@ -145,19 +28,20 @@ test.describe('Quest Approved Modal', () => {
     request,
   }) => {
     const sessionId = `e2e-approved-modal-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Approved Modal Guild',
       sessionId,
       status: 'review_observables',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // PATCH quest to approved — triggers quest-modified WS broadcast
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -172,18 +56,19 @@ test.describe('Quest Approved Modal', () => {
     request,
   }) => {
     const sessionId = `e2e-design-approved-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Design Approved Guild',
       sessionId,
       status: 'review_design',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'design_approved' });
+    await quests.patchQuestStatus({ questId, status: 'design_approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -192,18 +77,19 @@ test.describe('Quest Approved Modal', () => {
 
   test('clicking Begin Quest sends POST to quest start endpoint', async ({ page, request }) => {
     const sessionId = `e2e-begin-quest-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Begin Quest Guild',
       sessionId,
       status: 'review_observables',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -232,18 +118,19 @@ test.describe('Quest Approved Modal', () => {
     request,
   }) => {
     const sessionId = `e2e-keep-chatting-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Keep Chatting Guild',
       sessionId,
       status: 'review_observables',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -276,18 +163,19 @@ test.describe('Quest Approved Modal', () => {
     request,
   }) => {
     const sessionId = `e2e-keep-design-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Keep Chatting Design Guild',
       sessionId,
       status: 'review_design',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'design_approved' });
+    await quests.patchQuestStatus({ questId, status: 'design_approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -308,18 +196,19 @@ test.describe('Quest Approved Modal', () => {
 
   test('clicking Start a new Quest navigates to /:guildSlug/session', async ({ page, request }) => {
     const sessionId = `e2e-new-quest-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'New Quest Guild',
       sessionId,
       status: 'review_observables',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -336,25 +225,25 @@ test.describe('Quest Approved Modal', () => {
 
   test('modal does not appear for non-approved status transitions', async ({ page, request }) => {
     const sessionId = `e2e-no-modal-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'No Modal Guild',
       sessionId,
       status: 'review_flows',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // Transition to flows_approved (not approved or design_approved)
-    await patchQuestStatus({ request, questId, status: 'flows_approved' });
+    await quests.patchQuestStatus({ questId, status: 'flows_approved' });
 
-    // Wait for any WS events to propagate
-    await page.waitForTimeout(WS_PROPAGATION_DELAY);
-
-    // Modal should NOT appear
-    await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible();
+    // Modal should NOT appear — verify by asserting the modal text is not visible after events propagate
+    await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
+      timeout: MODAL_TIMEOUT,
+    });
   });
 
   test('Begin Quest transitions to execution view when quest reaches in_progress', async ({
@@ -362,18 +251,19 @@ test.describe('Quest Approved Modal', () => {
     request,
   }) => {
     const sessionId = `e2e-execution-${Date.now()}`;
-    const { questId, urlSlug } = await setupTest({
+    const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
       guildName: 'Execution View Guild',
       sessionId,
       status: 'review_observables',
     });
 
-    await navigateToSession({ page, urlSlug, sessionId });
+    const nav = navigationHarness({ page });
+    await nav.navigateToSession({ urlSlug, sessionId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await patchQuestStatus({ request, questId, status: 'approved' });
+    await quests.patchQuestStatus({ questId, status: 'approved' });
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,

@@ -17,13 +17,13 @@ interface PlaywrightTestObj {
   afterEach: (fn: () => void | Promise<void>) => void;
 }
 
-export const wireHarnessLifecycle = ({
+export const wireHarnessLifecycle = <T extends HarnessWithLifecycle>({
   harness,
   testObj,
 }: {
-  harness: HarnessWithLifecycle;
+  harness: T;
   testObj: PlaywrightTestObj;
-}): HarnessWithLifecycle => {
+}): T => {
   if (typeof harness.beforeEach === 'function') {
     testObj.beforeEach(harness.beforeEach);
   }

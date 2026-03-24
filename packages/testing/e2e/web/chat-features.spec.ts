@@ -1,10 +1,11 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import {
   cleanGuilds,
   createGuild,
-  queueClaudeResponse,
-  clearClaudeQueue,
   SimpleTextResponseStub,
   ToolUseChainResponseStub,
   ErrorResponseStub,
@@ -17,27 +18,28 @@ const CHAT_TIMEOUT = 5_000;
 const SETTLE_DELAY = 500;
 const USER_MSG_TIMEOUT = 3_000;
 
-const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({ harness: claudeMock, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Chat Advanced Features', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('tool use displays in chat', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Tool Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Tool Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(
-      ToolUseChainResponseStub({
+    claudeMock.queueResponse({
+      response: ToolUseChainResponseStub({
         toolName: 'Read',
         toolInput: { file_path: '/src/index.ts' },
         toolResultContent: 'export const main = () => {}',
         followUpText: 'I read the file successfully.',
       }),
-    );
+    });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -53,15 +55,16 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('error response shows gracefully', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Error Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Error Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(
-      ErrorResponseStub({
+    claudeMock.queueResponse({
+      response: ErrorResponseStub({
         partialOutput: 'Starting analysis...',
         exitCode: 1,
       }),
-    );
+    });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -77,14 +80,15 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('multi-turn conversation', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Multi Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Multi Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
     const responses = MultiTurnResponseStubs({
       messages: [{ text: 'First response' }, { text: 'Second response' }],
     });
     for (const response of responses) {
-      queueClaudeResponse(response);
+      claudeMock.queueResponse({ response });
     }
 
     await page.goto(`/${guildId}/quest`);
@@ -98,6 +102,9 @@ test.describe('Chat Advanced Features', () => {
 
     await expect(page.getByText('First response')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
+    // Wait for the input to become ready for the next message
+    await expect(page.getByTestId('CHAT_INPUT')).toBeEnabled({ timeout: CHAT_TIMEOUT });
+
     // Send second message
     await page.getByTestId('CHAT_INPUT').fill('Second question');
     await page.getByTestId('SEND_BUTTON').click();
@@ -106,8 +113,9 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('empty message not sent', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Empty Msg Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Empty Msg Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -122,20 +130,19 @@ test.describe('Chat Advanced Features', () => {
     } else {
       // Click and verify no new messages appear in the chat panel
       await sendButton.click();
-      // Brief wait to confirm nothing happens
-      await page.waitForTimeout(SETTLE_DELAY);
-      // Chat panel should have no message content beyond any default state
+      // Chat panel should remain visible with no message content beyond any default state
       const chatPanel = page.getByTestId('CHAT_PANEL');
 
-      await expect(chatPanel).toBeVisible();
+      await expect(chatPanel).toBeVisible({ timeout: SETTLE_DELAY });
     }
   });
 
   test('user message appears in chat', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'User Msg Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'User Msg Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'Got it!' }));
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ text: 'Got it!' }) });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(

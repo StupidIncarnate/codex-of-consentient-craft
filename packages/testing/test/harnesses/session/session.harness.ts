@@ -1,0 +1,291 @@
+/**
+ * PURPOSE: Manages session file creation and cleanup for E2E tests
+ *
+ * USAGE:
+ * const sessions = sessionHarness({ guildPath: '/tmp/dm-e2e-test' });
+ * sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
+ * // afterEach: cleans session directory
+ */
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+
+const buildAnsweredClarificationLines = (): ReturnType<typeof JSON.stringify>[] => {
+  const toolUseId = 'toolu_e2e_clarify_history';
+
+  return [
+    JSON.stringify({
+      type: 'user',
+      message: { role: 'user', content: 'Build the quest feature' },
+    }),
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [{ type: 'text', text: "I'll analyze the requirements for this feature." }],
+      },
+    }),
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [
+          {
+            type: 'tool_use',
+            id: toolUseId,
+            name: 'mcp__dungeonmaster__ask-user-question',
+            input: {
+              questions: [
+                {
+                  question: 'Which database do you want to use?',
+                  header: 'Database Selection',
+                  options: [
+                    { label: 'PostgreSQL', description: 'Relational database with JSONB support' },
+                    { label: 'SQLite', description: 'Lightweight file-based database' },
+                  ],
+                  multiSelect: false,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    }),
+    JSON.stringify({
+      type: 'user',
+      message: {
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: toolUseId,
+            content: 'Questions sent to user. Their answers will arrive as your next user message.',
+          },
+        ],
+      },
+    }),
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [{ type: 'text', text: "I'll wait for your response before proceeding." }],
+      },
+    }),
+    JSON.stringify({
+      type: 'user',
+      message: { role: 'user', content: 'Database Selection: PostgreSQL' },
+    }),
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [
+          {
+            type: 'text',
+            text: 'Great choice! Phase 1: Setting up PostgreSQL schema. Phase 2: Creating migrations. Phase 3: Wiring up the broker layer.',
+          },
+        ],
+      },
+    }),
+  ];
+};
+
+export const sessionHarness = ({
+  guildPath,
+}: {
+  guildPath: string;
+}): {
+  afterEach: () => void;
+  createSessionFile: (params: { sessionId: string; userMessage: string }) => void;
+  createMultiEntrySessionFile: (params: { sessionId: string; lines: string[] }) => void;
+  createSubagentSessionFiles: (params: {
+    sessionId: string;
+    agentId: string;
+    toolUseId: string;
+    userMessage: string;
+    mainAssistantText: string;
+    subagentText: string;
+  }) => void;
+  cleanSessionFiles: () => void;
+  cleanSessionDirectory: () => void;
+  createSessionWithAssistantText: (params: { sessionId: string; text: string }) => void;
+  createAnsweredClarificationSession: (params: { sessionId: string }) => void;
+  createSessionFileForQuest: (params: { sessionId: string }) => void;
+} => {
+  const getJsonlDir = (): FilePath => {
+    const homeDir = os.homedir();
+    const encodedPath = guildPath.replace(/\//gu, '-');
+    return path.join(homeDir, '.claude', 'projects', encodedPath) as FilePath;
+  };
+
+  const createSessionFile = ({
+    sessionId,
+    userMessage,
+  }: {
+    sessionId: string;
+    userMessage: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+
+    const entry = JSON.stringify({
+      type: 'user',
+      message: { role: 'user', content: userMessage },
+    });
+    fs.writeFileSync(jsonlPath, `${entry}\n`);
+  };
+
+  const createMultiEntrySessionFile = ({
+    sessionId,
+    lines,
+  }: {
+    sessionId: string;
+    lines: string[];
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(jsonlPath, `${lines.join('\n')}\n`);
+  };
+
+  const createSubagentSessionFiles = ({
+    sessionId,
+    agentId,
+    toolUseId,
+    userMessage,
+    mainAssistantText,
+    subagentText,
+  }: {
+    sessionId: string;
+    agentId: string;
+    toolUseId: string;
+    userMessage: string;
+    mainAssistantText: string;
+    subagentText: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+
+    const mainLines = [
+      JSON.stringify({
+        type: 'user',
+        message: { role: 'user', content: userMessage },
+      }),
+      JSON.stringify({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: toolUseId,
+              name: 'Task',
+              input: { description: 'Sub-agent work', prompt: 'Do the thing' },
+            },
+          ],
+        },
+      }),
+      JSON.stringify({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+        },
+        toolUseResult: { agentId },
+      }),
+      JSON.stringify({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: mainAssistantText }],
+          usage: { input_tokens: 200, output_tokens: 80 },
+        },
+      }),
+    ];
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+
+    const subagentLines = [
+      JSON.stringify({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: subagentText }],
+          usage: { input_tokens: 50, output_tokens: 20 },
+        },
+      }),
+    ];
+
+    fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), `${subagentLines.join('\n')}\n`);
+  };
+
+  const cleanSessionFiles = (): void => {
+    const jsonlDir = getJsonlDir();
+    try {
+      const files = fs.readdirSync(jsonlDir).filter((f) => f.endsWith('.jsonl'));
+      for (const file of files) {
+        fs.unlinkSync(path.join(jsonlDir, file));
+      }
+    } catch {
+      // Directory may not exist
+    }
+  };
+
+  const cleanSessionDirectory = (): void => {
+    const jsonlDir = getJsonlDir();
+    fs.rmSync(jsonlDir, { recursive: true, force: true });
+  };
+
+  const createSessionWithAssistantText = ({
+    sessionId,
+    text,
+  }: {
+    sessionId: string;
+    text: string;
+  }): void => {
+    createMultiEntrySessionFile({
+      sessionId,
+      lines: [
+        JSON.stringify({
+          type: 'user',
+          message: { role: 'user', content: 'Build the feature' },
+        }),
+        JSON.stringify({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text }],
+            usage: { input_tokens: 100, output_tokens: 50 },
+          },
+        }),
+      ],
+    });
+  };
+
+  const createAnsweredClarificationSession = ({ sessionId }: { sessionId: string }): void => {
+    createMultiEntrySessionFile({
+      sessionId,
+      lines: buildAnsweredClarificationLines(),
+    });
+  };
+
+  const createSessionFileForQuest = ({ sessionId }: { sessionId: string }): void => {
+    createSessionFile({ sessionId, userMessage: 'Build the feature' });
+  };
+
+  return {
+    afterEach: cleanSessionDirectory,
+    createSessionFile,
+    createMultiEntrySessionFile,
+    createSubagentSessionFiles,
+    cleanSessionFiles,
+    cleanSessionDirectory,
+    createSessionWithAssistantText,
+    createAnsweredClarificationSession,
+    createSessionFileForQuest,
+  };
+};

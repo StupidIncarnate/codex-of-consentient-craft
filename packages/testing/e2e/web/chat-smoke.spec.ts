@@ -1,29 +1,31 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  queueClaudeResponse,
-  clearClaudeQueue,
-  SimpleTextResponseStub,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { cleanGuilds, createGuild, SimpleTextResponseStub } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-guild';
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 5_000;
 
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({ harness: claudeMock, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+
 test.describe('Chat Smoke', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('guild chat sends message and displays Claude response', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Chat Guild', path: GUILD_PATH });
-    const guildId = guild.id as string;
+    const guild = await createGuild({ request, name: 'Chat Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'I can help with that!' }));
+    claudeMock.queueResponse({
+      response: SimpleTextResponseStub({ text: 'I can help with that!' }),
+    });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(

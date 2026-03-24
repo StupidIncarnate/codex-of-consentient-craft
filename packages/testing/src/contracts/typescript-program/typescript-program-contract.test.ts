@@ -6,7 +6,7 @@ describe('typescriptProgramContract', () => {
     it('VALID: {unknown value} => returns TypescriptProgram', () => {
       const result = typescriptProgramContract.parse(undefined);
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -14,7 +14,7 @@ describe('typescriptProgramContract', () => {
     it('VALID: {value: undefined} => returns TypescriptProgram', () => {
       const result = TypescriptProgramStub({ value: undefined });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 });

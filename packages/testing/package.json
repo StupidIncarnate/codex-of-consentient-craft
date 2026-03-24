@@ -2,25 +2,26 @@
   "name": "@dungeonmaster/testing",
   "version": "0.1.0",
   "description": "Testing utilities and helpers for Dungeonmaster projects",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "exports": {
     ".": {
       "source": "./src/index.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
     },
     "./register-mock": {
       "source": "./src/register-mock.ts",
-      "import": "./dist/register-mock.js",
-      "require": "./dist/register-mock.js",
-      "types": "./dist/register-mock.d.ts"
-    }
+      "import": "./dist/src/register-mock.js",
+      "require": "./dist/src/register-mock.js",
+      "types": "./dist/src/register-mock.d.ts"
+    },
+    "./brokers/network-record/playwright": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward --only test",
     "typecheck": "dungeonmaster-ward --only typecheck",
@@ -34,7 +35,7 @@
   "typesVersions": {
     "*": {
       "register-mock": [
-        "dist/register-mock.d.ts"
+        "dist/src/register-mock.d.ts"
       ]
     }
   },

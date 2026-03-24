@@ -1,3 +1,6 @@
+import type { ExitCode, SessionId } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+
 import type { ClaudeResponse, StreamJsonUsage } from './types';
 import {
   SessionInitLineStub,
@@ -7,13 +10,15 @@ import {
   ResultLineStub,
 } from './stream-json-line-stubs';
 
-const DEFAULT_SESSION_ID = 'e2e-session-00000000-0000-0000-0000-000000000000';
+const DEFAULT_SESSION_ID = SessionIdStub({
+  value: 'e2e-session-00000000-0000-0000-0000-000000000000',
+});
 
 export const SimpleTextResponseStub = ({
   sessionId = DEFAULT_SESSION_ID,
   text = 'Hello from Claude',
   usage,
-}: { sessionId?: string; text?: string; usage?: StreamJsonUsage } = {}): ClaudeResponse => ({
+}: { sessionId?: SessionId; text?: string; usage?: StreamJsonUsage } = {}): ClaudeResponse => ({
   sessionId,
   lines: [
     SessionInitLineStub({ sessionId }),
@@ -29,7 +34,7 @@ export const ToolUseChainResponseStub = ({
   toolResultContent = 'file contents',
   followUpText = 'Done!',
 }: {
-  sessionId?: string;
+  sessionId?: SessionId;
   toolName?: string;
   toolInput?: Record<string, unknown>;
   toolResultContent?: string;
@@ -48,8 +53,12 @@ export const ToolUseChainResponseStub = ({
 export const ErrorResponseStub = ({
   sessionId = DEFAULT_SESSION_ID,
   partialOutput = 'Processing...',
-  exitCode = 1,
-}: { sessionId?: string; partialOutput?: string; exitCode?: number } = {}): ClaudeResponse => ({
+  exitCode = ExitCodeStub({ value: 1 }),
+}: {
+  sessionId?: SessionId;
+  partialOutput?: string;
+  exitCode?: ExitCode;
+} = {}): ClaudeResponse => ({
   sessionId,
   lines: [SessionInitLineStub({ sessionId }), TextLineStub({ text: partialOutput })],
   exitCode,
@@ -58,7 +67,7 @@ export const ErrorResponseStub = ({
 export const ResumeResponseStub = ({
   sessionId = DEFAULT_SESSION_ID,
   text = 'Hello from Claude',
-}: { sessionId?: string; text?: string } = {}): ClaudeResponse => ({
+}: { sessionId?: SessionId; text?: string } = {}): ClaudeResponse => ({
   sessionId,
   lines: [TextLineStub({ text }), ResultLineStub({ sessionId })],
 });
@@ -92,7 +101,7 @@ export const MultiTurnResponseStubs = ({
   sessionId = DEFAULT_SESSION_ID,
   messages,
 }: {
-  sessionId?: string;
+  sessionId?: SessionId;
   messages: { text: string }[];
 }): ClaudeResponse[] =>
   messages.map((msg, index) => {

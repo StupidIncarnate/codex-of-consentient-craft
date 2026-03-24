@@ -1,10 +1,11 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import {
   cleanGuilds,
   createGuild,
-  queueClaudeResponse,
-  clearClaudeQueue,
   SimpleTextResponseStub,
   ResumeResponseStub,
 } from './fixtures/test-helpers';
@@ -13,20 +14,21 @@ const GUILD_PATH = '/tmp/dm-e2e-chat-history';
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 5_000;
 
-const extractGuildId = (guild: Record<string, unknown>) => `${guild.id}`;
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({ harness: claudeMock, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Chat History & Sessions', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('chat response persists after page refresh', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'History Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'History Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'Persistent response' }));
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ text: 'Persistent response' }) });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -53,11 +55,12 @@ test.describe('Chat History & Sessions', () => {
   });
 
   test('second message in session resumes', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Resume Guild', path: GUILD_PATH });
-    const guildId = extractGuildId(guild);
+    const guild = await createGuild({ request, name: 'Resume Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
     // Queue first response (full session init)
-    queueClaudeResponse(SimpleTextResponseStub({ text: 'First reply' }));
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ text: 'First reply' }) });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -71,7 +74,7 @@ test.describe('Chat History & Sessions', () => {
     await expect(page.getByText('First reply')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     // Queue second response (resume — no init)
-    queueClaudeResponse(ResumeResponseStub({ text: 'Second reply' }));
+    claudeMock.queueResponse({ response: ResumeResponseStub({ text: 'Second reply' }) });
 
     // Send second message
     await page.getByTestId('CHAT_INPUT').fill('Second message');

@@ -14,6 +14,7 @@ import type { WardResult } from '../../contracts/ward-result/ward-result-contrac
 import type { WardFileDetail } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-file-detail-contract';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
+import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
 
 export const resultToDetailTransformer = ({
@@ -44,6 +45,14 @@ export const resultToDetailTransformer = ({
             entries.push(`    ${failure.message}` as ErrorEntry['message']);
           }
         }
+
+        const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
+        const networkLog = extractNetworkLogTransformer({
+          rawOutput: errorMessageContract.parse(rawText),
+        });
+        if (networkLog.length > 0) {
+          entries.push(errorMessageContract.parse(`\n  Network Log:\n    ${networkLog}`));
+        }
       }
     }
 
@@ -70,9 +79,15 @@ export const resultToDetailTransformer = ({
 
       for (const failure of project.testFailures) {
         const stackPart = failure.stackTrace ? `\n    ${failure.stackTrace}` : '';
+        const rawTextForLog = project.rawOutput.stderr || project.rawOutput.stdout;
+        const networkLogForFailure = extractNetworkLogTransformer({
+          rawOutput: errorMessageContract.parse(rawTextForLog),
+        });
+        const networkPart =
+          networkLogForFailure.length > 0 ? `\n\n  Network Log:\n    ${networkLogForFailure}` : '';
         sections.push(
           errorMessageContract.parse(
-            `${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}`,
+            `${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}${networkPart}`,
           ),
         );
       }

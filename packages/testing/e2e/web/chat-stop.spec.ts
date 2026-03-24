@@ -1,11 +1,9 @@
-import { mkdirSync } from 'fs';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  queueClaudeResponse,
-  clearClaudeQueue,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import {
   SessionInitLineStub,
   TextLineStub,
@@ -17,27 +15,32 @@ const HTTP_OK = 200;
 const CHAT_TIMEOUT = 5_000;
 const SLOW_DELAY_MS = 3000;
 
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({ harness: claudeMock, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+
 test.describe('Chat Stop', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
-    mkdirSync(GUILD_PATH, { recursive: true });
+    await cleanGuilds({ request });
   });
 
   test('stop button kills running chat process', async ({ page, request }) => {
-    const guild = await createGuild(request, { name: 'Stop Guild', path: GUILD_PATH });
-    const guildId = `${guild.id}`;
+    const guild = await createGuild({ request, name: 'Stop Guild', path: GUILD_PATH });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
 
     // Queue a slow response — 3s delay between each line so the process stays alive
-    queueClaudeResponse({
-      sessionId: 'e2e-session-00000000-0000-0000-0000-000000000000',
-      delayMs: SLOW_DELAY_MS,
-      lines: [
-        SessionInitLineStub(),
-        TextLineStub({ text: 'Starting slow work...' }),
-        TextLineStub({ text: 'This text should never appear' }),
-        ResultLineStub(),
-      ],
+    claudeMock.queueResponse({
+      response: {
+        sessionId: 'e2e-session-00000000-0000-0000-0000-000000000000',
+        delayMs: SLOW_DELAY_MS,
+        lines: [
+          SessionInitLineStub(),
+          TextLineStub({ text: 'Starting slow work...' }),
+          TextLineStub({ text: 'This text should never appear' }),
+          ResultLineStub(),
+        ],
+      },
     });
 
     await page.goto(`/${guildId}/quest`);

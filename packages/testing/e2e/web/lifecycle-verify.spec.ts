@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { wireHarnessLifecycle } from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import { lifecycleVerifyHarness } from '../../test/harnesses/lifecycle-verify/lifecycle-verify.harness';
 
 test.describe('Harness lifecycle hook wiring (Playwright)', () => {

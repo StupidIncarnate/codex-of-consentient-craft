@@ -1,41 +1,44 @@
-import { mkdirSync, existsSync, readdirSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { test, expect } from '@playwright/test';
-import {
-  cleanGuilds,
-  createGuild,
-  createSessionFile,
-  cleanSessionFiles,
-} from './fixtures/test-helpers';
+import { test, expect } from './base-spec';
+import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 const GUILD_A_PATH = '/tmp/dm-e2e-guild-a';
 const GUILD_B_PATH = '/tmp/dm-e2e-guild-b';
 const EMPTY_GUILD_PATH = '/tmp/dm-e2e-empty';
 
+const envA = environmentHarness({ guildPath: GUILD_A_PATH });
+wireHarnessLifecycle({ harness: envA, testObj: test });
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_B_PATH }), testObj: test });
+wireHarnessLifecycle({
+  harness: environmentHarness({ guildPath: EMPTY_GUILD_PATH }),
+  testObj: test,
+});
+
+const sessionsA = sessionHarness({ guildPath: GUILD_A_PATH });
+const sessionsB = sessionHarness({ guildPath: GUILD_B_PATH });
+const sessionsEmpty = sessionHarness({ guildPath: EMPTY_GUILD_PATH });
+
 test.describe('Guild Selection & Session Loading', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds(request);
-    mkdirSync(GUILD_A_PATH, { recursive: true });
-    mkdirSync(GUILD_B_PATH, { recursive: true });
-    mkdirSync(EMPTY_GUILD_PATH, { recursive: true });
-    cleanSessionFiles({ guildPath: GUILD_A_PATH });
-    cleanSessionFiles({ guildPath: GUILD_B_PATH });
-    cleanSessionFiles({ guildPath: EMPTY_GUILD_PATH });
+    await cleanGuilds({ request });
+    sessionsA.cleanSessionFiles();
+    sessionsB.cleanSessionFiles();
+    sessionsEmpty.cleanSessionFiles();
   });
 
   test('click guild loads its session list', async ({ page, request }) => {
-    await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
+    await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
 
     const sessionId = `e2e-session-guild-a-${Date.now()}`;
-    createSessionFile({
-      guildPath: GUILD_A_PATH,
+    sessionsA.createSessionFile({
       sessionId,
       userMessage: 'Quest Alpha session',
     });
 
     // Assert that test worker HOME is the isolated test home
-    expect(os.homedir()).toContain('dm-e2e');
+    expect(String(envA.getHomedir())).toContain('dm-e2e');
 
     await page.goto('/');
     await page.getByText('Guild A').click();
@@ -47,7 +50,7 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('click guild with no quests shows empty state', async ({ page, request }) => {
-    await createGuild(request, { name: 'Empty Guild', path: EMPTY_GUILD_PATH });
+    await createGuild({ request, name: 'Empty Guild', path: EMPTY_GUILD_PATH });
 
     await page.goto('/');
     await page.getByText('Empty Guild').click();
@@ -57,19 +60,17 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('switch between guilds refreshes session list', async ({ page, request }) => {
-    await createGuild(request, { name: 'Guild A', path: GUILD_A_PATH });
-    await createGuild(request, { name: 'Guild B', path: GUILD_B_PATH });
+    await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
+    await createGuild({ request, name: 'Guild B', path: GUILD_B_PATH });
 
     const sessionIdA = `e2e-session-a-${Date.now()}`;
     const sessionIdB = `e2e-session-b-${Date.now()}`;
 
-    createSessionFile({
-      guildPath: GUILD_A_PATH,
+    sessionsA.createSessionFile({
       sessionId: sessionIdA,
       userMessage: 'Alpha session',
     });
-    createSessionFile({
-      guildPath: GUILD_B_PATH,
+    sessionsB.createSessionFile({
       sessionId: sessionIdB,
       userMessage: 'Beta session',
     });
