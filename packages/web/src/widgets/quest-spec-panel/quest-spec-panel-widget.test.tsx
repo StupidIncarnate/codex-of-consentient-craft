@@ -89,7 +89,7 @@ describe('QuestSpecPanelWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(approveButton).toBe(undefined);
+      expect(approveButton).toBeUndefined();
     });
 
     it('VALID: {click APPROVE, status: review_observables, has flows} => calls onModify with approved status', async () => {
@@ -125,7 +125,7 @@ describe('QuestSpecPanelWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(approveButton).toBe(undefined);
+      expect(approveButton).toBeUndefined();
     });
   });
 

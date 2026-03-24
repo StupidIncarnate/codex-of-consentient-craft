@@ -13,7 +13,7 @@ module.exports = {
   setupFiles: ['<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
   setupFilesAfterEnv: [
     '<rootDir>/../../packages/testing/src/jest.setup.js',
-    '<rootDir>/../../packages/testing/dist/startup/start-endpoint-mock-setup.js',
+    '<rootDir>/../../packages/testing/dist/src/startup/start-endpoint-mock-setup.js',
     '@testing-library/jest-dom',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
