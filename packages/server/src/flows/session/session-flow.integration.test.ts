@@ -1,10 +1,12 @@
 import { GuildIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
+import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
+
 import { SessionFlow } from './session-flow';
 
-const toPlain = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
-
 describe('SessionFlow', () => {
+  const harness = serverAppHarness();
+
   describe('POST /api/sessions/new', () => {
     it('VALID: {missing message} => delegates to SessionNewResponder which validates and returns 400', async () => {
       const app = SessionFlow();
@@ -18,7 +20,7 @@ describe('SessionFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual({ error: 'message is required' });
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'message is required' });
     });
   });
 
@@ -30,7 +32,7 @@ describe('SessionFlow', () => {
       const response = await app.request(`/api/guilds/${guildId}/sessions`);
       const body: unknown = await response.json();
 
-      expect(typeof Reflect.get(toPlain(body) as object, 'error')).toBe('string');
+      expect(typeof Reflect.get(harness.toPlain(body) as object, 'error')).toBe('string');
     });
   });
 
@@ -48,7 +50,7 @@ describe('SessionFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual({ error: 'message is required' });
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'message is required' });
     });
   });
 
@@ -63,7 +65,7 @@ describe('SessionFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(404);
-      expect(toPlain(body)).toStrictEqual({ error: 'Process not found or already exited' });
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'Process not found or already exited' });
     });
   });
 });

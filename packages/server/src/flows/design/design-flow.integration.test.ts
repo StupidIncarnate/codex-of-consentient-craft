@@ -1,10 +1,11 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { DesignFlow } from './design-flow';
-
-const toPlain = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
+import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
 describe('DesignFlow', () => {
+  const { toPlain } = serverAppHarness();
+
   describe('POST /api/quests/:questId/design/start', () => {
     it('VALID: {missing body} => delegates to DesignStartResponder which validates and returns 400', async () => {
       const app = DesignFlow();

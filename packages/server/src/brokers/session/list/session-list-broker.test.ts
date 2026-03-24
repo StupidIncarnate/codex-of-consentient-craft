@@ -136,7 +136,7 @@ describe('sessionListBroker', () => {
 
       const setCacheFirstCallArg: unknown = setCacheMock.mock.calls[0]?.[0];
 
-      expect(Reflect.get(setCacheFirstCallArg as object, 'summary')).toBe(undefined);
+      expect(Reflect.get(setCacheFirstCallArg as object, 'summary')).toBeUndefined();
     });
 
     it('ERROR: {stat throws} => session entry is null and filtered out', async () => {

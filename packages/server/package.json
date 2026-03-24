@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx watch --conditions=source --clear-screen=false bin/server-entry.ts",
     "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward --only test",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",

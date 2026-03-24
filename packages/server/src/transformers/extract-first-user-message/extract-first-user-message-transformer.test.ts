@@ -95,7 +95,7 @@ describe('extractFirstUserMessageTransformer', () => {
         fileContent: FileContentsStub({ value: '' }),
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -169,7 +169,7 @@ describe('extractFirstUserMessageTransformer', () => {
         }),
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 

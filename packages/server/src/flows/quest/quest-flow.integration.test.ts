@@ -1,10 +1,12 @@
 import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
+import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
+
 import { QuestFlow } from './quest-flow';
 
-const toPlain = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
-
 describe('QuestFlow', () => {
+  const harness = serverAppHarness();
+
   describe('GET /api/quests', () => {
     it('VALID: {missing guildId} => delegates to QuestListResponder which validates and returns 400', async () => {
       const app = QuestFlow();
@@ -13,7 +15,7 @@ describe('QuestFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual({ error: 'guildId query parameter is required' });
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'guildId query parameter is required' });
     });
   });
 
@@ -41,7 +43,9 @@ describe('QuestFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual({ error: 'title and userRequest are required strings' });
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'title and userRequest are required strings',
+      });
     });
   });
 
@@ -83,7 +87,7 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
-      expect(typeof Reflect.get(toPlain(body) as object, 'error')).toBe('string');
+      expect(typeof Reflect.get(harness.toPlain(body) as object, 'error')).toBe('string');
     });
   });
 });
