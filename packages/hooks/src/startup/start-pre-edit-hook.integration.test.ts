@@ -1,5 +1,3 @@
-import * as path from 'path';
-import { spawnSync } from 'child_process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -12,33 +10,18 @@ import {
   MultiEditToolHookStub,
   WriteToolHookStub,
 } from '../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub';
-import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
+
+import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
 const BASE_DIR = FilePathStub({
-  value: path.join(process.cwd(), 'src', '.test-tmp', 'pre-edit-lint-tests'),
+  value: `${process.cwd()}/src/.test-tmp/pre-edit-lint-tests`,
 });
-const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-pre-edit-hook.ts');
-
-const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecResultStub> => {
-  const input = JSON.stringify(hookData);
-
-  // Use spawnSync to capture both stdout and stderr on success AND failure
-  const result = spawnSync('npx', ['tsx', hookPath], {
-    input,
-    encoding: 'utf8',
-    cwd: process.cwd(),
-  });
-
-  return ExecResultStub({
-    exitCode: result.status === null ? 1 : result.status,
-    stdout: result.stdout,
-    stderr: result.stderr,
-  });
-};
 
 describe('pre-edit-lint', () => {
+  const runner = hookRunnerHarness();
+
   describe('with Write tool', () => {
     describe('success cases', () => {
       it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
@@ -47,7 +30,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -59,7 +42,7 @@ describe('pre-edit-lint', () => {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -76,7 +59,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -86,7 +69,7 @@ describe('pre-edit-lint', () => {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -103,7 +86,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -115,7 +98,7 @@ describe('pre-edit-lint', () => {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -132,7 +115,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -142,7 +125,7 @@ describe('pre-edit-lint', () => {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -159,7 +142,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         // Create file with existing violations
         testbed.writeFile({
@@ -175,7 +158,7 @@ describe('pre-edit-lint', () => {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -194,17 +177,17 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
-          cwd: path.resolve(process.cwd(), '../..'), // Use monorepo root so ESLint can find eslint.config.js
+          cwd: `${process.cwd()}/../..`, // Use monorepo root so ESLint can find eslint.config.js
           tool_input: {
             file_path: filePath,
             content: `export function test({ param }: { param: any }): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -219,7 +202,7 @@ describe('pre-edit-lint', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -230,7 +213,7 @@ export function test(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -245,7 +228,7 @@ export function test(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -256,7 +239,7 @@ export function test(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -271,7 +254,7 @@ export function test(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -282,7 +265,7 @@ console.log('test');`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -297,7 +280,7 @@ console.log('test');`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
           cwd: testbed.guildPath,
@@ -310,7 +293,7 @@ export function dirty({ param }: { param: any }): any {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -330,7 +313,7 @@ export function dirty({ param }: { param: any }): any {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         // Create initial file
         const initialContent = `export function oldFunction(): string {
@@ -354,7 +337,7 @@ export function dirty({ param }: { param: any }): any {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -371,7 +354,7 @@ export function dirty({ param }: { param: any }): any {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         // Create file with existing violation
         const initialContent = `const bad: any = 'test';
@@ -392,7 +375,7 @@ export function newFunc(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -409,7 +392,7 @@ export function newFunc(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `const message = 'hello';`;
         testbed.writeFile({
@@ -426,7 +409,7 @@ export function newFunc(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -443,7 +426,7 @@ export function newFunc(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `function test(){return 'hello';}`;
         testbed.writeFile({
@@ -462,7 +445,7 @@ export function newFunc(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -481,7 +464,7 @@ export function newFunc(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export function test(): void {}`;
         testbed.writeFile({
@@ -498,7 +481,7 @@ export function newFunc(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -513,7 +496,7 @@ export function newFunc(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `function testClean(param: string): void {
     console.log(param);
@@ -532,7 +515,7 @@ export function newFunc(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -547,7 +530,7 @@ export function newFunc(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export function test(): void {}`;
         testbed.writeFile({
@@ -565,7 +548,7 @@ export function test(): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -580,7 +563,7 @@ export function test(): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `console.log('test');`;
         testbed.writeFile({
@@ -598,7 +581,7 @@ console.log('test');`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -613,7 +596,7 @@ console.log('test');`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         // File with existing violation
         const initialContent = `const bad: any = 'test';`;
@@ -632,7 +615,7 @@ export function test({ param }: { param: any }): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -649,7 +632,7 @@ export function test({ param }: { param: any }): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'does-not-exist.ts');
+        const filePath = `${testbed.guildPath}/does-not-exist.ts`;
 
         const hookData = EditToolHookStub({
           cwd: testbed.guildPath,
@@ -660,7 +643,7 @@ export function test({ param }: { param: any }): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -681,7 +664,7 @@ export function test({ param }: { param: any }): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export class Calculator {
   add({ a, b }: { a: number; b: number }): number {
@@ -714,7 +697,7 @@ export function test({ param }: { param: any }): void {}`,
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -731,7 +714,7 @@ export function test({ param }: { param: any }): void {}`,
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         // File with existing violations
         const initialContent = `// @ts-ignore
@@ -766,7 +749,7 @@ export class Calculator {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -785,7 +768,7 @@ export class Calculator {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export class Calculator {
   add({ a, b }: { a: number; b: number }): number {
@@ -818,7 +801,7 @@ export class Calculator {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -832,7 +815,7 @@ export class Calculator {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export function processData({ data }: { data: string }): string {
   return data;
@@ -863,7 +846,7 @@ export class Calculator {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -877,7 +860,7 @@ export class Calculator {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.ts');
+        const filePath = `${testbed.guildPath}/example.ts`;
 
         const initialContent = `export function processItem({ item }: { item: string }): string {
   if (item === '') {
@@ -908,7 +891,7 @@ export function processItems({ items }: { items: string[] }): string[] {
           },
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -926,7 +909,7 @@ export function processItems({ items }: { items: string[] }): string[] {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'README.md');
+      const filePath = `${testbed.guildPath}/README.md`;
 
       const hookData = WriteToolHookStub({
         cwd: testbed.guildPath,
@@ -945,7 +928,7 @@ function test({ param }: { param: any }): void {
         },
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -962,7 +945,7 @@ function test({ param }: { param: any }): void {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.js');
+      const filePath = `${testbed.guildPath}/example.js`;
 
       const hookData = WriteToolHookStub({
         cwd: testbed.guildPath,
@@ -975,7 +958,7 @@ function test({ param }: { param: any }): void {
         },
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -992,7 +975,7 @@ function test({ param }: { param: any }): void {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const hookData = WriteToolHookStub({
         cwd: testbed.guildPath,
@@ -1006,7 +989,7 @@ export const handler: any = getValue();`,
         },
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -1021,7 +1004,7 @@ export const handler: any = getValue();`,
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const largeContent = `export function processData({ data }: { data: unknown }): unknown {
   ${'  return data;\n'.repeat(100)}
@@ -1038,7 +1021,7 @@ export const handler: any = processData;`;
         },
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -1052,7 +1035,7 @@ export const handler: any = processData;`;
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'empty.ts');
+      const filePath = `${testbed.guildPath}/empty.ts`;
 
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'empty.ts' }),
@@ -1068,7 +1051,7 @@ export const handler: any = processData;`;
         },
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -1087,7 +1070,7 @@ export const handler: any = processData;`;
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const typicalContent = `export interface UserConfig {
   name: boolean;
@@ -1127,7 +1110,7 @@ export class UserService {
       });
 
       const startTime = Date.now();
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
@@ -1143,7 +1126,7 @@ export class UserService {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       // Generate a large file with multiple classes and methods
       const CLASS_COUNT = 20;
@@ -1191,7 +1174,7 @@ export class Service${classIndex} {
       });
 
       const startTime = Date.now();
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
@@ -1207,7 +1190,7 @@ export class Service${classIndex} {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const contentWithViolations = `// @ts-ignore
 export function badFunction(param: any): any {
@@ -1236,7 +1219,7 @@ export class BadService {
       });
 
       const startTime = Date.now();
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
@@ -1252,7 +1235,7 @@ export class BadService {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const initialContent = `export class Calculator {
   add(a: number, b: number): number {
@@ -1287,7 +1270,7 @@ export class BadService {
       });
 
       const startTime = Date.now();
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 
@@ -1303,7 +1286,7 @@ export class BadService {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example.ts');
+      const filePath = `${testbed.guildPath}/example.ts`;
 
       const initialContent = `export class UserManager {
   private users: User[] = [];
@@ -1358,7 +1341,7 @@ export class BadService {
       });
 
       const startTime = Date.now();
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-pre-edit-hook', hookData });
       const endTime = Date.now();
       const executionTime = endTime - startTime;
 

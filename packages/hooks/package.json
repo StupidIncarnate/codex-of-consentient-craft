@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "Claude hooks for dungeonmaster - sanitization and process escape handling",
   "bin": {
-    "dungeonmaster-session-start-hook": "./dist/startup/start-session-start-hook.js",
-    "dungeonmaster-pre-edit-lint": "./dist/startup/start-pre-edit-hook.js",
-    "dungeonmaster-pre-bash": "./dist/startup/start-pre-bash-hook.js",
-    "dungeonmaster-post-edit-lint": "./dist/startup/start-post-edit-hook.js"
+    "dungeonmaster-session-start-hook": "./dist/src/startup/start-session-start-hook.js",
+    "dungeonmaster-pre-edit-lint": "./dist/src/startup/start-pre-edit-hook.js",
+    "dungeonmaster-pre-bash": "./dist/src/startup/start-pre-bash-hook.js",
+    "dungeonmaster-post-edit-lint": "./dist/src/startup/start-post-edit-hook.js"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/startup/*.js 2>/dev/null || true",
+    "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "dungeonmaster-ward --only test",
     "test:unit": "dungeonmaster-ward --only unit",

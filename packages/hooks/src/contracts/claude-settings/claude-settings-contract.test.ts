@@ -16,7 +16,7 @@ describe('claudeSettingsContract', () => {
 
       const result = claudeSettingsContract.parse(input);
 
-      expect(result.hooks).toBe(undefined);
+      expect(result.hooks).toBeUndefined();
     });
 
     it('VALID: settings with other properties => preserves them', () => {

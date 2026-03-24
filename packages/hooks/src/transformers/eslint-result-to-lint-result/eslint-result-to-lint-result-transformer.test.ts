@@ -61,7 +61,7 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const [firstMessage] = result.messages;
 
-      expect(firstMessage?.ruleId).toBe(undefined);
+      expect(firstMessage?.ruleId).toBeUndefined();
     });
 
     it('VALID: {eslintResult with message with ruleId} => preserves ruleId', () => {
@@ -250,7 +250,7 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const [firstMessage] = result.messages;
 
-      expect(firstMessage?.ruleId).toBe(undefined);
+      expect(firstMessage?.ruleId).toBeUndefined();
     });
 
     it('EDGE: {eslintResult with no messages} => returns empty messages array', () => {

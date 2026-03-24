@@ -11,7 +11,7 @@ describe('dungeonmasterHooksConfigContract', () => {
   it('VALID: {without preEditLint} => parses successfully', () => {
     const result = DungeonmasterHooksConfigStub({ preEditLint: undefined });
 
-    expect(result.preEditLint).toBe(undefined);
+    expect(result.preEditLint).toBeUndefined();
   });
 
   describe('invalid input', () => {

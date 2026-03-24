@@ -1,5 +1,3 @@
-import * as path from 'path';
-import { spawnSync } from 'child_process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -10,33 +8,18 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
-import { ExecResultStub } from '../contracts/exec-result/exec-result.stub';
+
+import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using _test-workspace (NOT .test-tmp which is ESLint-ignored, and no dot-prefix which ESLint globs skip)
 const BASE_DIR = FilePathStub({
-  value: path.join(process.cwd(), 'src', '_test-workspace', 'post-edit-tests'),
+  value: `${process.cwd()}/src/_test-workspace/post-edit-tests`,
 });
-const hookPath = path.join(process.cwd(), 'src', 'startup', 'start-post-edit-hook.ts');
-
-const runHook = ({ hookData }: { hookData: unknown }): ReturnType<typeof ExecResultStub> => {
-  const input = JSON.stringify(hookData);
-
-  // Use spawnSync to capture both stdout and stderr on success AND failure
-  const result = spawnSync('npx', ['tsx', hookPath], {
-    input,
-    encoding: 'utf8',
-    cwd: process.cwd(),
-  });
-
-  return ExecResultStub({
-    exitCode: result.status === null ? 1 : result.status,
-    stdout: result.stdout,
-    stderr: result.stderr,
-  });
-};
 
 describe('post-edit-hook', () => {
+  const runner = hookRunnerHarness();
+
   describe('with Write tool', () => {
     describe('success cases', () => {
       it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
@@ -45,7 +28,7 @@ describe('post-edit-hook', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.info.ts');
+        const filePath = `${testbed.guildPath}/example.info.ts`;
 
         const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
 `;
@@ -65,7 +48,7 @@ describe('post-edit-hook', () => {
           content: FileContentStub({ value: fileContent }),
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -81,7 +64,7 @@ describe('post-edit-hook', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.info.ts');
+        const filePath = `${testbed.guildPath}/example.info.ts`;
 
         const fileContent = `export const test = (): void => {
   console.log('test');
@@ -103,7 +86,7 @@ describe('post-edit-hook', () => {
           content: FileContentStub({ value: fileContent }),
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -118,7 +101,7 @@ describe('post-edit-hook', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.info.ts');
+        const filePath = `${testbed.guildPath}/example.info.ts`;
 
         const fileContent = '';
 
@@ -137,7 +120,7 @@ describe('post-edit-hook', () => {
           content: FileContentStub({ value: fileContent }),
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -157,7 +140,7 @@ describe('post-edit-hook', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.info.ts');
+        const filePath = `${testbed.guildPath}/example.info.ts`;
 
         // Create initial file
         const initialContent = `export const oldFunction = (): boolean => true;
@@ -186,7 +169,7 @@ describe('post-edit-hook', () => {
           content: FileContentStub({ value: newContent }),
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -202,7 +185,7 @@ describe('post-edit-hook', () => {
           baseDir: BASE_DIR,
         });
 
-        const filePath = path.join(testbed.guildPath, 'example.info.ts');
+        const filePath = `${testbed.guildPath}/example.info.ts`;
 
         const initialContent = `export const test = (): void => {};
 `;
@@ -232,7 +215,7 @@ describe('post-edit-hook', () => {
           content: FileContentStub({ value: newContent }),
         });
 
-        const result = runHook({ hookData });
+        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
         testbed.cleanup();
 
@@ -245,10 +228,9 @@ describe('post-edit-hook', () => {
 
   describe('with invalid hook data', () => {
     it('INVALID_INPUT: {invalid JSON} => exits with 1', () => {
-      const result = spawnSync('npx', ['tsx', hookPath], {
-        input: 'not valid json',
-        encoding: 'utf8',
-        cwd: process.cwd(),
+      const result = runner.runHookRaw({
+        hookName: 'start-post-edit-hook',
+        input: 'not valid json' as never,
       });
 
       expect(result.status).toBe(1);
@@ -256,10 +238,9 @@ describe('post-edit-hook', () => {
     });
 
     it('INVALID_INPUT: {missing required fields} => exits with 1', () => {
-      const result = spawnSync('npx', ['tsx', hookPath], {
-        input: JSON.stringify({ invalid: 'data' }),
-        encoding: 'utf8',
-        cwd: process.cwd(),
+      const result = runner.runHookRaw({
+        hookName: 'start-post-edit-hook',
+        input: JSON.stringify({ invalid: 'data' }) as never,
       });
 
       expect(result.status).toBe(1);
@@ -274,7 +255,7 @@ describe('post-edit-hook', () => {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'test.info.ts');
+      const filePath = `${testbed.guildPath}/test.info.ts`;
 
       // Write code with arrow-body-style violation (fixable) - using .info.ts to avoid colocation rules
       const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => {
@@ -301,7 +282,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => {
       });
 
       // Run the hook
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -331,7 +312,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'format.info.ts');
+      const filePath = `${testbed.guildPath}/format.info.ts`;
 
       // Write code with prettier violations (extra spaces, missing semicolons)
       const fileContent = `export const test=({x}:{x:boolean}):boolean=>x;`;
@@ -352,7 +333,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
       });
 
       // Run the hook
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -380,7 +361,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'multi.info.ts');
+      const filePath = `${testbed.guildPath}/multi.info.ts`;
 
       // Write code with multiple fixable violations
       const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => {
@@ -407,7 +388,7 @@ return a&&b;
       });
 
       // Run the hook
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -437,7 +418,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'example-broker.ts');
+      const filePath = `${testbed.guildPath}/example-broker.ts`;
 
       // Write implementation file without test - violates colocation (non-fixable)
       const fileContent = `/**
@@ -466,7 +447,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       });
 
       // Run the hook
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -495,7 +476,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'README.md');
+      const filePath = `${testbed.guildPath}/README.md`;
 
       const fileContent = `# TypeScript Guide
 
@@ -522,7 +503,7 @@ function test(): void {
         content: FileContentStub({ value: fileContent }),
       });
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       testbed.cleanup();
 
@@ -538,7 +519,7 @@ function test(): void {
         baseDir: BASE_DIR,
       });
 
-      const filePath = path.join(testbed.guildPath, 'does-not-exist.ts');
+      const filePath = `${testbed.guildPath}/does-not-exist.ts`;
 
       const hookData = PostToolUseHookStub({
         cwd: process.cwd(),
@@ -552,7 +533,7 @@ function test(): void {
 
       // Don't create the file - testing non-existent scenario
 
-      const result = runHook({ hookData });
+      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
 
       testbed.cleanup();
 
