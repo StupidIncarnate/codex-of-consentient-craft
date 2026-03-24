@@ -153,7 +153,7 @@ describe('OrchestrationFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestration-non-approved' }),
       });
-      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
       const guild = await GuildAddResponder({
         name: GuildNameStub({ value: 'Orchestration Test Guild' }),
@@ -170,8 +170,6 @@ describe('OrchestrationFlow', () => {
         /Quest must be approved before starting/u,
       );
 
-      await questHelper.removeGuild({ guildId: guild.id });
-      env.restore();
       testbed.cleanup();
 
       expect(typeof addResult.questId).toBe('string');
@@ -181,7 +179,7 @@ describe('OrchestrationFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestration-approved' }),
       });
-      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
       const guild = await GuildAddResponder({
         name: GuildNameStub({ value: 'Orchestration Approved Guild' }),
@@ -246,9 +244,6 @@ describe('OrchestrationFlow', () => {
 
       const questResult = await QuestGetResponder({ questId });
 
-      OrchestrationFlow.stopAll();
-      await questHelper.removeGuild({ guildId: guild.id });
-      env.restore();
       testbed.cleanup();
 
       expect(processId).toMatch(/^proc-/u);
@@ -267,8 +262,8 @@ describe('OrchestrationFlow', () => {
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -316,10 +311,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const { workItems } = quest;
       const pathseekerItems = workItems.filter((wi) => wi.role === 'pathseeker');
@@ -355,8 +349,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-cw-fail-2' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -427,10 +421,9 @@ describe('OrchestrationFlow', () => {
           minItems: 8,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // Codeweaver failure inside slot manager: one cw failed, one complete.
       // With 'failed' in SATISFIED_STATUSES, downstream items proceed.
@@ -466,8 +459,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-cw-fail-6' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 6,
@@ -523,10 +516,9 @@ describe('OrchestrationFlow', () => {
           minItems: 6,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // Codeweaver failure inside the slot manager marks the failed item as 'failed' at quest level.
       // Pending slot-manager items get skipped internally but are mapped to 'complete' at quest level
@@ -559,8 +551,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-ward-retry' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -615,10 +607,9 @@ describe('OrchestrationFlow', () => {
           minItems: 9,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const { workItems } = quest;
       const wardItems = workItems.filter((wi) => wi.role === 'ward');
@@ -644,8 +635,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-ward-exhaust' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -696,10 +687,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const failedWards = quest.workItems
         .filter((wi) => wi.role === 'ward')
@@ -723,8 +713,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-siege-fail' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -767,10 +757,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const failedSiege = quest.workItems
         .filter((wi) => wi.role === 'siegemaster')
@@ -798,8 +787,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-lb-fail-2' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -849,10 +838,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // Lawbringer failure inside the slot manager spawns spiritmender internally.
       // At quest level: lb-0 failed, lb-1 mapped to 'complete' (slot-internal skip).
@@ -879,8 +867,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-lb-fail-6' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 6,
@@ -927,10 +915,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const lawbringerItems = quest.workItems.filter((wi) => wi.role === 'lawbringer');
       const failedLb = lawbringerItems.filter((wi) => wi.status === 'failed');
@@ -955,8 +942,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-multi-cw' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 3,
@@ -1012,10 +999,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const codeweaverItems = quest.workItems.filter((wi) => wi.role === 'codeweaver');
 
@@ -1033,8 +1019,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-lb-final-ward' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -1077,10 +1063,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // stepsToWorkItemsTransformer creates 2 wards: one between codeweavers and siege,
       // and a final ward after lawbringers.
@@ -1097,8 +1082,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-dep-chain' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -1144,10 +1129,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const { workItems } = quest;
       const chaosItem = workItems.find((wi) => wi.role === 'chaoswhisperer')!;
@@ -1207,7 +1191,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-chaos' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
+      const quest: QuestType = await (async (): Promise<QuestType> => {
         const guild = await GuildAddResponder({
           name: GuildNameStub({ value: 'Chaos Guild' }),
           path: GuildPathStub({ value: testbed.guildPath }),
@@ -1257,10 +1241,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // Verify chaoswhisperer completed and pathseeker was created as first execution item
       const chaosItems = quest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
@@ -1279,7 +1262,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-glyph' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
+      const quest: QuestType = await (async (): Promise<QuestType> => {
         const guild = await GuildAddResponder({
           name: GuildNameStub({ value: 'Glyph Guild' }),
           path: GuildPathStub({ value: testbed.guildPath }),
@@ -1367,10 +1350,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
       const chaosItems = quest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
@@ -1398,8 +1380,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-sm-fail-2' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -1444,10 +1426,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked', 'complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // With 'failed' in SATISFIED_STATUSES, ward retry runs even after spiritmender failure.
       // The ward retry fails (empty ward queue) and eventually retries are exhausted.
@@ -1472,8 +1453,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-sm-fail-6' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -1519,10 +1500,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked', 'complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       // With 'failed' in SATISFIED_STATUSES, ward retry runs even after spiritmender failure.
       // The ward retry fails (empty ward queue) and eventually retries are exhausted.
@@ -1548,7 +1528,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-ps-exhaust' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
+      const quest: QuestType = await (async (): Promise<QuestType> => {
         const guild = await GuildAddResponder({
           name: GuildNameStub({ value: 'PS Exhaust Guild' }),
           path: GuildPathStub({ value: testbed.guildPath }),
@@ -1627,10 +1607,9 @@ describe('OrchestrationFlow', () => {
           minItems: 4,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const failedPs = quest.workItems
         .filter((wi) => wi.role === 'pathseeker')
@@ -1673,7 +1652,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-ps-0-steps' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
+      const quest: QuestType = await (async (): Promise<QuestType> => {
         const guild = await GuildAddResponder({
           name: GuildNameStub({ value: 'Zero Steps Guild' }),
           path: GuildPathStub({ value: testbed.guildPath }),
@@ -1756,10 +1735,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const codeweavers = quest.workItems.filter((wi) => wi.role === 'codeweaver');
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
@@ -1777,8 +1755,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: `orch-invariant-${String(stepCount)}` }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount,
@@ -1814,10 +1792,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       return quest;
     };
@@ -1862,7 +1839,7 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-cw-deps' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
+      const quest: QuestType = await (async (): Promise<QuestType> => {
         const guild = await GuildAddResponder({
           name: GuildNameStub({ value: 'CW Deps Guild' }),
           path: GuildPathStub({ value: testbed.guildPath }),
@@ -1994,10 +1971,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const psItem = quest.workItems.find((wi) => wi.role === 'pathseeker')!;
       const cwItems = quest.workItems.filter((wi) => wi.role === 'codeweaver');
@@ -2020,8 +1996,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-multi-sm' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -2083,10 +2059,9 @@ describe('OrchestrationFlow', () => {
           minItems: 8,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const smItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
@@ -2114,8 +2089,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-final-ward-fail' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -2164,10 +2139,9 @@ describe('OrchestrationFlow', () => {
           minItems: 9,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const smItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
@@ -2197,8 +2171,8 @@ describe('OrchestrationFlow', () => {
         baseName: BaseNameStub({ value: 'orch-ward-rewire' }),
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -2247,10 +2221,9 @@ describe('OrchestrationFlow', () => {
           minItems: 9,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
       const siegeItem = quest.workItems.find((wi) => wi.role === 'siegemaster')!;
@@ -2319,8 +2292,8 @@ describe('OrchestrationFlow', () => {
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
       const sub = subscribeChatOutput();
 
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 2,
@@ -2360,10 +2333,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['complete'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       sub.unsubscribe();
 
@@ -2462,8 +2434,8 @@ describe('OrchestrationFlow', () => {
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
       const sub = subscribeChatOutput();
 
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -2503,10 +2475,9 @@ describe('OrchestrationFlow', () => {
           minItems: 9,
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       sub.unsubscribe();
 
@@ -2556,8 +2527,8 @@ describe('OrchestrationFlow', () => {
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
       const sub = subscribeChatOutput();
 
-      const quest: QuestType = await envHarness.withRestore(env, async () => {
-        const { guild, questId } = await questHelper.createTestQuest({
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
           testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
@@ -2591,10 +2562,9 @@ describe('OrchestrationFlow', () => {
           targetStatuses: ['blocked'],
         });
 
-        await questHelper.removeGuild({ guildId: guild.id });
         testbed.cleanup();
         return result;
-      });
+      })();
 
       sub.unsubscribe();
 

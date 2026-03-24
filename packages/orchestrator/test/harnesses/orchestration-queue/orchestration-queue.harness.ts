@@ -13,6 +13,8 @@ import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
 import { ArrayIndexStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 export const orchestrationQueueHarness = (): {
+  beforeEach: () => void;
+  afterEach: () => void;
   createDirs: (params: { baseDir: GuildPath }) => {
     claudeQueueDir: FilePath;
     wardQueueDir: FilePath;
@@ -29,6 +31,12 @@ export const orchestrationQueueHarness = (): {
   };
 
   return {
+    beforeEach: (): void => {
+      counters.clear();
+    },
+    afterEach: (): void => {
+      counters.clear();
+    },
     createDirs: ({
       baseDir,
     }: {

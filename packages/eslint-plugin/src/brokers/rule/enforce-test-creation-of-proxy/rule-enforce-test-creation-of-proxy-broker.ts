@@ -16,6 +16,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
+import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -23,6 +24,7 @@ import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
+import { astCalleeRootNameTransformer } from '../../../transformers/ast-callee-root-name/ast-callee-root-name-transformer';
 
 export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -43,6 +45,10 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           'Integration and e2e tests must not import proxy files. Integration tests run real code without mocking. Remove the proxy import: {{importSource}}',
         noHarnessInUnitTest:
           'Unit tests must not import harness files. Harness files are for integration/e2e tests. Use proxy files (.proxy.ts) for unit test mocking instead. Remove the harness import: {{importSource}}',
+        harnessMustBeInDescribe:
+          'Harness instance {{name}} must be created inside a describe block (not at module level or inside it/test). Harnesses register beforeEach/afterEach hooks that must be scoped to a describe block.',
+        harnessNeedsWireInSpec:
+          'Harness call {{name}} in spec file must be wrapped with wireHarnessLifecycle({ harness: {{name}}(), testObj: test }) to register lifecycle hooks with Playwright.',
       },
       schema: [],
     },
@@ -58,20 +64,23 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
 
     // Check if this is an integration or e2e test file
     const filePath = filePathContract.parse(filename);
+    const isSpec = isSpecFileGuard({ filename });
     const isIntegrationOrE2eTest =
-      isIntegrationTestFileGuard({ filePath }) || isE2eTestFileGuard({ filePath });
+      isIntegrationTestFileGuard({ filePath }) || isE2eTestFileGuard({ filePath }) || isSpec;
 
     // Startup integration tests are exempt from the proxy import ban because
     // startup files require integration tests (not unit tests) per enforce-implementation-colocation,
     // so they must use proxies to set up their test harness.
     const isStartupIntegrationTest = isIntegrationOrE2eTest && filename.includes('/startup/');
 
-    // For integration/e2e tests: only check for proxy imports (should error)
+    // For integration/e2e tests: check proxy imports + harness scope
     // Exception: startup integration tests are allowed to import proxies
     if (isIntegrationOrE2eTest) {
+      let describeDepth = 0;
+      let testBlockDepth = 0;
+
       return {
         ImportDeclaration: (node: Tsestree): void => {
-          // Skip import check for startup integration tests
           if (isStartupIntegrationTest) return;
 
           const { source } = node;
@@ -84,10 +93,105 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
             ctx.report({
               node,
               messageId: 'noProxyInIntegrationTest',
-              data: {
-                importSource,
-              },
+              data: { importSource },
             });
+          }
+        },
+
+        CallExpression: (node: Tsestree): void => {
+          if (isStartupIntegrationTest) return;
+          const { callee } = node;
+          if (!callee) return;
+
+          const rootName = astCalleeRootNameTransformer({ node });
+
+          if (rootName === 'describe') {
+            describeDepth += 1;
+          } else if (rootName === 'it' || rootName === 'test') {
+            testBlockDepth += 1;
+          } else if (callee.type === 'Identifier') {
+            const { name } = callee;
+            if (name !== undefined && name !== '' && name.endsWith('Harness')) {
+              // Skip if this call is the initializer of a VariableDeclarator
+              // (the VariableDeclaration handler will report it instead)
+              const isVariableInit = node.parent?.type === 'VariableDeclarator';
+              // Skip if this call is an argument inside wireHarnessLifecycle()
+              const parentNode = node.parent;
+              const isInsideWireHarness =
+                parentNode?.type === 'Property' &&
+                parentNode.parent?.type === 'ObjectExpression' &&
+                parentNode.parent.parent?.type === 'CallExpression' &&
+                parentNode.parent.parent.callee?.type === 'Identifier' &&
+                parentNode.parent.parent.callee.name === 'wireHarnessLifecycle';
+              if (!isVariableInit && !isInsideWireHarness) {
+                const isInDescribeOnly = describeDepth > 0 && testBlockDepth === 0;
+                if (!isInDescribeOnly) {
+                  ctx.report({
+                    node,
+                    messageId: 'harnessMustBeInDescribe',
+                    data: { name },
+                  });
+                } else if (isSpec) {
+                  // In .spec.ts files, bare harness calls must be wrapped with wireHarnessLifecycle
+                  ctx.report({
+                    node,
+                    messageId: 'harnessNeedsWireInSpec',
+                    data: { name },
+                  });
+                }
+              }
+            }
+          }
+        },
+
+        'CallExpression:exit': (node: Tsestree): void => {
+          if (isStartupIntegrationTest) return;
+
+          const rootName = astCalleeRootNameTransformer({ node });
+
+          if (rootName === 'describe') {
+            describeDepth -= 1;
+          } else if (rootName === 'it' || rootName === 'test') {
+            testBlockDepth -= 1;
+          }
+        },
+
+        VariableDeclaration: (node: Tsestree): void => {
+          if (isStartupIntegrationTest) return;
+          const { declarations } = node;
+          if (!declarations || declarations.length === 0) return;
+
+          for (const declaration of declarations) {
+            const { id, init } = declaration;
+            if (init && init.type === 'CallExpression') {
+              const { callee } = init;
+              if (callee && callee.type === 'Identifier' && callee.name?.endsWith('Harness')) {
+                const isInDescribeOnly = describeDepth > 0 && testBlockDepth === 0;
+                if (!isInDescribeOnly) {
+                  const variableName = id?.name ?? 'harness';
+                  ctx.report({
+                    node: declaration,
+                    messageId: 'harnessMustBeInDescribe',
+                    data: { name: variableName },
+                  });
+                } else if (isSpec) {
+                  // In .spec.ts files, harness must be wrapped with wireHarnessLifecycle
+                  const variableName = id?.name ?? 'harness';
+                  ctx.report({
+                    node: declaration,
+                    messageId: 'harnessNeedsWireInSpec',
+                    data: { name: variableName },
+                  });
+                }
+              } else if (
+                isSpec &&
+                callee &&
+                callee.type === 'Identifier' &&
+                callee.name === 'wireHarnessLifecycle'
+              ) {
+                // wireHarnessLifecycle wrapping is valid in .spec.ts - no report needed
+              }
+            }
           }
         },
       };
@@ -149,14 +253,16 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           hasCreatedProxyInTest = true;
         }
 
-        if (callee.type === 'Identifier') {
+        const rootName = astCalleeRootNameTransformer({ node });
+
+        if (rootName === 'it' || rootName === 'test') {
+          testBlockDepth += 1;
+          // Reset proxy tracking for new test
+          proxiesCreatedInCurrentTest.clear();
+          hasCreatedProxyInTest = false;
+        } else if (callee.type === 'Identifier') {
           const { name } = callee;
-          if (name === 'it' || name === 'test') {
-            testBlockDepth += 1;
-            // Reset proxy tracking for new test
-            proxiesCreatedInCurrentTest.clear();
-            hasCreatedProxyInTest = false;
-          } else if (testBlockDepth > 0 && name !== undefined && name !== '') {
+          if (testBlockDepth > 0 && name !== undefined && name !== '') {
             // Check if this is a proxy call (mark that proxy was created)
             if (name.endsWith('Proxy')) {
               hasCreatedProxyInTest = true;
@@ -190,15 +296,10 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
 
       // Track when we exit a test block
       'CallExpression:exit': (node: Tsestree): void => {
-        const { callee } = node;
+        const rootName = astCalleeRootNameTransformer({ node });
 
-        if (!callee) return;
-
-        if (callee.type === 'Identifier') {
-          const { name } = callee;
-          if (name === 'it' || name === 'test') {
-            testBlockDepth -= 1;
-          }
+        if (rootName === 'it' || rootName === 'test') {
+          testBlockDepth -= 1;
         }
       },
 

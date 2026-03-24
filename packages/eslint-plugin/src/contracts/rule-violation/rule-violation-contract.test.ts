@@ -14,7 +14,7 @@ describe('RuleViolationStub', () => {
         end: { line: 1, column: 10 },
       },
     });
-    expect(result.messageId).toBe(undefined);
+    expect(result.messageId).toBeUndefined();
   });
 
   it('VALID: {message: "Custom message"} => returns RuleViolation with custom message', () => {

@@ -1,4 +1,5 @@
 const baseConfig = require('../../jest.config.base.js');
+const dungeonmasterTransformers = require('../../packages/testing/ts-jest/transformers.js');
 
 module.exports = {
   ...baseConfig,
@@ -11,9 +12,7 @@ module.exports = {
       {
         tsconfig: { allowJs: true, esModuleInterop: true, skipLibCheck: true },
         astTransformers: {
-          before: [{
-            path: require.resolve('../../packages/testing/ts-jest/proxy-mock-transformer.js'),
-          }],
+          before: dungeonmasterTransformers,
         },
       },
     ],

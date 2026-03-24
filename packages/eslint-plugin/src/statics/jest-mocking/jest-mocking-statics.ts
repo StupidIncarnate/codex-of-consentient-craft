@@ -43,4 +43,13 @@ export const jestMockingStatics = {
     'mockResolvedValueOnce',
     'mockRejectedValueOnce',
   ],
+  mockMethodSet: new Set([
+    'mockImplementation',
+    'mockResolvedValue',
+    'mockRejectedValue',
+    'mockReturnValue',
+    'mockReturnValueOnce',
+    'mockResolvedValueOnce',
+    'mockRejectedValueOnce',
+  ]),
 } as const;

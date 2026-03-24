@@ -2457,7 +2457,7 @@ export const questHarness = () => {
 #### Key properties (same as proxies):
 
 - **Factory function** — `export const fooHarness = () => ({methods})`
-- **Fresh per test** — create a new harness instance inside each `test()` block
+- **Created at describe scope** — harness lifecycle hooks (`beforeEach`/`afterEach`) provide per-test isolation
 - **Semantic methods** — named for what they do, not how they do it
 - **Returns an object** — with setup, interaction, and inspection methods
 - **Owns its own lifecycle** — cleanup hooks registered inside the factory, not in the test file
@@ -2567,81 +2567,88 @@ export const sessionHarness = () => ({
 });
 ```
 
-### Harness Lifecycle — Cleanup Belongs in the Harness, Not the Test
+### Harness Lifecycle — Hooks Belong on the Harness, Not in the Test
 
-Tests never write `beforeEach`, `afterEach`, `beforeAll`, or `afterAll`. Harnesses own their own lifecycle by
-registering cleanup hooks internally when instantiated. This keeps test files as pure scenario descriptions.
+Tests never write `beforeEach`, `afterEach`, `beforeAll`, or `afterAll`. Harnesses own their own lifecycle by declaring
+optional `beforeEach` and `afterEach` properties on the returned object. A ts-jest AST transformer auto-wires these
+hooks with Jest. This keeps test files as pure scenario descriptions.
 
-**For Jest (integration tests):**
+Harnesses are created at **describe scope** (not inside `it()`/`test()`). This is required because `beforeEach` hooks
+registered inside a test block won't fire for that test — the "before" phase has already passed.
 
-The harness factory registers `afterEach` directly. Jest discovers and calls the hook automatically.
+**Harness pattern (shared by Jest and Playwright):**
 
 ```typescript
 // test/harnesses/guild/guild.harness.ts
 export const guildHarness = () => {
   const createdGuildIds: string[] = [];
 
-  afterEach(async () => {
-    for (const id of createdGuildIds) {
-      await request.delete(`/api/guilds/${id}`);
-    }
-    createdGuildIds.length = 0;
-  });
-
-  return {
-    create: async ({request, name, path}) => {
-      const response = await request.post('/api/guilds', {data: {name, path}});
-      const guild = await response.json();
+   return {
+      beforeEach: (): void => {
+         // Defensive reset — clean slate before each test
+         createdGuildIds.length = 0;
+      },
+      afterEach: async (): Promise<void> => {
+         for (const id of createdGuildIds) {
+            await GuildRemoveResponder({guildId: id});
+         }
+         createdGuildIds.length = 0;
+      },
+      create: async ({name, path}) => {
+         const guild = await GuildAddResponder({name, path});
       createdGuildIds.push(guild.id);
       return guild;
     },
   };
 };
+```
 
-// In the test file — no hooks, no cleanup
-it('VALID: {guild created} => appears in list', async () => {
-    const guilds = guildHarness();
-    const guild = await guilds.create({request, name: 'Test', path: '/tmp/test'});
+**For Jest (integration tests):**
+
+A ts-jest AST transformer (`harness-lifecycle-transformer`) detects `*Harness()` calls in integration test files and
+wraps them with `__wireHarnessLifecycle()`, which registers the hooks with Jest automatically.
+
+```typescript
+// What you write:
+describe('GuildFlow', () => {
+   const guilds = guildHarness();  // Created at describe scope
+
+   it('VALID: {guild created} => appears in list', async () => {
+      const guild = await guilds.create({name: 'Test', path: '/tmp/test'});
     // ... assertions
-    // cleanup happens automatically via harness afterEach
+      // beforeEach fired before this test (reset state)
+      // afterEach fires after (cleanup guilds)
+   });
 });
+
+// What the transformer produces (transparent to you):
+// const guilds = __wireHarnessLifecycle(guildHarness());
 ```
 
 **For Playwright (e2e tests):**
 
-Same pattern — harness tracks state and exposes `cleanup()`. A shared `test.beforeEach`/`test.afterEach` in the
-Playwright config or a base spec file calls cleanup on all harnesses.
+Playwright doesn't support ts-jest AST transformers. Instead, spec files use `wireHarnessLifecycle()` from the test
+fixtures to bridge harness hooks to Playwright's `test.beforeEach`/`test.afterEach`.
 
 ```typescript
-// test/harnesses/guild/guild.harness.ts
-export const guildHarness = ({request}) => {
-  const createdGuildIds: string[] = [];
+import {test, expect} from '@playwright/test';
+import {wireHarnessLifecycle} from './fixtures/harness-wire';
+import {guildHarness} from '../../test/harnesses/guild/guild.harness';
 
-  return {
-    create: async ({name, path}) => {
-      const response = await request.post('/api/guilds', {data: {name, path}});
-      const guild = await response.json();
-      createdGuildIds.push(guild.id);
-      return guild;
-    },
-    cleanup: async () => {
-      for (const id of createdGuildIds) {
-        await request.delete(`/api/guilds/${id}`);
-      }
-    },
-  };
-};
+test.describe('Guild Management', () => {
+   const guilds = wireHarnessLifecycle(guildHarness(), test);
 
-// In the spec file — harness created per test, cleanup called via shared hook
-test('guild appears in list', async ({page, request}) => {
-    const guilds = guildHarness({request});
+   test('guild appears in list', async ({page}) => {
     const guild = await guilds.create({name: 'Test', path: '/tmp/test'});
     // ... assertions
+   });
 });
 ```
 
 **Lint enforcement:** `jest/no-hooks` stays enforced in test files. Hooks are only allowed inside `.harness.ts` files
-(which are excluded from the `jest/no-hooks` rule via eslint config override).
+(which are excluded from the `jest/no-hooks` rule via eslint config override). Harness creation must be inside a
+`describe` block — not at module level (hooks leak to root suite) and not inside `it()`/`test()` (beforeEach won't
+fire).
 
 ### Test Scenario File Rules
 
@@ -2673,14 +2680,14 @@ They contain test blocks and assertions. They do NOT contain infrastructure.
 
 ### Harness vs Unit Test Summary
 
-| Concern | Unit Tests (`.test.ts`) | Integration/E2E Scenario Files |
-|---------|--------------------------|-------------------------------|
-| Infrastructure location | Co-located `.proxy.ts` in `src/` | `.harness.ts` in `test/harnesses/` |
-| Mock mechanism | `registerMock` in `.proxy.ts` | Fake binaries/services + real APIs |
-| Mock boundary | Adapters only (npm packages) | External services only (3rd party) |
-| State setup | Inline in each test | Harness methods |
-| Hooks in test file | Forbidden | Forbidden — harness owns lifecycle |
-| Conditionals | Forbidden (`jest/no-conditional-in-test`) | Forbidden (same jest rule) |
-| Weak matchers | Forbidden (`jest/no-restricted-matchers`) | Forbidden (same jest rule) |
-| `fs`/`path`/`os` in test file | Allowed (inline setup) | Forbidden (must use `.harness.ts`) |
-| Fresh per test | Proxy created per test | Harness created per test |
+| Concern                       | Unit Tests (`.test.ts`)                   | Integration/E2E Scenario Files                                                     |
+|-------------------------------|-------------------------------------------|------------------------------------------------------------------------------------|
+| Infrastructure location       | Co-located `.proxy.ts` in `src/`          | `.harness.ts` in `test/harnesses/`                                                 |
+| Mock mechanism                | `registerMock` in `.proxy.ts`             | Fake binaries/services + real APIs                                                 |
+| Mock boundary                 | Adapters only (npm packages)              | External services only (3rd party)                                                 |
+| State setup                   | Inline in each test                       | Harness methods                                                                    |
+| Hooks in test file            | Forbidden                                 | Forbidden — harness declares hooks on returned object, transformer auto-wires them |
+| Conditionals                  | Forbidden (`jest/no-conditional-in-test`) | Forbidden (same jest rule)                                                         |
+| Weak matchers                 | Forbidden (`jest/no-restricted-matchers`) | Forbidden (same jest rule)                                                         |
+| `fs`/`path`/`os` in test file | Allowed (inline setup)                    | Forbidden (must use `.harness.ts`)                                                 |
+| Lifecycle scope               | Proxy created per test (inside `it()`)    | Harness created at describe scope (hooks provide per-test isolation)               |

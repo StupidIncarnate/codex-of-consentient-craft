@@ -135,30 +135,76 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename: '/project/src/tests/login.e2e.test.ts',
     },
 
-    // Harness import in integration test - ALLOWED (harnesses are for integration/e2e)
+    // Harness created inside describe() in integration test - ALLOWED (correct scope)
     {
       code: `
         import { questHarness } from '../../test/harnesses/quest/quest.harness';
 
-        it('should complete quest flow', () => {
+        describe('OrchestrationFlow', () => {
           const harness = questHarness();
-          harness.create({ guildId: '123' });
+
+          it('should complete quest flow', () => {
+            harness.create({ guildId: '123' });
+          });
         });
       `,
       filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
     },
 
-    // Harness import in e2e test - ALLOWED
+    // Harness created inside describe() in e2e test - ALLOWED
     {
       code: `
         import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
-        it('should display guilds', () => {
+        describe('GuildDisplay', () => {
           const harness = guildHarness();
-          harness.create({ name: 'Test' });
+
+          it('should display guilds', () => {
+            harness.create({ name: 'Test' });
+          });
         });
       `,
       filename: '/project/src/tests/guilds.e2e.test.ts',
+    },
+
+    // Multiple harnesses inside same describe - ALLOWED
+    {
+      code: `
+        describe('OrchestrationFlow', () => {
+          const queue = orchestrationQueueHarness();
+          const envHarness = orchestrationEnvironmentHarness();
+
+          it('should work', () => {});
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+    },
+
+    // Harness inside nested describe - ALLOWED
+    {
+      code: `
+        describe('outer', () => {
+          describe('inner', () => {
+            const harness = questHarness();
+            it('test', () => {});
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+    },
+
+    // Harness inside beforeAll() within describe - ALLOWED (describeDepth > 0, testBlockDepth === 0)
+    {
+      code: `
+        describe('OrchestrationFlow', () => {
+          beforeAll(() => {
+            const harness = questHarness();
+          });
+
+          it('test', () => {});
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
     },
 
     // Proxy called without assignment (empty proxy, no setup needed)
@@ -243,6 +289,36 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename: '/project/src/adapters/fetch/post/fetch-post-adapter.test.ts',
     },
 
+    // Harness inside describe.each() in integration test - ALLOWED
+    {
+      code: `
+        describe.each([['a'], ['b']])('case %s', () => {
+          const harness = questHarness();
+
+          it('should work', () => {
+            harness.create({ guildId: '123' });
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+    },
+
+    // Harness inside nested describe.each in integration test - ALLOWED
+    {
+      code: `
+        describe('outer', () => {
+          describe.each([['a'], ['b']])('case %s', () => {
+            const harness = questHarness();
+
+            it('should work', () => {
+              harness.create({ guildId: '123' });
+            });
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+    },
+
     // Startup integration test importing proxy - ALLOWED because startup files
     // require integration tests (not unit tests) and must use proxies for test harness
     {
@@ -255,6 +331,20 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
         });
       `,
       filename: '/project/src/startup/start-server.integration.test.ts',
+    },
+
+    // Harness wrapped with wireHarnessLifecycle inside describe in .spec.ts - ALLOWED
+    {
+      code: `
+        describe('GuildDisplay', () => {
+          const guilds = wireHarnessLifecycle({ harness: guildHarness(), testObj: test });
+
+          test('should display guilds', () => {
+            guilds.create({ name: 'Test' });
+          });
+        });
+      `,
+      filename: '/project/src/tests/guilds.spec.ts',
     },
   ],
   invalid: [
@@ -348,20 +438,20 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       ],
     },
 
-    // Module-level proxy in .spec.ts file
+    // Proxy import in .spec.ts file - FORBIDDEN (spec files are e2e-like, no proxies)
     {
       code: `
-        const apiProxy = apiProxy();
+        import { apiProxy } from './api-broker.proxy';
 
         it('should call api', () => {
-          apiProxy.returnsSuccess();
+          apiProxy();
         });
       `,
       filename: '/project/src/brokers/api/api-broker.spec.ts',
       errors: [
         {
-          messageId: 'proxyMustBeInTest',
-          data: { name: 'apiProxy', proxyFunction: 'apiProxy' },
+          messageId: 'noProxyInIntegrationTest',
+          data: { importSource: './api-broker.proxy' },
         },
       ],
     },
@@ -632,6 +722,157 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
             implementationName: 'validateAdapterMockSetupLayerBroker',
             proxyName: 'validateAdapterMockSetupLayerBrokerProxy',
           },
+        },
+      ],
+    },
+
+    // Harness at module level in integration test - FORBIDDEN
+    {
+      code: `
+        const queue = orchestrationQueueHarness();
+
+        describe('OrchestrationFlow', () => {
+          it('should work', () => {});
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'queue' },
+        },
+      ],
+    },
+
+    // Harness inside it() block in integration test - FORBIDDEN
+    {
+      code: `
+        describe('OrchestrationFlow', () => {
+          it('should work', () => {
+            const harness = questHarness();
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'harness' },
+        },
+      ],
+    },
+
+    // Harness inside test() block in integration test - FORBIDDEN
+    {
+      code: `
+        describe('OrchestrationFlow', () => {
+          test('should work', () => {
+            const harness = questHarness();
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'harness' },
+        },
+      ],
+    },
+
+    // Multiple harnesses at module level - multiple errors
+    {
+      code: `
+        const queue = orchestrationQueueHarness();
+        const env = orchestrationEnvironmentHarness();
+
+        describe('test', () => {
+          it('test', () => {});
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'queue' },
+        },
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'env' },
+        },
+      ],
+    },
+
+    // Bare fooHarness() at module level - FORBIDDEN
+    {
+      code: `
+        orchestrationQueueHarness();
+
+        describe('test', () => {
+          it('test', () => {});
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'orchestrationQueueHarness' },
+        },
+      ],
+    },
+
+    // Harness inside it.each() in integration test - FORBIDDEN (inside test block)
+    {
+      code: `
+        describe('test', () => {
+          it.each([['a'], ['b']])('case %s', () => {
+            const harness = questHarness();
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'harness' },
+        },
+      ],
+    },
+
+    // Bare fooHarness() inside it() - FORBIDDEN
+    {
+      code: `
+        describe('test', () => {
+          it('test', () => {
+            orchestrationQueueHarness();
+          });
+        });
+      `,
+      filename: '/project/src/flows/orchestration/orchestration-flow.integration.test.ts',
+      errors: [
+        {
+          messageId: 'harnessMustBeInDescribe',
+          data: { name: 'orchestrationQueueHarness' },
+        },
+      ],
+    },
+
+    // Bare harness call inside describe in .spec.ts - needs wireHarnessLifecycle
+    {
+      code: `
+        describe('GuildDisplay', () => {
+          const guilds = guildHarness();
+
+          test('should display guilds', () => {
+            guilds.create({ name: 'Test' });
+          });
+        });
+      `,
+      filename: '/project/src/tests/guilds.spec.ts',
+      errors: [
+        {
+          messageId: 'harnessNeedsWireInSpec',
+          data: { name: 'guilds' },
         },
       ],
     },

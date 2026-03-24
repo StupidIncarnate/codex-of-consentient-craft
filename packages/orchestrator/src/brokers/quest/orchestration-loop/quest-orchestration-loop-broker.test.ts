@@ -119,7 +119,7 @@ describe('questOrchestrationLoopBroker', () => {
       // Quest should not be marked complete — status stays in_progress because failed items exist
       const quests = proxy.getAllPersistedQuests();
 
-      expect(quests.find((q) => q.status === 'complete')).toBe(undefined);
+      expect(quests.find((q) => q.status === 'complete')).toBeUndefined();
     });
 
     it('T-STATUS-4: {pre-execution quest status preserved when chat fails} => status stays explore_flows', async () => {
@@ -151,8 +151,8 @@ describe('questOrchestrationLoopBroker', () => {
       // Pre-execution status should be preserved (not overwritten to complete or blocked)
       const quests = proxy.getAllPersistedQuests();
 
-      expect(quests.find((q) => q.status === 'complete')).toBe(undefined);
-      expect(quests.find((q) => q.status === 'blocked')).toBe(undefined);
+      expect(quests.find((q) => q.status === 'complete')).toBeUndefined();
+      expect(quests.find((q) => q.status === 'blocked')).toBeUndefined();
     });
 
     it('T-STATUS-5: {items still in_progress} => quest stays in_progress', async () => {
@@ -228,7 +228,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(dispatched).toBe(undefined);
+      expect(dispatched).toBeUndefined();
     });
   });
 
@@ -457,7 +457,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(glyphDispatched).toBe(undefined);
+      expect(glyphDispatched).toBeUndefined();
     });
 
     it('T-DISPATCH-3: {multiple chat items ready} => dispatches only first chat item', async () => {
@@ -499,7 +499,7 @@ describe('questOrchestrationLoopBroker', () => {
       const second = proxy.findPersistedWorkItem({ workItemId: chaos2Id, status: 'in_progress' });
 
       expect(first?.status).toBe('in_progress');
-      expect(second).toBe(undefined);
+      expect(second).toBeUndefined();
     });
 
     it('T-DISPATCH-4: {multiple non-chat items ready} => dispatches all ready items of same role together', async () => {
@@ -572,7 +572,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       expect(cw1?.status).toBe('in_progress');
       expect(cw2?.status).toBe('in_progress');
-      expect(cw3).toBe(undefined);
+      expect(cw3).toBeUndefined();
     });
 
     it('T-DISPATCH-5: {multiple role groups ready} => dispatches only one role group per iteration', async () => {
@@ -684,7 +684,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(secondChatDispatched).toBe(undefined);
+      expect(secondChatDispatched).toBeUndefined();
     });
 
     it('marks ready items as in_progress with startedAt before dispatching', async () => {
@@ -879,7 +879,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(wardDispatched).toBe(undefined);
+      expect(wardDispatched).toBeUndefined();
     });
 
     it('T-DEP-2: {skipped dependency} => item never becomes ready, quest becomes blocked', async () => {
@@ -922,7 +922,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(wardDispatched).toBe(undefined);
+      expect(wardDispatched).toBeUndefined();
 
       // Quest should be marked blocked
       const quests = proxy.getAllPersistedQuests();

@@ -13,6 +13,7 @@ export {
   MultiTurnResponseStubs,
   ClarificationResponseStub,
 } from '../harness/claude-mock/claude-response-stubs';
+export { wireHarnessLifecycle } from './harness-wire';
 
 export const cleanGuilds = async (request: APIRequestContext): Promise<void> => {
   const response = await request.get('/api/guilds');

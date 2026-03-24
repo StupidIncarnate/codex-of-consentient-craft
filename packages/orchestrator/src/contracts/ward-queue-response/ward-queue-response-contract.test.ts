@@ -12,8 +12,8 @@ describe('wardQueueResponseContract', () => {
     it('VALID: {empty object} => parses response with no fields', () => {
       const result = wardQueueResponseContract.parse({});
 
-      expect(result.exitCode).toBe(undefined);
-      expect(result.runId).toBe(undefined);
+      expect(result.exitCode).toBeUndefined();
+      expect(result.runId).toBeUndefined();
     });
 
     it('VALID: {all fields} => parses response with all fields', () => {

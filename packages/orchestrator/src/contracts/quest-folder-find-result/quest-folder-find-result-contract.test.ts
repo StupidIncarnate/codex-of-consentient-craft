@@ -31,8 +31,8 @@ describe('questFolderFindResultContract', () => {
       });
 
       expect(result.found).toBe(false);
-      expect(result.folderPath).toBe(undefined);
-      expect(result.quest).toBe(undefined);
+      expect(result.folderPath).toBeUndefined();
+      expect(result.quest).toBeUndefined();
     });
   });
 

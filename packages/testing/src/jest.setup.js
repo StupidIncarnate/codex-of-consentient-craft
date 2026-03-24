@@ -3,6 +3,20 @@
 // Ensure tests use .dungeonmaster-test data directory, not dev or production
 process.env.DUNGEONMASTER_ENV = 'test';
 
+// Wire harness lifecycle hooks — called by the harness-lifecycle-transformer
+// when it wraps *Harness() calls in integration test files
+globalThis.__wireHarnessLifecycle = (harness) => {
+  if (harness && typeof harness === 'object') {
+    if (typeof harness.beforeEach === 'function') {
+      beforeEach(harness.beforeEach);
+    }
+    if (typeof harness.afterEach === 'function') {
+      afterEach(harness.afterEach);
+    }
+  }
+  return harness;
+};
+
 // Detect .todo and .skip usage and fail immediately
 const originalDescribe = global.describe;
 const originalIt = global.it;

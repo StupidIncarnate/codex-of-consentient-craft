@@ -12,7 +12,7 @@ describe('questToListItemTransformer', () => {
       expect(result.id).toBe(quest.id);
       expect(result.title).toBe(quest.title);
       expect(result.status).toBe(quest.status);
-      expect(result.stepProgress).toBe(undefined);
+      expect(result.stepProgress).toBeUndefined();
     });
 
     it('VALID: {quest with steps and work items} => returns list item with stepProgress', () => {
@@ -113,7 +113,7 @@ describe('questToListItemTransformer', () => {
 
       const result = questToListItemTransformer({ quest });
 
-      expect(result.activeSessionId).toBe(undefined);
+      expect(result.activeSessionId).toBeUndefined();
     });
   });
 });

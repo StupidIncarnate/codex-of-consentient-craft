@@ -78,6 +78,54 @@ ruleTester.run('enforce-harness-patterns', ruleEnforceHarnessPatternsBroker(), {
       code: 'export const claudeMockHarness = ({ queueDir }: { queueDir: string }) => { return { queue: () => {}, clear: () => {} }; };',
       filename: '/project/test/harnesses/claude-mock/claude-mock.harness.ts',
     },
+
+    // --- Harness with beforeEach in constructor is fine ---
+    {
+      code: 'export const guildHarness = () => { beforeEach(() => {}); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/guild/guild.harness.ts',
+    },
+
+    // --- Harness with afterEach in constructor is fine ---
+    {
+      code: 'export const guildHarness = () => { afterEach(() => {}); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/guild/guild.harness.ts',
+    },
+
+    // --- Harness with fs.mkdirSync in constructor is fine ---
+    {
+      code: "export const envHarness = () => { fs.mkdirSync('/tmp/test', { recursive: true }); return { setup: () => {} }; };",
+      filename: '/project/test/harnesses/environment/environment.harness.ts',
+    },
+
+    // --- Harness with jest.spyOn in constructor is fine ---
+    {
+      code: "export const envHarness = () => { jest.spyOn(process, 'env'); return { setup: () => {} }; };",
+      filename: '/project/test/harnesses/environment/environment.harness.ts',
+    },
+
+    // --- Harness with child harness call in constructor is fine ---
+    {
+      code: 'export const questHarness = () => { guildHarness(); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/quest/quest.harness.ts',
+    },
+
+    // --- Harness with os.tmpdir() in constructor is fine ---
+    {
+      code: 'export const envHarness = () => { os.tmpdir(); return { setup: () => {} }; };',
+      filename: '/project/test/harnesses/environment/environment.harness.ts',
+    },
+
+    // --- Harness with beforeAll() in constructor is fine ---
+    {
+      code: 'export const guildHarness = () => { beforeAll(() => {}); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/guild/guild.harness.ts',
+    },
+
+    // --- Harness with const dir = path.join(...) in constructor is fine ---
+    {
+      code: "export const envHarness = () => { const dir = path.join('/tmp', 'test'); return { setup: () => {} }; };",
+      filename: '/project/test/harnesses/environment/environment.harness.ts',
+    },
   ],
 
   invalid: [
@@ -142,6 +190,27 @@ ruleTester.run('enforce-harness-patterns', ruleEnforceHarnessPatternsBroker(), {
       code: 'export const guildHarness = () => { return 42; };',
       filename: '/project/test/harnesses/guild/guild.harness.ts',
       errors: [{ messageId: 'harnessMustReturnObject' }],
+    },
+
+    // --- Harness with database.connect() side effect in constructor ---
+    {
+      code: 'export const guildHarness = () => { database.connect(); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/guild/guild.harness.ts',
+      errors: [{ messageId: 'harnessConstructorNoSideEffects' }],
+    },
+
+    // --- Harness with bare someRandomFunction() side effect in constructor ---
+    {
+      code: 'export const guildHarness = () => { someRandomFunction(); return { create: () => {} }; };',
+      filename: '/project/test/harnesses/guild/guild.harness.ts',
+      errors: [{ messageId: 'harnessConstructorNoSideEffects' }],
+    },
+
+    // --- Harness with process.env.FOO = 'bar' assignment in constructor ---
+    {
+      code: "export const envHarness = () => { process.env.FOO = 'bar'; return { setup: () => {} }; };",
+      filename: '/project/test/harnesses/environment/environment.harness.ts',
+      errors: [{ messageId: 'harnessConstructorNoSideEffects' }],
     },
   ],
 });

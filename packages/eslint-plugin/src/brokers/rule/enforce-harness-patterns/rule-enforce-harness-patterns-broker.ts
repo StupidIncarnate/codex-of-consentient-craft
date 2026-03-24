@@ -11,6 +11,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isHarnessFileGuard } from '../../../guards/is-harness-file/is-harness-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
+import { validateHarnessConstructorSideEffectsLayerBroker } from './validate-harness-constructor-side-effects-layer-broker';
 
 export const ruleEnforceHarnessPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -27,6 +28,8 @@ export const ruleEnforceHarnessPatternsBroker = (): EslintRule => ({
           'Harness files must not import proxy files ({{importPath}}). Harnesses and proxies use different mock mechanisms.',
         harnessNoContractImports:
           'Harness files must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
+        harnessConstructorNoSideEffects:
+          'Harness constructor must only register lifecycle hooks, create child harnesses, and use node builtins (fs/path/os). Found side effect: {{type}}',
       },
       schema: [],
     },
@@ -130,7 +133,10 @@ export const ruleEnforceHarnessPatternsBroker = (): EslintRule => ({
             node: init,
             messageId: 'harnessMustReturnObject',
           });
+          return;
         }
+
+        validateHarnessConstructorSideEffectsLayerBroker({ functionNode: init, context: ctx });
       },
     };
   },

@@ -1,3 +1,5 @@
+const dungeonmasterTransformers = require('./ts-jest/transformers.js');
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -19,11 +21,7 @@ module.exports = {
           skipLibCheck: true,
         },
         astTransformers: {
-          before: [
-            {
-              path: require.resolve('./ts-jest/proxy-mock-transformer.js'),
-            },
-          ],
+          before: dungeonmasterTransformers,
         },
       },
     ],

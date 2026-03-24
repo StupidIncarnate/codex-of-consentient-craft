@@ -30,6 +30,8 @@ const FAKE_WARD_BIN_DIR = path.resolve(__dirname, '../../../test-fixtures/fake-w
 const FAKE_WARD_CLI = path.join(FAKE_WARD_BIN_DIR, 'dungeonmaster-ward');
 
 export const orchestrationEnvironmentHarness = (): {
+  beforeEach: () => void;
+  afterEach: () => void;
   setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
     claudeQueueDir: FilePath;
     wardQueueDir: FilePath;
@@ -37,7 +39,29 @@ export const orchestrationEnvironmentHarness = (): {
   };
   withRestore: <T>(env: { restore: () => void }, fn: () => Promise<T>) => Promise<T>;
 } => {
+  let currentRestore: (() => void) | null = null;
+
   return {
+    beforeEach: (): void => {
+      if (currentRestore) {
+        try {
+          OrchestrationFlow.stopAll();
+        } finally {
+          currentRestore();
+          currentRestore = null;
+        }
+      }
+    },
+    afterEach: (): void => {
+      if (currentRestore) {
+        try {
+          OrchestrationFlow.stopAll();
+        } finally {
+          currentRestore();
+          currentRestore = null;
+        }
+      }
+    },
     setup: ({
       tempDir,
       queueHarness,
@@ -86,6 +110,8 @@ export const orchestrationEnvironmentHarness = (): {
           process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
         }
       };
+
+      currentRestore = restore;
 
       return { claudeQueueDir, wardQueueDir, restore };
     },

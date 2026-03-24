@@ -130,7 +130,7 @@ describe('pendingClarificationState', () => {
 
       const result = pendingClarificationState.getForSession({ sessionId });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -145,7 +145,7 @@ describe('pendingClarificationState', () => {
       const result = pendingClarificationState.removeForSession({ sessionId });
 
       expect(result).toBe(true);
-      expect(pendingClarificationState.getForSession({ sessionId })).toBe(undefined);
+      expect(pendingClarificationState.getForSession({ sessionId })).toBeUndefined();
     });
 
     it('EMPTY: {nonexistent sessionId} => returns false', () => {
@@ -178,7 +178,7 @@ describe('pendingClarificationState', () => {
 
       pendingClarificationState.clear();
 
-      expect(pendingClarificationState.getForSession({ sessionId })).toBe(undefined);
+      expect(pendingClarificationState.getForSession({ sessionId })).toBeUndefined();
 
       const promoteResult = pendingClarificationState.promoteToSession({
         processId: ProcessIdStub({ value: 'proc-clear-2' }),

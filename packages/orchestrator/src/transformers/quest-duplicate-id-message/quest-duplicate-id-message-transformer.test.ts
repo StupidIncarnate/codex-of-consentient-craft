@@ -11,7 +11,7 @@ describe('questDuplicateIdMessageTransformer', () => {
         },
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -49,7 +49,7 @@ describe('questDuplicateIdMessageTransformer', () => {
         updates: { questId: 'test', status: 'created' },
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -57,7 +57,7 @@ describe('questDuplicateIdMessageTransformer', () => {
     it('EMPTY: {updates: {}} => returns undefined', () => {
       const result = questDuplicateIdMessageTransformer({ updates: {} });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 });

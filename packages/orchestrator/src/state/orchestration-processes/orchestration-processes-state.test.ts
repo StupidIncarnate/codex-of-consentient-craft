@@ -69,7 +69,7 @@ describe('orchestrationProcessesState', () => {
 
       const result = orchestrationProcessesState.get({ processId });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -183,7 +183,7 @@ describe('orchestrationProcessesState', () => {
 
       const result = orchestrationProcessesState.findByQuestId({ questId });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -198,9 +198,9 @@ describe('orchestrationProcessesState', () => {
       });
 
       expect(removed).toBe(true);
-      expect(orchestrationProcessesState.get({ processId: orchestrationProcess.processId })).toBe(
-        undefined,
-      );
+      expect(
+        orchestrationProcessesState.get({ processId: orchestrationProcess.processId }),
+      ).toBeUndefined();
     });
 
     it('EMPTY: {nonexistent processId} => returns false', () => {

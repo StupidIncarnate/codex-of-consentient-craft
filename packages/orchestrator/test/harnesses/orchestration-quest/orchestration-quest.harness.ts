@@ -38,6 +38,7 @@ const TERMINAL_STATUSES = new Set(['complete', 'failed', 'skipped']);
 export type QuestType = NonNullable<Awaited<ReturnType<typeof QuestGetResponder>>['quest']>;
 
 export const orchestrationQuestHarness = (): {
+  afterEach: () => Promise<void>;
   buildValidFlows: (params: {
     observableIds: ReturnType<typeof ObservableIdStub>[];
   }) => ReturnType<typeof FlowStub>[];
@@ -70,6 +71,7 @@ export const orchestrationQuestHarness = (): {
   }) => Promise<{ quest: QuestType }>;
   removeGuild: (params: { guildId: GuildId }) => Promise<void>;
 } => {
+  const createdGuildIds: GuildId[] = [];
   const buildValidFlows = ({
     observableIds,
   }: {
@@ -259,6 +261,11 @@ export const orchestrationQuestHarness = (): {
   };
 
   return {
+    afterEach: async (): Promise<void> => {
+      const idsToRemove = [...createdGuildIds];
+      createdGuildIds.length = 0;
+      await Promise.all(idsToRemove.map(async (guildId) => GuildRemoveResponder({ guildId })));
+    },
     buildValidFlows,
     buildValidSteps,
     completeChaosWorkItem,
@@ -277,6 +284,8 @@ export const orchestrationQuestHarness = (): {
         name: GuildNameStub({ value: 'Integ Test Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
+
+      createdGuildIds.push(guild.id);
 
       const addResult = await QuestAddResponder({
         title: 'Integration Test Quest',

@@ -19,7 +19,7 @@ describe('questFindDuplicateIdTransformer', () => {
         context: ErrorMessageStub({ value: 'nodes' }),
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -62,7 +62,7 @@ describe('questFindDuplicateIdTransformer', () => {
         context: ErrorMessageStub({ value: 'flows' }),
       });
 
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
   });
 });
