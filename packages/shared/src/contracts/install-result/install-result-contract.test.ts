@@ -41,8 +41,8 @@ describe('installResultContract', () => {
       expect(result.packageName).toBe('@dungeonmaster/eslint');
       expect(result.success).toBe(true);
       expect(result.action).toBe('skipped');
-      expect(result.message).toBe(undefined);
-      expect(result.error).toBe(undefined);
+      expect(result.message).toBeUndefined();
+      expect(result.error).toBeUndefined();
     });
 
     it('VALID: {merged action} => parses successfully', () => {

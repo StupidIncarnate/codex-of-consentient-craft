@@ -13,7 +13,7 @@ describe('installCheckBroker', () => {
       const result = installCheckBroker({ projectRoot });
 
       expect(result.valid).toBe(true);
-      expect(result.error).toBe(undefined);
+      expect(result.error).toBeUndefined();
     });
 
     it('VALID: {different project path} => returns valid', () => {
@@ -25,7 +25,7 @@ describe('installCheckBroker', () => {
       const result = installCheckBroker({ projectRoot });
 
       expect(result.valid).toBe(true);
-      expect(result.error).toBe(undefined);
+      expect(result.error).toBeUndefined();
     });
   });
 
