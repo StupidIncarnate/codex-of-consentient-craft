@@ -1,7 +1,6 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH_A = '/tmp/dm-e2e-guild-del-a';
 const GUILD_PATH_B = '/tmp/dm-e2e-guild-del-b';
@@ -11,12 +10,15 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH_B }),
 
 test.describe('Guild Deletion', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('delete guild via API removes from list', async ({ page, request }) => {
-    const guildA = await createGuild({ request, name: 'Guild Alpha', path: GUILD_PATH_A });
-    await createGuild({ request, name: 'Guild Beta', path: GUILD_PATH_B });
+    const guildA = await guildHarness({ request }).createGuild({
+      name: 'Guild Alpha',
+      path: GUILD_PATH_A,
+    });
+    await guildHarness({ request }).createGuild({ name: 'Guild Beta', path: GUILD_PATH_B });
 
     // Delete guild A via API
     await request.delete(`/api/guilds/${String(guildA.id)}`);
@@ -29,7 +31,10 @@ test.describe('Guild Deletion', () => {
   });
 
   test('delete selected guild clears quest panel', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Selected Guild', path: GUILD_PATH_A });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Selected Guild',
+      path: GUILD_PATH_A,
+    });
 
     await page.goto('/');
     await page.getByText('Selected Guild').click();
@@ -45,7 +50,10 @@ test.describe('Guild Deletion', () => {
   });
 
   test('delete last guild shows empty state', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Only Guild', path: GUILD_PATH_A });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Only Guild',
+      path: GUILD_PATH_A,
+    });
 
     // Delete the only guild
     await request.delete(`/api/guilds/${String(guild.id)}`);

@@ -6,7 +6,7 @@
  * // Returns { completed: true } when all work items done
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
@@ -17,7 +17,6 @@ import type {
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';
 

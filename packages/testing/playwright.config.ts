@@ -8,7 +8,7 @@ const CI_RETRIES = 1;
 const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.testPort;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
-const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'e2e/web/harness/claude-mock/bin/claude');
+const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'test/harnesses/claude-mock/bin/claude');
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
 const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, 'ward-queue');
 const FAKE_WARD_CLI = path.resolve(
@@ -34,8 +34,8 @@ export default defineConfig({
   retries: CI_RETRIES,
   reporter: 'json',
 
-  globalSetup: './e2e/web/global-setup.ts',
-  globalTeardown: './e2e/web/global-teardown.ts',
+  globalSetup: './test/harnesses/global-setup.ts',
+  globalTeardown: './test/harnesses/global-teardown.ts',
 
   use: {
     baseURL: `http://${environmentStatics.hostname}:${WEB_PORT}`,

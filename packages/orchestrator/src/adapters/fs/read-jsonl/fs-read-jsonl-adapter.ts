@@ -7,9 +7,8 @@
  */
 
 import { readFile } from 'fs/promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { StreamJsonLine } from '../../../contracts/stream-json-line/stream-json-line-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
+import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export const fsReadJsonlAdapter = async ({
   filePath,

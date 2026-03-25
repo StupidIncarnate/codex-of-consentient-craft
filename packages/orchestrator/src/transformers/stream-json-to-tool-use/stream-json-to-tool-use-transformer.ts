@@ -6,7 +6,7 @@
  * // Returns '[Task] pattern="*.ts"\n' as ToolUseDisplay if tool_use found, null otherwise
  */
 
-import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import {
   toolUseDisplayContract,
   type ToolUseDisplay,

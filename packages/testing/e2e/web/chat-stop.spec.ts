@@ -1,14 +1,15 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import {
-  SessionInitLineStub,
-  TextLineStub,
-  ResultLineStub,
-} from './harness/claude-mock/stream-json-line-stubs';
+  SessionIdStub,
+  TimeoutMsStub,
+  SystemInitStreamLineStub,
+  AssistantTextStreamLineStub,
+  ResultStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop';
 const HTTP_OK = 200;
@@ -21,24 +22,41 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Chat Stop', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('stop button kills running chat process', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Stop Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Stop Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
     // Queue a slow response — 3s delay between each line so the process stays alive
     claudeMock.queueResponse({
       response: {
-        sessionId: 'e2e-session-00000000-0000-0000-0000-000000000000',
-        delayMs: SLOW_DELAY_MS,
+        sessionId: SessionIdStub({ value: 'e2e-session-00000000-0000-0000-0000-000000000000' }),
+        delayMs: TimeoutMsStub({ value: SLOW_DELAY_MS }),
         lines: [
-          SessionInitLineStub(),
-          TextLineStub({ text: 'Starting slow work...' }),
-          TextLineStub({ text: 'This text should never appear' }),
-          ResultLineStub(),
+          streamLineToJsonLineTransformer({ streamLine: SystemInitStreamLineStub() }),
+          streamLineToJsonLineTransformer({
+            streamLine: AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'text', text: 'Starting slow work...' }],
+              },
+            }),
+          }),
+          streamLineToJsonLineTransformer({
+            streamLine: AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'text', text: 'This text should never appear' }],
+              },
+            }),
+          }),
+          streamLineToJsonLineTransformer({ streamLine: ResultStreamLineStub() }),
         ],
       },
     });

@@ -1,8 +1,8 @@
 import { claudeQueueResponseContract } from './claude-queue-response-contract';
 import { ClaudeQueueResponseStub } from './claude-queue-response.stub';
 
-import { SessionIdStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
-
+import { ExitCodeStub } from '../exit-code/exit-code.stub';
+import { SessionIdStub } from '../session-id/session-id.stub';
 import { StreamJsonLineStub } from '../stream-json-line/stream-json-line.stub';
 import { TimeoutMsStub } from '../timeout-ms/timeout-ms.stub';
 

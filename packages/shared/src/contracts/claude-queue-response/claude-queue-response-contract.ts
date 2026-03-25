@@ -8,9 +8,8 @@
 
 import { z } from 'zod';
 
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
-
+import { exitCodeContract } from '../exit-code/exit-code-contract';
+import { sessionIdContract } from '../session-id/session-id-contract';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
 import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';
 

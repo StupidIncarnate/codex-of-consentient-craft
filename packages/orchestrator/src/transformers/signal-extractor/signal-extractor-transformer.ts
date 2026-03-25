@@ -6,7 +6,7 @@
  * // Returns { signal: StreamSignal } if found, { signal: null } otherwise
  */
 
-import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { StreamSignal } from '../../contracts/stream-signal/stream-signal-contract';
 import { signalFromStreamTransformer } from '../signal-from-stream/signal-from-stream-transformer';
 

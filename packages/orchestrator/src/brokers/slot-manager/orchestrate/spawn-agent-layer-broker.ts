@@ -6,11 +6,10 @@
  * // Returns AgentSpawnStreamingResult from the spawned agent
  */
 
-import type { FilePath, SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, SessionId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
-import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 

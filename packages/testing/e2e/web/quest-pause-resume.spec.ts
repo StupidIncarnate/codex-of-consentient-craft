@@ -1,9 +1,8 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-pause';
 const HTTP_OK = 200;
@@ -16,20 +15,22 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Quest Pause and Resume', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('POST /api/quests/:questId/pause transitions quest to blocked and resets in_progress work items', async ({
     request,
   }) => {
     const quests = questHarness({ request });
-    const guild = await createGuild({ request, name: 'Pause Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Pause Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-pause-${Date.now()}`;
     sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Pause Quest',
       userRequest: 'Build feature',
@@ -83,13 +84,15 @@ test.describe('Quest Pause and Resume', () => {
 
   test('pause then resume via PATCH unblocks quest status', async ({ request }) => {
     const quests = questHarness({ request });
-    const guild = await createGuild({ request, name: 'Resume Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Resume Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-resume-${Date.now()}`;
     sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Resume Quest',
       userRequest: 'Build feature',

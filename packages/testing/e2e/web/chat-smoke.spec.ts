@@ -1,8 +1,9 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
-import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
+import {
+  claudeMockHarness,
+  SimpleTextResponseStub,
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { cleanGuilds, createGuild, SimpleTextResponseStub } from './fixtures/test-helpers';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-guild';
@@ -15,11 +16,14 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Chat Smoke', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('guild chat sends message and displays Claude response', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Chat Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Chat Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 

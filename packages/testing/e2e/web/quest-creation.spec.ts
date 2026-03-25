@@ -1,8 +1,7 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-creation';
 
@@ -14,11 +13,11 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Session Creation', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('session file appears in session list', async ({ page, request }) => {
-    await createGuild({ request, name: 'Quest Guild', path: GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Quest Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-first-${Date.now()}`;
     sessions.createSessionFile({
@@ -35,7 +34,7 @@ test.describe('Session Creation', () => {
   });
 
   test('multiple sessions show in session list', async ({ page, request }) => {
-    await createGuild({ request, name: 'Multi Session Guild', path: GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Multi Session Guild', path: GUILD_PATH });
 
     const now = Date.now();
     const sessionList = [
@@ -61,7 +60,7 @@ test.describe('Session Creation', () => {
   });
 
   test('session item is clickable', async ({ page, request }) => {
-    await createGuild({ request, name: 'Click Guild', path: GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Click Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-click-${Date.now()}`;
     sessions.createSessionFile({

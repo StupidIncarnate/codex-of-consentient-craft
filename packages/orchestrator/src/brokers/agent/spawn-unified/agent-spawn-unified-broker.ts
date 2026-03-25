@@ -12,12 +12,11 @@
  */
 
 import type { AbsoluteFilePath, ExitCode, SessionId } from '@dungeonmaster/shared/contracts';
-import { exitCodeContract } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 
 export const agentSpawnUnifiedBroker = ({

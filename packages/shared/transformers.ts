@@ -42,3 +42,6 @@ export * from './src/transformers/flow-graph-to-text/flow-graph-to-text-transfor
 
 // Quest Contract Properties to Text
 export * from './src/transformers/quest-contract-properties-to-text/quest-contract-properties-to-text-transformer';
+
+// Stream Line to JSON Line
+export * from './src/transformers/stream-line-to-json-line/stream-line-to-json-line-transformer';

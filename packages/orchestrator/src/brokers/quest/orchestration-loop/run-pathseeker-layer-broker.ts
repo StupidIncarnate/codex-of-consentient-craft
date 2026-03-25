@@ -7,18 +7,18 @@
  */
 
 import {
-  workItemContract,
+  timeoutMsContract,
   type FilePath,
   type QuestId,
   type SessionId,
   type WorkItem,
+  workItemContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
-import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import { verifyQuestInputContract } from '../../../contracts/verify-quest-input/verify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';

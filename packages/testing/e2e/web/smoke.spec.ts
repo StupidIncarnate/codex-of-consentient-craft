@@ -1,5 +1,6 @@
 import { test, expect } from '@dungeonmaster/testing/e2e';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 test.describe('Smoke Tests', () => {
   test('health endpoint responds', async ({ request }) => {
@@ -14,8 +15,9 @@ test.describe('Smoke Tests', () => {
   });
 
   test('app renders without errors', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.message));
+    type ErrorMessage = ReturnType<typeof ErrorMessageStub>;
+    const errors: ErrorMessage[] = [];
+    page.on('pageerror', (error: Error) => errors.push(ErrorMessageStub({ value: error.message })));
 
     await page.goto('/');
 
@@ -24,7 +26,7 @@ test.describe('Smoke Tests', () => {
   });
 
   test('first-time empty state shows inline form', async ({ page, request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -34,9 +36,9 @@ test.describe('Smoke Tests', () => {
   });
 
   test('existing guilds load in guild list', async ({ page, request }) => {
-    await cleanGuilds({ request });
-    await createGuild({ request, name: 'Guild Alpha', path: '/tmp/alpha' });
-    await createGuild({ request, name: 'Guild Beta', path: '/tmp/beta' });
+    await guildHarness({ request }).cleanGuilds();
+    await guildHarness({ request }).createGuild({ name: 'Guild Alpha', path: '/tmp/alpha' });
+    await guildHarness({ request }).createGuild({ name: 'Guild Beta', path: '/tmp/beta' });
 
     await page.goto('/');
 
@@ -46,8 +48,8 @@ test.describe('Smoke Tests', () => {
   });
 
   test('no guild selected shows guidance text', async ({ page, request }) => {
-    await cleanGuilds({ request });
-    await createGuild({ request, name: 'Some Guild', path: '/tmp/some' });
+    await guildHarness({ request }).cleanGuilds();
+    await guildHarness({ request }).createGuild({ name: 'Some Guild', path: '/tmp/some' });
 
     await page.goto('/');
 

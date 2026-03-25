@@ -28,9 +28,9 @@ export const guildHarness = ({
     const response = await request.get('/api/guilds');
     const data: unknown = await response.json();
     const guilds = Array.isArray(data) ? (data as GuildRecord[]) : [];
-    for (const guild of guilds) {
-      await request.delete(`/api/guilds/${String(guild.id)}`);
-    }
+    await Promise.all(
+      guilds.map(async (guild) => request.delete(`/api/guilds/${String(guild.id)}`)),
+    );
   };
 
   const createGuild = async ({

@@ -1,7 +1,6 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-not-found';
 const HTTP_OK = 200;
@@ -11,11 +10,11 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Not Found', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('bogus guild slug shows NOT FOUND', async ({ page, request }) => {
-    await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Real Guild', path: GUILD_PATH });
 
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
@@ -33,7 +32,7 @@ test.describe('Not Found', () => {
   });
 
   test('bogus guild slug with session ID shows NOT FOUND', async ({ page, request }) => {
-    await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Real Guild', path: GUILD_PATH });
 
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
@@ -48,7 +47,10 @@ test.describe('Not Found', () => {
   });
 
   test('valid guild slug renders chat (no false positive)', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Real Guild',
+      path: GUILD_PATH,
+    });
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
@@ -64,7 +66,10 @@ test.describe('Not Found', () => {
   });
 
   test('valid guild slug with bogus session ID shows NOT FOUND', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Real Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Real Guild',
+      path: GUILD_PATH,
+    });
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');

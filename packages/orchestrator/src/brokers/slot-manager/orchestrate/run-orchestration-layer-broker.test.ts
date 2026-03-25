@@ -1,8 +1,7 @@
-import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestIdStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
-import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 import { WorkItemIdStub } from '../../../contracts/work-item-id/work-item-id.stub';
 import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import { runOrchestrationLayerBroker } from './run-orchestration-layer-broker';

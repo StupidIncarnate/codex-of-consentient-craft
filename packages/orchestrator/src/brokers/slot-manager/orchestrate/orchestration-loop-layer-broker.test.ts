@@ -3,6 +3,7 @@ import {
   FilePathStub,
   QuestIdStub,
   SessionIdStub,
+  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ActiveAgentStub } from '../../../contracts/active-agent/active-agent.stub';
@@ -13,7 +14,6 @@ import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotManagerResultStub } from '../../../contracts/slot-manager-result/slot-manager-result.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
-import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 import { WorkItemIdStub } from '../../../contracts/work-item-id/work-item-id.stub';
 import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import {

@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import {
   claudeMockHarness,
   SimpleTextResponseStub,
@@ -8,8 +7,8 @@ import {
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-session-id-routing';
 const PANEL_TIMEOUT = 10_000;
@@ -17,14 +16,14 @@ const STREAMING_TEXT_TIMEOUT = 10_000;
 /**
  * Roles visible in the execution panel UI, mapped to their dungeon floor names.
  */
-const ROLE_FLOOR_MAP: Record<string, string> = {
+const ROLE_FLOOR_MAP = {
   chaoswhisperer: 'SANCTUM',
   pathseeker: 'CARTOGRAPHY',
   codeweaver: 'FORGE',
   ward: 'GAUNTLET',
   siegemaster: 'ARENA',
   lawbringer: 'TRIBUNAL',
-};
+} as const;
 
 const VISIBLE_ROLES = Object.keys(ROLE_FLOOR_MAP);
 
@@ -37,7 +36,7 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Session ID Routing', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test.describe('per-role streamed text content appears in correct work item panel', () => {
@@ -48,7 +47,10 @@ test.describe('Session ID Routing', () => {
       }) => {
         const quests = questHarness({ request });
         const nav = navigationHarness({ page });
-        const guild = await createGuild({ request, name: `Role ${role} Guild`, path: GUILD_PATH });
+        const guild = await guildHarness({ request }).createGuild({
+          name: `Role ${role} Guild`,
+          path: GUILD_PATH,
+        });
         const guildId = String(guild.id);
         const mainSessionId = `e2e-role-${role}-${Date.now()}`;
         const roleSessionId =
@@ -88,8 +90,7 @@ test.describe('Session ID Routing', () => {
         ];
 
         // Create quest via API to get the server-resolved file path
-        const created = await createQuest({
-          request,
+        const created = await questHarness({ request }).createQuest({
           guildId,
           title: 'E2E Session Routing Quest',
           userRequest: 'Build the feature',
@@ -153,7 +154,10 @@ test.describe('Session ID Routing', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Streaming Route Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Streaming Route Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const mainSessionId = `e2e-stream-route-${Date.now()}`;
 
@@ -163,8 +167,7 @@ test.describe('Session ID Routing', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',
@@ -226,7 +229,10 @@ test.describe('Session ID Routing', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Multi Content Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Multi Content Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const mainSessionId = `e2e-multi-content-${Date.now()}`;
     const cwSessionId1 = `e2e-cw1-${Date.now()}`;
@@ -250,8 +256,7 @@ test.describe('Session ID Routing', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',

@@ -5,10 +5,10 @@ import {
   FilePathStub,
   SessionIdStub,
   StepIdStub,
+  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
-import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 import {
   CodeweaverWorkUnitStub,
   LawbringerWorkUnitStub,

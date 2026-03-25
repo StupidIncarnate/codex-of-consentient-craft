@@ -3,10 +3,10 @@ import {
   ExitCodeStub,
   FilePathStub,
   SessionIdStub,
+  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
-import { TimeoutMsStub } from '../../../contracts/timeout-ms/timeout-ms.stub';
 import { CodeweaverWorkUnitStub } from '../../../contracts/work-unit/work-unit.stub';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 import { spawnAgentLayerBrokerProxy } from './spawn-agent-layer-broker.proxy';

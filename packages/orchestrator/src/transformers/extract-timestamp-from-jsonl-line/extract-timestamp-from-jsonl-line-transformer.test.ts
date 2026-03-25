@@ -1,4 +1,4 @@
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
+import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
 
 import { extractTimestampFromJsonlLineTransformer } from './extract-timestamp-from-jsonl-line-transformer';
 

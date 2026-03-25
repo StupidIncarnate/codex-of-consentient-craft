@@ -13,7 +13,7 @@ E2E tests have three layers. Understanding these prevents mistakes.
 
 ### Mocked (fake Claude CLI only)
 
-The **only** mock is the fake Claude CLI at `e2e/web/harness/claude-mock/bin/claude`. It replaces the real LLM so tests
+The **only** mock is the fake Claude CLI at `test/harnesses/claude-mock/bin/claude`. It replaces the real LLM so tests
 can control what "Claude" says. The real server still spawns it, parses its stream-json output, and broadcasts via
 WebSocket — the full pipeline runs, just without a real LLM at the end.
 
@@ -33,12 +33,12 @@ exist on disk because the server spawns the fake CLI with `cwd: guildPath`.
 
 ## Claude CLI Mock
 
-`packages/testing/e2e/web/harness/claude-mock/` provides the fake `claude` CLI.
+`packages/testing/test/harnesses/claude-mock/` provides the fake `claude` CLI.
 
 ### How It Works
 
 1. Server uses `CLAUDE_CLI_PATH` env var instead of bare `claude` command
-2. Playwright config points `CLAUDE_CLI_PATH` at `harness/claude-mock/bin/claude`
+2. Playwright config points `CLAUDE_CLI_PATH` at `test/harnesses/claude-mock/bin/claude`
 3. Tests pre-write response files to a file-based queue (`FAKE_CLAUDE_QUEUE_DIR`)
 4. Fake CLI pops the next queued file, outputs stream-json lines to stdout, exits
 5. Fake CLI also writes a JSONL session file to `~/.claude/projects/{encodedPath}/` (just like the real CLI would)
@@ -51,29 +51,31 @@ The `@dungeonmaster/testing/e2e` export wraps Playwright's `test` with an auto-f
 per test — no setup code needed. The ESLint rule `@dungeonmaster/enforce-e2e-base-import` enforces this at lint time.
 
 ```ts
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import {
-    cleanGuilds,
-    createGuild,
-    queueClaudeResponse,
-    clearClaudeQueue,
-    SimpleTextResponseStub,
-    ToolUseChainResponseStub,
-} from './fixtures/test-helpers';
+import {test, expect, wireHarnessLifecycle} from '@dungeonmaster/testing/e2e';
+import {claudeMockHarness, SimpleTextResponseStub} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import {environmentHarness} from '../../test/harnesses/environment/environment.harness';
+import {guildHarness} from '../../test/harnesses/guild/guild.harness';
+
+const GUILD_PATH = '/tmp/dm-e2e-example';
+
+const claudeMock = claudeMockHarness();
+wireHarnessLifecycle({harness: claudeMock, testObj: test});
+wireHarnessLifecycle({harness: environmentHarness({guildPath: GUILD_PATH}), testObj: test});
 
 test.beforeEach(async ({request}) => {
-    await cleanGuilds(request);
-    clearClaudeQueue();
+  await guildHarness({request}).cleanGuilds();
 });
 
 test('example', async ({page, request}) => {
-    const guild = await createGuild(request, {name: 'Test', path: '/tmp/some-real-dir'});
+  const guilds = guildHarness({request});
+  const guild = await guilds.createGuild({name: 'Test', path: GUILD_PATH});
+  const guildId = guilds.extractGuildId({guild});
 
     // Queue response BEFORE triggering chat
-    queueClaudeResponse(SimpleTextResponseStub({text: 'I found the bug'}));
+  claudeMock.queueResponse({response: SimpleTextResponseStub({text: 'I found the bug'})});
 
     // Navigate and wait for guild data to load before interacting
-    await page.goto(`/${guild.id}/quest`);
+  await page.goto(`/${guildId}/quest`);
     await page.waitForResponse((r) => r.url().includes('/api/guilds') && r.status() === 200);
 
     // Send message and assert response
@@ -97,7 +99,7 @@ test('example', async ({page, request}) => {
 
 **Allowed to mock:**
 
-- Claude CLI responses via `queueClaudeResponse()` — the only mock in the entire harness
+- Claude CLI responses via `claudeMock.queueResponse()` — the only mock in the entire harness
 
 **NOT allowed to mock:**
 

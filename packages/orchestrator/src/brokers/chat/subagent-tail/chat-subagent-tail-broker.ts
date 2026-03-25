@@ -15,7 +15,7 @@
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import {
@@ -31,7 +31,6 @@ import type {
 } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 
 export const chatSubagentTailBroker = async ({

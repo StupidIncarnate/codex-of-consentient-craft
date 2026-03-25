@@ -1,12 +1,12 @@
 import {
-  AssistantToolUseStreamLineStub,
   AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
+  StreamJsonLineStub,
   SuccessfulToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
 import { ChatLineSourceStub } from '../../contracts/chat-line-source/chat-line-source.stub';
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
 

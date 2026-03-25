@@ -9,6 +9,7 @@
 import {
   absoluteFilePathContract,
   sessionIdContract,
+  streamJsonLineContract,
   type ExitCode,
   type FilePath,
   type QuestId,
@@ -20,7 +21,6 @@ import {
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';

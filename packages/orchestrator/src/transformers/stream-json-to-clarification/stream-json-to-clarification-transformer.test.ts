@@ -1,9 +1,9 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+  StreamJsonLineStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 import { streamJsonToClarificationTransformer } from './stream-json-to-clarification-transformer';
 
 describe('streamJsonToClarificationTransformer', () => {

@@ -1,5 +1,4 @@
-import type { ExitCode } from '@dungeonmaster/shared/contracts';
-import type { StreamJsonLine } from '../../../contracts/stream-json-line/stream-json-line-contract';
+import type { ExitCode, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter, Readable } from 'stream';
 

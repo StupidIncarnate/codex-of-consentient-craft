@@ -12,9 +12,11 @@
 import {
   absoluteFilePathContract,
   exitCodeContract,
+  streamJsonLineContract,
   type FilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import {
   agentSpawnStreamingResultContract,
@@ -22,10 +24,8 @@ import {
 } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
-import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
 import { roleToPromptTemplateTransformer } from '../../../transformers/role-to-prompt-template/role-to-prompt-template-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';

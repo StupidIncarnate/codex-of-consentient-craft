@@ -1,16 +1,13 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
-import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
-import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import {
-  cleanGuilds,
-  createGuild,
+  claudeMockHarness,
   SimpleTextResponseStub,
   ToolUseChainResponseStub,
   ErrorResponseStub,
-  MultiTurnResponseStubs,
-} from './fixtures/test-helpers';
+  ResumeResponseStub,
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-features';
 const HTTP_OK = 200;
@@ -24,11 +21,14 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Chat Advanced Features', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('tool use displays in chat', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Tool Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Tool Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -55,7 +55,10 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('error response shows gracefully', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Error Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Error Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -80,16 +83,15 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('multi-turn conversation', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Multi Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Multi Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
-    const responses = MultiTurnResponseStubs({
-      messages: [{ text: 'First response' }, { text: 'Second response' }],
-    });
-    for (const response of responses) {
-      claudeMock.queueResponse({ response });
-    }
+    claudeMock.queueResponse({ response: SimpleTextResponseStub() });
+    claudeMock.queueResponse({ response: ResumeResponseStub() });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(
@@ -113,7 +115,10 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('empty message not sent', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Empty Msg Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Empty Msg Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -138,7 +143,10 @@ test.describe('Chat Advanced Features', () => {
   });
 
   test('user message appears in chat', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'User Msg Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'User Msg Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 

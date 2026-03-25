@@ -1,10 +1,9 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-spec-panel';
 
@@ -16,7 +15,7 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Quest Spec Panel', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('session with linked quest shows spec panel instead of awaiting message', async ({
@@ -25,7 +24,10 @@ test.describe('Quest Spec Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Spec Panel Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Spec Panel Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-spec-${Date.now()}`;
@@ -35,8 +37,7 @@ test.describe('Quest Spec Panel', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Spec Panel Quest',
       userRequest: 'Build the feature',

@@ -1,10 +1,11 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
-import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
+import {
+  claudeMockHarness,
+  SimpleTextResponseStub,
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
-import { cleanGuilds, createGuild, SimpleTextResponseStub } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-unified-pipeline';
 const HTTP_OK = 200;
@@ -19,7 +20,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Unified JSONL Pipeline', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });
 
@@ -27,7 +28,10 @@ test.describe('Unified JSONL Pipeline', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Replay Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Replay Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -39,7 +43,7 @@ test.describe('Unified JSONL Pipeline', () => {
     const httpChatHistoryRequests: URL[] = [];
     page.on('request', (req) => {
       if (req.url().includes('/chat/history')) {
-        httpChatHistoryRequests.push(new URL(req.url()));
+        httpChatHistoryRequests.push(new URL(String(req.url())));
       }
     });
 
@@ -77,7 +81,10 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('page refresh replays assistant response via WS history', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Refresh Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Refresh Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -89,7 +96,7 @@ test.describe('Unified JSONL Pipeline', () => {
     const httpChatHistoryRequests: URL[] = [];
     page.on('request', (req) => {
       if (req.url().includes('/chat/history')) {
-        httpChatHistoryRequests.push(new URL(req.url()));
+        httpChatHistoryRequests.push(new URL(String(req.url())));
       }
     });
 
@@ -124,7 +131,10 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('live streaming entries arrive via unified processor', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Stream Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Stream Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -152,7 +162,10 @@ test.describe('Unified JSONL Pipeline', () => {
   });
 
   test('sub-agent entries appear in replayed session history', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Subagent Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Subagent Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 

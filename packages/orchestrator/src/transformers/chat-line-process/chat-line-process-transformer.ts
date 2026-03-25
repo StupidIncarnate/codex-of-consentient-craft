@@ -13,7 +13,7 @@ import { chatLineOutputContract } from '../../contracts/chat-line-output/chat-li
 import type { ChatLineOutput } from '../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../contracts/chat-line-processor/chat-line-processor-contract';
 import type { ChatLineSource } from '../../contracts/chat-line-source/chat-line-source-contract';
-import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/tool-use-ids-from-content-transformer';

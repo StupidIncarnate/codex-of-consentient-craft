@@ -1,10 +1,9 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
 import { questApprovedModalHarness } from '../../test/harnesses/quest-approved-modal/quest-approved-modal.harness';
-import { cleanGuilds } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-approved-modal';
 const MODAL_TIMEOUT = 5_000;
@@ -19,7 +18,7 @@ const modalHarness = questApprovedModalHarness({ sessions, guildPath: GUILD_PATH
 
 test.describe('Quest Approved Modal', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });
 

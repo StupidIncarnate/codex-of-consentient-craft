@@ -1,8 +1,7 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_A_PATH = '/tmp/dm-e2e-guild-a';
 const GUILD_B_PATH = '/tmp/dm-e2e-guild-b';
@@ -22,14 +21,14 @@ const sessionsEmpty = sessionHarness({ guildPath: EMPTY_GUILD_PATH });
 
 test.describe('Guild Selection & Session Loading', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     sessionsA.cleanSessionFiles();
     sessionsB.cleanSessionFiles();
     sessionsEmpty.cleanSessionFiles();
   });
 
   test('click guild loads its session list', async ({ page, request }) => {
-    await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
 
     const sessionId = `e2e-session-guild-a-${Date.now()}`;
     sessionsA.createSessionFile({
@@ -50,7 +49,7 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('click guild with no quests shows empty state', async ({ page, request }) => {
-    await createGuild({ request, name: 'Empty Guild', path: EMPTY_GUILD_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Empty Guild', path: EMPTY_GUILD_PATH });
 
     await page.goto('/');
     await page.getByText('Empty Guild').click();
@@ -60,8 +59,8 @@ test.describe('Guild Selection & Session Loading', () => {
   });
 
   test('switch between guilds refreshes session list', async ({ page, request }) => {
-    await createGuild({ request, name: 'Guild A', path: GUILD_A_PATH });
-    await createGuild({ request, name: 'Guild B', path: GUILD_B_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
+    await guildHarness({ request }).createGuild({ name: 'Guild B', path: GUILD_B_PATH });
 
     const sessionIdA = `e2e-session-a-${Date.now()}`;
     const sessionIdB = `e2e-session-b-${Date.now()}`;

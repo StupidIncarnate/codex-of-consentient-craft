@@ -92,11 +92,11 @@ export type { WorkTracker } from './contracts/work-tracker/work-tracker-contract
 export { slotOperationsContract } from './contracts/slot-operations/slot-operations-contract';
 export type { SlotOperations } from './contracts/slot-operations/slot-operations-contract';
 
-export { streamJsonLineContract } from './contracts/stream-json-line/stream-json-line-contract';
-export type { StreamJsonLine } from './contracts/stream-json-line/stream-json-line-contract';
+export { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export { streamSignalContract } from './contracts/stream-signal/stream-signal-contract';
 export type { StreamSignal } from './contracts/stream-signal/stream-signal-contract';
 
-export { timeoutMsContract } from './contracts/timeout-ms/timeout-ms-contract';
-export type { TimeoutMs } from './contracts/timeout-ms/timeout-ms-contract';
+export { timeoutMsContract } from '@dungeonmaster/shared/contracts';
+export type { TimeoutMs } from '@dungeonmaster/shared/contracts';

@@ -1,5 +1,4 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import {
   claudeMockHarness,
   SimpleTextResponseStub,
@@ -7,8 +6,8 @@ import {
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const PANEL_TIMEOUT = 5_000;
@@ -23,7 +22,7 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Quest WS Update', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('spec panel appears via WebSocket when quest gains content after page load', async ({
@@ -32,7 +31,10 @@ test.describe('Quest WS Update', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'WS Update Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'WS Update Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-${Date.now()}`;
@@ -41,8 +43,7 @@ test.describe('Quest WS Update', () => {
       userMessage: 'Build the feature',
     });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E WS Update Quest',
       userRequest: 'Build the feature',
@@ -101,7 +102,10 @@ test.describe('Quest WS Update', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'WS Incremental Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'WS Incremental Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-inc-${Date.now()}`;
@@ -110,8 +114,7 @@ test.describe('Quest WS Update', () => {
       userMessage: 'Build the feature',
     });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E WS Incremental Quest',
       userRequest: 'Build the feature',
@@ -168,7 +171,10 @@ test.describe('Quest WS Update', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Quest Link Race Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Quest Link Race Guild',
+      path: GUILD_PATH,
+    });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()

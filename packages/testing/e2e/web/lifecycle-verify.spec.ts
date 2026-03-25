@@ -1,5 +1,4 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { lifecycleVerifyHarness } from '../../test/harnesses/lifecycle-verify/lifecycle-verify.harness';
 
 test.describe('Harness lifecycle hook wiring (Playwright)', () => {

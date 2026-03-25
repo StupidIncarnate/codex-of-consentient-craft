@@ -6,7 +6,7 @@
  * // Returns SlotManagerResult when orchestration completes or gets stuck
  */
 
-import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -18,7 +18,6 @@ import type {
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import type { TimeoutMs } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { orchestrationLoopLayerBroker } from './orchestration-loop-layer-broker';

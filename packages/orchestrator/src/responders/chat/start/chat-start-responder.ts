@@ -6,14 +6,13 @@
  * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questIdContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';

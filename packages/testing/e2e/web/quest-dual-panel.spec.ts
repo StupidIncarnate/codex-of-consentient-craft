@@ -1,5 +1,4 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import {
   claudeMockHarness,
   ClarificationResponseStub,
@@ -8,7 +7,7 @@ import {
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-dual-panel';
@@ -24,7 +23,7 @@ const sessions = wireHarnessLifecycle({
 
 test.describe('Quest Dual Panel', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('clarify panel and spec panel are visible simultaneously after ask-user-question tool use', async ({
@@ -33,7 +32,10 @@ test.describe('Quest Dual Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Dual Panel Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Dual Panel Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-${Date.now()}`;
@@ -43,8 +45,7 @@ test.describe('Quest Dual Panel', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Dual Panel Quest',
       userRequest: 'Build the feature',
@@ -119,7 +120,10 @@ test.describe('Quest Dual Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Dual Panel Stale Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Dual Panel Stale Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-stale-${Date.now()}`;
@@ -129,8 +133,7 @@ test.describe('Quest Dual Panel', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Dual Panel Stale Quest',
       userRequest: 'Build the feature',
@@ -207,7 +210,10 @@ test.describe('Quest Dual Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Dual Panel Load Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Dual Panel Load Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-load-${Date.now()}`;
@@ -217,8 +223,7 @@ test.describe('Quest Dual Panel', () => {
     });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Dual Panel Load Quest',
       userRequest: 'Build the feature',
@@ -264,8 +269,7 @@ test.describe('Quest Dual Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({
-      request,
+    const guild = await guildHarness({ request }).createGuild({
       name: 'Dual Panel History Guild',
       path: GUILD_PATH,
     });
@@ -275,8 +279,7 @@ test.describe('Quest Dual Panel', () => {
     sessions.createAnsweredClarificationSession({ sessionId });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Dual Panel History Quest',
       userRequest: 'Build the feature',
@@ -324,15 +327,17 @@ test.describe('Quest Dual Panel', () => {
   }) => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const guild = await createGuild({ request, name: 'Dual Panel Reload Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Dual Panel Reload Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-reload-${Date.now()}`;
     sessions.createAnsweredClarificationSession({ sessionId });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Dual Panel Reload Quest',
       userRequest: 'Build the feature',

@@ -19,7 +19,7 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import type { ArrayIndex } from '@dungeonmaster/shared/contracts';
+import type { ArrayIndex, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
@@ -32,7 +32,6 @@ import type {
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { StreamJsonLine } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';

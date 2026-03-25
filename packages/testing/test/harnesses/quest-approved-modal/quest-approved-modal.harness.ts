@@ -11,7 +11,6 @@ import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
 import type { sessionHarness } from '../session/session.harness';
-import { createGuild, createQuest } from '../../../e2e/web/fixtures/test-helpers';
 
 export const questApprovedModalHarness = ({
   sessions,
@@ -48,15 +47,14 @@ export const questApprovedModalHarness = ({
     urlSlug: UrlSlug;
     quests: ReturnType<typeof questHarness>;
   }> => {
-    const guild = await createGuild({ request, name: guildName, path: guildPath });
-    const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
+    const guild = await guilds.createGuild({ name: guildName, path: guildPath });
+    const guildId = String(guild.id);
 
     sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
-    const created = await createQuest({
-      request,
+    const created = await quests.createQuest({
       guildId,
       title: 'E2E Approved Modal Quest',
       userRequest: 'Build the feature',

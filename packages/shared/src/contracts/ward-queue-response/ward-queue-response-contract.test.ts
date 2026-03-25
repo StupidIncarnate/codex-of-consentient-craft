@@ -1,8 +1,7 @@
 import { wardQueueResponseContract } from './ward-queue-response-contract';
 import { WardQueueResponseStub } from './ward-queue-response.stub';
 
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-
+import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { WardRunIdStub } from '../ward-run-id/ward-run-id.stub';
 
 type WardQueueResponse = ReturnType<typeof WardQueueResponseStub>;

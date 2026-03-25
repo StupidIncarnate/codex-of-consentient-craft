@@ -1,10 +1,10 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+  StreamJsonLineStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { streamJsonToTextTransformer } from './stream-json-to-text-transformer';
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 
 describe('streamJsonToTextTransformer', () => {
   describe('valid text extraction', () => {

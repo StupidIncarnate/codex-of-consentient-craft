@@ -21,6 +21,7 @@ import {
   absoluteFilePathContract,
   processIdContract,
   sessionIdContract,
+  streamJsonLineContract,
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
@@ -31,7 +32,6 @@ import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-lin
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import { streamJsonLineContract } from '../../../contracts/stream-json-line/stream-json-line-contract';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { questStatics } from '../../../statics/quest/quest-statics';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';

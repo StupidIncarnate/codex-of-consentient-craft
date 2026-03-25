@@ -1,9 +1,9 @@
 import { test, expect } from '@dungeonmaster/testing/e2e';
-import { cleanGuilds, createGuild } from './fixtures/test-helpers';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 test.describe('Guild Creation Flow', () => {
   test('empty state inline form has correct fields', async ({ page, request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
     await expect(page.getByText('NEW GUILD')).toBeVisible();
@@ -16,7 +16,7 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('type name and path then CREATE succeeds', async ({ page, request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
     await page.getByTestId('GUILD_NAME_INPUT').fill('My Guild');
@@ -34,7 +34,7 @@ test.describe('Guild Creation Flow', () => {
     page,
     request,
   }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
     await page.getByText('BROWSE').click();
@@ -65,7 +65,7 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('browse directory navigate and select populates path input', async ({ page, request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
     await page.getByText('BROWSE').click();
@@ -98,8 +98,8 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('main view + button shows inline form with CANCEL', async ({ page, request }) => {
-    await cleanGuilds({ request });
-    await createGuild({ request, name: 'Existing Guild', path: '/tmp/existing' });
+    await guildHarness({ request }).cleanGuilds();
+    await guildHarness({ request }).createGuild({ name: 'Existing Guild', path: '/tmp/existing' });
 
     await page.goto('/');
 
@@ -127,8 +127,8 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('main view + then CREATE adds new guild', async ({ page, request }) => {
-    await cleanGuilds({ request });
-    await createGuild({ request, name: 'Existing Guild', path: '/tmp/existing' });
+    await guildHarness({ request }).cleanGuilds();
+    await guildHarness({ request }).createGuild({ name: 'Existing Guild', path: '/tmp/existing' });
 
     await page.goto('/');
     await page.getByTestId('GUILD_LIST').locator('button:has-text("+")').click();
@@ -143,13 +143,13 @@ test.describe('Guild Creation Flow', () => {
   });
 
   test('CREATE with empty fields stays on form', async ({ page, request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
 
     // Verify all guilds are actually deleted before proceeding
     const verifyResponse = await request.get('/api/guilds');
     const remaining = (await verifyResponse.json()) as unknown[];
     if (remaining.length > 0) {
-      await cleanGuilds({ request });
+      await guildHarness({ request }).cleanGuilds();
     }
 
     await page.goto('/');

@@ -1,11 +1,9 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-begin-transition';
 const MODAL_TIMEOUT = 5_000;
@@ -19,7 +17,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });
 
@@ -27,7 +25,10 @@ test.describe('Quest Begin Transition', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Begin Transition Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Begin Transition Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
@@ -36,8 +37,7 @@ test.describe('Quest Begin Transition', () => {
     sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Begin Transition Quest',
       userRequest: 'Build the feature',
@@ -111,7 +111,10 @@ test.describe('Quest Begin Transition', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Design Begin Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Design Begin Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
@@ -120,8 +123,7 @@ test.describe('Quest Begin Transition', () => {
     sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Design Begin Quest',
       userRequest: 'Build the feature',

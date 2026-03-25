@@ -7,11 +7,12 @@
  */
 
 import {
-  workItemContract,
+  timeoutMsContract,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
   type WorkItem,
+  workItemContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -20,7 +21,6 @@ import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/mod
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';

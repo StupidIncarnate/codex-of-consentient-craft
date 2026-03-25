@@ -1,5 +1,5 @@
 import { sessionIdExtractorTransformer } from './session-id-extractor-transformer';
-import { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
+import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
 
 describe('sessionIdExtractorTransformer', () => {
   describe('valid session ID extraction', () => {

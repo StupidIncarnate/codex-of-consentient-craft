@@ -6,7 +6,7 @@
  * // Returns StreamText if text found, null otherwise
  */
 
-import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import {
   streamTextContract,
   type StreamText,

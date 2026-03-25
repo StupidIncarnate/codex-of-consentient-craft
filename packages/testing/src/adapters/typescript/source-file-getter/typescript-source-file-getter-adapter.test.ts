@@ -20,7 +20,6 @@ describe('typescriptSourceFileGetterAdapter', () => {
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
-      expect(result).toBeDefined();
       expect(result?.fileName).toBe(filePath);
     });
   });
@@ -42,7 +41,6 @@ describe('typescriptSourceFileGetterAdapter', () => {
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
       // Should parse the file directly since it exists on disk
-      expect(result).toBeDefined();
       expect(result?.fileName).toBe(filePath);
     });
 

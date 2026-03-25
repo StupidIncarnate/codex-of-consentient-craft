@@ -1,13 +1,11 @@
 import * as crypto from 'crypto';
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
-import { cleanGuilds, createGuild, createQuest } from './fixtures/test-helpers';
 
 const GUILD_PATH = '/tmp/dm-e2e-floor-ordering';
 const PANEL_TIMEOUT = 15_000;
@@ -26,7 +24,7 @@ test.describe('Floor Ordering', () => {
     const headers = page.getByTestId('floor-header-layer-widget');
     const count = await headers.count();
     const rawTexts = await Promise.all(
-      Array.from({ length: count }, async (_, i) => headers.nth(i).textContent()),
+      Array.from({ length: count }, (_, i) => headers.nth(i).textContent()),
     );
     return rawTexts.map((raw) =>
       (raw ?? '')
@@ -50,13 +48,13 @@ test.describe('Floor Ordering', () => {
     const badges = parentBox.getByTestId('execution-row-role-badge');
     const badgeCount = await badges.count();
     const badgeTexts = await Promise.all(
-      Array.from({ length: badgeCount }, async (_, i) => badges.nth(i).textContent()),
+      Array.from({ length: badgeCount }, (_, i) => badges.nth(i).textContent()),
     );
     return badgeTexts.map((text) => (text ?? '').trim());
   };
 
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
     sessions.cleanSessionDirectory();
   });
 
@@ -64,7 +62,10 @@ test.describe('Floor Ordering', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Floor Order Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Floor Order Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
@@ -73,8 +74,7 @@ test.describe('Floor Ordering', () => {
 
     sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
@@ -153,7 +153,10 @@ test.describe('Floor Ordering', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Ward Retry Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Ward Retry Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
@@ -162,8 +165,7 @@ test.describe('Floor Ordering', () => {
 
     sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',
@@ -251,7 +253,10 @@ test.describe('Floor Ordering', () => {
     page,
     request,
   }) => {
-    const guild = await createGuild({ request, name: 'Siege Fail Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Siege Fail Guild',
+      path: GUILD_PATH,
+    });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
@@ -260,8 +265,7 @@ test.describe('Floor Ordering', () => {
 
     sessions.createSessionFileForQuest({ sessionId: mainSessionId });
 
-    const created = await createQuest({
-      request,
+    const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Floor Ordering Quest',
       userRequest: 'Build the feature',

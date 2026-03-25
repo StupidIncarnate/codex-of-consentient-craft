@@ -10,7 +10,7 @@ import {
   clarificationQuestionContract,
   type ClarificationQuestion,
 } from '../../contracts/clarification-question/clarification-question-contract';
-import type { StreamJsonLine } from '../../contracts/stream-json-line/stream-json-line-contract';
+import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export const streamJsonToClarificationTransformer = ({
   line,

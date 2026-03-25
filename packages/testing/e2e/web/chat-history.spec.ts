@@ -1,14 +1,11 @@
-import { test, expect } from '@dungeonmaster/testing/e2e';
-import { wireHarnessLifecycle } from './fixtures/harness-wire';
-import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
-import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
-import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 import {
-  cleanGuilds,
-  createGuild,
+  claudeMockHarness,
   SimpleTextResponseStub,
   ResumeResponseStub,
-} from './fixtures/test-helpers';
+} from '../../test/harnesses/claude-mock/claude-mock.harness';
+import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
+import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-history';
 const HTTP_OK = 200;
@@ -20,11 +17,14 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Chat History & Sessions', () => {
   test.beforeEach(async ({ request }) => {
-    await cleanGuilds({ request });
+    await guildHarness({ request }).cleanGuilds();
   });
 
   test('chat response persists after page refresh', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'History Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'History Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
@@ -55,7 +55,10 @@ test.describe('Chat History & Sessions', () => {
   });
 
   test('second message in session resumes', async ({ page, request }) => {
-    const guild = await createGuild({ request, name: 'Resume Guild', path: GUILD_PATH });
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Resume Guild',
+      path: GUILD_PATH,
+    });
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 

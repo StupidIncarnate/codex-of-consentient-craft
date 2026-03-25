@@ -13,6 +13,7 @@
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   filePathContract,
+  timeoutMsContract,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -24,7 +25,6 @@ import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/mod
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
-import { timeoutMsContract } from '../../../contracts/timeout-ms/timeout-ms-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
