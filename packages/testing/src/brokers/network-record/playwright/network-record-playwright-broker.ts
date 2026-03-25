@@ -15,6 +15,7 @@ import { networkLogEntryContract } from '../../../contracts/network-log-entry/ne
 import { wsLogEntryContract } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
 import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 import { networkLogStatics } from '../../../statics/network-log/network-log-statics';
+import { networkLogFormatTransformer } from '../../../transformers/network-log-format/network-log-format-transformer';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import type { WsLogEntry } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
 import type { EpochTimestamp } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
@@ -145,27 +146,24 @@ export const networkRecordPlaywrightBroker = ({
 
   return {
     dump: async ({ testInfo }: { testInfo: TestInfoParam }): Promise<void> => {
-      if (testInfo.status === undefined || testInfo.status !== 'failed') {
+      if (testInfo.status === undefined || testInfo.status === testInfo.expectedStatus) {
         return;
       }
 
-      const httpLines = entries.map(
-        (entry) =>
-          `${entry.method} ${entry.url} => ${entry.status ?? 'FAILED'}${entry.error ? ` (${entry.error})` : ''}${entry.durationMs === undefined ? '' : ` [${entry.durationMs}ms]`}`,
-      );
+      if (entries.length === 0 && wsEntries.length === 0) {
+        return;
+      }
 
-      const wsLines = wsEntries.map(
-        (entry) => `[${entry.elapsedMs}ms] ${entry.direction}: ${entry.data}`,
-      );
+      const formatted = networkLogFormatTransformer({ entries, wsEntries });
 
       const logContent = [
         networkLogStatics.delimiters.start,
-        '--- HTTP ---',
-        ...httpLines,
-        '--- WebSocket ---',
-        ...wsLines,
+        formatted,
         networkLogStatics.delimiters.end,
       ].join('\n');
+
+      // Write to stderr so ward can extract it from rawOutput (attachment content gets truncated by Playwright's line reporter)
+      process.stderr.write(`\n${logContent}\n`);
 
       await playwrightTestInfoAttachAdapter({
         testInfo,

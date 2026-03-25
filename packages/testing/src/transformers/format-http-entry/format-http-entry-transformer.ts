@@ -12,7 +12,7 @@ import type { NetworkLogEntry } from '../../contracts/network-log-entry/network-
 import { networkLogStatics } from '../../statics/network-log/network-log-statics';
 import { truncateNetworkBodyTransformer } from '../truncate-network-body/truncate-network-body-transformer';
 
-const LOCALHOST_PREFIX_PATTERN = /^https?:\/\/localhost(?::\d+)?/u;
+const LOCALHOST_PREFIX_PATTERN = /^https?:\/\/[\w.-]*localhost(?::\d+)?/u;
 
 export const formatHttpEntryTransformer = ({ entry }: { entry: NetworkLogEntry }): ContentText => {
   const normalizedUrl = String(entry.url).replace(LOCALHOST_PREFIX_PATTERN, '');

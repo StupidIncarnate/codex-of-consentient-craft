@@ -16,8 +16,8 @@ import { stripTimeoutNoiseTransformer } from '../strip-timeout-noise/strip-timeo
 const FAILURE_HEADER_PATTERN =
   /^\s*\d+\)\s+\[.*?\]\s+›\s+([\w/./-]+\.spec\.ts):(\d+):\d+\s+›\s+(.+?)\s*$/u;
 const PROGRESS_LINE_PATTERN = /^\s*\[\d+\/\d+\]\s+\[/u;
-const ATTACHMENT_LINE_PATTERN = /^\s+attachment\s+#/u;
-const NETWORK_LOG_ATTACHMENT_PATTERN = /^\s+attachment\s+#\d+\s+network-log/u;
+const ATTACHMENT_LINE_PATTERN = /^\s+attachment\s+#\d+:?\s/u;
+const NETWORK_LOG_ATTACHMENT_PATTERN = /^\s+attachment\s+#\d+:?\s+network-log/u;
 const RETRY_HEADER_PATTERN = /^\s+Retry\s+#\d+\s+─/u;
 
 export const parsePlaywrightCrashOutputTransformer = ({

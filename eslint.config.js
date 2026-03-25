@@ -26,6 +26,7 @@ module.exports = [
       'tests/**',
       'packages/testing/playwright.config.ts',
       '**/.test-tmp/**',
+      '**/_test-workspace/**',
       'packages/*/dist/**',
       '@types/**',
       'exploratories/**',
