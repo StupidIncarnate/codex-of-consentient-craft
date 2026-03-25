@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Resolves the path to @dungeonmaster/shared source directory using require.resolve
+ * PURPOSE: Resolves the path to @dungeonmaster/shared package root using require.resolve
  *
  * USAGE:
  * const sharedPath = sharedPackageResolveAdapter();
- * // Returns AbsoluteFilePath to shared/src or null if not found
+ * // Returns AbsoluteFilePath to shared package root or null if not found
  */
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { existsSync } from 'fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -16,18 +16,16 @@ export const sharedPackageResolveAdapter = (): AbsoluteFilePath | null => {
     // @dungeonmaster/shared/contracts resolves to dist/contracts.js
     const resolvedPath = require.resolve('@dungeonmaster/shared/contracts');
 
-    // Navigate up from dist/contracts.js to package root, then to src
+    // Navigate up from dist/contracts.js to package root
     // The structure is: @dungeonmaster/shared/dist/contracts.js
-    // We need to get to: @dungeonmaster/shared/src
     const packageRoot = dirname(dirname(resolvedPath));
-    const srcPath = join(packageRoot, 'src');
 
-    // Verify src directory exists
-    if (!existsSync(srcPath)) {
+    // Verify package root exists
+    if (!existsSync(packageRoot)) {
       return null;
     }
 
-    return absoluteFilePathContract.parse(srcPath);
+    return absoluteFilePathContract.parse(packageRoot);
   } catch {
     // Package not found or other error - fail silently
     return null;

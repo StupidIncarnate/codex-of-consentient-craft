@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Detects file type from filepath by extracting folder after src/ or using file suffix
+ * PURPOSE: Detects file type from filepath by extracting folder after src/ or test/, or using file suffix
  *
  * USAGE:
  * const fileType = fileTypeDetectorTransformer({
@@ -11,22 +11,32 @@
  * WHEN-NOT-TO-USE: When file type is already known or provided explicitly
  */
 import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
+import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { FileType } from '../../contracts/file-type/file-type-contract';
 
 export const fileTypeDetectorTransformer = ({ filepath }: { filepath: FilePath }): FileType => {
   const pathParts = filepath.split('/');
 
-  // Find the folder immediately after 'src'
-  const srcIndex = pathParts.lastIndexOf('src');
-  if (srcIndex !== -1 && srcIndex + 1 < pathParts.length) {
-    const folderAfterSrc = pathParts[srcIndex + 1];
-    if (folderAfterSrc) {
-      // Remove trailing 's' to get singular form (brokers -> broker)
-      const singularForm = folderAfterSrc.endsWith('s')
-        ? folderAfterSrc.slice(0, -1)
-        : folderAfterSrc;
-      return fileTypeContract.parse(singularForm);
+  // Find the folder immediately after any path anchor (src, test)
+  for (const anchor of fileDiscoveryStatics.pathAnchors) {
+    const anchorIndex = pathParts.lastIndexOf(anchor);
+    if (
+      anchorIndex !== -1 &&
+      anchorIndex + fileDiscoveryStatics.minPartsAfterAnchor < pathParts.length
+    ) {
+      const folderAfterAnchor = pathParts[anchorIndex + 1];
+      if (folderAfterAnchor) {
+        // Remove trailing plural suffix to get singular form
+        // harnesses -> harness (strip 'es'), brokers -> broker (strip 's')
+        const { esSuffix, sSuffix } = fileDiscoveryStatics.pluralSuffixes;
+        const singularForm = folderAfterAnchor.endsWith(esSuffix.ending)
+          ? folderAfterAnchor.slice(0, -esSuffix.stripLength)
+          : folderAfterAnchor.endsWith(sSuffix.ending)
+            ? folderAfterAnchor.slice(0, -sSuffix.stripLength)
+            : folderAfterAnchor;
+        return fileTypeContract.parse(singularForm);
+      }
     }
   }
 

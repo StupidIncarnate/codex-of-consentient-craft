@@ -2,22 +2,22 @@ import { sharedPackageResolveAdapter } from './shared-package-resolve-adapter';
 import { sharedPackageResolveAdapterProxy } from './shared-package-resolve-adapter.proxy';
 
 describe('sharedPackageResolveAdapter', () => {
-  describe('package found with src directory', () => {
-    it('VALID: @dungeonmaster/shared installed with src => returns path ending with shared/src', () => {
+  describe('package found', () => {
+    it('VALID: @dungeonmaster/shared installed => returns path ending with shared', () => {
       const proxy = sharedPackageResolveAdapterProxy();
-      proxy.srcExists();
+      proxy.packageRootExists();
 
       const result = sharedPackageResolveAdapter();
 
       expect(result).not.toBeNull();
-      expect(result).toMatch(/shared\/src$/u);
+      expect(result).toMatch(/shared$/u);
     });
   });
 
-  describe('src directory does not exist', () => {
-    it('VALID: @dungeonmaster/shared installed but no src => returns null', () => {
+  describe('package root does not exist', () => {
+    it('VALID: @dungeonmaster/shared installed but package root missing => returns null', () => {
       const proxy = sharedPackageResolveAdapterProxy();
-      proxy.srcDoesNotExist();
+      proxy.packageRootDoesNotExist();
 
       const result = sharedPackageResolveAdapter();
 

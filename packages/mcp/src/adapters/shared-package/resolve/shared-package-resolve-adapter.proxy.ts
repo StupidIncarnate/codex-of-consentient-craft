@@ -6,15 +6,26 @@ jest.mock('fs', () => ({
 }));
 
 export const sharedPackageResolveAdapterProxy = (): {
+  packageRootExists: () => void;
+  packageRootDoesNotExist: () => void;
   srcExists: () => void;
   srcDoesNotExist: () => void;
 } => {
   const mockExistsSync = jest.mocked(existsSync);
 
-  // Default: src directory exists
+  // Default: package root exists
   mockExistsSync.mockReturnValue(true);
 
   return {
+    packageRootExists: () => {
+      mockExistsSync.mockReturnValue(true);
+    },
+
+    packageRootDoesNotExist: () => {
+      mockExistsSync.mockReturnValue(false);
+    },
+
+    // Backwards-compatible aliases
     srcExists: () => {
       mockExistsSync.mockReturnValue(true);
     },

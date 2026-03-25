@@ -74,6 +74,28 @@ describe('isMultiDotFileGuard', () => {
     expect(result).toBe(false);
   });
 
+  describe('standalone multi-dot files', () => {
+    it('VALID: {filepath: .harness.ts} => returns false (standalone implementation)', () => {
+      const filepath = FilePathStub({
+        value: '/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
+      });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {filepath: .harness.integration.test.ts} => returns true (companion of harness)', () => {
+      const filepath = FilePathStub({
+        value: '/test/harnesses/lifecycle-verify/lifecycle-verify.harness.integration.test.ts',
+      });
+
+      const result = isMultiDotFileGuard({ filepath });
+
+      expect(result).toBe(true);
+    });
+  });
+
   describe('javascript extensions', () => {
     it('VALID: returns true for .test.js files', () => {
       const filepath = FilePathStub({ value: '/test/user-broker.test.js' });

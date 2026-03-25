@@ -11,6 +11,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
+import { pathToSubPathTransformer } from '../../../transformers/path-to-sub-path/path-to-sub-path-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
 import { functionNameExtractorTransformer } from '../../../transformers/function-name-extractor/function-name-extractor-transformer';
@@ -60,10 +61,15 @@ export const fileScannerBroker = async ({
 
   // 2. Scan all roots in parallel and collect files with their source
   const scanPromises = scanRoots.map(async ({ root, source }) => {
-    // For shared package, only scan the src directory structure
-    // For project, respect the path parameter
+    // Extract sub-path from path anchors (src/..., test/...) for mirroring across roots
+    // e.g. packages/orchestrator/src/contracts → src/contracts applied to shared too
+    const subPath = path ? pathToSubPathTransformer({ filepath: path }) : null;
     const scanPath =
-      source === 'shared' ? root : path ? filePathContract.parse(`${root}/${path}`) : root;
+      source === 'shared'
+        ? filePathContract.parse(`${root}/${subPath ?? 'src'}`)
+        : path
+          ? filePathContract.parse(`${root}/${path}`)
+          : root;
 
     const pattern = globPatternContract.parse(`${scanPath}/**/${fileExtensionsStatics.globs.all}`);
     const files = await globFindAdapter({ pattern, cwd: root });

@@ -30,6 +30,27 @@ describe('fileTypeDetectorTransformer', () => {
     expect(result).toBe('guard');
   });
 
+  it('VALID: {harness filepath under test/} => returns "harness"', () => {
+    const result = fileTypeDetectorTransformer({
+      filepath: FilePathStub({
+        value:
+          '/packages/orchestrator/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
+      }),
+    });
+
+    expect(result).toBe('harness');
+  });
+
+  it('VALID: {filepath under test/harnesses} => returns "harness"', () => {
+    const result = fileTypeDetectorTransformer({
+      filepath: FilePathStub({
+        value: '/packages/testing/test/harnesses/session/session.harness.ts',
+      }),
+    });
+
+    expect(result).toBe('harness');
+  });
+
   it('EDGE: {filepath with -file suffix} => extracts type from suffix', () => {
     const result = fileTypeDetectorTransformer({
       filepath: FilePathStub({ value: '/packages/something/random-file.ts' }),
