@@ -109,14 +109,20 @@ export const ClaudeQueueResponseStub = ({
 /**
  * Simple text response — init + text + result.
  * Most common response: Claude answers with plain text.
+ * Accepts optional `text` key to customize the assistant message (defaults to "Hello from Claude").
  */
 export const SimpleTextResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
+  const customText = Reflect.get(props, 'text') as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
-    lines: [initLine({ sessionId }), textLine(), resultLine({ sessionId })],
+    lines: [
+      initLine({ sessionId }),
+      textLine(customText !== undefined ? { text: customText as TextContent } : undefined),
+      resultLine({ sessionId }),
+    ],
     ...props,
   });
 };
@@ -124,18 +130,25 @@ export const SimpleTextResponseStub = ({
 /**
  * Tool use chain response — init + tool_use + tool_result + follow-up text + result.
  * Claude calls a tool and then provides a text follow-up.
+ * Accepts optional `followUpText` and `toolName` keys for customization.
  */
 export const ToolUseChainResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
+  const customFollowUpText = Reflect.get(props, 'followUpText') as string | undefined;
+  const customToolName = Reflect.get(props, 'toolName') as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
     lines: [
       initLine({ sessionId }),
-      toolUseLine(),
+      toolUseLine(customToolName !== undefined ? { name: customToolName as ToolName } : undefined),
       toolResultLine(),
-      textLine(),
+      textLine(
+        customFollowUpText !== undefined
+          ? { text: customFollowUpText as TextContent }
+          : undefined,
+      ),
       resultLine({ sessionId }),
     ],
     ...props,
