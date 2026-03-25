@@ -24,6 +24,6 @@ describe('StartWard', () => {
       });
 
       expect(maxRssKb).toBeLessThan(MAX_RSS_KB);
-    }, 60_000);
+    }, 60_000); // TIMEBOUND: runAndMonitorMemory spawns ward process with 30s timeout + polling
   });
 });

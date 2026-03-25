@@ -50,8 +50,8 @@ test.describe('Quest Dual Panel', () => {
       title: 'E2E Dual Panel Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
     quests.writeQuestFile({
@@ -138,8 +138,8 @@ test.describe('Quest Dual Panel', () => {
       title: 'E2E Dual Panel Stale Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
     quests.writeQuestFile({
@@ -228,8 +228,8 @@ test.describe('Quest Dual Panel', () => {
       title: 'E2E Dual Panel Load Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
     quests.writeQuestFile({
@@ -284,8 +284,8 @@ test.describe('Quest Dual Panel', () => {
       title: 'E2E Dual Panel History Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Overwrite quest.json with flows for the spec panel
     quests.writeQuestFile({
@@ -342,8 +342,8 @@ test.describe('Quest Dual Panel', () => {
       title: 'E2E Dual Panel Reload Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Overwrite quest.json with flows for the spec panel
     quests.writeQuestFile({

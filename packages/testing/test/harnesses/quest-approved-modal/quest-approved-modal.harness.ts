@@ -59,9 +59,8 @@ export const questApprovedModalHarness = ({
       title: 'E2E Approved Modal Quest',
       userRequest: 'Build the feature',
     });
-    const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questId, questFolder } = created;
+    const questFilePath = created.filePath;
 
     quests.writeQuestFile({
       questId,

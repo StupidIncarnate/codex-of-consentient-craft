@@ -43,8 +43,8 @@ test.describe('Ward Execution Streaming', () => {
       userRequest: 'Test ward streaming',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
     const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
@@ -177,8 +177,8 @@ test.describe('Ward Execution Streaming', () => {
       userRequest: 'Test ward streaming',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
     const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';

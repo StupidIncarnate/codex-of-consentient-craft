@@ -61,7 +61,7 @@ test.describe('Not Found', () => {
     await page.goto(`/${urlSlug}/session`);
     await guildsResponsePromise;
 
-    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
     await expect(page.getByTestId('NOT_FOUND')).not.toBeVisible();
   });
 
@@ -80,7 +80,7 @@ test.describe('Not Found', () => {
     await page.goto(`/${urlSlug}/session/91c4944d-55e3-4231-bd48-140245f11`);
     await guildsResponsePromise;
 
-    await expect(page.getByTestId('NOT_FOUND')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('NOT_FOUND')).toBeVisible();
     await expect(page.getByText('NOT FOUND')).toBeVisible();
 
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();

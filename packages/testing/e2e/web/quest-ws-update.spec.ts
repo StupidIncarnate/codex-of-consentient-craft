@@ -49,8 +49,8 @@ test.describe('Quest WS Update', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Write quest with no content (empty flows) so spec panel shows with empty quest data
     quests.writeQuestFile({
@@ -120,8 +120,8 @@ test.describe('Quest WS Update', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Create quest with one flow so the spec panel renders immediately
     quests.writeQuestFile({

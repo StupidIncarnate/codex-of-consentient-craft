@@ -24,7 +24,7 @@ interface QueueHarness {
 
 const FAKE_CLAUDE_CLI = path.resolve(
   __dirname,
-  '../../../../testing/e2e/web/harness/claude-mock/bin/claude',
+  '../../../../testing/test/harnesses/claude-mock/bin/claude',
 );
 const FAKE_WARD_BIN_DIR = path.resolve(__dirname, '../../../test-fixtures/fake-ward-bin');
 const FAKE_WARD_CLI = path.join(FAKE_WARD_BIN_DIR, 'dungeonmaster-ward');

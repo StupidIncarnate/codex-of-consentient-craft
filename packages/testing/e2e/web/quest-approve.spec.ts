@@ -6,8 +6,6 @@ import { questHarness } from '../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-approve';
-const SPEC_PANEL_TIMEOUT = 5_000;
-const PATCH_TIMEOUT = 3_000;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
@@ -42,8 +40,8 @@ test.describe('Quest Approve Button', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     // Overwrite quest.json with desired status, work items, and flows
     quests.writeQuestFile({
@@ -64,13 +62,12 @@ test.describe('Quest Approve Button', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: SPEC_PANEL_TIMEOUT });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');
 
     // Intercept the PATCH request to verify it sends the status transition
     const patchPromise = page.waitForRequest(
       (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
-      { timeout: PATCH_TIMEOUT },
     );
 
     await page.getByRole('button', { name: 'APPROVE' }).click();

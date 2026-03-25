@@ -90,8 +90,8 @@ test.describe('Chat Advanced Features', () => {
     const guilds = guildHarness({ request });
     const guildId = guilds.extractGuildId({ guild });
 
-    claudeMock.queueResponse({ response: SimpleTextResponseStub() });
-    claudeMock.queueResponse({ response: ResumeResponseStub() });
+    claudeMock.queueResponse({ response: SimpleTextResponseStub({ text: 'First response' }) });
+    claudeMock.queueResponse({ response: ResumeResponseStub({ text: 'Second response' }) });
 
     await page.goto(`/${guildId}/quest`);
     await page.waitForResponse(

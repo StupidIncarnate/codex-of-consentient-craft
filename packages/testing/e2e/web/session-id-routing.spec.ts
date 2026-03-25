@@ -95,8 +95,8 @@ test.describe('Session ID Routing', () => {
           title: 'E2E Session Routing Quest',
           userRequest: 'Build the feature',
         });
-        const questFilePath = String(Reflect.get(created, 'filePath'));
-        const questFolder = String(Reflect.get(created, 'questFolder'));
+        const questFilePath = created.filePath;
+        const { questFolder } = created;
 
         quests.writeQuestFile({
           questId: String(created.questId),
@@ -172,8 +172,8 @@ test.describe('Session ID Routing', () => {
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     // Create quest with in_progress status and only chaoswhisperer complete.
     // The orchestrator will auto-create and run a pathseeker.
@@ -261,8 +261,8 @@ test.describe('Session ID Routing', () => {
       title: 'E2E Session Routing Quest',
       userRequest: 'Build the feature',
     });
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     quests.writeQuestFile({
       questId: String(created.questId),

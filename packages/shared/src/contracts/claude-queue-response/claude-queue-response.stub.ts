@@ -120,7 +120,7 @@ export const SimpleTextResponseStub = ({
     sessionId,
     lines: [
       initLine({ sessionId }),
-      textLine(customText !== undefined ? { text: customText as TextContent } : undefined),
+      textLine(customText === undefined ? undefined : { text: customText as TextContent }),
       resultLine({ sessionId }),
     ],
     ...props,
@@ -142,12 +142,10 @@ export const ToolUseChainResponseStub = ({
     sessionId,
     lines: [
       initLine({ sessionId }),
-      toolUseLine(customToolName !== undefined ? { name: customToolName as ToolName } : undefined),
+      toolUseLine(customToolName === undefined ? undefined : { name: customToolName as ToolName }),
       toolResultLine(),
       textLine(
-        customFollowUpText !== undefined
-          ? { text: customFollowUpText as TextContent }
-          : undefined,
+        customFollowUpText === undefined ? undefined : { text: customFollowUpText as TextContent },
       ),
       resultLine({ sessionId }),
     ],
@@ -162,10 +160,14 @@ export const ToolUseChainResponseStub = ({
 export const ErrorResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
+  const customText = Reflect.get(props, 'partialOutput') as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
-    lines: [initLine({ sessionId }), textLine({ text: 'Processing...' as TextContent })],
+    lines: [
+      initLine({ sessionId }),
+      textLine({ text: (customText ?? 'Processing...') as TextContent }),
+    ],
     exitCode: ExitCodeStub({ value: 1 }),
     ...props,
   });
@@ -178,10 +180,14 @@ export const ErrorResponseStub = ({
 export const ResumeResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
+  const customText = Reflect.get(props, 'text') as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
-    lines: [textLine(), resultLine({ sessionId })],
+    lines: [
+      textLine(customText === undefined ? undefined : { text: customText as TextContent }),
+      resultLine({ sessionId }),
+    ],
     ...props,
   });
 };

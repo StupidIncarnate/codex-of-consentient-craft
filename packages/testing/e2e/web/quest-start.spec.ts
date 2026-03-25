@@ -36,8 +36,8 @@ test.describe('Quest Start Pipeline', () => {
       userRequest: 'Build feature',
     });
     const { questId } = created;
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     quests.writeQuestFile({
       questId: String(questId),
@@ -88,8 +88,8 @@ test.describe('Quest Start Pipeline', () => {
       userRequest: 'Build feature',
     });
     const { questId } = created;
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     quests.writeQuestFile({
       questId: String(questId),

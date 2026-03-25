@@ -12,9 +12,9 @@ import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-inp
 import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
-// Using _test-workspace (NOT .test-tmp which is ESLint-ignored, and no dot-prefix which ESLint globs skip)
+// Using _lint-testbed (NOT _test-workspace or .test-tmp which are ESLint-ignored)
 const BASE_DIR = FilePathStub({
-  value: `${process.cwd()}/src/_test-workspace/post-edit-tests`,
+  value: `${process.cwd()}/src/_lint-testbed/post-edit-tests`,
 });
 
 describe('post-edit-hook', () => {

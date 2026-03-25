@@ -10,7 +10,7 @@ import { writeFileSync } from 'fs';
 
 import type { APIRequestContext } from '@playwright/test';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, FilePath } from '@dungeonmaster/shared/contracts';
 
 const JSON_INDENT = 2;
 const CREATED_AT_INTERVAL_MS = 1000;
@@ -24,7 +24,7 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }) => Promise<{ questId: QuestId; success: boolean }>;
+  }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }>;
   writeQuestFile: (params: {
     questId: string;
     questFolder: string;
@@ -69,11 +69,24 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }): Promise<{ questId: QuestId; success: boolean }> => {
+  }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }> => {
     const response = await request.post('/api/quests', {
       data: { guildId, title, userRequest },
     });
-    return response.json() as Promise<{ questId: QuestId; success: boolean }>;
+    const result = (await response.json()) as Record<PropertyKey, unknown>;
+    const questFolder = Reflect.get(result, 'questFolder');
+    const filePath = Reflect.get(result, 'filePath');
+    if (typeof questFolder !== 'string' || typeof filePath !== 'string') {
+      throw new Error(
+        `createQuest API did not return questFolder/filePath: ${JSON.stringify(result)}`,
+      );
+    }
+    return result as {
+      questId: QuestId;
+      questFolder: QuestId;
+      filePath: FilePath;
+      success: boolean;
+    };
   };
 
   const writeQuestFile = ({

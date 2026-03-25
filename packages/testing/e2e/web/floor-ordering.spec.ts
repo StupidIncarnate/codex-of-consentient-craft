@@ -80,8 +80,8 @@ test.describe('Floor Ordering', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
@@ -171,8 +171,8 @@ test.describe('Floor Ordering', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();
@@ -271,8 +271,8 @@ test.describe('Floor Ordering', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFolder = String(Reflect.get(created, 'questFolder'));
-    const questFilePath = String(Reflect.get(created, 'filePath'));
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
 
     const cwId = crypto.randomUUID();
     const wardId = crypto.randomUUID();

@@ -45,8 +45,8 @@ test.describe('Quest Execution Streaming', () => {
       userRequest: 'Build the feature',
     });
     const { questId } = created;
-    const questFilePath = String(Reflect.get(created, 'filePath'));
-    const questFolder = String(Reflect.get(created, 'questFolder'));
+    const questFilePath = created.filePath;
+    const { questFolder } = created;
 
     quests.writeQuestFile({
       questId: String(questId),
