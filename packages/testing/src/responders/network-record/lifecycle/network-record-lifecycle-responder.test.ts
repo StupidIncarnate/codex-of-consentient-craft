@@ -1,6 +1,6 @@
 import { NetworkRecordLifecycleResponderProxy } from './network-record-lifecycle-responder.proxy';
 import { NetworkRecordLifecycleResponder } from './network-record-lifecycle-responder';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '../../../register-mock';
 
 describe('NetworkRecordLifecycleResponder', () => {
   describe('lifecycle creation', () => {
