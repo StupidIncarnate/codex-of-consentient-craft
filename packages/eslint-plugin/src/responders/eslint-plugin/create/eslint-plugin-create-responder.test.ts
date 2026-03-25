@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 37 rule names', () => {
+    it('VALID: {} => returns plugin with all 38 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -44,6 +44,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-inline-helpers-in-test-scenarios',
         'ban-wait-for-timeout',
         'ban-page-route-in-e2e',
+        'enforce-e2e-base-import',
       ]);
     });
 

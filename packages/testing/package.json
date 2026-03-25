@@ -17,6 +17,12 @@
       "require": "./dist/src/register-mock.js",
       "types": "./dist/src/register-mock.d.ts"
     },
+    "./e2e": {
+      "source": "./src/e2e-fixtures.ts",
+      "import": "./dist/src/e2e-fixtures.js",
+      "require": "./dist/src/e2e-fixtures.js",
+      "types": "./dist/src/e2e-fixtures.d.ts"
+    },
     "./brokers/network-record/playwright": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js"
   },
   "scripts": {

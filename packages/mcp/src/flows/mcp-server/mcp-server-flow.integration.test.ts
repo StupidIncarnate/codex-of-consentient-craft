@@ -30,7 +30,7 @@ describe('McpServerFlow', () => {
       await client.close();
 
       expect(response.error).toBeUndefined();
-      expect(response.result).not.toBeUndefined();
+      expect(response.result).toBeDefined();
     });
   });
 
@@ -53,8 +53,8 @@ describe('McpServerFlow', () => {
       const discoverTool = result.tools.find((tool) => tool.name === 'discover');
       const architectureTool = result.tools.find((tool) => tool.name === 'get-architecture');
 
-      expect(discoverTool).not.toBeUndefined();
-      expect(architectureTool).not.toBeUndefined();
+      expect(discoverTool).toBeDefined();
+      expect(architectureTool).toBeDefined();
     });
 
     it('VALID: All tool inputSchemas have type: "object" at root (required by Claude Code)', async () => {
@@ -157,7 +157,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).not.toBeUndefined();
+      expect(firstContent).toBeDefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -190,7 +190,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).not.toBeUndefined();
+      expect(firstContent).toBeDefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -222,7 +222,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
 
-      expect(firstContent).not.toBeUndefined();
+      expect(firstContent).toBeDefined();
 
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
@@ -248,7 +248,7 @@ describe('McpServerFlow', () => {
 
       await client.close();
 
-      expect(response.error).not.toBeUndefined();
+      expect(response.error).toBeDefined();
       expect(response.error?.message).toMatch(/^.*Unknown tool.*$/u);
     });
   });
@@ -623,7 +623,7 @@ describe('McpServerFlow', () => {
 
       await client.close();
 
-      expect(response.error).not.toBeUndefined();
+      expect(response.error).toBeDefined();
     });
   });
 });

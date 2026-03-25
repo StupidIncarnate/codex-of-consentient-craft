@@ -23,7 +23,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (31 rules)
+  // @dungeonmaster - PRE-EDIT (32 rules)
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
@@ -56,6 +56,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'pre-edit',
   '@dungeonmaster/ban-wait-for-timeout': 'pre-edit',
   '@dungeonmaster/ban-page-route-in-e2e': 'pre-edit',
+  '@dungeonmaster/enforce-e2e-base-import': 'pre-edit',
   // '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit', // TODO: Enable after migrating existing proxies to registerMock
 
   // @dungeonmaster - POST-EDIT (4 rules)

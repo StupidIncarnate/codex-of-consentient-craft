@@ -45,7 +45,13 @@ exist on disk because the server spawns the fake CLI with `cwd: guildPath`.
 
 ### Writing Tests
 
+**Import rule:** Spec files MUST import `{ test, expect }` from `@dungeonmaster/testing/e2e`, NOT from
+`@playwright/test`.
+The `@dungeonmaster/testing/e2e` export wraps Playwright's `test` with an auto-fixture that records all network activity
+per test — no setup code needed. The ESLint rule `@dungeonmaster/enforce-e2e-base-import` enforces this at lint time.
+
 ```ts
+import { test, expect } from '@dungeonmaster/testing/e2e';
 import {
     cleanGuilds,
     createGuild,

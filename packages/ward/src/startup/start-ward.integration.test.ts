@@ -9,9 +9,9 @@ describe('StartWard', () => {
 
   describe('delegation to ward flow', () => {
     it('VALID: {args: ["node", "ward", "unknown-command"]} => completes without throwing for unknown command', async () => {
-      await expect(StartWard({ args: ['node', 'ward', 'unknown-command'] })).resolves.toBe(
-        undefined,
-      );
+      await expect(
+        StartWard({ args: ['node', 'ward', 'unknown-command'] }),
+      ).resolves.toBeUndefined();
     });
   });
 

@@ -1,4 +1,4 @@
-import { test, expect } from './base-spec';
+import { test, expect } from '@dungeonmaster/testing/e2e';
 import { cleanGuilds, createGuild } from './fixtures/test-helpers';
 
 test.describe('Smoke Tests', () => {

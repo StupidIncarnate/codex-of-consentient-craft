@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { test, expect } from './base-spec';
+import { test, expect } from '@dungeonmaster/testing/e2e';
 import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';

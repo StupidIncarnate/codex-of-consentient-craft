@@ -43,6 +43,7 @@ describe('StartEslintPlugin', () => {
         'ban-inline-helpers-in-test-scenarios',
         'ban-wait-for-timeout',
         'ban-page-route-in-e2e',
+        'enforce-e2e-base-import',
       ]);
       expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });

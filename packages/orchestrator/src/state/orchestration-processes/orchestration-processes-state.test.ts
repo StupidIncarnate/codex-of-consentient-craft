@@ -198,9 +198,9 @@ describe('orchestrationProcessesState', () => {
       });
 
       expect(removed).toBe(true);
-      expect(orchestrationProcessesState.get({ processId: orchestrationProcess.processId })).toBe(
-        undefined,
-      );
+      expect(
+        orchestrationProcessesState.get({ processId: orchestrationProcess.processId }),
+      ).toBeUndefined();
     });
 
     it('EMPTY: {nonexistent processId} => returns false', () => {

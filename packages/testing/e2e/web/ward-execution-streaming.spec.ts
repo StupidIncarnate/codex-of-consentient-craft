@@ -1,4 +1,4 @@
-import { test, expect } from './base-spec';
+import { test, expect } from '@dungeonmaster/testing/e2e';
 import { wireHarnessLifecycle } from './fixtures/harness-wire';
 import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { wardMockHarness } from '../../test/harnesses/ward-mock/ward-mock.harness';

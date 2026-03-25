@@ -42,6 +42,7 @@ import { ruleBanNodeBuiltinsInTestScenariosBroker } from '../../../brokers/rule/
 import { ruleBanInlineHelpersInTestScenariosBroker } from '../../../brokers/rule/ban-inline-helpers-in-test-scenarios/rule-ban-inline-helpers-in-test-scenarios-broker';
 import { ruleBanWaitForTimeoutBroker } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker';
 import { ruleBanPageRouteInE2eBroker } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker';
+import { ruleEnforceE2eBaseImportBroker } from '../../../brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -84,6 +85,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-inline-helpers-in-test-scenarios': EslintRule;
     readonly 'ban-wait-for-timeout': EslintRule;
     readonly 'ban-page-route-in-e2e': EslintRule;
+    readonly 'enforce-e2e-base-import': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -129,6 +131,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-inline-helpers-in-test-scenarios': ruleBanInlineHelpersInTestScenariosBroker(),
       'ban-wait-for-timeout': ruleBanWaitForTimeoutBroker(),
       'ban-page-route-in-e2e': ruleBanPageRouteInE2eBroker(),
+      'enforce-e2e-base-import': ruleEnforceE2eBaseImportBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

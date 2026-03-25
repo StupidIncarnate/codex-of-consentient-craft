@@ -2630,8 +2630,12 @@ describe('GuildFlow', () => {
 Playwright doesn't support ts-jest AST transformers. Instead, spec files use `wireHarnessLifecycle()` from the test
 fixtures to bridge harness hooks to Playwright's `test.beforeEach`/`test.afterEach`.
 
+**Import rule:** Spec files MUST import `{ test, expect }` from `@dungeonmaster/testing/e2e`, NOT from
+`@playwright/test`. The `@dungeonmaster/testing/e2e` export wraps Playwright's `test` with an auto-fixture that records
+all network activity per test automatically. The ESLint rule `@dungeonmaster/enforce-e2e-base-import` enforces this.
+
 ```typescript
-import {test, expect} from '@playwright/test';
+import {test, expect} from '@dungeonmaster/testing/e2e';
 import {wireHarnessLifecycle} from './fixtures/harness-wire';
 import {guildHarness} from '../../test/harnesses/guild/guild.harness';
 
