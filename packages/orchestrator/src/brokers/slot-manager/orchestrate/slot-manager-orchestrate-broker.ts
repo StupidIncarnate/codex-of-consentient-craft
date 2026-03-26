@@ -2,11 +2,11 @@
  * PURPOSE: Orchestrates N concurrent agent slots to execute work items in parallel
  *
  * USAGE:
- * const result = await slotManagerOrchestrateBroker({workTracker, slotCount, timeoutMs, slotOperations, startPath});
+ * const result = await slotManagerOrchestrateBroker({workTracker, slotCount, slotOperations, startPath});
  * // Returns { completed: true } when all work items done
  */
 
-import type { FilePath, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
@@ -24,7 +24,6 @@ export const slotManagerOrchestrateBroker = async ({
   questId,
   workTracker,
   slotCount,
-  timeoutMs,
   slotOperations,
   startPath,
   onAgentEntry,
@@ -36,7 +35,6 @@ export const slotManagerOrchestrateBroker = async ({
   questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
-  timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
   startPath: FilePath;
   onAgentEntry?: OnAgentEntryCallback;
@@ -49,7 +47,6 @@ export const slotManagerOrchestrateBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     activeAgents: [],
     startPath,

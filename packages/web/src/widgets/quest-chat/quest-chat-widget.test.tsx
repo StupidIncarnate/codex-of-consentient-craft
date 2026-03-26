@@ -606,7 +606,7 @@ describe('QuestChatWidget', () => {
       ).toBeInTheDocument();
     });
 
-    it('VALID: {click APPROVE, status: review_observables} => sends fully approved message', async () => {
+    it('VALID: {click APPROVE, status: review_observables} => does not send chat message to avoid race condition', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -645,15 +645,9 @@ describe('QuestChatWidget', () => {
 
       await proxy.clickApprove();
 
-      await waitFor(() => {
-        expect(
-          screen.getByText('Observables and contracts approved. Spec is fully approved.'),
-        ).toBeInTheDocument();
-      });
-
       expect(
-        screen.getByText('Observables and contracts approved. Spec is fully approved.'),
-      ).toBeInTheDocument();
+        screen.queryByText('Observables and contracts approved. Spec is fully approved.'),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -1660,6 +1654,186 @@ describe('QuestChatWidget', () => {
       const wardMessages = wardRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
 
       expect(Array.from(wardMessages)).toStrictEqual([]);
+    });
+  });
+
+  describe('error logging in catch handlers', () => {
+    it('ERROR: {questStartBroker rejects in execution phase} => logs error to console.error', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-err-start',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStartError();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-err-start',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[quest-chat] quest-start failed',
+          expect.anything(),
+        );
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[quest-chat] quest-start failed',
+        expect.anything(),
+      );
+    });
+
+    it('ERROR: {questModifyBroker rejects via keep chatting} => logs error to console.error', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-err-modify',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestModifyError();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-err-modify',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({
+            id: 'chat-err-modify',
+            status: 'approved',
+            flows: [FlowStub()],
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      await proxy.clickApprovedModalKeepChatting();
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('[keep-chatting]', expect.anything());
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[keep-chatting]', expect.anything());
+    });
+
+    it('ERROR: {questStartBroker rejects via begin quest} => logs error to console.error', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-err-begin',
+        status: 'review_observables',
+        flows: [FlowStub()],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStartError();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-err-begin',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasSpecPanel()).toBe(true);
+      });
+
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({
+            id: 'chat-err-begin',
+            status: 'approved',
+            flows: [FlowStub()],
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasApprovedModal()).toBe(true);
+      });
+
+      await proxy.clickApprovedModalBeginQuest();
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('[begin-quest]', expect.anything());
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[begin-quest]', expect.anything());
     });
   });
 

@@ -8,6 +8,7 @@ import {
   AssistantToolUseStreamLineStub,
   SuccessfulToolResultStreamLineStub,
   WorkItemRoleStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { chatSpawnBroker } from './chat-spawn-broker';
@@ -436,6 +437,59 @@ describe('chatSpawnBroker', () => {
 
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete.mock.calls[0][0].sessionId).toBe('extracted-design-session');
+    });
+  });
+
+  describe('session-id quest link failure', () => {
+    it('ERROR: {questModifyBroker rejects during session link} => writes error to stderr', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionLine = JSON.stringify({ session_id: 'link-fail-session' });
+      const stderrSpy = proxy.setupStderrCapture();
+
+      const linkQuest = QuestStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        status: 'created',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+
+      proxy.setupNewSession({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: [sessionLine],
+      });
+
+      proxy.setupSessionLinkQuest({ quest: linkQuest });
+      proxy.setupSessionLinkReject({ error: new Error('modify exploded') });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntry: jest.fn(),
+        onPatch: jest.fn(),
+        onAgentDetected: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u),
+      );
     });
   });
 

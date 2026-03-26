@@ -46,7 +46,9 @@ export const useQuestsBinding = ({
   }, [guildId]);
 
   useEffect(() => {
-    fetchQuests().catch(() => undefined);
+    fetchQuests().catch((catchError: unknown) => {
+      globalThis.console.error('[use-quests]', catchError);
+    });
   }, [fetchQuests]);
 
   return { data, loading, error, refresh: fetchQuests };

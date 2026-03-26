@@ -28,6 +28,9 @@ export const runPathseekerLayerBrokerProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
+  setupModifyReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => void;
+  getStderrWrites: () => readonly unknown[];
   getUuidCalls: () => readonly unknown[];
   getPersistedQuestJsons: () => readonly unknown[];
   getSpawnedArgs: () => unknown;
@@ -37,6 +40,7 @@ export const runPathseekerLayerBrokerProxy = (): {
   const verifyProxy = questVerifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const insertProxy = questWorkItemInsertBrokerProxy();
+  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
@@ -119,6 +123,17 @@ export const runPathseekerLayerBrokerProxy = (): {
       const mock = jest.spyOn(crypto, 'randomUUID');
       return mock.mock.calls;
     },
+
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): void => {
+      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    },
+
+    getStderrWrites: (): readonly unknown[] =>
+      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
 
     getPersistedQuestJsons: (): readonly unknown[] =>
       modifyProxy

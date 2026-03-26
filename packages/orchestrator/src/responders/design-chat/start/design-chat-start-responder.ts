@@ -80,8 +80,8 @@ export const DesignChatStartResponder = async ({
           questId,
           workItems: [glyphWorkItem],
         } as ModifyQuestInput,
-      }).catch(() => {
-        // Best-effort work item update
+      }).catch((error: unknown) => {
+        process.stderr.write(`[design-chat] work-item update failed: ${String(error)}\n`);
       });
 
       orchestrationProcessesState.remove({ processId: chatProcessId });

@@ -4,7 +4,10 @@
  * USAGE:
  * const proxy = questModifyBrokerProxy();
  * proxy.setupQuestFound({ quest });
+ * proxy.setupReject({ error: new Error('network failure') }); // makes next call reject
  */
+
+jest.mock('./quest-modify-broker');
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
@@ -15,21 +18,30 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
+import { questModifyBroker } from './quest-modify-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
+const actualModule = jest.requireActual<{ questModifyBroker: typeof questModifyBroker }>(
+  './quest-modify-broker',
+);
+
 export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  setupReject: (params: { error: Error }) => void;
   getAllPersistedContents: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
+
+  // Re-apply passthrough to actual implementation (resetAllMocks clears between tests)
+  (questModifyBroker as jest.Mock).mockImplementation(actualModule.questModifyBroker);
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -79,6 +91,10 @@ export const questModifyBrokerProxy = (): {
         homePath,
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
       });
+    },
+
+    setupReject: ({ error }: { error: Error }): void => {
+      (questModifyBroker as jest.Mock).mockRejectedValueOnce(error);
     },
 
     getAllPersistedContents: (): readonly unknown[] =>

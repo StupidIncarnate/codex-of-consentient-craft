@@ -2,7 +2,7 @@
  * PURPOSE: Defines the result structure from spawning Claude with streaming and monitoring output
  *
  * USAGE:
- * const result = agentSpawnStreamingResultContract.parse({ sessionId: '...', exitCode: 0, signal: null, crashed: false, timedOut: false });
+ * const result = agentSpawnStreamingResultContract.parse({ sessionId: '...', exitCode: 0, signal: null, crashed: false });
  * // Returns validated AgentSpawnStreamingResult
  */
 
@@ -16,7 +16,6 @@ export const agentSpawnStreamingResultContract = z.object({
   exitCode: exitCodeContract.nullable(),
   signal: streamSignalContract.nullable(),
   crashed: z.boolean().brand<'CrashedFlag'>(),
-  timedOut: z.boolean().brand<'TimedOutFlag'>(),
   capturedOutput: z.array(streamTextContract).default([]),
 });
 

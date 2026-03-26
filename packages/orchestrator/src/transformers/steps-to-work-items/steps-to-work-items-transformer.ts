@@ -48,7 +48,6 @@ export const stepsToWorkItemsTransformer = ({
       spawnerType: 'agent',
       relatedDataItems: [`steps/${String(step.id)}`],
       dependsOn,
-      timeoutMs: slotManagerStatics.codeweaver.timeoutMs,
       maxAttempts: 1,
       createdAt: now,
     });
@@ -73,7 +72,6 @@ export const stepsToWorkItemsTransformer = ({
     status: 'pending',
     spawnerType: 'agent',
     dependsOn: [wardItem.id],
-    timeoutMs: slotManagerStatics.siegemaster.timeoutMs,
     maxAttempts: 1,
     createdAt: now,
   });
@@ -86,7 +84,6 @@ export const stepsToWorkItemsTransformer = ({
       spawnerType: 'agent',
       relatedDataItems: [`steps/${String(step.id)}`],
       dependsOn: [siegeItem.id],
-      timeoutMs: slotManagerStatics.lawbringer.timeoutMs,
       maxAttempts: 1,
       createdAt: now,
     }),

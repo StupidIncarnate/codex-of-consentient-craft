@@ -7,7 +7,6 @@
  */
 
 import {
-  timeoutMsContract,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -48,7 +47,6 @@ export const runCodeweaverLayerBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<void> => {
-  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.codeweaver.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
     slotManagerStatics.codeweaver.maxFollowupDepth,
   );
@@ -82,7 +80,6 @@ export const runCodeweaverLayerBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     startPath,
     maxFollowupDepth,
@@ -106,7 +103,9 @@ export const runCodeweaverLayerBroker = async ({
             questId,
             workItems: [newItem],
           } as ModifyQuestInput,
-        }).catch(() => undefined);
+        }).catch((error: unknown) => {
+          process.stderr.write(`[codeweaver] quest-modify failed: ${String(error)}\n`);
+        });
       }
     },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
@@ -117,7 +116,9 @@ export const runCodeweaverLayerBroker = async ({
             questId,
             workItems: [{ id: questItemId, sessionId }],
           } as ModifyQuestInput,
-        }).catch(() => undefined);
+        }).catch((error: unknown) => {
+          process.stderr.write(`[codeweaver] quest-modify failed: ${String(error)}\n`);
+        });
       }
     },
   });

@@ -44,7 +44,6 @@ describe('orchestrator', () => {
       'streamJsonToTextTransformer',
       'streamJsonToToolUseTransformer',
       'streamSignalContract',
-      'timeoutMsContract',
       'toolDisplayConfigStatics',
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',

@@ -144,6 +144,56 @@ describe('runSpiritmenderLayerBroker', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        session_id: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c',
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupQuestFound({ quest, batchContents: [BATCH_ONE_FILE] });
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionIdLine, COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasSpiritmenderLog = stderrOutput.some((line) =>
+        String(line).includes('[spiritmender] session-id update failed'),
+      );
+
+      expect(hasSpiritmenderLog).toBe(true);
+    });
+  });
+
   describe('result mapping', () => {
     it('VALID: {agent signals complete, 1 file batch} => marks quest work item complete', async () => {
       const workItemId = QuestWorkItemIdStub({

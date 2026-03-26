@@ -25,7 +25,6 @@ export const workItemContract = z.object({
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
   maxAttempts: z.number().int().positive().brand<'MaxAttempts'>().default(1),
-  timeoutMs: z.number().int().positive().brand<'TimeoutMs'>().optional(),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),

@@ -13,8 +13,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
-
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -88,7 +86,6 @@ export const RecoverGuildLayerResponder = async ({
           spawnerType: 'agent',
           dependsOn: chatItemIds,
           maxAttempts: 3,
-          timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
           createdAt: new Date().toISOString(),
         });
 

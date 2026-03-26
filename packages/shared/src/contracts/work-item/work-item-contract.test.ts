@@ -33,7 +33,6 @@ describe('workItemContract', () => {
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
-        timeoutMs: 60000,
         createdAt: '2024-01-15T10:00:00.000Z',
         startedAt: '2024-01-15T10:01:00.000Z',
         completedAt: '2024-01-15T10:05:00.000Z',
@@ -54,7 +53,6 @@ describe('workItemContract', () => {
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
-        timeoutMs: 60000,
         createdAt: '2024-01-15T10:00:00.000Z',
         startedAt: '2024-01-15T10:01:00.000Z',
         completedAt: '2024-01-15T10:05:00.000Z',
@@ -237,19 +235,6 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
           maxAttempts: 0,
-        });
-      }).toThrow(/too_small/u);
-    });
-
-    it('INVALID_TIMEOUT_MS: negative timeoutMs => throws validation error', () => {
-      expect(() => {
-        workItemContract.parse({
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          role: 'codeweaver',
-          status: 'pending',
-          spawnerType: 'agent',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          timeoutMs: -1,
         });
       }).toThrow(/too_small/u);
     });

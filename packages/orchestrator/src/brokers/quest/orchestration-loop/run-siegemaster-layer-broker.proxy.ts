@@ -48,6 +48,15 @@ export const runSiegemasterLayerBrokerProxy = (): {
     exitCode: ExitCode;
     signal: StreamSignal;
   }) => void;
+  setupSpawnWithSessionAndSignal: (params: {
+    quest: Quest;
+    exitCode: ExitCode;
+    signal: StreamSignal;
+    sessionIdLine: string;
+  }) => void;
+  setupModifyReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => void;
+  getStderrWrites: () => readonly unknown[];
   getPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -58,6 +67,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
+  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee');
@@ -95,6 +105,24 @@ export const runSiegemasterLayerBrokerProxy = (): {
         exitCode,
       });
     },
+    setupSpawnWithSessionAndSignal: ({
+      quest,
+      exitCode,
+      signal,
+      sessionIdLine,
+    }: {
+      quest: Quest;
+      exitCode: ExitCode;
+      signal: StreamSignal;
+      sessionIdLine: string;
+    }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({
+        lines: [sessionIdLine, ...buildSignalLine({ signal })],
+        exitCode,
+      });
+    },
     getPersistedWorkItemStatus: ({
       workItemId,
     }: {
@@ -115,6 +143,17 @@ export const runSiegemasterLayerBrokerProxy = (): {
       const quest = parseLastPersisted(modifyProxy.getAllPersistedContents());
       return quest?.workItems.find((wi) => wi.role === role);
     },
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): void => {
+      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    },
+
+    getStderrWrites: (): readonly unknown[] =>
+      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
+
     getModifyContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
   };
 };

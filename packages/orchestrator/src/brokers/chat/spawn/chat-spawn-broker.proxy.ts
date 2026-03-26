@@ -27,12 +27,15 @@ export const chatSpawnBrokerProxy = (): {
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
   refreshGuildConfig: () => void;
+  setupSessionLinkQuest: (params: { quest: Quest }) => void;
+  setupSessionLinkReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => jest.SpyInstance;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const addProxy = questAddBrokerProxy();
   const getProxy = questGetBrokerProxy();
-  questModifyBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
 
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
@@ -110,5 +113,16 @@ export const chatSpawnBrokerProxy = (): {
     refreshGuildConfig: (): void => {
       setupGuild();
     },
+
+    setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+    },
+
+    setupSessionLinkReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): jest.SpyInstance =>
+      jest.spyOn(process.stderr, 'write').mockImplementation(() => true),
   };
 };

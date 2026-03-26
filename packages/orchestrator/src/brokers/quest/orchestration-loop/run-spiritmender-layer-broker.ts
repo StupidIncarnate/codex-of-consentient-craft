@@ -13,7 +13,6 @@
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   filePathContract,
-  timeoutMsContract,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -29,7 +28,6 @@ import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-co
 import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { workUnitsToWorkTrackerTransformer } from '../../../transformers/work-units-to-work-tracker/work-units-to-work-tracker-transformer';
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { slotManagerOrchestrateBroker } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -57,7 +55,6 @@ export const runSpiritmenderLayerBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<void> => {
-  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.ward.spiritmenderTimeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(MAX_FOLLOWUP_DEPTH);
 
   // Build slot mapping for result tracking
@@ -95,7 +92,6 @@ export const runSpiritmenderLayerBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     startPath: filePathContract.parse(startPath),
     maxFollowupDepth,
@@ -109,7 +105,9 @@ export const runSpiritmenderLayerBroker = async ({
             questId,
             workItems: [{ id: questItemId, sessionId }],
           } as ModifyQuestInput,
-        }).catch(() => undefined);
+        }).catch((error: unknown) => {
+          process.stderr.write(`[spiritmender] session-id update failed: ${String(error)}\n`);
+        });
       }
     },
   });

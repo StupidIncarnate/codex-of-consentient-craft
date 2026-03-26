@@ -108,6 +108,37 @@ describe('networkRecordCaptureBroker', () => {
     });
   });
 
+  describe('body read failure', () => {
+    it('VALID: {request.clone().text() rejects} => writes error to stderr', async () => {
+      const proxy = networkRecordCaptureBrokerProxy();
+      const { http, HttpResponse } = mswHttpAdapter();
+      const server = mswServerAdapter();
+      server.use(
+        http.post('http://test.local/api/body-fail', () => HttpResponse.json({ ok: true })),
+      );
+
+      const recorder = networkRecordCaptureBroker();
+      recorder.start();
+
+      proxy.setupBodyReadFailure({ error: new Error('body stream locked') });
+      const stderrSpy = proxy.setupStderrCapture();
+
+      await fetch('http://test.local/api/body-fail', {
+        method: 'POST',
+        body: '{"data":"test"}',
+      });
+      await recorder.flush();
+
+      recorder.stop();
+
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^\[network-record\] request body read failed:.*body stream locked\n$/u,
+        ),
+      );
+    });
+  });
+
   describe('getEntries', () => {
     it('VALID: {multiple requests} => captures entries for each request', async () => {
       networkRecordCaptureBrokerProxy();

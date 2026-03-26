@@ -17,6 +17,9 @@ export const runLawbringerLayerBrokerProxy = (): {
   setupQuestNotFound: () => void;
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  setupModifyReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => void;
+  getStderrWrites: () => readonly unknown[];
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -28,6 +31,7 @@ export const runLawbringerLayerBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const slotProxy = slotManagerOrchestrateBrokerProxy();
+  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
@@ -72,6 +76,17 @@ export const runLawbringerLayerBrokerProxy = (): {
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
     },
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): void => {
+      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    },
+
+    getStderrWrites: (): readonly unknown[] =>
+      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
+
     getAllPersistedWorkItemStatuses: (): readonly {
       id: QuestWorkItemId;
       status: WorkItemStatus;

@@ -4,9 +4,8 @@
  * USAGE:
  * const result = await agentSpawnByRoleBroker({
  *   workUnit: { role: 'codeweaver', step: DependencyStepStub() },
- *   timeoutMs: TimeoutMsStub({ value: 60000 }),
  * });
- * // Returns { sessionId, exitCode, signal, crashed, timedOut }
+ * // Returns { sessionId, exitCode, signal, crashed }
  */
 
 import {
@@ -16,7 +15,6 @@ import {
   type FilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import {
   agentSpawnStreamingResultContract,
@@ -35,7 +33,6 @@ import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-br
 
 export const agentSpawnByRoleBroker = async ({
   workUnit,
-  timeoutMs,
   startPath,
   resumeSessionId,
   continuationContext,
@@ -44,7 +41,6 @@ export const agentSpawnByRoleBroker = async ({
   abortSignal,
 }: {
   workUnit: WorkUnit;
-  timeoutMs: TimeoutMs;
   startPath: FilePath;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
@@ -64,12 +60,9 @@ export const agentSpawnByRoleBroker = async ({
 
   try {
     let lastSignal: StreamSignal | null = null;
-    let timedOut = false;
     const outputLines: StreamText[] = [];
 
     return await new Promise<AgentSpawnStreamingResult>((resolve) => {
-      const timeout: { handle: ReturnType<typeof setTimeout> | null } = { handle: null };
-
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt,
         cwd: absoluteFilePathContract.parse(startPath),
@@ -94,12 +87,8 @@ export const agentSpawnByRoleBroker = async ({
           }
         },
         onComplete: ({ exitCode, sessionId }) => {
-          if (timeout.handle !== null) {
-            clearTimeout(timeout.handle);
-          }
-
           const parsedExitCode = exitCode === null ? null : exitCodeContract.parse(exitCode);
-          const crashed = parsedExitCode !== null && parsedExitCode !== 0 && !timedOut;
+          const crashed = parsedExitCode !== null && parsedExitCode !== 0;
 
           resolve(
             agentSpawnStreamingResultContract.parse({
@@ -107,7 +96,6 @@ export const agentSpawnByRoleBroker = async ({
               exitCode: parsedExitCode,
               signal: lastSignal,
               crashed,
-              timedOut,
               capturedOutput: outputLines,
             }),
           );
@@ -121,13 +109,10 @@ export const agentSpawnByRoleBroker = async ({
               onSessionId({ sessionId: sid });
             }
           })
-          .catch(() => undefined);
+          .catch((error: unknown) => {
+            process.stderr.write(`[agent-spawn] session-id resolution failed: ${String(error)}\n`);
+          });
       }
-
-      timeout.handle = setTimeout(() => {
-        timedOut = true;
-        kill();
-      }, timeoutMs);
 
       if (abortSignal && !abortSignal.aborted) {
         abortSignal.addEventListener('abort', kill, { once: true });
@@ -138,7 +123,6 @@ export const agentSpawnByRoleBroker = async ({
   } catch {
     return agentSpawnStreamingResultContract.parse({
       crashed: true,
-      timedOut: false,
       signal: null,
       sessionId: null,
       exitCode: null,

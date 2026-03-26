@@ -3,7 +3,6 @@ import {
   ExitCodeStub,
   FilePathStub,
   SessionIdStub,
-  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
@@ -13,11 +12,10 @@ import { spawnAgentLayerBrokerProxy } from './spawn-agent-layer-broker.proxy';
 
 describe('spawnAgentLayerBroker', () => {
   describe('successful spawn', () => {
-    it('VALID: {workUnit, timeoutMs} => returns monitor result from spawn-by-role broker', async () => {
+    it('VALID: {workUnit} => returns monitor result from spawn-by-role broker', async () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -28,7 +26,6 @@ describe('spawnAgentLayerBroker', () => {
 
       const result = await spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
       });
 
@@ -37,7 +34,6 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -48,7 +44,6 @@ describe('spawnAgentLayerBroker', () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const continuationContext = ContinuationContextStub({ value: 'Resume from gate 3' });
 
       proxy.setupSpawnAndMonitor({
@@ -60,7 +55,6 @@ describe('spawnAgentLayerBroker', () => {
 
       const result = await spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
         continuationContext,
       });
@@ -70,7 +64,6 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -81,7 +74,6 @@ describe('spawnAgentLayerBroker', () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
       proxy.setupSpawnAndMonitor({
@@ -93,7 +85,6 @@ describe('spawnAgentLayerBroker', () => {
 
       const result = await spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
         resumeSessionId,
       });
@@ -103,7 +94,6 @@ describe('spawnAgentLayerBroker', () => {
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -114,7 +104,6 @@ describe('spawnAgentLayerBroker', () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnFailure();
 
@@ -122,13 +111,11 @@ describe('spawnAgentLayerBroker', () => {
 
       const result = await spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
       });
 
       expect(result).toStrictEqual({
         crashed: true,
-        timedOut: false,
         signal: null,
         sessionId: null,
         exitCode: null,

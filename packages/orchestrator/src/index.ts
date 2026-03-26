@@ -97,6 +97,3 @@ export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export { streamSignalContract } from './contracts/stream-signal/stream-signal-contract';
 export type { StreamSignal } from './contracts/stream-signal/stream-signal-contract';
-
-export { timeoutMsContract } from '@dungeonmaster/shared/contracts';
-export type { TimeoutMs } from '@dungeonmaster/shared/contracts';

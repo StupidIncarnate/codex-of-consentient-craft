@@ -56,8 +56,8 @@ export const networkRecordCaptureBroker = (): {
                   .parse(body.slice(0, networkLogStatics.limits.maxBodyLength));
               }
             })
-            .catch(() => {
-              // Body read failure is non-fatal
+            .catch((error: unknown) => {
+              process.stderr.write(`[network-record] request body read failed: ${String(error)}\n`);
             }),
         );
       });

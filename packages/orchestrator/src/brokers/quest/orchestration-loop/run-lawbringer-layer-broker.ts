@@ -7,7 +7,6 @@
  */
 
 import {
-  timeoutMsContract,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -48,7 +47,6 @@ export const runLawbringerLayerBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<void> => {
-  const timeoutMs = timeoutMsContract.parse(slotManagerStatics.lawbringer.timeoutMs);
   const maxFollowupDepth = followupDepthContract.parse(
     slotManagerStatics.lawbringer.maxFollowupDepth,
   );
@@ -82,7 +80,6 @@ export const runLawbringerLayerBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     startPath,
     maxFollowupDepth,
@@ -106,7 +103,9 @@ export const runLawbringerLayerBroker = async ({
             questId,
             workItems: [newItem],
           } as ModifyQuestInput,
-        }).catch(() => undefined);
+        }).catch((error: unknown) => {
+          process.stderr.write(`[lawbringer] quest-modify failed: ${String(error)}\n`);
+        });
       }
     },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
@@ -117,7 +116,9 @@ export const runLawbringerLayerBroker = async ({
             questId,
             workItems: [{ id: questItemId, sessionId }],
           } as ModifyQuestInput,
-        }).catch(() => undefined);
+        }).catch((error: unknown) => {
+          process.stderr.write(`[lawbringer] quest-modify failed: ${String(error)}\n`);
+        });
       }
     },
   });

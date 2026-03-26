@@ -7,7 +7,6 @@
  */
 
 import {
-  timeoutMsContract,
   type FilePath,
   type QuestId,
   type SessionId,
@@ -29,8 +28,6 @@ import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questVerifyBroker } from '../verify/quest-verify-broker';
 import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
 
-const PATHSEEKER_TIMEOUT_MS = 600000;
-
 export const runPathseekerLayerBroker = async ({
   questId,
   workItem,
@@ -50,12 +47,10 @@ export const runPathseekerLayerBroker = async ({
   });
 
   const slotIndex = slotIndexContract.parse(0);
-  const timeoutMs = timeoutMsContract.parse(workItem.timeoutMs ?? PATHSEEKER_TIMEOUT_MS);
   let trackedSessionId: SessionId | null = null;
 
   await agentSpawnByRoleBroker({
     workUnit,
-    timeoutMs,
     startPath,
     abortSignal,
     ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
@@ -73,7 +68,9 @@ export const runPathseekerLayerBroker = async ({
           questId,
           workItems: [{ id: workItem.id, sessionId }],
         } as ModifyQuestInput,
-      }).catch(() => undefined);
+      }).catch((error: unknown) => {
+        process.stderr.write(`[pathseeker] session-id update failed: ${String(error)}\n`);
+      });
     },
   });
 
@@ -136,7 +133,6 @@ export const runPathseekerLayerBroker = async ({
       dependsOn: [workItem.id],
       attempt: workItem.attempt + 1,
       maxAttempts: workItem.maxAttempts,
-      timeoutMs: workItem.timeoutMs ?? PATHSEEKER_TIMEOUT_MS,
       createdAt: new Date().toISOString(),
       insertedBy: workItem.id,
     });

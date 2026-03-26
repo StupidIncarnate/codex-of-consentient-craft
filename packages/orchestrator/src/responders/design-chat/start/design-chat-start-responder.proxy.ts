@@ -27,6 +27,9 @@ export const DesignChatStartResponderProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
+  setupModifyReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => void;
+  getStderrWrites: () => readonly unknown[];
   setupProcessEmpty: ReturnType<typeof orchestrationProcessesStateProxy>['setupEmpty'];
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
@@ -37,9 +40,10 @@ export const DesignChatStartResponderProxy = (): {
   };
 } => {
   const spawnProxy = chatSpawnBrokerProxy();
-  questModifyBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
   const processStateProxy = orchestrationProcessesStateProxy();
   orchestrationEventsStateProxy();
+  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
   return {
     callResponder: DesignChatStartResponder,
@@ -59,6 +63,17 @@ export const DesignChatStartResponderProxy = (): {
     setupInvalidStatus: ({ quest }): void => {
       spawnProxy.setupInvalidStatus({ quest });
     },
+
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): void => {
+      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    },
+
+    getStderrWrites: (): readonly unknown[] =>
+      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
 
     setupProcessEmpty: processStateProxy.setupEmpty,
 

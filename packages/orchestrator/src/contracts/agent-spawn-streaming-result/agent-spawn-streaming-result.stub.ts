@@ -14,7 +14,6 @@ export const AgentSpawnStreamingResultStub = ({
     exitCode: ExitCodeStub({ value: 0 }),
     signal: null,
     crashed: false,
-    timedOut: false,
     capturedOutput: [],
     ...props,
   });

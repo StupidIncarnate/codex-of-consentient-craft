@@ -98,8 +98,10 @@ export const networkRecordPlaywrightBroker = ({
                   });
                 }
               })
-              .catch(() => {
-                // Response body read failure is non-fatal
+              .catch((error: unknown) => {
+                process.stderr.write(
+                  `[network-record] response body read failed: ${String(error)}\n`,
+                );
               });
           }
         }

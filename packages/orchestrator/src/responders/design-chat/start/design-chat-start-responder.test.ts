@@ -22,6 +22,43 @@ describe('DesignChatStartResponder', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during onComplete work-item update} => logs to stderr, does not throw', async () => {
+      const proxy = DesignChatStartResponderProxy();
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'design-quest' });
+      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
+
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupDesignSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
+
+      const result = await proxy.callResponder({
+        guildId,
+        questId,
+        message: 'Create login page prototype',
+      });
+
+      expect(result.chatProcessId).toMatch(/^design-/u);
+
+      // Wait for spawn exit (setImmediate chain) + onComplete + fire-and-forget .catch handler
+      await new Promise<void>((resolve) => {
+        setImmediate(() => {
+          setImmediate(() => {
+            setTimeout(resolve, 0);
+          });
+        });
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasDesignChatLog = stderrOutput.some((line) =>
+        String(line).includes('[design-chat] work-item update failed'),
+      );
+
+      expect(hasDesignChatLog).toBe(true);
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {quest not found} => throws quest not found error', async () => {
       const proxy = DesignChatStartResponderProxy();

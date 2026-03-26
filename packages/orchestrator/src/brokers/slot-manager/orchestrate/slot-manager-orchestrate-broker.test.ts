@@ -1,4 +1,4 @@
-import { FilePathStub, QuestIdStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -25,7 +25,7 @@ describe('slotManagerOrchestrateBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
       });
 
@@ -48,7 +48,7 @@ describe('slotManagerOrchestrateBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
       });
 
@@ -77,7 +77,7 @@ describe('slotManagerOrchestrateBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations,
       });
 
@@ -101,7 +101,7 @@ describe('slotManagerOrchestrateBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
       });
 

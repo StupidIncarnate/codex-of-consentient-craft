@@ -129,7 +129,9 @@ describe('useQuestsBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch(() => undefined);
+          result.current.refresh().catch((error: unknown) => {
+            globalThis.console.error('[test] refresh failed', error);
+          });
         },
       });
 
@@ -170,7 +172,9 @@ describe('useQuestsBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch(() => undefined);
+          result.current.refresh().catch((error: unknown) => {
+            globalThis.console.error('[test] refresh failed', error);
+          });
         },
       });
 
@@ -208,7 +212,9 @@ describe('useQuestsBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch(() => undefined);
+          result.current.refresh().catch((error: unknown) => {
+            globalThis.console.error('[test] refresh failed', error);
+          });
         },
       });
 
@@ -291,6 +297,27 @@ describe('useQuestsBinding', () => {
         error: expect.any(Error),
         refresh: expect.any(Function),
       });
+    });
+  });
+
+  describe('error logging', () => {
+    it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-quests] prefix', async () => {
+      const proxy = useQuestsBindingProxy();
+      proxy.setupOuterCatchTrigger();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding({ guildId }),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(consoleErrorCalls[0]?.[0]).toBe('[use-quests]');
+        },
+      });
+
+      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
     });
   });
 });

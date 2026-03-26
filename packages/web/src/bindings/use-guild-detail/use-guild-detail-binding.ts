@@ -45,7 +45,9 @@ export const useGuildDetailBinding = ({
   }, [guildId]);
 
   useEffect(() => {
-    fetchGuild().catch(() => undefined);
+    fetchGuild().catch((catchError: unknown) => {
+      globalThis.console.error('[use-guild-detail]', catchError);
+    });
   }, [fetchGuild]);
 
   return { data, loading, error, refresh: fetchGuild };

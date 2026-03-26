@@ -2,11 +2,11 @@
  * PURPOSE: Executes a single iteration of the orchestration loop using WorkTracker abstraction
  *
  * USAGE:
- * const result = await orchestrationLoopLayerBroker({workTracker, slotCount, timeoutMs, slotOperations, activeAgents, startPath});
+ * const result = await orchestrationLoopLayerBroker({workTracker, slotCount, slotOperations, activeAgents, startPath});
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
-import type { FilePath, QuestId, SessionId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -38,7 +38,6 @@ export const orchestrationLoopLayerBroker = async ({
   questId,
   workTracker,
   slotCount,
-  timeoutMs,
   slotOperations,
   activeAgents,
   startPath,
@@ -52,7 +51,6 @@ export const orchestrationLoopLayerBroker = async ({
   questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
-  timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
@@ -84,7 +82,6 @@ export const orchestrationLoopLayerBroker = async ({
 
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
         ...(onAgentEntry === undefined
           ? {}
@@ -153,7 +150,7 @@ export const orchestrationLoopLayerBroker = async ({
     return { done: false, activeAgents };
   }
 
-  if (result.crashed || result.timedOut) {
+  if (result.crashed) {
     const nextCrashRetries = (completedAgent.crashRetries + 1) as ActiveAgent['crashRetries'];
 
     if (nextCrashRetries > MAX_CRASH_RETRIES) {
@@ -169,7 +166,6 @@ export const orchestrationLoopLayerBroker = async ({
     } else {
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
-        timeoutMs,
         startPath,
         ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
         ...(onAgentEntry === undefined
@@ -273,7 +269,6 @@ export const orchestrationLoopLayerBroker = async ({
 
           const agentPromise = spawnAgentLayerBroker({
             workUnit: followupWorkUnit,
-            timeoutMs,
             startPath,
             ...(onAgentEntry === undefined
               ? {}

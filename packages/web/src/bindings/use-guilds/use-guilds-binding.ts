@@ -36,7 +36,9 @@ export const useGuildsBinding = (): {
   }, []);
 
   useEffect(() => {
-    fetchGuilds().catch(() => undefined);
+    fetchGuilds().catch((catchError: unknown) => {
+      globalThis.console.error('[use-guilds]', catchError);
+    });
   }, [fetchGuilds]);
 
   return { guilds, loading, error, refresh: fetchGuilds };

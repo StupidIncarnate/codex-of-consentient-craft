@@ -8,7 +8,6 @@
 
 import {
   errorMessageContract,
-  timeoutMsContract,
   type FilePath,
   type QuestId,
   type SessionId,
@@ -22,7 +21,6 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -57,16 +55,11 @@ export const runSiegemasterLayerBroker = async ({
     observables: allObservables,
   });
 
-  const timeoutMs = timeoutMsContract.parse(
-    workItem.timeoutMs ?? slotManagerStatics.siegemaster.timeoutMs,
-  );
-
   const slotIndex = slotIndexContract.parse(0);
   let trackedSessionId: SessionId | null = null;
 
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
-    timeoutMs,
     startPath,
     abortSignal,
     onLine: ({ line }: { line: string }) => {
@@ -83,7 +76,9 @@ export const runSiegemasterLayerBroker = async ({
           questId,
           workItems: [{ id: workItem.id, sessionId }],
         } as ModifyQuestInput,
-      }).catch(() => undefined);
+      }).catch((error: unknown) => {
+        process.stderr.write(`[siegemaster] session-id update failed: ${String(error)}\n`);
+      });
     },
   });
 
@@ -138,7 +133,6 @@ export const runSiegemasterLayerBroker = async ({
     spawnerType: 'agent',
     dependsOn: [workItem.id],
     maxAttempts: 3,
-    timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
     createdAt: new Date().toISOString(),
     insertedBy: workItem.id,
   });

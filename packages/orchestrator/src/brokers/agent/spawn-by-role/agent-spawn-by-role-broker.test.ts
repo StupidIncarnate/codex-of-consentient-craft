@@ -5,7 +5,6 @@ import {
   FilePathStub,
   SessionIdStub,
   StepIdStub,
-  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
@@ -32,7 +31,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
 
       proxy.setupSpawnAndMonitor({
@@ -42,14 +40,13 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -57,7 +54,6 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {pathseeker workUnit} => resolves pathseeker prompt template', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const workUnit = PathseekerWorkUnitStub();
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -66,14 +62,13 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -81,7 +76,6 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const workUnit = SiegemasterWorkUnitStub();
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -90,14 +84,13 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -105,7 +98,6 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {lawbringer workUnit} => resolves lawbringer prompt template', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const workUnit = LawbringerWorkUnitStub();
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -114,14 +106,13 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -129,7 +120,6 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {spiritmender workUnit} => resolves spiritmender prompt template', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const workUnit = SpiritmenderWorkUnitStub();
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -138,14 +128,13 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -156,7 +145,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const continuationContext = ContinuationContextStub({ value: 'Resume from gate 3' });
 
       proxy.setupSpawnAndMonitor({
@@ -168,7 +156,6 @@ describe('agentSpawnByRoleBroker', () => {
 
       const result = await agentSpawnByRoleBroker({
         workUnit,
-        timeoutMs,
         startPath,
         continuationContext,
       });
@@ -178,7 +165,6 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -189,7 +175,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
       proxy.setupSpawnAndMonitor({
@@ -201,7 +186,6 @@ describe('agentSpawnByRoleBroker', () => {
 
       const result = await agentSpawnByRoleBroker({
         workUnit,
-        timeoutMs,
         startPath,
         resumeSessionId,
       });
@@ -211,7 +195,6 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -222,44 +205,19 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
 
       proxy.setupSpawnFailure();
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         crashed: true,
-        timedOut: false,
         capturedOutput: [],
         signal: null,
         sessionId: null,
         exitCode: null,
-      });
-    });
-  });
-
-  describe('timeout', () => {
-    it('VALID: {very small timeoutMs} => returns timedOut true', async () => {
-      const proxy = agentSpawnByRoleBrokerProxy();
-      const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 1 });
-      const startPath = FilePathStub({ value: '/project/src' });
-
-      proxy.setupSpawnExitOnKill({ lines: [], exitCode: null });
-
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
-
-      expect(result).toStrictEqual({
-        sessionId: null,
-        exitCode: null,
-        signal: null,
-        crashed: false,
-        timedOut: true,
-        capturedOutput: [],
       });
     });
   });
@@ -269,7 +227,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const startPath = FilePathStub({ value: '/project/src' });
 
       proxy.setupSpawnAndMonitor({
@@ -277,14 +234,13 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 1,
         signal: null,
         crashed: true,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -295,7 +251,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const startPath = FilePathStub({ value: '/project/src' });
       const stepId = StepIdStub();
 
@@ -321,7 +276,7 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -331,7 +286,6 @@ describe('agentSpawnByRoleBroker', () => {
           summary: 'All done',
         },
         crashed: false,
-        timedOut: false,
         capturedOutput: [],
       });
     });
@@ -342,7 +296,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const startPath = FilePathStub({ value: '/project/src' });
 
       const textLine = JSON.stringify(AssistantTextStreamLineStub());
@@ -352,16 +305,47 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath });
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
 
       expect(result).toStrictEqual({
         sessionId: null,
         exitCode: 0,
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: ['Hello, I can help with that.'],
       });
+    });
+  });
+
+  describe('session-id resolution failure', () => {
+    it('ERROR: {onSessionId throws} => writes error to stderr', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ step });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
+      const stderrSpy = proxy.setupStderrCapture();
+
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onSessionId = (): void => {
+        throw new Error('callback exploded');
+      };
+
+      await agentSpawnByRoleBroker({ workUnit, startPath, onSessionId });
+
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^\[agent-spawn\] session-id resolution failed:.*callback exploded\n$/u,
+        ),
+      );
     });
   });
 
@@ -370,7 +354,6 @@ describe('agentSpawnByRoleBroker', () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ step });
-      const timeoutMs = TimeoutMsStub({ value: 60000 });
       const startPath = FilePathStub({ value: '/project/src' });
       const onLine = jest.fn();
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
@@ -380,7 +363,7 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, timeoutMs, startPath, onLine });
+      await agentSpawnByRoleBroker({ workUnit, startPath, onLine });
 
       expect(onLine).toHaveBeenCalledTimes(1);
       expect(onLine.mock.calls[0][0]).toStrictEqual({ line: sessionLine });

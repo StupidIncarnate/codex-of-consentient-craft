@@ -516,6 +516,63 @@ describe('runLawbringerLayerBroker', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        session_id: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c',
+      });
+
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        filesToModify: ['/project/src/file-a.ts'],
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionIdLine, COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasLawbringerLog = stderrOutput.some((line) =>
+        String(line).includes('[lawbringer] quest-modify failed'),
+      );
+
+      expect(hasLawbringerLog).toBe(true);
+    });
+  });
+
   describe('onAgentEntry wiring', () => {
     it('VALID: {onAgentEntry provided, agent signals complete} => completes without error', async () => {
       const step = DependencyStepStub({

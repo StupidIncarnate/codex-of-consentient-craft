@@ -608,6 +608,59 @@ describe('runCodeweaverLayerBroker', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        session_id: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c',
+      });
+
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionIdLine, COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasCodeweaverLog = stderrOutput.some((line) =>
+        String(line).includes('[codeweaver] quest-modify failed'),
+      );
+
+      expect(hasCodeweaverLog).toBe(true);
+    });
+  });
+
   describe('sessionId persistence', () => {
     it('VALID: {1 codeweaver, agent has sessionId} => persists sessionId on quest work item', async () => {
       const sessionId = SessionIdStub({ value: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c' });

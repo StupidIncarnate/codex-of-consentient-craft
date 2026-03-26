@@ -134,7 +134,6 @@ describe('OrchestrationStartResponder', () => {
 
       expect(pathseeker?.dependsOn).toStrictEqual([chaosId]);
       expect(pathseeker?.maxAttempts).toBe(3);
-      expect(pathseeker?.timeoutMs).toBe(600000);
     });
 
     it('VALID: {approved quest with no work items} => persists pathseeker with empty dependsOn', async () => {

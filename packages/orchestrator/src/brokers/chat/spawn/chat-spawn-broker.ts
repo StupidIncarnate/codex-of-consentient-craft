@@ -207,8 +207,8 @@ export const chatSpawnBroker = async ({
           } as ModifyQuestInput,
         });
       })
-      .catch(() => {
-        // Best-effort — frontend may fall back to quest-by-session-request polling
+      .catch((error: unknown) => {
+        process.stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);
       });
   }
 

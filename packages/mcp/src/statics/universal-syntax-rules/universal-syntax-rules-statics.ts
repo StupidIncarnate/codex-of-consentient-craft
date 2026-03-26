@@ -237,16 +237,37 @@ export const universalSyntaxRulesStatics = {
   errorHandling: {
     rule: 'Handle errors explicitly for every operation that can fail',
     neverSilentlySwallow:
-      'Never silently swallow errors - Always log, throw, or handle appropriately',
+      'Never silently swallow errors - Always log, throw, or handle appropriately. Enforced by @dungeonmaster/ban-silent-catch',
     provideContext: 'Provide context in error messages with relevant data',
+    catchHandlerRule:
+      'A .catch() handler must do at least one of: log, throw, set state, return a meaningful value, or call a function. Empty .catch(() => {}) and .catch(() => undefined) are always wrong.',
     examples: [
       'export const loadConfig = async ({path}: {path: AbsoluteFilePath}): Promise<Config> => { try { const content = await readFile(path, "utf8"); return configContract.parse(JSON.parse(content)); } catch (error) { throw new Error("Failed to load config from " + path + ": " + error); } };',
       'export const processUser = async ({userId}: {userId: UserId}): Promise<User> => { const user = await userFetchBroker({userId}); // Let broker throw, catch at responder level return user; };',
+      'promise.catch((error: unknown) => { process.stderr.write("[context] operation failed: " + String(error) + "\\n"); }); // Fire-and-forget: log but do not block',
     ],
     violations: [
       'const loadConfig = async ({path}: {path: string}) => { try { return JSON.parse(await readFile(path, "utf8")); } catch (error) { return {}; // Silent failure loses critical information! } };',
       'throw new Error("Config load failed"); // What path? What error?',
+      'promise.catch(() => undefined); // Silent swallow — lint error',
+      'promise.catch(() => {}); // Empty catch — lint error',
+      'promise.catch((_err) => { /* comment only */ }); // Comments are not handling — lint error',
     ],
+    webErrorHandling: {
+      bindings:
+        'Errors captured in {error} state via try/catch — do not double-catch with .catch(() => undefined). Use .catch((error) => { globalThis.console.error("[binding-name]", error); }) if an outer catch is needed.',
+      widgets: 'Consume error from bindings and render error states',
+      eventHandlers: 'Log or show user feedback — never silently swallow',
+    },
+    serverErrorHandling: {
+      responders:
+        'Catch at boundary and return ResponderResult contract with HTTP status. Only valid catch-and-transform site.',
+      brokers: 'Let errors propagate. Do not catch unless wrapping with additional context.',
+      adapters:
+        'Wrap external errors with domain context (what operation failed, what input caused it)',
+      fireAndForget:
+        'Non-critical background operations: .catch((error) => { process.stderr.write("[context] failed: " + String(error)); }) — log but do not block',
+    },
   },
 
   performance: {

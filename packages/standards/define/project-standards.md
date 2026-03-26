@@ -269,8 +269,10 @@ const company = await fetchCompany({companyId: user.companyId});  // companyId i
 **Error Handling:**
 
 - **Handle errors explicitly** for every operation that can fail
-- **Never silently swallow errors** - Always log, throw, or handle appropriately
+- **Never silently swallow errors** - Always log, throw, or handle appropriately (enforced by
+  `@dungeonmaster/ban-silent-catch`)
 - **Provide context** in error messages with relevant data
+- A `.catch()` handler must do at least one of: log, throw, set state, return a meaningful value, or call a function
 
 ```tsx
 // ✅ CORRECT - Error with context using path contracts and explicit return type
@@ -290,7 +292,19 @@ export const processUser = async ({userId}: { userId: UserId }): Promise<User> =
     return user;
 };
 
-// ❌ AVOID - Silent error swallowing
+// ✅ CORRECT - Fire-and-forget with logging (non-critical background operation)
+questModifyBroker({input}).catch((error: unknown) => {
+    process.stderr.write(`[context] quest-modify failed: ${String(error)}\n`);
+});
+
+// ❌ AVOID - Silent error swallowing (lint error: ban-silent-catch)
+promise.catch(() => undefined);
+promise.catch(() => {
+});
+promise.catch((_err) => { /* comment only */
+});
+
+// ❌ AVOID - Silent failure in try/catch
 const loadConfig = async ({path}: { path: string }) => {  // Use AbsoluteFilePath
     try {
         return JSON.parse(await readFile(path, 'utf8'));
@@ -302,6 +316,23 @@ const loadConfig = async ({path}: { path: string }) => {  // Use AbsoluteFilePat
 // ❌ AVOID - Generic error without context and raw string path
 throw new Error('Config load failed');  // What path? What error?
 ```
+
+**Web Error Handling:**
+
+- **Bindings:** Errors are captured in `{error}` state via try/catch — do not double-catch with
+  `.catch(() => undefined)`. If an outer catch is needed for `useEffect`, use
+  `.catch((error) => { globalThis.console.error('[binding-name]', error); })`
+- **Widgets:** Consume the `error` field from bindings and render error states
+- **Event handlers:** Log or show user feedback — never silently swallow
+
+**Server Error Handling:**
+
+- **Responders:** Catch at boundary and return `ResponderResult` contract with HTTP status — the only valid
+  catch-and-transform site
+- **Brokers:** Let errors propagate upward — don't catch unless wrapping with additional context
+- **Adapters:** Wrap external errors with domain context (what operation failed, what input caused it)
+- **Fire-and-forget:** Non-critical background operations use
+  `.catch((error) => { process.stderr.write('[context] failed: ' + String(error)); })` — log but don't block
 
 **Performance & Code Cleanup:**
 

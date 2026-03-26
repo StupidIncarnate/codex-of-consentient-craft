@@ -52,7 +52,9 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   setSelectedGuildId(id);
                   setInternalView('main');
                 })
-                .catch(() => undefined);
+                .catch((createError: unknown) => {
+                  globalThis.console.error('[home-content] guild create failed', createError);
+                });
             }}
             onCancel={
               hasGuilds
@@ -100,7 +102,9 @@ export const HomeContentWidget = (): React.JSX.Element => {
                     state: { questId: session?.questId ?? null },
                   });
                   if (result instanceof Promise) {
-                    result.catch(() => undefined);
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error('[home-content] navigation failed', navError);
+                    });
                   }
                 }}
                 onAdd={() => {
@@ -108,7 +112,9 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
                   const result = navigate(`/${slug}/session`);
                   if (result instanceof Promise) {
-                    result.catch(() => undefined);
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error('[home-content] navigation failed', navError);
+                    });
                   }
                 }}
               />
@@ -135,7 +141,9 @@ export const HomeContentWidget = (): React.JSX.Element => {
               await refreshGuilds();
               setSelectedGuildId(id);
             })
-            .catch(() => undefined);
+            .catch((createError: unknown) => {
+              globalThis.console.error('[home-content] guild create failed', createError);
+            });
         }}
       />
     </>

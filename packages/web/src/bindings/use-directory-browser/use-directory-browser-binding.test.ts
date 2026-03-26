@@ -190,4 +190,44 @@ describe('useDirectoryBrowserBinding', () => {
       });
     });
   });
+
+  describe('error logging', () => {
+    it('ERROR: {broker throws and inner catch handles it} => does not log to console.error', async () => {
+      const proxy = useDirectoryBrowserBindingProxy();
+      proxy.setupError();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDirectoryBrowserBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      expect(consoleErrorCalls).toStrictEqual([]);
+    });
+
+    it('ERROR: {broker rejects with poison toString} => inner bare catch swallows error without logging', async () => {
+      const proxy = useDirectoryBrowserBindingProxy();
+      proxy.setupOuterCatchTrigger();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useDirectoryBrowserBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(result.current.loading).toBe(false);
+        },
+      });
+
+      expect(consoleErrorCalls).toStrictEqual([]);
+    });
+  });
 });

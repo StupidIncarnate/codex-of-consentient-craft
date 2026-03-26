@@ -2,11 +2,11 @@
  * PURPOSE: Recursively runs the orchestration loop until completion or stuck state
  *
  * USAGE:
- * const result = await runOrchestrationLayerBroker({workTracker, slotCount, timeoutMs, slotOperations, activeAgents, startPath});
+ * const result = await runOrchestrationLayerBroker({workTracker, slotCount, slotOperations, activeAgents, startPath});
  * // Returns SlotManagerResult when orchestration completes or gets stuck
  */
 
-import type { FilePath, QuestId, SessionId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -26,7 +26,6 @@ export const runOrchestrationLayerBroker = async ({
   questId,
   workTracker,
   slotCount,
-  timeoutMs,
   slotOperations,
   activeAgents,
   startPath,
@@ -40,7 +39,6 @@ export const runOrchestrationLayerBroker = async ({
   questId: QuestId;
   workTracker: WorkTracker;
   slotCount: SlotCount;
-  timeoutMs: TimeoutMs;
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
@@ -64,7 +62,6 @@ export const runOrchestrationLayerBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     activeAgents,
     startPath,
@@ -84,7 +81,6 @@ export const runOrchestrationLayerBroker = async ({
     questId,
     workTracker,
     slotCount,
-    timeoutMs,
     slotOperations,
     activeAgents: loopResult.activeAgents,
     startPath,

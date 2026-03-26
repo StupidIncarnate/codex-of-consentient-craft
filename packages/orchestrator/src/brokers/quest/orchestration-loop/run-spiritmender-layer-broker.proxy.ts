@@ -26,6 +26,9 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnOnceLazy: () => void;
+  setupModifyReject: (params: { error: Error }) => void;
+  setupStderrCapture: () => void;
+  getStderrWrites: () => readonly unknown[];
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -35,6 +38,7 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   const extraPathJoin = pathJoinAdapterProxy();
   const modifyProxy = questModifyBrokerProxy();
   const slotProxy = slotManagerOrchestrateBrokerProxy();
+  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
   jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
 
@@ -148,6 +152,17 @@ export const runSpiritmenderLayerBrokerProxy = (): {
     setupSpawnOnceLazy: (): void => {
       slotProxy.setupSpawnOnceLazy();
     },
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+
+    setupStderrCapture: (): void => {
+      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    },
+
+    getStderrWrites: (): readonly unknown[] =>
+      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
+
     getLastPersistedWorkItemStatus: ({
       workItemId,
     }: {

@@ -337,6 +337,49 @@ describe('runSiegemasterLayerBroker', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        session_id: 'captured-session-abc',
+      });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupSpawnWithSessionAndSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+        sessionIdLine,
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasSiegemasterLog = stderrOutput.some((line) =>
+        String(line).includes('[siegemaster] session-id update failed'),
+      );
+
+      expect(hasSiegemasterLog).toBe(true);
+    });
+  });
+
   describe('ABORT (pause during siegemaster)', () => {
     it('VALID: {siegemaster killed by abort signal} => quest state unchanged, siegemaster stays in_progress', async () => {
       const questId = 'add-auth' as never;

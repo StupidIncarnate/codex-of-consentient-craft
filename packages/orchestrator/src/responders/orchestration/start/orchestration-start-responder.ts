@@ -13,8 +13,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
-
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -99,7 +97,6 @@ export const OrchestrationStartResponder = async ({
         spawnerType: 'agent',
         dependsOn: chatItemIds,
         maxAttempts: 3,
-        timeoutMs: slotManagerStatics.pathseeker.timeoutMs,
         createdAt: new Date().toISOString(),
       });
 

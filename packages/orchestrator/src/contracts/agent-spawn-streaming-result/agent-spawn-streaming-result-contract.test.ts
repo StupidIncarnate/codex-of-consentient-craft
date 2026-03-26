@@ -12,11 +12,9 @@ describe('agentSpawnStreamingResultContract', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: null,
         crashed: false,
-        timedOut: false,
       });
 
       expect(result.crashed).toBe(false);
-      expect(result.timedOut).toBe(false);
       expect(result.capturedOutput).toStrictEqual([]);
     });
 
@@ -24,7 +22,6 @@ describe('agentSpawnStreamingResultContract', () => {
       const stub = AgentSpawnStreamingResultStub();
 
       expect(stub.crashed).toBe(false);
-      expect(stub.timedOut).toBe(false);
       expect(stub.signal).toBeNull();
       expect(stub.capturedOutput).toStrictEqual([]);
     });
@@ -35,7 +32,6 @@ describe('agentSpawnStreamingResultContract', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: null,
         crashed: false,
-        timedOut: false,
       });
 
       expect(result.sessionId).toBeNull();
@@ -47,11 +43,9 @@ describe('agentSpawnStreamingResultContract', () => {
         exitCode: null,
         signal: null,
         crashed: false,
-        timedOut: true,
       });
 
       expect(result.exitCode).toBeNull();
-      expect(result.timedOut).toBe(true);
     });
 
     it('VALID: {capturedOutput omitted} => defaults to empty array', () => {
@@ -60,7 +54,6 @@ describe('agentSpawnStreamingResultContract', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: null,
         crashed: false,
-        timedOut: false,
       });
 
       expect(result.capturedOutput).toStrictEqual([]);
@@ -75,7 +68,6 @@ describe('agentSpawnStreamingResultContract', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: null,
         crashed: false,
-        timedOut: false,
         capturedOutput: [line1, line2],
       });
 
@@ -90,18 +82,6 @@ describe('agentSpawnStreamingResultContract', () => {
           sessionId: SessionIdStub(),
           exitCode: ExitCodeStub({ value: 0 }),
           signal: null,
-          timedOut: false,
-        }),
-      ).toThrow(/Required/u);
-    });
-
-    it('INVALID: {missing timedOut} => throws error', () => {
-      expect(() =>
-        agentSpawnStreamingResultContract.parse({
-          sessionId: SessionIdStub(),
-          exitCode: ExitCodeStub({ value: 0 }),
-          signal: null,
-          crashed: false,
         }),
       ).toThrow(/Required/u);
     });

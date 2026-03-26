@@ -46,7 +46,9 @@ export const useDirectoryBrowserBinding = (): {
   }, []);
 
   useEffect(() => {
-    browse({ path: currentPath }).catch(() => undefined);
+    browse({ path: currentPath }).catch((error: unknown) => {
+      globalThis.console.error('[use-directory-browser]', error);
+    });
   }, [browse, currentPath]);
 
   const navigateTo = useCallback(({ path }: { path: GuildPath }): void => {

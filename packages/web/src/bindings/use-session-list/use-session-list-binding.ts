@@ -46,7 +46,9 @@ export const useSessionListBinding = ({
   }, [guildId]);
 
   useEffect(() => {
-    fetchSessions().catch(() => undefined);
+    fetchSessions().catch((catchError: unknown) => {
+      globalThis.console.error('[use-session-list]', catchError);
+    });
   }, [fetchSessions]);
 
   return { data, loading, error, refresh: fetchSessions };

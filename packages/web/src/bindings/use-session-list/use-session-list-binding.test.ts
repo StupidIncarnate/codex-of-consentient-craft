@@ -129,7 +129,9 @@ describe('useSessionListBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch(() => undefined);
+          result.current.refresh().catch((error: unknown) => {
+            globalThis.console.error('[test] refresh failed', error);
+          });
         },
       });
 
@@ -165,6 +167,27 @@ describe('useSessionListBinding', () => {
         error: null,
         refresh: expect.any(Function),
       });
+    });
+  });
+
+  describe('error logging', () => {
+    it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-session-list] prefix', async () => {
+      const proxy = useSessionListBindingProxy();
+      proxy.setupOuterCatchTrigger();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionListBinding({ guildId }),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(consoleErrorCalls[0]?.[0]).toBe('[use-session-list]');
+        },
+      });
+
+      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
     });
   });
 });

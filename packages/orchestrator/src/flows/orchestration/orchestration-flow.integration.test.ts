@@ -1450,7 +1450,7 @@ describe('OrchestrationFlow', () => {
       expect(typeof psItem.completedAt).toBe('string');
     });
 
-    it('VALID: {happy path, 2 steps} => spawned items have correct shapes: relatedDataItems, spawnerType, maxAttempts, wardMode, timeoutMs', async () => {
+    it('VALID: {happy path, 2 steps} => spawned items have correct shapes: relatedDataItems, spawnerType, maxAttempts, wardMode', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orch-item-shape' }),
       });
@@ -1524,9 +1524,8 @@ describe('OrchestrationFlow', () => {
       expect(changedWard?.spawnerType).toBe('command');
       expect(changedWard?.maxAttempts).toBe(3);
 
-      // Siege has timeoutMs
+      // Siege
       expect(siegeItems[0]?.spawnerType).toBe('agent');
-      expect(siegeItems[0]?.timeoutMs).toBe(300000);
 
       // Lawbringers have relatedDataItems pointing to their step
       for (const lb of lbItems) {

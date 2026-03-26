@@ -79,6 +79,10 @@ export const QuestChatWidgetProxy = (): {
   clickApprovedModalNewQuest: () => Promise<void>;
   setupQuestStart: (params: { processId: string }) => void;
   getQuestStartRequestCount: () => RequestCount;
+  setupConsoleErrorCapture: () => jest.SpyInstance;
+  setupQuestStartError: () => void;
+  setupQuestModifyError: () => void;
+  setupQuestPauseError: () => void;
 } => {
   websocketConnectAdapterProxy();
   useAgentOutputBindingProxy();
@@ -90,7 +94,7 @@ export const QuestChatWidgetProxy = (): {
   QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
-  questPauseBrokerProxy();
+  const pauseProxy = questPauseBrokerProxy();
   const startProxy = questStartBrokerProxy();
   const designStartProxy = designStartBrokerProxy();
   const designSessionProxy = designSessionBrokerProxy();
@@ -215,5 +219,16 @@ export const QuestChatWidgetProxy = (): {
       startProxy.setupStart({ processId });
     },
     getQuestStartRequestCount: (): RequestCount => startProxy.getRequestCount(),
+    setupConsoleErrorCapture: (): jest.SpyInstance =>
+      jest.spyOn(globalThis.console, 'error').mockImplementation(() => undefined),
+    setupQuestStartError: (): void => {
+      startProxy.setupError();
+    },
+    setupQuestModifyError: (): void => {
+      modifyProxy.setupError();
+    },
+    setupQuestPauseError: (): void => {
+      pauseProxy.setupError();
+    },
   };
 };

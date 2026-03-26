@@ -75,4 +75,26 @@ describe('useGuildDetailBinding', () => {
       });
     });
   });
+
+  describe('error logging', () => {
+    it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-guild-detail] prefix', async () => {
+      const proxy = useGuildDetailBindingProxy();
+      const testGuildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupOuterCatchTrigger();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useGuildDetailBinding({ guildId: testGuildId }),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(consoleErrorCalls[0]?.[0]).toBe('[use-guild-detail]');
+        },
+      });
+
+      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
+    });
+  });
 });

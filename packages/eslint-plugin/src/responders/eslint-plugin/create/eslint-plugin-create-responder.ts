@@ -40,6 +40,7 @@ import { ruleBanJestMockInProxiesBroker } from '../../../brokers/rule/ban-jest-m
 import { ruleEnforceHarnessPatternsBroker } from '../../../brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker';
 import { ruleBanNodeBuiltinsInTestScenariosBroker } from '../../../brokers/rule/ban-node-builtins-in-test-scenarios/rule-ban-node-builtins-in-test-scenarios-broker';
 import { ruleBanInlineHelpersInTestScenariosBroker } from '../../../brokers/rule/ban-inline-helpers-in-test-scenarios/rule-ban-inline-helpers-in-test-scenarios-broker';
+import { ruleBanSilentCatchBroker } from '../../../brokers/rule/ban-silent-catch/rule-ban-silent-catch-broker';
 import { ruleBanWaitForTimeoutBroker } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker';
 import { ruleBanPageRouteInE2eBroker } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker';
 import { ruleEnforceE2eBaseImportBroker } from '../../../brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker';
@@ -83,6 +84,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-harness-patterns': EslintRule;
     readonly 'ban-node-builtins-in-test-scenarios': EslintRule;
     readonly 'ban-inline-helpers-in-test-scenarios': EslintRule;
+    readonly 'ban-silent-catch': EslintRule;
     readonly 'ban-wait-for-timeout': EslintRule;
     readonly 'ban-page-route-in-e2e': EslintRule;
     readonly 'enforce-e2e-base-import': EslintRule;
@@ -129,6 +131,7 @@ export const EslintPluginCreateResponder = (): {
       'enforce-harness-patterns': ruleEnforceHarnessPatternsBroker(),
       'ban-node-builtins-in-test-scenarios': ruleBanNodeBuiltinsInTestScenariosBroker(),
       'ban-inline-helpers-in-test-scenarios': ruleBanInlineHelpersInTestScenariosBroker(),
+      'ban-silent-catch': ruleBanSilentCatchBroker(),
       'ban-wait-for-timeout': ruleBanWaitForTimeoutBroker(),
       'ban-page-route-in-e2e': ruleBanPageRouteInE2eBroker(),
       'enforce-e2e-base-import': ruleEnforceE2eBaseImportBroker(),

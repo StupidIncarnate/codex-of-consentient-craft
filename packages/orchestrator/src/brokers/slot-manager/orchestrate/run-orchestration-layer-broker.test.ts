@@ -1,4 +1,4 @@
-import { FilePathStub, QuestIdStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -25,7 +25,7 @@ describe('runOrchestrationLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -55,7 +55,7 @@ describe('runOrchestrationLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations,
         activeAgents: [],
         sessionIds: {},
@@ -88,7 +88,7 @@ describe('runOrchestrationLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},

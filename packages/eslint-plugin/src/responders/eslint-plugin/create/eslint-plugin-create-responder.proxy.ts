@@ -47,6 +47,7 @@ import { ruleBanInlineHelpersInTestScenariosBrokerProxy } from '../../../brokers
 import { ruleBanWaitForTimeoutBrokerProxy } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker.proxy';
 import { ruleBanPageRouteInE2eBrokerProxy } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker.proxy';
 import { ruleEnforceE2eBaseImportBrokerProxy } from '../../../brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker.proxy';
+import { ruleBanSilentCatchBrokerProxy } from '../../../brokers/rule/ban-silent-catch/rule-ban-silent-catch-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -91,6 +92,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanWaitForTimeoutBrokerProxy();
   ruleBanPageRouteInE2eBrokerProxy();
   ruleEnforceE2eBaseImportBrokerProxy();
+  ruleBanSilentCatchBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

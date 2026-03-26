@@ -488,6 +488,47 @@ describe('runPathseekerLayerBroker', () => {
     });
   });
 
+  describe('fire-and-forget resilience', () => {
+    it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        steps: [DependencyStepStub()],
+        workItems: [workItem],
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupModifyReject({ error: new Error('network failure') });
+      proxy.setupSuccess({
+        quest,
+        spawnLines: ['{"type":"system","session_id":"captured-session-abc"}'],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasPathseekerLog = stderrOutput.some((line) =>
+        String(line).includes('[pathseeker] session-id update failed'),
+      );
+
+      expect(hasPathseekerLog).toBe(true);
+    });
+  });
+
   describe('ABORT (pause during pathseeker)', () => {
     it('VALID: {pathseeker killed by abort signal} => quest state unchanged, pathseeker stays in_progress', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });

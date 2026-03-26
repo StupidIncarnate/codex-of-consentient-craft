@@ -148,4 +148,59 @@ describe('HomeContentWidget', () => {
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guildId}` })).toBe(true);
     });
   });
+
+  describe('error logging in catch handlers', () => {
+    it('ERROR: {guildCreateBroker rejects} => logs error to console.error', async () => {
+      const proxy = HomeContentWidgetProxy();
+      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isNewGuildTitleVisible()).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.typeGuildName({ value: 'fail-guild' });
+          await proxy.typeGuildPath({ value: '/home/user/fail-guild' });
+          await Promise.resolve();
+        },
+      });
+
+      proxy.setupCreateGuildError();
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickCreateGuild();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[home-content] guild create failed',
+          expect.anything(),
+        );
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[home-content] guild create failed',
+        expect.anything(),
+      );
+    });
+  });
 });

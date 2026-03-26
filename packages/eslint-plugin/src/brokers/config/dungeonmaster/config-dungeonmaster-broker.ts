@@ -108,6 +108,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/require-contract-validation': 'error',
     '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
+    '@dungeonmaster/ban-silent-catch': 'error',
     '@dungeonmaster/ban-startup-branching': 'error',
     '@dungeonmaster/enforce-harness-patterns': 'error',
     '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'error',

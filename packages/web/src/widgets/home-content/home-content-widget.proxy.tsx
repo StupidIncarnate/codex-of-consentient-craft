@@ -44,6 +44,8 @@ export const HomeContentWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
+  setupConsoleErrorCapture: () => jest.SpyInstance;
+  setupCreateGuildError: () => void;
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
@@ -96,6 +98,11 @@ export const HomeContentWidgetProxy = (): {
     },
     clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
       await sessionList.clickSession({ testId });
+    },
+    setupConsoleErrorCapture: (): jest.SpyInstance =>
+      jest.spyOn(globalThis.console, 'error').mockImplementation(() => undefined),
+    setupCreateGuildError: (): void => {
+      createGuildProxy.setupError();
     },
   };
 };

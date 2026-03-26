@@ -129,7 +129,9 @@ describe('useGuildsBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch(() => undefined);
+          result.current.refresh().catch((error: unknown) => {
+            globalThis.console.error('[test] refresh failed', error);
+          });
         },
       });
 
@@ -172,6 +174,27 @@ describe('useGuildsBinding', () => {
         error: expect.any(Error),
         refresh: expect.any(Function),
       });
+    });
+  });
+
+  describe('error logging', () => {
+    it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-guilds] prefix', async () => {
+      const proxy = useGuildsBindingProxy();
+      proxy.setupOuterCatchTrigger();
+
+      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+
+      testingLibraryRenderHookAdapter({
+        renderCallback: () => useGuildsBinding(),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(consoleErrorCalls[0]?.[0]).toBe('[use-guilds]');
+        },
+      });
+
+      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
     });
   });
 });

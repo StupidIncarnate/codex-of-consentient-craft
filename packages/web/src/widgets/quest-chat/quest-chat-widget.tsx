@@ -117,13 +117,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
     const result = navigate(`/${guildSlug}/session/${currentSessionId}`, { replace: true });
     if (result instanceof Promise) {
-      result.catch(() => undefined);
+      result.catch((navError: unknown) => {
+        globalThis.console.error('[quest-chat] navigation failed', navError);
+      });
     }
   }, [currentSessionId, sessionId, guildSlug, navigate, isStreaming]);
 
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {
-      refreshGuild().catch(() => undefined);
+      refreshGuild().catch((refreshError: unknown) => {
+        globalThis.console.error('[quest-chat] refresh failed', refreshError);
+      });
       requestRefresh();
     }
     prevIsStreamingRef.current = isStreaming;
@@ -141,7 +145,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
     if (pipelineStartedRef.current) return;
 
     pipelineStartedRef.current = true;
-    questStartBroker({ questId: questData.id }).catch(() => undefined);
+    questStartBroker({ questId: questData.id }).catch((startError: unknown) => {
+      globalThis.console.error('[quest-chat] quest-start failed', startError);
+    });
   }, [questData]);
 
   const [workItemSessionEntries, setWorkItemSessionEntries] = useState<Map<SessionId, ChatEntry[]>>(
@@ -342,10 +348,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
                 questModifyBroker({
                   questId: questWithContent.id,
                   modifications: { status },
-                }).catch(() => undefined);
+                }).catch((modifyError: unknown) => {
+                  globalThis.console.error('[quest-chat] status change failed', modifyError);
+                });
               }}
               onPause={(): void => {
-                questPauseBroker({ questId: questWithContent.id }).catch(() => undefined);
+                questPauseBroker({ questId: questWithContent.id }).catch((pauseError: unknown) => {
+                  globalThis.console.error('[quest-chat] pause failed', pauseError);
+                });
               }}
             />
           ) : null}
@@ -508,7 +518,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
                         }
                         return undefined;
                       })
-                      .catch(() => undefined);
+                      .catch((designError: unknown) => {
+                        globalThis.console.error('[quest-chat] design start failed', designError);
+                      });
                   }}
                   style={{
                     padding: '6px 12px',
@@ -546,17 +558,16 @@ export const QuestChatWidget = (): React.JSX.Element => {
                             'Flows approved. Proceed to observables and contracts.' as UserInput,
                         });
                       } else if (nextStatus === 'approved') {
-                        sendMessage({
-                          message:
-                            'Observables and contracts approved. Spec is fully approved.' as UserInput,
-                        });
+                        // Do NOT send a chat message on approval. The ChaosWhisperer's response
+                        // can call modify-quest MCP and revert the status before the user clicks
+                        // Begin Quest — causing a silent race condition where the start POST fails.
                       } else if (nextStatus === 'design_approved') {
-                        sendMessage({
-                          message: 'Design approved. Proceed to implementation.' as UserInput,
-                        });
+                        // Same as approved — do not trigger a chat response that could revert status.
                       }
                     })
-                    .catch(() => undefined);
+                    .catch((error: unknown) => {
+                      globalThis.console.error('[quest-modify]', error);
+                    });
                 }}
                 externalUpdatePending={externalUpdatePending}
                 onDismissUpdate={() => {
@@ -576,7 +587,9 @@ export const QuestChatWidget = (): React.JSX.Element => {
               questModifyBroker({
                 questId: questWithContent.id,
                 modifications: { status: approvedReviewStatus },
-              }).catch(() => undefined);
+              }).catch((error: unknown) => {
+                globalThis.console.error('[keep-chatting]', error);
+              });
             }
           }}
           onNewQuest={() => {
@@ -584,13 +597,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
             if (guildSlug) {
               const navResult = navigate(`/${guildSlug}/session`);
               if (navResult instanceof Promise) {
-                navResult.catch(() => undefined);
+                navResult.catch((navError: unknown) => {
+                  globalThis.console.error('[quest-chat] navigation failed', navError);
+                });
               }
             }
           }}
           onBeginQuest={() => {
             setApprovedModalOpen(false);
-            questStartBroker({ questId: questWithContent.id }).catch(() => undefined);
+            questStartBroker({ questId: questWithContent.id }).catch((error: unknown) => {
+              globalThis.console.error('[begin-quest]', error);
+            });
           }}
         />
       ) : null}

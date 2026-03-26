@@ -494,7 +494,6 @@ describe('questOrchestrationLoopBroker', () => {
             role: 'pathseeker',
             status: 'pending',
             spawnerType: 'agent',
-            timeoutMs: 5000,
           }),
         ],
       });
@@ -523,7 +522,6 @@ describe('questOrchestrationLoopBroker', () => {
           role: 'pathseeker',
           status: 'in_progress',
           spawnerType: 'agent',
-          timeoutMs: 5000,
           startedAt: '2024-01-15T10:00:00.000Z',
         }),
       ]);
@@ -535,7 +533,6 @@ describe('questOrchestrationLoopBroker', () => {
           role: 'pathseeker',
           status: 'failed',
           spawnerType: 'agent',
-          timeoutMs: 5000,
           completedAt: '2024-01-15T10:00:00.000Z',
           errorMessage: 'Agent timed out after 5000ms',
         }),

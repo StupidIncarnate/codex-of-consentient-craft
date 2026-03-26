@@ -2,11 +2,11 @@
  * PURPOSE: Spawns an agent for a specific work unit with optional session resume
  *
  * USAGE:
- * const result = await spawnAgentLayerBroker({workUnit, timeoutMs});
+ * const result = await spawnAgentLayerBroker({workUnit, startPath});
  * // Returns AgentSpawnStreamingResult from the spawned agent
  */
 
-import type { FilePath, SessionId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { FilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentSpawnStreamingResult } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
@@ -17,7 +17,6 @@ export const spawnAgentLayerBroker = async ({
   workUnit,
   resumeSessionId,
   continuationContext,
-  timeoutMs,
   startPath,
   onLine,
   onSessionId,
@@ -26,7 +25,6 @@ export const spawnAgentLayerBroker = async ({
   workUnit: WorkUnit;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
-  timeoutMs: TimeoutMs;
   startPath: FilePath;
   onLine?: (params: { line: string }) => void;
   onSessionId?: (params: { sessionId: SessionId }) => void;
@@ -34,7 +32,6 @@ export const spawnAgentLayerBroker = async ({
 }): Promise<AgentSpawnStreamingResult> => {
   const result = await agentSpawnByRoleBroker({
     workUnit,
-    timeoutMs,
     startPath,
     ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
     ...(continuationContext === undefined ? {} : { continuationContext }),

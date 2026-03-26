@@ -3,7 +3,6 @@ import {
   FilePathStub,
   QuestIdStub,
   SessionIdStub,
-  TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ActiveAgentStub } from '../../../contracts/active-agent/active-agent.stub';
@@ -44,7 +43,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -72,7 +71,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -103,7 +102,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -139,7 +138,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -174,7 +173,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [],
         sessionIds: {},
@@ -213,7 +212,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: completeSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const followupAgent = ActiveAgentStub({
@@ -230,7 +228,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [followupAgent],
         sessionIds: {},
@@ -260,7 +258,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: completeSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const nonFollowupAgent = ActiveAgentStub({
@@ -277,7 +274,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [nonFollowupAgent],
         sessionIds: {},
@@ -320,7 +317,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -337,7 +333,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -394,7 +390,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -411,7 +406,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -468,7 +463,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -485,7 +479,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -542,7 +536,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -559,7 +552,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -613,7 +606,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -630,7 +622,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         maxFollowupDepth: FollowupDepthStub({ value: 3 }),
@@ -673,7 +665,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -690,7 +681,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub({
           getAvailableSlot: () => undefined,
         }),
@@ -726,7 +717,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -743,7 +733,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -763,62 +753,6 @@ describe('orchestrationLoopLayerBroker', () => {
         ],
       });
       expect(mockMarkFailed).toHaveBeenCalledTimes(0);
-    });
-
-    it('VALID: {agent timed out} => respawns agent', async () => {
-      orchestrationLoopLayerBrokerProxy();
-      const workItemId = WorkItemIdStub({ value: 'work-item-timeout' });
-      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
-      const timeoutSessionId = SessionIdStub();
-      const workTracker = WorkTrackerStub({
-        isAllComplete: () => false,
-        isAllTerminal: () => false,
-        getReadyWorkIds: () => [],
-        getIncompleteIds: () => [workItemId],
-        getFailedIds: () => [],
-        getWorkUnit: () => codeweaverWorkUnit,
-      });
-
-      const agentResult = AgentSpawnStreamingResultStub({
-        sessionId: timeoutSessionId,
-        exitCode: ExitCodeStub({ value: 1 }),
-        crashed: false as never,
-        timedOut: true as never,
-      });
-
-      const activeAgent = ActiveAgentStub({
-        workItemId,
-        sessionId: null,
-        followupDepth: FollowupDepthStub({ value: 0 }),
-        promise: Promise.resolve(agentResult),
-      });
-
-      const startPath = FilePathStub({ value: '/project/src' });
-
-      const result = await orchestrationLoopLayerBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workTracker,
-        startPath,
-        slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
-        slotOperations: SlotOperationsStub(),
-        activeAgents: [activeAgent],
-        sessionIds: {},
-      });
-
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'work-item-timeout',
-            sessionId: timeoutSessionId,
-            followupDepth: 0,
-            crashRetries: 1,
-            promise: expect.any(Promise),
-          },
-        ],
-      });
     });
   });
 
@@ -843,7 +777,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: null as never,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -860,7 +793,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -900,7 +833,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -917,7 +849,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -962,7 +894,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -979,7 +910,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1024,7 +955,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1041,7 +971,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1084,7 +1014,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1101,7 +1030,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1148,7 +1077,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1165,7 +1093,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1209,7 +1137,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1226,7 +1153,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1291,7 +1218,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1313,7 +1239,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: activeAgentsList,
         sessionIds,
@@ -1332,7 +1258,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: activeAgentsList,
         sessionIds,
@@ -1386,7 +1312,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
         signal: failedSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1403,7 +1328,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1437,7 +1362,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1455,7 +1379,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1497,7 +1421,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1515,7 +1438,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1548,7 +1471,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1566,7 +1488,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub({
           getAvailableSlot: () => undefined,
         }),
@@ -1602,7 +1524,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: completeSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1620,7 +1541,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds,
@@ -1650,7 +1571,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: completeSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1668,7 +1588,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds,
@@ -1699,7 +1619,6 @@ describe('orchestrationLoopLayerBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
         signal: completeSignal,
         crashed: false as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1718,7 +1637,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds,
@@ -1748,7 +1667,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1767,7 +1685,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds,
@@ -1820,7 +1738,6 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionId: crashSessionId,
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1838,7 +1755,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1887,7 +1804,7 @@ describe('orchestrationLoopLayerBroker', () => {
       const agentResult = AgentSpawnStreamingResultStub({
         exitCode: ExitCodeStub({ value: 0 }),
         crashed: false as never,
-        timedOut: false as never,
+
         signal: failSignal,
       });
 
@@ -1906,7 +1823,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},
@@ -1953,7 +1870,6 @@ describe('orchestrationLoopLayerBroker', () => {
       const agentResult = AgentSpawnStreamingResultStub({
         exitCode: ExitCodeStub({ value: 1 }),
         crashed: true as never,
-        timedOut: false as never,
       });
 
       const activeAgent = ActiveAgentStub({
@@ -1971,7 +1887,7 @@ describe('orchestrationLoopLayerBroker', () => {
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
-        timeoutMs: TimeoutMsStub({ value: 60000 }),
+
         slotOperations: SlotOperationsStub(),
         activeAgents: [activeAgent],
         sessionIds: {},

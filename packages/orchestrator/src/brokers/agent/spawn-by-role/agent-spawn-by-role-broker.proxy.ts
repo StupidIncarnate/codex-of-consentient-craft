@@ -11,6 +11,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnFailureOnce: () => void;
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
   getSpawnedArgs: () => unknown;
+  setupStderrCapture: () => jest.SpyInstance;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
 
@@ -80,5 +81,8 @@ export const agentSpawnByRoleBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => unifiedProxy.getSpawnedArgs(),
+
+    setupStderrCapture: (): jest.SpyInstance =>
+      jest.spyOn(process.stderr, 'write').mockImplementation(() => true),
   };
 };
