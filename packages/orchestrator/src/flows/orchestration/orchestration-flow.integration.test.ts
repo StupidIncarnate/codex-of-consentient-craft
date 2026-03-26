@@ -2148,6 +2148,203 @@ describe('OrchestrationFlow', () => {
       // wardResult persisted on quest (one per ward run — all 3 wards write results)
       expect(quest.wardResults.map(() => 'result')).toStrictEqual(['result', 'result', 'result']);
     });
+
+    // Test 20: Ward fails twice, recovers on third attempt
+    it('VALID: {ward fails twice, recovers on third} => ward-A → spirit → ward-B → spirit → ward-C passes → complete', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-ward-2fail' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 1,
+        });
+
+        // ps + cw + ward(FAIL) + spirit + ward-retry(FAIL) + spirit + ward-retry2(PASS) + siege + lb + final-ward
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-2f') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-2f') }),
+        });
+        queue.enqueue({
+          queueDir: env.wardQueueDir,
+          response: wardFailResponse({ filePaths: [FilePathStub({ value: '/src/broken.ts' })] }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('sm-2f-0') }),
+        });
+        queue.enqueue({
+          queueDir: env.wardQueueDir,
+          response: wardFailResponse({ filePaths: [FilePathStub({ value: '/src/broken.ts' })] }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('sm-2f-1') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('siege-2f') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-2f') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
+          questId,
+          minItems: 11,
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      const wardItems = quest.workItems.filter((wi) => wi.role === 'ward');
+      const spiritmenderItems = quest.workItems.filter((wi) => wi.role === 'spiritmender');
+      const failedWards = wardItems.filter((wi) => wi.status === 'failed');
+      const changedWards = wardItems.filter((wi) => wi.wardMode === 'changed');
+      const passedChangedWards = changedWards.filter((wi) => wi.status === 'complete');
+
+      expect(failedWards.map((wi) => wi.status)).toStrictEqual(['failed', 'failed']);
+      expect(spiritmenderItems.map((wi) => wi.status)).toStrictEqual(['complete', 'complete']);
+      expect(passedChangedWards.map((wi) => wi.status)).toStrictEqual(['complete']);
+    });
+
+    // Test 21: Codeweaver fails → replan → replan downstream also fails → quest blocks
+    it('VALID: {cw fails → replan → replan also fails} => quest → blocked after pathseeker exhausts retries', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-cw-replan-fail' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 1,
+        });
+
+        // ps(SUCCESS) + cw(FAIL) => drain + skip + ps-replan
+        // ps-replan passes verification (steps exist), creates new downstream items
+        // New downstream items crash (empty queue) → quest blocks
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-crf') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentFailedResponse({ sessionId: sid('cw-fail-crf') }),
+        });
+        // Replan pathseeker succeeds (verification passes with existing steps)
+        // Then new cw agents crash (empty queue) → quest eventually blocks
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-replan-crf') }),
+        });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollForStatus({
+          questId,
+          targetStatuses: ['blocked'],
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      expect(quest.status).toBe('blocked');
+
+      const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const codeweaverItems = quest.workItems.filter((wi) => wi.role === 'codeweaver');
+      const failedCw = codeweaverItems.filter((wi) => wi.status === 'failed');
+
+      // Original pathseeker succeeded
+      expect(pathseekerItems[0]!.status).toBe('complete');
+      // At least one replan pathseeker exists (drain+skip triggers replan cycles)
+      expect(pathseekerItems.length).toBeGreaterThan(1);
+      // At least one codeweaver failed (signal-back 'failed')
+      expect(failedCw[0]!.role).toBe('codeweaver');
+    });
+
+    // Test 22: Siege fails → replan → full second pass succeeds
+    it('VALID: {siege fails → replan → full second pass succeeds} => quest → complete on second pass', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-siege-replan-ok' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 1,
+        });
+
+        // First pass: ps + cw + ward + siege(FAIL)
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-sro') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-sro') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentFailedResponse({ sessionId: sid('siege-fail-sro') }),
+        });
+        // Replan: ps-replan + second pass
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-replan-sro') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw2-sro') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('siege2-sro') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-sro') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
+          questId,
+          minItems: 8,
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      const siegeItems = quest.workItems.filter((wi) => wi.role === 'siegemaster');
+      const failedSiege = siegeItems.filter((wi) => wi.status === 'failed');
+      const skippedItems = quest.workItems.filter((wi) => wi.status === 'skipped');
+      const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(failedSiege.map((wi) => wi.status)).toStrictEqual(['failed']);
+      // Skipped items from first pass (lb + final-ward)
+      expect(skippedItems.map((wi) => wi.status)).toStrictEqual(['skipped', 'skipped']);
+      // Original pathseeker + replan pathseeker
+      expect(pathseekerItems.map((wi) => wi.role)).toStrictEqual(['pathseeker', 'pathseeker']);
+    });
   });
 
   describe('agent output streaming', () => {
