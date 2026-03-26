@@ -36,8 +36,7 @@ describe('commandRunLayerSingleBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'lint        ward                 running...\r',
-        '\x1b[Klint        ward                 PASS  0 files, 5 discovered  DISCOVERY MISMATCH\n',
-        '  only discovered: discovered.ts\n',
+        '\x1b[Klint        ward                 PASS  0 files, 0 discovered\n',
       ]);
     });
 
@@ -64,9 +63,7 @@ describe('commandRunLayerSingleBroker', () => {
 
       expect(proxy.getStderrCalls()).toStrictEqual([
         'lint        ward                 running...\r',
-        '\x1b[Klint        ward                 FAIL  1 files, 1 errors, 5 discovered  DISCOVERY MISMATCH\n',
-        '  only processed: src/index.ts\n',
-        '  only discovered: discovered.ts\n',
+        '\x1b[Klint        ward                 FAIL  1 files, 1 errors, 1 discovered\n',
       ]);
     });
 

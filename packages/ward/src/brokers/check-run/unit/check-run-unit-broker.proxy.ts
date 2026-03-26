@@ -1,4 +1,7 @@
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  childProcessSpawnCaptureAdapterProxy,
+  fsExistsSyncAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
@@ -16,6 +19,7 @@ export const checkRunUnitBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const existsProxy = fsExistsSyncAdapterProxy();
   const globProxy = fsGlobSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
@@ -23,6 +27,7 @@ export const checkRunUnitBrokerProxy = (): {
 
   return {
     setupPass: (): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: successCode,
@@ -32,16 +37,19 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: (): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: failCode,
@@ -51,20 +59,24 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     setupPassWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr });
     },
 
     setupFailWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
+      existsProxy.returns({ result: true });
       binProxy.setupFound();
       captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr });
     },
 
     setupNoTestFiles: (): void => {
+      existsProxy.returns({ result: true });
       globProxy.returnsEmpty();
     },
 
     setDiscoveredFiles: ({ files }: { files: string[] }): void => {
+      existsProxy.returns({ result: true });
       globProxy.returnsFiles({ files });
     },
 

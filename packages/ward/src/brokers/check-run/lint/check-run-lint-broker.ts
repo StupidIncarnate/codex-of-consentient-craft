@@ -16,16 +16,11 @@ import {
   projectResultContract,
   type ProjectResult,
 } from '../../../contracts/project-result/project-result-contract';
-import {
-  gitRelativePathContract,
-  type GitRelativePath,
-} from '../../../contracts/git-relative-path/git-relative-path-contract';
+import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
-import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 
 export const checkRunLintBroker = async ({
   projectFolder,
@@ -35,12 +30,8 @@ export const checkRunLintBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const { bin, args, discoverPatterns } = checkCommandsStatics.lint;
+  const { bin, args } = checkCommandsStatics.lint;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
-    patterns: discoverPatterns,
-    cwd,
-  });
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
@@ -56,7 +47,6 @@ export const checkRunLintBroker = async ({
   let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
   let resolvedStatus = status;
   let filesCount = 0;
-  const processedFiles: GitRelativePath[] = [];
 
   if (status === 'fail') {
     try {
@@ -72,24 +62,10 @@ export const checkRunLintBroker = async ({
     const parsed: unknown = JSON.parse(jsonSlice);
     if (Array.isArray(parsed)) {
       filesCount = parsed.length;
-      for (const entry of parsed) {
-        if (typeof entry === 'object' && entry !== null && 'filePath' in entry) {
-          const fp: unknown = Reflect.get(entry, 'filePath');
-          if (typeof fp === 'string' && fp.length > 0) {
-            processedFiles.push(gitRelativePathContract.parse(fp));
-          }
-        }
-      }
     }
   } catch {
     // non-JSON output, filesCount stays 0
   }
-
-  const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
-    discoveredFiles,
-    processedFiles,
-    cwd,
-  });
 
   return projectResultContract.parse({
     projectFolder,
@@ -97,9 +73,7 @@ export const checkRunLintBroker = async ({
     errors,
     testFailures: [],
     filesCount,
-    discoveredCount,
-    onlyDiscovered,
-    onlyProcessed,
+    discoveredCount: filesCount,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

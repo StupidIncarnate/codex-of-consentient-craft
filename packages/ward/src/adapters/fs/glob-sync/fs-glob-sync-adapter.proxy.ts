@@ -4,6 +4,7 @@ jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   globSync: jest.fn(),
   existsSync: jest.fn(),
+  readFileSync: jest.fn(),
 }));
 
 export const fsGlobSyncAdapterProxy = (): {

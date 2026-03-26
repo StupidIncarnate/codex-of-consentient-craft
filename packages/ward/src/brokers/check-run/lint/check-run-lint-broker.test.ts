@@ -21,12 +21,10 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 5,
           projectFolder,
           status: 'pass',
           errors: [],
           testFailures: [],
-          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({ stdout: '[]', stderr: '', exitCode: 0 }),
         }),
       );
@@ -48,12 +46,10 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 5,
           projectFolder,
           status: 'fail',
           errors: [],
           testFailures: [],
-          onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({ stdout: nonJsonOutput, stderr: '', exitCode: 1 }),
         }),
       );
@@ -82,7 +78,7 @@ describe('checkRunLintBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 5,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [
@@ -97,8 +93,6 @@ describe('checkRunLintBroker', () => {
           ],
           testFailures: [],
           filesCount: 1,
-          onlyDiscovered: ['discovered.ts'],
-          onlyProcessed: ['src/index.ts'],
           rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 1 }),
         }),
       );

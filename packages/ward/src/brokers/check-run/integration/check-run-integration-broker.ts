@@ -6,8 +6,15 @@
  * // Returns ProjectResult with parsed Jest integration test failures
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import {
+  childProcessSpawnCaptureAdapter,
+  fsExistsSyncAdapter,
+} from '@dungeonmaster/shared/adapters';
+import {
+  absoluteFilePathContract,
+  exitCodeContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
@@ -28,6 +35,7 @@ import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-te
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
+import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
@@ -41,10 +49,17 @@ export const checkRunIntegrationBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const { bin, args, discoverPatterns } = checkCommandsStatics.integration;
+  const { bin, args } = checkCommandsStatics.integration;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const hasPackageJestConfig = fsExistsSyncAdapter({
+    filePath: filePathContract.parse(`${String(cwd)}/jest.config.js`),
+  });
+  const { patterns } = jestDiscoverPatternsTransformer({
+    checkType: 'integration',
+    hasPackageJestConfig,
+  });
   const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
-    patterns: discoverPatterns,
+    patterns,
     cwd,
   });
 

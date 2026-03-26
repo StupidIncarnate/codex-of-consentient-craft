@@ -29,9 +29,11 @@ import {
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tscOutputParseTransformer } from '../../../transformers/tsc-output-parse/tsc-output-parse-transformer';
+import { tsconfigDiscoverPatternsTransformer } from '../../../transformers/tsconfig-discover-patterns/tsconfig-discover-patterns-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { fsReadJsonSyncAdapter } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -41,7 +43,9 @@ export const checkRunTypecheckBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const tsconfigPath = filePathContract.parse(`${projectFolder.path}/tsconfig.json`);
+  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const tsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.json`);
+
   if (!fsExistsSyncAdapter({ filePath: tsconfigPath })) {
     return projectResultContract.parse({
       projectFolder,
@@ -57,11 +61,20 @@ export const checkRunTypecheckBroker = async ({
     });
   }
 
-  const { bin, args, discoverPatterns } = checkCommandsStatics.typecheck;
-  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const { bin, args } = checkCommandsStatics.typecheck;
+
+  let tsconfigData: unknown = {};
+  try {
+    tsconfigData = fsReadJsonSyncAdapter({ filePath: tsconfigPath });
+  } catch {
+    // read failed, tsconfigData stays as empty object (transformer will use fallback)
+  }
+
+  const { patterns, exclude } = tsconfigDiscoverPatternsTransformer({ tsconfigData });
   const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
-    patterns: discoverPatterns,
+    patterns,
     cwd,
+    exclude,
   });
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
