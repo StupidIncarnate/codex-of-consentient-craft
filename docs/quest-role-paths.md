@@ -527,12 +527,15 @@ broken regardless of which role triggered it.
   | CW-1 `pending`, dependsOn: [PS-1]. PS-1 is `in_progress` | CW-1 is NOT ready |
   | CW-1 `pending`, dependsOn: [PS-1, CW-0]. PS-1 `complete`, CW-0 `pending` | CW-1 is NOT ready |
 
-- [ ] **T-DEP-2: Failed dep = never ready**
-  A work item whose deps include ANY `failed` item will never become ready. It contributes to `blocked`.
+- [ ] **T-DEP-2: Skipped dep = never ready**
+  A work item whose deps include ANY `skipped` item will never become ready. It contributes to `blocked`.
+  Note: `failed` is a SATISFIED status — downstream items CAN proceed when deps are failed. Only `skipped`
+  deps block downstream items permanently.
 
   | Entry | Expected |
     |-------|----------|
-  | Ward `pending`, dependsOn: [CW-1, CW-2, CW-3]. CW-2 is `failed` | Ward is never ready. Quest → `blocked` (if nothing else in_progress). |
+  | Ward `pending`, dependsOn: [CW-1, CW-2, CW-3]. CW-2 is `skipped` | Ward is never ready. Quest → `blocked` (if nothing else in_progress). |
+  | Ward `pending`, dependsOn: [CW-1, CW-2, CW-3]. CW-2 is `failed` | Ward IS ready (`failed` is a satisfied status). |
 
 - [ ] **T-DEP-3: The standard dependency chain**
   When PathSeeker succeeds and generates work items, the `dependsOn` wiring MUST produce this execution order:
@@ -952,6 +955,10 @@ quest.json:
 ```
 
 **Quest is blocked.** Ward can never run because cw-2 is failed. User must intervene.
+
+> **Implementation note:** With `failed` in `SATISFIED_STATUSES`, ward would actually proceed past
+> a failed codeweaver. This scenario only occurs if cw-2 is `skipped` (via drain+skip from another failure).
+> The more common failure path is: codeweaver fails → pending items skipped → pathseeker replans.
 
 ---
 

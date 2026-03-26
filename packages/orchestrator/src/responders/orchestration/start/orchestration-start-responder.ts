@@ -68,11 +68,26 @@ export const OrchestrationStartResponder = async ({
 
   const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
 
-  const chatItemIds = quest.workItems
+  // Mark any non-complete chaoswhisperer/glyphsmith work items as complete.
+  // The spec phase is done by the time the user clicks "Begin Quest", but the
+  // work item status is never explicitly set to complete during the chat phase.
+  const promotedChatItems = quest.workItems
     .filter(
       (wi) =>
-        (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.status === 'complete',
+        (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
+        wi.status !== 'complete' &&
+        wi.status !== 'failed',
     )
+    .map((wi) =>
+      workItemContract.parse({
+        ...wi,
+        status: 'complete',
+        completedAt: new Date().toISOString(),
+      }),
+    );
+
+  const chatItemIds = quest.workItems
+    .filter((wi) => wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith')
     .map((wi) => wi.id);
 
   const pathseekerItem = hasPathseeker
@@ -88,10 +103,15 @@ export const OrchestrationStartResponder = async ({
         createdAt: new Date().toISOString(),
       });
 
+  const workItemsToUpdate = [
+    ...promotedChatItems,
+    ...(pathseekerItem === undefined ? [] : [pathseekerItem]),
+  ];
+
   const modifyInput = modifyQuestInputContract.parse({
     questId,
     ...(alreadyInProgress ? {} : { status: 'in_progress' }),
-    ...(pathseekerItem === undefined ? {} : { workItems: [pathseekerItem] }),
+    ...(workItemsToUpdate.length > 0 ? { workItems: workItemsToUpdate } : {}),
   });
 
   const modifyResult = await questModifyBroker({ input: modifyInput });

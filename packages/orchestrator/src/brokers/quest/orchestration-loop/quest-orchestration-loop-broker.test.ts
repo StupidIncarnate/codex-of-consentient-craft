@@ -267,6 +267,43 @@ describe('questOrchestrationLoopBroker', () => {
 
       expect(dispatched).toBeUndefined();
     });
+
+    it('VALID: {glyphsmith item ready but no userMessage} => returns without spawning and item stays pending', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const glyphId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        workItems: [
+          WorkItemStub({
+            id: glyphId,
+            role: 'glyphsmith',
+            status: 'pending',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupChatRoleReady({ quest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-glyph-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(proxy.wasChatLayerCalled()).toBe(false);
+
+      const dispatched = proxy.findPersistedWorkItem({
+        workItemId: glyphId,
+        status: 'in_progress',
+      });
+
+      expect(dispatched).toBeUndefined();
+    });
   });
 
   describe('error cases', () => {

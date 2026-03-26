@@ -242,6 +242,132 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
+  describe('chat work item promotion on start', () => {
+    it('VALID: {approved quest with pending chaos} => chaos promoted to complete with completedAt', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'pending',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
+
+      expect(chaosItems[0]?.status).toBe('complete');
+      expect(typeof chaosItems[0]?.completedAt).toBe('string');
+    });
+
+    it('VALID: {approved quest with pending glyphsmith} => glyph promoted to complete with completedAt', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
+      const glyphItem = WorkItemStub({
+        id: glyphId,
+        role: 'glyphsmith',
+        status: 'pending',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [glyphItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const glyphItems = persistedQuest.workItems.filter((wi) => wi.role === 'glyphsmith');
+
+      expect(glyphItems[0]?.status).toBe('complete');
+      expect(typeof glyphItems[0]?.completedAt).toBe('string');
+    });
+
+    it('VALID: {approved quest with pending chaos and glyph} => both promoted, pathseeker depends on both', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'pending',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const glyphItem = WorkItemStub({
+        id: glyphId,
+        role: 'glyphsmith',
+        status: 'pending',
+        createdAt: '2024-01-15T11:00:00.000Z',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        workItems: [chaosItem, glyphItem],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
+      const glyphItems = persistedQuest.workItems.filter((wi) => wi.role === 'glyphsmith');
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(chaosItems[0]?.status).toBe('complete');
+      expect(glyphItems[0]?.status).toBe('complete');
+      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
+    });
+
+    it('VALID: {approved quest with already-complete chaos} => chaos stays complete, pathseeker depends on it', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
+      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+
+      expect(chaosItems[0]?.status).toBe('complete');
+      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
+    });
+
+    it('VALID: {approved quest with failed chaos} => failed chaos NOT promoted', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const chaosItem = WorkItemStub({
+        id: chaosId,
+        role: 'chaoswhisperer',
+        status: 'failed',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
+
+      expect(chaosItems[0]?.status).toBe('failed');
+    });
+  });
+
   describe('sequential modify atomicity (H-1 root cause)', () => {
     it('VALID: {approved quest with chaos complete} => final persisted quest status is in_progress', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });

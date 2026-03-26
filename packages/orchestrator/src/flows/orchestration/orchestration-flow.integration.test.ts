@@ -13,6 +13,7 @@ import {
   QuestIdStub,
   SessionIdStub,
   StepIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
@@ -163,6 +164,352 @@ describe('OrchestrationFlow', () => {
     });
   });
 
+  describe('chat work item promotion on start', () => {
+    it('VALID: {approved quest, chaos never manually completed} => start promotes chaos to complete and creates pathseeker', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-chaos-promote' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Chaos Promote Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+
+      const addResult = await QuestAddResponder({
+        title: 'Chaos Promote Quest',
+        userRequest: 'Test that chaos is promoted on start',
+        guildId: guild.id,
+      });
+
+      const questId = addResult.questId!;
+      const flows = questHelper.buildValidFlows({
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+      });
+      const steps = questHelper.buildValidSteps({
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+      });
+
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, flows }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, steps }),
+      });
+
+      // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
+      // The OrchestrationStartResponder must promote it to 'complete'.
+
+      // Verify chaos is still pending before start
+      const preStartQuest = await QuestGetResponder({ questId });
+      const preChaos = preStartQuest.quest!.workItems.find((wi) => wi.role === 'chaoswhisperer');
+
+      expect(preChaos?.status).toBe('pending');
+
+      await OrchestrationFlow.start({ questId });
+
+      // Read quest immediately after start — chaos should be complete
+      const postStartQuest = await QuestGetResponder({ questId });
+
+      testbed.cleanup();
+
+      const postChaos = postStartQuest.quest!.workItems.find((wi) => wi.role === 'chaoswhisperer');
+      const postPathseeker = postStartQuest.quest!.workItems.find((wi) => wi.role === 'pathseeker');
+
+      expect(postStartQuest.quest!.status).toBe('in_progress');
+      expect(postChaos?.status).toBe('complete');
+      expect(typeof postChaos?.completedAt).toBe('string');
+      expect(postPathseeker?.role).toBe('pathseeker');
+      expect(postPathseeker?.dependsOn).toStrictEqual([postChaos?.id]);
+    });
+
+    it('VALID: {chaos pending, 1 step, full pipeline} => chaos promoted to complete, full pipeline completes', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-chaos-full' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const guild = await GuildAddResponder({
+          name: GuildNameStub({ value: 'Chaos Full Pipeline Guild' }),
+          path: GuildPathStub({ value: testbed.guildPath }),
+        });
+
+        const addResult = await QuestAddResponder({
+          title: 'Chaos Full Pipeline Quest',
+          userRequest: 'Test that chaos promotion works through full pipeline',
+          guildId: guild.id,
+        });
+
+        const questId = addResult.questId!;
+        const flows = questHelper.buildValidFlows({
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        });
+        const steps = questHelper.buildValidSteps({
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 1,
+        });
+
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, flows }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, status: 'approved' }),
+        });
+        await QuestModifyResponder({
+          questId,
+          input: ModifyQuestInputStub({ questId, steps }),
+        });
+
+        // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
+        // OrchestrationStartResponder must promote it, then full pipeline runs.
+
+        // pathseeker
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
+        });
+        // 1 codeweaver
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-sess') }),
+        });
+        // ward (pass)
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        // siege
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('siege-sess') }),
+        });
+        // 1 lawbringer
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
+        });
+        // final ward (pass)
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollForStatus({
+          questId,
+          targetStatuses: ['complete'],
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      expect(quest.status).toBe('complete');
+
+      const chaos = quest.workItems.find((wi) => wi.role === 'chaoswhisperer');
+
+      expect(chaos?.status).toBe('complete');
+      expect(typeof chaos?.completedAt).toBe('string');
+
+      const ps = quest.workItems.find((wi) => wi.role === 'pathseeker');
+
+      expect(ps?.status).toBe('complete');
+      expect(ps?.dependsOn).toStrictEqual([chaos?.id]);
+    });
+
+    it('VALID: {design_approved, chaos and glyph both pending, 1 step} => both promoted, full pipeline completes', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-chaos-glyph-promote' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Chaos Glyph Promote Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+
+      const addResult = await QuestAddResponder({
+        title: 'Chaos Glyph Promote Quest',
+        userRequest: 'Test that chaos and glyph are both promoted on start from design_approved',
+        guildId: guild.id,
+      });
+
+      const questId = addResult.questId!;
+      const flows = questHelper.buildValidFlows({
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+      });
+      const steps = questHelper.buildValidSteps({
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+      });
+
+      // Walk through approval: explore_flows → add flows → review_flows → flows_approved → explore_observables → review_observables → approved
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, flows }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      // Walk through design phase: explore_design → review_design → design_approved
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_design' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'review_design' }),
+      });
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'design_approved' }),
+      });
+
+      // Add steps
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, steps }),
+      });
+
+      // Add a glyphsmith work item (pending) alongside the existing chaos work item
+      const currentQuest = await QuestGetResponder({ questId });
+      const glyphItem = WorkItemStub({
+        id: crypto.randomUUID(),
+        role: 'glyphsmith',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        createdAt: new Date().toISOString(),
+        attempt: 0,
+        maxAttempts: 1,
+      });
+
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...currentQuest.quest!.workItems, glyphItem],
+        }),
+      });
+
+      // Queue responses for full pipeline (1-step happy path)
+      // pathseeker
+      queue.enqueue({
+        queueDir: env.claudeQueueDir,
+        response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
+      });
+      // 1 codeweaver
+      queue.enqueue({
+        queueDir: env.claudeQueueDir,
+        response: agentSuccessResponse({ sessionId: sid('cw-sess') }),
+      });
+      // ward (pass)
+      queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+      // siege
+      queue.enqueue({
+        queueDir: env.claudeQueueDir,
+        response: agentSuccessResponse({ sessionId: sid('siege-sess') }),
+      });
+      // 1 lawbringer
+      queue.enqueue({
+        queueDir: env.claudeQueueDir,
+        response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
+      });
+      // final ward (pass)
+      queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+      await OrchestrationFlow.start({ questId });
+
+      const { quest: result } = await questHelper.pollForStatus({
+        questId,
+        targetStatuses: ['complete'],
+      });
+
+      testbed.cleanup();
+
+      expect(result.status).toBe('complete');
+
+      const chaos = result.workItems.find((wi) => wi.role === 'chaoswhisperer');
+      const glyph = result.workItems.find((wi) => wi.role === 'glyphsmith');
+      const ps = result.workItems.find((wi) => wi.role === 'pathseeker');
+
+      expect(chaos?.status).toBe('complete');
+      expect(typeof chaos?.completedAt).toBe('string');
+      expect(glyph?.status).toBe('complete');
+      expect(typeof glyph?.completedAt).toBe('string');
+      expect(ps?.status).toBe('complete');
+      expect(ps?.dependsOn).toStrictEqual([chaos?.id, glyph?.id]);
+    });
+  });
+
   describe('role-to-role handoffs', () => {
     // Test 1: Full happy path
     // pathseeker → codeweavers → ward → siege → lawbringers → final-ward → complete
@@ -242,6 +589,14 @@ describe('OrchestrationFlow', () => {
       expect(lawbringerItems[0]?.status).toBe('complete');
       expect(lawbringerItems[1]?.status).toBe('complete');
     });
+
+    // E2E-5: PathSeeker fails attempt 0, retry succeeds, full pipeline completes
+    // NOT testable in integration: pathseeker failure is driven by questVerifyBroker (quest
+    // structure checks), not by agent exit code or signal. The fake CLI can't modify
+    // quest.json (add steps) between retry attempts. Covered by:
+    //   - Unit: loop broker test #34 (PS retry dispatch mechanics)
+    //   - Integration: "pathseeker fails 3 times" (retry creation chain)
+    //   - Integration: happy path (verification pass → full pipeline)
 
     // Test 2a: Codeweaver failure (2 items, all in slots)
     // With 'failed' in SATISFIED_STATUSES and onFollowupCreated persisting recovery items,
@@ -1093,6 +1448,97 @@ describe('OrchestrationFlow', () => {
       // All items have timestamps
       expect(typeof psItem.startedAt).toBe('string');
       expect(typeof psItem.completedAt).toBe('string');
+    });
+
+    it('VALID: {happy path, 2 steps} => spawned items have correct shapes: relatedDataItems, spawnerType, maxAttempts, wardMode, timeoutMs', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-item-shape' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 2,
+        });
+
+        // pathseeker
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
+        });
+        // 2 codeweavers
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-0') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-1') }),
+        });
+        // ward
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        // siege
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('siege-sess') }),
+        });
+        // 2 lawbringers
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-0') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-1') }),
+        });
+        // final ward
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollForStatus({
+          questId,
+          targetStatuses: ['complete'],
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      const { workItems } = quest;
+      const cwItems = workItems.filter((wi) => wi.role === 'codeweaver');
+      const wardItems = workItems.filter((wi) => wi.role === 'ward');
+      const siegeItems = workItems.filter((wi) => wi.role === 'siegemaster');
+      const lbItems = workItems.filter((wi) => wi.role === 'lawbringer');
+
+      // Codeweavers have relatedDataItems pointing to their step
+      for (const cw of cwItems) {
+        expect(cw.relatedDataItems[0]).toMatch(/^steps\//u);
+        expect(cw.spawnerType).toBe('agent');
+      }
+
+      // First ward (changed mode)
+      const changedWard = wardItems.find((wi) => wi.wardMode === 'changed');
+
+      expect(changedWard?.spawnerType).toBe('command');
+      expect(changedWard?.maxAttempts).toBe(3);
+
+      // Siege has timeoutMs
+      expect(siegeItems[0]?.spawnerType).toBe('agent');
+      expect(siegeItems[0]?.timeoutMs).toBe(300000);
+
+      // Lawbringers have relatedDataItems pointing to their step
+      for (const lb of lbItems) {
+        expect(lb.relatedDataItems[0]).toMatch(/^steps\//u);
+        expect(lb.spawnerType).toBe('agent');
+      }
+
+      // Final ward (full mode)
+      const fullWard = wardItems.find((wi) => wi.wardMode === 'full');
+
+      expect(fullWard?.spawnerType).toBe('command');
+      expect(fullWard?.maxAttempts).toBe(3);
     });
 
     // Test 10: ChaosWhisperer → approved → Start → pathseeker

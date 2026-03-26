@@ -107,6 +107,102 @@ test.describe('Quest Begin Transition', () => {
     });
   });
 
+  test('Begin Quest from review_observables shows execution panel with chaoswhisperer DONE and pathseeker RUNNING', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Execution Roles Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const sessionId = `e2e-exec-roles-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+
+    const created = await questHarness({ request }).createQuest({
+      guildId,
+      title: 'E2E Execution Roles Quest',
+      userRequest: 'Build the feature',
+    });
+    const { questId } = created;
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
+
+    // Chaoswhisperer starts as 'pending' — matches real quest data where
+    // the spec phase never explicitly marks the work item complete.
+    // The OrchestrationStartResponder must promote it to 'complete' on quest start.
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
+      status: 'review_observables',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000001',
+          role: 'chaoswhisperer',
+          sessionId,
+          status: 'pending',
+        },
+      ],
+    });
+
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToSession({ urlSlug, sessionId });
+
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
+
+    // Approve: PATCH quest status to approved — triggers modal via WS
+    await quests.patchQuestStatus({ questId, status: 'approved' });
+
+    await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
+      timeout: MODAL_TIMEOUT,
+    });
+
+    // Click Begin Quest — POST to quest start endpoint
+    const startPromise = page.waitForRequest(
+      (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
+      { timeout: REQUEST_TIMEOUT },
+    );
+
+    await page.getByRole('button', { name: 'Begin Quest' }).click();
+
+    await startPromise;
+
+    // Modal should close
+    await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
+      timeout: MODAL_TIMEOUT,
+    });
+
+    // Execution panel should appear
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+
+    // ChaosWhisperer row should show DONE status
+    const chaoswhispererRow = page
+      .getByTestId('execution-row-layer-widget')
+      .filter({ hasText: '[CHAOSWHISPERER]' });
+
+    await expect(chaoswhispererRow.getByTestId('execution-row-status-badge')).toHaveText('DONE', {
+      timeout: PATHSEEKER_TIMEOUT,
+    });
+
+    // PathSeeker row should show RUNNING status (planning mode shows hardcoded in_progress)
+    const pathseekerRow = page
+      .getByTestId('execution-row-layer-widget')
+      .filter({ hasText: '[PATHSEEKER]' });
+
+    await expect(pathseekerRow.getByTestId('execution-row-status-badge')).toHaveText('RUNNING', {
+      timeout: PATHSEEKER_TIMEOUT,
+    });
+
+    // "Planning steps..." text should be visible (quest is in planning phase)
+    await expect(page.getByText('Planning steps...')).toBeVisible();
+  });
+
   test('clicking Begin Quest on design_approved sends POST to quest start endpoint', async ({
     page,
     request,
