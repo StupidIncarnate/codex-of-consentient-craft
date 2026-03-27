@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Validates that every step's inputContracts and outputContracts reference existing contract names
+ * PURPOSE: Validates that every step's inputContracts and outputContracts reference existing contract names, skipping Void sentinel
  *
  * USAGE:
  * questStepHasValidContractRefsGuard({steps, contracts});
- * // Returns true if all contract references in steps exist in the contracts array, false otherwise
+ * // Returns true if all non-Void contract references in steps exist in the contracts array, false otherwise
  */
 import type { DependencyStepStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
@@ -29,12 +29,18 @@ export const questStepHasValidContractRefsGuard = ({
 
   for (const step of steps) {
     for (const inputName of step.inputContracts) {
+      if (String(inputName) === 'Void') {
+        continue;
+      }
       if (!contractNames.has(inputName)) {
         return false;
       }
     }
 
     for (const outputName of step.outputContracts) {
+      if (String(outputName) === 'Void') {
+        continue;
+      }
       if (!contractNames.has(outputName)) {
         return false;
       }

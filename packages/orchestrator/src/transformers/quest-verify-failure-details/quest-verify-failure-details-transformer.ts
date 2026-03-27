@@ -5,29 +5,20 @@
  * questVerifyFailureDetailsTransformer({quest, checkName: parsedCheckName});
  * // Returns branded CheckDetails string with specific step names, file paths, and IDs that caused the failure
  */
-import type { QuestStub, FolderType } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import type { VerifyQuestCheck } from '../../contracts/verify-quest-check/verify-quest-check-contract';
 import { verifyQuestCheckContract } from '../../contracts/verify-quest-check/verify-quest-check-contract';
 import { isEntryFileGuard } from '../../guards/is-entry-file/is-entry-file-guard';
+import { focusFileToTestPathTransformer } from '../focus-file-to-test-path/focus-file-to-test-path-transformer';
+import { pathToFolderTypeTransformer } from '../path-to-folder-type/path-to-folder-type-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 const checkDetailsSchema = verifyQuestCheckContract.shape.details;
 
 const rawPrimitiveBlocklist = new Set(['string', 'number', 'any', 'object', 'unknown']);
-
-const companionRules = [
-  { suffix: '-broker.ts', requireProxy: true },
-  { suffix: '-adapter.ts', requireProxy: true },
-  { suffix: '-guard.ts', requireProxy: false },
-  { suffix: '-transformer.ts', requireProxy: false },
-  { suffix: '-middleware.ts', requireProxy: true },
-  { suffix: '-binding.ts', requireProxy: true },
-  { suffix: '-state.ts', requireProxy: true },
-  { suffix: '-responder.ts', requireProxy: true },
-];
 
 export const questVerifyFailureDetailsTransformer = ({
   quest,
@@ -72,64 +63,75 @@ export const questVerifyFailureDetailsTransformer = ({
   }
 
   if (checkName === 'File Companion Completeness') {
-    const allFileStrings = quest.steps.flatMap((step) => [
-      ...step.filesToCreate.map(String),
-      ...step.filesToModify.map(String),
-    ]);
-    const allFiles = new Set(allFileStrings);
-    const missing = quest.steps.flatMap((step) =>
-      step.filesToCreate.flatMap((filePath) => {
-        const path = String(filePath);
-        const results: { file: VerifyQuestCheck['details']; needs: VerifyQuestCheck['details'] }[] =
-          [];
+    const missing: {
+      step: VerifyQuestCheck['details'];
+      file: VerifyQuestCheck['details'];
+      needs: VerifyQuestCheck['details'];
+    }[] = [];
 
-        for (const rule of companionRules) {
-          if (!path.endsWith(rule.suffix)) {
-            continue;
-          }
-          const basePath = path.slice(0, -rule.suffix.length);
-          const testFile = `${basePath}${rule.suffix.replace('.ts', '.test.ts')}`;
-          if (!allFiles.has(testFile)) {
-            results.push({
-              file: checkDetailsSchema.parse(path),
-              needs: checkDetailsSchema.parse(testFile),
-            });
-          }
-          if (rule.requireProxy) {
-            const proxyFile = `${basePath}${rule.suffix.replace('.ts', '.proxy.ts')}`;
-            if (!allFiles.has(proxyFile)) {
-              results.push({
-                file: checkDetailsSchema.parse(path),
-                needs: checkDetailsSchema.parse(proxyFile),
-              });
-            }
-          }
+    for (const step of quest.steps) {
+      if (step.focusFile.action !== 'create') {
+        continue;
+      }
+
+      const focusPath = step.focusFile.path;
+      const folderType = pathToFolderTypeTransformer({
+        filePath: step.focusFile.path,
+        folderConfigs: folderConfigStatics,
+      });
+
+      if (!folderType) {
+        continue;
+      }
+
+      const config = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
+      const accompanyingPaths = new Set(step.accompanyingFiles.map((f) => String(f.path)));
+
+      const expectedTestPath = focusFileToTestPathTransformer({
+        focusPath: step.focusFile.path,
+        testType: config.testType,
+      });
+      if (expectedTestPath && !accompanyingPaths.has(String(expectedTestPath))) {
+        missing.push({
+          step: checkDetailsSchema.parse(String(step.name)),
+          file: checkDetailsSchema.parse(focusPath),
+          needs: checkDetailsSchema.parse(String(expectedTestPath)),
+        });
+      }
+
+      if (config.requireProxy) {
+        const base = focusPath.replace(/\.tsx?$/u, '');
+        const ext = focusPath.endsWith('.tsx') ? '.tsx' : '.ts';
+        const proxyFile = `${base}.proxy${ext}`;
+        if (!accompanyingPaths.has(proxyFile)) {
+          missing.push({
+            step: checkDetailsSchema.parse(String(step.name)),
+            file: checkDetailsSchema.parse(focusPath),
+            needs: checkDetailsSchema.parse(proxyFile),
+          });
         }
+      }
 
-        if (path.endsWith('-contract.ts')) {
-          const contractDir = path.slice(0, path.lastIndexOf('/'));
-          const contractBase = path.slice(path.lastIndexOf('/') + 1).replace('-contract.ts', '');
-          const testFile = `${contractDir}/${contractBase}-contract.test.ts`;
-          const stubFile = `${contractDir}/${contractBase}.stub.ts`;
-          if (!allFiles.has(testFile)) {
-            results.push({
-              file: checkDetailsSchema.parse(path),
-              needs: checkDetailsSchema.parse(testFile),
-            });
-          }
-          if (!allFiles.has(stubFile)) {
-            results.push({
-              file: checkDetailsSchema.parse(path),
-              needs: checkDetailsSchema.parse(stubFile),
-            });
-          }
+      if (config.requireStub) {
+        const dir = focusPath.slice(0, focusPath.lastIndexOf('/'));
+        const fileName = focusPath.slice(focusPath.lastIndexOf('/') + 1);
+        const contractBase = fileName.replace(/-contract\.ts$/u, '');
+        const stubFile = `${dir}/${contractBase}.stub.ts`;
+        if (!accompanyingPaths.has(stubFile)) {
+          missing.push({
+            step: checkDetailsSchema.parse(String(step.name)),
+            file: checkDetailsSchema.parse(focusPath),
+            needs: checkDetailsSchema.parse(stubFile),
+          });
         }
+      }
+    }
 
-        return results;
-      }),
-    );
-
-    const details = missing.map((m) => `"${String(m.file)}" needs "${String(m.needs)}"`).join('; ');
+    const details = missing
+      .map(
+        (m) => `step "${String(m.step)}" focusFile "${String(m.file)}" needs "${String(m.needs)}"`,
+      )
+      .join('; ');
     return checkDetailsSchema.parse(`Missing companion files: ${details}`);
   }
 
@@ -148,39 +150,26 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Step Contract Declarations') {
     const issues = quest.steps
       .filter((step) => {
-        const allFiles = [...step.filesToCreate.map(String), ...step.filesToModify.map(String)];
-        if (allFiles.length === 0) {
+        const folderType = pathToFolderTypeTransformer({
+          filePath: step.focusFile.path,
+          folderConfigs: folderConfigStatics,
+        });
+        if (!folderType) {
           return false;
         }
-        const folderTypes = allFiles.reduce<FolderType[]>((acc, fp) => {
-          const [, candidate] = /src\/([^/]+)\//u.exec(fp) ?? [];
-          if (candidate && candidate in folderConfigStatics) {
-            acc.push(candidate as FolderType);
-          }
-          return acc;
-        }, []);
-        const needsContracts = folderTypes.some(
-          (ft) =>
-            folderConfigStatics[ft as keyof typeof folderConfigStatics].requireContractDeclarations,
-        );
-        return needsContracts && step.outputContracts.length === 0;
+        const needsContracts =
+          folderConfigStatics[folderType as keyof typeof folderConfigStatics]
+            .requireContractDeclarations;
+        const isVoidOnly =
+          step.outputContracts.length === 1 && String(step.outputContracts[0]) === 'Void';
+        return needsContracts && isVoidOnly;
       })
       .map((step) => {
-        const allFiles = [...step.filesToCreate.map(String), ...step.filesToModify.map(String)];
-        const folders = allFiles.reduce<FolderType[]>((acc, fp) => {
-          const [, candidate] = /src\/([^/]+)\//u.exec(fp) ?? [];
-          if (
-            candidate &&
-            candidate in folderConfigStatics &&
-            folderConfigStatics[candidate as keyof typeof folderConfigStatics]
-              .requireContractDeclarations
-          ) {
-            acc.push(candidate as FolderType);
-          }
-          return acc;
-        }, []);
-        const uniqueFolders = [...new Set(folders)];
-        return `step "${String(step.name)}" touches folders [${uniqueFolders.join(', ')}] which require contract declarations but has empty outputContracts`;
+        const folderType = pathToFolderTypeTransformer({
+          filePath: step.focusFile.path,
+          folderConfigs: folderConfigStatics,
+        });
+        return `step "${String(step.name)}" in folder [${String(folderType)}] has outputContracts ["Void"] but folder requires real contract declarations`;
       });
     return checkDetailsSchema.parse(issues.join('; '));
   }
@@ -189,13 +178,13 @@ export const questVerifyFailureDetailsTransformer = ({
     const contractNames = new Set(quest.contracts.map((c) => String(c.name)));
     const issues = quest.steps.flatMap((step) => [
       ...step.inputContracts
-        .filter((n) => !contractNames.has(String(n)))
+        .filter((n) => String(n) !== 'Void' && !contractNames.has(String(n)))
         .map(
           (n) =>
             `step "${String(step.name)}" inputContracts references non-existent: "${String(n)}"`,
         ),
       ...step.outputContracts
-        .filter((n) => !contractNames.has(String(n)))
+        .filter((n) => String(n) !== 'Void' && !contractNames.has(String(n)))
         .map(
           (n) =>
             `step "${String(step.name)}" outputContracts references non-existent: "${String(n)}"`,
@@ -207,22 +196,19 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Step Export Names') {
     const issues = quest.steps
       .filter((step) => {
-        if (step.filesToCreate.length === 0) {
+        if (step.focusFile.action !== 'create') {
           return false;
         }
-        const hasEntryFile = step.filesToCreate.some((fp) =>
-          isEntryFileGuard({ filePath: String(fp), folderConfigs: folderConfigStatics }),
-        );
-        return hasEntryFile && (!step.exportName || String(step.exportName).trim() === '');
+        const hasEntryFile = isEntryFileGuard({
+          filePath: step.focusFile.path,
+          folderConfigs: folderConfigStatics,
+        });
+        return hasEntryFile && (!step.exportName || step.exportName.trim() === '');
       })
-      .map((step) => {
-        const entryFiles = step.filesToCreate
-          .filter((fp) =>
-            isEntryFileGuard({ filePath: String(fp), folderConfigs: folderConfigStatics }),
-          )
-          .map(String);
-        return `step "${String(step.name)}" creates entry files [${entryFiles.join(', ')}] but has no exportName`;
-      });
+      .map(
+        (step) =>
+          `step "${String(step.name)}" creates entry file "${String(step.focusFile.path)}" but has no exportName`,
+      );
     return checkDetailsSchema.parse(issues.join('; '));
   }
 
@@ -276,6 +262,68 @@ export const questVerifyFailureDetailsTransformer = ({
       return [];
     });
     return checkDetailsSchema.parse(issues.join('; '));
+  }
+
+  if (checkName === 'No Duplicate Focus Files') {
+    const pathMap = new Map<VerifyQuestCheck['details'], VerifyQuestCheck['details'][]>();
+    for (const step of quest.steps) {
+      const path = checkDetailsSchema.parse(String(step.focusFile.path));
+      const existing = pathMap.get(path) ?? [];
+      existing.push(checkDetailsSchema.parse(String(step.name)));
+      pathMap.set(path, existing);
+    }
+    const issues = [...pathMap.entries()]
+      .filter(([, names]) => names.length > 1)
+      .map(
+        ([path, names]) =>
+          `steps ${names.map((n) => `"${String(n)}"`).join(' and ')} share focusFile "${String(path)}"`,
+      );
+    return checkDetailsSchema.parse(issues.join('; '));
+  }
+
+  if (checkName === 'Valid Assertions') {
+    const issues = quest.steps
+      .filter((step) => {
+        const hasNonVoidOutput =
+          step.outputContracts.length > 0 &&
+          !(step.outputContracts.length === 1 && String(step.outputContracts[0]) === 'Void');
+        if (!hasNonVoidOutput) {
+          return false;
+        }
+        return !step.assertions.some((a) => a.prefix === 'VALID');
+      })
+      .map(
+        (step) => `step "${String(step.name)}" has non-Void outputContracts but no VALID assertion`,
+      );
+    return checkDetailsSchema.parse(issues.join('; '));
+  }
+
+  if (checkName === 'Valid Focus Files') {
+    const issues: VerifyQuestCheck['details'][] = [];
+    for (const step of quest.steps) {
+      const folderType = pathToFolderTypeTransformer({
+        filePath: step.focusFile.path,
+        folderConfigs: folderConfigStatics,
+      });
+      if (!folderType) {
+        issues.push(
+          checkDetailsSchema.parse(
+            `step "${String(step.name)}" focusFile "${String(step.focusFile.path)}" does not match any known folder type`,
+          ),
+        );
+        continue;
+      }
+      for (const accompanying of step.accompanyingFiles) {
+        if (accompanying.action !== 'create') {
+          issues.push(
+            checkDetailsSchema.parse(
+              `step "${step.name}" accompanyingFile "${accompanying.path}" has action "${accompanying.action}" but must be "create"`,
+            ),
+          );
+        }
+      }
+    }
+    return checkDetailsSchema.parse(issues.map(String).join('; '));
   }
 
   return checkDetailsSchema.parse(`Check "${String(checkName)}" failed`);

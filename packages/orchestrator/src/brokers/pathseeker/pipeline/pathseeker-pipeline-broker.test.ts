@@ -24,15 +24,21 @@ describe('pathseekerPipelineBroker', () => {
           {
             id: 'create-login-broker',
             name: 'Create login broker',
-            description: 'Create login broker',
+            assertions: [
+              { prefix: 'VALID', input: '{valid credentials}', expected: 'returns auth token' },
+            ],
             observablesSatisfied: ['redirects-to-dashboard'],
             dependsOn: [],
-            filesToCreate: [
-              'packages/api/src/guards/has-auth/has-auth-guard.ts',
-              'packages/api/src/guards/has-auth/has-auth-guard.test.ts',
+            focusFile: {
+              path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
+              action: 'create',
+            },
+            accompanyingFiles: [
+              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts', action: 'create' },
             ],
-            filesToModify: [],
             exportName: 'hasAuthGuard',
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
         flows: [

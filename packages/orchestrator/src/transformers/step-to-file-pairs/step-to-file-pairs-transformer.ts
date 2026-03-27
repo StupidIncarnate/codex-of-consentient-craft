@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Groups implementation files with their test files from completed steps' filesToCreate
+ * PURPOSE: Groups implementation files with their test files from completed steps' focusFile and accompanyingFiles
  *
  * USAGE:
  * const pairs = stepToFilePairsTransformer({ steps });
  * // Returns [['impl.ts', 'impl.test.ts'], ['statics.ts']] pairs for review
  */
 
-import type { DependencyStep } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep, StepFileReference } from '@dungeonmaster/shared/contracts';
 
-type StepFilePath = DependencyStep['filesToCreate'] extends (infer T)[] ? T : never;
+type StepFilePath = StepFileReference['path'];
 
 const TEST_SUFFIX = '.test.ts';
 const PROXY_SUFFIX = '.proxy.ts';
@@ -22,8 +22,9 @@ export const stepToFilePairsTransformer = ({
 }): StepFilePath[][] => {
   const allFiles = new Set<StepFilePath>();
   for (const step of steps) {
-    for (const file of step.filesToCreate) {
-      allFiles.add(file);
+    allFiles.add(step.focusFile.path);
+    for (const file of step.accompanyingFiles) {
+      allFiles.add(file.path);
     }
   }
 
@@ -34,10 +35,10 @@ export const stepToFilePairsTransformer = ({
       continue;
     }
 
-    const testFile = file.replace(TS_EXTENSION_PATTERN, TEST_SUFFIX);
+    const testFile = file.replace(TS_EXTENSION_PATTERN, TEST_SUFFIX) as StepFilePath;
 
-    if (allFiles.has(testFile as StepFilePath)) {
-      result.push([file, testFile as StepFilePath]);
+    if (allFiles.has(testFile)) {
+      result.push([file, testFile]);
     } else {
       result.push([file]);
     }

@@ -22,6 +22,9 @@ import { questHasNoOrphanFlowNodesGuard } from '../../guards/quest-has-no-orphan
 import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
+import { questStepHasNoDuplicateFocusFilesGuard } from '../../guards/quest-step-has-no-duplicate-focus-files/quest-step-has-no-duplicate-focus-files-guard';
+import { questStepHasValidAssertionsGuard } from '../../guards/quest-step-has-valid-assertions/quest-step-has-valid-assertions-guard';
+import { questStepHasValidFocusFileGuard } from '../../guards/quest-step-has-valid-focus-file/quest-step-has-valid-focus-file-guard';
 import { questVerifyFailureDetailsTransformer } from '../quest-verify-failure-details/quest-verify-failure-details-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -196,6 +199,48 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: nodeCoverage
         ? 'All terminal nodes have at least one observable'
         : questVerifyFailureDetailsTransformer({ quest, checkName: nodeCoverageName }),
+    }),
+  );
+
+  const noDuplicateFocusFilesName = checkNameSchema.parse('No Duplicate Focus Files');
+  const noDuplicateFocusFiles = questStepHasNoDuplicateFocusFilesGuard({
+    steps: quest.steps,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: noDuplicateFocusFilesName,
+      passed: noDuplicateFocusFiles,
+      details: noDuplicateFocusFiles
+        ? 'All steps have unique focusFile paths'
+        : questVerifyFailureDetailsTransformer({ quest, checkName: noDuplicateFocusFilesName }),
+    }),
+  );
+
+  const validAssertionsName = checkNameSchema.parse('Valid Assertions');
+  const validAssertions = questStepHasValidAssertionsGuard({
+    steps: quest.steps,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: validAssertionsName,
+      passed: validAssertions,
+      details: validAssertions
+        ? 'All steps with non-Void outputContracts have at least one VALID assertion'
+        : questVerifyFailureDetailsTransformer({ quest, checkName: validAssertionsName }),
+    }),
+  );
+
+  const validFocusFileName = checkNameSchema.parse('Valid Focus Files');
+  const validFocusFile = questStepHasValidFocusFileGuard({
+    steps: quest.steps,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: validFocusFileName,
+      passed: validFocusFile,
+      details: validFocusFile
+        ? 'All steps have focusFile paths matching known folder types'
+        : questVerifyFailureDetailsTransformer({ quest, checkName: validFocusFileName }),
     }),
   );
 

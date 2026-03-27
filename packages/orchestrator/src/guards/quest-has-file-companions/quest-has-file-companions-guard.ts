@@ -1,71 +1,67 @@
 /**
- * PURPOSE: Validates that steps creating implementation files also list required companion files (test, proxy, stub)
+ * PURPOSE: Validates that steps creating implementation files also list required companion files derived from folderConfigStatics
  *
  * USAGE:
  * questHasFileCompanionsGuard({steps});
- * // Returns true if every implementation file has its companion test/proxy/stub listed, false otherwise
+ * // Returns true if every focusFile has its required companion files in accompanyingFiles, false otherwise
  */
 import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+
+import { focusFileToTestPathTransformer } from '../../transformers/focus-file-to-test-path/focus-file-to-test-path-transformer';
+import { pathToFolderTypeTransformer } from '../../transformers/path-to-folder-type/path-to-folder-type-transformer';
 
 type DependencyStep = ReturnType<typeof DependencyStepStub>;
-
-const companionRules = [
-  { suffix: '-broker.ts', requireProxy: true },
-  { suffix: '-adapter.ts', requireProxy: true },
-  { suffix: '-guard.ts', requireProxy: false },
-  { suffix: '-transformer.ts', requireProxy: false },
-  { suffix: '-middleware.ts', requireProxy: true },
-  { suffix: '-binding.ts', requireProxy: true },
-  { suffix: '-state.ts', requireProxy: true },
-  { suffix: '-responder.ts', requireProxy: true },
-];
 
 export const questHasFileCompanionsGuard = ({ steps }: { steps?: DependencyStep[] }): boolean => {
   if (!steps) {
     return false;
   }
 
-  const allFileStrings = steps.flatMap((step) => [
-    ...step.filesToCreate.map(String),
-    ...step.filesToModify.map(String),
-  ]);
-  const allFiles = new Set(allFileStrings);
-
   for (const step of steps) {
-    for (const filePath of step.filesToCreate) {
-      const path = String(filePath);
-      for (const rule of companionRules) {
-        if (!path.endsWith(rule.suffix)) {
-          continue;
-        }
+    const focusPath = step.focusFile.path;
 
-        const basePath = path.slice(0, -rule.suffix.length);
-        const testFile = `${basePath}${rule.suffix.replace('.ts', '.test.ts')}`;
+    if (step.focusFile.action !== 'create') {
+      continue;
+    }
 
-        if (!allFiles.has(testFile)) {
-          return false;
-        }
+    const folderType = pathToFolderTypeTransformer({
+      filePath: focusPath,
+      folderConfigs: folderConfigStatics,
+    });
+    if (!folderType) {
+      continue;
+    }
 
-        if (rule.requireProxy) {
-          const proxyFile = `${basePath}${rule.suffix.replace('.ts', '.proxy.ts')}`;
-          if (!allFiles.has(proxyFile)) {
-            return false;
-          }
-        }
+    const config = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
+    const accompanyingPaths = new Set(step.accompanyingFiles.map((f) => String(f.path)));
+
+    const expectedTestPath = focusFileToTestPathTransformer({
+      focusPath,
+      testType: config.testType,
+    });
+    if (expectedTestPath && !accompanyingPaths.has(String(expectedTestPath))) {
+      return false;
+    }
+
+    if (config.requireProxy) {
+      const pathStr = String(focusPath);
+      const base = pathStr.replace(/\.tsx?$/u, '');
+      const ext = pathStr.endsWith('.tsx') ? '.tsx' : '.ts';
+      const proxyFile = `${base}.proxy${ext}`;
+      if (!accompanyingPaths.has(proxyFile)) {
+        return false;
       }
+    }
 
-      if (path.endsWith('-contract.ts')) {
-        const contractDir = path.slice(0, path.lastIndexOf('/'));
-        const contractBase = path.slice(path.lastIndexOf('/') + 1).replace('-contract.ts', '');
-        const testFile = `${contractDir}/${contractBase}-contract.test.ts`;
-        const stubFile = `${contractDir}/${contractBase}.stub.ts`;
-
-        if (!allFiles.has(testFile)) {
-          return false;
-        }
-        if (!allFiles.has(stubFile)) {
-          return false;
-        }
+    if (config.requireStub) {
+      const pathStr = String(focusPath);
+      const dir = pathStr.slice(0, pathStr.lastIndexOf('/'));
+      const fileName = pathStr.slice(pathStr.lastIndexOf('/') + 1);
+      const contractBase = fileName.replace(/-contract\.ts$/u, '');
+      const stubFile = `${dir}/${contractBase}.stub.ts`;
+      if (!accompanyingPaths.has(stubFile)) {
+        return false;
       }
     }
   }

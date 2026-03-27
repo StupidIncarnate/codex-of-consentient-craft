@@ -2,6 +2,7 @@ import {
   ContractNameStub,
   DependencyStepStub,
   QuestContractEntryStub,
+  StepFileReferenceStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questStepHasContractRefsGuard } from './quest-step-has-contract-refs-guard';
@@ -11,8 +12,10 @@ describe('questStepHasContractRefsGuard', () => {
     it('VALID: {empty contracts array} => returns true', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts'],
-          filesToModify: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            action: 'create',
+          }),
         }),
       ];
 
@@ -31,13 +34,15 @@ describe('questStepHasContractRefsGuard', () => {
   });
 
   describe('valid contract refs', () => {
-    it('VALID: {step creating broker file with outputContracts set} => returns true', () => {
+    it('VALID: {step creating broker file with real outputContracts} => returns true', () => {
       const contractName = ContractNameStub({ value: 'UserProfile' });
       const contracts = [QuestContractEntryStub({ name: contractName })];
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
-          filesToModify: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
+            action: 'create',
+          }),
           outputContracts: [contractName],
         }),
       ];
@@ -47,13 +52,15 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step creating contract file with no outputContracts} => returns true', () => {
+    it('VALID: {step creating contract file with Void outputContracts} => returns true', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/shared/src/contracts/user-profile/user-profile-contract.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
@@ -62,13 +69,15 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step creating statics file with no outputContracts} => returns true', () => {
+    it('VALID: {step creating statics file with Void outputContracts} => returns true', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/shared/src/statics/config/config-statics.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/shared/src/statics/config/config-statics.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
@@ -77,13 +86,17 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with no filesToCreate and no filesToModify} => returns true', () => {
-      const contracts = [QuestContractEntryStub()];
+    it('VALID: {inputContracts is Void} => valid, returns true', () => {
+      const contractName = ContractNameStub({ value: 'UserProfile' });
+      const contracts = [QuestContractEntryStub({ name: contractName })];
       const steps = [
         DependencyStepStub({
-          filesToCreate: [],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
+            action: 'create',
+          }),
+          inputContracts: [ContractNameStub({ value: 'Void' })],
+          outputContracts: [contractName],
         }),
       ];
 
@@ -94,13 +107,15 @@ describe('questStepHasContractRefsGuard', () => {
   });
 
   describe('missing contract refs', () => {
-    it('INVALID_CONTRACTS: {step creating broker file but outputContracts empty} => returns false', () => {
+    it('INVALID_CONTRACTS: {step creating broker file but outputContracts is Void} => returns false', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
@@ -109,13 +124,15 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_CONTRACTS: {step creating guard file but outputContracts empty} => returns false', () => {
+    it('INVALID_CONTRACTS: {step creating guard file but outputContracts is Void} => returns false', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['packages/orchestrator/src/guards/is-valid/is-valid-guard.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
@@ -126,35 +143,24 @@ describe('questStepHasContractRefsGuard', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {step modifying broker file with empty outputContracts} => returns false', () => {
-      const contracts = [QuestContractEntryStub()];
-      const steps = [
-        DependencyStepStub({
-          filesToCreate: [],
-          filesToModify: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
-          outputContracts: [],
-        }),
-      ];
-
-      const result = questStepHasContractRefsGuard({ steps, contracts });
-
-      expect(result).toBe(false);
-    });
-
     it('EDGE: {mix of contract-exempt and non-exempt steps, all valid} => returns true', () => {
       const contractName = ContractNameStub({ value: 'UserProfile' });
       const contracts = [QuestContractEntryStub({ name: contractName })];
       const steps = [
         DependencyStepStub({
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-          filesToCreate: ['packages/shared/src/contracts/user-profile/user-profile-contract.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
         DependencyStepStub({
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
-          filesToCreate: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
-          filesToModify: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
+            action: 'create',
+          }),
           outputContracts: [contractName],
         }),
       ];
@@ -164,26 +170,21 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('EDGE: {mix of steps, non-exempt step missing outputContracts} => returns false', () => {
+    it('EDGE: {focusFile path has no recognizable folder type} => returns true', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-          filesToCreate: ['packages/shared/src/contracts/user-profile/user-profile-contract.ts'],
-          filesToModify: [],
-          outputContracts: [],
-        }),
-        DependencyStepStub({
-          id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
-          filesToCreate: ['packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts'],
-          filesToModify: [],
-          outputContracts: [],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
+            action: 'create',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
       const result = questStepHasContractRefsGuard({ steps, contracts });
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 

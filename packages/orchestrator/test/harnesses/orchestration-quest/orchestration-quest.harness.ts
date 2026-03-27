@@ -112,8 +112,6 @@ export const orchestrationQuestHarness = (): {
           name: `Step ${String(i)}`,
           observablesSatisfied: coveredObs,
           dependsOn: [],
-          filesToCreate: [],
-          filesToModify: [],
         }),
       );
     }

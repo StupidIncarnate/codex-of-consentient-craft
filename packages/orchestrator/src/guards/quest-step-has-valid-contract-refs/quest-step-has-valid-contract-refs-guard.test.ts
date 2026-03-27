@@ -48,12 +48,27 @@ describe('questStepHasValidContractRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with empty inputContracts and empty outputContracts} => returns true', () => {
+    it('VALID: {step with Void inputContracts and Void outputContracts} => returns true', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
-          inputContracts: [],
-          outputContracts: [],
+          inputContracts: [ContractNameStub({ value: 'Void' })],
+          outputContracts: [ContractNameStub({ value: 'Void' })],
+        }),
+      ];
+
+      const result = questStepHasValidContractRefsGuard({ steps, contracts });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {step with Void inputContracts and real outputContracts} => returns true', () => {
+      const outputName = ContractNameStub({ value: 'AuthToken' });
+      const contracts = [QuestContractEntryStub({ name: outputName })];
+      const steps = [
+        DependencyStepStub({
+          inputContracts: [ContractNameStub({ value: 'Void' })],
+          outputContracts: [outputName],
         }),
       ];
 
@@ -102,7 +117,7 @@ describe('questStepHasValidContractRefsGuard', () => {
       const steps = [
         DependencyStepStub({
           inputContracts: [nonExistentName],
-          outputContracts: [],
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 
@@ -117,7 +132,7 @@ describe('questStepHasValidContractRefsGuard', () => {
       const contracts = [QuestContractEntryStub({ name: existingName })];
       const steps = [
         DependencyStepStub({
-          inputContracts: [],
+          inputContracts: [ContractNameStub({ value: 'Void' })],
           outputContracts: [nonExistentName],
         }),
       ];
@@ -129,7 +144,7 @@ describe('questStepHasValidContractRefsGuard', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {multiple steps, one has invalid ref} => returns false', () => {
+    it('EDGE: {multiple steps, one has invalid non-Void ref} => returns false', () => {
       const credentialsName = ContractNameStub({ value: 'LoginCredentials' });
       const tokenName = ContractNameStub({ value: 'AuthToken' });
       const nonExistentName = ContractNameStub({ value: 'NonExistentContract' });
@@ -152,7 +167,7 @@ describe('questStepHasValidContractRefsGuard', () => {
         DependencyStepStub({
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
           inputContracts: [nonExistentName],
-          outputContracts: [],
+          outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
       ];
 

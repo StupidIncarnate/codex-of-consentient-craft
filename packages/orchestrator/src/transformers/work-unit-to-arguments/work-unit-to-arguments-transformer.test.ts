@@ -18,13 +18,12 @@ import { workUnitToArgumentsTransformer } from './work-unit-to-arguments-transfo
 
 describe('workUnitToArgumentsTransformer', () => {
   describe('codeweaver role', () => {
-    it('VALID: {codeweaver with minimal step} => returns step name and description', () => {
+    it('VALID: {codeweaver with minimal step} => returns step name and focus file', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Auth Broker',
-          description: 'Implements authentication logic',
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/brokers/auth/auth-broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
@@ -34,7 +33,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Step: Create Auth Broker\nDescription: Implements authentication logic\nQuest ID: add-auth',
+        'Step: Create Auth Broker\nFocus File: src/brokers/auth/auth-broker.ts (create)\nAssertions:\n  - VALID: returns expected result\nQuest ID: add-auth',
       );
     });
 
@@ -42,10 +41,9 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Auth Broker',
-          description: 'Auth logic',
           exportName: 'authBroker',
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/brokers/auth/auth-broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
@@ -54,18 +52,15 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(
-        /^Step: Create Auth Broker\nDescription: Auth logic\nExport Name: authBroker\nQuest ID: add-auth$/u,
-      );
+      expect(result).toMatch(/Export Name: authBroker/u);
     });
 
-    it('VALID: {codeweaver with filesToCreate} => includes files to create list', () => {
+    it('VALID: {codeweaver with accompanyingFiles} => includes accompanying files list', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          description: 'Broker',
-          filesToCreate: ['src/broker.ts', 'src/broker.test.ts'],
-          filesToModify: [],
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [{ path: 'src/broker.test.ts', action: 'create' }],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
@@ -74,18 +69,16 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(
-        /Files to Create:\n {2}- src\/broker\.ts\n {2}- src\/broker\.test\.ts/u,
-      );
+      expect(result).toMatch(/Accompanying Files:\n {2}- src\/broker\.test\.ts \(create\)/u);
     });
 
-    it('VALID: {codeweaver with filesToModify} => includes files to modify list', () => {
+    it('VALID: {codeweaver with assertions} => includes assertions list', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
-          name: 'Update Broker',
-          description: 'Update',
-          filesToCreate: [],
-          filesToModify: ['src/existing.ts'],
+          name: 'Create Broker',
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
+          assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
@@ -94,16 +87,15 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Files to Modify:\n {2}- src\/existing\.ts/u);
+      expect(result).toMatch(/Assertions:\n {2}- VALID: returns result/u);
     });
 
     it('VALID: {codeweaver with related contracts} => includes contract details', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [
@@ -127,9 +119,8 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
@@ -158,9 +149,8 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          description: 'Desc',
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],

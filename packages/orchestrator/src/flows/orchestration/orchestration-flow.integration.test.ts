@@ -2223,24 +2223,18 @@ describe('OrchestrationFlow', () => {
             name: 'Step 0',
             observablesSatisfied: coveredObs,
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
           }),
           DependencyStepStub({
             id: step1Id,
             name: 'Step 1',
             observablesSatisfied: coveredObs,
             dependsOn: [step0Id],
-            filesToCreate: [],
-            filesToModify: [],
           }),
           DependencyStepStub({
             id: step2Id,
             name: 'Step 2',
             observablesSatisfied: coveredObs,
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
           }),
         ];
 

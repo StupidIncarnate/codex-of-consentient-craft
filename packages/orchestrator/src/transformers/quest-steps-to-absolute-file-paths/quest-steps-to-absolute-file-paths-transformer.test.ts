@@ -4,11 +4,14 @@ import { questStepsToAbsoluteFilePathsTransformer } from './quest-steps-to-absol
 
 describe('questStepsToAbsoluteFilePathsTransformer', () => {
   describe('steps with absolute file paths', () => {
-    it('VALID: {single step with filesToCreate} => returns absolute paths', () => {
+    it('VALID: {single step with absolute focusFile} => returns absolute paths', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['/src/brokers/auth/login/auth-login-broker.ts'],
-          filesToModify: [],
+          focusFile: {
+            path: '/src/brokers/auth/login/auth-login-broker.ts',
+            action: 'create',
+          },
+          accompanyingFiles: [],
         }),
       ];
 
@@ -17,11 +20,11 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
       expect(result).toStrictEqual(['/src/brokers/auth/login/auth-login-broker.ts']);
     });
 
-    it('VALID: {single step with filesToCreate and filesToModify} => returns deduplicated paths', () => {
+    it('VALID: {single step with focusFile and accompanyingFiles} => returns deduplicated paths', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['/src/brokers/auth/auth-broker.ts'],
-          filesToModify: ['/src/contracts/user/user-contract.ts'],
+          focusFile: { path: '/src/brokers/auth/auth-broker.ts', action: 'create' },
+          accompanyingFiles: [{ path: '/src/contracts/user/user-contract.ts', action: 'create' }],
         }),
       ];
 
@@ -36,12 +39,12 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('VALID: {multiple steps} => returns deduplicated paths across all steps', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['/src/brokers/auth/auth-broker.ts'],
-          filesToModify: [],
+          focusFile: { path: '/src/brokers/auth/auth-broker.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
         DependencyStepStub({
-          filesToCreate: ['/src/contracts/token/token-contract.ts'],
-          filesToModify: ['/src/brokers/auth/auth-broker.ts'],
+          focusFile: { path: '/src/contracts/token/token-contract.ts', action: 'create' },
+          accompanyingFiles: [{ path: '/src/brokers/auth/auth-broker.ts', action: 'create' }],
         }),
       ];
 
@@ -61,11 +64,11 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('EMPTY: {steps with no files} => returns empty array', () => {
+    it('EMPTY: {steps with non-absolute paths} => returns empty array', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: [],
-          filesToModify: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
         }),
       ];
 
@@ -79,8 +82,8 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('EDGE: {steps with relative paths} => skips non-absolute paths', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['src/file.ts'],
-          filesToModify: ['./other/file.ts'],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [{ path: './other/file.ts', action: 'create' }],
         }),
       ];
 

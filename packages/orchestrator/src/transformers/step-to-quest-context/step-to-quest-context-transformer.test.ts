@@ -15,7 +15,7 @@ describe('stepToQuestContextTransformer', () => {
       const contract = QuestContractEntryStub({ name: 'LoginCredentials' });
       const step = DependencyStepStub({
         inputContracts: ['LoginCredentials'],
-        outputContracts: [],
+        outputContracts: ['Void'],
       });
       const quest = QuestStub({
         contracts: [
@@ -39,7 +39,7 @@ describe('stepToQuestContextTransformer', () => {
     it('VALID: {step with outputContracts matching quest contracts} => returns matched contracts', () => {
       const contract = QuestContractEntryStub({ name: 'AuthToken' });
       const step = DependencyStepStub({
-        inputContracts: [],
+        inputContracts: ['Void'],
         outputContracts: ['AuthToken'],
       });
       const quest = QuestStub({
@@ -146,8 +146,8 @@ describe('stepToQuestContextTransformer', () => {
   describe('empty inputs', () => {
     it('EMPTY: {step with no contracts or observables} => returns all empty arrays', () => {
       const step = DependencyStepStub({
-        inputContracts: [],
-        outputContracts: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
         observablesSatisfied: [],
       });
       const quest = QuestStub({

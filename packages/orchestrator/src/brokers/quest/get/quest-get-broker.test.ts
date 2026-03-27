@@ -60,11 +60,16 @@ describe('questGetBroker', () => {
           {
             id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'CreateLoginBroker',
-            description: 'Create login broker',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
+            focusFile: {
+              path: 'src/brokers/login/create/login-create-broker.ts',
+              action: 'create',
+            },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
       });
@@ -95,11 +100,16 @@ describe('questGetBroker', () => {
           {
             id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'CreateLoginBroker',
-            description: 'Create login broker',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
+            focusFile: {
+              path: 'src/brokers/login/create/login-create-broker.ts',
+              action: 'create',
+            },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
       });
@@ -115,13 +125,17 @@ describe('questGetBroker', () => {
         {
           id: 'c47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'CreateLoginBroker',
-          description: 'Create login broker',
+          assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
           observablesSatisfied: [],
           dependsOn: [],
-          filesToCreate: [],
-          filesToModify: [],
-          inputContracts: [],
-          outputContracts: [],
+          focusFile: {
+            path: 'src/brokers/login/create/login-create-broker.ts',
+            action: 'create',
+          },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+          uses: [],
         },
       ]);
     });

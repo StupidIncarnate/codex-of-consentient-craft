@@ -1,16 +1,14 @@
 /**
- * PURPOSE: Validates that steps in folders requiring contract declarations have non-empty outputContracts
+ * PURPOSE: Validates that steps in folders requiring contract declarations have non-Void outputContracts
  *
  * USAGE:
  * questStepHasContractRefsGuard({steps, contracts});
- * // Returns true if all applicable steps have non-empty outputContracts, false if any are missing
+ * // Returns true if all applicable steps have non-Void outputContracts, false if any use Void in contract-requiring folders
  */
-import type {
-  DependencyStepStub,
-  FolderType,
-  QuestContractEntryStub,
-} from '@dungeonmaster/shared/contracts';
+import type { DependencyStepStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+
+import { pathToFolderTypeTransformer } from '../../transformers/path-to-folder-type/path-to-folder-type-transformer';
 
 type DependencyStep = ReturnType<typeof DependencyStepStub>;
 type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
@@ -35,29 +33,29 @@ export const questStepHasContractRefsGuard = ({
   }
 
   for (const step of steps) {
-    const allFiles = [...step.filesToCreate.map(String), ...step.filesToModify.map(String)];
+    const focusPath = step.focusFile.path;
 
-    if (allFiles.length === 0) {
+    const folderType = pathToFolderTypeTransformer({
+      filePath: focusPath,
+      folderConfigs: folderConfigStatics,
+    });
+
+    if (!folderType) {
       continue;
     }
 
-    const folderTypes = allFiles.reduce<FolderType[]>((acc, fp) => {
-      const [, candidate] = /src\/([^/]+)\//u.exec(fp) ?? [];
-      if (!candidate) {
-        return acc;
-      }
-      if (candidate in folderConfigStatics) {
-        acc.push(candidate as FolderType);
-      }
-      return acc;
-    }, []);
+    const needsContracts =
+      folderConfigStatics[folderType as keyof typeof folderConfigStatics]
+        .requireContractDeclarations;
 
-    const needsContracts = folderTypes.some(
-      (ft) =>
-        folderConfigStatics[ft as keyof typeof folderConfigStatics].requireContractDeclarations,
-    );
+    if (!needsContracts) {
+      continue;
+    }
 
-    if (needsContracts && step.outputContracts.length === 0) {
+    const isVoidOnly =
+      step.outputContracts.length === 1 && String(step.outputContracts[0]) === 'Void';
+
+    if (isVoidOnly) {
       return false;
     }
   }

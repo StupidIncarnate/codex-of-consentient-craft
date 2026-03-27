@@ -1,4 +1,4 @@
-import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import { DependencyStepStub, StepFileReferenceStub } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import { questStepHasExportNameGuard } from './quest-step-has-export-name-guard';
@@ -11,10 +11,13 @@ describe('questStepHasExportNameGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with entry file and exportName set} => returns true', () => {
+    it('VALID: {step with entry focusFile and exportName set} => returns true', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['src/brokers/auth/login/auth-login-broker.ts'],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/auth-login-broker.ts',
+            action: 'create',
+          }),
           exportName: 'authLoginBroker',
         }),
       ];
@@ -24,10 +27,13 @@ describe('questStepHasExportNameGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with empty filesToCreate} => returns true', () => {
+    it('VALID: {step with modify action} => skips check, returns true', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: [],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/auth-login-broker.ts',
+            action: 'modify',
+          }),
         }),
       ];
 
@@ -36,13 +42,13 @@ describe('questStepHasExportNameGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with only non-entry files in filesToCreate} => returns true', () => {
+    it('VALID: {step with non-entry focusFile} => returns true', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: [
-            'src/brokers/auth/login/validate-helper.ts',
-            'src/brokers/auth/login/auth-login-broker.test.ts',
-          ],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/validate-helper.ts',
+            action: 'create',
+          }),
         }),
       ];
 
@@ -53,10 +59,13 @@ describe('questStepHasExportNameGuard', () => {
   });
 
   describe('invalid steps', () => {
-    it('INVALID_EXPORT: {step with entry file but no exportName} => returns false', () => {
+    it('INVALID_EXPORT: {step with entry focusFile but no exportName} => returns false', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['src/guards/is-valid/is-valid-guard.ts'],
+          focusFile: StepFileReferenceStub({
+            path: 'src/guards/is-valid/is-valid-guard.ts',
+            action: 'create',
+          }),
         }),
       ];
 
@@ -71,12 +80,18 @@ describe('questStepHasExportNameGuard', () => {
       const steps = [
         DependencyStepStub({
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
-          filesToCreate: ['src/brokers/auth/login/auth-login-broker.ts'],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/auth-login-broker.ts',
+            action: 'create',
+          }),
           exportName: 'authLoginBroker',
         }),
         DependencyStepStub({
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
-          filesToCreate: ['src/brokers/auth/login/some-utility.ts'],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/some-utility.ts',
+            action: 'create',
+          }),
         }),
       ];
 
@@ -96,7 +111,10 @@ describe('questStepHasExportNameGuard', () => {
     it('EMPTY: {folderConfigs: undefined} => returns false', () => {
       const steps = [
         DependencyStepStub({
-          filesToCreate: ['src/brokers/auth/login/auth-login-broker.ts'],
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/auth-login-broker.ts',
+            action: 'create',
+          }),
           exportName: 'authLoginBroker',
         }),
       ];

@@ -16,15 +16,21 @@ describe('questVerifyBroker', () => {
           {
             id: 'create-login-broker',
             name: 'Create login broker',
-            description: 'Create login broker',
+            assertions: [
+              { prefix: 'VALID', input: '{valid credentials}', expected: 'returns auth token' },
+            ],
             observablesSatisfied: ['redirects-to-dashboard'],
             dependsOn: [],
-            filesToCreate: [
-              'packages/api/src/guards/has-auth/has-auth-guard.ts',
-              'packages/api/src/guards/has-auth/has-auth-guard.test.ts',
+            focusFile: {
+              path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
+              action: 'create',
+            },
+            accompanyingFiles: [
+              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts', action: 'create' },
             ],
-            filesToModify: [],
             exportName: 'hasAuthGuard',
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
         flows: [
@@ -77,6 +83,9 @@ describe('questVerifyBroker', () => {
         'Valid Flow References',
         'No Orphan Flow Nodes',
         'Node Observable Coverage',
+        'No Duplicate Focus Files',
+        'Valid Assertions',
+        'Valid Focus Files',
       ]);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
@@ -114,11 +123,13 @@ describe('questVerifyBroker', () => {
           {
             id: 'fix-the-bug',
             name: 'Fix the bug',
-            description: 'Fix the bug',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'bug is fixed' }],
             observablesSatisfied: [],
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
+            focusFile: { path: 'src/brokers/bug/fix/bug-fix-broker.ts', action: 'create' },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
       });
@@ -142,6 +153,9 @@ describe('questVerifyBroker', () => {
         'Valid Flow References',
         'No Orphan Flow Nodes',
         'Node Observable Coverage',
+        'No Duplicate Focus Files',
+        'Valid Assertions',
+        'Valid Focus Files',
       ]);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });

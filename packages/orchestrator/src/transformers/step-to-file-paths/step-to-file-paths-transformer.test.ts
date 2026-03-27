@@ -4,10 +4,13 @@ import { stepToFilePathsTransformer } from './step-to-file-paths-transformer';
 
 describe('stepToFilePathsTransformer', () => {
   describe('basic combination', () => {
-    it('VALID: {step with filesToCreate and filesToModify} => returns combined array', () => {
+    it('VALID: {step with focusFile and accompanyingFiles} => returns combined array', () => {
       const step = DependencyStepStub({
-        filesToCreate: ['src/new-file.ts', 'src/new-file.test.ts'],
-        filesToModify: ['src/existing.ts'],
+        focusFile: { path: 'src/new-file.ts', action: 'create' },
+        accompanyingFiles: [
+          { path: 'src/new-file.test.ts', action: 'create' },
+          { path: 'src/existing.ts', action: 'create' },
+        ],
       });
 
       const result = stepToFilePathsTransformer({ step });
@@ -17,50 +20,31 @@ describe('stepToFilePathsTransformer', () => {
   });
 
   describe('deduplication', () => {
-    it('VALID: {step with overlapping paths} => returns deduplicated array preserving order', () => {
+    it('VALID: {step with overlapping paths in accompanyingFiles} => returns deduplicated array preserving order', () => {
       const step = DependencyStepStub({
-        filesToCreate: ['src/file-a.ts', 'src/file-b.ts'],
-        filesToModify: ['src/file-b.ts', 'src/file-c.ts'],
+        focusFile: { path: 'src/file-a.ts', action: 'create' },
+        accompanyingFiles: [
+          { path: 'src/file-b.ts', action: 'create' },
+          { path: 'src/file-a.ts', action: 'create' },
+        ],
       });
 
       const result = stepToFilePathsTransformer({ step });
 
-      expect(result).toStrictEqual(['src/file-a.ts', 'src/file-b.ts', 'src/file-c.ts']);
+      expect(result).toStrictEqual(['src/file-a.ts', 'src/file-b.ts']);
     });
   });
 
-  describe('empty arrays', () => {
-    it('EMPTY: {step with no files} => returns empty array', () => {
+  describe('no accompanying files', () => {
+    it('VALID: {step with focusFile only} => returns focusFile path only', () => {
       const step = DependencyStepStub({
-        filesToCreate: [],
-        filesToModify: [],
-      });
-
-      const result = stepToFilePathsTransformer({ step });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('VALID: {step with only filesToCreate} => returns filesToCreate only', () => {
-      const step = DependencyStepStub({
-        filesToCreate: ['src/new.ts'],
-        filesToModify: [],
+        focusFile: { path: 'src/new.ts', action: 'create' },
+        accompanyingFiles: [],
       });
 
       const result = stepToFilePathsTransformer({ step });
 
       expect(result).toStrictEqual(['src/new.ts']);
-    });
-
-    it('VALID: {step with only filesToModify} => returns filesToModify only', () => {
-      const step = DependencyStepStub({
-        filesToCreate: [],
-        filesToModify: ['src/existing.ts'],
-      });
-
-      const result = stepToFilePathsTransformer({ step });
-
-      expect(result).toStrictEqual(['src/existing.ts']);
     });
   });
 });

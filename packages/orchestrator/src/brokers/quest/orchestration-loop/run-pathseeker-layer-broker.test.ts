@@ -72,11 +72,16 @@ const buildValidQuestWith2Steps = ({
         id: stepId1,
         observablesSatisfied: [obsId1],
         dependsOn: [],
-        filesToCreate: [
-          'packages/orchestrator/src/guards/step-one/step-one-guard.ts',
-          'packages/orchestrator/src/guards/step-one/step-one-guard.test.ts',
+        focusFile: {
+          path: 'packages/orchestrator/src/guards/step-one/step-one-guard.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [
+          {
+            path: 'packages/orchestrator/src/guards/step-one/step-one-guard.test.ts',
+            action: 'create',
+          },
         ],
-        filesToModify: [],
         outputContracts: [contractName],
         exportName: 'stepOneGuard',
       }),
@@ -84,11 +89,16 @@ const buildValidQuestWith2Steps = ({
         id: stepId2,
         observablesSatisfied: [obsId2],
         dependsOn: [],
-        filesToCreate: [
-          'packages/orchestrator/src/guards/step-two/step-two-guard.ts',
-          'packages/orchestrator/src/guards/step-two/step-two-guard.test.ts',
+        focusFile: {
+          path: 'packages/orchestrator/src/guards/step-two/step-two-guard.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [
+          {
+            path: 'packages/orchestrator/src/guards/step-two/step-two-guard.test.ts',
+            action: 'create',
+          },
         ],
-        filesToModify: [],
         outputContracts: [contractName],
         exportName: 'stepTwoGuard',
       }),
@@ -123,8 +133,6 @@ const buildVerifyFailQuest = ({
     steps: [
       DependencyStepStub({
         observablesSatisfied: [],
-        filesToCreate: [],
-        filesToModify: [],
       }),
     ],
     workItems: [workItem],

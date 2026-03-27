@@ -24,7 +24,7 @@ describe('buildWorkUnitForRoleTransformer', () => {
       const step = DependencyStepStub({
         observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
         inputContracts: ['LoginCredentials'],
-        outputContracts: [],
+        outputContracts: ['Void'],
       });
 
       const quest = QuestStub({
@@ -61,8 +61,8 @@ describe('buildWorkUnitForRoleTransformer', () => {
 
       const step = DependencyStepStub({
         observablesSatisfied: [],
-        inputContracts: [],
-        outputContracts: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
       });
 
       const quest = QuestStub({
@@ -171,12 +171,12 @@ describe('buildWorkUnitForRoleTransformer', () => {
   });
 
   describe('lawbringer role', () => {
-    it('VALID: {role: lawbringer, step with filesToCreate/filesToModify} => returns LawbringerWorkUnit with deduplicated filePaths', () => {
+    it('VALID: {role: lawbringer, step with focusFile and accompanyingFiles} => returns LawbringerWorkUnit with deduplicated filePaths', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const step = DependencyStepStub({
-        filesToCreate: ['/src/brokers/user/user-broker.ts'],
-        filesToModify: ['/src/brokers/index.ts'],
+        focusFile: { path: '/src/brokers/user/user-broker.ts', action: 'create' },
+        accompanyingFiles: [{ path: '/src/brokers/index.ts', action: 'create' }],
       });
 
       const quest = QuestStub();
@@ -195,12 +195,12 @@ describe('buildWorkUnitForRoleTransformer', () => {
   });
 
   describe('spiritmender role', () => {
-    it('VALID: {role: spiritmender, step with filesToCreate/filesToModify} => returns SpiritmenderWorkUnit with deduplicated filePaths', () => {
+    it('VALID: {role: spiritmender, step with focusFile and accompanyingFiles} => returns SpiritmenderWorkUnit with deduplicated filePaths', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const step = DependencyStepStub({
-        filesToCreate: ['/src/guards/auth/auth-guard.ts'],
-        filesToModify: ['/src/guards/index.ts'],
+        focusFile: { path: '/src/guards/auth/auth-guard.ts', action: 'create' },
+        accompanyingFiles: [{ path: '/src/guards/index.ts', action: 'create' }],
       });
 
       const quest = QuestStub();

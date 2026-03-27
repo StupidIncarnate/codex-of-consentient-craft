@@ -23,11 +23,13 @@ describe('questModifyBroker', () => {
           {
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             name: 'Create API',
-            description: 'Create authentication API',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts', action: 'create' },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
           },
         ],
       });

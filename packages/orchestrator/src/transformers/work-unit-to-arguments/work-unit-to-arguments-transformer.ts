@@ -22,24 +22,24 @@ export const workUnitToArgumentsTransformer = ({
       const { step, questId, relatedContracts, relatedObservables } = workUnit;
       const parts: ContentText[] = [
         contentTextContract.parse(`Step: ${step.name}`),
-        contentTextContract.parse(`Description: ${step.description}`),
+        contentTextContract.parse(`Focus File: ${step.focusFile.path} (${step.focusFile.action})`),
       ];
 
       if (step.exportName !== undefined) {
         parts.push(contentTextContract.parse(`Export Name: ${step.exportName}`));
       }
 
-      if (step.filesToCreate.length > 0) {
-        parts.push(contentTextContract.parse('Files to Create:'));
-        for (const filePath of step.filesToCreate) {
-          parts.push(contentTextContract.parse(`  - ${filePath}`));
+      if (step.accompanyingFiles.length > 0) {
+        parts.push(contentTextContract.parse('Accompanying Files:'));
+        for (const file of step.accompanyingFiles) {
+          parts.push(contentTextContract.parse(`  - ${file.path} (${file.action})`));
         }
       }
 
-      if (step.filesToModify.length > 0) {
-        parts.push(contentTextContract.parse('Files to Modify:'));
-        for (const filePath of step.filesToModify) {
-          parts.push(contentTextContract.parse(`  - ${filePath}`));
+      if (step.assertions.length > 0) {
+        parts.push(contentTextContract.parse('Assertions:'));
+        for (const assertion of step.assertions) {
+          parts.push(contentTextContract.parse(`  - ${assertion.prefix}: ${assertion.expected}`));
         }
       }
 

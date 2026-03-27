@@ -28,15 +28,13 @@ export const questStepHasExportNameGuard = ({
   }
 
   for (const step of steps) {
-    if (step.filesToCreate.length === 0) {
+    if (step.focusFile.action !== 'create') {
       continue;
     }
 
-    const hasEntry = step.filesToCreate.some((filePath) =>
-      isEntryFileGuard({ filePath: String(filePath), folderConfigs }),
-    );
+    const isEntry = isEntryFileGuard({ filePath: String(step.focusFile.path), folderConfigs });
 
-    if (!hasEntry) {
+    if (!isEntry) {
       continue;
     }
 
