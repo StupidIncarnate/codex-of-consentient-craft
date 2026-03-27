@@ -21,7 +21,7 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: false,
-    testType: 'unit',
+    testType: 'none',
     requireStub: false,
     meta: {
       purpose:

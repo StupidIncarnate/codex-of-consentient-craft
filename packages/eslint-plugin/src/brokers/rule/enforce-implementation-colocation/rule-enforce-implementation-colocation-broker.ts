@@ -50,8 +50,6 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           '{{fileType}} file must not have a unit test file. Found {{testFileName}}. {{fileType}} files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
         forbiddenProxyFile:
           '{{fileType}} file must not have a proxy file. Found {{proxyFileName}}. {{fileType}} files use integration tests and do not need proxy files.',
-        forbiddenStaticsTestFile:
-          'Statics file must not have a test file. Found {{testFileName}}. Statics files contain immutable data and should not have tests.',
       },
       schema: [],
     },
@@ -98,34 +96,23 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           suffix: 'contract',
         });
 
-        // Determine if this is a statics file (doesn't need tests - just data)
-        const isStatics = isFileInFolderTypeGuard({
-          filename,
-          folderType: 'statics',
-          suffix: 'statics',
-        });
+        // Read testType from folder config to determine test requirements
+        const testTypeValue: unknown =
+          folderConfig && 'testType' in folderConfig
+            ? Reflect.get(folderConfig, 'testType')
+            : 'unit';
+        const testType =
+          testTypeValue === 'integration' || testTypeValue === 'none' ? testTypeValue : 'unit';
 
-        // Determine if this is a startup or flow file (requires integration tests, forbids unit tests and proxies)
+        // Derive fileType label for integration-test-only messages
         const isStartup = filename.includes('/startup/');
-        const isFlow = isFileInFolderTypeGuard({
-          filename,
-          folderType: 'flows',
-          suffix: 'flow',
-        });
-        const isIntegrationTestOnly = isStartup || isFlow;
         const integrationTestOnlyFileType = isStartup ? 'Startup' : 'Flow';
 
         // Get all possible test file paths for this source file
         const testFilePaths = testFilePathVariantsTransformer({ sourceFilePath: filename });
 
-        // Check if any test file exists
-        const hasTestFile = testFilePaths.some((testFilePath) => {
-          const parsedPath = filePathContract.parse(testFilePath);
-          return fsExistsSyncAdapter({ filePath: parsedPath });
-        });
-
-        // Handle startup and responder files specially - require integration tests, forbid unit tests and proxies
-        if (isIntegrationTestOnly) {
+        // Check test requirements based on testType from folder config
+        if (testType === 'integration') {
           const extension = getFileExtensionTransformer({ filename });
           const baseFilePath = filename.slice(0, -extension.length);
 
@@ -187,35 +174,29 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               },
             });
           }
-        } else if (isStatics && hasTestFile) {
-          // Statics files should NOT have test files - they contain immutable data
-          const existingTestFileName = testFilePaths.find((testFilePath) => {
+        } else if (testType === 'unit') {
+          // Check if any test file exists
+          const hasTestFile = testFilePaths.some((testFilePath) => {
             const parsedPath = filePathContract.parse(testFilePath);
             return fsExistsSyncAdapter({ filePath: parsedPath });
           });
-          const testFileName = existingTestFileName?.split('/').pop() ?? '';
-          ctx.report({
-            node,
-            messageId: 'forbiddenStaticsTestFile',
-            data: {
-              testFileName,
-            },
-          });
-        } else if (!isStatics && !hasTestFile) {
-          // Check for test file (skip statics and startup - handled above)
-          const primaryTestFileName = testFilePaths[0] ?? filename;
-          const allowsLayerFiles =
-            folderConfig && 'allowsLayerFiles' in folderConfig
-              ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
-              : false;
-          ctx.report({
-            node,
-            messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
-            data: {
-              testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
-            },
-          });
+
+          if (!hasTestFile) {
+            const primaryTestFileName = testFilePaths[0] ?? filename;
+            const allowsLayerFiles =
+              folderConfig && 'allowsLayerFiles' in folderConfig
+                ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
+                : false;
+            ctx.report({
+              node,
+              messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
+              data: {
+                testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
+              },
+            });
+          }
         }
+        // testType === 'none' → no test file required (assets, migrations)
 
         // For contract files, also check for stub file
         if (isContract) {
