@@ -350,14 +350,12 @@ describe('questVerifyFailureDetailsTransformer', () => {
   describe('No Raw Primitives - multiple', () => {
     it('VALID: {two contracts with raw primitives} => returns both contract and property names', () => {
       const quest = createQuestWithContracts([
-        createEntryWithProperties(
-          [createPropertyWithRawType({ name: 'email', type: 'string' })],
-          { name: 'UserProfile' },
-        ),
-        createEntryWithProperties(
-          [createPropertyWithRawType({ name: 'age', type: 'number' })],
-          { name: 'UserStats' },
-        ),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'email', type: 'string' })], {
+          name: 'UserProfile',
+        }),
+        createEntryWithProperties([createPropertyWithRawType({ name: 'age', type: 'number' })], {
+          name: 'UserStats',
+        }),
       ]);
 
       const result = questVerifyFailureDetailsTransformer({
@@ -519,9 +517,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
           }),
           DependencyStepStub({
             name: 'create-beta-transformer',
-            filesToCreate: [
-              'packages/orchestrator/src/transformers/beta/beta-transformer.ts',
-            ],
+            filesToCreate: ['packages/orchestrator/src/transformers/beta/beta-transformer.ts'],
             filesToModify: [],
           }),
         ],
@@ -632,9 +628,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
         checkName: brandCheckName('No Orphan Flow Nodes'),
       });
 
-      expect(result).toBe(
-        'flow "Auth Flow" has disconnected nodes: "orphan-one", "orphan-two"',
-      );
+      expect(result).toBe('flow "Auth Flow" has disconnected nodes: "orphan-one", "orphan-two"');
     });
   });
 
