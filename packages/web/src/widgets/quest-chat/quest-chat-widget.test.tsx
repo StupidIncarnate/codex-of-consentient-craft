@@ -1617,7 +1617,7 @@ describe('QuestChatWidget', () => {
           data: JSON.stringify({
             type: 'chat-output',
             payload: {
-              chatProcessId: 'replay-wi-normal-session',
+              chatProcessId: 'exec-replay-wi-normal-session',
               line: JSON.stringify({
                 type: 'assistant',
                 message: {
@@ -1896,7 +1896,7 @@ describe('QuestChatWidget', () => {
           data: JSON.stringify({
             type: 'chat-output',
             payload: {
-              chatProcessId: 'replay-wi-session-bbb',
+              chatProcessId: 'exec-replay-wi-session-bbb',
               line: JSON.stringify({
                 type: 'assistant',
                 message: {

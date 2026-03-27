@@ -159,7 +159,7 @@ describe('EslintPluginCreateResponder', () => {
         ['**/*.stub.ts', '**/*.stub.tsx'],
         ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
         ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
-        ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
+        ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
         ['**/startup/start-*.ts'],
         ['**/*.spec.ts'],
         ['**/*.harness.ts'],
@@ -232,8 +232,9 @@ describe('EslintPluginCreateResponder', () => {
       const [, , , , startupOverride] = fileOverrides;
 
       expect(startupOverride).toStrictEqual({
-        files: ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
+        files: ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
         rules: {
+          '@typescript-eslint/init-declarations': 'off',
           'jest/no-hooks': 'off',
         },
       });

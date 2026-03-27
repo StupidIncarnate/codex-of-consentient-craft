@@ -1,6 +1,9 @@
 /**
  * Integration test for McpServerFlow - tests actual function via subprocess
  * No mocks - spawns real server and communicates via stdio
+ *
+ * OPTIMIZATION: Uses a single shared server process for all tests to avoid
+ * repeated subprocess spawn + 2s startup delay per test (16 tests x 2s = 32s saved)
  */
 
 import { QuestStub } from '@dungeonmaster/shared/contracts';
@@ -19,15 +22,21 @@ import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.
 describe('McpServerFlow', () => {
   const mcp = mcpServerHarness();
 
+  let client: Awaited<ReturnType<typeof mcp.createClient>>;
+
+  beforeAll(async () => {
+    client = await mcp.createClient();
+  });
+
+  afterAll(async () => {
+    await client.close();
+  });
+
   describe('initialization', () => {
     it('VALID: Server starts and responds to initialize request', async () => {
-      const client = await mcp.createClient();
-
       const request = mcp.buildInitRequest();
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
       expect(typeof response.result).toBe('object');
@@ -36,8 +45,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/list', () => {
     it('VALID: Returns at least 5 tools including all expected tools', async () => {
-      const client = await mcp.createClient();
-
       const request = mcp.buildToolListRequest();
 
       const response = await client.sendRequest(request);
@@ -45,8 +52,6 @@ describe('McpServerFlow', () => {
       expect(response.error).toBeUndefined();
 
       const result = ToolListResultStub(response.result as never);
-
-      await client.close();
 
       expect(result.tools.length).toBeGreaterThanOrEqual(5);
 
@@ -58,8 +63,6 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: All tool inputSchemas have type: "object" at root (required by Claude Code)', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 100 }),
         method: RpcMethodStub({ value: 'tools/list' }),
@@ -72,8 +75,6 @@ describe('McpServerFlow', () => {
 
       const result = ToolListResultStub(response.result as never);
 
-      await client.close();
-
       const toolsWithBadSchema = result.tools.filter((tool) => tool.inputSchema.type !== 'object');
 
       expect(toolsWithBadSchema).toStrictEqual([]);
@@ -82,8 +83,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-architecture', () => {
     it('VALID: Returns architecture overview markdown', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -94,8 +93,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
 
@@ -108,8 +105,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-testing-patterns', () => {
     it('VALID: Returns testing patterns markdown', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 13 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -120,8 +115,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
 
@@ -134,8 +127,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with discover', () => {
     it('VALID: {type: files, path: src/brokers} => returns tree format', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -150,8 +141,6 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      await client.close();
-
       expect(response.error).toBeUndefined();
 
       const result = ToolCallResultStub(response.result as never);
@@ -165,8 +154,6 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: {type: files, fileType: adapter} => returns adapters from @dungeonmaster/shared', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -181,8 +168,6 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      await client.close();
-
       expect(response.error).toBeUndefined();
 
       const result = ToolCallResultStub(response.result as never);
@@ -195,8 +180,6 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 6 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -210,8 +193,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
 
@@ -227,8 +208,6 @@ describe('McpServerFlow', () => {
 
   describe('invalid tool calls', () => {
     it('ERROR: {name: unknown-tool} => returns error', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 999 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -240,16 +219,12 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      await client.close();
-
       expect(response.error?.message).toMatch(/^.*Unknown tool.*$/u);
     });
   });
 
   describe('quest tools storage consistency', () => {
     it('VALID: get-quest => retrieves a pre-seeded quest', async () => {
-      const client = await mcp.createClient();
-
       const questId = 'storage-test-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       const questFolder = '001-storage-test-quest';
@@ -283,8 +258,6 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      await client.close();
-
       const getResult = ToolCallResultStub(getResponse.result as never);
       const [getContent] = getResult.content;
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
@@ -296,8 +269,6 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: modify-quest => get-quest => retrieves modified quest with new design decision', async () => {
-      const client = await mcp.createClient();
-
       const questId = 'modify-flow-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       const questFolder = '001-modify-flow-quest';
@@ -356,8 +327,6 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      await client.close();
-
       const getResult = ToolCallResultStub(getResponse.result as never);
       const [getContent] = getResult.content;
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
@@ -378,8 +347,6 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: get-quest with non-existent questId => returns error', async () => {
-      const client = await mcp.createClient();
-
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3001 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -393,8 +360,6 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      await client.close();
-
       const getResult = ToolCallResultStub(getResponse.result as never);
       const [getContent] = getResult.content;
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
@@ -406,8 +371,6 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
-      const client = await mcp.createClient();
-
       const getQuestRequest = JsonRpcRequestStub({
         id: RpcIdStub({ value: 3002 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -421,8 +384,6 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      await client.close();
-
       const getResult = ToolCallResultStub(getResponse.result as never);
 
       expect(getResponse.error).toBeUndefined();
@@ -430,8 +391,6 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: get-quest with existing quest => does not set isError', async () => {
-      const client = await mcp.createClient();
-
       const questId = 'is-error-success-test';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       const questFolder = '001-is-error-success-test';
@@ -464,8 +423,6 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      await client.close();
-
       const getResult = ToolCallResultStub(getResponse.result as never);
 
       expect(getResponse.error).toBeUndefined();
@@ -475,8 +432,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-folder-detail', () => {
     it('VALID: {folderType: brokers} => returns brokers folder documentation', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4001 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -490,8 +445,6 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      await client.close();
-
       expect(response.error).toBeUndefined();
 
       const result = ToolCallResultStub(response.result as never);
@@ -503,8 +456,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with get-syntax-rules', () => {
     it('VALID: {} => returns syntax rules markdown', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5001 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -515,8 +466,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
 
@@ -529,8 +478,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with discover standards', () => {
     it('VALID: {type: standards} => returns JSON response with results array', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 7001 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -543,8 +490,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(response.error).toBeUndefined();
 
@@ -563,8 +508,6 @@ describe('McpServerFlow', () => {
 
   describe('tools/call with ask-user-question', () => {
     it('VALID: {questions array with single question} => returns instruction text', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 9001 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -588,8 +531,6 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      await client.close();
-
       expect(response.error).toBeUndefined();
 
       const result = ToolCallResultStub(response.result as never);
@@ -599,8 +540,6 @@ describe('McpServerFlow', () => {
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {
-      const client = await mcp.createClient();
-
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 9002 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -613,8 +552,6 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-
-      await client.close();
 
       expect(typeof response.error).toBe('object');
     });

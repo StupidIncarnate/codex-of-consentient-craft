@@ -10,6 +10,7 @@ import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
 
 import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
+import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using _lint-testbed (NOT _test-workspace or .test-tmp which are ESLint-ignored)
@@ -18,344 +19,147 @@ const BASE_DIR = FilePathStub({
 });
 
 describe('post-edit-hook', () => {
-  const runner = hookRunnerHarness();
+  const persistentRunner = hookPersistentRunnerHarness();
+
+  beforeAll(async () => {
+    await persistentRunner.start({ hookName: 'start-post-edit-hook' });
+  });
+
+  afterAll(async () => {
+    await persistentRunner.stop();
+  });
 
   describe('with Write tool', () => {
-    describe('success cases', () => {
-      it('VALID: {content: clean TypeScript code} => returns exit code 0', () => {
-        const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'clean-write' }),
-          baseDir: BASE_DIR,
-        });
-
-        const filePath = `${testbed.guildPath}/example.info.ts`;
-
-        const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
-`;
-
-        const hookData = PostToolUseHookStub({
-          cwd: process.cwd(),
-          tool_name: 'Write',
-          tool_input: WriteToolInputStub({
-            file_path: filePath,
-            content: fileContent,
-          }),
-        });
-
-        // Actually write the file so hook can check it
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: fileContent }),
-        });
-
-        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-        testbed.cleanup();
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toBe('');
-        // Post-edit hook reports success when no violations remain
-        expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+    it.each([
+      {
+        scenario: 'VALID: {content: clean TypeScript code} => returns exit code 0',
+        baseName: 'clean-write',
+        fileContent: `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;\n`,
+        stderrPattern: /All violations auto-fixed successfully/iu,
+      },
+      {
+        scenario: 'VALID: {content: with console.log} => reports violation but exits with 0',
+        baseName: 'console-log-write',
+        fileContent: `export const test = (): void => {\n  console.log('test');\n};\n`,
+        stderrPattern: /Unexpected console statement/iu,
+      },
+      {
+        scenario: 'EMPTY: {content: empty file} => returns exit code 0',
+        baseName: 'empty-write',
+        fileContent: '',
+        stderrPattern: /All violations auto-fixed successfully/iu,
+      },
+    ])('$scenario', async ({ baseName, fileContent, stderrPattern }) => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: baseName }),
+        baseDir: BASE_DIR,
       });
 
-      it('VALID: {content: with console.log} => reports violation but exits with 0', () => {
-        const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'console-log-write' }),
-          baseDir: BASE_DIR,
-        });
+      const filePath = `${testbed.guildPath}/example.info.ts`;
 
-        const filePath = `${testbed.guildPath}/example.info.ts`;
-
-        const fileContent = `export const test = (): void => {
-  console.log('test');
-};
-`;
-
-        const hookData = PostToolUseHookStub({
-          cwd: process.cwd(),
-          tool_name: 'Write',
-          tool_input: WriteToolInputStub({
-            file_path: filePath,
-            content: fileContent,
-          }),
-        });
-
-        // Actually write the file so hook can check it
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: fileContent }),
-        });
-
-        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-        testbed.cleanup();
-
-        expect(result.exitCode).toBe(0);
-        // Post-edit hook reports console.log violation (non-fixable)
-        expect(result.stderr).toMatch(/Unexpected console statement/iu);
+      const hookData = PostToolUseHookStub({
+        cwd: process.cwd(),
+        tool_name: 'Write',
+        tool_input: WriteToolInputStub({
+          file_path: filePath,
+          content: fileContent,
+        }),
       });
 
-      it('EMPTY: {content: empty file} => returns exit code 0', () => {
-        const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'empty-write' }),
-          baseDir: BASE_DIR,
-        });
-
-        const filePath = `${testbed.guildPath}/example.info.ts`;
-
-        const fileContent = '';
-
-        const hookData = PostToolUseHookStub({
-          cwd: process.cwd(),
-          tool_name: 'Write',
-          tool_input: WriteToolInputStub({
-            file_path: filePath,
-            content: fileContent,
-          }),
-        });
-
-        // Actually write the file so hook can check it
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: fileContent }),
-        });
-
-        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-        testbed.cleanup();
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toBe('');
-        // Post-edit hook reports success for empty files
-        expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        content: FileContentStub({ value: fileContent }),
       });
+
+      const result = await persistentRunner.runHook({ hookData });
+
+      testbed.cleanup();
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toMatch(stderrPattern);
     });
   });
 
   describe('with Edit tool', () => {
-    describe('success cases', () => {
-      it('VALID: {old_string: clean code, new_string: clean code} => returns exit code 0', () => {
-        const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'clean-edit' }),
-          baseDir: BASE_DIR,
-        });
-
-        const filePath = `${testbed.guildPath}/example.info.ts`;
-
-        // Create initial file
-        const initialContent = `export const oldFunction = (): boolean => true;
-`;
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: initialContent }),
-        });
-
-        const newContent = `export const newFunction = (): boolean => false;
-`;
-
-        const hookData = PostToolUseHookStub({
-          cwd: process.cwd(),
-          tool_name: 'Edit',
-          tool_input: EditToolInputStub({
-            file_path: filePath,
-            old_string: initialContent,
-            new_string: newContent,
-          }),
-        });
-
-        // Apply the edit so hook can check the result
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: newContent }),
-        });
-
-        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-        testbed.cleanup();
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toBe('');
-        // Post-edit hook reports success for clean code
-        expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+    it.each([
+      {
+        scenario: 'VALID: {old_string: clean code, new_string: clean code} => returns exit code 0',
+        baseName: 'clean-edit',
+        initialContent: `export const oldFunction = (): boolean => true;\n`,
+        newContent: `export const newFunction = (): boolean => false;\n`,
+        stderrPattern: /All violations auto-fixed successfully/iu,
+      },
+      {
+        scenario: 'VALID: {new_string: adds console.log} => reports violation but exits with 0',
+        baseName: 'add-console-edit',
+        initialContent: `export const test = (): void => {};\n`,
+        newContent: `export const test = (): void => {\n  console.log('debug');\n};\n`,
+        stderrPattern: /Unexpected console statement/iu,
+      },
+    ])('$scenario', async ({ baseName, initialContent, newContent, stderrPattern }) => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: baseName }),
+        baseDir: BASE_DIR,
       });
 
-      it('VALID: {new_string: adds console.log} => reports violation but exits with 0', () => {
-        const testbed = installTestbedCreateBroker({
-          baseName: BaseNameStub({ value: 'add-console-edit' }),
-          baseDir: BASE_DIR,
-        });
+      const filePath = `${testbed.guildPath}/example.info.ts`;
 
-        const filePath = `${testbed.guildPath}/example.info.ts`;
-
-        const initialContent = `export const test = (): void => {};
-`;
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: initialContent }),
-        });
-
-        const newContent = `export const test = (): void => {
-  console.log('debug');
-};
-`;
-
-        const hookData = PostToolUseHookStub({
-          cwd: process.cwd(),
-          tool_name: 'Edit',
-          tool_input: EditToolInputStub({
-            file_path: filePath,
-            old_string: initialContent,
-            new_string: newContent,
-          }),
-        });
-
-        // Apply the edit so hook can check the result
-        testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.info.ts' }),
-          content: FileContentStub({ value: newContent }),
-        });
-
-        const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-        testbed.cleanup();
-
-        expect(result.exitCode).toBe(0);
-        // Post-edit hook reports console.log violation (non-fixable)
-        expect(result.stderr).toMatch(/Unexpected console statement/iu);
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        content: FileContentStub({ value: initialContent }),
       });
+
+      const hookData = PostToolUseHookStub({
+        cwd: process.cwd(),
+        tool_name: 'Edit',
+        tool_input: EditToolInputStub({
+          file_path: filePath,
+          old_string: initialContent,
+          new_string: newContent,
+        }),
+      });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        content: FileContentStub({ value: newContent }),
+      });
+
+      const result = await persistentRunner.runHook({ hookData });
+
+      testbed.cleanup();
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toMatch(stderrPattern);
     });
   });
 
   describe('with invalid hook data', () => {
-    it('INVALID_INPUT: {invalid JSON} => exits with 1', () => {
+    const runner = hookRunnerHarness();
+
+    it.each([
+      {
+        scenario: 'INVALID_INPUT: {invalid JSON} => exits with 1',
+        input: 'not valid json',
+        stderrPattern: /Hook error/iu,
+      },
+      {
+        scenario: 'INVALID_INPUT: {missing required fields} => exits with 1',
+        input: JSON.stringify({ invalid: 'data' }),
+        stderrPattern: /Unsupported hook event/iu,
+      },
+    ])('$scenario', ({ input, stderrPattern }) => {
       const result = runner.runHookRaw({
         hookName: 'start-post-edit-hook',
-        input: 'not valid json' as never,
+        input: input as never,
       });
 
       expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/iu);
-    });
-
-    it('INVALID_INPUT: {missing required fields} => exits with 1', () => {
-      const result = runner.runHookRaw({
-        hookName: 'start-post-edit-hook',
-        input: JSON.stringify({ invalid: 'data' }) as never,
-      });
-
-      expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(/Unsupported hook event/iu);
+      expect(result.stderr).toMatch(stderrPattern);
     });
   });
 
   describe('auto-fix behavior', () => {
-    it('AUTOFIX: {content: arrow-body-style violation} => auto-fixes and writes to disk', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'autofix-arrow-body' }),
-        baseDir: BASE_DIR,
-      });
-
-      const filePath = `${testbed.guildPath}/test.info.ts`;
-
-      // Write code with arrow-body-style violation (fixable) - using .info.ts to avoid colocation rules
-      const fileContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => {
-  return a || b;
-};
-
-export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => {
-  return a && b;
-};`;
-
-      const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
-        tool_name: 'Write',
-        tool_input: WriteToolInputStub({
-          file_path: filePath,
-          content: fileContent,
-        }),
-      });
-
-      // Write the file before running hook
-      testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'test.info.ts' }),
-        content: FileContentStub({ value: fileContent }),
-      });
-
-      // Run the hook
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-      // Read the file after hook runs
-      const fileContentAfterHook = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'test.info.ts' }),
-      });
-
-      testbed.cleanup();
-
-      // Hook should exit successfully
-      expect(result.exitCode).toBe(0);
-
-      // File should be auto-fixed to expression body
-      const expectedFixedContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
-
-export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && b;
-`;
-
-      expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);
-
-      // Stderr should report success (no colocation errors for .info.ts)
-      expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
-    });
-
-    it('AUTOFIX: {content: prettier violation} => auto-fixes and writes to disk', () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'autofix-prettier' }),
-        baseDir: BASE_DIR,
-      });
-
-      const filePath = `${testbed.guildPath}/format.info.ts`;
-
-      // Write code with prettier violations (extra spaces, missing semicolons)
-      const fileContent = `export const test=({x}:{x:boolean}):boolean=>x;`;
-
-      const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
-        tool_name: 'Write',
-        tool_input: WriteToolInputStub({
-          file_path: filePath,
-          content: fileContent,
-        }),
-      });
-
-      // Write the file before running hook
-      testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'format.info.ts' }),
-        content: FileContentStub({ value: fileContent }),
-      });
-
-      // Run the hook
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
-
-      // Read the file after hook runs
-      const fileContentAfterHook = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'format.info.ts' }),
-      });
-
-      testbed.cleanup();
-
-      // Hook should exit successfully
-      expect(result.exitCode).toBe(0);
-
-      // File should be formatted correctly
-      const expectedFixedContent = `export const test = ({ x }: { x: boolean }): boolean => x;
-`;
-
-      expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);
-
-      // Stderr should report success (no colocation errors for .info.ts)
-      expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
-    });
-
-    it('AUTOFIX: {content: multiple fixable violations} => auto-fixes all and writes to disk', () => {
+    it('AUTOFIX: {content: multiple fixable violations} => auto-fixes all and writes to disk', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'autofix-multiple' }),
         baseDir: BASE_DIR,
@@ -388,7 +192,7 @@ return a&&b;
       });
 
       // Run the hook
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -412,7 +216,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
       expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
     });
 
-    it('NON_FIXABLE: {content: implementation without test} => reports colocation error', () => {
+    it('NON_FIXABLE: {content: implementation without test} => reports colocation error', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'non-fixable-colocation' }),
         baseDir: BASE_DIR,
@@ -447,7 +251,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       });
 
       // Run the hook
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
@@ -470,7 +274,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
   });
 
   describe('edge cases', () => {
-    it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', () => {
+    it('EDGE: {tool_input: non-TypeScript file} => returns exit code 0', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'non-ts-file' }),
         baseDir: BASE_DIR,
@@ -503,7 +307,7 @@ function test(): void {
         content: FileContentStub({ value: fileContent }),
       });
 
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       testbed.cleanup();
 
@@ -513,7 +317,7 @@ function test(): void {
       expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
     });
 
-    it('EDGE: {file_path: non-existent file} => returns exit code 0', () => {
+    it('EDGE: {file_path: non-existent file} => returns exit code 0', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'non-existent-edit' }),
         baseDir: BASE_DIR,
@@ -533,7 +337,7 @@ function test(): void {
 
       // Don't create the file - testing non-existent scenario
 
-      const result = runner.runHook({ hookName: 'start-post-edit-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       testbed.cleanup();
 

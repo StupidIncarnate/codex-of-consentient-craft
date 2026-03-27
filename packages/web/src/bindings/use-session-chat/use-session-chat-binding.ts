@@ -232,6 +232,7 @@ export const useSessionChatBinding = ({
 
       const activeSessionId = sessionIdRef.current;
 
+      chatProcessIdRef.current = null;
       pendingChatProcessIdRef.current = true;
       wsBufferRef.current = [];
 

@@ -212,9 +212,10 @@ export const configDungeonmasterBroker = ({
   });
 
   const startupTestOverrides: EslintConfig = eslintConfigContract.parse({
-    files: ['**/startup/*.e2e.test.ts', '**/startup/*.integration.test.ts'],
+    files: ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
     rules: {
       'jest/no-hooks': 'off',
+      '@typescript-eslint/init-declarations': 'off',
     },
   });
 
@@ -240,6 +241,7 @@ export const configDungeonmasterBroker = ({
       'jest/max-expects': 'off',
       'jest/require-top-level-describe': 'off',
       'jest/consistent-test-it': 'off',
+      '@typescript-eslint/init-declarations': 'off',
       // Proxy rules — specs use harnesses, not proxies
       '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
       '@dungeonmaster/enforce-test-proxy-imports': 'off',
@@ -260,6 +262,7 @@ export const configDungeonmasterBroker = ({
     rules: {
       // Harnesses register afterEach/beforeEach internally — lifecycle ownership pattern
       'jest/no-hooks': 'off',
+      '@typescript-eslint/init-declarations': 'off',
       // Harness factory body has statements outside hooks (state tracking, imports)
       'jest/require-hook': 'off',
     },

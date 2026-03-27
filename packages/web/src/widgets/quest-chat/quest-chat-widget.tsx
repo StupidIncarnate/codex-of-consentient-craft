@@ -182,7 +182,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
         type: 'replay-history',
         sessionId: wi.sessionId,
         guildId: currentGuildId,
-        chatProcessId: `replay-${wi.sessionId}`,
+        chatProcessId: `exec-replay-${wi.sessionId}`,
       });
     }
   }, []);
@@ -245,10 +245,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
         const rawChatProcessId: unknown = Reflect.get(parsed.data.payload, 'chatProcessId');
         if (typeof rawChatProcessId !== 'string') return;
 
-        const REPLAY_PREFIX = 'replay-';
-        if (!rawChatProcessId.startsWith(REPLAY_PREFIX)) return;
+        // Only process replay messages initiated by this component's flushPendingReplays,
+        // identified by the 'exec-replay-' prefix. The server broadcasts replay output to
+        // ALL WS clients, so replays triggered by useSessionChatBinding (prefix 'replay-')
+        // or external callers would otherwise duplicate entries in the DOM.
+        const EXEC_REPLAY_PREFIX = 'exec-replay-';
+        if (!rawChatProcessId.startsWith(EXEC_REPLAY_PREFIX)) return;
 
-        const replaySessionId = rawChatProcessId.slice(REPLAY_PREFIX.length) as SessionId;
+        const replaySessionId = rawChatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId;
 
         const rawLine: unknown = Reflect.get(parsed.data.payload, 'line');
         if (typeof rawLine !== 'string') return;
