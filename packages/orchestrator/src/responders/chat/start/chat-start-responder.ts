@@ -79,7 +79,7 @@ export const ChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
         processId: chatProcessId,
-        payload: { questId, chatProcessId },
+        payload: { questId, chatProcessId, role: 'chaoswhisperer' },
       });
     },
     onEntry: ({ chatProcessId, entry }) => {

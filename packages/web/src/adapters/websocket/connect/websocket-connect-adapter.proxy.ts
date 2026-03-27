@@ -6,12 +6,13 @@ interface MockSocket {
   onclose: (() => void) | null;
   close: jest.Mock;
   send: jest.Mock;
-  readyState: typeof WebSocket.OPEN;
+  readyState: typeof WebSocket.OPEN | typeof WebSocket.CONNECTING;
 }
 
 const MOCK_READY_STATE_OPEN = 1;
+const MOCK_READY_STATE_CONNECTING = 0;
 
-const createMockSocket = (): MockSocket => {
+const createMockSocket = ({ deferOpen }: { deferOpen: boolean }): MockSocket => {
   const holder: { onopen: (() => void) | null } = { onopen: null };
 
   return {
@@ -20,7 +21,7 @@ const createMockSocket = (): MockSocket => {
     },
     set onopen(handler: (() => void) | null) {
       holder.onopen = handler;
-      if (handler) {
+      if (handler && !deferOpen) {
         handler();
       }
     },
@@ -28,14 +29,17 @@ const createMockSocket = (): MockSocket => {
     onclose: null,
     close: jest.fn(),
     send: jest.fn(),
-    readyState: MOCK_READY_STATE_OPEN,
+    readyState: deferOpen
+      ? (MOCK_READY_STATE_CONNECTING as typeof WebSocket.CONNECTING)
+      : (MOCK_READY_STATE_OPEN as typeof WebSocket.OPEN),
   };
 };
 
-export const websocketConnectAdapterProxy = (): {
+export const websocketConnectAdapterProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
   receiveMessage: (params: { data: string }) => void;
   triggerClose: () => void;
   triggerReconnect: () => void;
+  triggerOpen: () => void;
   getSocket: () => MockSocket;
   getSentMessages: () => unknown[];
 } => {
@@ -49,7 +53,7 @@ export const websocketConnectAdapterProxy = (): {
 
   const webSocketSpy = registerSpyOn({ object: globalThis as never, method: 'WebSocket' });
   webSocketSpy.mockImplementation((() => {
-    const socket = createMockSocket();
+    const socket = createMockSocket({ deferOpen });
     state.sockets.push(socket);
     return socket;
   }) as never);
@@ -77,6 +81,15 @@ export const websocketConnectAdapterProxy = (): {
       const lastCall = calls[calls.length - 1];
       if (lastCall) {
         lastCall[0]();
+      }
+    },
+
+    triggerOpen: () => {
+      for (const socket of state.sockets) {
+        socket.readyState = MOCK_READY_STATE_OPEN as typeof WebSocket.OPEN;
+        if (socket.onopen) {
+          socket.onopen();
+        }
       }
     },
 

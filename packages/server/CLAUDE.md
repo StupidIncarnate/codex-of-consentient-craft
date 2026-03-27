@@ -36,23 +36,63 @@ Without `DUNGEONMASTER_ENV=dev`, no log lines appear.
 
 ### Log Format
 
-All lines are prefixed with `[dev]` for easy grepping:
+All lines are prefixed with `[dev]` for easy grepping. Orchestration events use structured formatting via
+`devLogEventFormatTransformer` which parses inner JSONL and extracts meaningful fields:
 
 ```
-[dev] WebSocket client connected
-[dev] Chat started: questId=abc-123, messageLength=42
-[dev] Claude CLI spawned: processId=def-456, args=["-p","Help me..."]
-[dev] Chat stream: processId=def-456, type=assistant
-[dev] Chat completed: processId=def-456, exitCode=0
+[dev] 🌐 WebSocket client connected
+[dev] ◂  chat-output  proc:e8c8ba78  system/init
+[dev] ◂  chat-output  proc:e8c8ba78  system/hook_started  hook:9c526043
+[dev] ◂  chat-output  proc:e8c8ba78  assistant/tool_use  Read  .../src/responders/init.ts
+[dev] ◂  chat-output  proc:e8c8ba78  assistant/tool_use  Bash  "npm run ward -- --only unit"
+[dev] ◂  chat-output  proc:e8c8ba78  assistant/tool_use  Agent  "Implement shared changes"
+[dev] ◂  chat-output  proc:e8c8ba78  assistant/text  "Let me read the file."
+[dev] ◂  chat-output  proc:e8c8ba78  assistant/thinking
+[dev] ◂  chat-output  proc:e8c8ba78  user/tool_result  018HzYTL  ok
+[dev] ◂  chat-output  proc:e8c8ba78  user/tool_result  01Hruna  error
+[dev] ◂  chat-output  proc:e8c8ba78  rate_limit  allowed
+[dev] ◂  chat-output  proc:1925f6f6  slot:0  assistant/tool_use  mcp__dungeonmaster__signal-back  quest:abc12345
+[dev] 🔗 quest-session-linked  quest:89362ba3  chat:e8c8ba78
+[dev] ✓  chat-history-complete  proc:e8c8ba78  session:e8c8ba78
+[dev] ⚡ phase-change  proc:abc12345  phase:running
+[dev] ✗  process-failed  proc:abc12345
 [dev] Shutting down: killing all chat processes (SIGINT)
+```
+
+**Icon legend:** `◂` chat stream, `✓` complete, `✗` failed, `⚡` state change, `🔗` linked, `?` clarification
+
+**UUIDs are shortened** to first 8 hex chars (e.g. `89362ba3-918c-4408-...` → `89362ba3`).
+
+### Adding New Orchestration Event Formatting
+
+To add formatting for a new inner JSONL type (e.g. a new Claude CLI output type):
+
+1. Add handling in `src/transformers/dev-log-inner-jsonl-format/dev-log-inner-jsonl-format-transformer.ts`
+2. Add a test case in the corresponding test file
+
+To add formatting for a new orchestration event type:
+
+1. Add the icon in `src/statics/dev-log-event-icons/dev-log-event-icons-statics.ts`
+2. If it needs custom field extraction, update `src/transformers/dev-log-generic-event-format/`
+
+### Transformer Chain
+
+```
+devLogEventFormatTransformer (main entry)
+  ├─ devLogChatOutputFormatTransformer (parses payload.line or payload.entry.raw)
+  │    ├─ devLogProcLabelTransformer (extracts proc:XXXXXXXX)
+  │    └─ devLogInnerJsonlFormatTransformer (formats by inner type)
+  │         └─ devLogToolInputFormatTransformer (tool-specific detail)
+  └─ devLogGenericEventFormatTransformer (non-chat events)
+       ├─ devLogProcLabelTransformer
+       └─ devLogShortIdTransformer (UUID → 8 chars)
 ```
 
 ### Modifying Log Behavior
 
-All formatting and gating lives in one place:
-`src/adapters/process/dev-log/process-dev-log-adapter.ts`
-
-To change the prefix, add timestamps, or route logs elsewhere, modify that single file.
+- **Gating and prefix:** `src/adapters/process/dev-log/process-dev-log-adapter.ts`
+- **Event formatting:** `src/transformers/dev-log-event-format/` and its chain (see above)
+- **Static messages** (WS connect, shutdown, errors): directly in the responder via `processDevLogAdapter`
 
 ## Quest Event Relay
 

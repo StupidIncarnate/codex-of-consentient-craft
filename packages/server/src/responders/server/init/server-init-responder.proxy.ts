@@ -33,8 +33,11 @@ export const ServerInitResponderProxy = (): {
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
   setupLoadQuestFailure: (params: { error: Error }) => void;
   setupListQuestsSuccess: (params: { quests: QuestListItem[] }) => void;
+  setupListQuestsFailure: (params: { error: Error }) => void;
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
+  enableDevLogs: () => void;
+  getDevLogOutput: () => jest.SpyInstance;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getOutboxWatchCallbacks: () => {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
@@ -51,7 +54,7 @@ export const ServerInitResponderProxy = (): {
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
   orchestratorRecoverActiveQuestsAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
-  processDevLogAdapterProxy();
+  const devLogProxy = processDevLogAdapterProxy();
   pathJoinAdapterProxy();
   fsReadFileAdapterProxy();
   orchestratorFindQuestPathAdapterProxy();
@@ -80,6 +83,9 @@ export const ServerInitResponderProxy = (): {
     setupListQuestsSuccess: ({ quests }: { quests: QuestListItem[] }): void => {
       listQuestsProxy.returns({ quests });
     },
+    setupListQuestsFailure: ({ error }: { error: Error }): void => {
+      listQuestsProxy.throws({ error });
+    },
     setupReplaySuccess: (): void => {
       replayProxy.setupSuccess();
     },
@@ -95,5 +101,9 @@ export const ServerInitResponderProxy = (): {
       onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
       onError: ((args: { error: unknown }) => void) | undefined;
     } => outboxWatchProxy.getCapturedCallbacks(),
+    enableDevLogs: (): void => {
+      devLogProxy.enableDev();
+    },
+    getDevLogOutput: (): jest.SpyInstance => devLogProxy.getWrittenLines(),
   };
 };

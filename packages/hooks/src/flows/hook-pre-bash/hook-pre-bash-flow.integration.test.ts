@@ -18,6 +18,30 @@ describe('HookPreBashFlow', () => {
       expect(result.stderr).toMatch(/Blocked: direct jest invocation/u);
     });
 
+    it('VALID: {inputData: piped ward command JSON} => returns exitCode 0 with updatedInput in stdout', () => {
+      const inputData = JSON.stringify({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward -- --only unit | tail -80' },
+      });
+
+      const result = HookPreBashFlow({ inputData });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe('');
+      expect(JSON.parse(result.stdout)).toStrictEqual({
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          updatedInput: {
+            command: 'npm run ward -- --only unit',
+          },
+        },
+      });
+    });
+
     it('VALID: {inputData: allowed command JSON} => returns exitCode 0 with empty stderr', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

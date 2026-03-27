@@ -12,25 +12,31 @@ import { useState } from 'react';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 
 type ToolUseEntry = Extract<ChatEntry, { type: 'tool_use' }>;
+type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
+import { ToolResultInlineLayerWidget } from './tool-result-inline-layer-widget';
 
 const BORDER_WIDTH = '2px solid';
 const LABEL_FONT_WEIGHT = 600;
 
 export interface ToolUseLayerWidgetProps {
   entry: ToolUseEntry;
+  toolResult?: ToolResultEntry | null;
   isLoading?: boolean;
   tokenBadgeElement: React.JSX.Element | null;
+  resultTokenBadgeElement?: React.JSX.Element | null;
   isSubagent: boolean;
   compact?: boolean;
 }
 
 export const ToolUseLayerWidget = ({
   entry,
+  toolResult,
   isLoading,
   tokenBadgeElement,
+  resultTokenBadgeElement,
   isSubagent,
   compact,
 }: ToolUseLayerWidgetProps): React.JSX.Element => {
@@ -86,7 +92,13 @@ export const ToolUseLayerWidget = ({
             ))
           : null}
         {toolBadge}
-        {isLoading ? (
+        {toolResult !== undefined && toolResult !== null ? (
+          <ToolResultInlineLayerWidget
+            toolResult={toolResult}
+            {...(resultTokenBadgeElement === undefined ? {} : { resultTokenBadgeElement })}
+          />
+        ) : null}
+        {isLoading === true && (toolResult === undefined || toolResult === null) ? (
           <Text
             ff="monospace"
             size="xs"
@@ -210,7 +222,13 @@ export const ToolUseLayerWidget = ({
         </Text>
       )}
       {toolBadge}
-      {isLoading ? (
+      {toolResult !== undefined && toolResult !== null ? (
+        <ToolResultInlineLayerWidget
+          toolResult={toolResult}
+          {...(resultTokenBadgeElement === undefined ? {} : { resultTokenBadgeElement })}
+        />
+      ) : null}
+      {isLoading === true && (toolResult === undefined || toolResult === null) ? (
         <Text
           ff="monospace"
           size="xs"

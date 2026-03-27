@@ -9,6 +9,7 @@
 import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
@@ -16,7 +17,10 @@ import { formattedTokenLabelContract } from '../../contracts/formatted-token-lab
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { estimateContentTokensTransformer } from '../../transformers/estimate-content-tokens/estimate-content-tokens-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
+import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+
+type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
 export interface ToolGroupWidgetProps {
   group: ChatEntryGroup;
@@ -49,7 +53,8 @@ export const ToolGroupWidget = ({
       ? `${chevron} ${String(group.toolCount)} Tools`
       : `${chevron} ${String(group.toolCount)} Tools (${formattedTokens} context)`;
 
-  const lastEntry = group.entries.at(-1);
+  const pairs = mergeToolEntriesTransformer({ entries: group.entries });
+  const lastPair = pairs.at(-1);
 
   return (
     <Box>
@@ -87,9 +92,15 @@ export const ToolGroupWidget = ({
         </Text>
       </Box>
 
-      {isActiveStreaming && !expanded && lastEntry !== undefined ? (
+      {isActiveStreaming && !expanded && lastPair !== undefined && lastPair.kind === 'tool-pair' ? (
         <Box style={{ paddingLeft: 12 }}>
-          <ChatMessageWidget entry={lastEntry} isLoading={true} />
+          <ChatMessageWidget
+            entry={lastPair.toolUse}
+            isLoading={lastPair.toolResult === null}
+            {...(lastPair.toolResult === null
+              ? {}
+              : { toolResult: lastPair.toolResult as ToolResultEntry })}
+          />
         </Box>
       ) : null}
 
@@ -98,58 +109,69 @@ export const ToolGroupWidget = ({
           {(() => {
             let prevContext: ContextTokenCount | null = null;
 
-            return group.entries.map((entry, index) => {
-              if ('usage' in entry && entry.usage !== undefined) {
-                const totalContext = contextTokenCountContract.parse(
-                  Number(entry.usage.inputTokens) +
-                    Number(entry.usage.cacheCreationInputTokens) +
-                    Number(entry.usage.cacheReadInputTokens),
-                );
-                const delta =
-                  prevContext === null
-                    ? totalContext
-                    : contextTokenCountContract.parse(
-                        Math.max(0, Number(totalContext) - Number(prevContext)),
+            return pairs.map((item, index) => {
+              if (item.kind === 'tool-pair') {
+                const toolUseEntry = item.toolUse;
+
+                // Compute context token delta for tool_use with usage
+                const contextDelta = (() => {
+                  if (!('usage' in toolUseEntry) || toolUseEntry.usage === undefined) return null;
+                  const totalContext = contextTokenCountContract.parse(
+                    Number(toolUseEntry.usage.inputTokens) +
+                      Number(toolUseEntry.usage.cacheCreationInputTokens) +
+                      Number(toolUseEntry.usage.cacheReadInputTokens),
+                  );
+                  const delta =
+                    prevContext === null
+                      ? totalContext
+                      : contextTokenCountContract.parse(
+                          Math.max(0, Number(totalContext) - Number(prevContext)),
+                        );
+                  prevContext = totalContext;
+                  return Number(delta) > 0 ? delta : null;
+                })();
+
+                const tokenBadgeLabel =
+                  contextDelta === null
+                    ? undefined
+                    : formattedTokenLabelContract.parse(
+                        `${formatContextTokensTransformer({ count: contextDelta })} context`,
                       );
-                prevContext = totalContext;
 
-                if (Number(delta) === 0) {
-                  return <ChatMessageWidget key={index} entry={entry} />;
-                }
+                // Compute estimated tokens for tool_result content
+                const estimatedTokens = (() => {
+                  if (item.toolResult === null) return null;
+                  if (!('content' in item.toolResult)) return null;
+                  if (typeof item.toolResult.content !== 'string') return null;
+                  if (item.toolResult.content.length === 0) return null;
+                  const estimated = estimateContentTokensTransformer({
+                    content: item.toolResult.content,
+                  });
+                  return Number(estimated) > 0 ? estimated : null;
+                })();
 
-                const tokenBadgeLabel = formattedTokenLabelContract.parse(
-                  `${formatContextTokensTransformer({ count: delta })} context`,
-                );
+                const resultTokenBadgeLabel =
+                  estimatedTokens === null
+                    ? undefined
+                    : formattedTokenLabelContract.parse(
+                        `~${formatContextTokensTransformer({ count: estimatedTokens })} est`,
+                      );
 
                 return (
-                  <ChatMessageWidget key={index} entry={entry} tokenBadgeLabel={tokenBadgeLabel} />
+                  <ChatMessageWidget
+                    key={index}
+                    entry={toolUseEntry}
+                    {...(item.toolResult === null
+                      ? {}
+                      : { toolResult: item.toolResult as ToolResultEntry })}
+                    {...(tokenBadgeLabel === undefined ? {} : { tokenBadgeLabel })}
+                    {...(resultTokenBadgeLabel === undefined ? {} : { resultTokenBadgeLabel })}
+                  />
                 );
               }
 
-              if (
-                'type' in entry &&
-                entry.type === 'tool_result' &&
-                'content' in entry &&
-                typeof entry.content === 'string' &&
-                entry.content.length > 0
-              ) {
-                const estimated = estimateContentTokensTransformer({ content: entry.content });
-                if (Number(estimated) > 0) {
-                  const tokenBadgeLabel = formattedTokenLabelContract.parse(
-                    `~${formatContextTokensTransformer({ count: estimated })} est`,
-                  );
-
-                  return (
-                    <ChatMessageWidget
-                      key={index}
-                      entry={entry}
-                      tokenBadgeLabel={tokenBadgeLabel}
-                    />
-                  );
-                }
-              }
-
-              return <ChatMessageWidget key={index} entry={entry} />;
+              // Regular entry (orphan tool_result or non-tool entry)
+              return <ChatMessageWidget key={index} entry={item.entry} />;
             });
           })()}
         </Box>

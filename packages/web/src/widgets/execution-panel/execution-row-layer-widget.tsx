@@ -29,6 +29,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
+import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
@@ -352,9 +353,26 @@ export const ExecutionRowLayerWidget = ({
             </Text>
           ) : null}
           {entries && entries.length > 0
-            ? entries.map((entry, i) => (
-                <ChatMessageWidget key={i} entry={entry} compact={true} roleLabel={role} />
-              ))
+            ? mergeToolEntriesTransformer({ entries }).map((item, i) =>
+                item.kind === 'tool-pair' ? (
+                  <ChatMessageWidget
+                    key={i}
+                    entry={item.toolUse}
+                    {...(item.toolResult === null
+                      ? {}
+                      : {
+                          toolResult: item.toolResult as Extract<
+                            ChatEntry,
+                            { type: 'tool_result' }
+                          >,
+                        })}
+                    compact={true}
+                    roleLabel={role}
+                  />
+                ) : (
+                  <ChatMessageWidget key={i} entry={item.entry} compact={true} roleLabel={role} />
+                ),
+              )
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
           <div ref={scrollEndRef} />

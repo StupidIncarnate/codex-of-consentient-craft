@@ -31,20 +31,21 @@ import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
+import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
-const LOG_SNIPPET_LENGTH = 200;
 
 export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
   const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
   const { upgradeWebSocket } = nodeWebSocket;
   const clients = new Set<WsClient>();
+  const processRoleMap = new Map<ProcessId, WorkItemRole>();
 
   app.get(
     '/ws',
@@ -70,11 +71,33 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
             const guildId = guildIdContract.parse(Reflect.get(raw, 'guildId'));
             const chatProcessId = processIdContract.parse(Reflect.get(raw, 'chatProcessId'));
 
-            orchestratorReplayChatHistoryAdapter({ sessionId, guildId, chatProcessId }).catch(
-              () => {
-                processDevLogAdapter({ message: 'replay-history failed' });
-              },
-            );
+            orchestratorListQuestsAdapter({ guildId })
+              .then(async (quests) => {
+                const fullQuests = await Promise.all(
+                  quests.map(async (q) => orchestratorLoadQuestAdapter({ questId: q.id })),
+                );
+                for (const fullQuest of fullQuests) {
+                  const wi = fullQuest.workItems.find((w) => w.sessionId === sessionId);
+                  if (wi?.role) {
+                    processRoleMap.set(chatProcessId, wi.role);
+                    break;
+                  }
+                }
+              })
+              .catch((error: unknown) => {
+                processDevLogAdapter({
+                  message: `replay role lookup failed: ${error instanceof Error ? error.message : String(error)}`,
+                });
+              })
+              .finally(() => {
+                orchestratorReplayChatHistoryAdapter({
+                  sessionId,
+                  guildId,
+                  chatProcessId,
+                }).catch(() => {
+                  processDevLogAdapter({ message: 'replay-history failed' });
+                });
+              });
           }
 
           if (type === 'quest-by-session-request') {
@@ -96,9 +119,13 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
                   (_ws as WsClient).send(JSON.stringify(message));
                 });
               })
-              .catch(() => {
+              .catch((error: unknown) => {
+                const reason =
+                  error instanceof Error
+                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+                    : String(error);
                 processDevLogAdapter({
-                  message: `quest-by-session-request failed for session ${sessionId}`,
+                  message: `quest-by-session-request failed for session ${sessionId}: ${reason}`,
                 });
               });
           }
@@ -126,14 +153,22 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
                   }),
                 );
               })
-              .catch(() => {
+              .catch((error: unknown) => {
+                const reason =
+                  error instanceof Error
+                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+                    : String(error);
                 processDevLogAdapter({
-                  message: `ward-detail-request failed for quest ${questId}, ward ${wardResultId}`,
+                  message: `ward-detail-request failed for quest ${questId}, ward ${wardResultId}: ${reason}`,
                 });
               });
           }
-        } catch {
-          processDevLogAdapter({ message: 'WebSocket message parse error' });
+        } catch (error: unknown) {
+          const reason =
+            error instanceof Error
+              ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+              : String(error);
+          processDevLogAdapter({ message: `WebSocket message parse error: ${reason}` });
         }
       },
       onClose: (_evt: unknown, ws: unknown) => {
@@ -171,8 +206,21 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
     orchestratorEventsOnAdapter({
       type,
       handler: ({ processId, payload }) => {
+        const role = processRoleMap.get(processId);
+        const enrichedPayload =
+          type === 'chat-output' && role && !Reflect.get(payload, 'role')
+            ? { ...payload, role }
+            : payload;
+
+        if (type === 'chat-history-complete') {
+          processRoleMap.delete(processId);
+        }
+
         processDevLogAdapter({
-          message: `${type} ${JSON.stringify(payload).slice(0, LOG_SNIPPET_LENGTH)}`,
+          message: devLogEventFormatTransformer({
+            type,
+            payload: enrichedPayload as Record<PropertyKey, unknown>,
+          }),
         });
 
         if (type === 'chat-output' && typeof Reflect.get(payload, 'slotIndex') === 'number') {
@@ -221,15 +269,23 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
             }),
           });
         })
-        .catch(() => {
-          processDevLogAdapter({ message: `Outbox quest load failed for ${questId}` });
+        .catch((error: unknown) => {
+          const reason =
+            error instanceof Error
+              ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+              : String(error);
+          processDevLogAdapter({ message: `Outbox quest load failed for ${questId}: ${reason}` });
         });
     },
     onError: ({ error }) => {
       processDevLogAdapter({ message: `Outbox watch error: ${String(error)}` });
     },
-  }).catch(() => {
-    processDevLogAdapter({ message: 'Outbox watcher failed to start' });
+  }).catch((error: unknown) => {
+    const reason =
+      error instanceof Error
+        ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+        : String(error);
+    processDevLogAdapter({ message: `Outbox watcher failed to start: ${reason}` });
   });
 
   orchestratorRecoverActiveQuestsAdapter()
@@ -240,8 +296,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
         });
       }
     })
-    .catch(() => {
-      processDevLogAdapter({ message: 'Startup recovery failed' });
+    .catch((error: unknown) => {
+      const reason =
+        error instanceof Error
+          ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+          : String(error);
+      processDevLogAdapter({ message: `Startup recovery failed: ${reason}` });
     });
 
   process.on('SIGTERM', () => {

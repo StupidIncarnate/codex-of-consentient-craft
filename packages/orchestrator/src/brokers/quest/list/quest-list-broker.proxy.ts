@@ -9,6 +9,7 @@ import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-
 export const questListBrokerProxy = (): {
   setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
   setupQuestDirectories: (params: { files: FileName[] }) => void;
+  setupQuestDirectoriesFailure: (params: { error: Error }) => void;
   setupQuestFilePath: (params: { result: FilePath }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
 } => {
@@ -35,6 +36,9 @@ export const questListBrokerProxy = (): {
     },
     setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
       fsReaddirProxy.returns({ files });
+    },
+    setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
+      fsReaddirProxy.throws({ error });
     },
     setupQuestFilePath: ({ result }: { result: FilePath }): void => {
       pathJoinProxy.returns({ result });

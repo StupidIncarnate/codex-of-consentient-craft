@@ -38,6 +38,11 @@ export const RecoverGuildLayerResponderProxy = (): {
     quests: Quest[];
     existingProcessQuestId: QuestId;
   }) => void;
+  setupGuildDirectoryReadFailure: (params: {
+    guildId: GuildId;
+    guildPath: GuildPath;
+    error: Error;
+  }) => void;
   getRegisteredProcessIds: () => readonly ProcessId[];
   getAllPersistedContents: () => readonly unknown[];
 } => {
@@ -151,6 +156,28 @@ export const RecoverGuildLayerResponderProxy = (): {
           questId: existingProcessQuestId,
           kill: jest.fn(),
         },
+      });
+    },
+
+    setupGuildDirectoryReadFailure: ({
+      guildId,
+      guildPath,
+      error,
+    }: {
+      guildId: GuildId;
+      guildPath: GuildPath;
+      error: Error;
+    }): void => {
+      questListProxy.setupQuestsPath({
+        homeDir: '/home/user',
+        homePath: '/home/user/.dungeonmaster' as never,
+        questsPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests` as never,
+      });
+      questListProxy.setupQuestDirectoriesFailure({ error });
+      guildGetProxy.setupConfig({
+        config: GuildConfigStub({
+          guilds: [GuildStub({ id: guildId, path: guildPath })],
+        }),
       });
     },
 

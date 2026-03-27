@@ -6,7 +6,7 @@
  * // Renders split panel chat interface, reads guildSlug and optional sessionId from URL params
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
@@ -156,8 +156,36 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   const replayedSessionsRef = useRef<Set<SessionId>>(new Set());
   const executionWsRef = useRef<ReturnType<typeof websocketConnectAdapter> | null>(null);
+  const executionWsOpenRef = useRef(false);
   const isExecutionPhase =
     questData !== null && isExecutionPhaseGuard({ status: questData.status });
+
+  const questDataRef = useRef(questData);
+  const resolvedGuildIdRef = useRef(resolvedGuildId);
+  questDataRef.current = questData;
+  resolvedGuildIdRef.current = resolvedGuildId;
+
+  const flushPendingReplays = useCallback((): void => {
+    const connection = executionWsRef.current;
+    const currentQuestData = questDataRef.current;
+    const currentGuildId = resolvedGuildIdRef.current;
+    if (!connection || !currentQuestData || !currentGuildId || !executionWsOpenRef.current) return;
+
+    const WARD_SESSION_PREFIX = 'ward-';
+
+    for (const wi of currentQuestData.workItems) {
+      if (!wi.sessionId) continue;
+      if (wi.sessionId.startsWith(WARD_SESSION_PREFIX)) continue;
+      if (replayedSessionsRef.current.has(wi.sessionId)) continue;
+      replayedSessionsRef.current.add(wi.sessionId);
+      connection.send({
+        type: 'replay-history',
+        sessionId: wi.sessionId,
+        guildId: currentGuildId,
+        chatProcessId: `replay-${wi.sessionId}`,
+      });
+    }
+  }, []);
 
   // Stable WS connection for execution-phase chat-output streaming.
   // Created once when execution phase begins, never torn down on questData updates.
@@ -167,6 +195,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
     const connection = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
+      onOpen: (): void => {
+        executionWsOpenRef.current = true;
+        flushPendingReplays();
+      },
       onMessage: (message: unknown): void => {
         const parsed = wsMessageContract.safeParse(message);
         if (!parsed.success) return;
@@ -237,34 +269,20 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
     return (): void => {
       executionWsRef.current = null;
+      executionWsOpenRef.current = false;
       connection.close();
     };
-  }, [isExecutionPhase, handleAgentOutput]);
+  }, [isExecutionPhase, handleAgentOutput, flushPendingReplays]);
 
   // Replay historical sessions for work items as they appear in quest data.
   // Runs separately from WS creation so quest data updates don't tear down the connection.
+  // If the WS is already open, flushes immediately. If not, onOpen will flush when ready.
   useEffect(() => {
     if (!questData) return;
     if (!resolvedGuildId) return;
 
-    const connection = executionWsRef.current;
-    if (!connection) return;
-
-    const WARD_SESSION_PREFIX = 'ward-';
-
-    for (const wi of questData.workItems) {
-      if (!wi.sessionId) continue;
-      if (wi.sessionId.startsWith(WARD_SESSION_PREFIX)) continue;
-      if (replayedSessionsRef.current.has(wi.sessionId)) continue;
-      replayedSessionsRef.current.add(wi.sessionId);
-      connection.send({
-        type: 'replay-history',
-        sessionId: wi.sessionId,
-        guildId: resolvedGuildId,
-        chatProcessId: `replay-${wi.sessionId}`,
-      });
-    }
-  }, [questData, resolvedGuildId]);
+    flushPendingReplays();
+  }, [questData, resolvedGuildId, flushPendingReplays]);
 
   const entryBasedQuestion = hasPendingQuestionGuard({ entries })
     ? extractAskUserQuestionTransformer({ entries })

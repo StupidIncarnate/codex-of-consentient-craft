@@ -139,8 +139,14 @@ export const RecoverGuildLayerResponder = async ({
 
       recoveredIds.push(quest.id);
     }
-  } catch {
-    // Guild quest directory may not exist yet
+  } catch (error: unknown) {
+    const isFileNotFound =
+      error instanceof Error &&
+      'code' in error &&
+      (error as NodeJS.ErrnoException).code === 'ENOENT';
+    if (!isFileNotFound) {
+      throw error;
+    }
   }
 
   return recoveredIds;

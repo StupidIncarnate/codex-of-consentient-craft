@@ -22,6 +22,21 @@ export const HookPreBashFlow = ({ inputData }: { inputData: string }): ExecResul
       input: parsed as Parameters<typeof HookPreBashResponder>[0]['input'],
     });
 
+    if (result.updatedCommand) {
+      return execResultContract.parse({
+        stderr: '',
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: {
+              command: result.updatedCommand,
+            },
+          },
+        }),
+        exitCode: 0,
+      });
+    }
+
     return execResultContract.parse({
       stderr: result.shouldBlock ? `${result.message ?? 'Command blocked'}\n` : '',
       stdout: '',

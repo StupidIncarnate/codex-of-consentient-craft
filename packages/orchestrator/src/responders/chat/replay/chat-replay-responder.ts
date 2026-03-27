@@ -58,10 +58,15 @@ export const ChatReplayResponder = async ({
     );
 
     if (linkedQuest) {
+      const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
         processId: chatProcessId,
-        payload: { questId: linkedQuest.id, chatProcessId },
+        payload: {
+          questId: linkedQuest.id,
+          chatProcessId,
+          ...(matchedWorkItem?.role ? { role: matchedWorkItem.role } : {}),
+        },
       });
     }
   } catch {

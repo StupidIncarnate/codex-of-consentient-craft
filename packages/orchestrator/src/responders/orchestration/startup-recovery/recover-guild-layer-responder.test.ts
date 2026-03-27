@@ -340,6 +340,40 @@ describe('RecoverGuildLayerResponder', () => {
     });
   });
 
+  describe('directory read errors', () => {
+    it('VALID: {ENOENT error reading quest directory} => returns empty array without throwing', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      const enoentError = Object.assign(new Error('ENOENT: no such file or directory'), {
+        code: 'ENOENT',
+      });
+      proxy.setupGuildDirectoryReadFailure({ guildId, guildPath, error: enoentError });
+
+      const result = await RecoverGuildLayerResponder({ guildItem });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('ERROR: {non-ENOENT error reading quest directory} => throws the original error', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      const permissionError = Object.assign(new Error('EACCES: permission denied'), {
+        code: 'EACCES',
+      });
+      proxy.setupGuildDirectoryReadFailure({ guildId, guildPath, error: permissionError });
+
+      await expect(RecoverGuildLayerResponder({ guildItem })).rejects.toThrow(
+        'EACCES: permission denied',
+      );
+    });
+  });
+
   describe('existing process', () => {
     it('VALID: {recoverable quest with existing process} => does not register duplicate process', async () => {
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });

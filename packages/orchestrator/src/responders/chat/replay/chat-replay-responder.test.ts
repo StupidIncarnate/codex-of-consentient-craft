@@ -98,7 +98,7 @@ describe('ChatReplayResponder', () => {
       expect(linkEvent).toStrictEqual({
         type: 'quest-session-linked',
         processId: chatProcessId,
-        payload: { questId: quest.id, chatProcessId },
+        payload: { questId: quest.id, chatProcessId, role: 'chaoswhisperer' },
       });
     });
   });

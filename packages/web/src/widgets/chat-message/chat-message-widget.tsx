@@ -22,10 +22,14 @@ import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
 import { ThinkingLayerWidget } from './thinking-layer-widget';
 import { ToolUseLayerWidget } from './tool-use-layer-widget';
 
+type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
+
 export interface ChatMessageWidgetProps {
   entry: ChatEntry;
+  toolResult?: ToolResultEntry | null;
   isLoading?: boolean;
   tokenBadgeLabel?: FormattedTokenLabel;
+  resultTokenBadgeLabel?: FormattedTokenLabel;
   compact?: boolean;
   roleLabel?: ExecutionRole;
 }
@@ -35,8 +39,10 @@ const LABEL_FONT_WEIGHT = 600;
 
 export const ChatMessageWidget = ({
   entry,
+  toolResult,
   isLoading,
   tokenBadgeLabel,
+  resultTokenBadgeLabel,
   compact,
   roleLabel,
 }: ChatMessageWidgetProps): React.JSX.Element => {
@@ -261,11 +267,24 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.type === 'tool_use') {
+    const resultBadgeElement =
+      resultTokenBadgeLabel === undefined ? null : (
+        <Text
+          ff="monospace"
+          data-testid="TOKEN_BADGE"
+          style={{ color: colors['text-dim'], fontSize: 10 }}
+        >
+          {resultTokenBadgeLabel}
+        </Text>
+      );
+
     return (
       <ToolUseLayerWidget
         entry={entry}
+        {...(toolResult !== undefined && toolResult !== null ? { toolResult } : {})}
         {...(isLoading === undefined ? {} : { isLoading })}
         tokenBadgeElement={tokenBadgeElement}
+        {...(resultBadgeElement === null ? {} : { resultTokenBadgeElement: resultBadgeElement })}
         isSubagent={isSubagent}
         {...(compact === true ? { compact } : {})}
       />

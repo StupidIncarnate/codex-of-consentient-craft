@@ -1922,4 +1922,79 @@ describe('QuestChatWidget', () => {
       expect(messages[0]?.textContent).toMatch(/Exploring quest requirements/u);
     });
   });
+
+  describe('execution phase WS replay race condition', () => {
+    it('VALID: {WS not yet open when quest data arrives} => replay-history deferred until WS opens', async () => {
+      const proxy = QuestChatWidgetProxy({ deferOpen: true });
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-race-1',
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000010',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-race-1' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000011',
+            role: 'pathseeker',
+            status: 'in_progress',
+            sessionId: 'ps-session-race' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-race-1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-race-1',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([]);
+
+      act(() => {
+        proxy.triggerWsOpen();
+      });
+
+      await waitFor(() => {
+        const sent = proxy.getSentWsMessages();
+
+        expect(sent.length).toBeGreaterThan(0);
+      });
+
+      const sent = proxy.getSentWsMessages();
+      const replaySessionIds = sent
+        .filter((msg) => Reflect.get(msg as object, 'type') === 'replay-history')
+        .map((msg) => Reflect.get(msg as object, 'sessionId'));
+
+      expect(replaySessionIds).toStrictEqual(['chat-race-1', 'chat-race-1', 'ps-session-race']);
+    });
+  });
 });

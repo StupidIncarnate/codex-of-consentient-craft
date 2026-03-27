@@ -42,7 +42,7 @@ type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type Guild = ReturnType<typeof GuildStub>;
 
-export const QuestChatWidgetProxy = (): {
+export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupChatError: () => void;
   setupStop: () => void;
@@ -52,6 +52,7 @@ export const QuestChatWidgetProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
   getSentWsMessages: () => unknown[];
+  triggerWsOpen: () => void;
   hasChatPanel: () => boolean;
   hasActivityPlaceholder: () => boolean;
   hasDivider: () => boolean;
@@ -84,12 +85,12 @@ export const QuestChatWidgetProxy = (): {
   setupQuestModifyError: () => void;
   setupQuestPauseError: () => void;
 } => {
-  websocketConnectAdapterProxy();
+  websocketConnectAdapterProxy({ deferOpen });
   useAgentOutputBindingProxy();
   const guildsBindingProxy = useGuildsBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
-  const chatBindingProxy = useSessionChatBindingProxy();
+  const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
   ChatPanelWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
@@ -140,6 +141,9 @@ export const QuestChatWidgetProxy = (): {
       guildDetailProxy.setupError();
     },
     getSentWsMessages: (): unknown[] => chatBindingProxy.getSentWsMessages(),
+    triggerWsOpen: (): void => {
+      chatBindingProxy.triggerWsOpen();
+    },
     hasChatPanel: (): boolean => screen.queryByTestId('CHAT_PANEL') !== null,
     hasActivityPlaceholder: (): boolean => screen.queryByTestId('QUEST_CHAT_ACTIVITY') !== null,
     hasDivider: (): boolean => screen.queryByTestId('QUEST_CHAT_DIVIDER') !== null,

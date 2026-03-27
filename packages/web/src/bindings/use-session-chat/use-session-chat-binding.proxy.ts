@@ -4,7 +4,7 @@ import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/w
 import { sessionChatBrokerProxy } from '../../brokers/session/chat/session-chat-broker.proxy';
 import { sessionChatStopBrokerProxy } from '../../brokers/session/chat-stop/session-chat-stop-broker.proxy';
 
-export const useSessionChatBindingProxy = (): {
+export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupSessionChat: (params: { chatProcessId: ProcessId }) => void;
   setupSessionNew: (params: { chatProcessId: ProcessId }) => void;
@@ -13,10 +13,11 @@ export const useSessionChatBindingProxy = (): {
   setupStopError: () => void;
   receiveWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
+  triggerWsOpen: () => void;
 } => {
   const chatProxy = sessionChatBrokerProxy();
   const stopProxy = sessionChatStopBrokerProxy();
-  const wsProxy = websocketConnectAdapterProxy();
+  const wsProxy = websocketConnectAdapterProxy({ deferOpen });
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -42,5 +43,8 @@ export const useSessionChatBindingProxy = (): {
       wsProxy.receiveMessage({ data });
     },
     getSentWsMessages: (): unknown[] => wsProxy.getSentMessages(),
+    triggerWsOpen: (): void => {
+      wsProxy.triggerOpen();
+    },
   };
 };

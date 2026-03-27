@@ -97,6 +97,80 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('websocket onMessage quest-by-session-request error logging', () => {
+    it('ERROR: {listQuests rejects with Error} => logs error reason via processDevLogAdapter', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.enableDevLogs();
+      const sessionId = SessionIdStub({ value: 'session-fail' });
+      const guildId = GuildIdStub();
+
+      proxy.setupListQuestsFailure({
+        error: new Error('Connection refused'),
+      });
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'quest-by-session-request',
+          sessionId,
+          guildId,
+        }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const spy = proxy.getDevLogOutput();
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringMatching(/quest-by-session-request failed.*Connection refused/u),
+      );
+    });
+
+    it('ERROR: {loadQuest rejects with cause} => logs error message and cause', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.enableDevLogs();
+      const sessionId = SessionIdStub({ value: 'session-cause' });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'quest-cause' });
+
+      proxy.setupListQuestsSuccess({
+        quests: [QuestListItemStub({ id: questId, activeSessionId: sessionId })],
+      });
+      proxy.setupLoadQuestFailure({
+        error: Object.assign(new Error('Failed to parse quest file'), {
+          cause: new SyntaxError('Unexpected token'),
+        }),
+      });
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'quest-by-session-request',
+          sessionId,
+          guildId,
+        }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const spy = proxy.getDevLogOutput();
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringMatching(/Failed to parse quest file.*cause.*Unexpected token/u),
+      );
+    });
+  });
+
   describe('websocket onMessage parse error', () => {
     it('ERROR: {unparseable data} => does not throw', () => {
       const proxy = ServerInitResponderProxy();
