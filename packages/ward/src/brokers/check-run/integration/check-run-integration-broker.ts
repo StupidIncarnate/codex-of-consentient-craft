@@ -195,19 +195,16 @@ export const checkRunIntegrationBroker = async ({
             const name: unknown = Reflect.get(tr, 'name');
             if (typeof name === 'string' && name.length > 0) {
               processedFiles.push(gitRelativePathContract.parse(name));
-              if ('perfStats' in tr) {
-                const perfStats: unknown = Reflect.get(tr, 'perfStats');
-                if (typeof perfStats === 'object' && perfStats !== null) {
-                  const start: unknown = Reflect.get(perfStats, 'start');
-                  const end: unknown = Reflect.get(perfStats, 'end');
-                  if (typeof start === 'number' && typeof end === 'number') {
-                    fileTimings.push(
-                      fileTimingContract.parse({
-                        filePath: gitRelativePathContract.parse(name),
-                        durationMs: end - start,
-                      }),
-                    );
-                  }
+              if ('startTime' in tr && 'endTime' in tr) {
+                const startTime: unknown = Reflect.get(tr, 'startTime');
+                const endTime: unknown = Reflect.get(tr, 'endTime');
+                if (typeof startTime === 'number' && typeof endTime === 'number') {
+                  fileTimings.push(
+                    fileTimingContract.parse({
+                      filePath: gitRelativePathContract.parse(name),
+                      durationMs: endTime - startTime,
+                    }),
+                  );
                 }
               }
             }

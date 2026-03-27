@@ -508,19 +508,21 @@ describe('checkRunIntegrationBroker', () => {
   });
 
   describe('fileTimings', () => {
-    it('VALID: {jest output with perfStats} => returns fileTimings with per-file durations', async () => {
+    it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
       const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
             name: 'src/flows/install/install.integration.test.ts',
             assertionResults: [],
-            perfStats: { start: 5000, end: 8500 },
+            startTime: 5000,
+            endTime: 8500,
           },
           {
             name: 'src/flows/quest/quest.integration.test.ts',
             assertionResults: [],
-            perfStats: { start: 9000, end: 10200 },
+            startTime: 9000,
+            endTime: 10200,
           },
         ],
         numTotalTestSuites: 2,
@@ -564,7 +566,7 @@ describe('checkRunIntegrationBroker', () => {
       );
     });
 
-    it('EDGE: {jest output without perfStats} => returns empty fileTimings', async () => {
+    it('EDGE: {jest output without startTime/endTime} => returns empty fileTimings', async () => {
       const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [

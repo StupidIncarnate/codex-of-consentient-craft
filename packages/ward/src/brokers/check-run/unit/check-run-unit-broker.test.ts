@@ -628,19 +628,21 @@ describe('checkRunUnitBroker', () => {
   });
 
   describe('fileTimings', () => {
-    it('VALID: {jest output with perfStats} => returns fileTimings with per-file durations', async () => {
+    it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
       const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
             name: 'src/foo.test.ts',
             assertionResults: [],
-            perfStats: { start: 1000, end: 1250 },
+            startTime: 1000,
+            endTime: 1250,
           },
           {
             name: 'src/bar.test.ts',
             assertionResults: [],
-            perfStats: { start: 2000, end: 2800 },
+            startTime: 2000,
+            endTime: 2800,
           },
         ],
         numTotalTestSuites: 2,
@@ -675,7 +677,7 @@ describe('checkRunUnitBroker', () => {
       );
     });
 
-    it('EDGE: {jest output without perfStats} => returns empty fileTimings', async () => {
+    it('EDGE: {jest output without startTime/endTime} => returns empty fileTimings', async () => {
       const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/foo.test.ts', assertionResults: [] }],
