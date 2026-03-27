@@ -3,7 +3,7 @@
  *
  * USAGE:
  * questStepsToAbsoluteFilePathsTransformer({ steps: [DependencyStepStub()] });
- * // Returns deduplicated AbsoluteFilePath[] from all step filesToCreate and filesToModify
+ * // Returns deduplicated AbsoluteFilePath[] from all step focusFile and accompanyingFiles
  */
 
 import {

@@ -106,12 +106,24 @@ export const orchestrationQuestHarness = (): {
     const steps = [];
     for (let i = 0; i < stepCount; i++) {
       const coveredObs = observableIds.map((id) => ObservableIdStub({ value: id }));
+      const brokerPath = `packages/orchestrator/src/brokers/step-${String(i)}/create/step-${String(i)}-create-broker.ts`;
+      const testPath = `packages/orchestrator/src/brokers/step-${String(i)}/create/step-${String(i)}-create-broker.test.ts`;
+      const proxyPath = `packages/orchestrator/src/brokers/step-${String(i)}/create/step-${String(i)}-create-broker.proxy.ts`;
       steps.push(
         DependencyStepStub({
           id: StepIdStub({ value: `step-${String(i)}` }),
           name: `Step ${String(i)}`,
           observablesSatisfied: coveredObs,
           dependsOn: [],
+          focusFile: {
+            path: brokerPath,
+            action: 'create',
+          },
+          accompanyingFiles: [
+            { path: testPath, action: 'create' },
+            { path: proxyPath, action: 'create' },
+          ],
+          exportName: `step${String(i)}CreateBroker`,
         }),
       );
     }

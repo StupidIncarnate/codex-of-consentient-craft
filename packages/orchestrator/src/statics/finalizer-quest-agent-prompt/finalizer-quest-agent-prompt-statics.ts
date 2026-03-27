@@ -86,7 +86,7 @@ For each step, evaluate:
 - Could an implementer read this description and know EXACTLY what to build?
 - Are there ambiguous terms like "handle", "process", "manage" without specifics?
 - Are concrete values specified (ports, routes, error messages) or left vague?
-- Are the filesToCreate and filesToModify lists complete for the described work?
+- Are the focusFile and accompanyingFiles lists complete for the described work?
 - Do the inputContracts and outputContracts match what the step description says it accepts and produces?
 - Does the exportName follow project naming conventions (camelCase, matching the file name)?
 
@@ -96,7 +96,7 @@ Use the \`discover\` MCP tool to verify assumptions in the quest:
 
 - \`discover\` tool (params: \`{ type: "files", path: "packages/X/src/guards" }\`)
 
-- **File existence**: Do files listed in \`filesToModify\` actually exist?
+- **File existence**: Do files listed in \`accompanyingFiles\` with action \\"modify\\" actually exist?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
 - **Pattern consistency**: Do new files follow the naming and structure patterns of existing similar files?
 - **Dependency availability**: Are referenced packages installed?
