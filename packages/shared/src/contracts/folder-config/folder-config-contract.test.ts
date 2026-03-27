@@ -1,4 +1,4 @@
-import { folderConfigContract as _folderConfigContract } from './folder-config-contract';
+import { folderConfigContract } from './folder-config-contract';
 import { FolderConfigStub } from './folder-config.stub';
 
 describe('folderConfigContract', () => {
@@ -49,6 +49,48 @@ describe('folderConfigContract', () => {
       const config = FolderConfigStub({ requireContractDeclarations: false });
 
       expect(config.requireContractDeclarations).toBe(false);
+    });
+
+    it('VALID: {testType: unit} => parses successfully', () => {
+      const config = FolderConfigStub({ testType: 'unit' });
+
+      expect(config.testType).toBe('unit');
+    });
+
+    it('VALID: {testType: integration} => parses successfully', () => {
+      const config = FolderConfigStub({ testType: 'integration' });
+
+      expect(config.testType).toBe('integration');
+    });
+
+    it('VALID: {testType: none} => parses successfully', () => {
+      const config = FolderConfigStub({ testType: 'none' });
+
+      expect(config.testType).toBe('none');
+    });
+
+    it('VALID: {requireStub: true} => parses successfully', () => {
+      const config = FolderConfigStub({ requireStub: true });
+
+      expect(config.requireStub).toBe(true);
+    });
+
+    it('VALID: {requireStub: false} => parses successfully', () => {
+      const config = FolderConfigStub({ requireStub: false });
+
+      expect(config.requireStub).toBe(false);
+    });
+  });
+
+  describe('invalid configs', () => {
+    it('INVALID_TEST_TYPE: {testType: "unknown"} => throws validation error', () => {
+      const parseInvalidTestType = (): unknown =>
+        folderConfigContract.parse({
+          ...FolderConfigStub(),
+          testType: 'unknown',
+        });
+
+      expect(parseInvalidTestType).toThrow(/Invalid enum value/u);
     });
   });
 });

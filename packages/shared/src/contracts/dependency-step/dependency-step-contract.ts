@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Defines the DependencyStep structure for mapping observables to file operations
+ * PURPOSE: Defines the DependencyStep structure for mapping observables to single-file TDD steps with structured assertions
  *
  * USAGE:
- * dependencyStepContract.parse({id: 'step-123', name: 'Create API', description: '...', observablesSatisfied: [], dependsOn: [], filesToCreate: [], filesToModify: []});
+ * dependencyStepContract.parse({id: 'create-user-api', name: 'Create API', assertions: [...], focusFile: {...}, accompanyingFiles: [], observablesSatisfied: [], dependsOn: [], inputContracts: ['Void'], outputContracts: ['User']});
  * // Returns: DependencyStep object
  */
 
@@ -10,16 +10,18 @@ import { z } from 'zod';
 
 import { contractNameContract } from '../contract-name/contract-name-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { stepAssertionContract } from '../step-assertion/step-assertion-contract';
+import { stepFileReferenceContract } from '../step-file-reference/step-file-reference-contract';
 import { stepIdContract } from '../step-id/step-id-contract';
 
 export const dependencyStepContract = z.object({
   id: stepIdContract,
   name: z.string().min(1).brand<'StepName'>(),
-  description: z.string().brand<'StepDescription'>(),
+  assertions: z.array(stepAssertionContract).min(1),
   observablesSatisfied: z.array(observableIdContract),
   dependsOn: z.array(stepIdContract),
-  filesToCreate: z.array(z.string().brand<'FilePath'>()),
-  filesToModify: z.array(z.string().brand<'FilePath'>()),
+  focusFile: stepFileReferenceContract,
+  accompanyingFiles: z.array(stepFileReferenceContract),
   exportName: z
     .string()
     .min(1)
@@ -30,15 +32,21 @@ export const dependencyStepContract = z.object({
     ),
   inputContracts: z
     .array(contractNameContract)
-    .default([])
+    .min(1)
     .describe(
-      'Contract names this step consumes as inputs. References quest-level contracts by name. Can be empty for functions with no parameters',
+      'Contract names this step consumes as inputs. References quest-level contracts by name. Use ["Void"] for functions with no parameters',
     ),
   outputContracts: z
     .array(contractNameContract)
+    .min(1)
+    .describe(
+      'Contract names this step produces as outputs. References quest-level contracts by name. Use ["Void"] for steps with no typed output',
+    ),
+  uses: z
+    .array(z.string().min(1).brand<'UsesReference'>())
     .default([])
     .describe(
-      'Contract names this step produces as outputs. References quest-level contracts by name. Must be non-empty for steps in folders requiring contract declarations',
+      'References to exports from other steps that this step integrates with. Names integration points visible in the branch diff',
     ),
 });
 

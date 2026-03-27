@@ -116,8 +116,24 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
     parts.push(contentTextContract.parse(SYM.none));
   } else {
     for (const step of quest.steps) {
-      parts.push(contentTextContract.parse(`#${String(step.id)}: "${String(step.name)}"`));
-      parts.push(contentTextContract.parse(`${SYM.indent}${String(step.description)}`));
+      parts.push(contentTextContract.parse(`#${step.id}: "${step.name}"`));
+      parts.push(
+        contentTextContract.parse(
+          `${SYM.indent}Assertions: ${step.assertions.map((a) => `${a.prefix}: ${a.input} => ${a.expected}`).join('; ')}`,
+        ),
+      );
+      parts.push(
+        contentTextContract.parse(
+          `${SYM.indent}Focus: ${step.focusFile.path} (${step.focusFile.action})`,
+        ),
+      );
+      if (step.accompanyingFiles.length > 0) {
+        parts.push(
+          contentTextContract.parse(
+            `${SYM.indent}Accompanying: ${step.accompanyingFiles.map((f) => `${f.path} (${f.action})`).join(', ')}`,
+          ),
+        );
+      }
       if (step.observablesSatisfied.length > 0) {
         parts.push(
           contentTextContract.parse(
@@ -132,34 +148,19 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
           ),
         );
       }
-      if (step.filesToCreate.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Create: ${step.filesToCreate.map((f) => String(f)).join(', ')}`,
-          ),
-        );
-      }
-      if (step.filesToModify.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Modify: ${step.filesToModify.map((f) => String(f)).join(', ')}`,
-          ),
-        );
-      }
       if (step.exportName) {
         parts.push(contentTextContract.parse(`${SYM.indent}Export: ${String(step.exportName)}`));
       }
-      if (step.inputContracts.length > 0 || step.outputContracts.length > 0) {
-        const inPart =
-          step.inputContracts.length > 0
-            ? step.inputContracts.map((c) => String(c)).join(', ')
-            : SYM.none;
-        const outPart =
-          step.outputContracts.length > 0
-            ? step.outputContracts.map((c) => String(c)).join(', ')
-            : SYM.none;
+      parts.push(
+        contentTextContract.parse(
+          `${SYM.indent}Contracts in: ${step.inputContracts.map((c) => String(c)).join(', ')} | out: ${step.outputContracts.map((c) => String(c)).join(', ')}`,
+        ),
+      );
+      if (step.uses.length > 0) {
         parts.push(
-          contentTextContract.parse(`${SYM.indent}Contracts in: ${inPart} | out: ${outPart}`),
+          contentTextContract.parse(
+            `${SYM.indent}Uses: ${step.uses.map((u) => String(u)).join(', ')}`,
+          ),
         );
       }
     }

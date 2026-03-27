@@ -21,6 +21,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: false,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Immutable configuration values and constants. Single source of truth for magic numbers, limits, and unchanging data.',
@@ -46,6 +48,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: true,
     requireContractDeclarations: false,
+    testType: 'unit',
+    requireStub: true,
     meta: {
       purpose:
         'Type definitions and validation schemas using Zod. All data structures must be defined here with branded types.',
@@ -64,6 +68,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: true,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Pure boolean functions that validate conditions. Return true/false, no side effects.',
@@ -82,6 +88,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: true,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Pure data transformation functions. Map input types to output types without side effects.',
@@ -100,6 +108,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose: 'Custom error classes extending Error. Domain-specific error types.',
       whenToUse: 'Custom error with context',
@@ -130,6 +140,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'integration',
+    requireStub: false,
     meta: {
       purpose:
         'Top-level orchestration components (React) that wire up responders. Entry points for major application flows.',
@@ -155,6 +167,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'I/O boundary layer translating between external systems and internal contracts. Wrap npm packages, APIs, databases.',
@@ -173,6 +187,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Request/response transformation layer. Authentication, logging, validation pipelines.',
@@ -200,6 +216,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: true,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Business logic orchestration. Compose adapters, guards, transformers to implement domain operations.',
@@ -229,6 +247,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose: 'React hooks that connect widgets to business logic. Bridge between UI and brokers.',
       whenToUse: 'React hook or reactive binding',
@@ -246,6 +266,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose: 'Shared state management. In-memory caches, stores, and state containers.',
       whenToUse: 'In-memory storage',
@@ -274,6 +296,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: true,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose:
         'Request handlers that orchestrate brokers and bindings. Process incoming requests and return responses.',
@@ -311,6 +335,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: true,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose: 'React UI components. Visual representation and user interaction.',
       whenToUse: 'UI component or React widget',
@@ -328,6 +354,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'integration',
+    requireStub: false,
     meta: {
       purpose:
         'Application initialization and configuration. Entry points, server startup, CLI commands.',
@@ -346,6 +374,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: false,
+    testType: 'none',
+    requireStub: false,
     meta: {
       purpose: 'Static files like images, fonts, and other non-code resources.',
       whenToUse: 'Static files (images, fonts)',
@@ -363,6 +393,8 @@ export const folderConfigStatics = {
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'none',
+    requireStub: false,
     meta: {
       purpose: 'Database schema changes and data migrations. Versioned SQL scripts.',
       whenToUse: 'Database or schema upgrades',

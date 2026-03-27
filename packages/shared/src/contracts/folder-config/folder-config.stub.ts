@@ -22,6 +22,8 @@ export const FolderConfigStub = ({ ...props }: StubArgument<FolderConfig> = {}):
     allowsLayerFiles: false,
     allowRegex: false,
     requireContractDeclarations: true,
+    testType: 'unit',
+    requireStub: false,
     meta: {
       purpose: 'Test folder purpose',
       whenToUse: 'For testing',

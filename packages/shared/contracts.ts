@@ -156,6 +156,12 @@ export * from './src/contracts/design-decision/design-decision.stub';
 export * from './src/contracts/tooling-requirement/tooling-requirement-contract';
 export * from './src/contracts/tooling-requirement/tooling-requirement.stub';
 
+export * from './src/contracts/step-assertion/step-assertion-contract';
+export * from './src/contracts/step-assertion/step-assertion.stub';
+
+export * from './src/contracts/step-file-reference/step-file-reference-contract';
+export * from './src/contracts/step-file-reference/step-file-reference.stub';
+
 export * from './src/contracts/dependency-step/dependency-step-contract';
 export * from './src/contracts/dependency-step/dependency-step.stub';
 

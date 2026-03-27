@@ -2,231 +2,379 @@ import { dependencyStepContract } from './dependency-step-contract';
 import { DependencyStepStub } from './dependency-step.stub';
 
 describe('dependencyStepContract', () => {
-  it('VALID: {complete step} => parses successfully', () => {
-    const step = DependencyStepStub({
-      id: 'create-user-api',
-      name: 'Create user API endpoint',
-      description: 'Implement the REST endpoint for user creation',
-      observablesSatisfied: ['login-redirects-to-dashboard'],
-      dependsOn: [],
-      filesToCreate: ['src/routes/users.ts'],
-      filesToModify: ['src/routes/index.ts'],
+  describe('valid steps', () => {
+    it('VALID: {complete step} => parses successfully', () => {
+      const step = DependencyStepStub({
+        id: 'create-user-api',
+        name: 'Create user API endpoint',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{user: validUser}',
+            expected: 'creates user successfully',
+          },
+          {
+            prefix: 'INVALID',
+            field: 'email',
+            input: '{email: "bad"}',
+            expected: 'throws validation error',
+          },
+        ],
+        observablesSatisfied: ['login-redirects-to-dashboard'],
+        dependsOn: ['setup-database'],
+        focusFile: {
+          path: 'src/brokers/user/create/user-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/user/create/user-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/user/create/user-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
+        exportName: 'userCreateBroker',
+        inputContracts: ['LoginCredentials'],
+        outputContracts: ['UserSession'],
+        uses: ['userContract', 'sessionContract'],
+      });
+
+      expect(step).toStrictEqual({
+        id: 'create-user-api',
+        name: 'Create user API endpoint',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{user: validUser}',
+            expected: 'creates user successfully',
+          },
+          {
+            prefix: 'INVALID',
+            field: 'email',
+            input: '{email: "bad"}',
+            expected: 'throws validation error',
+          },
+        ],
+        observablesSatisfied: ['login-redirects-to-dashboard'],
+        dependsOn: ['setup-database'],
+        focusFile: {
+          path: 'src/brokers/user/create/user-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/user/create/user-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/user/create/user-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
+        exportName: 'userCreateBroker',
+        inputContracts: ['LoginCredentials'],
+        outputContracts: ['UserSession'],
+        uses: ['userContract', 'sessionContract'],
+      });
     });
 
-    expect(step).toStrictEqual({
-      id: 'create-user-api',
-      name: 'Create user API endpoint',
-      description: 'Implement the REST endpoint for user creation',
-      observablesSatisfied: ['login-redirects-to-dashboard'],
-      dependsOn: [],
-      filesToCreate: ['src/routes/users.ts'],
-      filesToModify: ['src/routes/index.ts'],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
+    it('VALID: {stub defaults} => uses default values', () => {
+      const step = DependencyStepStub();
 
-  it('VALID: {empty arrays} => parses with empty arrays', () => {
-    const step = DependencyStepStub({
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
-
-  it('VALID: {multiple dependsOn} => parses step dependencies', () => {
-    const step = DependencyStepStub({
-      dependsOn: ['setup-database', 'create-schema'],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: ['setup-database', 'create-schema'],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
-
-  it('VALID: {multiple files} => parses file operations', () => {
-    const step = DependencyStepStub({
-      filesToCreate: ['src/controllers/user-controller.ts', 'src/models/user-model.ts'],
-      filesToModify: ['src/app.ts', 'src/routes/index.ts'],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: ['src/controllers/user-controller.ts', 'src/models/user-model.ts'],
-      filesToModify: ['src/app.ts', 'src/routes/index.ts'],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
-
-  it('VALID: {default values} => uses stub defaults', () => {
-    const step = DependencyStepStub();
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
-
-  it('VALID: {with exportName} => parses step with export name', () => {
-    const step = DependencyStepStub({
-      exportName: 'questExecuteBroker',
-    });
-
-    expect(step.exportName).toBe('questExecuteBroker');
-  });
-
-  it('VALID: {with inputContracts and outputContracts} => parses contract references', () => {
-    const step = DependencyStepStub({
-      inputContracts: ['LoginCredentials', 'AuthToken'],
-      outputContracts: ['UserSession'],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: ['LoginCredentials', 'AuthToken'],
-      outputContracts: ['UserSession'],
-    });
-  });
-
-  it('VALID: {without new fields} => backward compat defaults to empty arrays and no exportName', () => {
-    const step = dependencyStepContract.parse({
-      id: 'legacy-step',
-      name: 'Legacy Step',
-      description: 'A step without new fields',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'legacy-step',
-      name: 'Legacy Step',
-      description: 'A step without new fields',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: [],
-    });
-  });
-
-  it('EDGE: {empty inputContracts, non-empty outputContracts} => parses mixed contract arrays', () => {
-    const step = DependencyStepStub({
-      inputContracts: [],
-      outputContracts: ['LoginCredentials'],
-    });
-
-    expect(step).toStrictEqual({
-      id: 'create-login-api',
-      name: 'Test Step',
-      description: 'A test dependency step',
-      observablesSatisfied: [],
-      dependsOn: [],
-      filesToCreate: [],
-      filesToModify: [],
-      inputContracts: [],
-      outputContracts: ['LoginCredentials'],
-    });
-  });
-
-  it('INVALID_ID: {id: "Bad-Id"} => throws validation error', () => {
-    const parseInvalidId = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'Bad-Id',
-        name: 'Test',
-        description: 'Test',
+      expect(step).toStrictEqual({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
         observablesSatisfied: [],
         dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
+    });
+
+    it('VALID: {inputContracts: ["Void"], outputContracts: ["UserSession"]} => parses void input with real output', () => {
+      const step = DependencyStepStub({
+        inputContracts: ['Void'],
+        outputContracts: ['UserSession'],
       });
 
-    expect(parseInvalidId).toThrow(/invalid_string/u);
-  });
-
-  it('INVALID_NAME: {name: ""} => throws validation error', () => {
-    const parseEmptyName = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'valid-step',
-        name: '',
-        description: 'Test',
+      expect(step).toStrictEqual({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
         observablesSatisfied: [],
         dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['UserSession'],
+        uses: [],
       });
+    });
 
-    expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
-  });
-
-  it('INVALID_OBSERVABLES: {observablesSatisfied: ["Bad"]} => throws validation error', () => {
-    const parseInvalidObservables = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'valid-step',
-        name: 'Test',
-        description: 'Test',
-        observablesSatisfied: ['Bad'],
-        dependsOn: [],
-        filesToCreate: [],
-        filesToModify: [],
-      });
-
-    expect(parseInvalidObservables).toThrow(/invalid_string/u);
-  });
-
-  it('INVALID_DEPENDS_ON: {dependsOn: ["Bad"]} => throws validation error', () => {
-    const parseInvalidDependsOn = (): unknown =>
-      dependencyStepContract.parse({
-        id: 'valid-step',
-        name: 'Test',
-        description: 'Test',
+    it('VALID: {uses defaults to []} => parses without uses field', () => {
+      const step = dependencyStepContract.parse({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
         observablesSatisfied: [],
-        dependsOn: ['Bad'],
-        filesToCreate: [],
-        filesToModify: [],
+        dependsOn: [],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
       });
 
-    expect(parseInvalidDependsOn).toThrow(/invalid_string/u);
+      expect(step).toStrictEqual({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
+    });
+
+    it('VALID: {with exportName} => parses step with export name', () => {
+      const step = DependencyStepStub({
+        exportName: 'questExecuteBroker',
+      });
+
+      expect(step).toStrictEqual({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        exportName: 'questExecuteBroker',
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
+    });
+
+    it('VALID: {without exportName} => parses step without export name', () => {
+      const step = DependencyStepStub();
+
+      expect('exportName' in step).toBe(false);
+    });
+
+    it('VALID: {multiple dependsOn} => parses step dependencies', () => {
+      const step = DependencyStepStub({
+        dependsOn: ['setup-database', 'create-schema'],
+      });
+
+      expect(step).toStrictEqual({
+        id: 'create-login-api',
+        name: 'Test Step',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{valid input}',
+            expected: 'returns expected result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: ['setup-database', 'create-schema'],
+        focusFile: {
+          path: 'src/brokers/login/create/login-create-broker.ts',
+          action: 'create',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
+    });
+  });
+
+  describe('invalid steps', () => {
+    it('INVALID_ASSERTIONS: {assertions: []} => throws validation error for empty assertions', () => {
+      const parseEmptyAssertions = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: 'Test',
+          assertions: [],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseEmptyAssertions).toThrow(/Array must contain at least 1 element/u);
+    });
+
+    it('INVALID_FOCUS_FILE: {missing focusFile} => throws validation error', () => {
+      const parseMissingFocusFile = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseMissingFocusFile).toThrow(/Required/u);
+    });
+
+    it('INVALID_INPUT_CONTRACTS: {inputContracts: []} => throws validation error for empty array', () => {
+      const parseEmptyInputContracts = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
+          inputContracts: [],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseEmptyInputContracts).toThrow(/Array must contain at least 1 element/u);
+    });
+
+    it('INVALID_OUTPUT_CONTRACTS: {outputContracts: []} => throws validation error for empty array', () => {
+      const parseEmptyOutputContracts = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: [],
+        });
+
+      expect(parseEmptyOutputContracts).toThrow(/Array must contain at least 1 element/u);
+    });
+
+    it('INVALID_ID: {id: "Bad-Id"} => throws validation error', () => {
+      const parseInvalidId = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'Bad-Id',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseInvalidId).toThrow(/invalid_string/u);
+    });
+
+    it('INVALID_NAME: {name: ""} => throws validation error', () => {
+      const parseEmptyName = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: '',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts', action: 'create' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
+    });
   });
 });

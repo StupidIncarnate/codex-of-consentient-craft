@@ -9,12 +9,22 @@ export const DependencyStepStub = ({
   dependencyStepContract.parse({
     id: 'create-login-api',
     name: 'Test Step',
-    description: 'A test dependency step',
+    assertions: [
+      {
+        prefix: 'VALID',
+        input: '{valid input}',
+        expected: 'returns expected result',
+      },
+    ],
     observablesSatisfied: [],
     dependsOn: [],
-    filesToCreate: [],
-    filesToModify: [],
-    inputContracts: [],
-    outputContracts: [],
+    focusFile: {
+      path: 'src/brokers/login/create/login-create-broker.ts',
+      action: 'create',
+    },
+    accompanyingFiles: [],
+    inputContracts: ['Void'],
+    outputContracts: ['Void'],
+    uses: [],
     ...props,
   });

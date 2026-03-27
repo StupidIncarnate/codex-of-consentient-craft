@@ -206,20 +206,35 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/## Steps\n\n\(none\)/u);
     });
 
-    it('VALID: {quest: with full step} => renders step header and dependencies', () => {
+    it('VALID: {quest: with full step} => renders step header, assertions, focus, and accompanying', () => {
       const quest = QuestStub({
         steps: [
           DependencyStepStub({
             id: 'create-api' as never,
             name: 'Create API' as never,
-            description: 'Build the REST API' as never,
+            assertions: [
+              {
+                prefix: 'VALID',
+                input: '{user: validUser}',
+                expected: 'creates user',
+              } as never,
+            ],
             observablesSatisfied: ['api-responds' as never],
             dependsOn: ['setup-db' as never],
-            filesToCreate: ['src/api.ts' as never],
-            filesToModify: ['src/index.ts' as never],
+            focusFile: {
+              path: 'src/brokers/api/create/api-create-broker.ts',
+              action: 'create',
+            } as never,
+            accompanyingFiles: [
+              {
+                path: 'src/brokers/api/create/api-create-broker.test.ts',
+                action: 'create',
+              } as never,
+            ],
             exportName: 'apiHandler' as never,
             inputContracts: ['RequestBody' as never],
             outputContracts: ['ApiResponse' as never],
+            uses: ['userContract' as never],
           }),
         ],
       });
@@ -227,44 +242,65 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(/#create-api: "Create API"/u);
-      expect(result).toMatch(/ {2}Build the REST API/u);
+      expect(result).toMatch(/ {2}Assertions: VALID: \{user: validUser\} => creates user/u);
+      expect(result).toMatch(
+        / {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts \(create\)/u,
+      );
+      expect(result).toMatch(
+        / {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts \(create\)/u,
+      );
       expect(result).toMatch(/ {2}Satisfies: #api-responds/u);
-      expect(result).toMatch(/ {2}Depends on: #setup-db/u);
     });
 
-    it('VALID: {quest: with full step} => renders step files and contracts', () => {
+    it('VALID: {quest: with full step} => renders dependencies, export, contracts, and uses', () => {
       const quest = QuestStub({
         steps: [
           DependencyStepStub({
             id: 'create-api' as never,
             name: 'Create API' as never,
-            filesToCreate: ['src/api.ts' as never],
-            filesToModify: ['src/index.ts' as never],
+            assertions: [
+              {
+                prefix: 'VALID',
+                input: '{user: validUser}',
+                expected: 'creates user',
+              } as never,
+            ],
+            observablesSatisfied: ['api-responds' as never],
+            dependsOn: ['setup-db' as never],
+            focusFile: {
+              path: 'src/brokers/api/create/api-create-broker.ts',
+              action: 'create',
+            } as never,
+            accompanyingFiles: [
+              {
+                path: 'src/brokers/api/create/api-create-broker.test.ts',
+                action: 'create',
+              } as never,
+            ],
             exportName: 'apiHandler' as never,
             inputContracts: ['RequestBody' as never],
             outputContracts: ['ApiResponse' as never],
+            uses: ['userContract' as never],
           }),
         ],
       });
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/ {2}Create: src\/api\.ts/u);
-      expect(result).toMatch(/ {2}Modify: src\/index\.ts/u);
+      expect(result).toMatch(/ {2}Depends on: #setup-db/u);
       expect(result).toMatch(/ {2}Export: apiHandler/u);
       expect(result).toMatch(/ {2}Contracts in: RequestBody \| out: ApiResponse/u);
+      expect(result).toMatch(/ {2}Uses: userContract/u);
     });
 
-    it('VALID: {quest: step with no optional fields} => omits satisfies and depends', () => {
+    it('VALID: {quest: step with no optional fields} => omits satisfies, depends, accompanying, uses', () => {
       const quest = QuestStub({
         steps: [
           DependencyStepStub({
             observablesSatisfied: [],
             dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
-            inputContracts: [],
-            outputContracts: [],
+            accompanyingFiles: [],
+            uses: [],
           }),
         ],
       });
@@ -273,43 +309,18 @@ describe('questToTextDisplayTransformer', () => {
 
       expect(result).not.toMatch(/Satisfies:/u);
       expect(result).not.toMatch(/Depends on:/u);
-      expect(result).not.toMatch(/Create:/u);
+      expect(result).not.toMatch(/Accompanying:/u);
+      expect(result).not.toMatch(/Uses:/u);
     });
 
-    it('VALID: {quest: step with no optional fields} => omits file and contract fields', () => {
+    it('VALID: {quest: step without exportName} => omits export line', () => {
       const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            observablesSatisfied: [],
-            dependsOn: [],
-            filesToCreate: [],
-            filesToModify: [],
-            inputContracts: [],
-            outputContracts: [],
-          }),
-        ],
+        steps: [DependencyStepStub()],
       });
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/Modify:/u);
       expect(result).not.toMatch(/Export:/u);
-      expect(result).not.toMatch(/Contracts in:/u);
-    });
-
-    it('VALID: {quest: step with only outputContracts} => renders contracts line with none for input', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            inputContracts: [],
-            outputContracts: ['UserDto' as never],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(/ {2}Contracts in: \(none\) \| out: UserDto/u);
     });
   });
 });
