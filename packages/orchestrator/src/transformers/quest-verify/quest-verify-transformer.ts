@@ -22,8 +22,11 @@ import { questHasNoOrphanFlowNodesGuard } from '../../guards/quest-has-no-orphan
 import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
+import { questVerifyFailureDetailsTransformer } from '../quest-verify-failure-details/quest-verify-failure-details-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
+
+const checkNameSchema = verifyQuestCheckContract.shape.name;
 
 export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuestCheck[] => {
   const checks: VerifyQuestCheck[] = [];
@@ -32,155 +35,167 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
     flow.nodes.flatMap((node) => node.observables),
   ).length;
 
+  const observableCoverageName = checkNameSchema.parse('Observable Coverage');
   const observableCoverage = questHasObservableCoverageGuard({
     flows: quest.flows,
     steps: quest.steps,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Observable Coverage',
+      name: observableCoverageName,
       passed: observableCoverage,
       details: observableCoverage
         ? `All ${String(allObservableCount)} observables covered by steps`
-        : `Some observables not covered by any step's observablesSatisfied`,
+        : questVerifyFailureDetailsTransformer({ quest, checkName: observableCoverageName }),
     }),
   );
 
+  const dependencyIntegrityName = checkNameSchema.parse('Dependency Integrity');
   const dependencyIntegrity = questHasDependencyIntegrityGuard({ steps: quest.steps });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Dependency Integrity',
+      name: dependencyIntegrityName,
       passed: dependencyIntegrity,
       details: dependencyIntegrity
         ? 'All step dependsOn references point to existing steps'
-        : 'Some steps reference non-existent step IDs in dependsOn',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: dependencyIntegrityName }),
     }),
   );
 
+  const noCircularDepsName = checkNameSchema.parse('No Circular Dependencies');
   const noCircularDeps = questHasNoCircularDepsGuard({ steps: quest.steps });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'No Circular Dependencies',
+      name: noCircularDepsName,
       passed: noCircularDeps,
       details: noCircularDeps
         ? 'Step dependency graph is a valid DAG'
-        : 'Circular dependency detected in step dependency graph',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: noCircularDepsName }),
     }),
   );
 
+  const noOrphanStepsName = checkNameSchema.parse('No Orphan Steps');
   const noOrphanSteps = questHasNoOrphanStepsGuard({ steps: quest.steps });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'No Orphan Steps',
+      name: noOrphanStepsName,
       passed: noOrphanSteps,
       details: noOrphanSteps
         ? `All ${String(quest.steps.length)} steps satisfy at least one observable`
-        : 'Some steps have empty observablesSatisfied arrays',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: noOrphanStepsName }),
     }),
   );
 
+  const fileCompanionsName = checkNameSchema.parse('File Companion Completeness');
   const fileCompanions = questHasFileCompanionsGuard({ steps: quest.steps });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'File Companion Completeness',
+      name: fileCompanionsName,
       passed: fileCompanions,
       details: fileCompanions
         ? 'All implementation files have required companion files (test, proxy, stub)'
-        : 'Some implementation files are missing required companion files',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: fileCompanionsName }),
     }),
   );
 
+  const noRawPrimitivesName = checkNameSchema.parse('No Raw Primitives in Contracts');
   const noRawPrimitives = questContractHasNoRawPrimitivesGuard({
     contracts: quest.contracts,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'No Raw Primitives in Contracts',
+      name: noRawPrimitivesName,
       passed: noRawPrimitives,
       details: noRawPrimitives
         ? 'All contract properties use branded or non-primitive types'
-        : 'Some contract properties use raw primitive types (string, number, any, object, unknown)',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: noRawPrimitivesName }),
     }),
   );
 
+  const stepContractRefsName = checkNameSchema.parse('Step Contract Declarations');
   const stepContractRefs = questStepHasContractRefsGuard({
     steps: quest.steps,
     contracts: quest.contracts,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Step Contract Declarations',
+      name: stepContractRefsName,
       passed: stepContractRefs,
       details: stepContractRefs
         ? 'All steps in contract-requiring folders have outputContracts declared'
-        : 'Some steps are missing required contract declarations in outputContracts',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: stepContractRefsName }),
     }),
   );
 
+  const validContractRefsName = checkNameSchema.parse('Valid Contract References');
   const validContractRefs = questStepHasValidContractRefsGuard({
     steps: quest.steps,
     contracts: quest.contracts,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Valid Contract References',
+      name: validContractRefsName,
       passed: validContractRefs,
       details: validContractRefs
         ? 'All step inputContracts and outputContracts reference existing contracts'
-        : 'Some steps reference non-existent contract names in inputContracts or outputContracts',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: validContractRefsName }),
     }),
   );
 
+  const stepExportNamesName = checkNameSchema.parse('Step Export Names');
   const stepExportNames = questStepHasExportNameGuard({
     steps: quest.steps,
     folderConfigs: folderConfigStatics,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Step Export Names',
+      name: stepExportNamesName,
       passed: stepExportNames,
       details: stepExportNames
         ? 'All steps creating entry files have exportName set'
-        : 'Some steps with entry files are missing required exportName',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: stepExportNamesName }),
     }),
   );
 
+  const validFlowRefsName = checkNameSchema.parse('Valid Flow References');
   const validFlowRefs = questHasValidFlowRefsGuard({
     flows: quest.flows,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Valid Flow References',
+      name: validFlowRefsName,
       passed: validFlowRefs,
       details: validFlowRefs
         ? 'All flow edge references point to existing nodes'
-        : 'Some flow edges reference non-existent node IDs',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: validFlowRefsName }),
     }),
   );
 
+  const noOrphanFlowNodesName = checkNameSchema.parse('No Orphan Flow Nodes');
   const noOrphanFlowNodes = questHasNoOrphanFlowNodesGuard({
     flows: quest.flows,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'No Orphan Flow Nodes',
+      name: noOrphanFlowNodesName,
       passed: noOrphanFlowNodes,
       details: noOrphanFlowNodes
         ? 'All flow nodes are connected to at least one edge'
-        : 'Some flow nodes have no edges connecting to or from them',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: noOrphanFlowNodesName }),
     }),
   );
 
+  const nodeCoverageName = checkNameSchema.parse('Node Observable Coverage');
   const nodeCoverage = questHasNodeCoverageGuard({
     flows: quest.flows,
   });
   checks.push(
     verifyQuestCheckContract.parse({
-      name: 'Node Observable Coverage',
+      name: nodeCoverageName,
       passed: nodeCoverage,
       details: nodeCoverage
         ? 'All terminal nodes have at least one observable'
-        : 'Some terminal nodes are missing observables',
+        : questVerifyFailureDetailsTransformer({ quest, checkName: nodeCoverageName }),
     }),
   );
 

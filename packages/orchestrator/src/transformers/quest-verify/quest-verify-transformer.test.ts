@@ -209,7 +209,7 @@ describe('questVerifyTransformer', () => {
       expect(coverageCheck).toStrictEqual({
         name: 'Observable Coverage',
         passed: false,
-        details: "Some observables not covered by any step's observablesSatisfied",
+        details: `Uncovered observable IDs (not in any step's observablesSatisfied): a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d`,
       });
     });
   });
@@ -255,7 +255,8 @@ describe('questVerifyTransformer', () => {
       expect(circularCheck).toStrictEqual({
         name: 'No Circular Dependencies',
         passed: false,
-        details: 'Circular dependency detected in step dependency graph',
+        details:
+          'Circular dependency detected in step dependency graph — run topological sort to identify the cycle',
       });
     });
   });
@@ -306,7 +307,8 @@ describe('questVerifyTransformer', () => {
       expect(companionCheck).toStrictEqual({
         name: 'File Companion Completeness',
         passed: false,
-        details: 'Some implementation files are missing required companion files',
+        details:
+          'Missing companion files: "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
       });
     });
   });
@@ -322,8 +324,7 @@ describe('questVerifyTransformer', () => {
       expect(primitivesCheck).toStrictEqual({
         name: 'No Raw Primitives in Contracts',
         passed: false,
-        details:
-          'Some contract properties use raw primitive types (string, number, any, object, unknown)',
+        details: 'contract "LoginCredentials" property "name" uses raw type "string"',
       });
     });
   });
@@ -346,7 +347,8 @@ describe('questVerifyTransformer', () => {
       expect(contractRefsCheck).toStrictEqual({
         name: 'Step Contract Declarations',
         passed: false,
-        details: 'Some steps are missing required contract declarations in outputContracts',
+        details:
+          'step "Test Step" touches folders [brokers] which require contract declarations but has empty outputContracts',
       });
     });
   });
@@ -371,8 +373,7 @@ describe('questVerifyTransformer', () => {
       expect(validContractRefsCheck).toStrictEqual({
         name: 'Valid Contract References',
         passed: false,
-        details:
-          'Some steps reference non-existent contract names in inputContracts or outputContracts',
+        details: 'step "Test Step" outputContracts references non-existent: "NonExistentContract"',
       });
     });
   });
@@ -393,7 +394,8 @@ describe('questVerifyTransformer', () => {
       expect(exportNameCheck).toStrictEqual({
         name: 'Step Export Names',
         passed: false,
-        details: 'Some steps with entry files are missing required exportName',
+        details:
+          'step "Test Step" creates entry files [packages/orchestrator/src/guards/is-valid/is-valid-guard.ts] but has no exportName',
       });
     });
   });
@@ -414,7 +416,7 @@ describe('questVerifyTransformer', () => {
       expect(flowRefsCheck).toStrictEqual({
         name: 'Valid Flow References',
         passed: false,
-        details: 'Some flow edges reference non-existent node IDs',
+        details: 'flow "Login Flow" edge to "non-existent" references non-existent node',
       });
     });
   });
@@ -439,7 +441,7 @@ describe('questVerifyTransformer', () => {
       expect(orphanCheck).toStrictEqual({
         name: 'No Orphan Flow Nodes',
         passed: false,
-        details: 'Some flow nodes have no edges connecting to or from them',
+        details: 'flow "Login Flow" has disconnected nodes: "orphan-node"',
       });
     });
   });
@@ -465,7 +467,7 @@ describe('questVerifyTransformer', () => {
       expect(nodeCoverageCheck).toStrictEqual({
         name: 'Node Observable Coverage',
         passed: false,
-        details: 'Some terminal nodes are missing observables',
+        details: 'flow "Login Flow" terminal nodes without observables: "success"',
       });
     });
   });
