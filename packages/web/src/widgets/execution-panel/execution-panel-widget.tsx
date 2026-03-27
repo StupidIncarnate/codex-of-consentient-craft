@@ -425,8 +425,8 @@ export const ExecutionPanelWidget = ({
                             files={
                               step
                                 ? ([
-                                    ...step.filesToCreate,
-                                    ...step.filesToModify,
+                                    step.focusFile.path,
+                                    ...step.accompanyingFiles.map((af) => af.path),
                                   ] as unknown as DisplayFilePath[])
                                 : ([] as DisplayFilePath[])
                             }
@@ -440,7 +440,6 @@ export const ExecutionPanelWidget = ({
                             isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
                             {...(step
                               ? {
-                                  description: step.description,
                                   observablesSatisfied: step.observablesSatisfied,
                                   inputContracts: step.inputContracts,
                                   outputContracts: step.outputContracts,

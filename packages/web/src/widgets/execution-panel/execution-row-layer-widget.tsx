@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import type {
   ContractName,
-  DependencyStep,
   ErrorMessage,
   ObservableId,
   WardResult,
@@ -45,7 +44,6 @@ export interface ExecutionRowLayerWidgetProps {
   errorMessage?: ErrorMessage;
   entries?: ChatEntry[];
   isStreaming?: boolean;
-  description?: DependencyStep['description'];
   attempt?: WorkItem['attempt'];
   maxAttempts?: WorkItem['maxAttempts'];
   startedAt?: WorkItem['startedAt'];
@@ -98,7 +96,6 @@ export const ExecutionRowLayerWidget = ({
   errorMessage,
   entries,
   isStreaming,
-  description,
   attempt,
   maxAttempts,
   startedAt,
@@ -301,19 +298,6 @@ export const ExecutionRowLayerWidget = ({
             borderRadius: ROW_MARGIN_BOTTOM,
           }}
         >
-          {description ? (
-            <Text
-              ff="monospace"
-              data-testid="execution-row-description"
-              style={{
-                fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                color: colors['text-dim'],
-                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
-              }}
-            >
-              {description}
-            </Text>
-          ) : null}
           {observablesSatisfied && observablesSatisfied.length > 0 ? (
             <Text
               ff="monospace"

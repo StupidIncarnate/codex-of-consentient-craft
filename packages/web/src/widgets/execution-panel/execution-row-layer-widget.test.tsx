@@ -472,28 +472,7 @@ describe('ExecutionRowLayerWidget', () => {
   });
 
   describe('description rendering', () => {
-    it('VALID: {description provided} => renders description in expanded view', async () => {
-      ExecutionRowLayerWidgetProxy();
-
-      mantineRenderAdapter({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-            description={'Implement login flow with OAuth' as never}
-          />
-        ),
-      });
-
-      const header = screen.getByTestId('execution-row-header');
-      await userEvent.click(header);
-
-      const descEl = screen.getByTestId('execution-row-description');
-
-      expect(descEl.textContent).toBe('Implement login flow with OAuth');
-    });
-
-    it('EMPTY: {no description} => does not render description element', async () => {
+    it('EMPTY: {expanded view} => does not render description element', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({

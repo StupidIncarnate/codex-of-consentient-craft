@@ -101,14 +101,12 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Build auth module',
-            filesToCreate: ['src/auth.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/auth.ts', action: 'create' },
           }),
           DependencyStepStub({
             id: 'step-2',
             name: 'Add user model',
-            filesToCreate: ['src/user.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/user.ts', action: 'create' },
           }),
         ],
         workItems: [
@@ -466,8 +464,7 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-adhoc',
             name: 'Fix lint errors',
-            filesToCreate: [],
-            filesToModify: ['src/broker.ts'],
+            focusFile: { path: 'src/broker.ts', action: 'modify' },
           }),
         ],
         workItems: [
@@ -497,8 +494,7 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-normal',
             name: 'Build auth module',
-            filesToCreate: ['src/auth.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/auth.ts', action: 'create' },
           }),
         ],
         workItems: [
@@ -1401,8 +1397,7 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Create auth broker',
-            filesToCreate: ['src/auth.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/auth.ts', action: 'create' },
           }),
         ],
         workItems: [
@@ -1440,8 +1435,7 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Create auth broker',
-            filesToCreate: ['src/auth.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/auth.ts', action: 'create' },
           }),
         ],
         workItems: [
@@ -1530,8 +1524,7 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Create module',
-            filesToCreate: ['src/module.ts'],
-            filesToModify: [],
+            focusFile: { path: 'src/module.ts', action: 'create' },
           }),
         ],
         workItems: [
@@ -1679,7 +1672,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('step metadata in expanded content', () => {
-    it('VALID: {step with description} => shows description when expanded', async () => {
+    it('VALID: {step expanded} => does not render description element', async () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -1687,7 +1680,6 @@ describe('ExecutionPanelWidget', () => {
           DependencyStepStub({
             id: 'step-1',
             name: 'Create auth broker',
-            description: 'Composes jwt-sign adapter with user-fetch broker',
           }),
         ],
         workItems: [
@@ -1709,9 +1701,7 @@ describe('ExecutionPanelWidget', () => {
 
       await userEvent.click(stepRowHeader);
 
-      expect(screen.getByTestId('execution-row-description').textContent).toBe(
-        'Composes jwt-sign adapter with user-fetch broker',
-      );
+      expect(screen.queryByTestId('execution-row-description')).toBeNull();
     });
 
     it('VALID: {step with observablesSatisfied} => shows observables when expanded', async () => {
