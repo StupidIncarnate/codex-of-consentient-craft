@@ -1,4 +1,5 @@
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
+import { DurationMsStub } from '../../contracts/duration-ms/duration-ms.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { CheckTypeStub } from '../../contracts/check-type/check-type.stub';
 
@@ -58,6 +59,31 @@ describe('checkResultBuildTransformer', () => {
 
       expect(result).toStrictEqual(
         CheckResultStub({ checkType: 'unit', status: 'pass', projectResults: [] }),
+      );
+    });
+  });
+
+  describe('durationMs', () => {
+    it('VALID: {durationMs provided} => includes durationMs in result', () => {
+      const checkType = CheckTypeStub({ value: 'lint' });
+      const projectResults = [ProjectResultStub({ status: 'pass' })];
+      const durationMs = DurationMsStub({ value: 4200 });
+
+      const result = checkResultBuildTransformer({ checkType, projectResults, durationMs });
+
+      expect(result).toStrictEqual(
+        CheckResultStub({ checkType: 'lint', status: 'pass', projectResults, durationMs: 4200 }),
+      );
+    });
+
+    it('EDGE: {durationMs omitted} => defaults to 0', () => {
+      const checkType = CheckTypeStub({ value: 'lint' });
+      const projectResults = [ProjectResultStub({ status: 'pass' })];
+
+      const result = checkResultBuildTransformer({ checkType, projectResults });
+
+      expect(result).toStrictEqual(
+        CheckResultStub({ checkType: 'lint', status: 'pass', projectResults, durationMs: 0 }),
       );
     });
   });

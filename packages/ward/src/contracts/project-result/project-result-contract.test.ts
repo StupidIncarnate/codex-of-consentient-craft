@@ -16,6 +16,7 @@ describe('projectResultContract', () => {
         discoveredCount: 0,
         onlyDiscovered: [],
         onlyProcessed: [],
+        fileTimings: [],
       });
     });
 
@@ -54,6 +55,7 @@ describe('projectResultContract', () => {
         discoveredCount: 0,
         onlyDiscovered: [],
         onlyProcessed: [],
+        fileTimings: [],
       });
     });
 
@@ -87,6 +89,7 @@ describe('projectResultContract', () => {
         discoveredCount: 0,
         onlyDiscovered: [],
         onlyProcessed: [],
+        fileTimings: [],
       });
     });
 
@@ -103,6 +106,7 @@ describe('projectResultContract', () => {
         discoveredCount: 0,
         onlyDiscovered: [],
         onlyProcessed: [],
+        fileTimings: [],
       });
     });
   });
@@ -178,6 +182,30 @@ describe('projectResultContract', () => {
     });
   });
 
+  describe('fileTimings defaults', () => {
+    it('VALID: {fileTimings omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.fileTimings).toStrictEqual([]);
+    });
+
+    it('VALID: {fileTimings provided} => preserves value', () => {
+      const result = projectResultContract.parse(
+        ProjectResultStub({
+          fileTimings: [{ filePath: 'src/index.ts', durationMs: 150 }],
+        }),
+      );
+
+      expect(result.fileTimings).toStrictEqual([{ filePath: 'src/index.ts', durationMs: 150 }]);
+    });
+  });
+
   describe('stub', () => {
     it('VALID: {default} => creates valid project result', () => {
       const result = ProjectResultStub();
@@ -192,6 +220,7 @@ describe('projectResultContract', () => {
         discoveredCount: 0,
         onlyDiscovered: [],
         onlyProcessed: [],
+        fileTimings: [],
       });
     });
   });

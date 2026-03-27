@@ -10,6 +10,7 @@ describe('checkResultContract', () => {
         checkType: 'lint',
         status: 'pass',
         projectResults: [],
+        durationMs: 0,
       });
     });
 
@@ -59,9 +60,11 @@ describe('checkResultContract', () => {
             discoveredCount: 0,
             onlyDiscovered: [],
             onlyProcessed: [],
+            fileTimings: [],
             rawOutput: { stdout: '', stderr: 'error', exitCode: 1 },
           },
         ],
+        durationMs: 0,
       });
     });
   });
@@ -82,6 +85,24 @@ describe('checkResultContract', () => {
     });
   });
 
+  describe('durationMs defaults', () => {
+    it('VALID: {durationMs omitted} => defaults to 0', () => {
+      const result = checkResultContract.parse({
+        checkType: 'lint',
+        status: 'pass',
+        projectResults: [],
+      });
+
+      expect(result.durationMs).toBe(0);
+    });
+
+    it('VALID: {durationMs provided} => preserves value', () => {
+      const result = checkResultContract.parse(CheckResultStub({ durationMs: 4200 }));
+
+      expect(result.durationMs).toBe(4200);
+    });
+  });
+
   describe('stub', () => {
     it('VALID: {default} => creates valid check result', () => {
       const result = CheckResultStub();
@@ -90,6 +111,7 @@ describe('checkResultContract', () => {
         checkType: 'lint',
         status: 'pass',
         projectResults: [],
+        durationMs: 0,
       });
     });
 
@@ -100,6 +122,7 @@ describe('checkResultContract', () => {
         checkType: 'unit',
         status: 'fail',
         projectResults: [],
+        durationMs: 0,
       });
     });
   });

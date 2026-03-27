@@ -10,12 +10,14 @@ import { z } from 'zod';
 import { runIdContract } from '../run-id/run-id-contract';
 import { runFiltersContract } from '../run-filters/run-filters-contract';
 import { checkResultContract } from '../check-result/check-result-contract';
+import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
 export const wardResultContract = z.object({
   runId: runIdContract,
   timestamp: z.number().brand<'Timestamp'>(),
   filters: runFiltersContract,
   checks: z.array(checkResultContract),
+  durationMs: durationMsContract.default(0),
 });
 
 export type WardResult = z.infer<typeof wardResultContract>;

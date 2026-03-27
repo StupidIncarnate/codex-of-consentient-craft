@@ -19,6 +19,7 @@ import type { WardConfig } from '../../../contracts/ward-config/ward-config-cont
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
+import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
 import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
@@ -66,6 +67,8 @@ export const commandRunLayerMultiBroker = async ({
       : projectFolders;
 
   const CONCURRENCY_LIMIT = 4;
+
+  const runStartMs = Date.now();
 
   const subResults = await promisePoolTransformer({
     items: filteredFolders,
@@ -142,8 +145,15 @@ export const commandRunLayerMultiBroker = async ({
   const checks = checkTypes.map((checkType) => {
     const bucket = allChecksByType.get(checkType) ?? [];
     const projectResults = bucket.flatMap((c) => c.projectResults);
-    return checkResultBuildTransformer({ checkType, projectResults });
+    const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
+    return checkResultBuildTransformer({
+      checkType,
+      projectResults,
+      durationMs: durationMsContract.parse(aggregatedDurationMs),
+    });
   });
+
+  const totalDurationMs = Date.now() - runStartMs;
 
   const wardResult = wardResultContract.parse({
     runId,
@@ -153,6 +163,7 @@ export const commandRunLayerMultiBroker = async ({
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
     checks,
+    durationMs: durationMsContract.parse(totalDurationMs),
   });
 
   await storageSaveBroker({ rootPath, wardResult });

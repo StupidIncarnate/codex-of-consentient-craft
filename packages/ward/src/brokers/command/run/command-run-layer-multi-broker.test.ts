@@ -43,6 +43,7 @@ describe('commandRunLayerMultiBroker', () => {
         {
           checkType: 'lint',
           status: 'pass',
+          durationMs: 0,
           projectResults: [
             {
               projectFolder: { name: '@dungeonmaster/ward', path: '/project/packages/ward' },
@@ -54,6 +55,7 @@ describe('commandRunLayerMultiBroker', () => {
               onlyDiscovered: [],
               onlyProcessed: [],
               rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+              fileTimings: [],
             },
           ],
         },
@@ -76,6 +78,7 @@ describe('commandRunLayerMultiBroker', () => {
         {
           checkType: 'lint',
           status: 'pass',
+          durationMs: 0,
           projectResults: [],
         },
       ]);
@@ -280,6 +283,7 @@ describe('commandRunLayerMultiBroker', () => {
         {
           checkType: 'lint',
           status: 'pass',
+          durationMs: 0,
           projectResults: [],
         },
       ]);

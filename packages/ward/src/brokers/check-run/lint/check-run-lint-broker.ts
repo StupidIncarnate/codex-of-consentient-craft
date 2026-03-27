@@ -18,7 +18,9 @@ import {
 } from '../../../contracts/project-result/project-result-contract';
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import type { FileTiming } from '../../../contracts/file-timing/file-timing-contract';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
+import { eslintStatsParseTransformer } from '../../../transformers/eslint-stats-parse/eslint-stats-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
@@ -47,6 +49,7 @@ export const checkRunLintBroker = async ({
   let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
   let resolvedStatus = status;
   let filesCount = 0;
+  let fileTimings: FileTiming[] = [];
 
   if (status === 'fail') {
     try {
@@ -62,6 +65,7 @@ export const checkRunLintBroker = async ({
     const parsed: unknown = JSON.parse(jsonSlice);
     if (Array.isArray(parsed)) {
       filesCount = parsed.length;
+      fileTimings = eslintStatsParseTransformer({ eslintResults: parsed });
     }
   } catch {
     // non-JSON output, filesCount stays 0
@@ -74,6 +78,7 @@ export const checkRunLintBroker = async ({
     testFailures: [],
     filesCount,
     discoveredCount: filesCount,
+    fileTimings,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

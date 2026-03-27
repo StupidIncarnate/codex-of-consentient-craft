@@ -9,14 +9,17 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
+import type { FileTiming } from '../../contracts/file-timing/file-timing-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
+import { slowFileThresholdStatics } from '../../statics/slow-file-threshold/slow-file-threshold-statics';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 
 const CHECK_TYPE_PAD = 10;
+const MS_PER_SECOND = 1000;
 
 export const resultToSummaryTransformer = ({
   wardResult,
@@ -25,7 +28,11 @@ export const resultToSummaryTransformer = ({
   wardResult: WardResult;
   cwd: AbsoluteFilePath;
 }): WardSummary => {
-  const runLine = `run: ${wardResult.runId}`;
+  const totalDurationSuffix =
+    Number(wardResult.durationMs) > 0
+      ? `  (${(Number(wardResult.durationMs) / MS_PER_SECOND).toFixed(1)}s)`
+      : '';
+  const runLine = `run: ${wardResult.runId}${totalDurationSuffix}`;
 
   const hasPassthrough =
     Array.isArray(wardResult.filters.passthrough) && wardResult.filters.passthrough.length > 0;
@@ -60,18 +67,25 @@ export const resultToSummaryTransformer = ({
       maxDisplay: MAX_DIFF_SUMMARY,
     });
 
+    const checkDurationPart =
+      Number(check.durationMs) > 0
+        ? `  ${(Number(check.durationMs) / MS_PER_SECOND).toFixed(1)}s`
+        : '';
+
     if (totalFiles === 0) {
       const statusWord = check.status === 'fail' ? 'FAIL' : 'WARN';
       const zeroDiscoveredPart =
         totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered  DISCOVERY MISMATCH` : '';
       const zeroDiffPart = totalDiscovered > 0 ? diffPart : '';
-      return [`${label} ${statusWord}  0 files run${zeroDiscoveredPart}${zeroDiffPart}`];
+      return [
+        `${label} ${statusWord}  0 files run${zeroDiscoveredPart}${zeroDiffPart}${checkDurationPart}`,
+      ];
     }
 
     if (check.status === 'pass') {
       const passCount = check.projectResults.filter((pr) => pr.status === 'pass').length;
       return [
-        `${label} PASS  ${String(passCount)} packages (${fileBreakdown}${discoveredPart})${mismatchPart}${diffPart}`,
+        `${label} PASS  ${String(passCount)} packages (${fileBreakdown}${discoveredPart})${mismatchPart}${diffPart}${checkDurationPart}`,
       ];
     }
 
@@ -87,7 +101,7 @@ export const resultToSummaryTransformer = ({
       });
     const failPart = failingNames.length > 0 ? `  ${failingNames.join(', ')}` : '';
     return [
-      `${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown}${discoveredPart})${failPart}${mismatchPart}${diffPart}`,
+      `${label} FAIL  ${String(totalPackages)} packages (${fileBreakdown}${discoveredPart})${failPart}${mismatchPart}${diffPart}${checkDurationPart}`,
     ];
   });
 
@@ -141,7 +155,27 @@ export const resultToSummaryTransformer = ({
     return [`\n--- ${check.checkType} ---\n${fileEntries.join('\n')}`];
   });
 
+  const slowFileLines = wardResult.checks.flatMap((check) => {
+    if (check.status === 'skip') {
+      return [];
+    }
+
+    const allTimings: FileTiming[] = check.projectResults.flatMap((pr) => pr.fileTimings);
+    const slowTimings = allTimings
+      .filter((ft) => Number(ft.durationMs) > slowFileThresholdStatics.threshold.warnMs)
+      .sort((a, b) => Number(b.durationMs) - Number(a.durationMs));
+
+    if (slowTimings.length === 0) {
+      return [];
+    }
+
+    const fileLines = slowTimings.map(
+      (ft) => `  ${ft.filePath}  ${(Number(ft.durationMs) / MS_PER_SECOND).toFixed(1)}s`,
+    );
+    return [`\n--- slow files (${check.checkType}) ---\n${fileLines.join('\n')}`];
+  });
+
   const summaryLines = [runLine, ...checkLines];
 
-  return wardSummaryContract.parse([...summaryLines, ...detailLines].join('\n'));
+  return wardSummaryContract.parse([...summaryLines, ...slowFileLines, ...detailLines].join('\n'));
 };

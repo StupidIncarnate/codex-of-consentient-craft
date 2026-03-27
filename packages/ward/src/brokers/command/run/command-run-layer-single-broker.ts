@@ -15,7 +15,9 @@ import {
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { gitRelativePathContract } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
+import { msPerSecondStatics } from '../../../statics/ms-per-second/ms-per-second-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
 import { checkRunLintBroker } from '../../check-run/lint/check-run-lint-broker';
@@ -56,6 +58,8 @@ export const commandRunLayerSingleBroker = async ({
   const CHECK_PAD = 12;
   const NAME_PAD = 20;
 
+  const runStartMs = Date.now();
+
   const checks = await checkTypes.reduce(
     async (accPromise, checkType) => {
       const acc = await accPromise;
@@ -65,15 +69,19 @@ export const commandRunLayerSingleBroker = async ({
         `${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} running...\r`,
       );
 
+      const startMs = Date.now();
       const projectResult = await runner({
         projectFolder,
         fileList,
         ...(config.onlyTests ? { testNamePattern: String(config.onlyTests) } : {}),
       });
+      const checkDurationMs = Date.now() - startMs;
+
+      const formattedDuration = ` (${(checkDurationMs / msPerSecondStatics.value).toFixed(1)}s)`;
 
       if (projectResult.status === 'skip') {
         process.stderr.write(
-          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} skip\n`,
+          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} skip${formattedDuration}\n`,
         );
       } else {
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
@@ -90,7 +98,7 @@ export const commandRunLayerSingleBroker = async ({
             : `${String(projectResult.filesCount)} files, ${String(projectResult.discoveredCount)} discovered${mismatch}`;
 
         process.stderr.write(
-          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}\n`,
+          `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}${formattedDuration}\n`,
         );
 
         if (hasMismatch) {
@@ -111,10 +119,19 @@ export const commandRunLayerSingleBroker = async ({
         }
       }
 
-      return [...acc, checkResultBuildTransformer({ checkType, projectResults: [projectResult] })];
+      return [
+        ...acc,
+        checkResultBuildTransformer({
+          checkType,
+          projectResults: [projectResult],
+          durationMs: durationMsContract.parse(checkDurationMs),
+        }),
+      ];
     },
     Promise.resolve([] as ReturnType<typeof checkResultBuildTransformer>[]),
   );
+
+  const totalDurationMs = Date.now() - runStartMs;
 
   const wardResult = wardResultContract.parse({
     runId,
@@ -124,6 +141,7 @@ export const commandRunLayerSingleBroker = async ({
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
     checks,
+    durationMs: durationMsContract.parse(totalDurationMs),
   });
 
   await storageSaveBroker({ rootPath, wardResult });

@@ -3,12 +3,12 @@
  *
  * USAGE:
  * const {bin, args} = checkCommandsStatics.lint;
- * // Returns: {bin: 'eslint', args: ['--fix', '--format', 'json', '.']}
+ * // Returns: {bin: 'eslint', args: ['--fix', '--stats', '--format', 'json', '.']}
  */
 export const checkCommandsStatics = {
   lint: {
     bin: 'eslint',
-    args: ['--fix', '--format', 'json', '.'],
+    args: ['--fix', '--stats', '--format', 'json', '.'],
     discoverPatterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts', '*.ts', '*.js'],
   },
   typecheck: {

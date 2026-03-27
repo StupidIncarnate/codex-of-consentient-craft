@@ -4,6 +4,7 @@ import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
+import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 
 import { checkRunIntegrationBroker } from './check-run-integration-broker';
 import { checkRunIntegrationBrokerProxy } from './check-run-integration-broker.proxy';
@@ -503,6 +504,86 @@ describe('checkRunIntegrationBroker', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('fileTimings', () => {
+    it('VALID: {jest output with perfStats} => returns fileTimings with per-file durations', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/flows/install/install.integration.test.ts',
+            assertionResults: [],
+            perfStats: { start: 5000, end: 8500 },
+          },
+          {
+            name: 'src/flows/quest/quest.integration.test.ts',
+            assertionResults: [],
+            perfStats: { start: 9000, end: 10200 },
+          },
+        ],
+        numTotalTestSuites: 2,
+        numPassedTests: 5,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 2,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: [
+            'src/flows/install/install.integration.test.ts',
+            'src/flows/quest/quest.integration.test.ts',
+          ],
+          fileTimings: [
+            FileTimingStub({
+              filePath: 'src/flows/install/install.integration.test.ts',
+              durationMs: 3500,
+            }),
+            FileTimingStub({
+              filePath: 'src/flows/quest/quest.integration.test.ts',
+              durationMs: 1200,
+            }),
+          ],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('EDGE: {jest output without perfStats} => returns empty fileTimings', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [
+          { name: 'src/flows/install/install.integration.test.ts', assertionResults: [] },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 2,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([]);
     });
   });
 });

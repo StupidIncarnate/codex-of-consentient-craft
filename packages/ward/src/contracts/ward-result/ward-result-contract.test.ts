@@ -11,6 +11,7 @@ describe('wardResultContract', () => {
         timestamp: 1739625600000,
         filters: {},
         checks: [],
+        durationMs: 0,
       });
     });
 
@@ -37,8 +38,10 @@ describe('wardResultContract', () => {
             checkType: 'lint',
             status: 'pass',
             projectResults: [],
+            durationMs: 0,
           },
         ],
+        durationMs: 0,
       });
     });
   });
@@ -60,6 +63,25 @@ describe('wardResultContract', () => {
     });
   });
 
+  describe('durationMs defaults', () => {
+    it('VALID: {durationMs omitted} => defaults to 0', () => {
+      const result = wardResultContract.parse({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [],
+      });
+
+      expect(result.durationMs).toBe(0);
+    });
+
+    it('VALID: {durationMs provided} => preserves value', () => {
+      const result = wardResultContract.parse(WardResultStub({ durationMs: 23400 }));
+
+      expect(result.durationMs).toBe(23400);
+    });
+  });
+
   describe('stub', () => {
     it('VALID: {default} => creates valid ward result', () => {
       const result = WardResultStub();
@@ -69,6 +91,7 @@ describe('wardResultContract', () => {
         timestamp: 1739625600000,
         filters: {},
         checks: [],
+        durationMs: 0,
       });
     });
 
@@ -80,6 +103,7 @@ describe('wardResultContract', () => {
         timestamp: 9999999999999,
         filters: {},
         checks: [],
+        durationMs: 0,
       });
     });
   });

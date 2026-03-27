@@ -31,6 +31,10 @@ import {
   gitRelativePathContract,
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import {
+  fileTimingContract,
+  type FileTiming,
+} from '../../../contracts/file-timing/file-timing-contract';
 import { isUnitTestPathGuard } from '../../../guards/is-unit-test-path/is-unit-test-path-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
@@ -148,6 +152,7 @@ export const checkRunUnitBroker = async ({
   let filesCount = 0;
   let numPassedTests = 0;
   const processedFiles: GitRelativePath[] = [];
+  const fileTimings: FileTiming[] = [];
   const errors: ErrorEntry[] = [];
 
   if (status === 'fail') {
@@ -182,6 +187,21 @@ export const checkRunUnitBroker = async ({
             const name: unknown = Reflect.get(tr, 'name');
             if (typeof name === 'string' && name.length > 0) {
               processedFiles.push(gitRelativePathContract.parse(name));
+              if ('perfStats' in tr) {
+                const perfStats: unknown = Reflect.get(tr, 'perfStats');
+                if (typeof perfStats === 'object' && perfStats !== null) {
+                  const start: unknown = Reflect.get(perfStats, 'start');
+                  const end: unknown = Reflect.get(perfStats, 'end');
+                  if (typeof start === 'number' && typeof end === 'number') {
+                    fileTimings.push(
+                      fileTimingContract.parse({
+                        filePath: gitRelativePathContract.parse(name),
+                        durationMs: end - start,
+                      }),
+                    );
+                  }
+                }
+              }
             }
           }
         }
@@ -219,6 +239,7 @@ export const checkRunUnitBroker = async ({
     discoveredCount,
     onlyDiscovered,
     onlyProcessed,
+    fileTimings,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

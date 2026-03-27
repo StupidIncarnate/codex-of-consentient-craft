@@ -41,6 +41,7 @@ describe('EslintPluginFlow', () => {
         'enforce-harness-patterns',
         'ban-node-builtins-in-test-scenarios',
         'ban-inline-helpers-in-test-scenarios',
+        'ban-silent-catch',
         'ban-wait-for-timeout',
         'ban-page-route-in-e2e',
         'enforce-e2e-base-import',

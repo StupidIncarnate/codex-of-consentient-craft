@@ -2,6 +2,7 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
+import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 
 import { checkRunLintBroker } from './check-run-lint-broker';
 import { checkRunLintBrokerProxy } from './check-run-lint-broker.proxy';
@@ -141,6 +142,71 @@ describe('checkRunLintBroker', () => {
 
       expect(result.filesCount).toBe(2);
       expect(result.status).toBe('pass');
+    });
+  });
+
+  describe('fileTimings', () => {
+    it('VALID: {eslint output with stats} => returns fileTimings with per-file durations', async () => {
+      const proxy = checkRunLintBrokerProxy();
+      const eslintOutput = JSON.stringify([
+        {
+          filePath: 'src/index.ts',
+          messages: [],
+          stats: {
+            times: {
+              passes: [{ total: 12.5 }, { total: 3.2 }],
+            },
+          },
+        },
+        {
+          filePath: 'src/utils.ts',
+          messages: [],
+          stats: {
+            times: {
+              passes: [{ total: 8.1 }],
+            },
+          },
+        },
+      ]);
+      proxy.setupPassWithOutput({ stdout: eslintOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 2,
+          discoveredCount: 2,
+          fileTimings: [
+            FileTimingStub({ filePath: 'src/index.ts', durationMs: 15.7 }),
+            FileTimingStub({ filePath: 'src/utils.ts', durationMs: 8.1 }),
+          ],
+          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('EDGE: {eslint output without stats} => returns empty fileTimings', async () => {
+      const proxy = checkRunLintBrokerProxy();
+      const eslintOutput = JSON.stringify([{ filePath: 'src/index.ts', messages: [] }]);
+      proxy.setupPassWithOutput({ stdout: eslintOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunLintBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([]);
     });
   });
 });

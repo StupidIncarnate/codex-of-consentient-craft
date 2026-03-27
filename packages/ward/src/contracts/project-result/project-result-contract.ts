@@ -13,6 +13,7 @@ import { errorEntryContract } from '../error-entry/error-entry-contract';
 import { testFailureContract } from '../test-failure/test-failure-contract';
 import { rawOutputContract } from '../raw-output/raw-output-contract';
 import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
+import { fileTimingContract } from '../file-timing/file-timing-contract';
 
 export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
@@ -24,6 +25,7 @@ export const projectResultContract = z.object({
   discoveredCount: z.number().int().nonnegative().brand<'DiscoveredCount'>().default(0),
   onlyDiscovered: z.array(gitRelativePathContract).default([]),
   onlyProcessed: z.array(gitRelativePathContract).default([]),
+  fileTimings: z.array(fileTimingContract).default([]),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

@@ -4,6 +4,7 @@ import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
+import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
@@ -623,6 +624,75 @@ describe('checkRunUnitBroker', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('fileTimings', () => {
+    it('VALID: {jest output with perfStats} => returns fileTimings with per-file durations', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/foo.test.ts',
+            assertionResults: [],
+            perfStats: { start: 1000, end: 1250 },
+          },
+          {
+            name: 'src/bar.test.ts',
+            assertionResults: [],
+            perfStats: { start: 2000, end: 2800 },
+          },
+        ],
+        numTotalTestSuites: 2,
+        numPassedTests: 4,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 2,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/foo.test.ts', 'src/bar.test.ts'],
+          fileTimings: [
+            FileTimingStub({ filePath: 'src/foo.test.ts', durationMs: 250 }),
+            FileTimingStub({ filePath: 'src/bar.test.ts', durationMs: 800 }),
+          ],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('EDGE: {jest output without perfStats} => returns empty fileTimings', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [{ name: 'src/foo.test.ts', assertionResults: [] }],
+        numTotalTestSuites: 1,
+        numPassedTests: 2,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.fileTimings).toStrictEqual([]);
     });
   });
 });

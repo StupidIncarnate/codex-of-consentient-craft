@@ -5,6 +5,7 @@ import { CheckResultStub } from '../../contracts/check-result/check-result.stub'
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
+import { FileTimingStub } from '../../contracts/file-timing/file-timing.stub';
 import { WardSummaryStub } from '../../contracts/ward-summary/ward-summary.stub';
 import { resultToSummaryTransformer } from './result-to-summary-transformer';
 
@@ -662,6 +663,250 @@ describe('resultToSummaryTransformer', () => {
         WardSummaryStub({
           value:
             'run: 1739625600000-a3f1\nlint:      PASS  1 packages (286 files passed/0 files failed, 285 discovered)  DISCOVERY MISMATCH\n  only processed: @types/error-cause.d.ts',
+        }),
+      );
+    });
+  });
+
+  describe('check duration display', () => {
+    it('VALID: {wardResult: lint pass with durationMs} => appends duration to check line', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 4200,
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 147,
+              }),
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'pass',
+                filesCount: 0,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files passed/0 files failed)  4.2s',
+        }),
+      );
+    });
+
+    it('EDGE: {wardResult: lint pass with durationMs=0} => no duration shown (backward compat)', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            durationMs: 0,
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 10,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: unit fail with durationMs} => appends duration to fail line', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            durationMs: 12300,
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'fail',
+                filesCount: 9,
+                testFailures: [TestFailureStub({ testName: 'broken' })],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed)  cli (1)  12.3s\n\n--- unit ---\ncli/src/index.test.ts\n  FAIL "broken"\n    Expected true to be false',
+        }),
+      );
+    });
+  });
+
+  describe('total run duration display', () => {
+    it('VALID: {wardResult: durationMs > 0} => appends total duration to run line', () => {
+      const wardResult = WardResultStub({
+        durationMs: 23400,
+        checks: [],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(WardSummaryStub({ value: 'run: 1739625600000-a3f1  (23.4s)' }));
+    });
+
+    it('EDGE: {wardResult: durationMs=0} => no duration on run line (backward compat)', () => {
+      const wardResult = WardResultStub({
+        durationMs: 0,
+        checks: [],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(WardSummaryStub({ value: 'run: 1739625600000-a3f1' }));
+    });
+  });
+
+  describe('slow file warnings', () => {
+    it('VALID: {wardResult: fileTimings exceeding threshold} => shows slow files section', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'orchestrator', path: '/p/orchestrator' },
+                status: 'pass',
+                filesCount: 10,
+                fileTimings: [
+                  FileTimingStub({ filePath: 'src/fast-file.test.ts', durationMs: 200 }),
+                  FileTimingStub({
+                    filePath: 'src/slow-flow.integration.test.ts',
+                    durationMs: 8300,
+                  }),
+                  FileTimingStub({ filePath: 'src/slow-widget.test.tsx', durationMs: 5200 }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  src/slow-flow.integration.test.ts  8.3s\n  src/slow-widget.test.tsx  5.2s',
+        }),
+      );
+    });
+
+    it('EDGE: {wardResult: all fileTimings below threshold} => no slow files section', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                fileTimings: [
+                  FileTimingStub({ filePath: 'src/fast.test.ts', durationMs: 150 }),
+                  FileTimingStub({ filePath: 'src/ok.test.ts', durationMs: 4999 }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
+        }),
+      );
+    });
+
+    it('VALID: {wardResult: slow files across multiple projects} => aggregates and sorts slowest first', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'web', path: '/p/web' },
+                status: 'pass',
+                filesCount: 5,
+                fileTimings: [
+                  FileTimingStub({ filePath: 'src/widget.test.tsx', durationMs: 6000 }),
+                ],
+              }),
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'pass',
+                filesCount: 3,
+                fileTimings: [FileTimingStub({ filePath: 'src/broker.test.ts', durationMs: 9000 })],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  src/broker.test.ts  9.0s\n  src/widget.test.tsx  6.0s',
         }),
       );
     });
