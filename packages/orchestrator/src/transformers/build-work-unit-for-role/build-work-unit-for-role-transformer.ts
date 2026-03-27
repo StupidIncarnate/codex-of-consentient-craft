@@ -25,10 +25,11 @@ export const buildWorkUnitForRoleTransformer = ({
 }): WorkUnit => {
   switch (role) {
     case 'codeweaver': {
-      const { relatedContracts, relatedObservables } = stepToQuestContextTransformer({
-        step,
-        quest,
-      });
+      const { relatedContracts, relatedObservables, relatedDesignDecisions, relatedFlows } =
+        stepToQuestContextTransformer({
+          step,
+          quest,
+        });
 
       return workUnitContract.parse({
         role: 'codeweaver',
@@ -36,6 +37,8 @@ export const buildWorkUnitForRoleTransformer = ({
         questId: quest.id,
         relatedContracts,
         relatedObservables,
+        relatedDesignDecisions,
+        relatedFlows,
       });
     }
 

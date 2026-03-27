@@ -104,6 +104,8 @@ describe('workUnitContract', () => {
         questId,
         relatedContracts,
         relatedObservables,
+        relatedDesignDecisions: [],
+        relatedFlows: [],
       });
     });
 
@@ -116,6 +118,8 @@ describe('workUnitContract', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [QuestContractEntryStub()],
         relatedObservables: [FlowObservableStub()],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
       });
     });
 
@@ -131,6 +135,8 @@ describe('workUnitContract', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
       });
     });
   });

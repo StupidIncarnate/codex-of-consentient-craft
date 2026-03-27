@@ -1,8 +1,11 @@
 import {
   AbsoluteFilePathStub,
   DependencyStepStub,
+  DesignDecisionStub,
   ErrorMessageStub,
+  FlowNodeStub,
   FlowObservableStub,
+  FlowStub,
   QuestContractEntryStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -160,6 +163,95 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).not.toMatch(/Related Observables:/u);
+    });
+
+    it('VALID: {codeweaver with uses} => includes uses list', () => {
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Create Broker',
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
+          uses: ['authGuard', 'sessionBroker'],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Uses:\n {2}- authGuard\n {2}- sessionBroker/u);
+    });
+
+    it('VALID: {codeweaver with design decisions} => includes design decisions', () => {
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Create Broker',
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [],
+        relatedDesignDecisions: [
+          DesignDecisionStub({
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(
+        /Design Decisions:\n {2}- Use JWT for auth: Stateless authentication/u,
+      );
+    });
+
+    it('VALID: {codeweaver with flows} => includes flows with relevant nodes', () => {
+      const observable = FlowObservableStub({ id: 'obs-1' });
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Create Broker',
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [],
+        relatedFlows: [
+          FlowStub({
+            name: 'Login Flow',
+            nodes: [
+              FlowNodeStub({ id: 'login-page', label: 'Login Page', observables: [observable] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
+    });
+
+    it('VALID: {codeweaver with empty design decisions and flows} => omits those sections', () => {
+      const workUnit = CodeweaverWorkUnitStub({
+        step: DependencyStepStub({
+          name: 'Step',
+          focusFile: { path: 'src/broker.ts', action: 'create' },
+          accompanyingFiles: [],
+        }),
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedContracts: [],
+        relatedObservables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Design Decisions:/u);
+      expect(result).not.toMatch(/Flows:/u);
     });
   });
 

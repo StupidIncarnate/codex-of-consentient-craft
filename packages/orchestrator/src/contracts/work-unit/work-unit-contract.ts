@@ -10,7 +10,9 @@ import { z } from 'zod';
 import {
   absoluteFilePathContract,
   dependencyStepContract,
+  designDecisionContract,
   errorMessageContract,
+  flowContract,
   flowObservableContract,
   questContractEntryContract,
   questIdContract,
@@ -28,6 +30,8 @@ const codeweaverWorkUnitContract = z.object({
   questId: questIdContract,
   relatedContracts: z.array(questContractEntryContract),
   relatedObservables: z.array(flowObservableContract),
+  relatedDesignDecisions: z.array(designDecisionContract).default([]),
+  relatedFlows: z.array(flowContract).default([]),
 });
 
 const spiritmenderWorkUnitContract = z.object({

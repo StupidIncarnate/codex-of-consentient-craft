@@ -53,6 +53,17 @@ describe('buildWorkUnitForRoleTransformer', () => {
         questId: quest.id,
         relatedContracts: [contractEntry],
         relatedObservables: [observable],
+        relatedDesignDecisions: [],
+        relatedFlows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [observable],
+              }),
+            ],
+          }),
+        ],
       });
     });
 
@@ -91,6 +102,8 @@ describe('buildWorkUnitForRoleTransformer', () => {
         questId: quest.id,
         relatedContracts: [],
         relatedObservables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
       });
     });
   });

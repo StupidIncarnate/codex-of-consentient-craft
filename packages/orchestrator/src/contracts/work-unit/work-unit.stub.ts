@@ -24,6 +24,8 @@ export const CodeweaverWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}
     questId: QuestIdStub({ value: 'add-auth' }),
     relatedContracts: [QuestContractEntryStub()],
     relatedObservables: [FlowObservableStub()],
+    relatedDesignDecisions: [],
+    relatedFlows: [],
     ...props,
   });
 

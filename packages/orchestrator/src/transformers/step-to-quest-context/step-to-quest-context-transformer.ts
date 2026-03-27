@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Extracts related contracts and observables from a quest for a given step
+ * PURPOSE: Extracts related contracts, observables, design decisions, and flows from a quest for a given step
  *
  * USAGE:
  * const context = stepToQuestContextTransformer({ step, quest });
- * // Returns { relatedContracts, relatedObservables } filtered subsets
+ * // Returns { relatedContracts, relatedObservables, relatedDesignDecisions, relatedFlows } filtered subsets
  */
 
 import type {
   DependencyStep,
+  DesignDecision,
+  Flow,
+  FlowNodeId,
   FlowObservable,
   Quest,
   QuestContractEntry,
@@ -22,6 +25,8 @@ export const stepToQuestContextTransformer = ({
 }): {
   relatedContracts: QuestContractEntry[];
   relatedObservables: FlowObservable[];
+  relatedDesignDecisions: DesignDecision[];
+  relatedFlows: Flow[];
 } => {
   const contractNames = new Set([...step.inputContracts, ...step.outputContracts]);
 
@@ -37,8 +42,30 @@ export const stepToQuestContextTransformer = ({
     observableIds.has(observable.id),
   );
 
+  const matchingNodeIds = new Set<FlowNodeId>();
+
+  for (const flow of quest.flows) {
+    for (const node of flow.nodes) {
+      const hasMatchingObservable = node.observables.some((obs) => observableIds.has(obs.id));
+
+      if (hasMatchingObservable) {
+        matchingNodeIds.add(node.id);
+      }
+    }
+  }
+
+  const relatedDesignDecisions = quest.designDecisions.filter((decision) =>
+    decision.relatedNodeIds.some((nodeId) => matchingNodeIds.has(nodeId)),
+  );
+
+  const relatedFlows = quest.flows.filter((flow) =>
+    flow.nodes.some((node) => node.observables.some((obs) => observableIds.has(obs.id))),
+  );
+
   return {
     relatedContracts,
     relatedObservables,
+    relatedDesignDecisions,
+    relatedFlows,
   };
 };

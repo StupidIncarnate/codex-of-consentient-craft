@@ -19,7 +19,14 @@ export const workUnitToArgumentsTransformer = ({
 }): ContentText => {
   switch (workUnit.role) {
     case 'codeweaver': {
-      const { step, questId, relatedContracts, relatedObservables } = workUnit;
+      const {
+        step,
+        questId,
+        relatedContracts,
+        relatedObservables,
+        relatedDesignDecisions,
+        relatedFlows,
+      } = workUnit;
       const parts: ContentText[] = [
         contentTextContract.parse(`Step: ${step.name}`),
         contentTextContract.parse(`Focus File: ${step.focusFile.path} (${step.focusFile.action})`),
@@ -43,6 +50,13 @@ export const workUnitToArgumentsTransformer = ({
         }
       }
 
+      if (step.uses.length > 0) {
+        parts.push(contentTextContract.parse('Uses:'));
+        for (const ref of step.uses) {
+          parts.push(contentTextContract.parse(`  - ${ref}`));
+        }
+      }
+
       if (relatedContracts.length > 0) {
         parts.push(contentTextContract.parse('Related Contracts:'));
         for (const contract of relatedContracts) {
@@ -52,6 +66,25 @@ export const workUnitToArgumentsTransformer = ({
             const descSuffix = ` - ${prop.description}`;
             parts.push(contentTextContract.parse(`    - ${prop.name}${typeSuffix}${descSuffix}`));
           }
+        }
+      }
+
+      if (relatedDesignDecisions.length > 0) {
+        parts.push(contentTextContract.parse('Design Decisions:'));
+        for (const decision of relatedDesignDecisions) {
+          parts.push(contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`));
+        }
+      }
+
+      if (relatedFlows.length > 0) {
+        parts.push(contentTextContract.parse('Flows:'));
+        for (const flow of relatedFlows) {
+          const relevantNodes = flow.nodes
+            .filter((node) => node.observables.length > 0)
+            .map((node) => node.label);
+          const nodesSuffix =
+            relevantNodes.length > 0 ? ` (nodes: ${relevantNodes.join(', ')})` : '';
+          parts.push(contentTextContract.parse(`  - ${flow.name}${nodesSuffix}`));
         }
       }
 
