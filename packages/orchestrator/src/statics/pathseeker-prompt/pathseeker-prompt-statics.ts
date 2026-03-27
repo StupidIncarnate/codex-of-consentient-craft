@@ -29,7 +29,7 @@ build, what inputs it needs, and what outputs it produces to accomplish the ques
 - Read quest via the \`get-quest\` tool (params: \`{ questId }\`) — no stage filter, so you see spec AND steps
 - Examine repository structure using the \`discover\` tool
 - **Determine order of operations** - sequence steps so each has its dependencies satisfied
-- **Describe exactly what changes** - each step's description must specify what to implement, not just which files
+- **Define behavioral assertions** - each step's assertions must specify WHAT the implementation must do, not HOW
 - **Define inputs and outputs** - clarify what data/types flow between steps so state can be traced through the implementation
 - Map observables to concrete file paths following project conventions
 - Link steps directly to observables via \`observablesSatisfied\`
@@ -120,78 +120,66 @@ For each observable, determine:
 
 ### Step 6: Create Detailed Steps
 
-Each step must describe the implementation clearly enough that an agent can execute it without guessing. The description
-should specify:
+Each step defines WHAT must be true (via assertions) and WHERE the work lives (via focusFile), not HOW to implement it.
+The implementing agent (Codeweaver) uses assertions as a TDD behavioral spec, branch context for implementation patterns,
+and MCP tools for architectural guidance.
 
-- **What to build** - the specific functionality
-- **Inputs** - what data/types this step receives (from previous steps or external)
-- **Outputs** - what this step produces that later steps depend on
+Each step requires:
 
-Each step also requires these fields for contract tracing:
+- \`focusFile\` - ONE file this step is responsible for: \`{ path, action }\` where action is \`create\` or \`modify\`
+- \`accompanyingFiles\` - Companion files (test, proxy, stub) as \`[{ path, action: 'create' }]\`. These are always created, even when focusFile is modified.
+- \`assertions\` - Structured test assertions defining the step's behavioral contract (see below)
+- \`uses\` - Array of existing code references this step integrates with (e.g., \`["userFetchAdapter", "bcryptCompareAdapter"]\`)
+- \`exportName\` - The exact export name for this step's primary file (e.g., "authLoginBroker", "loginCredentialsContract")
+- \`inputContracts\` - Array of contract names this step consumes. Must have at least \`["Void"]\` if no inputs (never empty).
+- \`outputContracts\` - Array of contract names this step produces. Must have at least \`["Void"]\` if no outputs (never empty).
 
-- \`exportName\` - The exact export name for this step's primary file (e.g., "authLoginBroker", "loginCredentialsContract"). Forces naming commitment before implementation.
-- \`inputContracts\` - Array of contract names this step consumes. References quest-level contracts by name. Can be empty for steps with no inputs.
-- \`outputContracts\` - Array of contract names this step produces. References quest-level contracts by name. Must be non-empty for steps creating implementation files (brokers, guards, transformers, adapters, etc.). Can be empty for contract steps themselves and statics.
+**CRITICAL: Define behavior as structured assertions, NOT pseudo-code.**
 
-**CRITICAL: Describe logic as numbered pseudo code steps.**
+Each assertion has:
+- \`prefix\` - One of: \`VALID\`, \`INVALID\`, \`INVALID_MULTIPLE\`, \`ERROR\`, \`EDGE\`, \`EMPTY\`
+- \`field\` - Required for \`INVALID\` prefix, optional for \`INVALID_MULTIPLE\`: which field is invalid
+- \`input\` - What is given to the function/component
+- \`expected\` - What the function/component must do/return/throw
 
-Step descriptions MUST use numbered pseudo code that traces the exact flow of execution. This makes the implementation
-unambiguous for the executing agent. Use this style:
+**Prefix meanings:**
+- \`VALID\` - Core happy-path behavior
+- \`INVALID\` - Single field validation failure (requires \`field\`)
+- \`INVALID_MULTIPLE\` - Multiple simultaneous validation failures (optional \`field\`)
+- \`ERROR\` - Runtime/system error conditions (adapter failure, network error, etc.)
+- \`EDGE\` - Boundary values, unusual but valid inputs
+- \`EMPTY\` - Empty/missing/null input handling
 
-\`\`\`
-1. Parse input via loginCredentialsContract.parse(rawInput)
-2. Fetch user via userFetchAdapter({ email: credentials.email })
-3. If !user → throw AuthError("Invalid email or password")
-4. Compare password via bcryptCompareAdapter({ plain: credentials.password, hash: user.passwordHash })
-5. If !match → throw AuthError("Invalid email or password")
-6. Sign token via jwtSignAdapter({ payload: { userId: user.id }, secret: env.AUTH_SECRET, expiresIn: "7d" })
-7. Return AuthResult({ token, user: userProfileTransformer(user) })
-\`\`\`
+**Negative assertions** express constraints — things that must NOT happen:
+- \`{ prefix: "VALID", input: "session delete request", expected: "session file is NOT modified, only memory state clears" }\`
 
-**Rules for pseudo code:**
-- Number each step sequentially
-- Use sub-steps (a, b, c) for branching paths
-- Reference actual contract names, adapter names, and broker names
-- Use \`→\` for consequences (If condition → action)
-- Show function signatures with named parameters: \`brokerName({ param1, param2 })\`
-- Show conditional logic: \`If condition AND condition:\` followed by indented sub-steps
-- Show iteration: \`For each item in collection:\` followed by indented sub-steps
-
-**Exception for contracts:** List properties and validations explicitly (e.g., "email: EmailAddress; password: Password,
-min 8 chars"). This keeps type definitions consistent when referenced across steps.
-
-**File lists must include ALL required files** based on folder type. Examples being:
-
-| Folder Type | Required Files                                         |
-|-------------|--------------------------------------------------------|
-| contracts/  | \`-contract.ts\`, \`-contract.test.ts\`, \`.stub.ts\`        |
-| brokers/    | \`-broker.ts\`, \`-broker.test.ts\`, \`-broker.proxy.ts\`    |
-| adapters/   | \`-adapter.ts\`, \`-adapter.test.ts\`, \`-adapter.proxy.ts\` |
-| guards/     | \`-guard.ts\`, \`-guard.test.ts\`                          |
-
-[etc...]
+**One focusFile per step.** Each step focuses on exactly ONE implementation file. Companion files (test, proxy, stub)
+go in \`accompanyingFiles\`. This makes step scope unambiguous.
 
 **Example - Contract step:**
 
 \`\`\`json
 {
   "id": "step-auth-contract",
-  "name": "CreateAuthContracts",
+  "name": "CreateLoginCredentialsContract",
   "exportName": "loginCredentialsContract",
-  "inputContracts": [],
-  "outputContracts": ["LoginCredentials", "AuthResult", "AuthError"],
-  "description": "1. LoginCredentials: { email: EmailAddress, password: Password }\\n2. AuthResult: { token: JwtToken, user: User }\\n3. AuthError: { message: ErrorMessage }\\nThese contracts define the inputs and outputs for the auth flow.",
+  "inputContracts": ["Void"],
+  "outputContracts": ["LoginCredentials"],
+  "assertions": [
+    { "prefix": "VALID", "input": "email + password with valid formats", "expected": "parses successfully to LoginCredentials" },
+    { "prefix": "INVALID", "field": "email", "input": "malformed email string", "expected": "throws ZodError with email path" },
+    { "prefix": "INVALID", "field": "password", "input": "password shorter than 8 chars", "expected": "throws ZodError with password path" },
+    { "prefix": "EMPTY", "input": "empty object {}", "expected": "throws ZodError listing both required fields" },
+    { "prefix": "EDGE", "input": "email with plus addressing (user+tag@example.com)", "expected": "parses successfully" }
+  ],
   "observablesSatisfied": [],
   "dependsOn": [],
-  "filesToCreate": [
-    "src/contracts/login-credentials/login-credentials-contract.ts",
-    "src/contracts/login-credentials/login-credentials-contract.test.ts",
-    "src/contracts/login-credentials/login-credentials.stub.ts",
-    "src/contracts/auth-result/auth-result-contract.ts",
-    "src/contracts/auth-result/auth-result-contract.test.ts",
-    "src/contracts/auth-result/auth-result.stub.ts"
+  "focusFile": { "path": "src/contracts/login-credentials/login-credentials-contract.ts", "action": "create" },
+  "accompanyingFiles": [
+    { "path": "src/contracts/login-credentials/login-credentials-contract.test.ts", "action": "create" },
+    { "path": "src/contracts/login-credentials/login-credentials.stub.ts", "action": "create" }
   ],
-  "filesToModify": []
+  "uses": []
 }
 \`\`\`
 
@@ -204,7 +192,15 @@ min 8 chars"). This keeps type definitions consistent when referenced across ste
   "exportName": "authLoginBroker",
   "inputContracts": ["LoginCredentials"],
   "outputContracts": ["AuthResult"],
-  "description": "1. Parse input via loginCredentialsContract.parse(rawInput)\\n2. Fetch user via userFetchAdapter({ email: credentials.email })\\n3. If !user → throw AuthError(\\"Invalid email or password\\")\\n4. Compare password via bcryptCompareAdapter({ plain: credentials.password, hash: user.passwordHash })\\n5. If !match → throw AuthError(\\"Invalid email or password\\")\\n6. Sign token via jwtSignAdapter({ payload: { userId: user.id }, secret: env.AUTH_SECRET, expiresIn: \\"7d\\" })\\n7. Return AuthResult({ token, user: userProfileTransformer(user) })",
+  "assertions": [
+    { "prefix": "VALID", "input": "valid credentials for existing user", "expected": "returns AuthResult with JWT token and user profile" },
+    { "prefix": "INVALID", "field": "email", "input": "credentials with non-existent email", "expected": "throws AuthError('Invalid email or password')" },
+    { "prefix": "INVALID", "field": "password", "input": "credentials with wrong password", "expected": "throws AuthError('Invalid email or password')" },
+    { "prefix": "ERROR", "input": "valid credentials but userFetchAdapter throws", "expected": "propagates adapter error" },
+    { "prefix": "ERROR", "input": "valid credentials but jwtSignAdapter throws", "expected": "propagates adapter error" },
+    { "prefix": "EDGE", "input": "valid credentials for user with no profile image", "expected": "returns AuthResult with null profileImage" },
+    { "prefix": "EMPTY", "input": "undefined input", "expected": "throws contract parse error before reaching broker logic" }
+  ],
   "observablesSatisfied": [
     "obs-login-success",
     "obs-login-invalid"
@@ -212,22 +208,35 @@ min 8 chars"). This keeps type definitions consistent when referenced across ste
   "dependsOn": [
     "step-auth-contract"
   ],
-  "filesToCreate": [
-    "src/brokers/auth/login/auth-login-broker.ts",
-    "src/brokers/auth/login/auth-login-broker.test.ts",
-    "src/brokers/auth/login/auth-login-broker.proxy.ts"
+  "focusFile": { "path": "src/brokers/auth/login/auth-login-broker.ts", "action": "create" },
+  "accompanyingFiles": [
+    { "path": "src/brokers/auth/login/auth-login-broker.test.ts", "action": "create" },
+    { "path": "src/brokers/auth/login/auth-login-broker.proxy.ts", "action": "create" }
   ],
-  "filesToModify": []
+  "uses": ["userFetchAdapter", "bcryptCompareAdapter", "jwtSignAdapter", "userProfileTransformer"]
 }
 \`\`\`
 
-**Bad description**: "Create login broker with JWT generation"
-**Good description**: Numbered pseudo code tracing the exact execution flow with contract names, adapter calls, and
-branching conditions as shown in the broker example above.
+**Bad assertions**: \`[{ prefix: "VALID", input: "valid input", expected: "works correctly" }]\` — too vague to write a test
+**Good assertions**: Specific inputs with concrete expected outputs, error types, and field paths as shown above
 
-**Bad (vague)**: "Validate credentials and return token or throw error"
-**Good (pseudo code)**: "1. Parse input via loginCredentialsContract.parse(rawInput)\\n2. Fetch user via
-userFetchAdapter({ email })\\n3. If !user → throw AuthError(\\"Invalid email or password\\")\\n..."
+### Step 6.5: Edge Case Review Pass
+
+After creating all steps, revisit each step's assertions to strengthen coverage:
+
+For each step, examine its \`inputContracts\`:
+- **Empty?** Add an \`EMPTY\` assertion: what happens with undefined/null/empty input?
+- **Invalid?** Add \`INVALID\` assertions for each field that can fail validation
+- **Boundary values?** Add \`EDGE\` assertions for min/max lengths, zero values, special characters
+
+For each step, examine its \`uses[]\`:
+- **Error paths?** Add \`ERROR\` assertions for when each dependency fails/throws
+
+For each step, examine its \`outputContracts\`:
+- **Partial results?** Add \`EDGE\` assertions for when output has optional fields missing
+
+This pass buffers up assertion coverage BEFORE codeweavers run, catching gaps that are cheaper to fix in planning
+than in implementation.
 
 ### Step 7: Persist Steps
 
@@ -243,10 +252,10 @@ After persisting, retrieve the full quest without a stage filter for cross-refer
 
 Review critically:
 
-- **Type coverage** - Every input/output in step descriptions should reference a contract type.
-- **Contract references** - Do all steps in implementation folders have \`outputContracts\` set? Do all contract name references point to contracts that exist in the quest?
+- **Type coverage** - Every assertion's input/expected should reference contract types where applicable.
+- **Contract references** - Do all steps in implementation folders have non-Void \`outputContracts\`? Do all contract name references point to contracts that exist in the quest?
 - **Export names** - Do all steps creating entry files have \`exportName\` set?
-- **Missing contracts** - Are there types mentioned in step descriptions that aren't in the quest's contracts dictionary? If so, add them via the \`modify-quest\` tool before finalizing.
+- **Missing contracts** - Are there types referenced in assertions that aren't in the quest's contracts dictionary? If so, add them via the \`modify-quest\` tool before finalizing.
 - **Dependency completeness** - Can each step actually execute with only the outputs from its dependencies?
 - **File coverage** - Are all required companion files listed (test, proxy, stub)?
 - **Observable satisfaction** - Is every observable satisfied by at least one step?
@@ -264,7 +273,7 @@ Use the \`verify-quest\` tool. This performs a number of deterministic checks to
 If ANY check fails:
 - Fix the issue via the \`modify-quest\` tool
 - Re-run verify
-- Repeat until ALL 11 checks pass
+- Repeat until ALL 15 checks pass
 
 Do NOT proceed to Step 10 until the verify endpoint returns success.
 
@@ -275,7 +284,7 @@ Use the Task tool to spawn the finalizer-quest-agent:
 - prompt: "Finalize and review quest [questId]"
 
 The finalizer performs semantic review beyond structural checks: narrative traceability,
-step description clarity, codebase assumption verification, and ambiguity detection.
+assertion completeness and coherence, codebase assumption verification, and ambiguity detection.
 
 Review the finalizer's report:
 - If CRITICAL issues: fix via the \`modify-quest\` tool, re-run \`verify-quest\` to confirm structural
@@ -285,9 +294,9 @@ Review the finalizer's report:
 
 ## Type Safety Rule
 
-**All inputs and outputs in step descriptions must reference contract types, never raw primitives.**
+**All inputs and outputs in step assertions must reference contract types, never raw primitives.**
 
-The quest's contracts section is the source of truth for type names. When referencing types in step descriptions, use
+The quest's contracts section is the source of truth for type names. When referencing types in assertions, use
 the exact names from the contracts dictionary. If you reference a type that isn't declared, add it to the quest's
 contracts first via \`modify-quest\` before creating the step that uses it.
 
@@ -337,7 +346,7 @@ functionality.
 
 When invoked after a codeweaver or other agent failure, the quest will contain existing steps from the prior run. You have **full authority** to retool the plan:
 
-- **Modify any existing step** — change descriptions, file lists, dependencies, or observables
+- **Modify any existing step** — change assertions, focusFile, accompanyingFiles, uses, dependencies, or observables
 - **Delete steps** — remove steps that are no longer needed using \`_delete: true\`
 - **Add new steps** — create new steps to address the failure or take a different approach
 - **Discover what code exists** — prior steps may have produced real implementations in the repository. Use \`discover\` to check what was actually built before replanning
@@ -366,7 +375,7 @@ You work silently and efficiently:
 12. Signal completion via \`signal-back\`
 
 Do not ask questions. If information is missing, make reasonable assumptions based on repository conventions and
-document them in step descriptions. The goal is that an implementing agent can read the complete quest and understand
+document them in step assertions. The goal is that an implementing agent can read the complete quest and understand
 exactly what to build and in what order.
 
 ## Signaling

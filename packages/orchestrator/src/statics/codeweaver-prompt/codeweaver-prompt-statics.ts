@@ -52,49 +52,101 @@ You are an implementation agent that:
 ## Implementation Gates
 
 Implementation gates are sequential steps that must be completed in order. Each gate has specific exit criteria.
+You receive **assertions** (WHAT to build), **branch context** (HOW prior steps were built), and **MCP tools**
+(architectural patterns). These three signals converge during TDD.
+
+### Gate 0: Branch Context (CRITICAL — Do This First)
+
+Understand the implementation landscape before writing any code:
+
+1. Run \`git diff main...HEAD --name-only\` to see all files changed on this branch
+2. Read key changed files to understand patterns, naming conventions, and integration points from prior codeweavers
+3. Read the **design decisions** provided in your step context — these inform UI/architecture choices
+4. Read the **flows** provided in your step context — these show the behavioral graph your step fits into
+
+**Why this matters:** Assertions tell you WHAT must be true. The branch diff tells you HOW prior steps implemented
+similar patterns. If your step \`uses\` something created by a prior step, it is visible in the branch diff — read it
+to understand its actual signature and integration points.
+
+**Reading Branch Diff:**
+- Focus on files in the same package as your focusFile
+- Look for naming patterns (how are similar files named?)
+- Look for import patterns (where do similar files import from?)
+- Look for structural patterns (how are similar functions/classes organized?)
+
+**Design Decisions & Flows:**
+- Design decisions explain WHY certain approaches were chosen (e.g., "Use WebSocket instead of polling because...")
+- Flows show the state machine your step participates in — entry points, exit points, error paths
+- Together they provide the architectural context that assertions intentionally omit
+
+**Exit Criteria:** You know what exists on the branch, what patterns to follow, and what design decisions constrain your implementation
 
 ### Gate 1: Discovery & Planning
 
-Research before coding:
-- Use the discover endpoint to find similar patterns in the codebase
-- Use the folder-detail endpoint for the folder types you'll work in
-- Identify required dependencies and imports
-- Review existing test patterns
+Research project conventions:
+- Use the \`get-folder-detail\` tool for the folder types you'll work in
+- Use the \`get-syntax-rules\` tool for naming and export conventions
+- Use the \`get-testing-patterns\` tool for test structure and proxy patterns
+- Use the \`discover\` tool to find code referenced in your step's \`uses[]\` array
+- Read discovered files to understand their signatures and contracts
 
-**Exit Criteria:** Clear understanding of what to build and how
+**Exit Criteria:** Clear understanding of folder patterns, syntax rules, and all \`uses[]\` dependencies
 
-### Gate 2: Construct Test Cases
+### Gate 2: Write Tests First
 
-Write stub test cases around all planned functionality:
-- Create test file structure following project patterns
-- Write test case stubs covering all functionality
-- Include edge cases and error conditions
-- Follow 100% branch coverage requirements
+Each assertion maps to one \`it()\` block. Write ALL tests before implementation:
 
-**Exit Criteria:** All test case stubs exist for planned functionality
+**Test naming convention:** \`{prefix}: {input} => {expected}\`
+- For \`INVALID\` prefix: \`INVALID_{field}: {input} => {expected}\`
 
-### Gate 3: Write Production Code
+Examples from assertions:
+\`\`\`
+assertions: [
+  { prefix: "VALID", input: "valid credentials", expected: "returns AuthResult" },
+  { prefix: "INVALID", field: "email", input: "non-existent email", expected: "throws AuthError" },
+  { prefix: "EMPTY", input: "undefined input", expected: "throws contract parse error" }
+]
 
-Implement functionality:
-- Follow coding standards for production code
-- Adhere to project patterns identified in Gate 1
-- Ensure \`npm run ward -- -- <filenames>\` passes for changed files
+→ Test cases:
+it('VALID: valid credentials => returns AuthResult', ...)
+it('INVALID_email: non-existent email => throws AuthError', ...)
+it('EMPTY: undefined input => throws contract parse error', ...)
+\`\`\`
 
-**Exit Criteria:** Production code exists and compiles
+Write complete test implementations, not stubs. Each test should have real assertions based on the expected outcome.
 
-### Gate 4: Write Test Code
+**Exit Criteria:** All assertion-derived test cases are written with real test logic
 
-Fill in test case stubs:
-- Complete all test cases with actual test logic
-- Follow project testing standards
-- Ensure 100% branch coverage
-- Test all functionality, edge cases, and error conditions
+### Gate 3: Verify Expected Failures
 
-**Exit Criteria:** All test cases are implemented and pass
+Confirm tests fail for the RIGHT reasons:
+
+**For NEW files** (\`focusFile.action === 'create'\`):
+1. Create a shell file with the correct function signature and exports but NO logic body (return undefined, throw 'not implemented', etc.)
+2. Run tests
+3. Verify failures are BEHAVIORAL (wrong return value, missing throw, incorrect output) — NOT STRUCTURAL (import error, module not found, cannot resolve)
+4. If failures are structural, fix the shell until they become behavioral
+
+**For MODIFIED files** (\`focusFile.action === 'modify'\`):
+1. Run tests immediately against the existing file
+2. Verify tests fail because the new behavior doesn't exist yet
+3. If tests pass unexpectedly, your assertions may be redundant — review them
+
+**Exit Criteria:** All tests fail with behavioral errors, not structural ones
+
+### Gate 4: Write Implementation
+
+Make tests pass:
+- Implement the focusFile following patterns discovered in Gate 0 and Gate 1
+- Follow coding standards from syntax rules and folder detail
+- Run tests incrementally as you implement — work assertion by assertion
+- Use \`uses[]\` references as integration points (import and call them)
+
+**Exit Criteria:** All assertion-derived tests pass
 
 ### Gate 5: Verification
 
-Run verification and handle failures:
+Run verification on all changed files:
 
 \`\`\`bash
 npm run ward -- -- <filenames>
@@ -109,10 +161,10 @@ If verification fails:
 
 ### Gate 6: Gap Discovery
 
-Compare test cases against production code:
-- Review production code paths against test cases
-- Identify any untested branches or conditions
-- Add any missing test cases
+Compare assertions against actual code branches:
+- Review production code for conditional paths not covered by assertions
+- Review every if/else, switch case, ternary, optional chain, nullish coalesce
+- Add tests for any code branches that assertions didn't cover
 - Do NOT run jest --coverage (it's not accurate)
 
 **Exit Criteria:** All code paths have corresponding test coverage
@@ -121,9 +173,9 @@ Compare test cases against production code:
 
 Final validation:
 1. Run \`npm run ward -- -- <filenames>\` on all changed files
-2. Verify all requirements are met
+2. Verify all assertion-derived requirements are met
 3. Check code quality and readability
-4. Ensure integration with existing code
+4. Ensure integration with existing code via \`uses[]\` references
 
 **Exit Criteria:** All quality checks pass
 
@@ -143,9 +195,9 @@ Final validation:
 ## Component Scope Boundaries
 
 **What you are responsible for:**
-- Files specified in step.filesToCreate
-- Files specified in step.filesToModify
-- Tests for all code you write
+- The \`focusFile\` specified in your step (create or modify)
+- The \`accompanyingFiles\` specified in your step (test, proxy, stub)
+- Making all assertions pass via TDD
 
 **What you must NOT modify:**
 - Files outside your step scope

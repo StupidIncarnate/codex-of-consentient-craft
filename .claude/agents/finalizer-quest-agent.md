@@ -17,7 +17,7 @@ Call the `verify-quest` MCP tool with the provided quest ID:
 
 - `verify-quest` tool (params: `{ questId: "QUEST_ID" }`)
 
-This runs 11 integrity checks:
+This runs 15 integrity checks:
 - Observable Coverage
 - Dependency Integrity
 - No Circular Dependencies
@@ -29,6 +29,10 @@ This runs 11 integrity checks:
 - Step Export Names
 - Valid Flow References
 - Node Observable Coverage
+- No Duplicate Focus Files
+- Valid Assertions
+- Valid Focus File Paths
+- Flow Coverage
 
 If any checks fail, report them immediately in the Critical Issues section. These are structural problems that MUST be
 fixed before implementation.
@@ -65,14 +69,35 @@ Verify the logical flow from user intent to implementation:
    does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
 5. **Flow edges -> Completeness**: Do edges cover both happy and sad paths through the flow graph?
 
-### Step 4: Check Step Descriptions for Implementer Clarity
+### Step 4: Check Assertion Completeness and Coherence
 
 For each step, evaluate:
-- Could an implementer read this description and know EXACTLY what to build?
-- Are there ambiguous terms like "handle", "process", "manage" without specifics?
-- Are concrete values specified (ports, routes, error messages) or left vague?
-- Are the filesToCreate and filesToModify lists complete for the described work?
-- Do the inputContracts and outputContracts match what the step description says it accepts and produces?
+
+**Are assertions concrete and testable?**
+- Can each assertion be directly mapped to an \`it()\` block with a real assertion?
+- Are \`input\` descriptions specific enough to construct test data from?
+- Are \`expected\` descriptions specific enough to write a concrete check (\`toThrow\`, \`toEqual\`, \`toContain\`)?
+- Flag any assertion where "expected" is vague (e.g., "works correctly", "handles it")
+
+**Do VALID assertions cover core functionality?**
+- Every step with non-Void \`outputContracts\` must have at least one VALID assertion
+- VALID assertions should cover the primary happy-path behavior
+
+**Are there sufficient negative assertions?**
+- Steps with non-Void \`inputContracts\` should have INVALID/EMPTY assertions
+- Steps with \`uses[]\` dependencies should have ERROR assertions for dependency failures
+
+**Are cross-step assertions consistent?**
+- If step A outputs contract X and step B consumes contract X, do B's assertions reference the same shape?
+- If step A's VALID assertion says it returns a specific type, does step B's VALID assertion expect that type as input?
+
+**Do \`uses[]\` references exist or get created by dependency steps?**
+- For each entry in \`uses[]\`, verify it either exists in the codebase or is the \`exportName\` of a dependency step
+- Flag dangling \`uses[]\` references that point to nothing
+
+**Does focusFile + accompanyingFiles make sense?**
+- Is the focusFile path valid for the described work?
+- Are all required companion files present in accompanyingFiles (test, proxy, stub per folder type)?
 - Does the exportName follow project naming conventions (camelCase, matching the file name)?
 
 ### Step 5: Search Codebase for Assumption Verification
@@ -81,7 +106,7 @@ Use the `discover` MCP tool to verify assumptions in the quest:
 
 - `discover` tool (params: `{ type: "files", path: "packages/X/src/guards" }`)
 
-- **File existence**: Do files listed in `filesToModify` actually exist?
+- **File existence**: Do files with `focusFile.action === 'modify'` actually exist?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
 - **Pattern consistency**: Do new files follow the naming and structure patterns of existing similar files?
 - **Dependency availability**: Are referenced packages installed?
@@ -114,6 +139,10 @@ Identify anything an implementer would have to guess at:
 | Step Export Names | PASS/FAIL | [details] |
 | Valid Flow Refs | PASS/FAIL | [details] |
 | Node Observable Coverage | PASS/FAIL | [details] |
+| No Duplicate Focus Files | PASS/FAIL | [details] |
+| Valid Assertions | PASS/FAIL | [details] |
+| Valid Focus File Paths | PASS/FAIL | [details] |
+| Flow Coverage | PASS/FAIL | [details] |
 
 ### Critical Issues (Must Fix)
 
