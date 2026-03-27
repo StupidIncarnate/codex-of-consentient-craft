@@ -155,7 +155,7 @@ describe('ChatMessageWidget', () => {
   });
 
   describe('tool use message', () => {
-    it('VALID: {role: assistant, type: tool_use} => renders TOOL CALL label with formatted fields', () => {
+    it('VALID: {role: assistant, type: tool_use} => renders ToolRowWidget with tool name and params', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'read_file',
@@ -164,39 +164,39 @@ describe('ChatMessageWidget', () => {
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const row = screen.getByTestId('TOOL_ROW');
+      const name = screen.getByTestId('TOOL_ROW_NAME');
 
-      expect(message.textContent).toMatch(/TOOL CALL/u);
-      expect(message.textContent).toMatch(/path/u);
-      expect(message.textContent).toMatch(/\/src/u);
+      expect(row).not.toBeNull();
+      expect(name.textContent).toBe('read_file');
     });
 
-    it('VALID: {role: assistant, type: tool_use} => renders text-dim borders', () => {
+    it('VALID: {role: assistant, type: tool_use} => renders text-dim accent border', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const row = screen.getByTestId('TOOL_ROW');
 
-      expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
-      expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+      expect(row.style.borderLeft).toBe('3px solid rgb(138, 114, 96)');
     });
 
-    it('VALID: {role: assistant, type: tool_use} => renders formatted fields with italic style', () => {
+    it('VALID: {role: assistant, type: tool_use} => renders inline summary with italic style', () => {
       ChatMessageWidgetProxy();
-      const entry = AssistantToolUseChatEntryStub();
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'read_file',
+        toolInput: '{"path":"/src"}',
+      });
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
-      const fieldContainer = message.children[1] as HTMLElement;
-      const fieldElement = fieldContainer.children[0] as HTMLElement;
+      const summary = screen.getByTestId('TOOL_ROW_SUMMARY');
 
-      expect(fieldElement.style.fontStyle).toBe('italic');
+      expect(summary.style.fontStyle).toBe('italic');
     });
 
-    it('VALID: {isLoading: true} => renders Running... indicator', () => {
+    it('VALID: {isLoading: true} => renders loading status icon', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
@@ -204,12 +204,12 @@ describe('ChatMessageWidget', () => {
         ui: <ChatMessageWidget entry={entry} isLoading={true} />,
       });
 
-      const loading = screen.getByTestId('TOOL_LOADING');
+      const status = screen.getByTestId('TOOL_ROW_STATUS');
 
-      expect(loading.textContent).toBe('Running...');
+      expect(status.textContent).toBe('\u00B7\u00B7\u00B7');
     });
 
-    it('VALID: {isLoading: false} => does not render Running... indicator', () => {
+    it('VALID: {isLoading: false} => does not render status icon', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub();
 
@@ -217,7 +217,7 @@ describe('ChatMessageWidget', () => {
         ui: <ChatMessageWidget entry={entry} isLoading={false} />,
       });
 
-      expect(screen.queryByTestId('TOOL_LOADING')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_STATUS')).toBeNull();
     });
   });
 
@@ -309,7 +309,7 @@ describe('ChatMessageWidget', () => {
   });
 
   describe('sub-agent tool use message', () => {
-    it('VALID: {role: assistant, type: tool_use, source: subagent} => renders SUB-AGENT TOOL label', () => {
+    it('VALID: {role: assistant, type: tool_use, source: subagent} => renders with subagent accent border', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'read_file',
@@ -319,21 +319,24 @@ describe('ChatMessageWidget', () => {
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const row = screen.getByTestId('TOOL_ROW');
 
-      expect(message.textContent).toMatch(/SUB-AGENT TOOL/u);
+      expect(row.style.borderLeft).toMatch(/rgba\(232, 121, 249/u);
     });
 
-    it('VALID: {role: assistant, type: tool_use, source: subagent} => renders loot-rare borders at 50% opacity', () => {
+    it('VALID: {role: assistant, type: tool_use, source: subagent} => renders tool name in ToolRowWidget', () => {
       ChatMessageWidgetProxy();
-      const entry = AssistantToolUseChatEntryStub({ source: 'subagent' });
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'read_file',
+        toolInput: '{"path":"/src"}',
+        source: 'subagent',
+      });
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const name = screen.getByTestId('TOOL_ROW_NAME');
 
-      expect(message.style.borderLeft).toBe('2px solid rgba(232, 121, 249, 0.5)');
-      expect(message.style.borderRight).toBe('2px solid rgba(232, 121, 249, 0.5)');
+      expect(name.textContent).toBe('read_file');
     });
   });
 
@@ -500,7 +503,7 @@ describe('ChatMessageWidget', () => {
   });
 
   describe('skill invocation message', () => {
-    it('VALID: {tool_use, toolName: Skill} => renders SKILL label with loot-gold borders', () => {
+    it('VALID: {tool_use, toolName: Skill} => renders "Skill: commit" with gold accent border', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'Skill',
@@ -509,15 +512,14 @@ describe('ChatMessageWidget', () => {
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const name = screen.getByTestId('TOOL_ROW_NAME');
+      const row = screen.getByTestId('TOOL_ROW');
 
-      expect(message.textContent).toMatch(/SKILL/u);
-      expect(message.textContent).toMatch(/commit/u);
-      expect(message.style.borderLeft).toBe('2px solid rgb(251, 191, 36)');
-      expect(message.style.borderRight).toBe('2px solid rgb(251, 191, 36)');
+      expect(name.textContent).toBe('Skill: commit');
+      expect(row.style.borderLeft).toBe('3px solid rgb(251, 191, 36)');
     });
 
-    it('VALID: {tool_use, toolName: Skill, isLoading} => renders Running... indicator', () => {
+    it('VALID: {tool_use, toolName: Skill, isLoading} => renders loading status icon', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'Skill',
@@ -528,9 +530,9 @@ describe('ChatMessageWidget', () => {
         ui: <ChatMessageWidget entry={entry} isLoading={true} />,
       });
 
-      const loading = screen.getByTestId('TOOL_LOADING');
+      const status = screen.getByTestId('TOOL_ROW_STATUS');
 
-      expect(loading.textContent).toBe('Running...');
+      expect(status.textContent).toBe('\u00B7\u00B7\u00B7');
     });
   });
 
@@ -609,49 +611,51 @@ describe('ChatMessageWidget', () => {
   });
 
   describe('thinking block message', () => {
-    it('VALID: {role: assistant, type: thinking} => renders THINKING label', () => {
+    it('VALID: {role: assistant, type: thinking} => renders ThinkingRowWidget with THINKING label', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Let me think about this' });
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const row = screen.getByTestId('THINKING_ROW');
+      const label = screen.getByTestId('THINKING_ROW_LABEL');
 
-      expect(message.textContent).toMatch(/THINKING/u);
-      expect(message.textContent).toMatch(/Let me think about this/u);
+      expect(row).not.toBeNull();
+      expect(label.textContent).toMatch(/THINKING/u);
     });
 
-    it('VALID: {role: assistant, type: thinking, short content} => renders content without toggle', () => {
+    it('VALID: {role: assistant, type: thinking, short content} => renders full content', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Short thought' });
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      expect(screen.queryByTestId('THINKING_TOGGLE')).toBeNull();
+      const content = screen.getByTestId('THINKING_ROW_CONTENT');
+
+      expect(content.textContent).toBe('Short thought');
     });
 
-    it('VALID: {role: assistant, type: thinking, long content} => renders expand toggle', () => {
+    it('VALID: {role: assistant, type: thinking, long content} => renders all content without truncation', () => {
       ChatMessageWidgetProxy();
       const longContent = 'x'.repeat(300);
       const entry = AssistantThinkingChatEntryStub({ content: longContent });
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const toggle = screen.getByTestId('THINKING_TOGGLE');
+      const content = screen.getByTestId('THINKING_ROW_CONTENT');
 
-      expect(toggle.textContent).toBe('Show full thinking');
+      expect(content.textContent).toBe(longContent);
     });
 
-    it('VALID: {role: assistant, type: thinking} => renders text-dim borders', () => {
+    it('VALID: {role: assistant, type: thinking} => renders text-dim accent border', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const row = screen.getByTestId('THINKING_ROW');
 
-      expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
-      expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+      expect(row.style.borderLeft).toBe('3px solid rgb(138, 114, 96)');
     });
 
     it('VALID: {role: assistant, type: thinking, model present} => renders model name', () => {
@@ -660,9 +664,9 @@ describe('ChatMessageWidget', () => {
 
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
-      const message = screen.getByTestId('CHAT_MESSAGE');
+      const label = screen.getByTestId('THINKING_ROW_LABEL');
 
-      expect(message.textContent).toMatch(/claude-opus-4-6/u);
+      expect(label.textContent).toMatch(/claude-opus-4-6/u);
     });
   });
 

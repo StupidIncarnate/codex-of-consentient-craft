@@ -28,7 +28,7 @@ describe('ToolGroupWidget', () => {
       });
 
       expect(proxy.isHeaderVisible()).toBe(true);
-      expect(proxy.hasMessageCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
     });
 
     it('VALID: {group with context tokens 25500} => shows formatted tokens in header', () => {
@@ -66,8 +66,8 @@ describe('ToolGroupWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(proxy.hasMessageCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_RESULT_INLINE')).not.toBeNull();
+      expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
+      expect(screen.queryByTestId('TOOL_ROW')).not.toBeNull();
     });
 
     it('VALID: {click header twice} => collapses back', async () => {
@@ -87,7 +87,7 @@ describe('ToolGroupWidget', () => {
       await proxy.clickHeader();
       await proxy.clickHeader();
 
-      expect(proxy.hasMessageCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
     });
 
     it('VALID: {unlinked entries} => shows orphan result separately', async () => {
@@ -103,7 +103,7 @@ describe('ToolGroupWidget', () => {
 
       await proxy.clickHeader();
 
-      expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 2 })).toBe(true);
     });
   });
 
@@ -119,7 +119,7 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={true} isStreaming={true} />,
       });
 
-      expect(proxy.hasMessageCount({ count: 1 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
     });
 
     it('VALID: {isLastGroup: true, isStreaming: true, has result} => shows merged entry', () => {
@@ -136,8 +136,8 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={true} isStreaming={true} />,
       });
 
-      expect(proxy.hasMessageCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_RESULT_INLINE')).not.toBeNull();
+      expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
+      expect(screen.queryByTestId('TOOL_ROW_RESULT')).not.toBeNull();
     });
 
     it('VALID: {isLastGroup: false, isStreaming: true} => stays collapsed', () => {
@@ -151,7 +151,7 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={true} />,
       });
 
-      expect(proxy.hasMessageCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
     });
   });
 
@@ -232,7 +232,7 @@ describe('ToolGroupWidget', () => {
   });
 
   describe('per-line token badges', () => {
-    it('VALID: {tool_use entry with usage} => shows context delta badge', async () => {
+    it('VALID: {tool_use entry with usage} => shows context delta badge when row expanded', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -254,13 +254,14 @@ describe('ToolGroupWidget', () => {
       });
 
       await proxy.clickHeader();
+      await proxy.expandAllToolRows();
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
       expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
     });
 
-    it('VALID: {linked tool_result with content} => shows estimated badge inline', async () => {
+    it('VALID: {linked tool_result with content} => shows estimated badge when row expanded', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -278,8 +279,9 @@ describe('ToolGroupWidget', () => {
       });
 
       await proxy.clickHeader();
+      await proxy.expandAllToolRows();
 
-      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+      const badges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
 
       expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
     });
@@ -324,14 +326,13 @@ describe('ToolGroupWidget', () => {
       });
 
       await proxy.clickHeader();
+      await proxy.expandAllToolRows();
 
-      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+      const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
+      const resultBadges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual([
-        '5.0k context',
-        '~200 est',
-        '~100 est',
-      ]);
+      expect(tokenBadges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
+      expect(resultBadges.map((b) => b.textContent)).toStrictEqual(['~200 est', '~100 est']);
     });
 
     it('VALID: {tool_use with delta zero} => no badge on second entry', async () => {
@@ -366,6 +367,7 @@ describe('ToolGroupWidget', () => {
       });
 
       await proxy.clickHeader();
+      await proxy.expandAllToolRows();
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 

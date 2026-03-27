@@ -19,6 +19,7 @@ import { estimateContentTokensTransformer } from '../../transformers/estimate-co
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { ToolRowWidget } from '../tool-row/tool-row-widget';
 
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
@@ -94,12 +95,13 @@ export const ToolGroupWidget = ({
 
       {isActiveStreaming && !expanded && lastPair !== undefined && lastPair.kind === 'tool-pair' ? (
         <Box style={{ paddingLeft: 12 }}>
-          <ChatMessageWidget
-            entry={lastPair.toolUse}
+          <ToolRowWidget
+            toolUse={lastPair.toolUse as Extract<typeof lastPair.toolUse, { type: 'tool_use' }>}
             isLoading={lastPair.toolResult === null}
             {...(lastPair.toolResult === null
               ? {}
               : { toolResult: lastPair.toolResult as ToolResultEntry })}
+            defaultExpanded={true}
           />
         </Box>
       ) : null}
@@ -158,9 +160,9 @@ export const ToolGroupWidget = ({
                       );
 
                 return (
-                  <ChatMessageWidget
+                  <ToolRowWidget
                     key={index}
-                    entry={toolUseEntry}
+                    toolUse={toolUseEntry as Extract<typeof toolUseEntry, { type: 'tool_use' }>}
                     {...(item.toolResult === null
                       ? {}
                       : { toolResult: item.toolResult as ToolResultEntry })}

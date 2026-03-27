@@ -18,9 +18,9 @@ import { contentTruncationConfigStatics } from '../../statics/content-truncation
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
+import { ThinkingRowWidget } from '../thinking-row/thinking-row-widget';
+import { ToolRowWidget } from '../tool-row/tool-row-widget';
 import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
-import { ThinkingLayerWidget } from './thinking-layer-widget';
-import { ToolUseLayerWidget } from './tool-use-layer-widget';
 
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
@@ -223,7 +223,7 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.type === 'thinking') {
-    return <ThinkingLayerWidget entry={entry} />;
+    return <ThinkingRowWidget entry={entry} />;
   }
 
   if (entry.type === 'text') {
@@ -267,26 +267,13 @@ export const ChatMessageWidget = ({
   }
 
   if (entry.type === 'tool_use') {
-    const resultBadgeElement =
-      resultTokenBadgeLabel === undefined ? null : (
-        <Text
-          ff="monospace"
-          data-testid="TOKEN_BADGE"
-          style={{ color: colors['text-dim'], fontSize: 10 }}
-        >
-          {resultTokenBadgeLabel}
-        </Text>
-      );
-
     return (
-      <ToolUseLayerWidget
-        entry={entry}
+      <ToolRowWidget
+        toolUse={entry}
         {...(toolResult !== undefined && toolResult !== null ? { toolResult } : {})}
         {...(isLoading === undefined ? {} : { isLoading })}
-        tokenBadgeElement={tokenBadgeElement}
-        {...(resultBadgeElement === null ? {} : { resultTokenBadgeElement: resultBadgeElement })}
-        isSubagent={isSubagent}
-        {...(compact === true ? { compact } : {})}
+        {...(tokenBadgeLabel === undefined ? {} : { tokenBadgeLabel })}
+        {...(resultTokenBadgeLabel === undefined ? {} : { resultTokenBadgeLabel })}
       />
     );
   }

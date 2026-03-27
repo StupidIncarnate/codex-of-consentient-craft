@@ -31,6 +31,7 @@ import { durationDisplayTransformer } from '../../transformers/duration-display/
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { ToolRowWidget } from '../tool-row/tool-row-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
@@ -355,9 +356,9 @@ export const ExecutionRowLayerWidget = ({
           {entries && entries.length > 0
             ? mergeToolEntriesTransformer({ entries }).map((item, i) =>
                 item.kind === 'tool-pair' ? (
-                  <ChatMessageWidget
+                  <ToolRowWidget
                     key={i}
-                    entry={item.toolUse}
+                    toolUse={item.toolUse as Extract<ChatEntry, { type: 'tool_use' }>}
                     {...(item.toolResult === null
                       ? {}
                       : {
@@ -366,8 +367,6 @@ export const ExecutionRowLayerWidget = ({
                             { type: 'tool_result' }
                           >,
                         })}
-                    compact={true}
-                    roleLabel={role}
                   />
                 ) : (
                   <ChatMessageWidget key={i} entry={item.entry} compact={true} roleLabel={role} />
