@@ -3,6 +3,7 @@ import {
   DependencyStepStub,
   DesignDecisionStub,
   ErrorMessageStub,
+  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
@@ -256,43 +257,110 @@ describe('workUnitToArgumentsTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {siegemaster with relatedObservables} => returns formatted assertions', () => {
+    it('VALID: {siegemaster with flow and observables} => returns formatted flow with observables', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'verify-quest' }),
-        relatedObservables: [
-          FlowObservableStub({
-            id: 'shows-success-message',
-            type: 'ui-state',
-            description: 'Shows success message',
-          }),
-        ],
+        flow: FlowStub({
+          name: 'Login Flow',
+          entryPoint: '/login',
+          exitPoints: ['/dashboard'],
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              observables: [
+                FlowObservableStub({
+                  id: 'shows-success-message',
+                  type: 'ui-state',
+                  description: 'Shows success message',
+                }),
+              ],
+            }),
+          ],
+          edges: [],
+        }),
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: verify-quest\n/u);
+      expect(result).toMatch(
+        /^Quest ID: verify-quest\nFlow: Login Flow\n {2}Entry Point: \/login\n {2}Exit Points: \/dashboard\n/u,
+      );
+      expect(result).toMatch(
+        /Nodes:\n {4}- Login Page \(login-page\)\n {6}- Shows success message \(ui-state\)/u,
+      );
       expect(result).toMatch(/Observable Type Reference:/u);
-      expect(result).toMatch(/Observables:\n {4}- Shows success message \(ui-state\)$/u);
     });
 
-    it('VALID: {siegemaster with empty relatedObservables} => returns quest ID only', () => {
+    it('VALID: {siegemaster with empty flow nodes} => omits nodes section', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'empty-quest' }),
-        relatedObservables: [],
+        flow: FlowStub({
+          name: 'Empty Flow',
+          entryPoint: '/start',
+          exitPoints: ['/end'],
+          nodes: [],
+          edges: [],
+        }),
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(/^Quest ID: empty-quest\n/u);
+      expect(result).toMatch(/Flow: Empty Flow\n/u);
       expect(result).toMatch(/Observable Type Reference:/u);
-      expect(result).not.toMatch(/Observables:/u);
+      expect(result).not.toMatch(/Nodes:/u);
+      expect(result).not.toMatch(/Edges:/u);
+    });
+
+    it('VALID: {siegemaster with edges} => includes edges with labels', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Auth Flow',
+          entryPoint: '/login',
+          exitPoints: ['/dashboard'],
+          nodes: [
+            FlowNodeStub({ id: 'login-page', label: 'Login Page' }),
+            FlowNodeStub({ id: 'dashboard', label: 'Dashboard' }),
+          ],
+          edges: [
+            FlowEdgeStub({
+              id: 'login-to-dash',
+              from: 'login-page',
+              to: 'dashboard',
+              label: 'success',
+            }),
+          ],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Edges:\n {4}- login-page → dashboard \[success\]/u);
+    });
+
+    it('VALID: {siegemaster with edges without labels} => includes edges without label suffix', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Auth Flow',
+          entryPoint: '/login',
+          exitPoints: ['/dashboard'],
+          nodes: [],
+          edges: [FlowEdgeStub({ id: 'login-to-dash', from: 'login-page', to: 'dashboard' })],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Edges:\n {4}- login-page → dashboard$/mu);
     });
 
     it('VALID: {siegemaster with design decisions} => includes design decisions', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
-        relatedDesignDecisions: [
+        designDecisions: [
           DesignDecisionStub({
             title: 'Use JWT for auth',
             rationale: 'Stateless authentication',
@@ -307,38 +375,59 @@ describe('workUnitToArgumentsTransformer', () => {
       );
     });
 
-    it('VALID: {siegemaster with flows} => includes flows with relevant nodes', () => {
-      const observable = FlowObservableStub({ id: 'obs-1' });
+    it('VALID: {siegemaster with contracts} => includes contract details', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
-        relatedFlows: [
-          FlowStub({
-            name: 'Login Flow',
-            nodes: [
-              FlowNodeStub({ id: 'login-page', label: 'Login Page', observables: [observable] }),
-            ],
+        contracts: [
+          QuestContractEntryStub({
+            name: 'LoginCredentials',
+            kind: 'data',
+            properties: [{ name: 'email', type: 'EmailAddress', description: 'User email' }],
           }),
         ],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
+      expect(result).toMatch(
+        /Contracts:\n {2}- LoginCredentials \(data\)\n {4}- email \(EmailAddress\) - User email/u,
+      );
     });
 
-    it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
+    it('VALID: {siegemaster with empty design decisions and contracts} => omits those sections', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
-        relatedDesignDecisions: [],
-        relatedFlows: [],
+        designDecisions: [],
+        contracts: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).not.toMatch(/Design Decisions:/u);
-      expect(result).not.toMatch(/Flows:/u);
+      expect(result).not.toMatch(/Contracts:/u);
+    });
+
+    it('EDGE: {siegemaster with all empty collections} => only quest ID, flow metadata, and type reference', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'minimal-quest' }),
+        flow: FlowStub({
+          name: 'Minimal Flow',
+          entryPoint: '/start',
+          exitPoints: ['/end'],
+          nodes: [],
+          edges: [],
+        }),
+        designDecisions: [],
+        contracts: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Quest ID: minimal-quest\nFlow: Minimal Flow\n/u);
+      expect(result).toMatch(/Observable Type Reference:/u);
+      expect(result).not.toMatch(/Nodes:/u);
+      expect(result).not.toMatch(/Edges:/u);
+      expect(result).not.toMatch(/Design Decisions:/u);
     });
   });
 

@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 export const relatedDataItemContract = z
   .string()
-  .regex(/^(steps|wardResults)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}')
+  .regex(/^(steps|wardResults|flows)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}')
   .brand<'RelatedDataItem'>();
 
 export type RelatedDataItem = z.infer<typeof relatedDataItemContract>;

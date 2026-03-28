@@ -112,6 +112,7 @@ export const runPathseekerLayerBroker = async ({
     const now = isoTimestampContract.parse(new Date().toISOString());
     const newItems = stepsToWorkItemsTransformer({
       steps: questResult.quest.steps,
+      flows: questResult.quest.flows,
       pathseekerWorkItemId: workItem.id,
       now,
     });
