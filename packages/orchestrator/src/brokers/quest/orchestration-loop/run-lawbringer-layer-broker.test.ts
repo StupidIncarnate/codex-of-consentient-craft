@@ -56,7 +56,7 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {agent signals complete, 1 item} => marks quest work item complete', async () => {
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -102,11 +102,11 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {2 agents signal complete} => marks both quest work items complete', async () => {
       const stepA = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
       const stepB = DependencyStepStub({
         id: 'step-bbb',
-        focusFile: { path: '/project/src/file-b.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-b.ts' },
       });
 
       const workItemIdA = QuestWorkItemIdStub({
@@ -163,15 +163,15 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {3 agents signal complete, fills all slots} => marks all quest work items complete', async () => {
       const stepA = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
       const stepB = DependencyStepStub({
         id: 'step-bbb',
-        focusFile: { path: '/project/src/file-b.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-b.ts' },
       });
       const stepC = DependencyStepStub({
         id: 'step-ccc',
-        focusFile: { path: '/project/src/file-c.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-c.ts' },
       });
 
       const workItemIdA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
@@ -230,23 +230,23 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {5 items, 3 slots} => all 5 eventually complete via overflow', async () => {
       const stepA = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
       const stepB = DependencyStepStub({
         id: 'step-bbb',
-        focusFile: { path: '/project/src/file-b.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-b.ts' },
       });
       const stepC = DependencyStepStub({
         id: 'step-ccc',
-        focusFile: { path: '/project/src/file-c.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-c.ts' },
       });
       const stepD = DependencyStepStub({
         id: 'step-ddd',
-        focusFile: { path: '/project/src/file-d.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-d.ts' },
       });
       const stepE = DependencyStepStub({
         id: 'step-eee',
-        focusFile: { path: '/project/src/file-e.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-e.ts' },
       });
 
       const workItemIdA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
@@ -321,7 +321,7 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {1 lawbringer fails with null signal, spiritmender followup completes} => original lawbringer persisted as failed', async () => {
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -374,15 +374,15 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {first agent fails with null signal, slot manager handles failure} => completes without throwing', async () => {
       const stepA = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
       const stepB = DependencyStepStub({
         id: 'step-bbb',
-        focusFile: { path: '/project/src/file-b.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-b.ts' },
       });
       const stepC = DependencyStepStub({
         id: 'step-ccc',
-        focusFile: { path: '/project/src/file-c.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-c.ts' },
       });
 
       const workItemIdA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
@@ -471,7 +471,7 @@ describe('runLawbringerLayerBroker', () => {
 
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -526,7 +526,7 @@ describe('runLawbringerLayerBroker', () => {
 
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -577,7 +577,7 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {onAgentEntry provided, agent signals complete} => completes without error', async () => {
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -623,7 +623,7 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {both params provided with default values} => completes without error', async () => {
       const step = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
 
       const workItemId = QuestWorkItemIdStub({
@@ -669,15 +669,15 @@ describe('runLawbringerLayerBroker', () => {
     it('VALID: {first 2 agents fail with null signal} => completes without throwing', async () => {
       const stepA = DependencyStepStub({
         id: 'step-aaa',
-        focusFile: { path: '/project/src/file-a.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-a.ts' },
       });
       const stepB = DependencyStepStub({
         id: 'step-bbb',
-        focusFile: { path: '/project/src/file-b.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-b.ts' },
       });
       const stepC = DependencyStepStub({
         id: 'step-ccc',
-        focusFile: { path: '/project/src/file-c.ts', action: 'modify' },
+        focusFile: { path: '/project/src/file-c.ts' },
       });
 
       const workItemIdA = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });

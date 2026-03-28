@@ -196,9 +196,6 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Step Export Names') {
     const issues = quest.steps
       .filter((step) => {
-        if (step.focusFile.action !== 'create') {
-          return false;
-        }
         const hasEntryFile = isEntryFileGuard({
           filePath: step.focusFile.path,
           folderConfigs: folderConfigStatics,
@@ -281,23 +278,6 @@ export const questVerifyFailureDetailsTransformer = ({
     return checkDetailsSchema.parse(issues.join('; '));
   }
 
-  if (checkName === 'Valid Assertions') {
-    const issues = quest.steps
-      .filter((step) => {
-        const hasNonVoidOutput =
-          step.outputContracts.length > 0 &&
-          !(step.outputContracts.length === 1 && String(step.outputContracts[0]) === 'Void');
-        if (!hasNonVoidOutput) {
-          return false;
-        }
-        return !step.assertions.some((a) => a.prefix === 'VALID');
-      })
-      .map(
-        (step) => `step "${String(step.name)}" has non-Void outputContracts but no VALID assertion`,
-      );
-    return checkDetailsSchema.parse(issues.join('; '));
-  }
-
   if (checkName === 'Valid Focus Files') {
     const issues: VerifyQuestCheck['details'][] = [];
     for (const step of quest.steps) {
@@ -311,18 +291,6 @@ export const questVerifyFailureDetailsTransformer = ({
             `step "${String(step.name)}" focusFile "${String(step.focusFile.path)}" does not match any known folder type`,
           ),
         );
-        continue;
-      }
-      if (step.focusFile.action === 'create') {
-        for (const accompanying of step.accompanyingFiles) {
-          if (accompanying.action !== 'create') {
-            issues.push(
-              checkDetailsSchema.parse(
-                `step "${step.name}" accompanyingFile "${accompanying.path}" has action "${accompanying.action}" but must be "create"`,
-              ),
-            );
-          }
-        }
       }
     }
     return checkDetailsSchema.parse(issues.map(String).join('; '));

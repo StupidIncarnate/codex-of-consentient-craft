@@ -15,16 +15,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-              action: 'create',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -42,12 +42,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -65,16 +65,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/contracts/user/user-contract.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/contracts/user/user-contract.test.ts',
-              action: 'create',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/contracts/user/user.stub.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -98,12 +98,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/shared/src/statics/config/config-statics.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -121,12 +121,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -144,16 +144,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx',
-              action: 'create',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/web/src/widgets/quest-chat/quest-chat-widget.proxy.tsx',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -171,16 +171,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'modify',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-              action: 'modify',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
-              action: 'modify',
+  
             }),
           ],
         }),
@@ -200,12 +200,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -223,12 +223,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -246,12 +246,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/contracts/user/user-contract.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/contracts/user/user-contract.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -269,7 +269,7 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [],
         }),
@@ -287,7 +287,7 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [],
         }),
@@ -305,7 +305,7 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [],
         }),
@@ -323,7 +323,7 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'modify',
+
           }),
           accompanyingFiles: [],
         }),
@@ -343,16 +343,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-              action: 'create',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.proxy.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -370,16 +370,16 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/shared/src/statics/config/config-statics.test.ts',
-              action: 'create',
+  
             }),
             StepFileReferenceStub({
               path: 'packages/shared/src/statics/config/config-statics.proxy.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -397,12 +397,12 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.test.ts',
-              action: 'create',
+  
             }),
           ],
         }),
@@ -422,7 +422,7 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
-            action: 'create',
+
           }),
           accompanyingFiles: [],
         }),

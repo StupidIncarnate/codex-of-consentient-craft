@@ -16,24 +16,8 @@ describe('questStepHasExportNameGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/auth-login-broker.ts',
-            action: 'create',
           }),
           exportName: 'authLoginBroker',
-        }),
-      ];
-
-      const result = questStepHasExportNameGuard({ steps, folderConfigs: folderConfigStatics });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {step with modify action} => skips check, returns true', () => {
-      const steps = [
-        DependencyStepStub({
-          focusFile: StepFileReferenceStub({
-            path: 'src/brokers/auth/login/auth-login-broker.ts',
-            action: 'modify',
-          }),
         }),
       ];
 
@@ -47,7 +31,6 @@ describe('questStepHasExportNameGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/validate-helper.ts',
-            action: 'create',
           }),
         }),
       ];
@@ -64,7 +47,6 @@ describe('questStepHasExportNameGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
           }),
         }),
       ];
@@ -82,7 +64,6 @@ describe('questStepHasExportNameGuard', () => {
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/auth-login-broker.ts',
-            action: 'create',
           }),
           exportName: 'authLoginBroker',
         }),
@@ -90,7 +71,6 @@ describe('questStepHasExportNameGuard', () => {
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/some-utility.ts',
-            action: 'create',
           }),
         }),
       ];
@@ -113,7 +93,6 @@ describe('questStepHasExportNameGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/auth-login-broker.ts',
-            action: 'create',
           }),
           exportName: 'authLoginBroker',
         }),

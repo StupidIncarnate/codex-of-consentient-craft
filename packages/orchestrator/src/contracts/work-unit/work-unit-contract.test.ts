@@ -247,20 +247,22 @@ describe('workUnitContract', () => {
   });
 
   describe('siegemaster work unit', () => {
-    it('VALID: {role: siegemaster, questId, observables} => parses successfully', () => {
+    it('VALID: {role: siegemaster, questId, relatedObservables} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const observables = [FlowObservableStub()];
+      const relatedObservables = [FlowObservableStub()];
 
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId,
-        observables,
+        relatedObservables,
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId,
-        observables,
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+        relatedObservables,
       });
     });
 
@@ -270,21 +272,25 @@ describe('workUnitContract', () => {
       expect(stub).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        observables: [FlowObservableStub()],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+        relatedObservables: [FlowObservableStub()],
       });
     });
 
-    it('EDGE: {siegemaster with empty observables} => parses successfully', () => {
+    it('EDGE: {siegemaster with empty relatedObservables} => parses successfully', () => {
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        observables: [],
+        relatedObservables: [],
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        observables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+        relatedObservables: [],
       });
     });
   });

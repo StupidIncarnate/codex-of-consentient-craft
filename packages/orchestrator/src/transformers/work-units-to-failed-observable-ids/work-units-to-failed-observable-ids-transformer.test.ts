@@ -12,7 +12,7 @@ describe('workUnitsToFailedObservableIdsTransformer', () => {
     it('VALID: {single siegemaster work unit with one observable} => returns one observable ID', () => {
       const observableId = ObservableIdStub({ value: 'login-redirects' });
       const workUnit = SiegemasterWorkUnitStub({
-        observables: [FlowObservableStub({ id: observableId })],
+        relatedObservables: [FlowObservableStub({ id: observableId })],
       });
 
       const result = workUnitsToFailedObservableIdsTransformer({ workUnits: [workUnit] });
@@ -22,10 +22,10 @@ describe('workUnitsToFailedObservableIdsTransformer', () => {
 
     it('VALID: {two siegemaster work units with different observables} => returns both observable IDs', () => {
       const unit1 = SiegemasterWorkUnitStub({
-        observables: [FlowObservableStub({ id: ObservableIdStub({ value: 'login-redirects' }) })],
+        relatedObservables: [FlowObservableStub({ id: ObservableIdStub({ value: 'login-redirects' }) })],
       });
       const unit2 = SiegemasterWorkUnitStub({
-        observables: [FlowObservableStub({ id: ObservableIdStub({ value: 'shows-user-data' }) })],
+        relatedObservables: [FlowObservableStub({ id: ObservableIdStub({ value: 'shows-user-data' }) })],
       });
 
       const result = workUnitsToFailedObservableIdsTransformer({ workUnits: [unit1, unit2] });
@@ -55,7 +55,7 @@ describe('workUnitsToFailedObservableIdsTransformer', () => {
   describe('mixed work units', () => {
     it('VALID: {mixed siegemaster and non-siegemaster} => returns only siegemaster observable IDs', () => {
       const siegeUnit = SiegemasterWorkUnitStub({
-        observables: [FlowObservableStub({ id: ObservableIdStub({ value: 'login-redirects' }) })],
+        relatedObservables: [FlowObservableStub({ id: ObservableIdStub({ value: 'login-redirects' }) })],
       });
       const lawbringerUnit = LawbringerWorkUnitStub();
 

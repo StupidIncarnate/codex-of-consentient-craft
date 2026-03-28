@@ -126,8 +126,8 @@ and MCP tools for architectural guidance.
 
 Each step requires:
 
-- \`focusFile\` - ONE file this step is responsible for: \`{ path, action }\` where action is \`create\` or \`modify\`
-- \`accompanyingFiles\` - Companion files (test, proxy, stub) as \`[{ path, action: 'create' }]\`. These are always created, even when focusFile is modified.
+- \`focusFile\` - ONE file this step is responsible for: \`{ path }\`
+- \`accompanyingFiles\` - Companion files (test, proxy, stub) as \`[{ path }]\`
 - \`assertions\` - Structured test assertions defining the step's behavioral contract (see below)
 - \`uses\` - Array of existing code references this step integrates with (e.g., \`["userFetchAdapter", "bcryptCompareAdapter"]\`)
 - \`exportName\` - The exact export name for this step's primary file (e.g., "authLoginBroker", "loginCredentialsContract")
@@ -174,10 +174,10 @@ go in \`accompanyingFiles\`. This makes step scope unambiguous.
   ],
   "observablesSatisfied": [],
   "dependsOn": [],
-  "focusFile": { "path": "src/contracts/login-credentials/login-credentials-contract.ts", "action": "create" },
+  "focusFile": { "path": "src/contracts/login-credentials/login-credentials-contract.ts" },
   "accompanyingFiles": [
-    { "path": "src/contracts/login-credentials/login-credentials-contract.test.ts", "action": "create" },
-    { "path": "src/contracts/login-credentials/login-credentials.stub.ts", "action": "create" }
+    { "path": "src/contracts/login-credentials/login-credentials-contract.test.ts" },
+    { "path": "src/contracts/login-credentials/login-credentials.stub.ts" }
   ],
   "uses": []
 }
@@ -208,10 +208,10 @@ go in \`accompanyingFiles\`. This makes step scope unambiguous.
   "dependsOn": [
     "step-auth-contract"
   ],
-  "focusFile": { "path": "src/brokers/auth/login/auth-login-broker.ts", "action": "create" },
+  "focusFile": { "path": "src/brokers/auth/login/auth-login-broker.ts" },
   "accompanyingFiles": [
-    { "path": "src/brokers/auth/login/auth-login-broker.test.ts", "action": "create" },
-    { "path": "src/brokers/auth/login/auth-login-broker.proxy.ts", "action": "create" }
+    { "path": "src/brokers/auth/login/auth-login-broker.test.ts" },
+    { "path": "src/brokers/auth/login/auth-login-broker.proxy.ts" }
   ],
   "uses": ["userFetchAdapter", "bcryptCompareAdapter", "jwtSignAdapter", "userProfileTransformer"]
 }
@@ -273,7 +273,7 @@ Use the \`verify-quest\` tool. This performs a number of deterministic checks to
 If ANY check fails:
 - Fix the issue via the \`modify-quest\` tool
 - Re-run verify
-- Repeat until ALL 14 checks pass
+- Repeat until ALL 13 checks pass
 
 Do NOT proceed to Step 10 until the verify endpoint returns success.
 

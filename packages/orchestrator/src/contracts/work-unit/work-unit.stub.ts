@@ -47,7 +47,9 @@ export const SiegemasterWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {
   workUnitContract.parse({
     role: 'siegemaster',
     questId: QuestIdStub({ value: 'add-auth' }),
-    observables: [FlowObservableStub()],
+    relatedDesignDecisions: [],
+    relatedFlows: [],
+    relatedObservables: [FlowObservableStub()],
     ...props,
   });
 

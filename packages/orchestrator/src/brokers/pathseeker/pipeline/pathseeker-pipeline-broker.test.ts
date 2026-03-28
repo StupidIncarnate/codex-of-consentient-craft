@@ -31,10 +31,10 @@ describe('pathseekerPipelineBroker', () => {
             dependsOn: [],
             focusFile: {
               path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
-              action: 'create',
+
             },
             accompanyingFiles: [
-              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts', action: 'create' },
+              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts' },
             ],
             exportName: 'hasAuthGuard',
             inputContracts: ['Void'],

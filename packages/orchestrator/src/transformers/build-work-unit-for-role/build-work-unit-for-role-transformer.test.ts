@@ -109,7 +109,7 @@ describe('buildWorkUnitForRoleTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {role: siegemaster, step with observablesSatisfied, quest with matching flow observables} => returns SiegemasterWorkUnit', () => {
+    it('VALID: {role: siegemaster, step with observablesSatisfied, quest with matching flow observables} => returns SiegemasterWorkUnit with filtered context', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const observable = FlowObservableStub({
@@ -145,11 +145,22 @@ describe('buildWorkUnitForRoleTransformer', () => {
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: quest.id,
-        observables: [observable],
+        relatedDesignDecisions: [],
+        relatedFlows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                observables: [observable, unrelatedObservable],
+              }),
+            ],
+          }),
+        ],
+        relatedObservables: [observable],
       });
     });
 
-    it('EDGE: {role: siegemaster, no matching observables} => returns empty observables', () => {
+    it('EDGE: {role: siegemaster, no matching observables} => returns empty related arrays', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const step = DependencyStepStub({
@@ -178,7 +189,9 @@ describe('buildWorkUnitForRoleTransformer', () => {
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: quest.id,
-        observables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+        relatedObservables: [],
       });
     });
   });
@@ -188,8 +201,8 @@ describe('buildWorkUnitForRoleTransformer', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const step = DependencyStepStub({
-        focusFile: { path: '/src/brokers/user/user-broker.ts', action: 'create' },
-        accompanyingFiles: [{ path: '/src/brokers/index.ts', action: 'create' }],
+        focusFile: { path: '/src/brokers/user/user-broker.ts' },
+        accompanyingFiles: [{ path: '/src/brokers/index.ts' }],
       });
 
       const quest = QuestStub();
@@ -212,8 +225,8 @@ describe('buildWorkUnitForRoleTransformer', () => {
       buildWorkUnitForRoleTransformerProxy();
 
       const step = DependencyStepStub({
-        focusFile: { path: '/src/guards/auth/auth-guard.ts', action: 'create' },
-        accompanyingFiles: [{ path: '/src/guards/index.ts', action: 'create' }],
+        focusFile: { path: '/src/guards/auth/auth-guard.ts' },
+        accompanyingFiles: [{ path: '/src/guards/index.ts' }],
       });
 
       const quest = QuestStub();

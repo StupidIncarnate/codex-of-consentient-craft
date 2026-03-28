@@ -23,10 +23,10 @@ describe('questVerifyBroker', () => {
             dependsOn: [],
             focusFile: {
               path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
-              action: 'create',
+
             },
             accompanyingFiles: [
-              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts', action: 'create' },
+              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts' },
             ],
             exportName: 'hasAuthGuard',
             inputContracts: ['Void'],
@@ -83,7 +83,6 @@ describe('questVerifyBroker', () => {
         'No Orphan Flow Nodes',
         'Node Observable Coverage',
         'No Duplicate Focus Files',
-        'Valid Assertions',
         'Valid Focus Files',
       ]);
       expect(result.checks.every((check) => check.passed)).toBe(true);
@@ -125,7 +124,7 @@ describe('questVerifyBroker', () => {
             assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'bug is fixed' }],
             observablesSatisfied: [],
             dependsOn: [],
-            focusFile: { path: 'src/brokers/bug/fix/bug-fix-broker.ts', action: 'create' },
+            focusFile: { path: 'src/brokers/bug/fix/bug-fix-broker.ts' },
             accompanyingFiles: [],
             inputContracts: ['Void'],
             outputContracts: ['Void'],
@@ -152,7 +151,6 @@ describe('questVerifyBroker', () => {
         'No Orphan Flow Nodes',
         'Node Observable Coverage',
         'No Duplicate Focus Files',
-        'Valid Assertions',
         'Valid Focus Files',
       ]);
       expect(result.checks.some((check) => !check.passed)).toBe(true);

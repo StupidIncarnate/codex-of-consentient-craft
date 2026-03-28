@@ -25,7 +25,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Auth Broker',
-          focusFile: { path: 'src/brokers/auth/auth-broker.ts', action: 'create' },
+          focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -36,7 +36,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Step: Create Auth Broker\nFocus File: src/brokers/auth/auth-broker.ts (create)\nAssertions:\n  - VALID: returns expected result\nQuest ID: add-auth',
+        'Step: Create Auth Broker\nFocus File: src/brokers/auth/auth-broker.ts\nAssertions:\n  - VALID: returns expected result\nQuest ID: add-auth',
       );
     });
 
@@ -45,7 +45,7 @@ describe('workUnitToArgumentsTransformer', () => {
         step: DependencyStepStub({
           name: 'Create Auth Broker',
           exportName: 'authBroker',
-          focusFile: { path: 'src/brokers/auth/auth-broker.ts', action: 'create' },
+          focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -62,8 +62,8 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
-          accompanyingFiles: [{ path: 'src/broker.test.ts', action: 'create' }],
+          focusFile: { path: 'src/broker.ts' },
+          accompanyingFiles: [{ path: 'src/broker.test.ts' }],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
@@ -72,14 +72,14 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Accompanying Files:\n {2}- src\/broker\.test\.ts \(create\)/u);
+      expect(result).toMatch(/Accompanying Files:\n {2}- src\/broker\.test\.ts/u);
     });
 
     it('VALID: {codeweaver with assertions} => includes assertions list', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
           assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
         }),
@@ -97,7 +97,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -122,7 +122,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -152,7 +152,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -169,7 +169,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
           uses: ['authGuard', 'sessionBroker'],
         }),
@@ -187,7 +187,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -213,7 +213,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -238,7 +238,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const workUnit = CodeweaverWorkUnitStub({
         step: DependencyStepStub({
           name: 'Step',
-          focusFile: { path: 'src/broker.ts', action: 'create' },
+          focusFile: { path: 'src/broker.ts' },
           accompanyingFiles: [],
         }),
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -256,10 +256,10 @@ describe('workUnitToArgumentsTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {siegemaster with observables} => returns formatted assertions', () => {
+    it('VALID: {siegemaster with relatedObservables} => returns formatted assertions', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'verify-quest' }),
-        observables: [
+        relatedObservables: [
           FlowObservableStub({
             id: 'shows-success-message',
             type: 'ui-state',
@@ -275,10 +275,10 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/Observables:\n {4}- Shows success message \(ui-state\)$/u);
     });
 
-    it('VALID: {siegemaster with empty observables} => returns quest ID only', () => {
+    it('VALID: {siegemaster with empty relatedObservables} => returns quest ID only', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'empty-quest' }),
-        observables: [],
+        relatedObservables: [],
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
@@ -286,6 +286,59 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/^Quest ID: empty-quest\n/u);
       expect(result).toMatch(/Observable Type Reference:/u);
       expect(result).not.toMatch(/Observables:/u);
+    });
+
+    it('VALID: {siegemaster with design decisions} => includes design decisions', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        relatedDesignDecisions: [
+          DesignDecisionStub({
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(
+        /Design Decisions:\n {2}- Use JWT for auth: Stateless authentication/u,
+      );
+    });
+
+    it('VALID: {siegemaster with flows} => includes flows with relevant nodes', () => {
+      const observable = FlowObservableStub({ id: 'obs-1' });
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        relatedFlows: [
+          FlowStub({
+            name: 'Login Flow',
+            nodes: [
+              FlowNodeStub({ id: 'login-page', label: 'Login Page', observables: [observable] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
+    });
+
+    it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Design Decisions:/u);
+      expect(result).not.toMatch(/Flows:/u);
     });
   });
 

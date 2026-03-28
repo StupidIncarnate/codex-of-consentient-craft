@@ -8,6 +8,5 @@ export const StepFileReferenceStub = ({
 }: StubArgument<StepFileReference> = {}): StepFileReference =>
   stepFileReferenceContract.parse({
     path: 'src/brokers/user/create/user-create-broker.ts',
-    action: 'create',
     ...props,
   });

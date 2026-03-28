@@ -26,7 +26,7 @@ describe('questModifyBroker', () => {
             assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
             dependsOn: [],
-            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts', action: 'create' },
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
             accompanyingFiles: [],
             inputContracts: ['Void'],
             outputContracts: ['Void'],

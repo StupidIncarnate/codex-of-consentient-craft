@@ -223,12 +223,12 @@ describe('questToTextDisplayTransformer', () => {
             dependsOn: ['setup-db' as never],
             focusFile: {
               path: 'src/brokers/api/create/api-create-broker.ts',
-              action: 'create',
+
             } as never,
             accompanyingFiles: [
               {
                 path: 'src/brokers/api/create/api-create-broker.test.ts',
-                action: 'create',
+  
               } as never,
             ],
             exportName: 'apiHandler' as never,
@@ -244,10 +244,10 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(/#create-api: "Create API"/u);
       expect(result).toMatch(/ {2}Assertions: VALID: \{user: validUser\} => creates user/u);
       expect(result).toMatch(
-        / {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts \(create\)/u,
+        / {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts/u,
       );
       expect(result).toMatch(
-        / {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts \(create\)/u,
+        / {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts/u,
       );
       expect(result).toMatch(/ {2}Satisfies: #api-responds/u);
     });
@@ -269,12 +269,12 @@ describe('questToTextDisplayTransformer', () => {
             dependsOn: ['setup-db' as never],
             focusFile: {
               path: 'src/brokers/api/create/api-create-broker.ts',
-              action: 'create',
+
             } as never,
             accompanyingFiles: [
               {
                 path: 'src/brokers/api/create/api-create-broker.test.ts',
-                action: 'create',
+  
               } as never,
             ],
             exportName: 'apiHandler' as never,

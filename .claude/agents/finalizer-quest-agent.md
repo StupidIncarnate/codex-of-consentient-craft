@@ -17,7 +17,7 @@ Call the `verify-quest` MCP tool with the provided quest ID:
 
 - `verify-quest` tool (params: `{ questId: "QUEST_ID" }`)
 
-This runs 14 integrity checks:
+This runs 13 integrity checks:
 - Observable Coverage
 - Dependency Integrity
 - No Circular Dependencies
@@ -29,7 +29,6 @@ This runs 14 integrity checks:
 - Valid Flow References
 - Node Observable Coverage
 - No Duplicate Focus Files
-- Valid Assertions
 - Valid Focus File Paths
 - Flow Coverage
 
@@ -105,7 +104,7 @@ Use the `discover` MCP tool to verify assumptions in the quest:
 
 - `discover` tool (params: `{ type: "files", path: "packages/X/src/guards" }`)
 
-- **File existence**: Do files with `focusFile.action === 'modify'` actually exist?
+- **File existence**: Do files listed in `accompanyingFiles` that already exist on disk match expected paths?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
 - **Pattern consistency**: Do new files follow the naming and structure patterns of existing similar files?
 - **Dependency availability**: Are referenced packages installed?
@@ -138,7 +137,6 @@ Identify anything an implementer would have to guess at:
 | Valid Flow Refs | PASS/FAIL | [details] |
 | Node Observable Coverage | PASS/FAIL | [details] |
 | No Duplicate Focus Files | PASS/FAIL | [details] |
-| Valid Assertions | PASS/FAIL | [details] |
 | Valid Focus File Paths | PASS/FAIL | [details] |
 | Flow Coverage | PASS/FAIL | [details] |
 

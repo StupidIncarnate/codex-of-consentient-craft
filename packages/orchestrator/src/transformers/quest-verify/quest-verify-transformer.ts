@@ -23,7 +23,6 @@ import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-re
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
 import { questStepHasNoDuplicateFocusFilesGuard } from '../../guards/quest-step-has-no-duplicate-focus-files/quest-step-has-no-duplicate-focus-files-guard';
-import { questStepHasValidAssertionsGuard } from '../../guards/quest-step-has-valid-assertions/quest-step-has-valid-assertions-guard';
 import { questStepHasValidFocusFileGuard } from '../../guards/quest-step-has-valid-focus-file/quest-step-has-valid-focus-file-guard';
 import { questVerifyFailureDetailsTransformer } from '../quest-verify-failure-details/quest-verify-failure-details-transformer';
 
@@ -201,20 +200,6 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: noDuplicateFocusFiles
         ? 'All steps have unique focusFile paths'
         : questVerifyFailureDetailsTransformer({ quest, checkName: noDuplicateFocusFilesName }),
-    }),
-  );
-
-  const validAssertionsName = checkNameSchema.parse('Valid Assertions');
-  const validAssertions = questStepHasValidAssertionsGuard({
-    steps: quest.steps,
-  });
-  checks.push(
-    verifyQuestCheckContract.parse({
-      name: validAssertionsName,
-      passed: validAssertions,
-      details: validAssertions
-        ? 'All steps with non-Void outputContracts have at least one VALID assertion'
-        : questVerifyFailureDetailsTransformer({ quest, checkName: validAssertionsName }),
     }),
   );
 

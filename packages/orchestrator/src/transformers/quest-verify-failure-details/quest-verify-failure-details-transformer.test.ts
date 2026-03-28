@@ -11,7 +11,6 @@ import {
   FlowObservableStub,
   ObservableIdStub,
   StepFileReferenceStub,
-  StepAssertionStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { VerifyQuestCheckStub } from '../../contracts/verify-quest-check/verify-quest-check.stub';
@@ -172,7 +171,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             dependsOn: [missingId2],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/other/other-guard.ts',
-              action: 'create',
             }),
           }),
         ],
@@ -211,13 +209,11 @@ describe('questVerifyFailureDetailsTransformer', () => {
           DependencyStepStub({
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-              action: 'create',
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-                action: 'create',
-              }),
+                }),
             ],
           }),
         ],
@@ -239,13 +235,11 @@ describe('questVerifyFailureDetailsTransformer', () => {
           DependencyStepStub({
             focusFile: StepFileReferenceStub({
               path: 'packages/shared/src/contracts/user/user-contract.ts',
-              action: 'create',
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/shared/src/contracts/user/user-contract.test.ts',
-                action: 'create',
-              }),
+                }),
             ],
           }),
         ],
@@ -269,7 +263,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
           DependencyStepStub({
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-              action: 'create',
             }),
             accompanyingFiles: [],
           }),
@@ -335,7 +328,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-auth-broker',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.ts',
-              action: 'create',
             }),
             outputContracts: [ContractNameStub({ value: 'Void' })],
           }),
@@ -360,7 +352,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-auth-broker',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.ts',
-              action: 'create',
             }),
             outputContracts: [ContractNameStub({ value: 'Void' })],
           }),
@@ -368,7 +359,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-user-adapter',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/adapters/user/fetch/user-fetch-adapter.ts',
-              action: 'create',
             }),
             outputContracts: [ContractNameStub({ value: 'Void' })],
           }),
@@ -433,7 +423,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             outputContracts: [missingName2],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/other/other-guard.ts',
-              action: 'create',
             }),
           }),
         ],
@@ -458,7 +447,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-valid-guard',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-              action: 'create',
             }),
           }),
         ],
@@ -483,14 +471,12 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-alpha-guard',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/alpha/alpha-guard.ts',
-              action: 'create',
             }),
           }),
           DependencyStepStub({
             name: 'create-beta-transformer',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/transformers/beta/beta-transformer.ts',
-              action: 'create',
             }),
           }),
         ],
@@ -688,32 +674,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
     });
   });
 
-  describe('Valid Assertions', () => {
-    it('VALID: {step with non-Void outputContracts but no VALID assertion} => returns step name', () => {
-      const contractName = ContractNameStub({ value: 'UserProfile' });
-
-      const quest = QuestStub({
-        contracts: [QuestContractEntryStub({ name: contractName })],
-        steps: [
-          DependencyStepStub({
-            name: 'create-user-broker',
-            outputContracts: [contractName],
-            assertions: [StepAssertionStub({ prefix: 'EDGE' })],
-          }),
-        ],
-      });
-
-      const result = questVerifyFailureDetailsTransformer({
-        quest,
-        checkName: brandCheckName('Valid Assertions'),
-      });
-
-      expect(result).toBe(
-        'step "create-user-broker" has non-Void outputContracts but no VALID assertion',
-      );
-    });
-  });
-
   describe('Valid Focus Files', () => {
     it('VALID: {step with unknown folder type in focusFile} => returns step name and path', () => {
       const quest = QuestStub({
@@ -722,7 +682,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
             name: 'create-unknown',
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
-              action: 'create',
             }),
           }),
         ],
@@ -738,34 +697,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
       );
     });
 
-    it('VALID: {step with accompanyingFile having modify action} => returns step and file details', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            name: 'create-guard',
-            focusFile: StepFileReferenceStub({
-              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-              action: 'create',
-            }),
-            accompanyingFiles: [
-              StepFileReferenceStub({
-                path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-                action: 'modify',
-              }),
-            ],
-          }),
-        ],
-      });
-
-      const result = questVerifyFailureDetailsTransformer({
-        quest,
-        checkName: brandCheckName('Valid Focus Files'),
-      });
-
-      expect(result).toBe(
-        'step "create-guard" accompanyingFile "packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts" has action "modify" but must be "create"',
-      );
-    });
   });
 
   describe('unknown check name', () => {

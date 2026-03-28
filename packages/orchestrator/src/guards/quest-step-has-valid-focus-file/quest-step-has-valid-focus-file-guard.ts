@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Validates that each step's focusFile.path matches a known folder type and accompanyingFiles all have action create
+ * PURPOSE: Validates that each step's focusFile.path matches a known folder type
  *
  * USAGE:
  * questStepHasValidFocusFileGuard({steps});
- * // Returns true if all focusFile paths match known folder types and accompanying files are create, false otherwise
+ * // Returns true if all focusFile paths match known folder types, false otherwise
  */
 import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -29,12 +29,6 @@ export const questStepHasValidFocusFileGuard = ({
 
     if (!folderType) {
       return false;
-    }
-
-    for (const accompanying of step.accompanyingFiles) {
-      if (step.focusFile.action === 'create' && accompanying.action !== 'create') {
-        return false;
-      }
     }
   }
 

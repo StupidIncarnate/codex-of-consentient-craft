@@ -9,7 +9,6 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
         DependencyStepStub({
           focusFile: {
             path: '/src/brokers/auth/login/auth-login-broker.ts',
-            action: 'create',
           },
           accompanyingFiles: [],
         }),
@@ -23,8 +22,8 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('VALID: {single step with focusFile and accompanyingFiles} => returns deduplicated paths', () => {
       const steps = [
         DependencyStepStub({
-          focusFile: { path: '/src/brokers/auth/auth-broker.ts', action: 'create' },
-          accompanyingFiles: [{ path: '/src/contracts/user/user-contract.ts', action: 'create' }],
+          focusFile: { path: '/src/brokers/auth/auth-broker.ts' },
+          accompanyingFiles: [{ path: '/src/contracts/user/user-contract.ts' }],
         }),
       ];
 
@@ -39,12 +38,12 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('VALID: {multiple steps} => returns deduplicated paths across all steps', () => {
       const steps = [
         DependencyStepStub({
-          focusFile: { path: '/src/brokers/auth/auth-broker.ts', action: 'create' },
+          focusFile: { path: '/src/brokers/auth/auth-broker.ts' },
           accompanyingFiles: [],
         }),
         DependencyStepStub({
-          focusFile: { path: '/src/contracts/token/token-contract.ts', action: 'create' },
-          accompanyingFiles: [{ path: '/src/brokers/auth/auth-broker.ts', action: 'create' }],
+          focusFile: { path: '/src/contracts/token/token-contract.ts' },
+          accompanyingFiles: [{ path: '/src/brokers/auth/auth-broker.ts' }],
         }),
       ];
 
@@ -67,7 +66,7 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('EMPTY: {steps with non-absolute paths} => returns empty array', () => {
       const steps = [
         DependencyStepStub({
-          focusFile: { path: 'src/file.ts', action: 'create' },
+          focusFile: { path: 'src/file.ts' },
           accompanyingFiles: [],
         }),
       ];
@@ -82,8 +81,8 @@ describe('questStepsToAbsoluteFilePathsTransformer', () => {
     it('EDGE: {steps with relative paths} => skips non-absolute paths', () => {
       const steps = [
         DependencyStepStub({
-          focusFile: { path: 'src/file.ts', action: 'create' },
-          accompanyingFiles: [{ path: './other/file.ts', action: 'create' }],
+          focusFile: { path: 'src/file.ts' },
+          accompanyingFiles: [{ path: './other/file.ts' }],
         }),
       ];
 

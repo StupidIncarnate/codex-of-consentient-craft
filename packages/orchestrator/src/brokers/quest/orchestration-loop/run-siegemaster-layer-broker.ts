@@ -52,7 +52,7 @@ export const runSiegemasterLayerBroker = async ({
   const workUnit = workUnitContract.parse({
     role: 'siegemaster',
     questId,
-    observables: allObservables,
+    relatedObservables: allObservables,
   });
 
   const slotIndex = slotIndexContract.parse(0);

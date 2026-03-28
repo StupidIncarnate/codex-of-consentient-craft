@@ -15,12 +15,10 @@ describe('questStepHasValidFocusFileGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-              action: 'create',
             }),
           ],
         }),
@@ -31,42 +29,18 @@ describe('questStepHasValidFocusFileGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {step with accompanyingFiles all create} => returns true', () => {
+    it('VALID: {step with multiple accompanyingFiles} => returns true', () => {
       const steps = [
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.ts',
-            action: 'create',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.test.ts',
-              action: 'create',
             }),
             StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.proxy.ts',
-              action: 'create',
-            }),
-          ],
-        }),
-      ];
-
-      const result = questStepHasValidFocusFileGuard({ steps });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {modify focusFile with modify accompanyingFiles} => returns true', () => {
-      const steps = [
-        DependencyStepStub({
-          focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'modify',
-          }),
-          accompanyingFiles: [
-            StepFileReferenceStub({
-              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-              action: 'modify',
             }),
           ],
         }),
@@ -82,7 +56,6 @@ describe('questStepHasValidFocusFileGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
-            action: 'create',
           }),
           accompanyingFiles: [],
         }),
@@ -100,30 +73,8 @@ describe('questStepHasValidFocusFileGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
-            action: 'create',
           }),
           accompanyingFiles: [],
-        }),
-      ];
-
-      const result = questStepHasValidFocusFileGuard({ steps });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID_ACTION: {create focusFile with modify accompanyingFile} => returns false', () => {
-      const steps = [
-        DependencyStepStub({
-          focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
-          }),
-          accompanyingFiles: [
-            StepFileReferenceStub({
-              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-              action: 'modify',
-            }),
-          ],
         }),
       ];
 
@@ -140,7 +91,6 @@ describe('questStepHasValidFocusFileGuard', () => {
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
           }),
           accompanyingFiles: [],
         }),
@@ -148,7 +98,6 @@ describe('questStepHasValidFocusFileGuard', () => {
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown/some-file.ts',
-            action: 'create',
           }),
           accompanyingFiles: [],
         }),
@@ -164,7 +113,6 @@ describe('questStepHasValidFocusFileGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/guards/is-valid/is-valid-guard.ts',
-            action: 'create',
           }),
           accompanyingFiles: [],
         }),

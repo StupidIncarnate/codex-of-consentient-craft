@@ -43,16 +43,18 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'siegemaster': {
-      const observableIds = new Set(step.observablesSatisfied);
-
-      const observables = quest.flows
-        .flatMap((flow) => flow.nodes.flatMap((node) => node.observables))
-        .filter((observable) => observableIds.has(observable.id));
+      const { relatedObservables, relatedDesignDecisions, relatedFlows } =
+        stepToQuestContextTransformer({
+          step,
+          quest,
+        });
 
       return workUnitContract.parse({
         role: 'siegemaster',
         questId: quest.id,
-        observables,
+        relatedDesignDecisions,
+        relatedFlows,
+        relatedObservables,
       });
     }
 

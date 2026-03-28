@@ -29,7 +29,7 @@ export const workUnitToArgumentsTransformer = ({
       } = workUnit;
       const parts: ContentText[] = [
         contentTextContract.parse(`Step: ${step.name}`),
-        contentTextContract.parse(`Focus File: ${step.focusFile.path} (${step.focusFile.action})`),
+        contentTextContract.parse(`Focus File: ${step.focusFile.path}`),
       ];
 
       if (step.exportName !== undefined) {
@@ -39,7 +39,7 @@ export const workUnitToArgumentsTransformer = ({
       if (step.accompanyingFiles.length > 0) {
         parts.push(contentTextContract.parse('Accompanying Files:'));
         for (const file of step.accompanyingFiles) {
-          parts.push(contentTextContract.parse(`  - ${file.path} (${file.action})`));
+          parts.push(contentTextContract.parse(`  - ${file.path}`));
         }
       }
 
@@ -103,7 +103,12 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const { questId: siegeQuestId, observables } = workUnit;
+      const {
+        questId: siegeQuestId,
+        relatedObservables,
+        relatedDesignDecisions,
+        relatedFlows,
+      } = workUnit;
       const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
 
       siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
@@ -111,9 +116,28 @@ export const workUnitToArgumentsTransformer = ({
         siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
       }
 
-      if (observables.length > 0) {
+      if (relatedDesignDecisions.length > 0) {
+        siegeParts.push(contentTextContract.parse('Design Decisions:'));
+        for (const decision of relatedDesignDecisions) {
+          siegeParts.push(contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`));
+        }
+      }
+
+      if (relatedFlows.length > 0) {
+        siegeParts.push(contentTextContract.parse('Flows:'));
+        for (const flow of relatedFlows) {
+          const relevantNodes = flow.nodes
+            .filter((node) => node.observables.length > 0)
+            .map((node) => node.label);
+          const nodesSuffix =
+            relevantNodes.length > 0 ? ` (nodes: ${relevantNodes.join(', ')})` : '';
+          siegeParts.push(contentTextContract.parse(`  - ${flow.name}${nodesSuffix}`));
+        }
+      }
+
+      if (relatedObservables.length > 0) {
         siegeParts.push(contentTextContract.parse('Observables:'));
-        for (const observable of observables) {
+        for (const observable of relatedObservables) {
           siegeParts.push(
             contentTextContract.parse(`    - ${observable.description} (${observable.type})`),
           );

@@ -156,7 +156,7 @@ export const questHarness = ({
         ],
         observablesSatisfied: [],
         dependsOn: [],
-        focusFile: { path: 'src/test-step.ts', action: 'create' },
+        focusFile: { path: 'src/test-step.ts' },
         accompanyingFiles: [],
         inputContracts: ['Void'],
         outputContracts: ['Void'],

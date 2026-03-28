@@ -119,11 +119,10 @@ export const orchestrationQuestHarness = (): {
           dependsOn: [],
           focusFile: {
             path: brokerPath,
-            action: 'create',
           },
           accompanyingFiles: [
-            { path: testPath, action: 'create' },
-            { path: proxyPath, action: 'create' },
+            { path: testPath },
+            { path: proxyPath },
           ],
           exportName: `step${String(i)}CreateBroker`,
         }),
