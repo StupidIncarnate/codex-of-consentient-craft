@@ -1908,4 +1908,161 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(result).toStrictEqual({ done: false, activeAgents: [] });
     });
   });
+
+  describe('onWorkItemSummary callback', () => {
+    it('VALID: {agent signals complete with summary} => invokes onWorkItemSummary with workItemId and summary', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        markCompleted: mockMarkCompleted,
+      });
+
+      const completeSignal = StreamSignalStub({
+        signal: 'complete',
+        summary: 'Implemented auth with tests' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: completeSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const onWorkItemSummary = jest.fn();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        onWorkItemSummary,
+      });
+
+      expect(onWorkItemSummary).toHaveBeenCalledTimes(1);
+      expect(onWorkItemSummary).toHaveBeenCalledWith({
+        workItemId: 'work-item-1',
+        summary: 'Implemented auth with tests',
+      });
+    });
+
+    it('VALID: {agent signals complete without summary} => does not invoke onWorkItemSummary', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        markCompleted: mockMarkCompleted,
+      });
+
+      const completeSignal = StreamSignalStub({ signal: 'complete', summary: undefined });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: completeSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const onWorkItemSummary = jest.fn();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        onWorkItemSummary,
+      });
+
+      expect(onWorkItemSummary).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {agent signals failed with summary} => invokes onWorkItemSummary before failure routing', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'codeweaver-work-1' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'BLOCKED: type errors' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const onWorkItemSummary = jest.fn();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        maxFollowupDepth: FollowupDepthStub({ value: 3 }),
+        onWorkItemSummary,
+      });
+
+      expect(onWorkItemSummary).toHaveBeenCalledTimes(1);
+      expect(onWorkItemSummary).toHaveBeenCalledWith({
+        workItemId: 'codeweaver-work-1',
+        summary: 'BLOCKED: type errors',
+      });
+    });
+  });
 });

@@ -52,6 +52,7 @@ describe('runSiegemasterLayerBroker', () => {
 
       expect(siegeItem?.status).toBe('complete');
       expect(siegeItem?.completedAt).toBe('2024-01-15T10:00:00.000Z');
+      expect(siegeItem?.summary).toBe('All tests pass');
     });
   });
 
@@ -192,6 +193,9 @@ describe('runSiegemasterLayerBroker', () => {
       });
 
       expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'FAILED OBSERVABLES: login form did not redirect',
+      );
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.summary).toBe(
         'FAILED OBSERVABLES: login form did not redirect',
       );
       expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
