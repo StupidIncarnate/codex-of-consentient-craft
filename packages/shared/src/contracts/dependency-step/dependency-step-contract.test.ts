@@ -100,7 +100,16 @@ describe('dependencyStepContract', () => {
           path: 'src/brokers/login/create/login-create-broker.ts',
           action: 'create',
         },
-        accompanyingFiles: [],
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/login/create/login-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/login/create/login-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
         inputContracts: ['Void'],
         outputContracts: ['Void'],
         uses: [],
@@ -129,7 +138,16 @@ describe('dependencyStepContract', () => {
           path: 'src/brokers/login/create/login-create-broker.ts',
           action: 'create',
         },
-        accompanyingFiles: [],
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/login/create/login-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/login/create/login-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
         inputContracts: ['Void'],
         outputContracts: ['UserSession'],
         uses: [],
@@ -202,7 +220,16 @@ describe('dependencyStepContract', () => {
           path: 'src/brokers/login/create/login-create-broker.ts',
           action: 'create',
         },
-        accompanyingFiles: [],
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/login/create/login-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/login/create/login-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
         exportName: 'questExecuteBroker',
         inputContracts: ['Void'],
         outputContracts: ['Void'],
@@ -237,7 +264,16 @@ describe('dependencyStepContract', () => {
           path: 'src/brokers/login/create/login-create-broker.ts',
           action: 'create',
         },
-        accompanyingFiles: [],
+        accompanyingFiles: [
+          {
+            path: 'src/brokers/login/create/login-create-broker.test.ts',
+            action: 'create',
+          },
+          {
+            path: 'src/brokers/login/create/login-create-broker.proxy.ts',
+            action: 'create',
+          },
+        ],
         inputContracts: ['Void'],
         outputContracts: ['Void'],
         uses: [],

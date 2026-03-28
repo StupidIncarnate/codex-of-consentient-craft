@@ -2223,10 +2223,19 @@ describe('OrchestrationFlow', () => {
             name: 'Step 0',
             observablesSatisfied: coveredObs,
             dependsOn: [],
-            focusFile: { path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.ts', action: 'create' },
+            focusFile: {
+              path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.ts',
+              action: 'create',
+            },
             accompanyingFiles: [
-              { path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.test.ts', action: 'create' },
-              { path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.proxy.ts', action: 'create' },
+              {
+                path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.test.ts',
+                action: 'create',
+              },
+              {
+                path: 'packages/orchestrator/src/brokers/step-0/create/step-0-create-broker.proxy.ts',
+                action: 'create',
+              },
             ],
             exportName: 'step0CreateBroker',
           }),
@@ -2235,10 +2244,19 @@ describe('OrchestrationFlow', () => {
             name: 'Step 1',
             observablesSatisfied: coveredObs,
             dependsOn: [step0Id],
-            focusFile: { path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.ts', action: 'create' },
+            focusFile: {
+              path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.ts',
+              action: 'create',
+            },
             accompanyingFiles: [
-              { path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.test.ts', action: 'create' },
-              { path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.proxy.ts', action: 'create' },
+              {
+                path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.test.ts',
+                action: 'create',
+              },
+              {
+                path: 'packages/orchestrator/src/brokers/step-1/create/step-1-create-broker.proxy.ts',
+                action: 'create',
+              },
             ],
             exportName: 'step1CreateBroker',
           }),
@@ -2247,10 +2265,19 @@ describe('OrchestrationFlow', () => {
             name: 'Step 2',
             observablesSatisfied: coveredObs,
             dependsOn: [],
-            focusFile: { path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.ts', action: 'create' },
+            focusFile: {
+              path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.ts',
+              action: 'create',
+            },
             accompanyingFiles: [
-              { path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.test.ts', action: 'create' },
-              { path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.proxy.ts', action: 'create' },
+              {
+                path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.test.ts',
+                action: 'create',
+              },
+              {
+                path: 'packages/orchestrator/src/brokers/step-2/create/step-2-create-broker.proxy.ts',
+                action: 'create',
+              },
             ],
             exportName: 'step2CreateBroker',
           }),
