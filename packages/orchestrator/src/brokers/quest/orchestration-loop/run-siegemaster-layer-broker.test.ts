@@ -1,4 +1,5 @@
 import {
+  DependencyStepStub,
   ExitCodeStub,
   FilePathStub,
   FlowNodeStub,
@@ -281,6 +282,65 @@ describe('runSiegemasterLayerBroker', () => {
           abortSignal: new AbortController().signal,
         }),
       ).rejects.toThrow(/Quest not found/u);
+    });
+  });
+
+  describe('missing relatedDataItems', () => {
+    it('ERROR: {work item with empty relatedDataItems} => throws', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        runSiegemasterLayerBroker({
+          questId: quest.id,
+          workItem,
+          startPath: FilePathStub({ value: '/project' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/has no relatedDataItems/u);
+    });
+  });
+
+  describe('wrong collection in relatedDataItems', () => {
+    it('ERROR: {relatedDataItems references steps instead of flows} => throws', async () => {
+      const stepRef = RelatedDataItemStub({ value: 'steps/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [stepRef],
+      });
+      const step = DependencyStepStub({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' as never });
+      const quest = QuestStub({ steps: [step], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        runSiegemasterLayerBroker({
+          questId: quest.id,
+          workItem,
+          startPath: FilePathStub({ value: '/project' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/Expected flows collection/u);
     });
   });
 

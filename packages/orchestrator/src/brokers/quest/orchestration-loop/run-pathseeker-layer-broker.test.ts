@@ -243,6 +243,7 @@ describe('runPathseekerLayerBroker', () => {
       const lawbringers = lastQuest.workItems.filter((item) => item.role === 'lawbringer');
 
       expect(sieges.map((s) => s.dependsOn)).toStrictEqual([[WARD_UUID]]);
+      expect(sieges.map((s) => s.relatedDataItems)).toStrictEqual([['flows/login-flow']]);
       expect(lawbringers.map((l) => l.dependsOn)).toStrictEqual([[SIEGE_UUID], [SIEGE_UUID]]);
     });
   });

@@ -1,4 +1,4 @@
-import { WardResultStub } from '@dungeonmaster/shared/contracts';
+import { FlowIdStub, FlowStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
 import { resolvedRelatedDataItemContract } from './resolved-related-data-item-contract';
 import { ResolvedRelatedDataItemStub } from './resolved-related-data-item.stub';
@@ -23,6 +23,19 @@ describe('resolvedRelatedDataItemContract', () => {
       });
 
       expect(result.collection).toBe('wardResults');
+    });
+
+    it('VALID: {collection: flows, flow item} => parses successfully', () => {
+      const flowId = FlowIdStub({ value: 'login-flow' });
+      const flow = FlowStub({ id: flowId });
+
+      const result = resolvedRelatedDataItemContract.parse({
+        collection: 'flows',
+        id: flow.id,
+        item: flow,
+      });
+
+      expect(result.collection).toBe('flows');
     });
   });
 });

@@ -403,5 +403,66 @@ describe('stepsToWorkItemsTransformer', () => {
         },
       ]);
     });
+
+    it('EDGE: {0 steps, 1 flow} => 0 cw + 1 ward + 1 siege + 0 law + final-ward depends on siege', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+        ],
+      });
+
+      const flowId = FlowIdStub({ value: 'login-flow' });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [],
+        flows: [FlowStub({ id: flowId })],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: [],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'changed',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000002',
+          role: 'siegemaster',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`flows/${String(flowId)}`],
+          dependsOn: ['00000000-0000-4000-8000-000000000001'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000003',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000002'],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'full',
+        },
+      ]);
+    });
   });
 });

@@ -406,6 +406,29 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).not.toMatch(/Design Decisions:/u);
       expect(result).not.toMatch(/Contracts:/u);
     });
+
+    it('EDGE: {siegemaster with all empty collections} => only quest ID, flow metadata, and type reference', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'minimal-quest' }),
+        flow: FlowStub({
+          name: 'Minimal Flow',
+          entryPoint: '/start',
+          exitPoints: ['/end'],
+          nodes: [],
+          edges: [],
+        }),
+        designDecisions: [],
+        contracts: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Quest ID: minimal-quest\nFlow: Minimal Flow\n/u);
+      expect(result).toMatch(/Observable Type Reference:/u);
+      expect(result).not.toMatch(/Nodes:/u);
+      expect(result).not.toMatch(/Edges:/u);
+      expect(result).not.toMatch(/Design Decisions:/u);
+    });
   });
 
   describe('lawbringer role', () => {
