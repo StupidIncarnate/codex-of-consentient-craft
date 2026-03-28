@@ -21,6 +21,20 @@ describe('relatedDataItemContract', () => {
       expect(item).toBe('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
+    it('VALID: flows reference => parses successfully', () => {
+      const item = RelatedDataItemStub({ value: 'flows/login-flow' });
+
+      expect(item).toBe('flows/login-flow');
+    });
+
+    it('VALID: flows with uuid => parses successfully', () => {
+      const item = RelatedDataItemStub({
+        value: 'flows/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      expect(item).toBe('flows/f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    });
+
     it('VALID: steps with full uuid => parses successfully', () => {
       const item = RelatedDataItemStub({
         value: 'steps/f47ac10b-58cc-4372-a567-0e02b2c3d479',

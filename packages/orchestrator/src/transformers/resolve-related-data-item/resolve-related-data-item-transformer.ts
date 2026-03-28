@@ -38,5 +38,13 @@ export const resolveRelatedDataItemTransformer = ({
     return { collection: 'wardResults', id: item.id, item };
   }
 
+  if (collection === 'flows') {
+    const item = quest.flows.find((flow) => String(flow.id) === id);
+    if (!item) {
+      throw new Error(`Flow ${id} not found in quest ${String(quest.id)}`);
+    }
+    return { collection: 'flows', id: item.id, item };
+  }
+
   throw new Error(`Unknown collection: ${collection}`);
 };

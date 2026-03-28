@@ -21,6 +21,7 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { resolveRelatedDataItemTransformer } from '../../../transformers/resolve-related-data-item/resolve-related-data-item-transformer';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -47,12 +48,21 @@ export const runSiegemasterLayerBroker = async ({
   }
   const { quest } = questResult;
 
-  const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
+  const [flowRef] = workItem.relatedDataItems;
+  if (!flowRef) {
+    throw new Error(`Siegemaster work item ${String(workItem.id)} has no relatedDataItems`);
+  }
+  const resolved = resolveRelatedDataItemTransformer({ ref: flowRef, quest });
+  if (resolved.collection !== 'flows') {
+    throw new Error(`Expected flows collection, got ${resolved.collection}`);
+  }
 
   const workUnit = workUnitContract.parse({
     role: 'siegemaster',
     questId,
-    relatedObservables: allObservables,
+    flow: resolved.item,
+    designDecisions: quest.designDecisions,
+    contracts: quest.contracts,
   });
 
   const slotIndex = slotIndexContract.parse(0);
