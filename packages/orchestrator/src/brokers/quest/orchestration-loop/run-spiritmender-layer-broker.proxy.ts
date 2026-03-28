@@ -7,6 +7,7 @@ import {
   type ExitCode,
   type QuestStub,
   type QuestWorkItemId,
+  type WorkItemStub,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
@@ -18,6 +19,7 @@ import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type WorkItem = ReturnType<typeof WorkItemStub>;
 
 export const runSpiritmenderLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest; batchContents?: readonly string[] }) => void;
@@ -32,6 +34,8 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
+  getLastPersistedWorkItem: (params: { workItemId: QuestWorkItemId }) => WorkItem | undefined;
+  getLastPersistedQuest: () => Quest | undefined;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -177,6 +181,31 @@ export const runSpiritmenderLayerBrokerProxy = (): {
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
+    },
+
+    getLastPersistedWorkItem: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): WorkItem | undefined => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return undefined;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      return lastQuest.workItems.find((wi) => wi.id === workItemId);
+    },
+
+    getLastPersistedQuest: (): Quest | undefined => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return undefined;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      return questContract.parse(parsed);
     },
   };
 };

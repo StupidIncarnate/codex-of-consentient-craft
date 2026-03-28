@@ -114,6 +114,66 @@ describe('slotManagerOrchestrateBroker', () => {
     });
   });
 
+  describe('onWorkItemSummary passthrough', () => {
+    it('VALID: {all work complete, onWorkItemSummary provided} => returns completed true', async () => {
+      slotManagerOrchestrateBrokerProxy();
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => true,
+        isAllTerminal: () => true,
+        getReadyWorkIds: () => [],
+        getFailedIds: () => [],
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+      const onWorkItemSummary = jest.fn();
+
+      const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 3 }),
+        slotOperations: SlotOperationsStub(),
+        onWorkItemSummary,
+      });
+
+      expect(result).toStrictEqual({ completed: true, sessionIds: {} });
+    });
+  });
+
+  describe('abortSignal passthrough', () => {
+    it('VALID: {abortSignal already aborted} => returns completed false immediately', async () => {
+      slotManagerOrchestrateBrokerProxy();
+      const incompleteId = WorkItemIdStub({ value: 'work-item-incomplete' });
+      const failedId = WorkItemIdStub({ value: 'work-item-failed' });
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [incompleteId],
+        getIncompleteIds: () => [incompleteId, failedId],
+        getFailedIds: () => [failedId],
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const result = await slotManagerOrchestrateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 3 }),
+        slotOperations: SlotOperationsStub(),
+        abortSignal: abortController.signal,
+      });
+
+      expect(result).toStrictEqual({
+        completed: false,
+        incompleteIds: ['work-item-incomplete', 'work-item-failed'],
+        failedIds: ['work-item-failed'],
+        sessionIds: {},
+      });
+    });
+  });
+
   // NOTE: Tests for agent spawning, signal handling, crash recovery, and timeout scenarios
   // are covered by orchestration-loop-layer-broker tests.
 });

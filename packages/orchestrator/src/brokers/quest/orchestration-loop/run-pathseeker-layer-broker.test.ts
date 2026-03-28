@@ -534,6 +534,112 @@ describe('runPathseekerLayerBroker', () => {
     });
   });
 
+  describe('agentSummary — verify passes', () => {
+    it('VALID: {spawn signal has summary, verify passes} => complete work item includes summary', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ALL_UUIDS });
+      const signalLine =
+        '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"complete","summary":"Implemented auth flow"}}]}}';
+      proxy.setupSuccess({
+        quest: buildValidQuestWith2Steps({ workItem }),
+        spawnLines: [signalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const firstQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
+      const completedItem = firstQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
+
+      expect(completedItem?.status).toBe('complete');
+      expect(completedItem?.summary).toBe('Implemented auth flow');
+    });
+  });
+
+  describe('agentSummary — verify fails, retries left', () => {
+    it('VALID: {spawn signal has summary, verify fails, attempt 0} => failed work item includes summary', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        attempt: 0,
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupDeterministicUuids({ uuids: ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeee01'] });
+      const signalLine =
+        '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"failed","summary":"Tests failing in guard"}}]}}';
+      proxy.setupVerifyFail({
+        quest: buildVerifyFailQuest({ workItem }),
+        spawnLines: [signalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
+      const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
+
+      expect(failedItem?.status).toBe('failed');
+      expect(failedItem?.summary).toBe('Tests failing in guard');
+    });
+  });
+
+  describe('agentSummary — verify fails, no retries left', () => {
+    it('VALID: {spawn signal has summary, verify fails, attempt 2, maxAttempts 3} => failed work item includes summary', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        attempt: 2,
+        maxAttempts: 3,
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      const signalLine =
+        '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"failed","summary":"Max retries exhausted"}}]}}';
+      proxy.setupVerifyFail({
+        quest: buildVerifyFailQuest({ workItem }),
+        spawnLines: [signalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
+      const failedItem = lastQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
+
+      expect(failedItem?.status).toBe('failed');
+      expect(failedItem?.summary).toBe('Max retries exhausted');
+    });
+  });
+
   describe('ABORT (pause during pathseeker)', () => {
     it('VALID: {pathseeker killed by abort signal} => quest state unchanged, pathseeker stays in_progress', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
