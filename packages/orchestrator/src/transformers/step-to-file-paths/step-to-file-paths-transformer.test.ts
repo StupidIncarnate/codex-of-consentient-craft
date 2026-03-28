@@ -7,10 +7,7 @@ describe('stepToFilePathsTransformer', () => {
     it('VALID: {step with focusFile and accompanyingFiles} => returns combined array', () => {
       const step = DependencyStepStub({
         focusFile: { path: 'src/new-file.ts' },
-        accompanyingFiles: [
-          { path: 'src/new-file.test.ts' },
-          { path: 'src/existing.ts' },
-        ],
+        accompanyingFiles: [{ path: 'src/new-file.test.ts' }, { path: 'src/existing.ts' }],
       });
 
       const result = stepToFilePathsTransformer({ step });
@@ -23,10 +20,7 @@ describe('stepToFilePathsTransformer', () => {
     it('VALID: {step with overlapping paths in accompanyingFiles} => returns deduplicated array preserving order', () => {
       const step = DependencyStepStub({
         focusFile: { path: 'src/file-a.ts' },
-        accompanyingFiles: [
-          { path: 'src/file-b.ts' },
-          { path: 'src/file-a.ts' },
-        ],
+        accompanyingFiles: [{ path: 'src/file-b.ts' }, { path: 'src/file-a.ts' }],
       });
 
       const result = stepToFilePathsTransformer({ step });

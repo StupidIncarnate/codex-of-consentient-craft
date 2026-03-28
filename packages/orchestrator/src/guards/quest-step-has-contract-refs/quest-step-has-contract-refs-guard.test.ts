@@ -14,7 +14,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-
           }),
         }),
       ];
@@ -41,7 +40,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
-
           }),
           outputContracts: [contractName],
         }),
@@ -58,7 +56,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
@@ -75,7 +72,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
@@ -93,7 +89,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
-
           }),
           inputContracts: [ContractNameStub({ value: 'Void' })],
           outputContracts: [contractName],
@@ -113,7 +108,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
@@ -130,7 +124,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
@@ -151,7 +144,6 @@ describe('questStepHasContractRefsGuard', () => {
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),
@@ -159,7 +151,6 @@ describe('questStepHasContractRefsGuard', () => {
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
-
           }),
           outputContracts: [contractName],
         }),
@@ -176,7 +167,6 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
-
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),

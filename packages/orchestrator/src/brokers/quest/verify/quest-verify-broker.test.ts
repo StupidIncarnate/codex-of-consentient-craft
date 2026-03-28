@@ -23,7 +23,6 @@ describe('questVerifyBroker', () => {
             dependsOn: [],
             focusFile: {
               path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
-
             },
             accompanyingFiles: [
               { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts' },

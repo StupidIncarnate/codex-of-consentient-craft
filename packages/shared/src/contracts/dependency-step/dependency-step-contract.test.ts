@@ -24,14 +24,14 @@ describe('dependencyStepContract', () => {
         dependsOn: ['setup-database'],
         focusFile: {
           path: 'src/brokers/user/create/user-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/user/create/user-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/user/create/user-create-broker.proxy.ts',
-              },
+          },
         ],
         exportName: 'userCreateBroker',
         inputContracts: ['LoginCredentials'],
@@ -59,14 +59,14 @@ describe('dependencyStepContract', () => {
         dependsOn: ['setup-database'],
         focusFile: {
           path: 'src/brokers/user/create/user-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/user/create/user-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/user/create/user-create-broker.proxy.ts',
-              },
+          },
         ],
         exportName: 'userCreateBroker',
         inputContracts: ['LoginCredentials'],
@@ -92,14 +92,14 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/login/create/login-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/login/create/login-create-broker.proxy.ts',
-              },
+          },
         ],
         inputContracts: ['Void'],
         outputContracts: ['Void'],
@@ -127,14 +127,14 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/login/create/login-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/login/create/login-create-broker.proxy.ts',
-              },
+          },
         ],
         inputContracts: ['Void'],
         outputContracts: ['UserSession'],
@@ -157,7 +157,7 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [],
         inputContracts: ['Void'],
         outputContracts: ['Void'],
@@ -177,7 +177,7 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [],
         inputContracts: ['Void'],
         outputContracts: ['Void'],
@@ -204,14 +204,14 @@ describe('dependencyStepContract', () => {
         dependsOn: [],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/login/create/login-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/login/create/login-create-broker.proxy.ts',
-              },
+          },
         ],
         exportName: 'questExecuteBroker',
         inputContracts: ['Void'],
@@ -245,14 +245,14 @@ describe('dependencyStepContract', () => {
         dependsOn: ['setup-database', 'create-schema'],
         focusFile: {
           path: 'src/brokers/login/create/login-create-broker.ts',
-          },
+        },
         accompanyingFiles: [
           {
             path: 'src/brokers/login/create/login-create-broker.test.ts',
-              },
+          },
           {
             path: 'src/brokers/login/create/login-create-broker.proxy.ts',
-              },
+          },
         ],
         inputContracts: ['Void'],
         outputContracts: ['Void'],

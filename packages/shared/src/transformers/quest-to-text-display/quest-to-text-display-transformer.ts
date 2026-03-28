@@ -122,15 +122,11 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
           `${SYM.indent}Assertions: ${step.assertions.map((a) => `${a.prefix}: ${a.input} => ${a.expected}`).join('; ')}`,
         ),
       );
-      parts.push(
-        contentTextContract.parse(
-          `${SYM.indent}Focus: ${step.focusFile.path}`,
-        ),
-      );
+      parts.push(contentTextContract.parse(`${SYM.indent}Focus: ${step.focusFile.path}`));
       if (step.accompanyingFiles.length > 0) {
         parts.push(
           contentTextContract.parse(
-            `${SYM.indent}Accompanying: ${step.accompanyingFiles.map((f) => `${f.path}`).join(', ')}`,
+            `${SYM.indent}Accompanying: ${step.accompanyingFiles.map((f) => f.path).join(', ')}`,
           ),
         );
       }

@@ -1,0 +1,15 @@
+import { dungeonmasterHomeStatics } from './dungeonmaster-home-statics';
+
+describe('dungeonmasterHomeStatics', () => {
+  it('VALID: exported value => matches expected shape', () => {
+    expect(dungeonmasterHomeStatics).toStrictEqual({
+      paths: {
+        configDir: '.dungeonmaster',
+        configFile: 'config.json',
+        guildsDir: 'guilds',
+        questsDir: 'quests',
+        questFile: 'quest.json',
+      },
+    });
+  });
+});

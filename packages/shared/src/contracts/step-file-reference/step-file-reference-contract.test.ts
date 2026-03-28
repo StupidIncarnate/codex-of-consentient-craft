@@ -33,8 +33,7 @@ describe('stepFileReferenceContract', () => {
     });
 
     it('EMPTY: {missing path} => throws validation error', () => {
-      const parseMissingPath = (): unknown =>
-        stepFileReferenceContract.parse({});
+      const parseMissingPath = (): unknown => stepFileReferenceContract.parse({});
 
       expect(parseMissingPath).toThrow(/Required/u);
     });

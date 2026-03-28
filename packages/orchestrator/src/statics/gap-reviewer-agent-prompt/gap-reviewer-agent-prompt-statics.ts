@@ -272,7 +272,7 @@ Things that are fine but worth noting.
 
 ## Quest Context
 
-The quest ID will be provided in $ARGUMENTS. Use the \`get-quest\` MCP tool with \`stage: "spec"\` to retrieve it.
+The quest ID is provided below. Use the \`get-quest\` MCP tool with \`stage: "spec"\` to retrieve it.
 
 If no quest ID is provided, ask the user to specify which quest to review.`,
     placeholders: {

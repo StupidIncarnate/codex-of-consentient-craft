@@ -161,7 +161,7 @@ Observations that are worth noting but not blocking.
 
 ## Quest Context
 
-The quest ID will be provided in $ARGUMENTS. Always start by running the \`verify-quest\` tool, then fetch sections incrementally using the \`get-quest\` tool.`,
+The quest ID is provided below. Always start by running the \`verify-quest\` tool, then fetch sections incrementally using the \`get-quest\` tool.`,
     placeholders: {
       arguments: '$ARGUMENTS',
     },

@@ -105,12 +105,10 @@ describe('questVerifyTransformer', () => {
             dependsOn: [],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-  
               }),
             ],
             outputContracts: [contractName],
@@ -214,7 +212,6 @@ describe('questVerifyTransformer', () => {
             observablesSatisfied: [],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/statics/config/config-statics.ts',
-
             }),
             accompanyingFiles: [],
           }),
@@ -256,7 +253,6 @@ describe('questVerifyTransformer', () => {
             dependsOn: [stepId2],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/statics/config/config-statics.ts',
-
             }),
             accompanyingFiles: [],
           }),
@@ -266,7 +262,6 @@ describe('questVerifyTransformer', () => {
             dependsOn: [stepId1],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/statics/other/other-statics.ts',
-
             }),
             accompanyingFiles: [],
           }),
@@ -318,12 +313,10 @@ describe('questVerifyTransformer', () => {
             observablesSatisfied: [obsId],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-  
               }),
             ],
           }),
@@ -365,7 +358,6 @@ describe('questVerifyTransformer', () => {
           DependencyStepStub({
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
-
             }),
             outputContracts: [ContractNameStub({ value: 'Void' })],
           }),
@@ -415,12 +407,10 @@ describe('questVerifyTransformer', () => {
           DependencyStepStub({
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-  
               }),
             ],
           }),
@@ -533,12 +523,10 @@ describe('questVerifyTransformer', () => {
             observablesSatisfied: [obsId],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-  
               }),
             ],
           }),
@@ -548,12 +536,10 @@ describe('questVerifyTransformer', () => {
             observablesSatisfied: [obsId],
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
-
             }),
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
-  
               }),
             ],
           }),

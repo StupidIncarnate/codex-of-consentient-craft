@@ -8,9 +8,7 @@ describe('stepToFilePairsTransformer', () => {
       const steps = [
         DependencyStepStub({
           focusFile: { path: 'src/brokers/user/fetch/user-fetch-broker.ts' },
-          accompanyingFiles: [
-            { path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' },
-          ],
+          accompanyingFiles: [{ path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' }],
         }),
       ];
 
@@ -80,9 +78,7 @@ describe('stepToFilePairsTransformer', () => {
         DependencyStepStub({
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
           focusFile: { path: 'src/brokers/user/fetch/user-fetch-broker.ts' },
-          accompanyingFiles: [
-            { path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' },
-          ],
+          accompanyingFiles: [{ path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' }],
         }),
         DependencyStepStub({
           id: 'f5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
@@ -118,9 +114,7 @@ describe('stepToFilePairsTransformer', () => {
         DependencyStepStub({
           id: 'f5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
           focusFile: { path: 'src/brokers/user/fetch/user-fetch-broker.ts' },
-          accompanyingFiles: [
-            { path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' },
-          ],
+          accompanyingFiles: [{ path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' }],
         }),
       ];
 

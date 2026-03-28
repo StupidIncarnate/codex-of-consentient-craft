@@ -74,12 +74,10 @@ const buildValidQuestWith2Steps = ({
         dependsOn: [],
         focusFile: {
           path: 'packages/orchestrator/src/guards/step-one/step-one-guard.ts',
-
         },
         accompanyingFiles: [
           {
             path: 'packages/orchestrator/src/guards/step-one/step-one-guard.test.ts',
-  
           },
         ],
         outputContracts: [contractName],
@@ -91,12 +89,10 @@ const buildValidQuestWith2Steps = ({
         dependsOn: [],
         focusFile: {
           path: 'packages/orchestrator/src/guards/step-two/step-two-guard.ts',
-
         },
         accompanyingFiles: [
           {
             path: 'packages/orchestrator/src/guards/step-two/step-two-guard.test.ts',
-  
           },
         ],
         outputContracts: [contractName],

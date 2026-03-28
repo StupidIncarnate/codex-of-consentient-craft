@@ -65,7 +65,6 @@ describe('questGetBroker', () => {
             dependsOn: [],
             focusFile: {
               path: 'src/brokers/login/create/login-create-broker.ts',
-
             },
             accompanyingFiles: [],
             inputContracts: ['Void'],
@@ -105,7 +104,6 @@ describe('questGetBroker', () => {
             dependsOn: [],
             focusFile: {
               path: 'src/brokers/login/create/login-create-broker.ts',
-
             },
             accompanyingFiles: [],
             inputContracts: ['Void'],
@@ -130,7 +128,6 @@ describe('questGetBroker', () => {
           dependsOn: [],
           focusFile: {
             path: 'src/brokers/login/create/login-create-broker.ts',
-
           },
           accompanyingFiles: [],
           inputContracts: ['Void'],

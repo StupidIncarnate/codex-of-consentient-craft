@@ -120,10 +120,7 @@ export const orchestrationQuestHarness = (): {
           focusFile: {
             path: brokerPath,
           },
-          accompanyingFiles: [
-            { path: testPath },
-            { path: proxyPath },
-          ],
+          accompanyingFiles: [{ path: testPath }, { path: proxyPath }],
           exportName: `step${String(i)}CreateBroker`,
         }),
       );
@@ -243,7 +240,7 @@ export const orchestrationQuestHarness = (): {
         QUEST_TERMINAL_STATUSES.has(result.quest.status) &&
         !targetStatuses.includes(result.quest.status)
       ) {
-        const workItemSummary = (result.quest.workItems ?? [])
+        const workItemSummary = result.quest.workItems
           .map((wi) => `${wi.role}:${wi.status}`)
           .join(', ');
         throw new Error(

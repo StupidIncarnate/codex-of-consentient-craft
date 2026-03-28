@@ -119,7 +119,9 @@ export const workUnitToArgumentsTransformer = ({
       if (relatedDesignDecisions.length > 0) {
         siegeParts.push(contentTextContract.parse('Design Decisions:'));
         for (const decision of relatedDesignDecisions) {
-          siegeParts.push(contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`));
+          siegeParts.push(
+            contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`),
+          );
         }
       }
 

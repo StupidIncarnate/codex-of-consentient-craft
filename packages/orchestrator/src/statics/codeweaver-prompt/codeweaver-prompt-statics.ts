@@ -37,7 +37,7 @@ Gates are sequential. Each has exit criteria. Do not skip.
 
 ### Gate 0: Read Step Context & Branch
 
-**Step context first.** Parse your \`$ARGUMENTS\` to understand:
+**Step context first.** Read your Step Context below to understand:
 - **focusFile** — the one file you are responsible for
 - **accompanyingFiles** — companion files you must create/update (test, proxy, stub)
 - **assertions** — your behavioral spec, each becomes one test case

@@ -213,7 +213,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
-                }),
+              }),
             ],
           }),
         ],
@@ -239,7 +239,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
             accompanyingFiles: [
               StepFileReferenceStub({
                 path: 'packages/shared/src/contracts/user/user-contract.test.ts',
-                }),
+              }),
             ],
           }),
         ],
@@ -696,7 +696,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
         'step "create-unknown" focusFile "packages/orchestrator/src/unknown-folder/some-file.ts" does not match any known folder type',
       );
     });
-
   });
 
   describe('unknown check name', () => {

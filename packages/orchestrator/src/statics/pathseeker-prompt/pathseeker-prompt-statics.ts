@@ -318,7 +318,7 @@ When invoked after a codeweaver or other agent failure, the quest will contain e
 
 ## Quest Context
 
-The quest ID and any additional context will be provided in $ARGUMENTS. Always start by retrieving
+The quest ID and any additional context is provided in Quest Context below. Always start by retrieving
 the quest via \`get-quest\` using the provided quest ID.
 
 ## Signaling

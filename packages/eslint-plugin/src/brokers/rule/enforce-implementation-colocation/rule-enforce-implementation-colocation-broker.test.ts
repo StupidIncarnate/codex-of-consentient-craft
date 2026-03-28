@@ -171,15 +171,10 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const useUserDataBinding = () => {};',
       filename: '/project/src/bindings/use-user-data/use-user-data-binding.ts',
     },
-    // Statics with colocated test file - valid (testType: none, no test required)
+    // Statics with colocated test file - valid (testType: unit, test file exists)
     {
       code: 'export const userStatics = {};',
       filename: '/project/src/statics/user/user-statics.ts',
-    },
-    // Statics without test file - valid (testType: none)
-    {
-      code: 'export const configStatics = {};',
-      filename: '/project/src/statics/config/config-statics.ts',
     },
     // Additional files with multiple dots that should be skipped
     {
@@ -244,6 +239,12 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     },
   ],
   invalid: [
+    // Statics without test file - invalid (testType: unit, test file required)
+    {
+      code: 'export const configStatics = {};',
+      filename: '/project/src/statics/config/config-statics.ts',
+      errors: [{ messageId: 'missingTestFile' }],
+    },
     // Implementation files without tests or proxy
     {
       code: 'export const orderFetchBroker = () => {};',
