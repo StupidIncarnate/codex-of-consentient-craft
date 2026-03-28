@@ -77,9 +77,9 @@ describe('verifyQuestResultContract', () => {
         checks: [
           { name: 'Observable Coverage', passed: true, details: 'All observables covered' },
           {
-            name: 'No Orphan Steps',
+            name: 'File Companion Completeness',
             passed: false,
-            details: 'Step step-2 has empty observablesSatisfied',
+            details: 'Companion file issues: step "Test Step" needs test file',
           },
         ],
       });
@@ -91,9 +91,9 @@ describe('verifyQuestResultContract', () => {
         checks: [
           { name: 'Observable Coverage', passed: true, details: 'All observables covered' },
           {
-            name: 'No Orphan Steps',
+            name: 'File Companion Completeness',
             passed: false,
-            details: 'Step step-2 has empty observablesSatisfied',
+            details: 'Companion file issues: step "Test Step" needs test file',
           },
         ],
       });

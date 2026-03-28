@@ -55,25 +55,10 @@ export const questVerifyFailureDetailsTransformer = ({
     );
   }
 
-  if (checkName === 'No Orphan Steps') {
-    const orphans = quest.steps
-      .filter((s) => s.observablesSatisfied.length === 0)
-      .map((s) => `"${String(s.name)}"`);
-    return checkDetailsSchema.parse(`Steps with empty observablesSatisfied: ${orphans.join(', ')}`);
-  }
-
   if (checkName === 'File Companion Completeness') {
-    const missing: {
-      step: VerifyQuestCheck['details'];
-      file: VerifyQuestCheck['details'];
-      needs: VerifyQuestCheck['details'];
-    }[] = [];
+    const issues: VerifyQuestCheck['details'][] = [];
 
     for (const step of quest.steps) {
-      if (step.focusFile.action !== 'create') {
-        continue;
-      }
-
       const focusPath = step.focusFile.path;
       const folderType = pathToFolderTypeTransformer({
         filePath: step.focusFile.path,
@@ -86,29 +71,34 @@ export const questVerifyFailureDetailsTransformer = ({
 
       const config = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
       const accompanyingPaths = new Set(step.accompanyingFiles.map((f) => String(f.path)));
+      const requiredPaths: typeof accompanyingPaths = new Set();
 
       const expectedTestPath = focusFileToTestPathTransformer({
         focusPath: step.focusFile.path,
         testType: config.testType,
       });
-      if (expectedTestPath && !accompanyingPaths.has(String(expectedTestPath))) {
-        missing.push({
-          step: checkDetailsSchema.parse(String(step.name)),
-          file: checkDetailsSchema.parse(focusPath),
-          needs: checkDetailsSchema.parse(String(expectedTestPath)),
-        });
+      if (expectedTestPath) {
+        requiredPaths.add(String(expectedTestPath));
+        if (!accompanyingPaths.has(String(expectedTestPath))) {
+          issues.push(
+            checkDetailsSchema.parse(
+              `step "${String(step.name)}" focusFile "${focusPath}" needs "${String(expectedTestPath)}"`,
+            ),
+          );
+        }
       }
 
       if (config.requireProxy) {
         const base = focusPath.replace(/\.tsx?$/u, '');
         const ext = focusPath.endsWith('.tsx') ? '.tsx' : '.ts';
         const proxyFile = `${base}.proxy${ext}`;
+        requiredPaths.add(proxyFile);
         if (!accompanyingPaths.has(proxyFile)) {
-          missing.push({
-            step: checkDetailsSchema.parse(String(step.name)),
-            file: checkDetailsSchema.parse(focusPath),
-            needs: checkDetailsSchema.parse(proxyFile),
-          });
+          issues.push(
+            checkDetailsSchema.parse(
+              `step "${String(step.name)}" focusFile "${focusPath}" needs "${proxyFile}"`,
+            ),
+          );
         }
       }
 
@@ -117,22 +107,32 @@ export const questVerifyFailureDetailsTransformer = ({
         const fileName = focusPath.slice(focusPath.lastIndexOf('/') + 1);
         const contractBase = fileName.replace(/-contract\.ts$/u, '');
         const stubFile = `${dir}/${contractBase}.stub.ts`;
+        requiredPaths.add(stubFile);
         if (!accompanyingPaths.has(stubFile)) {
-          missing.push({
-            step: checkDetailsSchema.parse(String(step.name)),
-            file: checkDetailsSchema.parse(focusPath),
-            needs: checkDetailsSchema.parse(stubFile),
-          });
+          issues.push(
+            checkDetailsSchema.parse(
+              `step "${String(step.name)}" focusFile "${focusPath}" needs "${stubFile}"`,
+            ),
+          );
+        }
+      }
+
+      for (const accompanying of accompanyingPaths) {
+        if (!requiredPaths.has(accompanying)) {
+          issues.push(
+            checkDetailsSchema.parse(
+              `step "${String(step.name)}" focusFile "${focusPath}" has unexpected accompanyingFile "${accompanying}"`,
+            ),
+          );
         }
       }
     }
 
-    const details = missing
-      .map(
-        (m) => `step "${String(m.step)}" focusFile "${String(m.file)}" needs "${String(m.needs)}"`,
-      )
-      .join('; ');
-    return checkDetailsSchema.parse(`Missing companion files: ${details}`);
+    return checkDetailsSchema.parse(
+      issues.length > 0
+        ? `Companion file issues: ${issues.map(String).join('; ')}`
+        : 'Missing companion files',
+    );
   }
 
   if (checkName === 'No Raw Primitives in Contracts') {
@@ -313,13 +313,15 @@ export const questVerifyFailureDetailsTransformer = ({
         );
         continue;
       }
-      for (const accompanying of step.accompanyingFiles) {
-        if (accompanying.action !== 'create') {
-          issues.push(
-            checkDetailsSchema.parse(
-              `step "${step.name}" accompanyingFile "${accompanying.path}" has action "${accompanying.action}" but must be "create"`,
-            ),
-          );
+      if (step.focusFile.action === 'create') {
+        for (const accompanying of step.accompanyingFiles) {
+          if (accompanying.action !== 'create') {
+            issues.push(
+              checkDetailsSchema.parse(
+                `step "${step.name}" accompanyingFile "${accompanying.path}" has action "${accompanying.action}" but must be "create"`,
+              ),
+            );
+          }
         }
       }
     }

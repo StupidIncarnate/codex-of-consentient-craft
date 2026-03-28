@@ -32,7 +32,7 @@ export const questStepHasValidFocusFileGuard = ({
     }
 
     for (const accompanying of step.accompanyingFiles) {
-      if (accompanying.action !== 'create') {
+      if (step.focusFile.action === 'create' && accompanying.action !== 'create') {
         return false;
       }
     }

@@ -273,7 +273,7 @@ Use the \`verify-quest\` tool. This performs a number of deterministic checks to
 If ANY check fails:
 - Fix the issue via the \`modify-quest\` tool
 - Re-run verify
-- Repeat until ALL 15 checks pass
+- Repeat until ALL 14 checks pass
 
 Do NOT proceed to Step 10 until the verify endpoint returns success.
 

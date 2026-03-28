@@ -91,25 +91,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {focusFile action is modify} => skips companion check, returns true', () => {
-      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
-      const steps = [
-        DependencyStepStub({
-          observablesSatisfied: [obsId],
-          focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
-            action: 'modify',
-          }),
-          accompanyingFiles: [],
-        }),
-      ];
-
-      const result = questHasFileCompanionsGuard({ steps });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {statics file with testType none} => no test required, returns true', () => {
+    it('VALID: {statics file with test} => returns true', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -118,7 +100,12 @@ describe('questHasFileCompanionsGuard', () => {
             path: 'packages/shared/src/statics/config/config-statics.ts',
             action: 'create',
           }),
-          accompanyingFiles: [],
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/shared/src/statics/config/config-statics.test.ts',
+              action: 'create',
+            }),
+          ],
         }),
       ];
 
@@ -167,6 +154,33 @@ describe('questHasFileCompanionsGuard', () => {
             StepFileReferenceStub({
               path: 'packages/web/src/widgets/quest-chat/quest-chat-widget.proxy.tsx',
               action: 'create',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {modify step with required companions listed} => returns true', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            action: 'modify',
+          }),
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              action: 'modify',
+            }),
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+              action: 'modify',
             }),
           ],
         }),
@@ -276,6 +290,121 @@ describe('questHasFileCompanionsGuard', () => {
             action: 'create',
           }),
           accompanyingFiles: [],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID_COMPANION: {statics without test} => returns false', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/shared/src/statics/config/config-statics.ts',
+            action: 'create',
+          }),
+          accompanyingFiles: [],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID_COMPANION: {modify broker without companions} => returns false', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            action: 'modify',
+          }),
+          accompanyingFiles: [],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('extra companions', () => {
+    it('INVALID_COMPANION: {guard with test and unexpected proxy} => returns false', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+            action: 'create',
+          }),
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.test.ts',
+              action: 'create',
+            }),
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.proxy.ts',
+              action: 'create',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID_COMPANION: {statics with test and unexpected proxy} => returns false', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/shared/src/statics/config/config-statics.ts',
+            action: 'create',
+          }),
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/shared/src/statics/config/config-statics.test.ts',
+              action: 'create',
+            }),
+            StepFileReferenceStub({
+              path: 'packages/shared/src/statics/config/config-statics.proxy.ts',
+              action: 'create',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID_COMPANION: {flow with unit test instead of integration test} => returns false', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.ts',
+            action: 'create',
+          }),
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/mcp/src/flows/mcp-server/mcp-server-flow.test.ts',
+              action: 'create',
+            }),
+          ],
         }),
       ];
 

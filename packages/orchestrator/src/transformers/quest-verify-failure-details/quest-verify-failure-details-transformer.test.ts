@@ -204,54 +204,6 @@ describe('questVerifyFailureDetailsTransformer', () => {
     });
   });
 
-  describe('No Orphan Steps', () => {
-    it('VALID: {step with empty observablesSatisfied} => returns step name', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            name: 'orphan-step',
-            observablesSatisfied: [],
-          }),
-        ],
-      });
-
-      const result = questVerifyFailureDetailsTransformer({
-        quest,
-        checkName: brandCheckName('No Orphan Steps'),
-      });
-
-      expect(result).toBe('Steps with empty observablesSatisfied: "orphan-step"');
-    });
-  });
-
-  describe('No Orphan Steps - multiple', () => {
-    it('VALID: {two steps with empty observablesSatisfied} => returns both step names', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            name: 'orphan-alpha',
-            observablesSatisfied: [],
-          }),
-          DependencyStepStub({
-            name: 'orphan-beta',
-            observablesSatisfied: [],
-            focusFile: StepFileReferenceStub({
-              path: 'packages/orchestrator/src/guards/other/other-guard.ts',
-              action: 'create',
-            }),
-          }),
-        ],
-      });
-
-      const result = questVerifyFailureDetailsTransformer({
-        quest,
-        checkName: brandCheckName('No Orphan Steps'),
-      });
-
-      expect(result).toBe('Steps with empty observablesSatisfied: "orphan-alpha", "orphan-beta"');
-    });
-  });
-
   describe('File Companion Completeness', () => {
     it('VALID: {broker without proxy} => returns missing companion path', () => {
       const quest = QuestStub({
@@ -277,7 +229,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
       });
 
       expect(result).toBe(
-        'Missing companion files: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
+        'Companion file issues: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
       );
     });
 
@@ -305,7 +257,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
       });
 
       expect(result).toBe(
-        'Missing companion files: step "Test Step" focusFile "packages/shared/src/contracts/user/user-contract.ts" needs "packages/shared/src/contracts/user/user.stub.ts"',
+        'Companion file issues: step "Test Step" focusFile "packages/shared/src/contracts/user/user-contract.ts" needs "packages/shared/src/contracts/user/user.stub.ts"',
       );
     });
   });
@@ -330,7 +282,7 @@ describe('questVerifyFailureDetailsTransformer', () => {
       });
 
       expect(result).toBe(
-        'Missing companion files: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts"; step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
+        'Companion file issues: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts"; step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
       );
     });
   });

@@ -69,7 +69,7 @@ const createQuestWithContracts = (contracts: QuestContractEntry[]): Quest => {
 
 describe('questVerifyTransformer', () => {
   describe('all checks pass', () => {
-    it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 15 checks pass', () => {
+    it('VALID: {well-formed quest with flows, nodes, observables, contracts} => all 14 checks pass', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const contractName = ContractNameStub({ value: 'IsValid' });
@@ -138,11 +138,6 @@ describe('questVerifyTransformer', () => {
           name: 'No Circular Dependencies',
           passed: true,
           details: 'Step dependency graph is a valid DAG',
-        },
-        {
-          name: 'No Orphan Steps',
-          passed: true,
-          details: 'All 1 steps satisfy at least one observable',
         },
         {
           name: 'File Companion Completeness',
@@ -340,13 +335,13 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , companionCheck] = questVerifyTransformer({ quest });
+      const [, , , companionCheck] = questVerifyTransformer({ quest });
 
       expect(companionCheck).toStrictEqual({
         name: 'File Companion Completeness',
         passed: false,
         details:
-          'Missing companion files: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
+          'Companion file issues: step "Test Step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
       });
     });
   });
@@ -357,7 +352,7 @@ describe('questVerifyTransformer', () => {
         createEntryWithProperties([createPropertyWithRawType({ name: 'name', type: 'string' })]),
       ]);
 
-      const [, , , , , primitivesCheck] = questVerifyTransformer({ quest });
+      const [, , , , primitivesCheck] = questVerifyTransformer({ quest });
 
       expect(primitivesCheck).toStrictEqual({
         name: 'No Raw Primitives in Contracts',
@@ -382,7 +377,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , contractRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , contractRefsCheck] = questVerifyTransformer({ quest });
 
       expect(contractRefsCheck).toStrictEqual({
         name: 'Step Contract Declarations',
@@ -408,7 +403,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , validContractRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , validContractRefsCheck] = questVerifyTransformer({ quest });
 
       expect(validContractRefsCheck).toStrictEqual({
         name: 'Valid Contract References',
@@ -437,7 +432,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , exportNameCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , exportNameCheck] = questVerifyTransformer({ quest });
 
       expect(exportNameCheck).toStrictEqual({
         name: 'Step Export Names',
@@ -459,7 +454,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , flowRefsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , flowRefsCheck] = questVerifyTransformer({ quest });
 
       expect(flowRefsCheck).toStrictEqual({
         name: 'Valid Flow References',
@@ -484,7 +479,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , orphanCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , orphanCheck] = questVerifyTransformer({ quest });
 
       expect(orphanCheck).toStrictEqual({
         name: 'No Orphan Flow Nodes',
@@ -510,7 +505,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , , nodeCoverageCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , nodeCoverageCheck] = questVerifyTransformer({ quest });
 
       expect(nodeCoverageCheck).toStrictEqual({
         name: 'Node Observable Coverage',
@@ -570,7 +565,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , , , duplicateCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , , duplicateCheck] = questVerifyTransformer({ quest });
 
       expect(duplicateCheck).toStrictEqual({
         name: 'No Duplicate Focus Files',
@@ -595,7 +590,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , , , , assertionsCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , , , assertionsCheck] = questVerifyTransformer({ quest });
 
       expect(assertionsCheck).toStrictEqual({
         name: 'Valid Assertions',
@@ -619,7 +614,7 @@ describe('questVerifyTransformer', () => {
         ],
       });
 
-      const [, , , , , , , , , , , , , , focusFileCheck] = questVerifyTransformer({ quest });
+      const [, , , , , , , , , , , , , focusFileCheck] = questVerifyTransformer({ quest });
 
       expect(focusFileCheck).toStrictEqual({
         name: 'Valid Focus Files',

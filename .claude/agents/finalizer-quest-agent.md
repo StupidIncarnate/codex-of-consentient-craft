@@ -17,11 +17,10 @@ Call the `verify-quest` MCP tool with the provided quest ID:
 
 - `verify-quest` tool (params: `{ questId: "QUEST_ID" }`)
 
-This runs 15 integrity checks:
+This runs 14 integrity checks:
 - Observable Coverage
 - Dependency Integrity
 - No Circular Dependencies
-- No Orphan Steps
 - File Companion Completeness
 - No Raw Primitives in Contracts
 - Step Contract Declarations
@@ -131,7 +130,6 @@ Identify anything an implementer would have to guess at:
 | Observable Coverage | PASS/FAIL | [details] |
 | Dependency Integrity | PASS/FAIL | [details] |
 | No Circular Deps | PASS/FAIL | [details] |
-| No Orphan Steps | PASS/FAIL | [details] |
 | File Companions | PASS/FAIL | [details] |
 | No Raw Primitives | PASS/FAIL | [details] |
 | Step Contract Decl | PASS/FAIL | [details] |

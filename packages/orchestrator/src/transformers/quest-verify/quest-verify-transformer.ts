@@ -14,7 +14,7 @@ import { questContractHasNoRawPrimitivesGuard } from '../../guards/quest-contrac
 import { questHasDependencyIntegrityGuard } from '../../guards/quest-has-dependency-integrity/quest-has-dependency-integrity-guard';
 import { questHasFileCompanionsGuard } from '../../guards/quest-has-file-companions/quest-has-file-companions-guard';
 import { questHasNoCircularDepsGuard } from '../../guards/quest-has-no-circular-deps/quest-has-no-circular-deps-guard';
-import { questHasNoOrphanStepsGuard } from '../../guards/quest-has-no-orphan-steps/quest-has-no-orphan-steps-guard';
+
 import { questHasNodeCoverageGuard } from '../../guards/quest-has-node-coverage/quest-has-node-coverage-guard';
 import { questHasObservableCoverageGuard } from '../../guards/quest-has-observable-coverage/quest-has-observable-coverage-guard';
 import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contract-refs/quest-step-has-contract-refs-guard';
@@ -74,18 +74,6 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: noCircularDeps
         ? 'Step dependency graph is a valid DAG'
         : questVerifyFailureDetailsTransformer({ quest, checkName: noCircularDepsName }),
-    }),
-  );
-
-  const noOrphanStepsName = checkNameSchema.parse('No Orphan Steps');
-  const noOrphanSteps = questHasNoOrphanStepsGuard({ steps: quest.steps });
-  checks.push(
-    verifyQuestCheckContract.parse({
-      name: noOrphanStepsName,
-      passed: noOrphanSteps,
-      details: noOrphanSteps
-        ? `All ${String(quest.steps.length)} steps satisfy at least one observable`
-        : questVerifyFailureDetailsTransformer({ quest, checkName: noOrphanStepsName }),
     }),
   );
 

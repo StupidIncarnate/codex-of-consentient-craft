@@ -21,10 +21,6 @@ export const questHasFileCompanionsGuard = ({ steps }: { steps?: DependencyStep[
   for (const step of steps) {
     const focusPath = step.focusFile.path;
 
-    if (step.focusFile.action !== 'create') {
-      continue;
-    }
-
     const folderType = pathToFolderTypeTransformer({
       filePath: focusPath,
       folderConfigs: folderConfigStatics,
@@ -35,23 +31,21 @@ export const questHasFileCompanionsGuard = ({ steps }: { steps?: DependencyStep[
 
     const config = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
     const accompanyingPaths = new Set(step.accompanyingFiles.map((f) => String(f.path)));
+    const requiredPaths: typeof accompanyingPaths = new Set();
 
     const expectedTestPath = focusFileToTestPathTransformer({
       focusPath,
       testType: config.testType,
     });
-    if (expectedTestPath && !accompanyingPaths.has(String(expectedTestPath))) {
-      return false;
+    if (expectedTestPath) {
+      requiredPaths.add(String(expectedTestPath));
     }
 
     if (config.requireProxy) {
       const pathStr = String(focusPath);
       const base = pathStr.replace(/\.tsx?$/u, '');
       const ext = pathStr.endsWith('.tsx') ? '.tsx' : '.ts';
-      const proxyFile = `${base}.proxy${ext}`;
-      if (!accompanyingPaths.has(proxyFile)) {
-        return false;
-      }
+      requiredPaths.add(`${base}.proxy${ext}`);
     }
 
     if (config.requireStub) {
@@ -59,8 +53,17 @@ export const questHasFileCompanionsGuard = ({ steps }: { steps?: DependencyStep[
       const dir = pathStr.slice(0, pathStr.lastIndexOf('/'));
       const fileName = pathStr.slice(pathStr.lastIndexOf('/') + 1);
       const contractBase = fileName.replace(/-contract\.ts$/u, '');
-      const stubFile = `${dir}/${contractBase}.stub.ts`;
-      if (!accompanyingPaths.has(stubFile)) {
+      requiredPaths.add(`${dir}/${contractBase}.stub.ts`);
+    }
+
+    for (const required of requiredPaths) {
+      if (!accompanyingPaths.has(required)) {
+        return false;
+      }
+    }
+
+    for (const accompanying of accompanyingPaths) {
+      if (!requiredPaths.has(accompanying)) {
         return false;
       }
     }
