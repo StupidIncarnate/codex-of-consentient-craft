@@ -32,6 +32,7 @@ import { QuestModifyResponder } from '../../../src/responders/quest/modify/quest
 import { ModifyQuestInputStub } from '../../../src/contracts/modify-quest-input/modify-quest-input.stub';
 
 const POLL_INTERVAL_MS = 50;
+const MAX_POLL_ITERATIONS = 500;
 
 const TERMINAL_STATUSES = new Set(['complete', 'failed', 'skipped']);
 
@@ -230,10 +231,22 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     targetStatuses: QuestType['status'][];
   }): Promise<{ quest: QuestType }> => {
+    let iterations = 0;
     const poll = async (): Promise<{ quest: QuestType }> => {
+      iterations++;
       const result = await QuestGetResponder({ questId });
       if (result.success && result.quest && targetStatuses.includes(result.quest.status)) {
         return { quest: result.quest };
+      }
+      if (iterations >= MAX_POLL_ITERATIONS) {
+        const currentStatus = result.quest?.status ?? 'unknown';
+        const workItemSummary = (result.quest?.workItems ?? [])
+          .map((wi) => `${wi.role}:${wi.status}`)
+          .join(', ');
+        throw new Error(
+          `pollForStatus: quest ${questId} never reached [${targetStatuses.join(', ')}] after ${String(iterations)} polls. ` +
+            `Current status: ${currentStatus}. Work items: [${workItemSummary}]`,
+        );
       }
       return new Promise<{ quest: QuestType }>((resolve) => {
         setTimeout(() => {
@@ -252,13 +265,26 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     minItems?: number;
   }): Promise<{ quest: QuestType }> => {
+    let iterations = 0;
     const poll = async (): Promise<{ quest: QuestType }> => {
+      iterations++;
       const result = await QuestGetResponder({ questId });
       if (result.success && result.quest) {
         const allSettled = result.quest.workItems.every((wi) => TERMINAL_STATUSES.has(wi.status));
         if (allSettled && result.quest.workItems.length >= minItems) {
           return { quest: result.quest };
         }
+      }
+      if (iterations >= MAX_POLL_ITERATIONS) {
+        const currentStatus = result.quest?.status ?? 'unknown';
+        const itemCount = result.quest?.workItems.length ?? 0;
+        const workItemSummary = (result.quest?.workItems ?? [])
+          .map((wi) => `${wi.role}:${wi.status}`)
+          .join(', ');
+        throw new Error(
+          `pollUntilWorkItemsSettled: quest ${questId} work items never settled after ${String(iterations)} polls. ` +
+            `Current status: ${currentStatus}. Items (${String(itemCount)}/${String(minItems)} min): [${workItemSummary}]`,
+        );
       }
       return new Promise<{ quest: QuestType }>((resolve) => {
         setTimeout(() => {

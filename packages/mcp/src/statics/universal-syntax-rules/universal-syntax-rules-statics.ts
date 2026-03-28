@@ -384,6 +384,21 @@ export const universalSyntaxRulesStatics = {
         correctApproach:
           'Test outputs not internals, inline setup/teardown, integration tests for DSL logic, describe blocks for organization',
       },
+      integrationTestTimeouts: {
+        retryingSlowTests:
+          'Rerunning a 30+ second integration test repeatedly instead of tracing the code path to find the root cause',
+        silentPollLoops:
+          'Poll helpers (pollForStatus, pollUntilSettled) that loop forever without a max iteration count or state dump on failure',
+        swallowedErrors:
+          'try/catch in orchestration code that marks items failed without surfacing the error message — Zod parse failures are a common culprit',
+        violations: [
+          'pollForStatus({targetStatuses: ["complete"]}) // Loops forever if quest reaches "blocked" — no max iterations, no state dump',
+          'try { workUnitContract.parse(data); } catch { markFailed(); } // Zod error swallowed, test sees timeout not parse error',
+          '// Test times out → rerun → times out → rerun — never traces the actual failure path',
+        ],
+        correctApproach:
+          'Poll helpers must have max iterations and throw with current quest status + work item summary on timeout. When integration tests time out, trace the code path instead of retrying — grep dist/ for stale references, check catch handlers for swallowed errors',
+      },
     },
   },
 

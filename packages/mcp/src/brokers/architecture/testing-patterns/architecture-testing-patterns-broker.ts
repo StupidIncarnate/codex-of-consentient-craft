@@ -668,7 +668,17 @@ src/startup/
 test/start-my-app.integration.test.ts
 \`\`\`
 
-**When complex setup is needed** (spawning processes, creating clients), startup integration tests can use a colocated proxy.`;
+**When complex setup is needed** (spawning processes, creating clients), startup integration tests can use a colocated proxy.
+
+**Debugging integration test timeouts:**
+
+Integration tests that spawn processes or poll for state can time out silently — Jest reports \`Error: thrown: ""\` and \`has no assertions\`, pointing at the test file instead of the actual failure. When an integration test times out:
+
+1. **Do NOT rerun the test repeatedly.** Integration tests take 10-30+ seconds per run. Retrying burns time without new information.
+2. **Trace the code path** from the test's entry point to where it blocks. The test is usually polling for a state that will never arrive.
+3. **Check for swallowed errors:** Look for \`try/catch\` blocks in the code under test that mark items as \`failed\` without surfacing the error message. Zod parse failures inside catch handlers are a common culprit.
+4. **Grep dist/ for stale references:** If a contract schema changed, \`grep -r 'oldFieldName' packages/*/dist/\` reveals consumers that weren't rebuilt.
+5. **Check poll helpers:** If the test uses \`pollForStatus\` or similar, the poll may be waiting for a status that the system will never reach (e.g., polling for \`complete\` when the quest went to \`blocked\`).`;
 
   // No Hooks or Conditionals
   const noHooksConditionals = `**CRITICAL:** \`beforeEach\`, \`afterEach\`, \`beforeAll\`, \`afterAll\` are forbidden. All setup and teardown must be inline in each test.
