@@ -87,8 +87,9 @@ export const runSiegemasterLayerBroker = async ({
     return;
   }
 
-  const summary = spawnResult.signal?.summary ?? '';
-  const hasFailed = summary.includes(FAILURE_MARKER);
+  const agentSummary = spawnResult.signal?.summary ?? undefined;
+  const summaryText = agentSummary ?? '';
+  const hasFailed = summaryText.includes(FAILURE_MARKER);
   const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
 
   const sessionId = spawnResult.sessionId ?? undefined;
@@ -103,6 +104,7 @@ export const runSiegemasterLayerBroker = async ({
             status: 'complete',
             completedAt: new Date().toISOString(),
             ...(sessionId === undefined ? {} : { sessionId }),
+            ...(agentSummary === undefined ? {} : { summary: agentSummary }),
           },
         ],
       } as ModifyQuestInput,
@@ -113,7 +115,7 @@ export const runSiegemasterLayerBroker = async ({
   // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
   const completedAt = new Date().toISOString();
   const errorMessage = hasFailed
-    ? errorMessageContract.parse(summary)
+    ? errorMessageContract.parse(summaryText)
     : errorMessageContract.parse('siege_check_failed');
 
   const pendingItems = quest.workItems.filter(
@@ -147,6 +149,7 @@ export const runSiegemasterLayerBroker = async ({
           completedAt,
           errorMessage,
           ...(sessionId === undefined ? {} : { sessionId }),
+          ...(agentSummary === undefined ? {} : { summary: agentSummary }),
         },
         ...skippedItems,
         pathseekerReplan,

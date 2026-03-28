@@ -29,6 +29,7 @@ export const workItemContract = z.object({
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
+  summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
   wardMode: z.enum(['changed', 'full']).optional(),
 });

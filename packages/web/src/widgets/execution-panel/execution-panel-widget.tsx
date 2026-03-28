@@ -250,6 +250,7 @@ export const ExecutionPanelWidget = ({
                             startedAt={wi.startedAt}
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                            {...(wi.summary ? { summary: wi.summary } : {})}
                           />
                         );
                       })}
@@ -320,6 +321,7 @@ export const ExecutionPanelWidget = ({
                           startedAt={wi.startedAt}
                           completedAt={wi.completedAt}
                           {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                          {...(wi.summary ? { summary: wi.summary } : {})}
                         />
                       );
                     })}
@@ -384,6 +386,7 @@ export const ExecutionPanelWidget = ({
                             startedAt={wi.startedAt}
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                            {...(wi.summary ? { summary: wi.summary } : {})}
                           />
                         );
                       })}
@@ -450,6 +453,7 @@ export const ExecutionPanelWidget = ({
                             {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
                             {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                            {...(wi.summary ? { summary: wi.summary } : {})}
                             {...(resolvedWardResults.length > 0
                               ? { wardResults: resolvedWardResults }
                               : {})}

@@ -30,5 +30,9 @@ export const OrchestrationCallbacksParamsStub = ({
       role: 'spiritmender',
       failedWorkItemId: 'work-item-0',
     },
+    onWorkItemSummaryParams: {
+      workItemId: 'work-item-0',
+      summary: 'Implemented feature with tests',
+    },
     ...props,
   });
