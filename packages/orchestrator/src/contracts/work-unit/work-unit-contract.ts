@@ -8,7 +8,6 @@
 
 import { z } from 'zod';
 import {
-  absoluteFilePathContract,
   dependencyStepContract,
   designDecisionContract,
   errorMessageContract,
@@ -16,7 +15,10 @@ import {
   flowObservableContract,
   questContractEntryContract,
   questIdContract,
+  stepFileReferenceContract,
 } from '@dungeonmaster/shared/contracts';
+
+const stepFilePathContract = stepFileReferenceContract.shape.path;
 
 const pathseekerWorkUnitContract = z.object({
   role: z.literal('pathseeker'),
@@ -36,7 +38,7 @@ const codeweaverWorkUnitContract = z.object({
 
 const spiritmenderWorkUnitContract = z.object({
   role: z.literal('spiritmender'),
-  filePaths: z.array(absoluteFilePathContract),
+  filePaths: z.array(stepFilePathContract),
   errors: z.array(errorMessageContract).optional(),
 });
 
@@ -48,7 +50,7 @@ const siegemasterWorkUnitContract = z.object({
 
 const lawbringerWorkUnitContract = z.object({
   role: z.literal('lawbringer'),
-  filePaths: z.array(absoluteFilePathContract),
+  filePaths: z.array(stepFilePathContract),
 });
 
 export const workUnitContract = z.discriminatedUnion('role', [

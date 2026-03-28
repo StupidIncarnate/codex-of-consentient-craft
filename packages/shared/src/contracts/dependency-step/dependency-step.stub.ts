@@ -22,7 +22,16 @@ export const DependencyStepStub = ({
       path: 'src/brokers/login/create/login-create-broker.ts',
       action: 'create',
     },
-    accompanyingFiles: [],
+    accompanyingFiles: [
+      {
+        path: 'src/brokers/login/create/login-create-broker.test.ts',
+        action: 'create',
+      },
+      {
+        path: 'src/brokers/login/create/login-create-broker.proxy.ts',
+        action: 'create',
+      },
+    ],
     inputContracts: ['Void'],
     outputContracts: ['Void'],
     uses: [],
