@@ -210,7 +210,36 @@ Look for assumptions **within the spec** that might not hold:
 - "A new adapter/broker will handle X" — implementation details are PathSeeker's domain
 - "The widget will have a new prop" — the quest is specifying the change, not auditing current code
 
-### Step 10: Validate Testability
+### Step 10: Review Step Assertions (When Quest Has Steps)
+
+If the quest has steps (i.e., PathSeeker has already run), review the structured assertions on each step:
+
+**Missing coverage:**
+- Does every step with non-Void \`inputContracts\` have at least one \`INVALID\` or \`EMPTY\` assertion?
+- Does every step with non-Void \`outputContracts\` have at least one \`VALID\` assertion?
+- Are there \`EDGE\` assertions for boundary values (empty strings, max lengths, zero, negative numbers)?
+- Are there \`ERROR\` assertions for when \`uses[]\` dependencies fail/throw?
+
+**\`uses[]\` completeness:**
+- Does \`uses[]\` list all external code the step integrates with?
+- Are there assertions that imply dependencies not listed in \`uses[]\`?
+- Do all \`uses[]\` references point to code that either exists in the codebase or gets created by a dependency step?
+
+**Redundant assertions:**
+- Are there multiple assertions testing the same behavior with trivially different inputs?
+- Are there assertions whose \`expected\` is identical — could they be collapsed?
+
+**Unclear assertions:**
+- Can each assertion be directly mapped to a concrete \`it()\` test block?
+- Are \`input\` descriptions specific enough to construct test data?
+- Are \`expected\` descriptions specific enough to write an assertion (e.g., \`toThrow\`, \`toStrictEqual\`)?
+- Flag any assertion where an implementer would have to guess what "correct" means
+
+**Cross-step consistency:**
+- Does step A's \`outputContracts\` match step B's \`inputContracts\` when B depends on A?
+- Are assertion expectations consistent across steps (e.g., if step A says it throws \`AuthError\`, does step B's error handling assertion expect \`AuthError\`)?
+
+### Step 11: Validate Testability
 
 For each observable's \`then\` assertions:
 

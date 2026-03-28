@@ -35,7 +35,7 @@ Call the \`verify-quest\` MCP tool with the provided quest ID:
 
 - \`verify-quest\` tool (params: \`{ questId: "QUEST_ID" }\`)
 
-This runs 11 integrity checks:
+This runs 15 integrity checks:
 - Observable Coverage
 - Dependency Integrity
 - No Circular Dependencies
@@ -46,7 +46,11 @@ This runs 11 integrity checks:
 - Valid Contract References
 - Step Export Names
 - Valid Flow References
+- No Orphan Flow Nodes
 - Node Observable Coverage
+- No Duplicate Focus Files
+- Valid Assertions
+- Valid Focus Files
 
 If any checks fail, report them immediately in the Critical Issues section. These are structural problems that MUST be
 fixed before implementation.
@@ -80,15 +84,32 @@ Verify the logical flow from user intent to implementation:
 4. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
 5. **Flow edges -> Completeness**: Do edges cover both happy and sad paths through the flow graph?
 
-### Step 4: Check Step Descriptions for Implementer Clarity
+### Step 4: Check Assertion Completeness and Coherence
 
-For each step, evaluate:
-- Could an implementer read this description and know EXACTLY what to build?
-- Are there ambiguous terms like "handle", "process", "manage" without specifics?
-- Are concrete values specified (ports, routes, error messages) or left vague?
-- Are the focusFile and accompanyingFiles lists complete for the described work?
-- Do the inputContracts and outputContracts match what the step description says it accepts and produces?
-- Does the exportName follow project naming conventions (camelCase, matching the file name)?
+For each step, evaluate its structured assertions:
+
+**Testability:**
+- Can each assertion be directly mapped to a concrete \`it()\` test block?
+- Are \`input\` descriptions specific enough to construct test data from stubs?
+- Are \`expected\` descriptions specific enough to write an assertion (\`toStrictEqual\`, \`toThrow\`, etc.)?
+
+**Coverage:**
+- Do steps with non-Void \`outputContracts\` have at least one \`VALID\` assertion?
+- Do steps with non-Void \`inputContracts\` have \`INVALID\` or \`EMPTY\` assertions for invalid/missing inputs?
+- Are there negative assertions where the step must NOT do something (e.g., "session file is NOT modified")?
+
+**Cross-step consistency:**
+- Does step A's \`outputContracts\` match step B's \`inputContracts\` when B depends on A?
+- Are assertion expectations consistent across dependent steps?
+
+**\`uses[]\` validation:**
+- Do all \`uses[]\` entries reference code that exists in the codebase or gets created by a dependency step?
+- Are there assertions that imply integration with code not listed in \`uses[]\`?
+
+**focusFile and accompanyingFiles:**
+- Does the focusFile path match the step's folder type and naming conventions?
+- Are accompanyingFiles complete for the folder type (test + proxy for brokers, test + stub for contracts, etc.)?
+- Does the exportName follow project naming conventions?
 
 ### Step 5: Search Codebase for Assumption Verification
 
@@ -128,7 +149,11 @@ Identify anything an implementer would have to guess at:
 | Valid Contract Refs | PASS/FAIL | [details] |
 | Step Export Names | PASS/FAIL | [details] |
 | Valid Flow Refs | PASS/FAIL | [details] |
+| No Orphan Flow Nodes | PASS/FAIL | [details] |
 | Node Observable Coverage | PASS/FAIL | [details] |
+| No Duplicate Focus Files | PASS/FAIL | [details] |
+| Valid Assertions | PASS/FAIL | [details] |
+| Valid Focus Files | PASS/FAIL | [details] |
 
 ### Critical Issues (Must Fix)
 

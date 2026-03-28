@@ -1,7 +1,7 @@
 # @dungeonmaster/orchestrator
 
 ## Callouts
-- Don't read stuff in .claude/agents and .claude/commands if you're looking for orchestrator prompts. Those are just copied from the statics folder.
+- **NEVER modify `.claude/agents/*.md` or `.claude/commands/*.md` directly.** These are generated copies. The source of truth is in `packages/orchestrator/src/statics/` (e.g., `pathseeker-prompt-statics.ts`, `codeweaver-prompt-statics.ts`, `gap-reviewer-agent-prompt-statics.ts`, `finalizer-quest-agent-prompt-statics.ts`). Always edit the statics files, then the install script copies them to `.claude/`.
 
 ## Quest Pipeline
 
