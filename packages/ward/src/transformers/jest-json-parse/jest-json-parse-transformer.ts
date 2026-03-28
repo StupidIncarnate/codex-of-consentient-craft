@@ -13,6 +13,7 @@ import {
 } from '../../contracts/test-failure/test-failure-contract';
 import { extractJsonObjectTransformer } from '../extract-json-object/extract-json-object-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
+import { annotateTimeoutFailureTransformer } from '../annotate-timeout-failure/annotate-timeout-failure-transformer';
 import { stripTimeoutNoiseTransformer } from '../strip-timeout-noise/strip-timeout-noise-transformer';
 
 export const jestJsonParseTransformer = ({
@@ -63,23 +64,29 @@ export const jestJsonParseTransformer = ({
         return failures;
       }
 
-      const message = failureMessages
+      const rawMessages = failureMessages
         .map((msg: unknown) => (typeof msg === 'string' ? msg : ''))
-        .join('\n');
+        .filter((msg: string) => msg.length > 0);
+
+      const timeoutAnnotation = annotateTimeoutFailureTransformer({
+        failureMessages: rawMessages,
+      });
+
+      const message =
+        timeoutAnnotation ??
+        stripTimeoutNoiseTransformer({
+          message: errorMessageContract.parse(rawMessages.join('\n')),
+        });
       const firstMessage: unknown = failureMessages.length > 0 ? failureMessages[0] : null;
       const hasStack = typeof firstMessage === 'string' && firstMessage.includes('\n    at ');
-
-      const strippedMessage = stripTimeoutNoiseTransformer({
-        message: errorMessageContract.parse(message),
-      });
 
       return [
         ...failures,
         testFailureContract.parse({
           suitePath: testFilePath,
           testName: fullName,
-          message: strippedMessage,
-          ...(hasStack ? { stackTrace: firstMessage } : {}),
+          message,
+          ...(hasStack && !timeoutAnnotation ? { stackTrace: firstMessage } : {}),
         }),
       ];
     }, []);

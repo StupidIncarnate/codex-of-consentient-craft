@@ -14,9 +14,10 @@ import type { WardResult } from '../../contracts/ward-result/ward-result-contrac
 import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
 import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { slowFileThresholdStatics } from '../../statics/slow-file-threshold/slow-file-threshold-statics';
-import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
+import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
+import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 
 const CHECK_TYPE_PAD = 10;
 const MS_PER_SECOND = 1000;
@@ -128,8 +129,8 @@ export const resultToSummaryTransformer = ({
           projectPath: project.projectFolder.path,
           cwd,
         });
-        const [firstLine] = failure.message.split('\n');
-        return `${displayPath}\n  FAIL "${failure.testName}"\n    ${firstLine}`;
+        const summaryLine = firstMeaningfulLineTransformer({ message: failure.message });
+        return `${displayPath}\n  FAIL "${failure.testName}"\n    ${summaryLine}`;
       });
 
       if (project.status === 'fail' && errorLines.length === 0 && failureLines.length === 0) {

@@ -329,6 +329,113 @@ describe('jestJsonParseTransformer', () => {
     });
   });
 
+  describe('timeout annotation', () => {
+    it('VALID: {timeout + no assertions combo} => returns annotated message instead of raw timeout noise', () => {
+      const jsonOutput = ErrorMessageStub({
+        value: JSON.stringify({
+          testResults: [
+            {
+              name: '/path/file.test.ts',
+              assertionResults: [
+                {
+                  fullName: 'my integration test',
+                  status: 'failed',
+                  failureMessages: [
+                    'thrown: "Exceeded timeout of 30000 ms for a test.\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."',
+                    'Error: Test "my integration test" has no assertions. Add expect() calls or remove the test.',
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = jestJsonParseTransformer({ jsonOutput });
+
+      expect(result).toStrictEqual([
+        TestFailureStub({
+          suitePath: '/path/file.test.ts',
+          testName: 'my integration test',
+          message: [
+            'TIMEOUT: Test killed before reaching any expect() calls.',
+            'This is NOT a missing assertion — something upstream hung.',
+            'Do NOT rerun. Trace the code path from the test entry point.',
+            'Common causes: poll loop waiting for unreachable state, swallowed',
+            'error in catch handler, contract validation failure in async pipeline.',
+          ].join('\n'),
+        }),
+      ]);
+    });
+
+    it('VALID: {timeout + no assertions combo} => strips stack trace from annotated failure', () => {
+      const jsonOutput = ErrorMessageStub({
+        value: JSON.stringify({
+          testResults: [
+            {
+              name: '/path/file.test.ts',
+              assertionResults: [
+                {
+                  fullName: 'poll test',
+                  status: 'failed',
+                  failureMessages: [
+                    'thrown: "Exceeded timeout of 30000 ms for a test."\n    at Object.<anonymous> (/path/file.test.ts:10:5)',
+                    'Error: Test "poll test" has no assertions. Add expect() calls or remove the test.\n    at Object.<anonymous> (/path/setup.js:73:11)',
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = jestJsonParseTransformer({ jsonOutput });
+
+      expect(result).toStrictEqual([
+        TestFailureStub({
+          suitePath: '/path/file.test.ts',
+          testName: 'poll test',
+          message: [
+            'TIMEOUT: Test killed before reaching any expect() calls.',
+            'This is NOT a missing assertion — something upstream hung.',
+            'Do NOT rerun. Trace the code path from the test entry point.',
+            'Common causes: poll loop waiting for unreachable state, swallowed',
+            'error in catch handler, contract validation failure in async pipeline.',
+          ].join('\n'),
+        }),
+      ]);
+    });
+
+    it('VALID: {timeout without no-assertions} => uses normal stripping, not annotation', () => {
+      const jsonOutput = ErrorMessageStub({
+        value: JSON.stringify({
+          testResults: [
+            {
+              name: '/path/file.test.ts',
+              assertionResults: [
+                {
+                  fullName: 'slow test',
+                  status: 'failed',
+                  failureMessages: ['Exceeded timeout of 5000 ms for a test.'],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = jestJsonParseTransformer({ jsonOutput });
+
+      expect(result).toStrictEqual([
+        TestFailureStub({
+          suitePath: '/path/file.test.ts',
+          testName: 'slow test',
+          message: 'Timed out (see network log below)',
+        }),
+      ]);
+    });
+  });
+
   describe('invalid input', () => {
     it('EDGE: {non-object JSON} => returns empty array', () => {
       const result = jestJsonParseTransformer({

@@ -35,6 +35,7 @@ const POLL_INTERVAL_MS = 50;
 const MAX_POLL_ITERATIONS = 500;
 
 const TERMINAL_STATUSES = new Set(['complete', 'failed', 'skipped']);
+const QUEST_TERMINAL_STATUSES = new Set(['complete', 'blocked', 'abandoned']);
 
 export type QuestType = NonNullable<Awaited<ReturnType<typeof QuestGetResponder>>['quest']>;
 
@@ -237,6 +238,19 @@ export const orchestrationQuestHarness = (): {
       const result = await QuestGetResponder({ questId });
       if (result.success && result.quest && targetStatuses.includes(result.quest.status)) {
         return { quest: result.quest };
+      }
+      if (
+        result.quest &&
+        QUEST_TERMINAL_STATUSES.has(result.quest.status) &&
+        !targetStatuses.includes(result.quest.status)
+      ) {
+        const workItemSummary = (result.quest.workItems ?? [])
+          .map((wi) => `${wi.role}:${wi.status}`)
+          .join(', ');
+        throw new Error(
+          `pollForStatus: quest reached terminal "${result.quest.status}" but expected [${targetStatuses.join(', ')}]. ` +
+            `Work items: [${workItemSummary}]`,
+        );
       }
       if (iterations >= MAX_POLL_ITERATIONS) {
         const currentStatus = result.quest?.status ?? 'unknown';

@@ -245,6 +245,46 @@ describe('resultToSummaryTransformer', () => {
     });
   });
 
+  describe('useless first line fallback', () => {
+    it('VALID: {wardResult: test failure with thrown quote first line} => skips to meaningful line', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'fail',
+                filesCount: 10,
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: '/p/cli/src/flow.integration.test.ts',
+                    testName: 'integration test hangs',
+                    message:
+                      'TIMEOUT: Test killed before reaching any expect() calls.\nThis is NOT a missing assertion — something upstream hung.',
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+      });
+
+      expect(result).toBe(
+        WardSummaryStub({
+          value:
+            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/flow.integration.test.ts\n  FAIL "integration test hangs"\n    TIMEOUT: Test killed before reaching any expect() calls.',
+        }),
+      );
+    });
+  });
+
   describe('line zero display', () => {
     it('VALID: {error with line=0} => omits line number from detail output', () => {
       const wardResult = WardResultStub({
