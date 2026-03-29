@@ -32,7 +32,47 @@ export const typescriptMockCallsToStatementsAdapter = ({
 
     const args: ts.Expression[] = [tsNodeFactory.createStringLiteral(mock.moduleName)];
 
-    if (mock.factory) {
+    if (!mock.factory && mock.identifierNames.length > 0) {
+      // Generate selective factory: () => ({ ...jest.requireActual('module'), id1: jest.fn(), id2: jest.fn() })
+      const requireActualCall = tsNodeFactory.createCallExpression(
+        tsNodeFactory.createPropertyAccessExpression(
+          tsNodeFactory.createIdentifier('jest'),
+          tsNodeFactory.createIdentifier('requireActual'),
+        ),
+        undefined,
+        [tsNodeFactory.createStringLiteral(mock.moduleName)],
+      );
+      const spreadActual = tsNodeFactory.createSpreadAssignment(requireActualCall);
+
+      const mockProperties: ts.ObjectLiteralElementLike[] = [spreadActual];
+      for (const identifierName of mock.identifierNames) {
+        const jestFnCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('jest'),
+            tsNodeFactory.createIdentifier('fn'),
+          ),
+          undefined,
+          [],
+        );
+        mockProperties.push(
+          tsNodeFactory.createPropertyAssignment(
+            tsNodeFactory.createIdentifier(identifierName),
+            jestFnCall,
+          ),
+        );
+      }
+
+      const objectLiteral = tsNodeFactory.createObjectLiteralExpression(mockProperties, false);
+      const factoryArrow = tsNodeFactory.createArrowFunction(
+        undefined,
+        undefined,
+        [],
+        undefined,
+        undefined,
+        tsNodeFactory.createParenthesizedExpression(objectLiteral),
+      );
+      args.push(factoryArrow);
+    } else if (mock.factory) {
       const tempSourceFile = ts.createSourceFile(
         'temp.ts',
         mock.factory,

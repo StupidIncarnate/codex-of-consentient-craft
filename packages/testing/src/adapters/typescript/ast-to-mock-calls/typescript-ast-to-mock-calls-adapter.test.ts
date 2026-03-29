@@ -19,6 +19,7 @@ describe('typescriptAstToMockCallsAdapter', () => {
           moduleName: 'fs',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: [],
         },
       ]);
     });
@@ -42,6 +43,7 @@ describe('typescriptAstToMockCallsAdapter', () => {
           moduleName: 'axios',
           factory: '() => ({ get: jest.fn() })',
           sourceFile: 'adapter.proxy.ts',
+          identifierNames: [],
         },
       ]);
     });
@@ -60,9 +62,14 @@ jest.mock('axios', () => ({}));
       const result = typescriptAstToMockCallsAdapter({ sourceFile });
 
       expect(result).toStrictEqual([
-        { moduleName: 'fs', factory: null, sourceFile: 'test.proxy.ts' },
-        { moduleName: 'path', factory: null, sourceFile: 'test.proxy.ts' },
-        { moduleName: 'axios', factory: '() => ({})', sourceFile: 'test.proxy.ts' },
+        { moduleName: 'fs', factory: null, sourceFile: 'test.proxy.ts', identifierNames: [] },
+        { moduleName: 'path', factory: null, sourceFile: 'test.proxy.ts', identifierNames: [] },
+        {
+          moduleName: 'axios',
+          factory: '() => ({})',
+          sourceFile: 'test.proxy.ts',
+          identifierNames: [],
+        },
       ]);
     });
   });
@@ -120,6 +127,7 @@ export const myProxy = () => {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['execFile'],
         },
       ]);
     });
@@ -148,11 +156,13 @@ export const myProxy = () => {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['execFile'],
         },
         {
           moduleName: 'fs/promises',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['readFile'],
         },
       ]);
     });
@@ -179,6 +189,7 @@ export const myProxy = () => {
           moduleName: 'node:child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['execFile'],
         },
       ]);
     });
@@ -205,6 +216,7 @@ export const myProxy = () => {
           moduleName: '@panzoom/panzoom',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['panzoom'],
         },
       ]);
     });
@@ -251,6 +263,7 @@ export const myProxy = () => {
           moduleName: '@dungeonmaster/orchestrator',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: [],
         },
       ]);
     });
@@ -301,11 +314,13 @@ export const myProxy = () => {
           moduleName: 'fs',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: [],
         },
         {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['execFile'],
         },
       ]);
     });
@@ -333,11 +348,13 @@ export const myProxy = () => {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: [],
         },
         {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
+          identifierNames: ['execFile'],
         },
       ]);
     });

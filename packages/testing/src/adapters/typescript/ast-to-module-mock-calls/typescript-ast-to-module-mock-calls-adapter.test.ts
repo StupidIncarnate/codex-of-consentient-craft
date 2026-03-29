@@ -18,6 +18,7 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
         moduleName: 'eslint-plugin-jest',
         factory: `() => ({ default: { rules: {} } })`,
         sourceFile: 'test.proxy.ts',
+        identifierNames: [],
       },
     ]);
   });
@@ -36,6 +37,7 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
         moduleName: 'some-module',
         factory: null,
         sourceFile: 'test.proxy.ts',
+        identifierNames: [],
       },
     ]);
   });

@@ -54,16 +54,29 @@ export const typescriptProxyMockTransformerMiddleware = ({
     return sourceFile;
   }
 
-  // Deduplicate mocks by module name. When both an auto-mock and a factory-mock exist
-  // for the same module, the factory-mock wins because it preserves real exports and only
-  // replaces specific functions. Auto-mocking a barrel (e.g., @dungeonmaster/shared/adapters)
-  // breaks all callers that depend on real implementations of other exports.
+  // Deduplicate and merge mocks by module name.
+  // - When both an auto-mock (no factory, no identifierNames) and a factory-mock exist
+  //   for the same module, the factory-mock wins.
+  // - When multiple registerMock calls target the same module with different identifierNames,
+  //   merge them into one MockCall with all identifierNames combined.
+  // - An explicit factory always wins over identifierNames-based selective mocking.
   const mocksByModule = new Map<ModuleName, MockCall>();
   for (const mock of mockCalls) {
     const existing = mocksByModule.get(mock.moduleName);
-    // Keep the mock with a factory, or the first occurrence if neither has a factory
-    if (!existing || (mock.factory && !existing.factory)) {
+    if (!existing) {
       mocksByModule.set(mock.moduleName, mock);
+    } else if (mock.factory && !existing.factory) {
+      // Explicit factory wins over auto-mock or identifier-based mock
+      mocksByModule.set(mock.moduleName, mock);
+    } else if (!mock.factory && !existing.factory && mock.identifierNames.length > 0) {
+      // Merge identifierNames from multiple registerMock calls for the same module
+      const mergedIdentifiers = [...existing.identifierNames];
+      for (const name of mock.identifierNames) {
+        if (!mergedIdentifiers.includes(name)) {
+          mergedIdentifiers.push(name);
+        }
+      }
+      mocksByModule.set(mock.moduleName, { ...existing, identifierNames: mergedIdentifiers });
     }
   }
   const deduplicatedMocks = [...mocksByModule.values()];
