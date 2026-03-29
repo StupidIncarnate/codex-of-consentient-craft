@@ -56,6 +56,31 @@ describe('devServerStartLoopLayerBroker', () => {
 
       expect(result.success).toBe(true);
     });
+
+    it('VALID: {server fails once, spiritmender launched} => spiritmender receives devServerStartFailure context', async () => {
+      const proxy = devServerStartLoopLayerBrokerProxy();
+      proxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupServerBecomesReady();
+
+      await devServerStartLoopLayerBroker({
+        devCommand: DEV_COMMAND,
+        port: PORT,
+        hostname: HOSTNAME,
+        readinessPath: READINESS_PATH,
+        readinessTimeoutMs: READINESS_TIMEOUT_MS,
+        cwd: CWD,
+        startPath: START_PATH,
+        abortSignal: new AbortController().signal,
+        attempt: 0,
+        maxAttempts: 3,
+      });
+
+      const spawnedArgs = String(proxy.getSpawnedArgs());
+
+      expect(spawnedArgs.includes('dev server failed to start')).toBe(true);
+      expect(spawnedArgs.includes('Verification Command: npm run dev')).toBe(true);
+    });
   });
 
   describe('server exhausts all attempts', () => {

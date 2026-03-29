@@ -45,6 +45,14 @@ describe('EslintPluginFlow', () => {
         'ban-wait-for-timeout',
         'ban-page-route-in-e2e',
         'enforce-e2e-base-import',
+        'ban-not-to-throw',
+        'ban-weak-existence-matchers',
+        'ban-typeof-assertions',
+        'enforce-test-name-prefix',
+        'ban-unanchored-to-match',
+        'enforce-testid-queries',
+        'ban-playwright-evaluate-for-styles',
+        'ban-playwright-extract-then-assert',
       ]);
       expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });

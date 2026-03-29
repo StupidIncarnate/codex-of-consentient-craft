@@ -290,7 +290,7 @@ export function dirty({ param }: { param: any }): any {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*Type Error Suppression.*$/su,
+            /^.*🛑 New code quality violations detected.*Type Error Suppression.*Type Safety Violation.*$/su,
           ),
         });
       });
@@ -933,7 +933,7 @@ export const handler: any = getValue();`,
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Type Safety Violation.*Type Error Suppression.*$/su),
+        stderr: expect.stringMatching(/^.*Type Error Suppression.*Type Safety Violation.*$/su),
       });
     });
 

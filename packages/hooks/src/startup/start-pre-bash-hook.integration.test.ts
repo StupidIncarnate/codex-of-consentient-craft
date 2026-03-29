@@ -176,12 +176,12 @@ describe('pre-bash-hook', () => {
 
   describe('error handling', () => {
     it('ERROR: {invalid JSON input} => returns exit code 1', () => {
-      const result = runner.runHookRaw({
+      const rawResult = runner.runHookRaw({
         hookName: 'start-pre-bash-hook',
         input: 'not json' as never,
       });
 
-      expect(result).toStrictEqual({
+      expect({ status: rawResult.status, stdout: rawResult.stdout, stderr: rawResult.stderr }).toStrictEqual({
         status: 1,
         stdout: '',
         stderr: expect.stringMatching(/^.*Hook error.*$/su),
@@ -189,9 +189,9 @@ describe('pre-bash-hook', () => {
     });
 
     it('ERROR: {empty input} => returns exit code 1', () => {
-      const result = runner.runHookRaw({ hookName: 'start-pre-bash-hook', input: '' as never });
+      const rawResult = runner.runHookRaw({ hookName: 'start-pre-bash-hook', input: '' as never });
 
-      expect(result).toStrictEqual({
+      expect({ status: rawResult.status, stdout: rawResult.stdout, stderr: rawResult.stderr }).toStrictEqual({
         status: 1,
         stdout: '',
         stderr: expect.stringMatching(/^.*Hook error.*$/su),

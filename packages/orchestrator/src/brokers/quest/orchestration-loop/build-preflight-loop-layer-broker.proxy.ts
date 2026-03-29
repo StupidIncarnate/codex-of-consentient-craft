@@ -8,6 +8,7 @@ export const buildPreflightLoopLayerBrokerProxy = (): {
   setupBuildFailure: (params: { exitCode: ExitCode; output: string }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  getSpawnedArgs: () => unknown;
 } => {
   const buildProxy = buildPreflightBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
@@ -37,5 +38,6 @@ export const buildPreflightLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnAutoLines({ lines, exitCode });
     },
+    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };
 };

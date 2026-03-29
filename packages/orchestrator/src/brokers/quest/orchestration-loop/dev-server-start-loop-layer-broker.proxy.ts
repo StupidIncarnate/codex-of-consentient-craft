@@ -10,6 +10,7 @@ export const devServerStartLoopLayerBrokerProxy = (): {
   setupServerExitsBeforeReady: (params: { exitCode: number }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
+  getSpawnedArgs: () => unknown;
 } => {
   const serverProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
@@ -40,5 +41,7 @@ export const devServerStartLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnAutoLines({ lines, exitCode });
     },
+
+    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };
 };

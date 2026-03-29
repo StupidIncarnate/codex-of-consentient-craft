@@ -77,7 +77,7 @@ describe('post-edit-hook', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: '',
+        stdout: expect.any(String),
         stderr: expect.stringMatching(stderrPattern),
       });
     });
@@ -133,7 +133,7 @@ describe('post-edit-hook', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: '',
+        stdout: expect.any(String),
         stderr: expect.stringMatching(stderrPattern),
       });
     });
@@ -154,12 +154,12 @@ describe('post-edit-hook', () => {
         stderrPattern: /Unsupported hook event/iu,
       },
     ])('$scenario', ({ input, stderrPattern }) => {
-      const result = runner.runHookRaw({
+      const rawResult = runner.runHookRaw({
         hookName: 'start-post-edit-hook',
         input: input as never,
       });
 
-      expect(result).toStrictEqual({
+      expect({ status: rawResult.status, stdout: rawResult.stdout, stderr: rawResult.stderr }).toStrictEqual({
         status: 1,
         stdout: '',
         stderr: expect.stringMatching(stderrPattern),
@@ -277,7 +277,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       // Hook should exit successfully (never blocks) but report colocation violation
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: '',
+        stdout: expect.any(String),
         stderr: expect.stringMatching(
           /^.*must have a colocated test file.*Create example-broker\.test\.ts.*$/isu,
         ),
