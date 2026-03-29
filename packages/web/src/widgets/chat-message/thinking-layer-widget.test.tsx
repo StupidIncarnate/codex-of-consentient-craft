@@ -43,7 +43,7 @@ describe('ThinkingLayerWidget', () => {
       ]);
     });
 
-    it('VALID: {type: thinking} => renders with 15% paddingLeft', () => {
+    it('VALID: {type: thinking} => renders with a little paddingLeft', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
@@ -53,7 +53,7 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.style.paddingLeft).toBe('15%');
+      expect(message.style.paddingLeft).toBe('10px');
     });
   });
 

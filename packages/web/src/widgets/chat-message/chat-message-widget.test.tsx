@@ -95,7 +95,7 @@ describe('ChatMessageWidget', () => {
       ]);
     });
 
-    it('VALID: {role: assistant, type: text} => renders with textAlign left and 15% paddingLeft', () => {
+    it('VALID: {role: assistant, type: text} => renders with textAlign left and a little paddingLeft', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();
 
@@ -103,7 +103,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect([message.style.textAlign, message.style.paddingLeft]).toStrictEqual(['left', '15%']);
+      expect([message.style.textAlign, message.style.paddingLeft]).toStrictEqual(['left', '10px']);
     });
 
     it('VALID: {tokenBadgeLabel present} => renders token badge below content', () => {

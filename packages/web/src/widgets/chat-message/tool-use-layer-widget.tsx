@@ -28,7 +28,6 @@ export interface ToolUseLayerWidgetProps {
   tokenBadgeElement: React.JSX.Element | null;
   resultTokenBadgeElement?: React.JSX.Element | null;
   isSubagent: boolean;
-  compact?: boolean;
 }
 
 export const ToolUseLayerWidget = ({
@@ -38,7 +37,6 @@ export const ToolUseLayerWidget = ({
   tokenBadgeElement,
   resultTokenBadgeElement,
   isSubagent,
-  compact,
 }: ToolUseLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
@@ -69,7 +67,6 @@ export const ToolUseLayerWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors['loot-gold']}`,
           borderRight: `${BORDER_WIDTH} ${colors['loot-gold']}`,
           textAlign: 'left',
-          ...(compact === true ? {} : { paddingLeft: '15%' }),
         }}
       >
         <Text
@@ -134,7 +131,6 @@ export const ToolUseLayerWidget = ({
         borderLeft: `${BORDER_WIDTH} ${toolUseBorderColor}`,
         borderRight: `${BORDER_WIDTH} ${toolUseBorderColor}`,
         textAlign: 'left',
-        ...(compact === true ? {} : { paddingLeft: '15%' }),
       }}
     >
       <Text

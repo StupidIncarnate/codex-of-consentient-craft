@@ -30,7 +30,6 @@ export interface ChatMessageWidgetProps {
   isLoading?: boolean;
   tokenBadgeLabel?: FormattedTokenLabel;
   resultTokenBadgeLabel?: FormattedTokenLabel;
-  compact?: boolean;
   roleLabel?: ExecutionRole;
 }
 
@@ -43,7 +42,6 @@ export const ChatMessageWidget = ({
   isLoading,
   tokenBadgeLabel,
   resultTokenBadgeLabel,
-  compact,
   roleLabel,
 }: ChatMessageWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
@@ -241,7 +239,6 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${textBorderColor}`,
           borderRight: `${BORDER_WIDTH} ${textBorderColor}`,
           textAlign: 'left',
-          ...(compact === true ? {} : { paddingLeft: '15%' }),
         }}
       >
         <Text
@@ -298,7 +295,6 @@ export const ChatMessageWidget = ({
           borderLeft: `${BORDER_WIDTH} ${colors.warning}`,
           borderRight: `${BORDER_WIDTH} ${colors.warning}`,
           textAlign: 'left',
-          ...(compact === true ? {} : { paddingLeft: '15%' }),
         }}
       >
         <Text
@@ -338,7 +334,6 @@ export const ChatMessageWidget = ({
         borderLeft: `${BORDER_WIDTH} ${toolResultColor}`,
         borderRight: `${BORDER_WIDTH} ${toolResultColor}`,
         textAlign: 'left',
-        ...(compact === true ? {} : { paddingLeft: '15%' }),
       }}
     >
       <Text

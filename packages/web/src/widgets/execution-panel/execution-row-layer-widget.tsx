@@ -355,7 +355,7 @@ export const ExecutionRowLayerWidget = ({
                         })}
                   />
                 ) : (
-                  <ChatMessageWidget key={i} entry={item.entry} compact={true} roleLabel={role} />
+                  <ChatMessageWidget key={i} entry={item.entry} roleLabel={role} />
                 ),
               )
             : null}

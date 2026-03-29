@@ -39,7 +39,6 @@ export const ThinkingLayerWidget = ({ entry }: ThinkingLayerWidgetProps): React.
         borderLeft: `${BORDER_WIDTH} ${colors['text-dim']}`,
         borderRight: `${BORDER_WIDTH} ${colors['text-dim']}`,
         textAlign: 'left',
-        paddingLeft: '15%',
       }}
     >
       <Text

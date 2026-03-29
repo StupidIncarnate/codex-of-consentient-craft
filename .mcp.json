@@ -3,7 +3,10 @@
     "dungeonmaster": {
       "type": "stdio",
       "command": "bash",
-      "args": ["-c", "[ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=dev exec npx tsx packages/mcp/src/index.ts"],
+      "args": [
+        "-c",
+        "[ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=dev exec npx tsx packages/mcp/src/index.ts"
+      ],
       "env": {}
     }
   }
