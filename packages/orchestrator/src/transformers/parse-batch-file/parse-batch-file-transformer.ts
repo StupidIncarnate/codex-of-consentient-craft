@@ -18,6 +18,7 @@ import { workUnitContract } from '../../contracts/work-unit/work-unit-contract';
 import type { SpiritmenderWorkUnit } from '../../contracts/work-unit/work-unit-contract';
 
 type VerificationCommand = SpiritmenderWorkUnit['verificationCommand'];
+type ContextInstructions = SpiritmenderWorkUnit['contextInstructions'];
 
 export const parseBatchFileTransformer = ({
   contents,
@@ -27,16 +28,23 @@ export const parseBatchFileTransformer = ({
   filePaths: AbsoluteFilePath[];
   errors: ErrorMessage[];
   verificationCommand: VerificationCommand;
+  contextInstructions: ContextInstructions;
 } => {
   const parsed: unknown = JSON.parse(contents);
 
   if (typeof parsed !== 'object' || parsed === null) {
-    return { filePaths: [], errors: [], verificationCommand: undefined };
+    return {
+      filePaths: [],
+      errors: [],
+      verificationCommand: undefined,
+      contextInstructions: undefined,
+    };
   }
 
   const rawFilePaths: unknown = Reflect.get(parsed, 'filePaths');
   const rawErrors: unknown = Reflect.get(parsed, 'errors');
   const rawVerificationCommand: unknown = Reflect.get(parsed, 'verificationCommand');
+  const rawContextInstructions: unknown = Reflect.get(parsed, 'contextInstructions');
 
   const filePaths: AbsoluteFilePath[] = [];
   if (Array.isArray(rawFilePaths)) {
@@ -76,5 +84,21 @@ export const parseBatchFileTransformer = ({
         })()
       : undefined;
 
-  return { filePaths, errors, verificationCommand };
+  const contextInstructions: ContextInstructions =
+    typeof rawContextInstructions === 'string' && rawContextInstructions.length > 0
+      ? (() => {
+          try {
+            const unit = workUnitContract.parse({
+              role: 'spiritmender',
+              filePaths: [],
+              contextInstructions: rawContextInstructions,
+            });
+            return unit.role === 'spiritmender' ? unit.contextInstructions : undefined;
+          } catch {
+            return undefined;
+          }
+        })()
+      : undefined;
+
+  return { filePaths, errors, verificationCommand, contextInstructions };
 };

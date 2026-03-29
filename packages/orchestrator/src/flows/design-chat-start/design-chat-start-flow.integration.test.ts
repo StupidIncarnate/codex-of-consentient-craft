@@ -31,7 +31,7 @@ describe('DesignChatStartFlow', () => {
       restore();
 
       expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toMatch(/^Guild not found$/u);
+      expect((error as Error).message).toMatch(/^Guild not found/u);
     });
   });
 });

@@ -41,6 +41,7 @@ const spiritmenderWorkUnitContract = z.object({
   filePaths: z.array(stepFilePathContract),
   errors: z.array(errorMessageContract).optional(),
   verificationCommand: z.string().min(1).brand<'VerificationCommand'>().optional(),
+  contextInstructions: z.string().min(1).brand<'ContextInstructions'>().optional(),
 });
 
 const siegemasterWorkUnitContract = z.object({

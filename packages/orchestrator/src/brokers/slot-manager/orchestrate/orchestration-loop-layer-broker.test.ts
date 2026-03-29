@@ -863,6 +863,8 @@ describe('orchestrationLoopLayerBroker', () => {
         role: 'spiritmender',
         filePaths: ['/src/broker.ts'],
         errors: ['Lint errors found'],
+        contextInstructions:
+          '## Instructions\nA code review agent (lawbringer) found issues it could not auto-fix in the listed files.\nRead the failure summary below for context on what is wrong.\nExamine the files, understand the issue, and fix it. Run npm run ward on the files to verify.',
       });
     });
 
@@ -1043,6 +1045,8 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(addCall.workUnit).toStrictEqual({
         role: 'spiritmender',
         filePaths: ['/src/broker.ts'],
+        contextInstructions:
+          '## Instructions\nA code review agent (lawbringer) found issues it could not auto-fix in the listed files.\nRead the failure summary below for context on what is wrong.\nExamine the files, understand the issue, and fix it. Run npm run ward on the files to verify.',
       });
     });
   });
