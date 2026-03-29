@@ -229,6 +229,32 @@ export const myProxy = () => {
       expect(result).toStrictEqual([]);
     });
 
+    it('VALID: {registerMock({ fn: Obj.method })} => resolves module from object import', () => {
+      typescriptAstToMockCallsAdapterProxy();
+
+      const code = `
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing';
+
+export const myProxy = () => {
+  const handle = registerMock({ fn: StartOrchestrator.addGuild });
+  return {};
+};
+`;
+      const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
+      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+
+      const result = typescriptAstToMockCallsAdapter({ sourceFile });
+
+      expect(result).toStrictEqual([
+        {
+          moduleName: '@dungeonmaster/orchestrator',
+          factory: null,
+          sourceFile: 'test.proxy.ts',
+        },
+      ]);
+    });
+
     it('EMPTY: {registerMock with locally defined fn} => returns empty array', () => {
       typescriptAstToMockCallsAdapterProxy();
 

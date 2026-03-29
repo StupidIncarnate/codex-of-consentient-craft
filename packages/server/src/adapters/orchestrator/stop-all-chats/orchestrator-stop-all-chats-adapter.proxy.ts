@@ -1,11 +1,10 @@
-jest.mock('@dungeonmaster/orchestrator');
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorStopAllChatsAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.stopAllChats);
+  const mock = registerMock({ fn: StartOrchestrator.stopAllChats });
   mock.mockReturnValue(undefined);
 
   return {

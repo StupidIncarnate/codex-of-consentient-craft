@@ -1,7 +1,6 @@
 import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
-import type { ChildProcess, spawn } from 'child_process';
-
-jest.mock('child_process');
+import { spawn, type ChildProcess } from 'child_process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type DataCallback = (chunk: Buffer) => void;
 type ErrorCallback = (error: Error) => void;
@@ -19,11 +18,10 @@ export const childProcessSpawnStreamAdapterProxy = (): {
   setupCloseNull: (params: { stdout: string }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
+  getAllSpawnedArgs: () => unknown[];
   getSpawnedCwd: () => unknown;
 } => {
-  const mock = jest.mocked(
-    jest.requireMock<{ spawn: typeof spawn }>('child_process').spawn,
-  ) as jest.Mock;
+  const handle = registerMock({ fn: spawn });
 
   const createMockChild = (): {
     child: ChildProcess;
@@ -68,7 +66,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     return { child, listeners };
   };
 
-  mock.mockImplementation(() => {
+  handle.mockImplementation(() => {
     const { child, listeners } = createMockChild();
 
     process.nextTick(() => {
@@ -91,7 +89,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       stderr: string;
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -124,7 +122,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       stderr: string;
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -148,7 +146,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     },
 
     setupError: ({ error, stdout }: { error: Error; stdout?: string }): void => {
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -168,7 +166,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
 
     setupErrorWithCode: ({ error, exitCode }: { error: Error; exitCode: ExitCode }): void => {
       const errorWithCode = Object.assign(error, { code: exitCode as unknown });
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -182,7 +180,7 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     },
 
     setupCloseNull: ({ stdout }: { stdout: string }): void => {
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -201,21 +199,24 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 0);
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 1);
     },
 
+    getAllSpawnedArgs: (): unknown[] =>
+      handle.mock.calls.map((call) => Reflect.get(call as object, 1)),
+
     getSpawnedCwd: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];

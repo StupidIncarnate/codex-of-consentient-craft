@@ -1,9 +1,13 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+
 export const processDevLogAdapterProxy = (): {
   enableDev: () => void;
   disableDev: () => void;
-  getWrittenLines: () => jest.SpyInstance;
+  getWrittenLines: () => SpyOnHandle;
 } => {
-  const spy = jest.spyOn(process.stdout, 'write').mockImplementation((): boolean => true);
+  const spy = registerSpyOn({ object: process.stdout, method: 'write', passthrough: true });
+  spy.mockImplementation((): boolean => true);
 
   return {
     enableDev: (): void => {
@@ -12,6 +16,6 @@ export const processDevLogAdapterProxy = (): {
     disableDev: (): void => {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_ENV');
     },
-    getWrittenLines: (): jest.SpyInstance => spy,
+    getWrittenLines: (): SpyOnHandle => spy,
   };
 };

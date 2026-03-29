@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsReaddirDirsAdapterProxy } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter.proxy';
 
@@ -6,17 +7,16 @@ export const workspaceDiscoverLayerReadBrokerProxy = (): {
   setupReturnsPackageNoSrc: (params: { name: string }) => void;
   setupThrows: () => void;
   setupReturnsNoName: () => void;
-  getStderrOutput: () => jest.Mock;
+  getStderrCalls: () => unknown[];
 } => {
   const readProxy = fsReadFileAdapterProxy();
   const readdirProxy = fsReaddirDirsAdapterProxy();
 
-  const stderrMock = jest
-    .spyOn(process.stderr, 'write')
-    .mockReturnValue(true) as unknown as jest.Mock;
+  const stderrMock = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrMock.mockReturnValue(true);
 
   return {
-    getStderrOutput: (): jest.Mock => stderrMock,
+    getStderrCalls: (): unknown[] => stderrMock.mock.calls.map((call) => call[0]),
 
     setupReturnsPackage: ({ name }: { name: string }): void => {
       readProxy.returns({ content: JSON.stringify({ name }) });

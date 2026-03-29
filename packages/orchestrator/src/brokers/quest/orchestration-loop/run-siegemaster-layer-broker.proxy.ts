@@ -6,6 +6,8 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
@@ -67,10 +69,14 @@ export const runSiegemasterLayerBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const stderrSpy: { current: SpyOnHandle | null } = { current: null };
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee',
+  );
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -148,7 +154,9 @@ export const runSiegemasterLayerBrokerProxy = (): {
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      stderrSpy.current = handle;
     },
 
     getStderrWrites: (): readonly unknown[] =>

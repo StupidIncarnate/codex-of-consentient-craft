@@ -1,9 +1,5 @@
 import { existsSync } from 'fs';
-
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  existsSync: jest.fn(),
-}));
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const sharedPackageResolveAdapterProxy = (): {
   packageRootExists: () => void;
@@ -11,27 +7,27 @@ export const sharedPackageResolveAdapterProxy = (): {
   srcExists: () => void;
   srcDoesNotExist: () => void;
 } => {
-  const mockExistsSync = jest.mocked(existsSync);
+  const handle = registerMock({ fn: existsSync });
 
   // Default: package root exists
-  mockExistsSync.mockReturnValue(true);
+  handle.mockReturnValue(true);
 
   return {
-    packageRootExists: () => {
-      mockExistsSync.mockReturnValue(true);
+    packageRootExists: (): void => {
+      handle.mockReturnValue(true);
     },
 
-    packageRootDoesNotExist: () => {
-      mockExistsSync.mockReturnValue(false);
+    packageRootDoesNotExist: (): void => {
+      handle.mockReturnValue(false);
     },
 
     // Backwards-compatible aliases
-    srcExists: () => {
-      mockExistsSync.mockReturnValue(true);
+    srcExists: (): void => {
+      handle.mockReturnValue(true);
     },
 
-    srcDoesNotExist: () => {
-      mockExistsSync.mockReturnValue(false);
+    srcDoesNotExist: (): void => {
+      handle.mockReturnValue(false);
     },
   };
 };

@@ -8,13 +8,12 @@
  */
 
 import { existsSync } from 'fs';
-
-jest.mock('fs');
+import { registerMock } from '../../../register-mock';
 
 export const fsExistsAdapterProxy = (): {
   returns: ({ exists }: { filePath: string; exists: boolean }) => void;
 } => {
-  const mock = jest.mocked(existsSync);
+  const mock = registerMock({ fn: existsSync });
 
   mock.mockReturnValue(false);
 

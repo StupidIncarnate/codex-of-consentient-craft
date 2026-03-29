@@ -8,8 +8,7 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts';
-
-jest.mock('@dungeonmaster/orchestrator');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 
@@ -17,16 +16,16 @@ export const orchestratorGetQuestStatusAdapterProxy = (): {
   returns: (params: { status: OrchestrationStatus }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.getQuestStatus);
+  const handle = registerMock({ fn: StartOrchestrator.getQuestStatus });
 
-  mock.mockReturnValue(OrchestrationStatusStub());
+  handle.mockReturnValue(OrchestrationStatusStub());
 
   return {
     returns: ({ status }: { status: OrchestrationStatus }): void => {
-      mock.mockReturnValueOnce(status);
+      handle.mockReturnValueOnce(status);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         throw error;
       });
     },

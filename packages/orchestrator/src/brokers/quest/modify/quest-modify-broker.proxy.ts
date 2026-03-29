@@ -5,9 +5,13 @@
  * const proxy = questModifyBrokerProxy();
  * proxy.setupQuestFound({ quest });
  * proxy.setupReject({ error: new Error('network failure') }); // makes next call reject
+ *
+ * WHY registerModuleMock: questModifyBroker needs a global passthrough to the real implementation
+ * so ANY caller (e.g., quest-orchestration-loop-broker) gets the real code with mocked sub-dependencies.
+ * registerMock's stack-based dispatch only matches calls from files containing the callerPath,
+ * which breaks when a different broker calls questModifyBroker. registerModuleMock + jest.mocked
+ * preserves the original jest.mock + jest.requireActual pattern that applies globally.
  */
-
-jest.mock('./quest-modify-broker');
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
@@ -17,6 +21,7 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
@@ -25,9 +30,8 @@ import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
-const actualModule = jest.requireActual<{ questModifyBroker: typeof questModifyBroker }>(
-  './quest-modify-broker',
-);
+// Auto-mock so all callers get the mocked version globally
+registerModuleMock({ module: './quest-modify-broker' });
 
 export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
@@ -41,7 +45,9 @@ export const questModifyBrokerProxy = (): {
   const persistProxy = questPersistBrokerProxy();
 
   // Re-apply passthrough to actual implementation (resetAllMocks clears between tests)
-  (questModifyBroker as jest.Mock).mockImplementation(actualModule.questModifyBroker);
+  const realMod = requireActual({ module: './quest-modify-broker' });
+  const realImpl = Reflect.get(realMod as object, 'questModifyBroker') as typeof questModifyBroker;
+  (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockImplementation(realImpl);
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -94,7 +100,9 @@ export const questModifyBrokerProxy = (): {
     },
 
     setupReject: ({ error }: { error: Error }): void => {
-      (questModifyBroker as jest.Mock).mockRejectedValueOnce(error);
+      (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockRejectedValueOnce(
+        error,
+      );
     },
 
     getAllPersistedContents: (): readonly unknown[] =>

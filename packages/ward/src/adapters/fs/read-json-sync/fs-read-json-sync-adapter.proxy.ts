@@ -1,15 +1,11 @@
 import { readFileSync } from 'fs';
-
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  readFileSync: jest.fn(),
-}));
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReadJsonSyncAdapterProxy = (): {
   returns: (params: { content: string }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(readFileSync);
+  const mock = registerMock({ fn: readFileSync });
 
   mock.mockReturnValue('' as never);
 

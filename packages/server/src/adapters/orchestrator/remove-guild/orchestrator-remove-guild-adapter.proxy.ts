@@ -1,11 +1,10 @@
-jest.mock('@dungeonmaster/orchestrator');
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorRemoveGuildAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.removeGuild);
+  const mock = registerMock({ fn: StartOrchestrator.removeGuild });
 
   mock.mockResolvedValue(undefined);
 

@@ -11,13 +11,16 @@ describe('panzoomCreateAdapter', () => {
 
       panzoomCreateAdapter({ element });
 
-      expect(proxy.getConstructor()).toHaveBeenCalledWith(element, {
-        maxScale: 5,
-        minScale: 0.1,
-        step: 0.3,
-        startScale: 0.7,
-        origin: '0 0',
-      });
+      expect(proxy.getConstructor().mock.calls[0]).toStrictEqual([
+        element,
+        {
+          maxScale: 5,
+          minScale: 0.1,
+          step: 0.3,
+          startScale: 0.7,
+          origin: '0 0',
+        },
+      ]);
     });
   });
 

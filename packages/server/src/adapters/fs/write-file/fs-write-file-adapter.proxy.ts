@@ -1,14 +1,10 @@
 import { writeFile } from 'fs/promises';
-
-jest.mock('fs/promises', () => ({
-  ...jest.requireActual('fs/promises'),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-}));
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsWriteFileAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(writeFile);
+  const mock = registerMock({ fn: writeFile });
   mock.mockResolvedValue(undefined);
 
   return {

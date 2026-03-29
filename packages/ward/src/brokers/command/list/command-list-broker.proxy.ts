@@ -1,11 +1,12 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 
 export const commandListBrokerProxy = (): {
   setupWithResult: (params: { content: string }) => void;
   setupNoResult: () => void;
 } => {
-  jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
-  jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(() => true);
+  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
 
   const storageProxy = storageLoadBrokerProxy();
 

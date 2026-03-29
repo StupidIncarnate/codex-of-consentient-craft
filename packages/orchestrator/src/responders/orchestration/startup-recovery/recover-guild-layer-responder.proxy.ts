@@ -15,6 +15,7 @@ import type {
   QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
@@ -54,7 +55,9 @@ export const RecoverGuildLayerResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  );
 
   return {
     setupGuildWithQuests: ({

@@ -8,13 +8,12 @@
  */
 
 import { rmSync } from 'fs';
-
-jest.mock('fs');
+import { registerMock } from '../../../register-mock';
 
 export const fsRmAdapterProxy = (): {
   throws: ({ error }: { filePath: string; error: Error }) => void;
 } => {
-  const mock = jest.mocked(rmSync);
+  const mock = registerMock({ fn: rmSync });
 
   mock.mockImplementation(() => undefined);
 

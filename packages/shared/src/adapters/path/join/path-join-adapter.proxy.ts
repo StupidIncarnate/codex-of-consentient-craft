@@ -1,22 +1,20 @@
 import { join } from 'path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-// Declare jest.mock() in proxy (auto-hoisted by Jest)
-jest.mock('path');
 
 export const pathJoinAdapterProxy = (): {
   returns: ({ result }: { result: FilePath }) => void;
 } => {
   // Mock the npm package, not the adapter
-  const mock = jest.mocked(join);
+  const handle = registerMock({ fn: join });
 
   // Default mock behavior - return joined path
-  mock.mockImplementation((...segments) => segments.join('/'));
+  handle.mockImplementation((...segments) => segments.join('/'));
 
   return {
     // Semantic method for setting return value
     returns: ({ result }: { result: FilePath }) => {
-      mock.mockReturnValueOnce(result);
+      handle.mockReturnValueOnce(result);
     },
   };
 };

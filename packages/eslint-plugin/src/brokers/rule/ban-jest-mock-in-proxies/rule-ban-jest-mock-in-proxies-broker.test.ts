@@ -39,6 +39,20 @@ ruleTester.run('ban-jest-mock-in-proxies', ruleBanJestMockInProxiesBroker(), {
       filename: '/project/src/brokers/timestamp/timestamp-broker.test.ts',
     },
 
+    // jest.requireActual is allowed inside registerModuleMock factory callbacks
+    {
+      code: `
+        registerModuleMock({
+          module: '@dungeonmaster/orchestrator',
+          factory: () => ({
+            ...jest.requireActual('@dungeonmaster/orchestrator'),
+            questModifyBroker: jest.fn(),
+          }),
+        });
+      `,
+      filename: '/project/src/brokers/quest/modify/quest-modify-broker.proxy.ts',
+    },
+
     // Regular files are not affected
     {
       code: "jest.mock('axios');",

@@ -1698,16 +1698,14 @@ describe('QuestChatWidget', () => {
       });
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[quest-chat] quest-start failed',
-          expect.anything(),
-        );
+        expect(
+          consoleErrorSpy.mock.calls.some((c) => c[0] === '[quest-chat] quest-start failed'),
+        ).toBe(true);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[quest-chat] quest-start failed',
-        expect.anything(),
-      );
+      expect(
+        consoleErrorSpy.mock.calls.some((c) => c[0] === '[quest-chat] quest-start failed'),
+      ).toBe(true);
     });
 
     it('ERROR: {questModifyBroker rejects via keep chatting} => logs error to console.error', async () => {
@@ -1767,10 +1765,10 @@ describe('QuestChatWidget', () => {
       await proxy.clickApprovedModalKeepChatting();
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('[keep-chatting]', expect.anything());
+        expect(consoleErrorSpy.mock.calls.some((c) => c[0] === '[keep-chatting]')).toBe(true);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[keep-chatting]', expect.anything());
+      expect(consoleErrorSpy.mock.calls.some((c) => c[0] === '[keep-chatting]')).toBe(true);
     });
 
     it('ERROR: {questStartBroker rejects via begin quest} => logs error to console.error', async () => {
@@ -1830,10 +1828,10 @@ describe('QuestChatWidget', () => {
       await proxy.clickApprovedModalBeginQuest();
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('[begin-quest]', expect.anything());
+        expect(consoleErrorSpy.mock.calls.some((c) => c[0] === '[begin-quest]')).toBe(true);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[begin-quest]', expect.anything());
+      expect(consoleErrorSpy.mock.calls.some((c) => c[0] === '[begin-quest]')).toBe(true);
     });
   });
 

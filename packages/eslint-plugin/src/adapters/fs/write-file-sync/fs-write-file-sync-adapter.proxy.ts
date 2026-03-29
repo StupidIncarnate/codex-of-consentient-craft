@@ -1,12 +1,11 @@
 import { writeFileSync } from 'fs';
 import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
-
-jest.mock('fs');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsWriteFileSyncAdapterProxy = (): {
   succeeds: ({ filePath, contents }: { filePath: FilePath; contents: FileContents }) => void;
 } => {
-  const mockWriteFileSync = jest.mocked(writeFileSync);
+  const mockWriteFileSync = registerMock({ fn: writeFileSync });
 
   // Default mock behavior - do nothing (successful write)
   mockWriteFileSync.mockImplementation(() => undefined);

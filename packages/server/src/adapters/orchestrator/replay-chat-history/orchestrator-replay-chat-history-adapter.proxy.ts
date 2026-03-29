@@ -1,26 +1,11 @@
-jest.mock('@dungeonmaster/orchestrator', () => ({
-  ...jest.requireActual('@dungeonmaster/orchestrator'),
-  StartOrchestrator: {
-    listQuests: jest.fn(),
-    loadQuest: jest.fn(),
-    replayChatHistory: jest.fn(),
-    stopAllChats: jest.fn(),
-  },
-  orchestrationEventsState: {
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    removeAllListeners: jest.fn(),
-  },
-}));
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorReplayChatHistoryAdapterProxy = (): {
   setupSuccess: () => void;
   setupFailure: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.replayChatHistory);
+  const mock = registerMock({ fn: StartOrchestrator.replayChatHistory });
   mock.mockResolvedValue(undefined);
 
   return {
@@ -28,7 +13,7 @@ export const orchestratorReplayChatHistoryAdapterProxy = (): {
       mock.mockResolvedValue(undefined);
     },
     setupFailure: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValue(error);
+      mock.mockImplementation(async () => Promise.reject(error));
     },
   };
 };

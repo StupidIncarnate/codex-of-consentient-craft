@@ -160,6 +160,7 @@ export const folderConfigStatics = {
       'statics/',
       'contracts/',
       'guards/',
+      'transformers/',
       '@dungeonmaster/shared/adapters',
     ],
     disallowAdhocTypes: false,

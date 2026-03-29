@@ -126,9 +126,9 @@ describe('ServerInitResponder', () => {
 
       const spy = proxy.getDevLogOutput();
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(spy.mock.calls).toContainEqual([
         expect.stringMatching(/quest-by-session-request failed.*Connection refused/u),
-      );
+      ]);
     });
 
     it('ERROR: {loadQuest rejects with cause} => logs error message and cause', async () => {
@@ -165,9 +165,9 @@ describe('ServerInitResponder', () => {
 
       const spy = proxy.getDevLogOutput();
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(spy.mock.calls).toContainEqual([
         expect.stringMatching(/Failed to parse quest file.*cause.*Unexpected token/u),
-      );
+      ]);
     });
   });
 

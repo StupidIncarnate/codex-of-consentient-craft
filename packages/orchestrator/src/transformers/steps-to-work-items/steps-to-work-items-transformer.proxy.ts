@@ -1,9 +1,12 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+
 export const stepsToWorkItemsTransformerProxy = (): {
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
 } => {
-  const uuidMock = jest.spyOn(crypto, 'randomUUID');
+  const uuidMock: SpyOnHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
 
   return {
     setupUuids: ({

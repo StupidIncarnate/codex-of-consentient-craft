@@ -116,7 +116,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-wait-for-timeout': 'error',
     '@dungeonmaster/ban-page-route-in-e2e': 'error',
     '@dungeonmaster/enforce-e2e-base-import': 'error',
-    // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
+    '@dungeonmaster/ban-jest-mock-in-proxies': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

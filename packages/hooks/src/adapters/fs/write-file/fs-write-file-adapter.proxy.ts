@@ -1,15 +1,14 @@
 import { writeFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-jest.mock('fs/promises');
 
 export const fsWriteFileAdapterProxy = (): {
   succeeds: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;
   throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
   getWrittenContent: () => unknown;
 } => {
-  const mockWriteFile = jest.mocked(writeFile);
+  const mockWriteFile = registerMock({ fn: writeFile });
 
   mockWriteFile.mockResolvedValue(undefined);
 

@@ -47,6 +47,7 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/ban-wait-for-timeout': 'pre-edit',
       '@dungeonmaster/ban-page-route-in-e2e': 'pre-edit',
       '@dungeonmaster/enforce-e2e-base-import': 'pre-edit',
+      '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit',
       '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',

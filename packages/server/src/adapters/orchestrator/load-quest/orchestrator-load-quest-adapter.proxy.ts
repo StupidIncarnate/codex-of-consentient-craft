@@ -1,20 +1,5 @@
-jest.mock('@dungeonmaster/orchestrator', () => ({
-  ...jest.requireActual('@dungeonmaster/orchestrator'),
-  StartOrchestrator: {
-    listQuests: jest.fn(),
-    loadQuest: jest.fn(),
-    replayChatHistory: jest.fn(),
-    stopAllChats: jest.fn(),
-  },
-  orchestrationEventsState: {
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    removeAllListeners: jest.fn(),
-  },
-}));
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -23,7 +8,7 @@ export const orchestratorLoadQuestAdapterProxy = (): {
   returns: (params: { quest: Quest }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.loadQuest);
+  const mock = registerMock({ fn: StartOrchestrator.loadQuest });
   mock.mockResolvedValue(QuestStub());
 
   return {

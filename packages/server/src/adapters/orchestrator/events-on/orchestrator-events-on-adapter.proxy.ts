@@ -1,25 +1,5 @@
-jest.mock('@dungeonmaster/orchestrator', () => ({
-  ...jest.requireActual('@dungeonmaster/orchestrator'),
-  StartOrchestrator: {
-    listQuests: jest.fn(),
-    loadQuest: jest.fn(),
-    recoverActiveQuests: jest.fn(),
-    replayChatHistory: jest.fn(),
-    stopAllChats: jest.fn(),
-  },
-  orchestrationEventsState: {
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    removeAllListeners: jest.fn(),
-  },
-  questFindQuestPathBroker: jest.fn().mockResolvedValue({
-    questPath: '/default/quest/path',
-    guildId: 'default-guild',
-  }),
-}));
-
 import { orchestrationEventsState } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 
 type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
@@ -28,7 +8,7 @@ export const orchestratorEventsOnAdapterProxy = (): {
   getCapturedHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getCapturedHandlers: () => Map<OrchestrationEventType, EventHandler>;
 } => {
-  const mock = jest.mocked(orchestrationEventsState.on);
+  const mock = registerMock({ fn: orchestrationEventsState.on });
   const handlers = new Map<OrchestrationEventType, EventHandler>();
 
   mock.mockImplementation(

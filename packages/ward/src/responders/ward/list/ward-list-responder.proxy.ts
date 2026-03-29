@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { commandListBrokerProxy } from '../../../brokers/command/list/command-list-broker.proxy';
 import { WardListResponder } from './ward-list-responder';
 
@@ -10,8 +11,10 @@ export const WardListResponderProxy = (): {
 } => {
   const listProxy = commandListBrokerProxy();
 
-  const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
-  const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.mockImplementation(() => true);
+  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+  stdoutSpy.mockImplementation(() => true);
 
   return {
     callResponder: WardListResponder,

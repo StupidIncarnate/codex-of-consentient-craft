@@ -191,16 +191,14 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[home-content] guild create failed',
-          expect.anything(),
-        );
+        expect(
+          consoleErrorSpy.mock.calls.some((c) => c[0] === '[home-content] guild create failed'),
+        ).toBe(true);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[home-content] guild create failed',
-        expect.anything(),
-      );
+      expect(
+        consoleErrorSpy.mock.calls.some((c) => c[0] === '[home-content] guild create failed'),
+      ).toBe(true);
     });
   });
 });

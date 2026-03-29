@@ -134,20 +134,42 @@ export const typescriptAstToMockCallsAdapter = ({
           if (
             ts.isPropertyAssignment(prop) &&
             ts.isIdentifier(prop.name) &&
-            prop.name.text === 'fn' &&
-            ts.isIdentifier(prop.initializer)
+            prop.name.text === 'fn'
           ) {
-            const resolvedModule = importMap.get(
-              identifierNameContract.parse(prop.initializer.text),
-            );
-            if (resolvedModule) {
-              mockCalls.push(
-                mockCallContract.parse({
-                  moduleName: moduleNameContract.parse(resolvedModule),
-                  factory: null,
-                  sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
-                }),
+            // Resolve the leftmost identifier from the `fn` value
+            // Handles both `fn: readFile` (Identifier) and `fn: StartOrchestrator.addGuild` (PropertyAccessExpression)
+            if (ts.isIdentifier(prop.initializer)) {
+              const rootIdentifier: IdentifierName = identifierNameContract.parse(
+                prop.initializer.text,
               );
+              const resolvedModule = importMap.get(rootIdentifier);
+              if (resolvedModule) {
+                mockCalls.push(
+                  mockCallContract.parse({
+                    moduleName: moduleNameContract.parse(resolvedModule),
+                    factory: null,
+                    sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+                  }),
+                );
+              }
+            } else if (ts.isPropertyAccessExpression(prop.initializer)) {
+              let current: ts.Expression = prop.initializer;
+              while (ts.isPropertyAccessExpression(current)) {
+                current = current.expression;
+              }
+              if (ts.isIdentifier(current)) {
+                const rootIdentifier: IdentifierName = identifierNameContract.parse(current.text);
+                const resolvedModule = importMap.get(rootIdentifier);
+                if (resolvedModule) {
+                  mockCalls.push(
+                    mockCallContract.parse({
+                      moduleName: moduleNameContract.parse(resolvedModule),
+                      factory: null,
+                      sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+                    }),
+                  );
+                }
+              }
             }
           }
 

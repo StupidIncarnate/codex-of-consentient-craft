@@ -5,12 +5,16 @@
  * @dungeonmaster/orchestrator (not a method on StartOrchestrator or orchestrationEventsState).
  * This proxy mocks the adapter itself following the language-primitive adapter pattern.
  */
-jest.mock('./orchestrator-outbox-watch-adapter', () => ({
-  orchestratorOutboxWatchAdapter: jest.fn(),
-}));
-
-import type { orchestratorOutboxWatchAdapter } from './orchestrator-outbox-watch-adapter';
+import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import type { orchestratorOutboxWatchAdapter as OutboxWatchType } from './orchestrator-outbox-watch-adapter';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
+
+registerModuleMock({
+  module: './orchestrator-outbox-watch-adapter',
+  factory: () => ({
+    orchestratorOutboxWatchAdapter: jest.fn(),
+  }),
+});
 
 type OnQuestChanged = (args: { questId: QuestId }) => void;
 type OnError = (args: { error: unknown }) => void;
@@ -23,10 +27,10 @@ export const orchestratorOutboxWatchAdapterProxy = (): {
     onError: OnError | undefined;
   };
 } => {
-  const mod = jest.requireMock<{
-    orchestratorOutboxWatchAdapter: typeof orchestratorOutboxWatchAdapter;
-  }>('./orchestrator-outbox-watch-adapter');
-  const mock = jest.mocked(mod.orchestratorOutboxWatchAdapter);
+  const mod = require('./orchestrator-outbox-watch-adapter') as {
+    orchestratorOutboxWatchAdapter: jest.MockedFunction<typeof OutboxWatchType>;
+  };
+  const mock = mod.orchestratorOutboxWatchAdapter;
 
   const captured: {
     onQuestChanged: OnQuestChanged | undefined;
@@ -43,7 +47,7 @@ export const orchestratorOutboxWatchAdapterProxy = (): {
     captured.onQuestChanged = onQuestChanged;
     captured.onError = onError;
     return Promise.resolve({ stop: jest.fn() });
-  }) as typeof orchestratorOutboxWatchAdapter);
+  }) as typeof OutboxWatchType);
 
   return {
     returns: ({ stop }: { stop: () => void }): void => {

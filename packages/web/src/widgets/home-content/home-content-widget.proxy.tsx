@@ -8,6 +8,9 @@
 
 import { screen } from '@testing-library/react';
 
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
 import type {
   GuildIdStub,
   GuildListItemStub,
@@ -44,7 +47,7 @@ export const HomeContentWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
-  setupConsoleErrorCapture: () => jest.SpyInstance;
+  setupConsoleErrorCapture: () => SpyOnHandle;
   setupCreateGuildError: () => void;
 } => {
   const sessionsProxy = useSessionListBindingProxy();
@@ -99,8 +102,11 @@ export const HomeContentWidgetProxy = (): {
     clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
       await sessionList.clickSession({ testId });
     },
-    setupConsoleErrorCapture: (): jest.SpyInstance =>
-      jest.spyOn(globalThis.console, 'error').mockImplementation(() => undefined),
+    setupConsoleErrorCapture: (): SpyOnHandle => {
+      const handle = registerSpyOn({ object: globalThis.console, method: 'error' });
+      handle.mockImplementation(() => undefined);
+      return handle;
+    },
     setupCreateGuildError: (): void => {
       createGuildProxy.setupError();
     },

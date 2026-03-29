@@ -54,17 +54,19 @@ export const typescriptProxyMockTransformerMiddleware = ({
     return sourceFile;
   }
 
-  // Deduplicate mocks by module name, keeping only the first occurrence for each module.
-  // The first occurrence is preferred because it's typically the simple auto-mock,
-  // while later occurrences might be factory mocks that are too specific for cross-file use.
-  const seenModules = new Set<ModuleName>();
-  const deduplicatedMocks = mockCalls.filter((mock) => {
-    if (seenModules.has(mock.moduleName)) {
-      return false;
+  // Deduplicate mocks by module name. When both an auto-mock and a factory-mock exist
+  // for the same module, the factory-mock wins because it preserves real exports and only
+  // replaces specific functions. Auto-mocking a barrel (e.g., @dungeonmaster/shared/adapters)
+  // breaks all callers that depend on real implementations of other exports.
+  const mocksByModule = new Map<ModuleName, MockCall>();
+  for (const mock of mockCalls) {
+    const existing = mocksByModule.get(mock.moduleName);
+    // Keep the mock with a factory, or the first occurrence if neither has a factory
+    if (!existing || (mock.factory && !existing.factory)) {
+      mocksByModule.set(mock.moduleName, mock);
     }
-    seenModules.add(mock.moduleName);
-    return true;
-  });
+  }
+  const deduplicatedMocks = [...mocksByModule.values()];
 
   const mockStatements = typescriptMockCallsToStatementsAdapter({
     mockCalls: deduplicatedMocks,

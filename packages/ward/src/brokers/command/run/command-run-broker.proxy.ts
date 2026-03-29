@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
@@ -9,9 +10,9 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackageFail: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
 } => {
-  jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-  jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
-  jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  registerSpyOn({ object: process, method: 'exit' }).mockImplementation(() => undefined as never);
+  registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(() => true);
+  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   gitDiffFilesBrokerProxy();

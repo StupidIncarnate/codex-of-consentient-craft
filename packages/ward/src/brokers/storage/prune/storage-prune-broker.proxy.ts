@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 
@@ -11,7 +12,7 @@ export const storagePruneBrokerProxy = (): {
 
   return {
     setupWithFiles: ({ entries, now }: { entries: string[]; now: number }): void => {
-      jest.spyOn(Date, 'now').mockReturnValue(now);
+      registerSpyOn({ object: Date, method: 'now' }).mockReturnValue(now);
       readdirProxy.returns({ entries });
     },
     setupEmpty: (): void => {

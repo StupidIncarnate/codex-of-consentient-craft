@@ -341,10 +341,9 @@ describe('agentSpawnByRoleBroker', () => {
         setImmediate(resolve);
       });
 
-      expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /^\[agent-spawn\] session-id resolution failed:.*callback exploded\n$/u,
-        ),
+      expect(stderrSpy.mock.calls.length).toBeGreaterThan(0);
+      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
+        /^\[agent-spawn\] session-id resolution failed:.*callback exploded\n$/u,
       );
     });
   });

@@ -68,7 +68,7 @@ describe('workspaceDiscoverLayerReadBroker', () => {
       });
 
       expect(result).toBeNull();
-      expect(proxy.getStderrOutput()).toHaveBeenCalledWith(
+      expect(proxy.getStderrCalls()).toContainEqual(
         'ward: skipping @dungeonmaster/standards (no src/ directory)\n',
       );
     });
