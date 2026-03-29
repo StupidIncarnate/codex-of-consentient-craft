@@ -24,7 +24,7 @@ describe('PlanSectionWidget', () => {
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
       });
 
-      expect(screen.getByText('STEPS')).toBeInTheDocument();
+      expect(screen.getByTestId('SECTION_HEADER_LABEL')).toBeInTheDocument();
     });
 
     it('VALID: {items: [step-a, step-b]} => renders all items', () => {

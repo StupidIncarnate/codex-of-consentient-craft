@@ -11,11 +11,11 @@ describe('architectureFolderDetailBroker', () => {
       });
 
       // Verify key sections are present
-      expect(result).toMatch(/# brokers\/ Folder Type/u);
-      expect(result).toMatch(/## Purpose/u);
-      expect(result).toMatch(/## File Structure/u);
-      expect(result).toMatch(/## Naming Conventions/u);
-      expect(result).toMatch(/## Import Rules/u);
+      expect(result).toMatch(/^# brokers\/ Folder Type/mu);
+      expect(result).toMatch(/^## Purpose/mu);
+      expect(result).toMatch(/^## File Structure/mu);
+      expect(result).toMatch(/^## Naming Conventions/mu);
+      expect(result).toMatch(/^## Import Rules/mu);
     });
 
     it('VALID: {folderType: "brokers"} => includes required files and features sections', () => {
@@ -25,9 +25,9 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'brokers' as never,
       });
 
-      expect(result).toMatch(/## Required Files/u);
-      expect(result).toMatch(/## Special Features/u);
-      expect(result).toMatch(/## Critical Constraints/u);
+      expect(result).toMatch(/^## Required Files/mu);
+      expect(result).toMatch(/^## Special Features/mu);
+      expect(result).toMatch(/^## Critical Constraints/mu);
     });
   });
 
@@ -39,8 +39,8 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'contracts' as never,
       });
 
-      expect(result).toMatch(/# contracts\/ Folder Type/u);
-      expect(result).toMatch(/## Purpose/u);
+      expect(result).toMatch(/^# contracts\/ Folder Type/mu);
+      expect(result).toMatch(/^## Purpose/mu);
     });
   });
 
@@ -52,8 +52,8 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'guards' as never,
       });
 
-      expect(result).toMatch(/# guards\/ Folder Type/u);
-      expect(result).toMatch(/## Purpose/u);
+      expect(result).toMatch(/^# guards\/ Folder Type/mu);
+      expect(result).toMatch(/^## Purpose/mu);
     });
   });
 
@@ -65,9 +65,9 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'statics' as never,
       });
 
-      expect(result).toMatch(/# statics\/ Folder Type/u);
-      expect(result).toMatch(/## Purpose/u);
-      expect(result).toMatch(/Immutable configuration values and constants/u);
+      expect(result).toMatch(/^# statics\/ Folder Type/mu);
+      expect(result).toMatch(/^## Purpose/mu);
+      expect(result).toMatch(/^Immutable configuration values and constants\./mu);
     });
   });
 
@@ -79,9 +79,9 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'startup' as never,
       });
 
-      expect(result).toMatch(/# startup\/ Folder Type/u);
-      expect(result).toMatch(/## Purpose/u);
-      expect(result).toMatch(/Application initialization and configuration/u);
+      expect(result).toMatch(/^# startup\/ Folder Type/mu);
+      expect(result).toMatch(/^## Purpose/mu);
+      expect(result).toMatch(/^Application initialization and configuration\./mu);
     });
   });
 
@@ -93,8 +93,8 @@ describe('architectureFolderDetailBroker', () => {
         folderType: 'unknown-type' as never,
       });
 
-      expect(result).toMatch(/# Unknown Folder Type: unknown-type/u);
-      expect(result).toMatch(/No configuration found for this folder type/u);
+      expect(result).toMatch(/^# Unknown Folder Type: unknown-type/mu);
+      expect(result).toMatch(/^No configuration found for this folder type/mu);
     });
   });
 });

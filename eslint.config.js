@@ -117,6 +117,7 @@ module.exports = [
       'max-lines-per-function': 'off',
       'max-nested-callbacks': 'off',
       'jest/unbound-method': 'off',
+      'jest/prefer-to-be': 'off',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)

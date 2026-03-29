@@ -48,7 +48,7 @@ describe('errorEntryContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SEVERITY: {severity: "info"} => throws validation error', () => {
+    it('INVALID: {severity: "info"} => throws validation error', () => {
       expect(() =>
         errorEntryContract.parse({
           filePath: 'src/index.ts',
@@ -60,7 +60,7 @@ describe('errorEntryContract', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_LINE: {line: "ten"} => throws validation error', () => {
+    it('INVALID: {line: "ten"} => throws validation error', () => {
       expect(() =>
         errorEntryContract.parse({
           filePath: 'src/index.ts',
@@ -72,7 +72,7 @@ describe('errorEntryContract', () => {
       ).toThrow(/Expected number/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => errorEntryContract.parse({})).toThrow(/Required/u);
     });
   });

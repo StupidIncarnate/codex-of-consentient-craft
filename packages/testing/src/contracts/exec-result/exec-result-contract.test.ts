@@ -53,7 +53,7 @@ describe('execResultContract', () => {
   });
 
   describe('invalid exec results', () => {
-    it('INVALID_EXIT_CODE: {exitCode: 1.5} => throws validation error', () => {
+    it('INVALID: {exitCode: 1.5} => throws validation error', () => {
       expect(() => {
         return execResultContract.parse({
           stdout: '',
@@ -63,7 +63,7 @@ describe('execResultContract', () => {
       }).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_STDOUT: {stdout: number} => throws validation error', () => {
+    it('INVALID: {stdout: number} => throws validation error', () => {
       expect(() => {
         return execResultContract.parse({
           stdout: 123 as never,
@@ -73,7 +73,7 @@ describe('execResultContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return execResultContract.parse({});
       }).toThrow(/Required/u);

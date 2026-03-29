@@ -76,7 +76,7 @@ describe('parseTaskNotificationTransformer', () => {
 
       const result = parseTaskNotificationTransformer({ content });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content missing status} => returns null', () => {
@@ -85,7 +85,7 @@ describe('parseTaskNotificationTransformer', () => {
 
       const result = parseTaskNotificationTransformer({ content });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content with empty task-id} => returns null', () => {
@@ -95,7 +95,7 @@ describe('parseTaskNotificationTransformer', () => {
 
       const result = parseTaskNotificationTransformer({ content });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content with empty status} => returns null', () => {
@@ -105,7 +105,7 @@ describe('parseTaskNotificationTransformer', () => {
 
       const result = parseTaskNotificationTransformer({ content });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content is plain text} => returns null', () => {
@@ -114,7 +114,7 @@ describe('parseTaskNotificationTransformer', () => {
 
       const result = parseTaskNotificationTransformer({ content });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

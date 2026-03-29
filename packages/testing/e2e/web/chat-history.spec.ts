@@ -20,7 +20,7 @@ test.describe('Chat History & Sessions', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('chat response persists after page refresh', async ({ page, request }) => {
+  test('EDGE: chat response persists after page refresh', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'History Guild',
       path: GUILD_PATH,
@@ -54,7 +54,7 @@ test.describe('Chat History & Sessions', () => {
     await expect(page.getByText('Persistent response')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
-  test('second message in session resumes', async ({ page, request }) => {
+  test('EDGE: second message in session resumes', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Resume Guild',
       path: GUILD_PATH,

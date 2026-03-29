@@ -11,7 +11,7 @@ describe('mermaidDefinitionContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => mermaidDefinitionContract.parse('')).toThrow(
         /String must contain at least 1 character/u,
       );

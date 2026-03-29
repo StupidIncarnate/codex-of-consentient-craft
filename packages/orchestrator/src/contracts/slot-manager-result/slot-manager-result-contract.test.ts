@@ -86,11 +86,11 @@ describe('slotManagerResultContract', () => {
   });
 
   describe('invalid cases', () => {
-    it('INVALID_COMPLETED: {missing completed} => throws discriminator error', () => {
+    it('INVALID: {missing completed} => throws discriminator error', () => {
       expect(() => slotManagerResultContract.parse({})).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_COMPLETED: {completed: "invalid"} => throws discriminator error', () => {
+    it('INVALID: {completed: "invalid"} => throws discriminator error', () => {
       expect(() =>
         slotManagerResultContract.parse({
           completed: 'invalid' as never,
@@ -98,7 +98,7 @@ describe('slotManagerResultContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_INCOMPLETE_IDS: {completed: false, missing incompleteIds} => throws required error', () => {
+    it('INVALID: {completed: false, missing incompleteIds} => throws required error', () => {
       expect(() =>
         slotManagerResultContract.parse({
           completed: false,
@@ -107,7 +107,7 @@ describe('slotManagerResultContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID_FAILED_IDS: {completed: false, missing failedIds} => throws required error', () => {
+    it('INVALID: {completed: false, missing failedIds} => throws required error', () => {
       expect(() =>
         slotManagerResultContract.parse({
           completed: false,

@@ -26,8 +26,14 @@ describe('guildListItemContract', () => {
 
       const result = guildListItemContract.parse(item);
 
-      expect(result.valid).toBe(false);
-      expect(result.questCount).toBe(5);
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        valid: false,
+        questCount: 5,
+      });
     });
   });
 

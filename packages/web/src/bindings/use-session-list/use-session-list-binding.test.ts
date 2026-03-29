@@ -42,9 +42,11 @@ describe('useSessionListBinding', () => {
         renderCallback: () => useSessionListBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -66,9 +68,11 @@ describe('useSessionListBinding', () => {
         renderCallback: () => useSessionListBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -90,9 +94,11 @@ describe('useSessionListBinding', () => {
         renderCallback: () => useSessionListBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -114,9 +120,11 @@ describe('useSessionListBinding', () => {
         renderCallback: () => useSessionListBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -127,9 +135,11 @@ describe('useSessionListBinding', () => {
         ],
       });
 
+      const { refresh } = result.current;
+
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch((error: unknown) => {
+          refresh().catch((error: unknown) => {
             globalThis.console.error('[test] refresh failed', error);
           });
         },
@@ -137,7 +147,7 @@ describe('useSessionListBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 

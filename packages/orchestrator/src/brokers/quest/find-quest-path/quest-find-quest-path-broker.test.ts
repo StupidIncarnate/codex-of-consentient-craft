@@ -45,10 +45,10 @@ describe('questFindQuestPathBroker', () => {
 
       const result = await questFindQuestPathBroker({ questId });
 
-      expect(result.questPath).toBe(
-        `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-      );
-      expect(result.guildId).toBe(guildId);
+      expect(result).toStrictEqual({
+        questPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
+        guildId,
+      });
     });
 
     it('VALID: {questId in second guild} => returns correct guild', async () => {
@@ -105,10 +105,10 @@ describe('questFindQuestPathBroker', () => {
 
       const result = await questFindQuestPathBroker({ questId });
 
-      expect(result.questPath).toBe(
-        `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug`,
-      );
-      expect(result.guildId).toBe(guildId2);
+      expect(result).toStrictEqual({
+        questPath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug`,
+        guildId: guildId2,
+      });
     });
   });
 

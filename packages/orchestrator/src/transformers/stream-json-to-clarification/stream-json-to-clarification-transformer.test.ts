@@ -156,7 +156,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with different tool_use} => returns null', () => {
@@ -180,7 +180,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty content array} => returns null', () => {
@@ -193,7 +193,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -205,7 +205,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {result message type} => returns null', () => {
@@ -215,7 +215,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -225,7 +225,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing message property} => returns null', () => {
@@ -235,7 +235,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing content property} => returns null', () => {
@@ -245,7 +245,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content is not array} => returns null', () => {
@@ -258,7 +258,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with missing input} => returns null', () => {
@@ -273,7 +273,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with missing questions} => returns null', () => {
@@ -294,7 +294,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with non-array questions} => returns null', () => {
@@ -315,7 +315,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with empty questions array} => returns null', () => {
@@ -336,7 +336,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with invalid question shape} => returns null', () => {
@@ -359,7 +359,7 @@ describe('streamJsonToClarificationTransformer', () => {
 
       const result = streamJsonToClarificationTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

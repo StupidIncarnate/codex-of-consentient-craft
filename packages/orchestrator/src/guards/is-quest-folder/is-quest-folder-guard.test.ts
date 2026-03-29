@@ -38,31 +38,31 @@ describe('isQuestFolderGuard', () => {
   });
 
   describe('invalid quest folders', () => {
-    it('INVALID_FOLDER: {folderName: "quest-1.json"} => returns false (not a folder pattern)', () => {
+    it('INVALID: {folderName: "quest-1.json"} => returns false (not a folder pattern)', () => {
       const result = isQuestFolderGuard({ folderName: 'quest-1.json' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_FOLDER: {folderName: "README.md"} => returns false', () => {
+    it('INVALID: {folderName: "README.md"} => returns false', () => {
       const result = isQuestFolderGuard({ folderName: 'README.md' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_FOLDER: {folderName: "closed"} => returns false (reserved folder)', () => {
+    it('INVALID: {folderName: "closed"} => returns false (reserved folder)', () => {
       const result = isQuestFolderGuard({ folderName: 'closed' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_FOLDER: {folderName: "01-too-short"} => returns false (needs 3 digits)', () => {
+    it('INVALID: {folderName: "01-too-short"} => returns false (needs 3 digits)', () => {
       const result = isQuestFolderGuard({ folderName: '01-too-short' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_FOLDER: {folderName: "1234-too-long"} => returns false (needs exactly 3 digits)', () => {
+    it('INVALID: {folderName: "1234-too-long"} => returns false (needs exactly 3 digits)', () => {
       const result = isQuestFolderGuard({ folderName: '1234-too-long' });
 
       expect(result).toBe(false);

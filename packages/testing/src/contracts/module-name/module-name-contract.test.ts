@@ -37,7 +37,7 @@ describe('moduleNameContract', () => {
   });
 
   describe('invalid module names', () => {
-    it('INVALID_EMPTY: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return moduleNameContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);

@@ -90,7 +90,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: someFunction(123)} => returns null', () => {
@@ -102,7 +102,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: someFunction(obj.property)} => returns null', () => {
@@ -120,7 +120,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -128,13 +128,13 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     it('EMPTY: {} => returns null', () => {
       const result = astGetCallFirstArgumentNameTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {node: undefined} => returns null', () => {
       const result = astGetCallFirstArgumentNameTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {node: CallExpression with no arguments} => returns null', () => {
@@ -146,7 +146,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {node: CallExpression with undefined arguments} => returns null', () => {
@@ -158,7 +158,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: Identifier with no name} => returns null', () => {
@@ -170,7 +170,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: Identifier with empty string name} => returns null', () => {
@@ -182,7 +182,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: non-CallExpression} => returns null', () => {
@@ -193,7 +193,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 

@@ -3,18 +3,20 @@ import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 test.describe('Smoke Tests', () => {
-  test('health endpoint responds', async ({ request }) => {
+  test('VALID: health endpoint responds', async ({ request }) => {
     const response = await request.get('/api/health');
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
 
-    expect(body.status).toBe('ok');
-    expect(typeof body.timestamp).toBe('string');
+    expect(body).toStrictEqual({
+      status: 'ok',
+      timestamp: expect.stringMatching(/^\d/u),
+    });
   });
 
-  test('app renders without errors', async ({ page }) => {
+  test('ERROR: app renders without errors', async ({ page }) => {
     type ErrorMessage = ReturnType<typeof ErrorMessageStub>;
     const errors: ErrorMessage[] = [];
     page.on('pageerror', (error: Error) => errors.push(ErrorMessageStub({ value: error.message })));
@@ -25,7 +27,7 @@ test.describe('Smoke Tests', () => {
     expect(errors).toEqual([]);
   });
 
-  test('first-time empty state shows inline form', async ({ page, request }) => {
+  test('EMPTY: first-time empty state shows inline form', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
@@ -35,7 +37,7 @@ test.describe('Smoke Tests', () => {
     await expect(page.getByText('CREATE')).toBeVisible();
   });
 
-  test('existing guilds load in guild list', async ({ page, request }) => {
+  test('VALID: existing guilds load in guild list', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await guildHarness({ request }).createGuild({ name: 'Guild Alpha', path: '/tmp/alpha' });
     await guildHarness({ request }).createGuild({ name: 'Guild Beta', path: '/tmp/beta' });
@@ -47,7 +49,7 @@ test.describe('Smoke Tests', () => {
     await expect(page.locator('button:has-text("+")')).toBeVisible();
   });
 
-  test('no guild selected shows guidance text', async ({ page, request }) => {
+  test('EMPTY: no guild selected shows guidance text', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await guildHarness({ request }).createGuild({ name: 'Some Guild', path: '/tmp/some' });
 

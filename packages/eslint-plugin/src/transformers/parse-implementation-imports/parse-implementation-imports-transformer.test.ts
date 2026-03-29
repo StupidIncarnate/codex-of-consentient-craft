@@ -2,7 +2,7 @@ import { IdentifierStub, ModulePathStub } from '@dungeonmaster/shared/contracts'
 import { parseImplementationImportsTransformer } from './parse-implementation-imports-transformer';
 
 describe('parseImplementationImportsTransformer', () => {
-  it('should parse named imports from architectural components', () => {
+  it('VALID: {content: named imports from adapters} => parses both adapter imports', () => {
     const content = `
       import { httpAdapter } from '../../adapters/http/http-adapter';
       import { dbAdapter } from '../../adapters/db/db-adapter';
@@ -19,7 +19,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should parse default imports from architectural components', () => {
+  it('VALID: {content: default import from adapter} => parses default import', () => {
     const content = `
       import httpAdapter from '../../adapters/http/http-adapter';
     `;
@@ -32,7 +32,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip npm package imports', () => {
+  it('EDGE: {content: npm package + adapter import} => skips npm package import', () => {
     const content = `
       import axios from 'axios';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -46,7 +46,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip contract imports', () => {
+  it('EDGE: {content: contract import + adapter import} => skips contract import', () => {
     const content = `
       import type { User } from '../../contracts/user/user-contract';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -60,7 +60,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip statics imports', () => {
+  it('EDGE: {content: statics import + adapter import} => skips statics import', () => {
     const content = `
       import { userStatics } from '../../statics/user/user-statics';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -74,7 +74,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip stub imports', () => {
+  it('EDGE: {content: stub import + adapter import} => skips stub import', () => {
     const content = `
       import { UserStub } from '../../contracts/user/user.stub';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -88,7 +88,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip multi-dot files except .proxy', () => {
+  it('EDGE: {content: .test import + adapter import} => skips multi-dot files except .proxy', () => {
     const content = `
       import { userTest } from '../../brokers/user/user-broker.test';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -102,7 +102,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should include .proxy imports', () => {
+  it('VALID: {content: .proxy import} => includes .proxy imports', () => {
     const content = `
       import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
     `;
@@ -115,7 +115,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should include imports with .tsx extension', () => {
+  it('VALID: {content: .tsx extension import} => includes tsx imports', () => {
     const content = `
       import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter.tsx';
     `;
@@ -128,7 +128,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should include imports with .jsx extension', () => {
+  it('VALID: {content: .jsx extension import} => includes jsx imports', () => {
     const content = `
       import { reactAdapter } from '../../adapters/react/react-adapter.jsx';
     `;
@@ -141,7 +141,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip imports from folders that do not require proxies', () => {
+  it('EDGE: {content: transformer import + adapter import} => skips non-proxy folders', () => {
     const content = `
       import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -155,7 +155,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should strip comments before parsing', () => {
+  it('EDGE: {content: commented imports + real import} => strips comments before parsing', () => {
     const content = `
       // import { fakeAdapter } from '../../adapters/fake/fake-adapter';
       /* import { commentAdapter } from '../../adapters/comment/comment-adapter'; */
@@ -170,7 +170,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should handle multiple imports on same line', () => {
+  it('VALID: {content: multiple named imports on same line} => parses all identifiers', () => {
     const content = `
       import { httpAdapter, dbAdapter } from '../../adapters/data/data-adapter';
     `;
@@ -186,7 +186,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should handle imports with "as" aliases', () => {
+  it('EDGE: {content: import with "as" alias} => uses original identifier name', () => {
     const content = `
       import { httpAdapter as http } from '../../adapters/http/http-adapter';
     `;
@@ -199,7 +199,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should return empty map when no valid imports', () => {
+  it('EMPTY: {content: only npm imports} => returns empty map', () => {
     const content = `
       import axios from 'axios';
       const foo = 'bar';
@@ -210,7 +210,7 @@ describe('parseImplementationImportsTransformer', () => {
     expect(result.size).toBe(0);
   });
 
-  it('should parse scoped package imports with folder type subpath requiring proxies', () => {
+  it('VALID: {content: scoped package imports with proxy-requiring subpath} => parses imports', () => {
     const content = `
       import { userBroker } from '@dungeonmaster/shared/brokers';
       import { httpAdapter } from '@dungeonmaster/shared/adapters';
@@ -227,7 +227,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip scoped package imports with folder type subpath not requiring proxies', () => {
+  it('EDGE: {content: scoped package non-proxy subpath + proxy subpath} => skips non-proxy subpath', () => {
     const content = `
       import { userContract } from '@dungeonmaster/shared/contracts';
       import { userStatics } from '@dungeonmaster/shared/statics';
@@ -242,7 +242,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip scoped package imports without folder type subpath', () => {
+  it('EDGE: {content: scoped package without subpath} => skips import without folder type', () => {
     const content = `
       import { something } from '@dungeonmaster/shared';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -256,7 +256,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should handle multiple imports from scoped package with folder type subpath', () => {
+  it('VALID: {content: multiple imports from scoped package brokers subpath} => parses all', () => {
     const content = `
       import { userBroker, authBroker } from '@dungeonmaster/shared/brokers';
     `;
@@ -272,7 +272,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip default imports from scoped packages with folder type subpath', () => {
+  it('EDGE: {content: default import from scoped package with subpath} => skips default import', () => {
     const content = `
       import defaultExport from '@dungeonmaster/shared/brokers';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -286,7 +286,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should parse scoped package imports with different package names requiring proxies', () => {
+  it('VALID: {content: scoped imports from different package names} => parses proxy-requiring imports', () => {
     const content = `
       import { userBroker } from '@acme/core/brokers';
       import { httpAdapter } from '@myorg/utils/adapters';
@@ -303,7 +303,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should skip scoped package imports with different package names not requiring proxies', () => {
+  it('EDGE: {content: scoped non-proxy imports from different packages} => skips non-proxy subpaths', () => {
     const content = `
       import { userContract } from '@acme/core/contracts';
       import { userStatics } from '@myorg/utils/statics';
@@ -318,7 +318,7 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('should handle multiple imports from different scoped packages with folder type subpath', () => {
+  it('VALID: {content: multiple imports from different scoped packages} => parses all proxy-requiring', () => {
     const content = `
       import { userBroker, authBroker } from '@acme/core/brokers';
       import { logAdapter } from '@myorg/utils/adapters';

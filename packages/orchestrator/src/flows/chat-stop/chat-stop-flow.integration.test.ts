@@ -5,7 +5,7 @@ import { ChatStopFlow } from './chat-stop-flow';
 describe('ChatStopFlow', () => {
   describe('export', () => {
     it('VALID: ChatStopFlow => exports a function', () => {
-      expect(typeof ChatStopFlow).toBe('function');
+      expect(ChatStopFlow).toStrictEqual(expect.any(Function));
     });
   });
 

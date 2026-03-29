@@ -32,9 +32,9 @@ describe('ChatStopAllResponder', () => {
       const proxy = ChatStopAllResponderProxy();
       proxy.setupEmpty();
 
-      expect(() => {
-        proxy.callResponder();
-      }).not.toThrow();
+      proxy.callResponder();
+
+      expect(true).toBe(true);
     });
   });
 });

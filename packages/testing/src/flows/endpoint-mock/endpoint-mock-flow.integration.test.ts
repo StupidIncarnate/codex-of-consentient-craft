@@ -7,10 +7,13 @@ describe('EndpointMockFlow', () => {
     it('VALID: {method, url} => returns object with resolves, responds, respondRaw, networkError methods', () => {
       const control = EndpointMockFlow.listen({ method: 'get', url: `${BASE}/test/smoke` });
 
-      expect(typeof control.resolves).toBe('function');
-      expect(typeof control.responds).toBe('function');
-      expect(typeof control.respondRaw).toBe('function');
-      expect(typeof control.networkError).toBe('function');
+      expect(control).toStrictEqual({
+        resolves: expect.any(Function),
+        responds: expect.any(Function),
+        respondRaw: expect.any(Function),
+        networkError: expect.any(Function),
+        getRequestCount: expect.any(Function),
+      });
     });
   });
 

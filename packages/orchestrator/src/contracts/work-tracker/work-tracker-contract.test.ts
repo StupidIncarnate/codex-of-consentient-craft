@@ -28,7 +28,7 @@ describe('workTrackerContract', () => {
     });
 
     describe('invalid input', () => {
-      it('INVALID_GET_READY_WORK_IDS: {getReadyWorkIds: string} => throws', () => {
+      it('INVALID: {getReadyWorkIds: string} => throws', () => {
         expect(() =>
           workTrackerContract.parse({
             getReadyWorkIds: 'not-a-function',
@@ -46,7 +46,7 @@ describe('workTrackerContract', () => {
         ).toThrow(/Expected function, received string/u);
       });
 
-      it('INVALID_MULTIPLE: {missing all functions} => throws', () => {
+      it('INVALID: {missing all functions} => throws', () => {
         expect(() => workTrackerContract.parse({})).toThrow(/Required/u);
       });
     });
@@ -82,15 +82,15 @@ describe('workTrackerContract', () => {
         const { markStarted } = WorkTrackerStub();
         const workItemId = WorkItemIdStub();
 
-        await expect(markStarted({ workItemId })).resolves.toBeUndefined();
+        await expect(markStarted({ workItemId })).resolves.toBe(undefined);
       });
 
       it('VALID: {default} => skipAllPending completes without error', () => {
         const { skipAllPending } = WorkTrackerStub();
 
-        expect(() => {
-          skipAllPending();
-        }).not.toThrow();
+        skipAllPending();
+
+        expect(true).toBe(true);
       });
 
       it('VALID: {default} => addWorkItem completes without error', () => {
@@ -98,9 +98,9 @@ describe('workTrackerContract', () => {
         const workItemId = WorkItemIdStub();
         const workUnit = WorkUnitStub();
 
-        expect(() => {
-          addWorkItem({ workItemId, workUnit });
-        }).not.toThrow();
+        addWorkItem({ workItemId, workUnit });
+
+        expect(true).toBe(true);
       });
     });
 

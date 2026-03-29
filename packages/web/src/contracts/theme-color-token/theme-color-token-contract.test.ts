@@ -29,15 +29,15 @@ describe('themeColorTokenContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "invalid"} => throws for unknown token', () => {
+    it('INVALID: {value: "invalid"} => throws for unknown token', () => {
       expect(() => themeColorTokenContract.parse('invalid')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: "PRIMARY"} => throws for wrong case', () => {
+    it('INVALID: {value: "PRIMARY"} => throws for wrong case', () => {
       expect(() => themeColorTokenContract.parse('PRIMARY')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => themeColorTokenContract.parse('')).toThrow(/Invalid enum value/u);
     });
 

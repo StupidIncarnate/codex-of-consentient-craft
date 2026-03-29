@@ -25,7 +25,7 @@ test.describe('Chat Stop', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('stop button kills running chat process', async ({ page, request }) => {
+  test('VALID: stop button kills running chat process', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Stop Guild',
       path: GUILD_PATH,

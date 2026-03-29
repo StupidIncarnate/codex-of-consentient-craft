@@ -60,7 +60,7 @@ describe('completeSignalContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SIGNAL: {signal: "wrong"} => throws validation error', () => {
+    it('INVALID: {signal: "wrong"} => throws validation error', () => {
       expect(() => {
         completeSignalContract.parse({
           signal: 'wrong',
@@ -70,7 +70,7 @@ describe('completeSignalContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_STEP_ID: {stepId: "INVALID"} => throws validation error', () => {
+    it('INVALID: {stepId: "INVALID"} => throws validation error', () => {
       expect(() => {
         completeSignalContract.parse({
           signal: 'complete',
@@ -80,7 +80,7 @@ describe('completeSignalContract', () => {
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_SUMMARY: {summary: ""} => throws validation error', () => {
+    it('INVALID: {summary: ""} => throws validation error', () => {
       expect(() => {
         completeSignalContract.parse({
           signal: 'complete',

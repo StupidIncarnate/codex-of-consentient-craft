@@ -136,7 +136,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
   });
 
   describe('function with multiple parameters', () => {
-    it('INVALID_MULTIPLE: {params: [Identifier, Identifier]} => reports for each parameter', () => {
+    it('INVALID: {params: [Identifier, Identifier]} => reports for each parameter', () => {
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });
       const param1 = TsestreeStub({
@@ -165,7 +165,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
       });
     });
 
-    it('VALID_MIXED: {params: [ObjectPattern, ObjectPattern]} => does not report', () => {
+    it('VALID: {params: [ObjectPattern, ObjectPattern]} => does not report', () => {
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });
       const param1 = TsestreeStub({
@@ -184,7 +184,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('INVALID_MIXED: {params: [ObjectPattern, Identifier]} => reports for non-destructured param only', () => {
+    it('INVALID: {params: [ObjectPattern, Identifier]} => reports for non-destructured param only', () => {
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });
       const param1 = TsestreeStub({

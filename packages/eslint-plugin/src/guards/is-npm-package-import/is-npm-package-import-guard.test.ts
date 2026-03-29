@@ -21,23 +21,23 @@ describe('isNpmPackageImportGuard', () => {
     expect(isNpmPackageImportGuard({ importSource: 'lodash/get' })).toBe(true);
   });
 
-  it('INVALID_RELATIVE: {importSource: "./foo"} => returns false', () => {
+  it('INVALID: {importSource: "./foo"} => returns false', () => {
     expect(isNpmPackageImportGuard({ importSource: './foo' })).toBe(false);
   });
 
-  it('INVALID_RELATIVE: {importSource: "../bar"} => returns false', () => {
+  it('INVALID: {importSource: "../bar"} => returns false', () => {
     expect(isNpmPackageImportGuard({ importSource: '../bar' })).toBe(false);
   });
 
-  it('INVALID_RELATIVE: {importSource: "./utils/helper"} => returns false', () => {
+  it('INVALID: {importSource: "./utils/helper"} => returns false', () => {
     expect(isNpmPackageImportGuard({ importSource: './utils/helper' })).toBe(false);
   });
 
-  it('INVALID_RELATIVE: {importSource: "../../shared"} => returns false', () => {
+  it('INVALID: {importSource: "../../shared"} => returns false', () => {
     expect(isNpmPackageImportGuard({ importSource: '../../shared' })).toBe(false);
   });
 
-  it('INVALID_ABSOLUTE: {importSource: "/absolute/path"} => returns false', () => {
+  it('INVALID: {importSource: "/absolute/path"} => returns false', () => {
     expect(isNpmPackageImportGuard({ importSource: '/absolute/path' })).toBe(false);
   });
 

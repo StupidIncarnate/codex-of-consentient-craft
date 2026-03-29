@@ -5,9 +5,13 @@ describe('userPromptSubmitHookDataContract', () => {
   it('VALID: {default values} => parses successfully', () => {
     const result = UserPromptSubmitHookDataStub();
 
-    expect(result.hook_event_name).toBe('UserPromptSubmit');
-    expect(result.user_prompt).toBe('Test prompt');
-    expect(result.session_id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    expect(result).toStrictEqual({
+      hook_event_name: 'UserPromptSubmit',
+      user_prompt: 'Test prompt',
+      session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      transcript_path: '/tmp/transcript.jsonl',
+      cwd: result.cwd,
+    });
   });
 
   it('VALID: {custom prompt} => parses successfully', () => {

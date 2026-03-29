@@ -75,8 +75,11 @@ describe('post-edit-hook', () => {
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toMatch(stderrPattern);
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: expect.stringMatching(stderrPattern),
+      });
     });
   });
 
@@ -128,8 +131,11 @@ describe('post-edit-hook', () => {
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toMatch(stderrPattern);
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: expect.stringMatching(stderrPattern),
+      });
     });
   });
 
@@ -153,13 +159,16 @@ describe('post-edit-hook', () => {
         input: input as never,
       });
 
-      expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(stderrPattern);
+      expect(result).toStrictEqual({
+        status: 1,
+        stdout: '',
+        stderr: expect.stringMatching(stderrPattern),
+      });
     });
   });
 
   describe('auto-fix behavior', () => {
-    it('AUTOFIX: {content: multiple fixable violations} => auto-fixes all and writes to disk', async () => {
+    it('VALID: {content: multiple fixable violations} => auto-fixes all and writes to disk', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'autofix-multiple' }),
         baseDir: BASE_DIR,
@@ -201,9 +210,6 @@ return a&&b;
 
       testbed.cleanup();
 
-      // Hook should exit successfully
-      expect(result.exitCode).toBe(0);
-
       // Both functions should be auto-fixed
       const expectedFixedContent = `export const add = ({ a, b }: { a: boolean; b: boolean }): boolean => a || b;
 
@@ -212,11 +218,15 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
 
       expect(fileContentAfterHook).toStrictEqual(expectedFixedContent);
 
-      // Stderr should report success (no colocation errors for .info.ts)
-      expect(result.stderr).toMatch(/All violations auto-fixed successfully/iu);
+      // Hook should exit successfully with auto-fix success message
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*All violations auto-fixed successfully.*$/isu),
+      });
     });
 
-    it('NON_FIXABLE: {content: implementation without test} => reports colocation error', async () => {
+    it('EDGE: {content: implementation without test} => reports colocation error', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'non-fixable-colocation' }),
         baseDir: BASE_DIR,
@@ -260,16 +270,18 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
 
       testbed.cleanup();
 
-      // Hook should exit successfully (never blocks)
-      expect(result.exitCode).toBe(0);
-
       // File content should have only formatting fixes (prettier adds trailing newline)
       // Colocation violation is not auto-fixable
       expect(fileContentAfterHook).toStrictEqual(fileContent);
 
-      // Stderr should report colocation violation (non-fixable)
-      expect(result.stderr).toMatch(/must have a colocated test file/iu);
-      expect(result.stderr).toMatch(/Create example-broker.test.ts/iu);
+      // Hook should exit successfully (never blocks) but report colocation violation
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: expect.stringMatching(
+          /^.*must have a colocated test file.*Create example-broker\.test\.ts.*$/isu,
+        ),
+      });
     });
   });
 
@@ -311,10 +323,12 @@ function test(): void {
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toBe('');
-      // Post-edit hook may output auto-fix messages to stderr
-      expect(result.stderr).toMatch(/All violations auto-fixed successfully|^$/u);
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        // Post-edit hook may output auto-fix messages to stderr
+        stderr: expect.stringMatching(/^(?:.*All violations auto-fixed successfully.*|)$/su),
+      });
     });
 
     it('EDGE: {file_path: non-existent file} => returns exit code 0', async () => {
@@ -341,10 +355,14 @@ function test(): void {
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toBe('');
-      // Post-edit hook may output ESLint error about missing file
-      expect(result.stderr).toMatch(/ESLint error|All violations auto-fixed successfully|^$/u);
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        // Post-edit hook may output ESLint error about missing file
+        stderr: expect.stringMatching(
+          /^(?:.*ESLint error.*|.*All violations auto-fixed successfully.*|)$/su,
+        ),
+      });
     });
   });
 });

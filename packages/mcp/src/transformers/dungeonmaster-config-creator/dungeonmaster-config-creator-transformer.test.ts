@@ -20,11 +20,10 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
 
     const dungeonmasterConfig = Reflect.get(result, 'dungeonmaster');
 
-    expect(dungeonmasterConfig.type).toBe('stdio');
-    expect(dungeonmasterConfig.command).toBe('npx');
-    expect(dungeonmasterConfig.args).toStrictEqual([
-      'tsx',
-      'node_modules/@dungeonmaster/mcp/src/index.ts',
-    ]);
+    expect(dungeonmasterConfig).toStrictEqual({
+      type: 'stdio',
+      command: 'npx',
+      args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+    });
   });
 });

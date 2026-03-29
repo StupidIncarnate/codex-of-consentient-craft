@@ -8,8 +8,6 @@ describe('systemInitStreamLineContract', () => {
 
       const result = systemInitStreamLineContract.parse(streamLine);
 
-      expect(result.type).toBe('system');
-      expect(result.subtype).toBe('init');
       expect(result).toStrictEqual({
         type: 'system',
         subtype: 'init',
@@ -27,7 +25,7 @@ describe('systemInitStreamLineContract', () => {
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "user"} => throws validation error', () => {
+    it('INVALID: {type: "user"} => throws validation error', () => {
       expect(() => {
         systemInitStreamLineContract.parse({
           type: 'user',
@@ -37,7 +35,7 @@ describe('systemInitStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_SUBTYPE: {subtype: "close"} => throws validation error', () => {
+    it('INVALID: {subtype: "close"} => throws validation error', () => {
       expect(() => {
         systemInitStreamLineContract.parse({
           type: 'system',
@@ -47,7 +45,7 @@ describe('systemInitStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_MISSING: {missing session_id} => throws validation error', () => {
+    it('INVALID: {missing session_id} => throws validation error', () => {
       expect(() => {
         systemInitStreamLineContract.parse({
           type: 'system',

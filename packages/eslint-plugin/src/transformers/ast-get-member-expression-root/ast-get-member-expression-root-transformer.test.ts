@@ -86,13 +86,13 @@ describe('astGetMemberExpressionRootTransformer', () => {
     it('EMPTY: {} => returns null', () => {
       const result = astGetMemberExpressionRootTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {expr: undefined} => returns null', () => {
       const result = astGetMemberExpressionRootTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {expr: non-MemberExpression} => returns null', () => {
@@ -103,7 +103,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {expr: MemberExpression with Identifier root} => returns identifier name', () => {
@@ -130,7 +130,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {expr: MemberExpression with object undefined} => returns null', () => {
@@ -142,7 +142,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {expr: Identifier with no name} => returns null', () => {
@@ -154,7 +154,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

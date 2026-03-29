@@ -12,15 +12,13 @@ describe('itemWithIdContract', () => {
     it('VALID: {id: "test", _delete: true} => parses with delete flag', () => {
       const result = ItemWithIdStub({ id: 'test', _delete: true });
 
-      expect(result.id).toBe('test');
-      expect(result._delete).toBe(true);
+      expect(result).toStrictEqual({ id: 'test', _delete: true });
     });
 
     it('VALID: {id: "test", extra: "field"} => passes through extra properties', () => {
       const result = ItemWithIdStub({ id: 'test', name: 'extra' });
 
-      expect(result.id).toBe('test');
-      expect(result.name).toBe('extra');
+      expect(result).toStrictEqual({ id: 'test', name: 'extra' });
     });
   });
 

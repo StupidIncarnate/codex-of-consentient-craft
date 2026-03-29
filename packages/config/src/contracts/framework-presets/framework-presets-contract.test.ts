@@ -42,12 +42,12 @@ describe('frameworkPresetsContract', () => {
 
       const result = frameworkPresetsContract.parse(preset);
 
-      expect(result.widgets).toBeNull();
+      expect(result.widgets).toBe(null);
     });
   });
 
   describe('invalid framework preset', () => {
-    it('INVALID_STRUCTURE: missing required properties => throws validation error', () => {
+    it('INVALID: missing required properties => throws validation error', () => {
       expect(() => {
         return frameworkPresetsContract.parse({
           widgets: [],
@@ -55,7 +55,7 @@ describe('frameworkPresetsContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_TYPE: widgets not array or null => throws validation error', () => {
+    it('INVALID: widgets not array or null => throws validation error', () => {
       expect(() => {
         return frameworkPresetsContract.parse({
           ...FrameworkPresetStub(),
@@ -64,7 +64,7 @@ describe('frameworkPresetsContract', () => {
       }).toThrow(/Expected/u);
     });
 
-    it('INVALID_TYPE: adapters not array => throws validation error', () => {
+    it('INVALID: adapters not array => throws validation error', () => {
       expect(() => {
         return frameworkPresetsContract.parse({
           ...FrameworkPresetStub(),

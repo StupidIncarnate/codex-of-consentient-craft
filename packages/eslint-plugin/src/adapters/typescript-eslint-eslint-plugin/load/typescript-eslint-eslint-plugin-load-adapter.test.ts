@@ -7,6 +7,6 @@ describe('typescriptEslintEslintPluginLoadAdapter', () => {
 
     const result = typescriptEslintEslintPluginLoadAdapter();
 
-    expect(typeof result.rules).toBe('object');
+    expect('array-type' in (result.rules as object)).toBe(true);
   });
 });

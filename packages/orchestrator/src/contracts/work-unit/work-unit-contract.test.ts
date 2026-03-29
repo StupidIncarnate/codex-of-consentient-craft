@@ -182,6 +182,32 @@ describe('workUnitContract', () => {
       });
     });
 
+    it('VALID: {spiritmender with verificationCommand} => parses with verificationCommand', () => {
+      const filePaths = [AbsoluteFilePathStub({ value: '/src/file.ts' })];
+
+      const result = workUnitContract.parse({
+        role: 'spiritmender',
+        filePaths,
+        verificationCommand: 'npm run build --workspace=@dungeonmaster/shared',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'spiritmender',
+        filePaths,
+        verificationCommand: 'npm run build --workspace=@dungeonmaster/shared',
+      });
+    });
+
+    it('INVALID: {spiritmender with empty verificationCommand} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths: [AbsoluteFilePathStub({ value: '/src/file.ts' })],
+          verificationCommand: '',
+        }),
+      ).toThrow(/too_small/u);
+    });
+
     it('EDGE: {spiritmender with empty errors array} => parses successfully', () => {
       const result = workUnitContract.parse({
         role: 'spiritmender',
@@ -278,6 +304,37 @@ describe('workUnitContract', () => {
       });
     });
 
+    it('VALID: {siegemaster with devServerUrl} => parses with devServerUrl', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'siegemaster',
+        questId,
+        relatedObservables: [],
+        devServerUrl: 'http://localhost:3000',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'siegemaster',
+        questId,
+        relatedDesignDecisions: [],
+        relatedFlows: [],
+        relatedObservables: [],
+        devServerUrl: 'http://localhost:3000',
+      });
+    });
+
+    it('INVALID: {siegemaster with invalid devServerUrl} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'siegemaster',
+          questId: QuestIdStub({ value: 'add-auth' }),
+          relatedObservables: [],
+          devServerUrl: 'not-a-url',
+        }),
+      ).toThrow(/invalid_string/u);
+    });
+
     it('EDGE: {siegemaster with empty relatedObservables} => parses successfully', () => {
       const result = workUnitContract.parse({
         role: 'siegemaster',
@@ -305,7 +362,7 @@ describe('workUnitContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_ROLE: {lawbringer fields with codeweaver step} => throws validation error', () => {
+    it('INVALID: {lawbringer fields with codeweaver step} => throws validation error', () => {
       expect(() =>
         workUnitContract.parse({
           role: 'lawbringer',

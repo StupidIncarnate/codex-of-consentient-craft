@@ -19,10 +19,10 @@ describe('MermaidDiagramWidget', () => {
       mantineRenderAdapter({ ui: <MermaidDiagramWidget diagram={diagram} /> });
 
       await waitFor(() => {
-        expect(screen.getByText('rendered')).toBeInTheDocument();
+        expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
       });
 
-      expect(screen.getByText('rendered')).toBeInTheDocument();
+      expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
     });
   });
 
@@ -81,13 +81,15 @@ describe('MermaidDiagramWidget', () => {
         expect(screen.getByTestId('FULLSCREEN_BUTTON')).toBeInTheDocument();
       });
 
-      const container = screen.getByTestId('MERMAID_CONTAINER');
+      const containerBefore = screen.getByTestId('MERMAID_CONTAINER');
 
-      expect(container.style.maxHeight).toBe('400px');
+      expect(containerBefore.style.maxHeight).toBe('400px');
 
       await user.click(screen.getByTestId('FULLSCREEN_BUTTON'));
 
-      expect(container.style.maxHeight).toBe('');
+      const containerAfter = screen.getByTestId('MERMAID_CONTAINER');
+
+      expect(containerAfter.style.maxHeight).toBe('');
     });
 
     it('VALID: {fullscreen clicked twice} => restores max height constraint', async () => {

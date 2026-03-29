@@ -23,25 +23,25 @@ describe('slotCountContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: -1} => throws for negative number', () => {
+    it('INVALID: {value: -1} => throws for negative number', () => {
       expect(() => slotCountContract.parse(-1)).toThrow(
         /Number must be greater than or equal to 0/u,
       );
     });
 
-    it('INVALID_VALUE: {value: 1.5} => throws for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws for non-integer', () => {
       expect(() => slotCountContract.parse(1.5)).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_VALUE: {value: "0"} => throws for string', () => {
+    it('INVALID: {value: "0"} => throws for string', () => {
       expect(() => slotCountContract.parse('0')).toThrow(/Expected number/u);
     });
 
-    it('INVALID_VALUE: {value: null} => throws for null', () => {
+    it('INVALID: {value: null} => throws for null', () => {
       expect(() => slotCountContract.parse(null)).toThrow(/Expected number/u);
     });
 
-    it('INVALID_VALUE: {value: undefined} => throws for undefined', () => {
+    it('INVALID: {value: undefined} => throws for undefined', () => {
       expect(() => slotCountContract.parse(undefined)).toThrow(/Required/u);
     });
   });

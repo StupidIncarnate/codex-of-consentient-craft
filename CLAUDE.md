@@ -118,3 +118,26 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 - **Start dev server**: `npm run dev`
 - **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
   invocation patterns.
+
+## Ward Invocation Rules (MANDATORY)
+
+**Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
+
+1. **NEVER `cd` into a package to run ward.** Ward runs from the repo root. To scope to a package, pass paths after
+   `--`:
+   ```bash
+   # ✅ CORRECT
+   npm run ward -- --only unit -- packages/orchestrator
+   # ❌ WRONG - do not cd into the package
+   cd packages/orchestrator && npm run ward
+   ```
+
+2. **NEVER sleep-poll for results.** If you need to wait for a long-running command, use `run_in_background: true` on
+   the Bash tool and wait for the notification. Do NOT use `sleep N && cat` loops to check output files.
+
+3. **Run ward ONCE, not redundantly.** Pick the right flags and run it once. Do not run the same checks multiple ways
+   (e.g., `--onlyTests "name"` AND `-- path/to/file.test.ts` separately). Do not run scoped ward per-package and then
+   full ward again.
+
+4. **Always use `timeout: 600000`** on all ward Bash calls. Ward takes 3-4 minutes across the monorepo; the default
+   2-minute timeout kills it.

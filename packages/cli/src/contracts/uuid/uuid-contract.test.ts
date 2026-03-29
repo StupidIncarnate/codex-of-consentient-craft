@@ -23,21 +23,21 @@ describe('uuidContract', () => {
   });
 
   describe('invalid UUIDs', () => {
-    it('INVALID_UUID: {empty string} => throws validation error', () => {
+    it('INVALID: {empty string} => throws validation error', () => {
       expect(() => uuidContract.parse('')).toThrow(/invalid uuid/iu);
     });
 
-    it('INVALID_UUID: {non-UUID string} => throws validation error', () => {
+    it('INVALID: {non-UUID string} => throws validation error', () => {
       expect(() => uuidContract.parse('not-a-uuid')).toThrow(/invalid uuid/iu);
     });
 
-    it('INVALID_UUID: {UUID without hyphens} => throws validation error', () => {
+    it('INVALID: {UUID without hyphens} => throws validation error', () => {
       expect(() => uuidContract.parse('f47ac10b58cc4372a5670e02b2c3d479')).toThrow(
         /invalid uuid/iu,
       );
     });
 
-    it('INVALID_UUID: {partial UUID} => throws validation error', () => {
+    it('INVALID: {partial UUID} => throws validation error', () => {
       expect(() => uuidContract.parse('f47ac10b-58cc-4372')).toThrow(/invalid uuid/iu);
     });
   });

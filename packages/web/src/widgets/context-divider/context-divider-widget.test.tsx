@@ -25,7 +25,7 @@ describe('ContextDividerWidget', () => {
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
-      expect(divider.textContent).toMatch(/^25\.5k context$/u);
+      expect(divider.textContent).toBe('25.5k context');
     });
 
     it('VALID: {contextTokens: 25500, delta: 2100, source: session} => shows delta with plus', () => {
@@ -43,7 +43,7 @@ describe('ContextDividerWidget', () => {
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
-      expect(divider.textContent).toMatch(/^25\.5k context \(\+2\.1k\)$/u);
+      expect(divider.textContent).toBe('25.5k context (+2.1k)');
     });
 
     it('VALID: {contextTokens: 26116, delta: -3682, source: session} => shows delta with minus', () => {
@@ -61,7 +61,7 @@ describe('ContextDividerWidget', () => {
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
-      expect(divider.textContent).toMatch(/^26\.1k context \(-3\.7k\)$/u);
+      expect(divider.textContent).toBe('26.1k context (-3.7k)');
     });
   });
 
@@ -81,7 +81,7 @@ describe('ContextDividerWidget', () => {
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
-      expect(divider.textContent).toMatch(/^10\.0k sub-agent context$/u);
+      expect(divider.textContent).toBe('10.0k sub-agent context');
     });
   });
 
@@ -101,7 +101,7 @@ describe('ContextDividerWidget', () => {
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
 
-      expect(divider.textContent).toMatch(/^500 context$/u);
+      expect(divider.textContent).toBe('500 context');
     });
   });
 });

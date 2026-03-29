@@ -15,13 +15,13 @@ describe('getQuestStatusInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_PROCESS_ID: {processId: empty string} => throws validation error', () => {
+    it('INVALID: {processId: empty string} => throws validation error', () => {
       expect(() => {
         getQuestStatusInputContract.parse({ processId: '' });
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_PROCESS_ID: {processId: missing} => throws validation error', () => {
+    it('INVALID: {processId: missing} => throws validation error', () => {
       expect(() => {
         getQuestStatusInputContract.parse({});
       }).toThrow(/Required/u);

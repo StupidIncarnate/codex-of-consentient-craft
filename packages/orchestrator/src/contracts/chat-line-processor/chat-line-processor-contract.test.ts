@@ -8,12 +8,12 @@ describe('chatLineProcessorContract', () => {
 
       const result = chatLineProcessorContract.parse(processor);
 
-      expect(typeof result.processLine).toBe('function');
+      expect(result.processLine).toStrictEqual(expect.any(Function));
     });
   });
 
   describe('invalid processor', () => {
-    it('INVALID_PROCESS_LINE: {processLine: "not a function"} => throws validation error', () => {
+    it('INVALID: {processLine: "not a function"} => throws validation error', () => {
       expect(() => chatLineProcessorContract.parse({ processLine: 'not a function' })).toThrow(
         /Expected function/u,
       );

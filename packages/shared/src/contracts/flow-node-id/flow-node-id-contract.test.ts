@@ -35,37 +35,37 @@ describe('flowNodeIdContract', () => {
   });
 
   describe('invalid node IDs', () => {
-    it('INVALID_ID: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('');
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_ID: {value: "View-List"} => uppercase throws validation error', () => {
+    it('INVALID: {value: "View-List"} => uppercase throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('View-List');
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_ID: {value: "-start"} => leading hyphen throws validation error', () => {
+    it('INVALID: {value: "-start"} => leading hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('-start');
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_ID: {value: "start-"} => trailing hyphen throws validation error', () => {
+    it('INVALID: {value: "start-"} => trailing hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('start-');
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_ID: {value: "1start"} => leading digit throws validation error', () => {
+    it('INVALID: {value: "1start"} => leading digit throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('1start');
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_ID: {value: "start--end"} => double hyphen throws validation error', () => {
+    it('INVALID: {value: "start--end"} => double hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('start--end');
       }).toThrow(/invalid_string/u);

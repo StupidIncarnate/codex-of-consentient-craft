@@ -25,7 +25,7 @@ describe('typescriptSourceFileGetterAdapter', () => {
   });
 
   describe('file not in program', () => {
-    it('FALLBACK: {program without file, file exists on disk} => parses directly', () => {
+    it('EDGE: {program without file, file exists on disk} => parses directly', () => {
       typescriptSourceFileGetterAdapterProxy();
 
       // Create an empty program that doesn't include any files
@@ -57,7 +57,7 @@ describe('typescriptSourceFileGetterAdapter', () => {
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

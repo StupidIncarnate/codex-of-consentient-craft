@@ -29,19 +29,19 @@ describe('sessionIdContract', () => {
   });
 
   describe('invalid session IDs', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => sessionIdContract.parse('')).toThrow(/too_small/u);
     });
 
-    it('INVALID_VALUE: {value: null} => throws for null', () => {
+    it('INVALID: {value: null} => throws for null', () => {
       expect(() => sessionIdContract.parse(null as never)).toThrow(/invalid_type/u);
     });
 
-    it('INVALID_VALUE: {value: undefined} => throws for undefined', () => {
+    it('INVALID: {value: undefined} => throws for undefined', () => {
       expect(() => sessionIdContract.parse(undefined as never)).toThrow(/invalid_type/u);
     });
 
-    it('INVALID_VALUE: {value: 123} => throws for number', () => {
+    it('INVALID: {value: 123} => throws for number', () => {
       expect(() => sessionIdContract.parse(123 as never)).toThrow(/invalid_type/u);
     });
   });

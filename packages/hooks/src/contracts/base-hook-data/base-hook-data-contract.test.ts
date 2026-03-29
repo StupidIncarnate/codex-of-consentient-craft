@@ -31,7 +31,7 @@ describe('baseHookDataContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_SESSION_ID: {session_id: number} => throws validation error', () => {
+    it('INVALID: {session_id: number} => throws validation error', () => {
       expect(() => {
         return baseHookDataContract.parse({
           session_id: 123 as never,
@@ -42,7 +42,7 @@ describe('baseHookDataContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MISSING_CWD: {missing cwd} => throws validation error', () => {
+    it('INVALID: {missing cwd} => throws validation error', () => {
       expect(() => {
         return baseHookDataContract.parse({
           session_id: 'test',

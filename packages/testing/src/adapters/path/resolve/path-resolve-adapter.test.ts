@@ -24,7 +24,7 @@ describe('pathResolveAdapter', () => {
 
       const result = pathResolveAdapter({ paths: ['.'] });
 
-      expect(result).toMatch(/\//u);
+      expect(result).toMatch(/^\//u);
     });
   });
 
@@ -34,7 +34,7 @@ describe('pathResolveAdapter', () => {
 
       const result = pathResolveAdapter({ paths: [] });
 
-      expect(result).toMatch(/\//u);
+      expect(result).toMatch(/^\//u);
     });
 
     it('EDGE: {paths: ["/absolute"]} => returns absolute path unchanged', () => {

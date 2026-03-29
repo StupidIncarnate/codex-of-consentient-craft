@@ -28,7 +28,7 @@ You are a helpful assistant.
     expect(prompt).toBe(multilinePrompt);
   });
 
-  it('INVALID_PROMPT: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return promptTextContract.parse('');
     }).toThrow(/String must contain at least 1 character/u);

@@ -21,7 +21,7 @@ describe('mswRequestIdContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_TYPE: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return mswRequestIdContract.parse(123 as never);
       }).toThrow(/Expected string/u);

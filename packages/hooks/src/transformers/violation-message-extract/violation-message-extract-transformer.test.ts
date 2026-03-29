@@ -15,8 +15,8 @@ describe('violationMessageExtractTransformer', () => {
       hookData: testHookData,
     });
 
-    expect(message).toMatch(/type "any"/u);
-    expect(message).toMatch(/type safety/u);
+    expect(message).toContain('type "any"');
+    expect(message).toContain('type safety');
   });
 
   it('VALID: {displayConfig: {message: "custom"}, ruleId, hookData} => returns custom string', () => {

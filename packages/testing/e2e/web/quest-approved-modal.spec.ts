@@ -22,7 +22,7 @@ test.describe('Quest Approved Modal', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('modal appears when quest transitions to approved status via WS', async ({
+  test('VALID: modal appears when quest transitions to approved status via WS', async ({
     page,
     request,
   }) => {
@@ -50,7 +50,7 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByText('Start a new Quest')).toBeVisible();
   });
 
-  test('modal appears when quest transitions to design_approved status via WS', async ({
+  test('VALID: modal appears when quest transitions to design_approved status via WS', async ({
     page,
     request,
   }) => {
@@ -74,7 +74,10 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('clicking Begin Quest sends POST to quest start endpoint', async ({ page, request }) => {
+  test('VALID: clicking Begin Quest sends POST to quest start endpoint', async ({
+    page,
+    request,
+  }) => {
     const sessionId = `e2e-begin-quest-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
@@ -112,7 +115,7 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('clicking Keep Chatting sends PATCH to revert quest to review status', async ({
+  test('EDGE: clicking Keep Chatting sends PATCH to revert quest to review status', async ({
     page,
     request,
   }) => {
@@ -157,7 +160,7 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('clicking Keep Chatting on design_approved reverts to explore_design', async ({
+  test('EDGE: clicking Keep Chatting on design_approved reverts to explore_design', async ({
     page,
     request,
   }) => {
@@ -193,7 +196,10 @@ test.describe('Quest Approved Modal', () => {
     expect(body).toHaveProperty('status', 'explore_design');
   });
 
-  test('clicking Start a new Quest navigates to /:guildSlug/session', async ({ page, request }) => {
+  test('VALID: clicking Start a new Quest navigates to /:guildSlug/session', async ({
+    page,
+    request,
+  }) => {
     const sessionId = `e2e-new-quest-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
@@ -222,7 +228,10 @@ test.describe('Quest Approved Modal', () => {
     expect(page.url()).not.toContain(sessionId);
   });
 
-  test('modal does not appear for non-approved status transitions', async ({ page, request }) => {
+  test('VALID: modal does not appear for non-approved status transitions', async ({
+    page,
+    request,
+  }) => {
     const sessionId = `e2e-no-modal-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
@@ -245,7 +254,7 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('Begin Quest transitions to execution view when quest reaches in_progress', async ({
+  test('VALID: Begin Quest transitions to execution view when quest reaches in_progress', async ({
     page,
     request,
   }) => {

@@ -12,11 +12,12 @@ describe('HookSessionStartResponder', () => {
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/\[NEW SESSION\]/u);
-      expect(result.content).toMatch(/<dungeonmaster-architecture>/u);
-      expect(result.content).toMatch(/# Architecture Overview/u);
-      expect(result.content).toMatch(/Use MCP tools/u);
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(
+          /^.*<dungeonmaster-architecture>.*\[NEW SESSION\].*# Architecture Overview.*Use MCP tools.*$/su,
+        ),
+      });
     });
 
     it('VALID: {isNew: true} => includes folder types table', async () => {
@@ -27,9 +28,12 @@ describe('HookSessionStartResponder', () => {
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/## Folder Types/u);
-      expect(result.content).toMatch(/\| Folder \| Purpose \| Depth \| When to Use \|/u);
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(
+          /^.*## Folder Types.*\| Folder \| Purpose \| Depth \| When to Use \|.*$/su,
+        ),
+      });
     });
   });
 
@@ -58,9 +62,10 @@ describe('HookSessionStartResponder', () => {
 
       delete process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS;
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/\[RESUMED SESSION\]/u);
-      expect(result.content).toMatch(/# Architecture Overview/u);
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(/^.*\[RESUMED SESSION\].*# Architecture Overview.*$/su),
+      });
     });
   });
 
@@ -76,8 +81,10 @@ describe('HookSessionStartResponder', () => {
 
       delete process.env.DUNGEONMASTER_ALWAYS_LOAD_STANDARDS;
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/# Architecture Overview/u);
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(/^.*# Architecture Overview.*$/su),
+      });
     });
 
     it('VALID: {isNew: false, ALWAYS_LOAD: "false"} => returns {shouldOutput: false}', async () => {
@@ -106,13 +113,12 @@ describe('HookSessionStartResponder', () => {
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/<dungeonmaster-architecture>/u);
-      expect(result.content).toMatch(/<\/dungeonmaster-architecture>/u);
-      expect(result.content).toMatch(/# Architecture Overview/u);
-      expect(result.content).toMatch(
-        /Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\)/u,
-      );
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(
+          /^.*<dungeonmaster-architecture>.*# Architecture Overview.*Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\).*<\/dungeonmaster-architecture>.*$/su,
+        ),
+      });
     });
 
     it('VALID: output includes critical rules section', async () => {
@@ -123,9 +129,10 @@ describe('HookSessionStartResponder', () => {
 
       const result = await HookSessionStartResponder({ input: hookData });
 
-      expect(result.shouldOutput).toBe(true);
-      expect(result.content).toMatch(/## Critical Rules Summary/u);
-      expect(result.content).toMatch(/Never do these things/u);
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(/^.*## Critical Rules Summary.*Never do these things.*$/su),
+      });
     });
   });
 });

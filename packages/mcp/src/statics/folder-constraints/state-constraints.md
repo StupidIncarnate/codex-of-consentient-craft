@@ -292,7 +292,7 @@ describe('userCacheState', () => {
 
       const result = userCacheState.get({id: userId});
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {delete existing} => returns true and removes from cache', () => {
@@ -305,7 +305,7 @@ describe('userCacheState', () => {
       const result = userCacheState.get({id: userId});
 
       expect(deleted).toBe(true);
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 

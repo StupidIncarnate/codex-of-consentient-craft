@@ -6,7 +6,7 @@ describe('playwrightTestInfoAttachAdapter', () => {
     it('VALID: {adapter} => is a function', () => {
       playwrightTestInfoAttachAdapterProxy();
 
-      expect(typeof playwrightTestInfoAttachAdapter).toBe('function');
+      expect(playwrightTestInfoAttachAdapter).toStrictEqual(expect.any(Function));
     });
   });
 });

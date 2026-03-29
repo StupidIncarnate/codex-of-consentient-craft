@@ -15,13 +15,13 @@ describe('startQuestInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: empty string} => throws validation error', () => {
+    it('INVALID: {questId: empty string} => throws validation error', () => {
       expect(() => {
         startQuestInputContract.parse({ questId: '' });
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_QUEST_ID: {questId: missing} => throws validation error', () => {
+    it('INVALID: {questId: missing} => throws validation error', () => {
       expect(() => {
         startQuestInputContract.parse({});
       }).toThrow(/Required/u);

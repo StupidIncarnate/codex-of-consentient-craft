@@ -237,7 +237,7 @@ describe('metadataExtractorTransformer', () => {
 
       const result = metadataExtractorTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing USAGE} => returns null', () => {
@@ -247,7 +247,7 @@ describe('metadataExtractorTransformer', () => {
 
       const result = metadataExtractorTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty PURPOSE} => returns null', () => {
@@ -258,7 +258,7 @@ describe('metadataExtractorTransformer', () => {
 
       const result = metadataExtractorTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty USAGE} => returns null', () => {
@@ -269,7 +269,7 @@ describe('metadataExtractorTransformer', () => {
 
       const result = metadataExtractorTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {comment without metadata fields} => returns null', () => {
@@ -279,7 +279,7 @@ describe('metadataExtractorTransformer', () => {
 
       const result = metadataExtractorTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 

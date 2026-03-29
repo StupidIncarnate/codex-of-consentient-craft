@@ -83,7 +83,7 @@ describe('OrchestrationFlow', () => {
 
       testbed.cleanup();
 
-      expect(typeof addResult.questId).toBe('string');
+      expect(addResult.questId).toStrictEqual(expect.any(String));
     });
 
     it('VALID: {approved quest} => start returns processId and getStatus returns idle orchestration status', async () => {
@@ -245,7 +245,7 @@ describe('OrchestrationFlow', () => {
 
       expect(postStartQuest.quest!.status).toBe('in_progress');
       expect(postChaos?.status).toBe('complete');
-      expect(typeof postChaos?.completedAt).toBe('string');
+      expect(postChaos?.completedAt).toStrictEqual(expect.any(String));
       expect(postPathseeker?.role).toBe('pathseeker');
       expect(postPathseeker?.dependsOn).toStrictEqual([postChaos?.id]);
     });
@@ -354,7 +354,7 @@ describe('OrchestrationFlow', () => {
       const chaos = quest.workItems.find((wi) => wi.role === 'chaoswhisperer');
 
       expect(chaos?.status).toBe('complete');
-      expect(typeof chaos?.completedAt).toBe('string');
+      expect(chaos?.completedAt).toStrictEqual(expect.any(String));
 
       const ps = quest.workItems.find((wi) => wi.role === 'pathseeker');
 
@@ -502,9 +502,9 @@ describe('OrchestrationFlow', () => {
       const ps = result.workItems.find((wi) => wi.role === 'pathseeker');
 
       expect(chaos?.status).toBe('complete');
-      expect(typeof chaos?.completedAt).toBe('string');
+      expect(chaos?.completedAt).toStrictEqual(expect.any(String));
       expect(glyph?.status).toBe('complete');
-      expect(typeof glyph?.completedAt).toBe('string');
+      expect(glyph?.completedAt).toStrictEqual(expect.any(String));
       expect(ps?.status).toBe('complete');
       expect(ps?.dependsOn).toStrictEqual([chaos?.id, glyph?.id]);
     });
@@ -1404,6 +1404,7 @@ describe('OrchestrationFlow', () => {
       const cwItems = workItems.filter((wi) => wi.role === 'codeweaver');
       const wardItems = workItems.filter((wi) => wi.role === 'ward');
       const siegeItem = workItems.find((wi) => wi.role === 'siegemaster')!;
+      const { id: siegeId, dependsOn: siegeDependsOn, sessionId: siegeSessionId } = siegeItem;
       const lbItems = workItems.filter((wi) => wi.role === 'lawbringer');
 
       // Dependency chain: pathseeker depends on chaos
@@ -1419,11 +1420,11 @@ describe('OrchestrationFlow', () => {
       expect(wardItems[0]!.dependsOn).toStrictEqual(cwIds);
 
       // Siege depends on ward
-      expect(siegeItem.dependsOn).toStrictEqual([wardItems[0]!.id]);
+      expect(siegeDependsOn).toStrictEqual([wardItems[0]!.id]);
 
       // Each lawbringer depends on siege
-      expect(lbItems[0]!.dependsOn).toStrictEqual([siegeItem.id]);
-      expect(lbItems[1]!.dependsOn).toStrictEqual([siegeItem.id]);
+      expect(lbItems[0]!.dependsOn).toStrictEqual([siegeId]);
+      expect(lbItems[1]!.dependsOn).toStrictEqual([siegeId]);
 
       // Final ward depends on ALL lawbringer IDs
       const lbIds = lbItems.map((wi) => wi.id);
@@ -1435,19 +1436,21 @@ describe('OrchestrationFlow', () => {
       expect(wardItems[1]!.wardMode).toBe('full');
 
       // Session IDs persisted on all agent work items
-      expect(typeof psItem.sessionId).toBe('string');
-      expect(typeof cwItems[0]!.sessionId).toBe('string');
-      expect(typeof cwItems[1]!.sessionId).toBe('string');
-      expect(typeof siegeItem.sessionId).toBe('string');
-      expect(typeof lbItems[0]!.sessionId).toBe('string');
-      expect(typeof lbItems[1]!.sessionId).toBe('string');
+      const { sessionId: psSessionId, startedAt: psStartedAt, completedAt: psCompletedAt } = psItem;
+
+      expect(psSessionId).toStrictEqual(expect.any(String));
+      expect(cwItems[0]!.sessionId).toStrictEqual(expect.any(String));
+      expect(cwItems[1]!.sessionId).toStrictEqual(expect.any(String));
+      expect(siegeSessionId).toStrictEqual(expect.any(String));
+      expect(lbItems[0]!.sessionId).toStrictEqual(expect.any(String));
+      expect(lbItems[1]!.sessionId).toStrictEqual(expect.any(String));
       // Ward items get synthetic session IDs
-      expect(typeof wardItems[0]!.sessionId).toBe('string');
-      expect(typeof wardItems[1]!.sessionId).toBe('string');
+      expect(wardItems[0]!.sessionId).toStrictEqual(expect.any(String));
+      expect(wardItems[1]!.sessionId).toStrictEqual(expect.any(String));
 
       // All items have timestamps
-      expect(typeof psItem.startedAt).toBe('string');
-      expect(typeof psItem.completedAt).toBe('string');
+      expect(psStartedAt).toStrictEqual(expect.any(String));
+      expect(psCompletedAt).toStrictEqual(expect.any(String));
     });
 
     it('VALID: {happy path, 2 steps} => spawned items have correct shapes: relatedDataItems, spawnerType, maxAttempts, wardMode', async () => {
@@ -1513,24 +1516,39 @@ describe('OrchestrationFlow', () => {
       const lbItems = workItems.filter((wi) => wi.role === 'lawbringer');
 
       // Codeweavers have relatedDataItems pointing to their step
-      for (const cw of cwItems) {
-        expect(cw.relatedDataItems[0]).toMatch(/^steps\//u);
-        expect(cw.spawnerType).toBe('agent');
+      const cwShapes = cwItems.map((cw) => ({
+        spawnerType: cw.spawnerType,
+        firstRelated: cw.relatedDataItems[0],
+      }));
+
+      for (const shape of cwShapes) {
+        expect(shape).toStrictEqual({
+          spawnerType: 'agent',
+          firstRelated: expect.stringMatching(/^steps\//u),
+        });
       }
 
       // First ward (changed mode)
       const changedWard = wardItems.find((wi) => wi.wardMode === 'changed');
+      const { spawnerType: changedSpawner, maxAttempts: changedMax } = changedWard!;
 
-      expect(changedWard?.spawnerType).toBe('command');
-      expect(changedWard?.maxAttempts).toBe(3);
+      expect(changedSpawner).toBe('command');
+      expect(changedMax).toBe(3);
 
       // Siege
       expect(siegeItems[0]?.spawnerType).toBe('agent');
 
       // Lawbringers have relatedDataItems pointing to their step
-      for (const lb of lbItems) {
-        expect(lb.relatedDataItems[0]).toMatch(/^steps\//u);
-        expect(lb.spawnerType).toBe('agent');
+      const lbShapes = lbItems.map((lb) => ({
+        spawnerType: lb.spawnerType,
+        firstRelated: lb.relatedDataItems[0],
+      }));
+
+      for (const shape of lbShapes) {
+        expect(shape).toStrictEqual({
+          spawnerType: 'agent',
+          firstRelated: expect.stringMatching(/^steps\//u),
+        });
       }
 
       // Final ward (full mode)
@@ -2617,8 +2635,10 @@ describe('OrchestrationFlow', () => {
       const completedChangedWards = completedWards.filter((wi) => wi.wardMode === 'changed');
 
       // Siege dependsOn rewired to ward-retry ID (NOT the failed ward)
-      expect(siegeItem.dependsOn).toStrictEqual([completedChangedWards[0]!.id]);
-      expect(siegeItem.dependsOn).not.toStrictEqual([failedWard.id]);
+      const { dependsOn: siegeDeps } = siegeItem;
+
+      expect(siegeDeps).toStrictEqual([completedChangedWards[0]!.id]);
+      expect(siegeDeps).not.toStrictEqual([failedWard.id]);
 
       // wardResult persisted on quest (one per ward run — all 3 wards write results)
       expect(quest.wardResults.map(() => 'result')).toStrictEqual(['result', 'result', 'result']);
@@ -2930,7 +2950,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(pathseekerEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(pathseekerEvents[0])).toBe('string');
+      expect(getEntryRaw(pathseekerEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(pathseekerEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(pathseekerEvents[0])).toBe(pathseekerItem.sessionId);
 
@@ -2944,7 +2964,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(cw0Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(cw0Events[0])).toBe('string');
+      expect(getEntryRaw(cw0Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(cw0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw0Events[0])).toBe(codeweaverItems[0]!.sessionId);
 
@@ -2953,7 +2973,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(cw1Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(cw1Events[0])).toBe('string');
+      expect(getEntryRaw(cw1Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(cw1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw1Events[0])).toBe(codeweaverItems[1]!.sessionId);
 
@@ -2962,14 +2982,14 @@ describe('OrchestrationFlow', () => {
       const ward0Events = sub.captured.filter((e) => getSessionId(e) === wardItems[0]!.sessionId);
 
       expect(ward0Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(ward0Events[0])).toBe('string');
+      expect(getEntryRaw(ward0Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(ward0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(ward0Events[0])).toBe(wardItems[0]!.sessionId);
 
       const ward1Events = sub.captured.filter((e) => getSessionId(e) === wardItems[1]!.sessionId);
 
       expect(ward1Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(ward1Events[0])).toBe('string');
+      expect(getEntryRaw(ward1Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(ward1Events[0])).length).toBeGreaterThan(0);
 
       // Siegemaster events
@@ -2977,7 +2997,7 @@ describe('OrchestrationFlow', () => {
       const siegeEvents = sub.captured.filter((e) => getSessionId(e) === siegeItem.sessionId);
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(siegeEvents[0])).toBe('string');
+      expect(getEntryRaw(siegeEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(siegeItem.sessionId);
 
@@ -2991,7 +3011,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(lb0Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(lb0Events[0])).toBe('string');
+      expect(getEntryRaw(lb0Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(lb0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb0Events[0])).toBe(lawbringerItems[0]!.sessionId);
 
@@ -3000,7 +3020,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(lb1Events.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(lb1Events[0])).toBe('string');
+      expect(getEntryRaw(lb1Events[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(lb1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb1Events[0])).toBe(lawbringerItems[1]!.sessionId);
 
@@ -3071,7 +3091,7 @@ describe('OrchestrationFlow', () => {
       const failedWardEvents = sub.captured.filter((e) => getSessionId(e) === failedWard.sessionId);
 
       expect(failedWardEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(failedWardEvents[0])).toBe('string');
+      expect(getEntryRaw(failedWardEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(failedWardEvents[0])).length).toBeGreaterThan(0);
 
       // Spiritmender events
@@ -3084,7 +3104,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(smEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(smEvents[0])).toBe('string');
+      expect(getEntryRaw(smEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(smEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(smEvents[0])).toBe(spiritmenderItems[0]!.sessionId);
 
@@ -3098,7 +3118,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(retryEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(retryEvents[0])).toBe('string');
+      expect(getEntryRaw(retryEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(retryEvents[0])).length).toBeGreaterThan(0);
     });
 
@@ -3158,7 +3178,7 @@ describe('OrchestrationFlow', () => {
       const siegeEvents = sub.captured.filter((e) => getSessionId(e) === failedSiege.sessionId);
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(siegeEvents[0])).toBe('string');
+      expect(getEntryRaw(siegeEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(failedSiege.sessionId);
 
@@ -3174,7 +3194,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(replanEvents.length).toBeGreaterThanOrEqual(1);
-      expect(typeof getEntryRaw(replanEvents[0])).toBe('string');
+      expect(getEntryRaw(replanEvents[0])).toStrictEqual(expect.any(String));
       expect(String(getEntryRaw(replanEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(replanEvents[0])).toBe(replanPathseeker.sessionId);
     });

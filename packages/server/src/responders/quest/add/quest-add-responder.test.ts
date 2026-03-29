@@ -22,7 +22,7 @@ describe('QuestAddResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({ body: null });
@@ -33,7 +33,7 @@ describe('QuestAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object body} => returns 400 with error', async () => {
+    it('INVALID: {non-object body} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({ body: 'not-an-object' });
@@ -44,7 +44,7 @@ describe('QuestAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing title and userRequest} => returns 400 with error', async () => {
+    it('INVALID: {missing title and userRequest} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({ body: {} });
@@ -55,7 +55,7 @@ describe('QuestAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {title is number} => returns 400 with error', async () => {
+    it('INVALID: {title is number} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({ body: { title: 123, userRequest: 'Do X' } });
@@ -66,7 +66,7 @@ describe('QuestAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({
@@ -79,7 +79,7 @@ describe('QuestAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {guildId is number} => returns 400 with error', async () => {
+    it('INVALID: {guildId is number} => returns 400 with error', async () => {
       const proxy = QuestAddResponderProxy();
 
       const result = await proxy.callResponder({

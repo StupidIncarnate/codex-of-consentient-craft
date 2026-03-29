@@ -245,7 +245,7 @@ describe('chatSubagentTailBroker', () => {
         chatProcessId,
       });
 
-      expect(typeof stop).toBe('function');
+      expect(stop).toStrictEqual(expect.any(Function));
     });
   });
 });

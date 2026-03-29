@@ -10,8 +10,10 @@ describe('discoverTreeResultContract', () => {
       count: ResultCountStub({ value: 2 }),
     });
 
-    expect(result.results).toBe('guards/\n  has-permission-guard (guard)');
-    expect(result.count).toBe(2);
+    expect(result).toStrictEqual({
+      results: 'guards/\n  has-permission-guard (guard)',
+      count: 2,
+    });
   });
 
   it('VALID: {results: empty string, count: 0} => parses successfully', () => {
@@ -20,8 +22,10 @@ describe('discoverTreeResultContract', () => {
       count: ResultCountStub({ value: 0 }),
     });
 
-    expect(result.results).toBe('');
-    expect(result.count).toBe(0);
+    expect(result).toStrictEqual({
+      results: '',
+      count: 0,
+    });
   });
 
   it('VALID: {results: multi-folder tree, count: 5} => parses successfully', () => {
@@ -32,7 +36,9 @@ describe('discoverTreeResultContract', () => {
       count: ResultCountStub({ value: 5 }),
     });
 
-    expect(result.results).toBe(treeOutput);
-    expect(result.count).toBe(5);
+    expect(result).toStrictEqual({
+      results: treeOutput,
+      count: 5,
+    });
   });
 });

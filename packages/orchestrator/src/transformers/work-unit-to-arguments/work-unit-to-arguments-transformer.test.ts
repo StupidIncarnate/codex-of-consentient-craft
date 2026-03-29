@@ -55,7 +55,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Export Name: authBroker/u);
+      expect(result).toMatch(/^Export Name: authBroker$/mu);
     });
 
     it('VALID: {codeweaver with accompanyingFiles} => includes accompanying files list', () => {
@@ -72,7 +72,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Accompanying Files:\n {2}- src\/broker\.test\.ts/u);
+      expect(result).toMatch(/^Accompanying Files:\n {2}- src\/broker\.test\.ts$/mu);
     });
 
     it('VALID: {codeweaver with assertions} => includes assertions list', () => {
@@ -90,7 +90,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Assertions:\n {2}- VALID: returns result/u);
+      expect(result).toMatch(/^Assertions:\n {2}- VALID: returns result$/mu);
     });
 
     it('VALID: {codeweaver with related contracts} => includes contract details', () => {
@@ -114,7 +114,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Related Contracts:\n {2}- LoginCredentials \(data\)\n {4}- email \(EmailAddress\) - User email/u,
+        /^Related Contracts:\n {2}- LoginCredentials \(data\)\n {4}- email \(EmailAddress\) - User email$/mu,
       );
     });
 
@@ -144,7 +144,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Related Observables:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)/u,
+        /^Related Observables:\n {4}- POST \/auth\/login \(api-call\)\n {4}- redirects to dashboard \(ui-state\)$/mu,
       );
     });
 
@@ -162,7 +162,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/Related Observables:/u);
+      expect(result).not.toMatch(/^Related Observables:$/u);
     });
 
     it('VALID: {codeweaver with uses} => includes uses list', () => {
@@ -180,7 +180,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Uses:\n {2}- authGuard\n {2}- sessionBroker/u);
+      expect(result).toMatch(/^Uses:\n {2}- authGuard\n {2}- sessionBroker$/mu);
     });
 
     it('VALID: {codeweaver with design decisions} => includes design decisions', () => {
@@ -204,7 +204,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Design Decisions:\n {2}- Use JWT for auth: Stateless authentication/u,
+        /^Design Decisions:\n {2}- Use JWT for auth: Stateless authentication$/mu,
       );
     });
 
@@ -231,7 +231,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
+      expect(result).toMatch(/^Flows:\n {2}- Login Flow \(nodes: Login Page\)$/mu);
     });
 
     it('VALID: {codeweaver with empty design decisions and flows} => omits those sections', () => {
@@ -250,8 +250,8 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/Design Decisions:/u);
-      expect(result).not.toMatch(/Flows:/u);
+      expect(result).not.toMatch(/^Design Decisions:$/u);
+      expect(result).not.toMatch(/^Flows:$/u);
     });
   });
 
@@ -271,7 +271,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(/^Quest ID: verify-quest\n/u);
-      expect(result).toMatch(/Observable Type Reference:/u);
+      expect(result).toMatch(/^Observable Type Reference:$/mu);
       expect(result).toMatch(/Observables:\n {4}- Shows success message \(ui-state\)$/u);
     });
 
@@ -284,8 +284,8 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(/^Quest ID: empty-quest\n/u);
-      expect(result).toMatch(/Observable Type Reference:/u);
-      expect(result).not.toMatch(/Observables:/u);
+      expect(result).toMatch(/^Observable Type Reference:$/mu);
+      expect(result).not.toMatch(/^Observables:$/u);
     });
 
     it('VALID: {siegemaster with design decisions} => includes design decisions', () => {
@@ -303,7 +303,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toMatch(
-        /Design Decisions:\n {2}- Use JWT for auth: Stateless authentication/u,
+        /^Design Decisions:\n {2}- Use JWT for auth: Stateless authentication$/mu,
       );
     });
 
@@ -324,7 +324,30 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
+      expect(result).toMatch(/^Flows:\n {2}- Login Flow \(nodes: Login Page\)$/mu);
+    });
+
+    it('VALID: {siegemaster with devServerUrl} => includes dev server URL after quest ID', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        devServerUrl: 'http://localhost:3000' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Quest ID: quest-1\nDev Server URL: http:\/\/localhost:3000\n/u);
+    });
+
+    it('VALID: {siegemaster without devServerUrl} => omits dev server URL line', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Dev Server URL:/u);
     });
 
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
@@ -337,8 +360,8 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/Design Decisions:/u);
-      expect(result).not.toMatch(/Flows:/u);
+      expect(result).not.toMatch(/^Design Decisions:$/u);
+      expect(result).not.toMatch(/^Flows:$/u);
     });
   });
 
@@ -405,6 +428,33 @@ describe('workUnitToArgumentsTransformer', () => {
         'Files:\n  - /src/broken.ts\nRun npm run ward on the files to verify fixes.',
       );
     });
+
+    it('VALID: {spiritmender with verificationCommand} => uses verification command instead of hardcoded ward', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+        verificationCommand: 'npm run build --workspace=@dungeonmaster/shared' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Files:\n  - /src/broken.ts\nVerification Command: npm run build --workspace=@dungeonmaster/shared',
+      );
+    });
+
+    it('VALID: {spiritmender with verificationCommand and errors} => includes errors and verification command', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+        errors: [ErrorMessageStub({ value: 'Build failed' })],
+        verificationCommand: 'npm run build' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Files:\n  - /src/broken.ts\nErrors:\n  - Build failed\nVerification Command: npm run build',
+      );
+    });
   });
 
   describe('pathseeker role', () => {
@@ -438,7 +488,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/FAILURE CONTEXT/u);
+      expect(result).not.toMatch(/^FAILURE CONTEXT$/u);
     });
   });
 });

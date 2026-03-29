@@ -25,7 +25,7 @@ test.describe('Quest Execution Streaming', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('execution panel renders streamed LLM text content from pathseeker', async ({
+  test('VALID: execution panel renders streamed LLM text content from pathseeker', async ({
     page,
     request,
   }) => {

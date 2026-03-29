@@ -45,7 +45,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -57,7 +57,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).not.toBeNull();
+      expect(result).not.toBe(null);
       expect(String(result)).toMatch(/packages\/shared\/testing\.ts$/u);
     });
   });
@@ -109,7 +109,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

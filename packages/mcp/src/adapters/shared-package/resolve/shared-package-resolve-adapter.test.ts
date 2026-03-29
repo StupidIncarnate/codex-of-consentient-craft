@@ -9,7 +9,7 @@ describe('sharedPackageResolveAdapter', () => {
 
       const result = sharedPackageResolveAdapter();
 
-      expect(result).not.toBeNull();
+      expect(result).not.toBe(null);
       expect(result).toMatch(/shared$/u);
     });
   });
@@ -21,7 +21,7 @@ describe('sharedPackageResolveAdapter', () => {
 
       const result = sharedPackageResolveAdapter();
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

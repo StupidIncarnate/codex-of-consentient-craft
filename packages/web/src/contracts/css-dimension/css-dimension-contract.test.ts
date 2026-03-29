@@ -21,7 +21,7 @@ describe('cssDimensionContract', () => {
       expect(() => cssDimensionContract.parse(null)).toThrow(/Invalid input/u);
     });
 
-    it('INVALID_VALUE: {value: true} => throws for boolean', () => {
+    it('INVALID: {value: true} => throws for boolean', () => {
       expect(() => cssDimensionContract.parse(true)).toThrow(/Invalid input/u);
     });
   });

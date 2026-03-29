@@ -50,7 +50,7 @@ describe('GuildFlow', () => {
 
       restore();
 
-      expect(typeof Reflect.get(harness.toPlain(body) as object, 'error')).toBe('string');
+      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
     });
   });
 
@@ -87,7 +87,7 @@ describe('GuildFlow', () => {
 
       restore();
 
-      expect(typeof Reflect.get(harness.toPlain(body) as object, 'error')).toBe('string');
+      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
     });
   });
 });

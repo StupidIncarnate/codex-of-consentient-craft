@@ -16,7 +16,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(/^---\nKEY:/u);
-      expect(result).toMatch(/---\n\n# Quest:/u);
+      expect(result).toMatch(/^---\n\n# Quest:/mu);
     });
   });
 
@@ -26,7 +26,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/# Quest: Add Auth\nStatus: in_progress/u);
+      expect(result).toMatch(/^# Quest: Add Auth\nStatus: in_progress$/mu);
     });
   });
 
@@ -36,7 +36,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/## Design Decisions\n\n\(none\)/u);
+      expect(result).toMatch(/^## Design Decisions\n\n\(none\)$/mu);
     });
 
     it('VALID: {quest: with decisions} => renders decisions with rationale', () => {
@@ -54,7 +54,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /#use-jwt: "Use JWT"\n {2}Rationale: Stateless auth\n {2}Relates to: #login-page/u,
+        /^#use-jwt: "Use JWT"\n {2}Rationale: Stateless auth\n {2}Relates to: #login-page$/mu,
       );
     });
 
@@ -65,7 +65,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/Relates to:/u);
+      expect(result).not.toMatch(/^ {2}Relates to:/mu);
     });
   });
 
@@ -75,7 +75,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/## Contracts\n\n\(none\)/u);
+      expect(result).toMatch(/^## Contracts\n\n\(none\)$/mu);
     });
 
     it('VALID: {quest: with contract entry} => renders contract header and properties', () => {
@@ -99,8 +99,8 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/#login-creds \u2014 LoginCredentials \(data, new\)/u);
-      expect(result).toMatch(/ {2}email: EmailAddress/u);
+      expect(result).toMatch(/^#login-creds \u2014 LoginCredentials \(data, new\)$/mu);
+      expect(result).toMatch(/^ {2}email: EmailAddress/mu);
     });
 
     it('VALID: {quest: contract with source} => renders source reference', () => {
@@ -114,7 +114,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/\[\u2192 src\/contracts\/user\.ts\]/u);
+      expect(result).toMatch(/\[\u2192 src\/contracts\/user\.ts\]$/mu);
     });
   });
 
@@ -124,7 +124,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/## Tooling\n\n\(none\)/u);
+      expect(result).toMatch(/^## Tooling\n\n\(none\)$/mu);
     });
 
     it('VALID: {quest: with tooling requirement} => renders tooling entry', () => {
@@ -142,9 +142,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/#pg-driver: "PostgreSQL Driver" \(pg\)/u);
-      expect(result).toMatch(/ {2}Reason: DB access/u);
-      expect(result).toMatch(/ {2}Used by: #obs-one/u);
+      expect(result).toMatch(/^#pg-driver: "PostgreSQL Driver" \(pg\)$/mu);
+      expect(result).toMatch(/^ {2}Reason: DB access$/mu);
+      expect(result).toMatch(/^ {2}Used by: #obs-one$/mu);
     });
   });
 
@@ -179,11 +179,11 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/## Flow: #login-flow \u2014 "Login Flow"/u);
-      expect(result).toMatch(/Scope: authentication/u);
-      expect(result).toMatch(/Entry: login-page \| Exits: dashboard/u);
-      expect(result).toMatch(/\[#login-page\] Login Page \(state\)/u);
-      expect(result).toMatch(/> #shows-form: shows login form \[ui-state\]/u);
+      expect(result).toMatch(/^## Flow: #login-flow \u2014 "Login Flow"$/mu);
+      expect(result).toMatch(/^Scope: authentication$/mu);
+      expect(result).toMatch(/^Entry: login-page \| Exits: dashboard$/mu);
+      expect(result).toMatch(/^\[#login-page\] Login Page \(state\)$/mu);
+      expect(result).toMatch(/^ {2}> #shows-form: shows login form \[ui-state\]$/mu);
     });
 
     it('VALID: {quest: flow without scope} => omits scope line', () => {
@@ -193,7 +193,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/Scope:/u);
+      expect(result).not.toMatch(/^Scope:/mu);
     });
   });
 
@@ -203,7 +203,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/## Steps\n\n\(none\)/u);
+      expect(result).toMatch(/^## Steps\n\n\(none\)$/mu);
     });
 
     it('VALID: {quest: with full step} => renders step header, assertions, focus, and accompanying', () => {
@@ -239,13 +239,13 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/#create-api: "Create API"/u);
-      expect(result).toMatch(/ {2}Assertions: VALID: \{user: validUser\} => creates user/u);
-      expect(result).toMatch(/ {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts/u);
+      expect(result).toMatch(/^#create-api: "Create API"$/mu);
+      expect(result).toMatch(/^ {2}Assertions: VALID: \{user: validUser\} => creates user$/mu);
+      expect(result).toMatch(/^ {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts$/mu);
       expect(result).toMatch(
-        / {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts/u,
+        /^ {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts$/mu,
       );
-      expect(result).toMatch(/ {2}Satisfies: #api-responds/u);
+      expect(result).toMatch(/^ {2}Satisfies: #api-responds$/mu);
     });
 
     it('VALID: {quest: with full step} => renders dependencies, export, contracts, and uses', () => {
@@ -281,10 +281,10 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/ {2}Depends on: #setup-db/u);
-      expect(result).toMatch(/ {2}Export: apiHandler/u);
-      expect(result).toMatch(/ {2}Contracts in: RequestBody \| out: ApiResponse/u);
-      expect(result).toMatch(/ {2}Uses: userContract/u);
+      expect(result).toMatch(/^ {2}Depends on: #setup-db$/mu);
+      expect(result).toMatch(/^ {2}Export: apiHandler$/mu);
+      expect(result).toMatch(/^ {2}Contracts in: RequestBody \| out: ApiResponse$/mu);
+      expect(result).toMatch(/^ {2}Uses: userContract$/mu);
     });
 
     it('VALID: {quest: step with no optional fields} => omits satisfies, depends, accompanying, uses', () => {
@@ -301,10 +301,10 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/Satisfies:/u);
-      expect(result).not.toMatch(/Depends on:/u);
-      expect(result).not.toMatch(/Accompanying:/u);
-      expect(result).not.toMatch(/Uses:/u);
+      expect(result).not.toMatch(/^ {2}Satisfies:/mu);
+      expect(result).not.toMatch(/^ {2}Depends on:/mu);
+      expect(result).not.toMatch(/^ {2}Accompanying:/mu);
+      expect(result).not.toMatch(/^ {2}Uses:/mu);
     });
 
     it('VALID: {quest: step without exportName} => omits export line', () => {
@@ -314,7 +314,7 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/Export:/u);
+      expect(result).not.toMatch(/^ {2}Export:/mu);
     });
   });
 });

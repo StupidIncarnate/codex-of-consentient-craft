@@ -26,9 +26,11 @@ describe('questFolderFindBroker', () => {
 
       const result = await questFolderFindBroker({ questId: 'add-auth' as never, questsPath });
 
-      expect(result.found).toBe(true);
-      expect(result.folderPath).toBe('/project/.dungeonmaster-quests/001-add-auth');
-      expect(result.quest?.id).toBe('add-auth');
+      expect(result).toStrictEqual({
+        found: true,
+        folderPath: '/project/.dungeonmaster-quests/001-add-auth',
+        quest: expect.any(Object),
+      });
     });
 
     it('VALID: {questId exists in multiple folders} => returns matching folder', async () => {
@@ -62,9 +64,11 @@ describe('questFolderFindBroker', () => {
 
       const result = await questFolderFindBroker({ questId: 'fix-bug' as never, questsPath });
 
-      expect(result.found).toBe(true);
-      expect(result.folderPath).toBe('/project/.dungeonmaster-quests/002-fix-bug');
-      expect(result.quest?.id).toBe('fix-bug');
+      expect(result).toStrictEqual({
+        found: true,
+        folderPath: '/project/.dungeonmaster-quests/002-fix-bug',
+        quest: expect.any(Object),
+      });
     });
   });
 
@@ -92,9 +96,11 @@ describe('questFolderFindBroker', () => {
         questsPath,
       });
 
-      expect(result.found).toBe(false);
-      expect(result.folderPath).toBeUndefined();
-      expect(result.quest).toBeUndefined();
+      expect(result).toStrictEqual({
+        found: false,
+        folderPath: undefined,
+        quest: undefined,
+      });
     });
 
     it('VALID: {empty folder} => returns not found', async () => {
@@ -105,9 +111,11 @@ describe('questFolderFindBroker', () => {
 
       const result = await questFolderFindBroker({ questId: 'any-quest' as never, questsPath });
 
-      expect(result.found).toBe(false);
-      expect(result.folderPath).toBeUndefined();
-      expect(result.quest).toBeUndefined();
+      expect(result).toStrictEqual({
+        found: false,
+        folderPath: undefined,
+        quest: undefined,
+      });
     });
   });
 
@@ -136,8 +144,11 @@ describe('questFolderFindBroker', () => {
 
       const result = await questFolderFindBroker({ questId: 'add-auth' as never, questsPath });
 
-      expect(result.found).toBe(true);
-      expect(result.folderPath).toBe('/project/.dungeonmaster-quests/002-add-auth');
+      expect(result).toStrictEqual({
+        found: true,
+        folderPath: '/project/.dungeonmaster-quests/002-add-auth',
+        quest: expect.any(Object),
+      });
     });
   });
 });

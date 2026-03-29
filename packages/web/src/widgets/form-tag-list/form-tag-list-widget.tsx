@@ -26,7 +26,11 @@ export const FormTagListWidget = ({ label, items }: FormTagListWidgetProps): Rea
 
   return (
     <Group gap={4} mt={2} data-testid="FORM_TAG_LIST">
-      <Text ff="monospace" style={{ fontSize: TAG_FONT_SIZE, color: colors['text-dim'] }}>
+      <Text
+        ff="monospace"
+        data-testid="FORM_TAG_LABEL"
+        style={{ fontSize: TAG_FONT_SIZE, color: colors['text-dim'] }}
+      >
         {label}:
       </Text>
       {items.map((item, index) => (

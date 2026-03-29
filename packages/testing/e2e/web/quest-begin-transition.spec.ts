@@ -21,7 +21,7 @@ test.describe('Quest Begin Transition', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('clicking Begin Quest sends PATCH to transition quest status to in_progress', async ({
+  test('VALID: clicking Begin Quest sends PATCH to transition quest status to in_progress', async ({
     page,
     request,
   }) => {
@@ -107,7 +107,7 @@ test.describe('Quest Begin Transition', () => {
     });
   });
 
-  test('Begin Quest from review_observables shows execution panel with chaoswhisperer DONE and pathseeker RUNNING', async ({
+  test('VALID: Begin Quest from review_observables shows execution panel with chaoswhisperer DONE and pathseeker RUNNING', async ({
     page,
     request,
   }) => {
@@ -203,7 +203,7 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByText('Planning steps...')).toBeVisible();
   });
 
-  test('clicking Begin Quest on design_approved sends POST to quest start endpoint', async ({
+  test('VALID: clicking Begin Quest on design_approved sends POST to quest start endpoint', async ({
     page,
     request,
   }) => {

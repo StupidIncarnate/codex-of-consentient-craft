@@ -5,8 +5,11 @@ describe('HookSessionStartFlow', () => {
     it('ERROR: {inputData: invalid JSON} => returns exitCode 1 with error in stderr', async () => {
       const result = await HookSessionStartFlow({ inputData: 'not json' });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/u);
+      expect(result).toStrictEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+      });
     });
 
     it('VALID: {inputData: new session} => returns exitCode 0 with content in stdout', async () => {
@@ -19,8 +22,11 @@ describe('HookSessionStartFlow', () => {
 
       const result = await HookSessionStartFlow({ inputData });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/dungeonmaster-architecture/u);
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(/^.*dungeonmaster-architecture.*$/su),
+        stderr: '',
+      });
     });
   });
 });

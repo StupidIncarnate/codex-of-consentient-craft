@@ -41,14 +41,21 @@ describe('useDirectoryBrowserBinding', () => {
         renderCallback: () => useDirectoryBrowserBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.currentPath).toBe('/home/user');
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
-      expect(result.current.entries).toStrictEqual(entries);
+      expect(result.current).toStrictEqual({
+        currentPath: '/home/user',
+        entries,
+        loading: false,
+        navigateTo: expect.any(Function),
+        goUp: expect.any(Function),
+      });
     });
   });
 
@@ -63,13 +70,16 @@ describe('useDirectoryBrowserBinding', () => {
         renderCallback: () => useDirectoryBrowserBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
       const targetPath = GuildPathStub({ value: '/home' });
+      const { navigateTo } = result.current;
 
       proxy.setupEntries({
         entries: [DirectoryEntryStub({ name: 'user', path: '/home/user', isDirectory: true })],
@@ -77,20 +87,23 @@ describe('useDirectoryBrowserBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.navigateTo({ path: targetPath });
+          navigateTo({ path: targetPath });
         },
       });
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
-      expect(result.current.currentPath).toBe('/home');
-      expect(result.current.entries).toStrictEqual([
-        DirectoryEntryStub({ name: 'user', path: '/home/user', isDirectory: true }),
-      ]);
+      expect(result.current).toStrictEqual({
+        currentPath: '/home',
+        entries: [DirectoryEntryStub({ name: 'user', path: '/home/user', isDirectory: true })],
+        loading: false,
+        navigateTo: expect.any(Function),
+        goUp: expect.any(Function),
+      });
     });
   });
 
@@ -103,9 +116,11 @@ describe('useDirectoryBrowserBinding', () => {
         renderCallback: () => useDirectoryBrowserBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -121,7 +136,7 @@ describe('useDirectoryBrowserBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.currentPath).toBe('/home/user');
+          expect(currentState().currentPath).toBe('/home/user');
         },
       });
 
@@ -135,7 +150,7 @@ describe('useDirectoryBrowserBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.currentPath).toBe('/home');
+          expect(currentState().currentPath).toBe('/home');
         },
       });
 
@@ -150,19 +165,23 @@ describe('useDirectoryBrowserBinding', () => {
         renderCallback: () => useDirectoryBrowserBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
+
+      const { goUp } = result.current;
 
       testingLibraryActAdapter({
         callback: () => {
-          result.current.goUp();
+          goUp();
         },
       });
 
-      expect(result.current.currentPath).toBeNull();
+      expect(result.current.currentPath).toBe(null);
     });
   });
 
@@ -175,9 +194,11 @@ describe('useDirectoryBrowserBinding', () => {
         renderCallback: () => useDirectoryBrowserBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 

@@ -70,7 +70,7 @@ describe('checkResultContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_CHECK_TYPE: {checkType: "unknown"} => throws validation error', () => {
+    it('INVALID: {checkType: "unknown"} => throws validation error', () => {
       expect(() =>
         checkResultContract.parse({
           checkType: 'unknown',
@@ -80,7 +80,7 @@ describe('checkResultContract', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => checkResultContract.parse({})).toThrow(/Required/u);
     });
   });

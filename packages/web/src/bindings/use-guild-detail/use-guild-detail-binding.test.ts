@@ -18,9 +18,11 @@ describe('useGuildDetailBinding', () => {
         renderCallback: () => useGuildDetailBinding({ guildId: guild.id }),
       });
 
+      const currentState = (): ReturnType<typeof useGuildDetailBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -61,9 +63,11 @@ describe('useGuildDetailBinding', () => {
         renderCallback: () => useGuildDetailBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useGuildDetailBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -88,13 +92,15 @@ describe('useGuildDetailBinding', () => {
         renderCallback: () => useGuildDetailBinding({ guildId: testGuildId }),
       });
 
+      const getErrorCalls = (): unknown[][] => consoleErrorCalls;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(consoleErrorCalls[0]?.[0]).toBe('[use-guild-detail]');
+          expect(getErrorCalls()).toStrictEqual([['[use-guild-detail]', expect.any(Error)]]);
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
+      expect(consoleErrorCalls).toStrictEqual([['[use-guild-detail]', expect.any(Error)]]);
     });
   });
 });

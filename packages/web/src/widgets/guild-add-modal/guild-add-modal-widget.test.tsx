@@ -13,7 +13,7 @@ describe('GuildAddModalWidget', () => {
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
-      expect(screen.getByText('Add Guild')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Add Guild' })).toBeInTheDocument();
     });
 
     it('VALID: {opened: true} => renders guild name input', () => {

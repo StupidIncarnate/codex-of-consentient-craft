@@ -17,19 +17,19 @@ describe('extractLineSummaryTransformer', () => {
         parsed: { type: 'assistant', message: 'hello' },
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {parsed: null} => returns undefined for null', () => {
       const result = extractLineSummaryTransformer({ parsed: null });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {parsed: "string"} => returns undefined for non-object', () => {
       const result = extractLineSummaryTransformer({ parsed: 'a string' });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {parsed: {type: "summary", summary: 123}} => returns undefined for non-string summary', () => {
@@ -37,7 +37,7 @@ describe('extractLineSummaryTransformer', () => {
         parsed: { type: 'summary', summary: 123 },
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

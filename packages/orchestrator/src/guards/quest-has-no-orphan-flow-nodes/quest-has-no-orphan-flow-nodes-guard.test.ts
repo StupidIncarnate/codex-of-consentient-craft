@@ -85,7 +85,7 @@ describe('questHasNoOrphanFlowNodesGuard', () => {
   });
 
   describe('orphan nodes', () => {
-    it('INVALID_ORPHAN: {node with no edges at all} => returns false', () => {
+    it('INVALID: {node with no edges at all} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [
@@ -102,7 +102,7 @@ describe('questHasNoOrphanFlowNodesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ORPHAN: {single node with no edges} => returns false', () => {
+    it('INVALID: {single node with no edges} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [FlowNodeStub({ id: 'lonely' })],
@@ -115,7 +115,7 @@ describe('questHasNoOrphanFlowNodesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ORPHAN: {multiple orphan nodes} => returns false', () => {
+    it('INVALID: {multiple orphan nodes} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [
@@ -133,7 +133,7 @@ describe('questHasNoOrphanFlowNodesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ORPHAN: {one flow valid, another has orphan} => returns false', () => {
+    it('INVALID: {one flow valid, another has orphan} => returns false', () => {
       const flows = [
         FlowStub({
           id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
@@ -156,7 +156,7 @@ describe('questHasNoOrphanFlowNodesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ORPHAN: {terminal node not connected to any edge} => returns false', () => {
+    it('INVALID: {terminal node not connected to any edge} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [

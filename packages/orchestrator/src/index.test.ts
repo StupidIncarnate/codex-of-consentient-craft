@@ -1,5 +1,5 @@
 describe('orchestrator', () => {
-  it('exports module', async () => {
+  it('VALID: exports module', async () => {
     const orchestrator = await import('./index');
 
     expect(Object.keys(orchestrator).sort()).toStrictEqual([

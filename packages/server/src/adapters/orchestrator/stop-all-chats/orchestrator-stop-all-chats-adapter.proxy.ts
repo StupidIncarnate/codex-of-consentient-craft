@@ -3,6 +3,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorStopAllChatsAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
+  wasCalled: () => boolean;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.stopAllChats });
   mock.mockReturnValue(undefined);
@@ -13,5 +14,6 @@ export const orchestratorStopAllChatsAdapterProxy = (): {
         throw error;
       });
     },
+    wasCalled: (): boolean => mock.mock.calls.length > 0,
   };
 };

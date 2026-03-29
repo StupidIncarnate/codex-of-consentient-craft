@@ -44,6 +44,14 @@ import { ruleBanSilentCatchBroker } from '../../../brokers/rule/ban-silent-catch
 import { ruleBanWaitForTimeoutBroker } from '../../../brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker';
 import { ruleBanPageRouteInE2eBroker } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker';
 import { ruleEnforceE2eBaseImportBroker } from '../../../brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker';
+import { ruleBanNotToThrowBroker } from '../../../brokers/rule/ban-not-to-throw/rule-ban-not-to-throw-broker';
+import { ruleBanWeakExistenceMatchersBroker } from '../../../brokers/rule/ban-weak-existence-matchers/rule-ban-weak-existence-matchers-broker';
+import { ruleBanTypeofAssertionsBroker } from '../../../brokers/rule/ban-typeof-assertions/rule-ban-typeof-assertions-broker';
+import { ruleEnforceTestNamePrefixBroker } from '../../../brokers/rule/enforce-test-name-prefix/rule-enforce-test-name-prefix-broker';
+import { ruleBanUnanchoredToMatchBroker } from '../../../brokers/rule/ban-unanchored-to-match/rule-ban-unanchored-to-match-broker';
+import { ruleEnforceTestidQueriesBroker } from '../../../brokers/rule/enforce-testid-queries/rule-enforce-testid-queries-broker';
+import { ruleBanPlaywrightEvaluateForStylesBroker } from '../../../brokers/rule/ban-playwright-evaluate-for-styles/rule-ban-playwright-evaluate-for-styles-broker';
+import { ruleBanPlaywrightExtractThenAssertBroker } from '../../../brokers/rule/ban-playwright-extract-then-assert/rule-ban-playwright-extract-then-assert-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -88,6 +96,14 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-wait-for-timeout': EslintRule;
     readonly 'ban-page-route-in-e2e': EslintRule;
     readonly 'enforce-e2e-base-import': EslintRule;
+    readonly 'ban-not-to-throw': EslintRule;
+    readonly 'ban-weak-existence-matchers': EslintRule;
+    readonly 'ban-typeof-assertions': EslintRule;
+    readonly 'enforce-test-name-prefix': EslintRule;
+    readonly 'ban-unanchored-to-match': EslintRule;
+    readonly 'enforce-testid-queries': EslintRule;
+    readonly 'ban-playwright-evaluate-for-styles': EslintRule;
+    readonly 'ban-playwright-extract-then-assert': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -135,6 +151,14 @@ export const EslintPluginCreateResponder = (): {
       'ban-wait-for-timeout': ruleBanWaitForTimeoutBroker(),
       'ban-page-route-in-e2e': ruleBanPageRouteInE2eBroker(),
       'enforce-e2e-base-import': ruleEnforceE2eBaseImportBroker(),
+      'ban-not-to-throw': ruleBanNotToThrowBroker(),
+      'ban-weak-existence-matchers': ruleBanWeakExistenceMatchersBroker(),
+      'ban-typeof-assertions': ruleBanTypeofAssertionsBroker(),
+      'enforce-test-name-prefix': ruleEnforceTestNamePrefixBroker(),
+      'ban-unanchored-to-match': ruleBanUnanchoredToMatchBroker(),
+      'enforce-testid-queries': ruleEnforceTestidQueriesBroker(),
+      'ban-playwright-evaluate-for-styles': ruleBanPlaywrightEvaluateForStylesBroker(),
+      'ban-playwright-extract-then-assert': ruleBanPlaywrightExtractThenAssertBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

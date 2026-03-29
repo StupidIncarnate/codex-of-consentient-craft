@@ -7,6 +7,6 @@ describe('eslintPluginJestLoadAdapter', () => {
 
     const result = eslintPluginJestLoadAdapter();
 
-    expect(typeof result.rules).toBe('object');
+    expect('consistent-test-it' in (result.rules as object)).toBe(true);
   });
 });

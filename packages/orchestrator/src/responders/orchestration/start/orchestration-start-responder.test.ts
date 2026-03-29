@@ -261,7 +261,7 @@ describe('OrchestrationStartResponder', () => {
       const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
 
       expect(chaosItems[0]?.status).toBe('complete');
-      expect(typeof chaosItems[0]?.completedAt).toBe('string');
+      expect(chaosItems[0]?.completedAt).toStrictEqual(expect.any(String));
     });
 
     it('VALID: {approved quest with pending glyphsmith} => glyph promoted to complete with completedAt', async () => {
@@ -283,7 +283,7 @@ describe('OrchestrationStartResponder', () => {
       const glyphItems = persistedQuest.workItems.filter((wi) => wi.role === 'glyphsmith');
 
       expect(glyphItems[0]?.status).toBe('complete');
-      expect(typeof glyphItems[0]?.completedAt).toBe('string');
+      expect(glyphItems[0]?.completedAt).toStrictEqual(expect.any(String));
     });
 
     it('VALID: {approved quest with pending chaos and glyph} => both promoted, pathseeker depends on both', async () => {

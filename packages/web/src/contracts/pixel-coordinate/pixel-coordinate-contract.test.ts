@@ -23,23 +23,23 @@ describe('pixelCoordinateContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "5 0"} => throws for missing color', () => {
+    it('INVALID: {value: "5 0"} => throws for missing color', () => {
       expect(() => pixelCoordinateContract.parse('5 0')).toThrow(/Must be format/u);
     });
 
-    it('INVALID_VALUE: {value: "5 0 ff4500"} => throws for missing hash', () => {
+    it('INVALID: {value: "5 0 ff4500"} => throws for missing hash', () => {
       expect(() => pixelCoordinateContract.parse('5 0 ff4500')).toThrow(/Must be format/u);
     });
 
-    it('INVALID_VALUE: {value: "5 #ff4500"} => throws for missing y coordinate', () => {
+    it('INVALID: {value: "5 #ff4500"} => throws for missing y coordinate', () => {
       expect(() => pixelCoordinateContract.parse('5 #ff4500')).toThrow(/Must be format/u);
     });
 
-    it('INVALID_VALUE: {value: "-1 0 #ff4500"} => throws for negative coordinate', () => {
+    it('INVALID: {value: "-1 0 #ff4500"} => throws for negative coordinate', () => {
       expect(() => pixelCoordinateContract.parse('-1 0 #ff4500')).toThrow(/Must be format/u);
     });
 
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => pixelCoordinateContract.parse('')).toThrow(/Must be format/u);
     });
 

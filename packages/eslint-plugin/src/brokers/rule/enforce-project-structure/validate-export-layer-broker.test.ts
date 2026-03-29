@@ -8,7 +8,7 @@ import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateExportLayerBroker', () => {
   describe('valid exports', () => {
-    it('does not report for correct broker export', () => {
+    it('VALID: correct broker export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -33,7 +33,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for correct contract export', () => {
+    it('VALID: correct contract export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -55,7 +55,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for correct error export (PascalCase)', () => {
+    it('VALID: correct error export (PascalCase) => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -81,7 +81,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for correct widget export', () => {
+    it('VALID: correct widget export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -103,7 +103,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for startup with correct PascalCase export', () => {
+    it('VALID: startup with correct PascalCase export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -125,7 +125,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for startup with 0 exports', () => {
+    it('VALID: startup with 0 exports => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -144,7 +144,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for value export alongside type-only export', () => {
+    it('VALID: value export alongside type-only export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -170,7 +170,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('does not report for correct proxy export', () => {
+    it('VALID: correct proxy export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -197,7 +197,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('missing suffix', () => {
-    it('reports invalidExportSuffix and filenameMismatch for broker without Broker suffix', () => {
+    it('INVALID: broker without Broker suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -229,7 +229,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportSuffix and filenameMismatch for contract without Contract suffix', () => {
+    it('INVALID: contract without Contract suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -263,7 +263,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('wrong case', () => {
-    it('reports invalidExportCase and filenameMismatch for PascalCase broker', () => {
+    it('INVALID: PascalCase broker => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -298,7 +298,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportCase and filenameMismatch for PascalCase contract', () => {
+    it('INVALID: PascalCase contract => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -330,7 +330,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportCase and filenameMismatch for camelCase error class', () => {
+    it('INVALID: camelCase error class => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -366,7 +366,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportCase and filenameMismatch for camelCase widget', () => {
+    it('INVALID: camelCase widget => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -400,7 +400,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('name mismatch', () => {
-    it('reports filenameMismatch for wrong export name', () => {
+    it('INVALID: wrong export name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -430,7 +430,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports filenameMismatch for wrong widget name', () => {
+    it('INVALID: wrong widget name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -459,7 +459,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('wrong suffix for folder type', () => {
-    it('reports invalidExportSuffix and filenameMismatch for Transformer suffix in brokers', () => {
+    it('INVALID: Transformer suffix in brokers => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -494,7 +494,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportSuffix and filenameMismatch for Broker suffix in transformers', () => {
+    it('INVALID: Broker suffix in transformers => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -531,7 +531,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('all three Level 4 errors', () => {
-    it('reports suffix, case, and name mismatch for PascalCase wrong-suffix wrong-name in brokers', () => {
+    it('INVALID: PascalCase wrong-suffix wrong-name in brokers => reports suffix, case, and name mismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -571,7 +571,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports suffix, case, and name mismatch for camelCase broker suffix in errors', () => {
+    it('INVALID: camelCase broker suffix in errors => reports suffix, case, and name mismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -613,7 +613,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('missing expected export', () => {
-    it('reports missingExpectedExport for 0 value exports in non-startup folder', () => {
+    it('INVALID: 0 value exports in non-startup folder => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -637,7 +637,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports missingExpectedExport for type-only export in contracts (no value export)', () => {
+    it('INVALID: type-only export in contracts (no value export) => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -664,7 +664,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports missingExpectedExport for type-only export in statics', () => {
+    it('INVALID: type-only export in statics => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -691,7 +691,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports missingExpectedExport for adapter with type-only export', () => {
+    it('INVALID: adapter with type-only export => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -720,7 +720,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('multiple value exports', () => {
-    it('reports multipleValueExports for 2 value exports in brokers', () => {
+    it('INVALID: 2 value exports in brokers => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -755,7 +755,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports multipleValueExports for 2 class exports in errors', () => {
+    it('INVALID: 2 class exports in errors => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -795,7 +795,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports multipleValueExports for startup with 2 exports', () => {
+    it('INVALID: startup with 2 exports => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -825,7 +825,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('startup specific cases', () => {
-    it('reports invalidExportCase and filenameMismatch for camelCase startup export', () => {
+    it('INVALID: camelCase startup export => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -857,7 +857,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports filenameMismatch for wrong startup name', () => {
+    it('INVALID: wrong startup name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -886,7 +886,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('proxy export validation', () => {
-    it('reports invalidExportSuffix and filenameMismatch for proxy missing Proxy suffix', () => {
+    it('INVALID: proxy missing Proxy suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -921,7 +921,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports filenameMismatch for proxy with wrong name', () => {
+    it('INVALID: proxy with wrong name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -953,7 +953,7 @@ describe('validateExportLayerBroker', () => {
   });
 
   describe('adapter export validation', () => {
-    it('reports invalidExportSuffix and filenameMismatch for adapter without Adapter suffix', () => {
+    it('INVALID: adapter without Adapter suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -985,7 +985,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports invalidExportCase and filenameMismatch for PascalCase adapter', () => {
+    it('INVALID: PascalCase adapter => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -1020,7 +1020,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('reports filenameMismatch for adapter with wrong name', () => {
+    it('INVALID: adapter with wrong name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });

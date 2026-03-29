@@ -70,7 +70,7 @@ describe('signalBackResultContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SUCCESS: {success: "yes"} => throws validation error', () => {
+    it('INVALID: {success: "yes"} => throws validation error', () => {
       expect(() => {
         signalBackResultContract.parse({
           success: 'yes',
@@ -79,7 +79,7 @@ describe('signalBackResultContract', () => {
       }).toThrow(/Expected boolean/u);
     });
 
-    it('INVALID_SIGNAL: {signal: null} => throws validation error', () => {
+    it('INVALID: {signal: null} => throws validation error', () => {
       expect(() => {
         signalBackResultContract.parse({
           success: true,
@@ -88,7 +88,7 @@ describe('signalBackResultContract', () => {
       }).toThrow(/Expected object/u);
     });
 
-    it('INVALID_SIGNAL: {signal: missing} => throws validation error', () => {
+    it('INVALID: {signal: missing} => throws validation error', () => {
       expect(() => {
         signalBackResultContract.parse({
           success: true,
@@ -96,7 +96,7 @@ describe('signalBackResultContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_SUCCESS: {success: missing} => throws validation error', () => {
+    it('INVALID: {success: missing} => throws validation error', () => {
       expect(() => {
         signalBackResultContract.parse({
           signal: SignalBackInputStub(),

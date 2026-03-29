@@ -33,7 +33,7 @@ describe('questHasUniqueSiblingIdsGuard', () => {
   });
 
   describe('duplicate IDs', () => {
-    it('INVALID_ID: {duplicate flow ids} => returns false', () => {
+    it('INVALID: {duplicate flow ids} => returns false', () => {
       const result = questHasUniqueSiblingIdsGuard({
         updates: {
           flows: [FlowStub({ id: 'flow-a' }), FlowStub({ id: 'flow-a' })],
@@ -43,7 +43,7 @@ describe('questHasUniqueSiblingIdsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ID: {duplicate node ids within flow} => returns false', () => {
+    it('INVALID: {duplicate node ids within flow} => returns false', () => {
       const node1 = FlowNodeStub({ id: 'n1', label: 'First' });
       const node2 = FlowNodeStub({ id: 'n1', label: 'Second' });
       const result = questHasUniqueSiblingIdsGuard({
@@ -55,7 +55,7 @@ describe('questHasUniqueSiblingIdsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ID: {duplicate observable ids within node} => returns false', () => {
+    it('INVALID: {duplicate observable ids within node} => returns false', () => {
       const obs1 = FlowObservableStub({ id: 'obs-dup', description: 'First' });
       const obs2 = FlowObservableStub({ id: 'obs-dup', description: 'Second' });
       const node = FlowNodeStub({ id: 'n1', observables: [obs1, obs2] });
@@ -68,7 +68,7 @@ describe('questHasUniqueSiblingIdsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ID: {duplicate edge ids within flow} => returns false', () => {
+    it('INVALID: {duplicate edge ids within flow} => returns false', () => {
       const edge1 = FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n2' });
       const edge2 = FlowEdgeStub({ id: 'e1', from: 'n2', to: 'n3' });
       const result = questHasUniqueSiblingIdsGuard({

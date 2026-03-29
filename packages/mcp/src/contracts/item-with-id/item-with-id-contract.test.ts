@@ -12,8 +12,10 @@ describe('itemWithIdContract', () => {
     it('VALID: {id: "test", _delete: true} => parses with delete flag', () => {
       const result = ItemWithIdStub({ id: 'test', _delete: true });
 
-      expect(result.id).toBe('test');
-      expect(result._delete).toBe(true);
+      expect(result).toStrictEqual({
+        id: 'test',
+        _delete: true,
+      });
     });
   });
 

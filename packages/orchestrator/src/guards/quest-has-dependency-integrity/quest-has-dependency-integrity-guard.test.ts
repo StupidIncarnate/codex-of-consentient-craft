@@ -35,7 +35,7 @@ describe('questHasDependencyIntegrityGuard', () => {
   });
 
   describe('invalid dependencies', () => {
-    it('INVALID_DEPENDENCY: {step depends on non-existent step} => returns false', () => {
+    it('INVALID: {step depends on non-existent step} => returns false', () => {
       const nonExistentId = StepIdStub({ value: 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee' });
       const steps = [
         DependencyStepStub({
@@ -49,7 +49,7 @@ describe('questHasDependencyIntegrityGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_DEPENDENCY: {one valid, one invalid dependency} => returns false', () => {
+    it('INVALID: {one valid, one invalid dependency} => returns false', () => {
       const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const nonExistentId = StepIdStub({ value: 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee' });
       const steps = [

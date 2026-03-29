@@ -114,7 +114,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON primitive string} => returns null', () => {
@@ -124,7 +124,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {object without type property} => returns null', () => {
@@ -136,7 +136,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {non-assistant message} => returns null', () => {
@@ -149,7 +149,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with only tool calls} => returns null', () => {
@@ -159,7 +159,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with no content property} => returns null', () => {
@@ -172,7 +172,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with null message} => returns null', () => {
@@ -185,7 +185,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant without message property} => returns null', () => {
@@ -197,7 +197,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with empty content array} => returns null', () => {
@@ -212,7 +212,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with non-array content} => returns null', () => {
@@ -227,7 +227,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {text item without text property} => returns null', () => {
@@ -242,7 +242,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {text item with non-string text property} => returns null', () => {
@@ -257,7 +257,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content item is null} => returns null', () => {
@@ -272,7 +272,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content item is primitive} => returns null', () => {
@@ -287,7 +287,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -299,7 +299,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {truncated JSON} => returns null', () => {
@@ -309,7 +309,7 @@ describe('streamJsonToTextTransformer', () => {
 
       const result = streamJsonToTextTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

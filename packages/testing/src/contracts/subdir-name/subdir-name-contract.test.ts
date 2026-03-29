@@ -21,7 +21,7 @@ describe('subdirNameContract', () => {
   });
 
   describe('invalid subdir names', () => {
-    it('INVALID_SUBDIR_NAME: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return subdirNameContract.parse(123 as never);
       }).toThrow(/Expected string/u);

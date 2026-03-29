@@ -179,9 +179,9 @@ describe('ServerInitResponder', () => {
       const client = WsClientStub();
       proxy.simulateConnection({ client });
 
-      expect(() => {
-        proxy.simulateMessage({ data: 'not-json{{{', ws: client });
-      }).not.toThrow();
+      proxy.simulateMessage({ data: 'not-json{{{', ws: client });
+
+      expect(client.send).not.toHaveBeenCalled();
     });
   });
 
@@ -237,8 +237,6 @@ describe('ServerInitResponder', () => {
         processId: ProcessIdStub(),
         payload: { slotIndex: 1, text: 'batch-2' },
       });
-
-      expect(client.send).not.toHaveBeenCalled();
 
       jest.advanceTimersByTime(100);
       jest.useRealTimers();

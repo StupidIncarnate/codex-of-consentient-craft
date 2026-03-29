@@ -47,7 +47,7 @@ describe('getQuestResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_SUCCESS: {missing success} => throws validation error', () => {
+    it('INVALID: {missing success} => throws validation error', () => {
       expect(() => {
         return getQuestResultContract.parse({});
       }).toThrow(/Required/u);

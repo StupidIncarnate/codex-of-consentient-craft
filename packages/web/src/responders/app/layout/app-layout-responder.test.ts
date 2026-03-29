@@ -6,7 +6,7 @@ describe('AppLayoutResponder', () => {
     it('VALID: => is a function', () => {
       AppLayoutResponderProxy();
 
-      expect(typeof AppLayoutResponder).toBe('function');
+      expect(AppLayoutResponder).toStrictEqual(expect.any(Function));
     });
   });
 });

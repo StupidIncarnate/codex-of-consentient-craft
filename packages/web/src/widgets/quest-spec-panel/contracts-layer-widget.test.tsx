@@ -160,7 +160,7 @@ describe('ContractsLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByText('CONTRACTS')).toBeInTheDocument();
+      expect(screen.getAllByTestId('SECTION_HEADER_LABEL')[0]?.textContent).toBe('CONTRACTS');
     });
   });
 
@@ -252,7 +252,9 @@ describe('ContractsLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByText('TOOLING')).toBeInTheDocument();
+      expect(
+        screen.getAllByTestId('SECTION_HEADER_LABEL').some((el) => el.textContent === 'TOOLING'),
+      ).toBe(true);
     });
   });
 

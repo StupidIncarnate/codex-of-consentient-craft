@@ -293,7 +293,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       const result = workItemsToFloorGroupsTransformer({ workItems: [ps] });
 
       expect(result[0]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
-      expect(result[0]!.floorNumber).toBeNull();
+      expect(result[0]!.floorNumber).toBe(null);
     });
   });
 

@@ -14,8 +14,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
 
     it('VALID: {command: "npx jest --verbose"} => returns exit code 2', () => {
@@ -26,8 +29,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
 
     it('VALID: {command: "eslint src/"} => returns exit code 2', () => {
@@ -38,8 +44,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
 
     it('VALID: {command: "npx eslint"} => returns exit code 2', () => {
@@ -50,8 +59,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
 
     it('VALID: {command: "tsc --noEmit"} => returns exit code 2', () => {
@@ -62,8 +74,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
 
     it('VALID: {command: "npx tsc"} => returns exit code 2', () => {
@@ -74,8 +89,11 @@ describe('pre-bash-hook', () => {
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/npm run ward/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+      });
     });
   });
 
@@ -163,15 +181,21 @@ describe('pre-bash-hook', () => {
         input: 'not json' as never,
       });
 
-      expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/u);
+      expect(result).toStrictEqual({
+        status: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+      });
     });
 
     it('ERROR: {empty input} => returns exit code 1', () => {
       const result = runner.runHookRaw({ hookName: 'start-pre-bash-hook', input: '' as never });
 
-      expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/u);
+      expect(result).toStrictEqual({
+        status: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+      });
     });
   });
 });

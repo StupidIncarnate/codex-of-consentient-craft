@@ -12,8 +12,7 @@ describe('installCheckBroker', () => {
 
       const result = installCheckBroker({ projectRoot });
 
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
+      expect(result).toStrictEqual({ valid: true });
     });
 
     it('VALID: {different project path} => returns valid', () => {
@@ -24,8 +23,7 @@ describe('installCheckBroker', () => {
 
       const result = installCheckBroker({ projectRoot });
 
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
+      expect(result).toStrictEqual({ valid: true });
     });
   });
 
@@ -38,8 +36,7 @@ describe('installCheckBroker', () => {
 
       const result = installCheckBroker({ projectRoot });
 
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('No package.json found.');
+      expect(result).toStrictEqual({ valid: false, error: 'No package.json found.' });
     });
   });
 
@@ -52,8 +49,7 @@ describe('installCheckBroker', () => {
 
       const result = installCheckBroker({ projectRoot });
 
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('No .claude directory found.');
+      expect(result).toStrictEqual({ valid: false, error: 'No .claude directory found.' });
     });
   });
 });

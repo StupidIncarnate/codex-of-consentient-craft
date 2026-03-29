@@ -9,14 +9,14 @@ describe('questFolderToDesignPortTransformer', () => {
       expect(port).toBeLessThan(6000);
     });
 
-    it('DETERMINISTIC: {same input twice} => returns same port', () => {
+    it('VALID: {same input twice} => returns same port', () => {
       const port1 = questFolderToDesignPortTransformer({ questFolder: '001-add-auth' });
       const port2 = questFolderToDesignPortTransformer({ questFolder: '001-add-auth' });
 
       expect(port1).toBe(port2);
     });
 
-    it('DIFFERENT: {different folders} => returns different ports', () => {
+    it('EDGE: {different folders} => returns different ports', () => {
       const port1 = questFolderToDesignPortTransformer({ questFolder: '001-add-auth' });
       const port2 = questFolderToDesignPortTransformer({ questFolder: '002-add-dashboard' });
 

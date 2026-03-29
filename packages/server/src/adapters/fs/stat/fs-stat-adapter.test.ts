@@ -15,8 +15,7 @@ describe('fsStatAdapter', () => {
 
       const result = await fsStatAdapter({ filePath });
 
-      expect(result.birthtime).toStrictEqual(birthtime);
-      expect(result.mtimeMs).toBe(1708473600000);
+      expect(result).toStrictEqual({ birthtime, mtimeMs: 1708473600000 });
     });
 
     it('ERROR: {missing file} => throws error', async () => {

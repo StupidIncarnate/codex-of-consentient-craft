@@ -192,7 +192,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('observable coverage fails', () => {
-    it('INVALID_COVERAGE: {observable not covered by any step} => observable coverage fails', () => {
+    it('INVALID: {observable not covered by any step} => observable coverage fails', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
 
       const quest = QuestStub({
@@ -229,7 +229,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('circular dependency detected', () => {
-    it('INVALID_CYCLE: {steps with circular deps} => circular deps check fails', () => {
+    it('INVALID: {steps with circular deps} => circular deps check fails', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
@@ -293,7 +293,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('missing file companions', () => {
-    it('INVALID_COMPANION: {broker without proxy} => file companions fails', () => {
+    it('INVALID: {broker without proxy} => file companions fails', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
 
       const quest = QuestStub({
@@ -335,7 +335,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('raw primitives in contracts', () => {
-    it('INVALID_PRIMITIVES: {contract with string type property} => raw primitives check fails', () => {
+    it('INVALID: {contract with string type property} => raw primitives check fails', () => {
       const quest = createQuestWithContracts([
         createEntryWithProperties([createPropertyWithRawType({ name: 'name', type: 'string' })]),
       ]);
@@ -351,7 +351,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('steps missing contract declarations', () => {
-    it('INVALID_CONTRACTS: {step creating broker file but outputContracts is Void} => step contract declarations fails', () => {
+    it('INVALID: {step creating broker file but outputContracts is Void} => step contract declarations fails', () => {
       const quest = QuestStub({
         contracts: [QuestContractEntryStub()],
         steps: [
@@ -376,7 +376,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('steps referencing non-existent contracts', () => {
-    it('INVALID_CONTRACTS: {step with outputContracts referencing non-existent contract} => valid contract references fails', () => {
+    it('INVALID: {step with outputContracts referencing non-existent contract} => valid contract references fails', () => {
       const existingName = ContractNameStub({ value: 'LoginCredentials' });
       const nonExistentName = ContractNameStub({ value: 'NonExistentContract' });
 
@@ -401,7 +401,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('steps missing export names', () => {
-    it('INVALID_EXPORT: {step with entry focusFile but no exportName} => step export names fails', () => {
+    it('INVALID: {step with entry focusFile but no exportName} => step export names fails', () => {
       const quest = QuestStub({
         steps: [
           DependencyStepStub({
@@ -429,7 +429,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('invalid flow references', () => {
-    it('INVALID_FLOW_REF: {edge references non-existent node} => valid flow references fails', () => {
+    it('INVALID: {edge references non-existent node} => valid flow references fails', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -450,7 +450,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('orphan flow nodes', () => {
-    it('INVALID_ORPHAN: {node with no edges} => orphan flow nodes check fails', () => {
+    it('INVALID: {node with no edges} => orphan flow nodes check fails', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -475,7 +475,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('node observable coverage fails', () => {
-    it('INVALID_NODE_COVERAGE: {terminal node without observables} => node observable coverage fails', () => {
+    it('INVALID: {terminal node without observables} => node observable coverage fails', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -501,7 +501,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('duplicate focus files', () => {
-    it('INVALID_DUPLICATE: {two steps with same focusFile path} => duplicate focus files fails', () => {
+    it('INVALID: {two steps with same focusFile path} => duplicate focus files fails', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
 
       const quest = QuestStub({
@@ -558,7 +558,7 @@ describe('questVerifyTransformer', () => {
   });
 
   describe('invalid focus file paths', () => {
-    it('INVALID_FOCUS: {step with focusFile path not matching known folder type} => valid focus files fails', () => {
+    it('INVALID: {step with focusFile path not matching known folder type} => valid focus files fails', () => {
       const quest = QuestStub({
         steps: [
           DependencyStepStub({

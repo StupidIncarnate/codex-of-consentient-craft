@@ -20,8 +20,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/THINKING/u);
-      expect(message.textContent).toMatch(/Let me think about this/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).toContain('Let me think about this');
     });
 
     it('VALID: {type: thinking} => renders text-dim borders', () => {
@@ -34,8 +36,11 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
-      expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+      expect([message.style.borderLeft, message.style.borderRight]).toStrictEqual([
+        '2px solid rgb(138, 114, 96)',
+
+        '2px solid rgb(138, 114, 96)',
+      ]);
     });
 
     it('VALID: {type: thinking} => renders with 15% paddingLeft', () => {
@@ -63,8 +68,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/THINKING/u);
-      expect(message.textContent).toMatch(/claude-opus-4-6/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).toContain('claude-opus-4-6');
     });
 
     it('VALID: {no model} => does not render model suffix', () => {
@@ -77,8 +84,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^THINKING/u);
-      expect(message.textContent).not.toMatch(/claude/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).not.toContain('claude');
     });
   });
 
@@ -91,7 +100,7 @@ describe('ThinkingLayerWidget', () => {
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
-      expect(screen.queryByTestId('THINKING_TOGGLE')).toBeNull();
+      expect(screen.queryByTestId('THINKING_TOGGLE')).toBe(null);
     });
 
     it('VALID: {long content} => renders expand toggle', () => {

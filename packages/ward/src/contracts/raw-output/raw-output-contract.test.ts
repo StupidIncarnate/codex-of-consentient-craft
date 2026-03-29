@@ -27,7 +27,7 @@ describe('rawOutputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_EXIT_CODE: {exitCode: "zero"} => throws validation error', () => {
+    it('INVALID: {exitCode: "zero"} => throws validation error', () => {
       expect(() =>
         rawOutputContract.parse({
           stdout: '',
@@ -37,7 +37,7 @@ describe('rawOutputContract', () => {
       ).toThrow(/Expected number/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => rawOutputContract.parse({})).toThrow(/Required/u);
     });
   });

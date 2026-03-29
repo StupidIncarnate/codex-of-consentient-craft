@@ -14,7 +14,7 @@ describe('SectionHeaderWidget', () => {
 
       mantineRenderAdapter({ ui: <SectionHeaderWidget label={label} /> });
 
-      expect(screen.getByText('OBJECTIVES')).toBeInTheDocument();
+      expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('OBJECTIVES');
     });
 
     it('VALID: {label: "STEPS", count: 5} => renders label with count', () => {
@@ -24,7 +24,7 @@ describe('SectionHeaderWidget', () => {
 
       mantineRenderAdapter({ ui: <SectionHeaderWidget label={label} count={count} /> });
 
-      expect(screen.getByText('STEPS')).toBeInTheDocument();
+      expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('STEPS');
 
       const countElement = screen.getByTestId('SECTION_HEADER_COUNT');
 
@@ -51,7 +51,7 @@ describe('SectionHeaderWidget', () => {
 
       mantineRenderAdapter({ ui: <SectionHeaderWidget label={label} /> });
 
-      expect(screen.queryByTestId('SECTION_HEADER_COUNT')).toBeNull();
+      expect(screen.queryByTestId('SECTION_HEADER_COUNT')).toBe(null);
     });
   });
 });

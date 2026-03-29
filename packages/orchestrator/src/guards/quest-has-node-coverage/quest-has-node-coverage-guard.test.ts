@@ -79,7 +79,7 @@ describe('questHasNodeCoverageGuard', () => {
   });
 
   describe('invalid coverage', () => {
-    it('INVALID_COVERAGE: {terminal node without observables} => returns false', () => {
+    it('INVALID: {terminal node without observables} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [
@@ -97,7 +97,7 @@ describe('questHasNodeCoverageGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COVERAGE: {one terminal with observables, one without} => returns false', () => {
+    it('INVALID: {one terminal with observables, one without} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [

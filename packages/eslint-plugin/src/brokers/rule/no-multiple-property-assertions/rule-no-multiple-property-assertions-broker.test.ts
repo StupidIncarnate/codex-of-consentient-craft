@@ -62,15 +62,25 @@ ruleTester.run('no-multiple-property-assertions', ruleNoMultiplePropertyAssertio
       filename: '/project/src/brokers/config/config-broker.test.ts',
     },
 
-    // Non-toStrictEqual matchers are not checked
+    // Single property with .toBe() (only one property tested)
     {
       code: `
-          it('VALID: multiple matchers allowed', () => {
-            expect(result.files).toBeDefined();
-            expect(result.ignores).toBeDefined();
+          it('VALID: {name} => returns name', () => {
+            expect(result.name).toBe('John');
           });
         `,
       filename: '/project/src/brokers/config/config-broker.test.ts',
+    },
+
+    // Different root objects with .toBe()
+    {
+      code: `
+          it('VALID: {user, config} => different roots with toBe', () => {
+            expect(user.name).toBe('John');
+            expect(config.timeout).toBe(5000);
+          });
+        `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
     // Direct object assertions (not properties)
@@ -164,7 +174,7 @@ ruleTester.run('no-multiple-property-assertions', ruleNoMultiplePropertyAssertio
       ],
     },
 
-    // Multiple properties with other assertions mixed in
+    // Multiple properties with mixed matchers (all caught now)
     {
       code: `
           it('VALID: {result} => processes data', () => {
@@ -174,6 +184,73 @@ ruleTester.run('no-multiple-property-assertions', ruleNoMultiplePropertyAssertio
           });
         `,
       filename: '/project/src/brokers/process/process-broker.test.ts',
+      errors: [
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '3' },
+        },
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '3' },
+        },
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '3' },
+        },
+      ],
+    },
+
+    // Multiple .toBe() on same root
+    {
+      code: `
+          it('VALID: {result} => checks type and name', () => {
+            expect(result.type).toBe('foo');
+            expect(result.name).toBe('bar');
+          });
+        `,
+      filename: '/project/src/brokers/config/config-broker.test.ts',
+      errors: [
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '2' },
+        },
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '2' },
+        },
+      ],
+    },
+
+    // Mixed matchers on same root
+    {
+      code: `
+          it('VALID: {result} => mixed matchers', () => {
+            expect(result.msg).toMatch(/^hello$/u);
+            expect(result.code).toBe(200);
+          });
+        `,
+      filename: '/project/src/brokers/config/config-broker.test.ts',
+      errors: [
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '2' },
+        },
+        {
+          messageId: 'multiplePropertyAssertions',
+          data: { rootObject: 'result', count: '2' },
+        },
+      ],
+    },
+
+    // Through .not chain
+    {
+      code: `
+          it('VALID: {result} => not chain', () => {
+            expect(result.a).not.toBe(null);
+            expect(result.b).toBe('x');
+          });
+        `,
+      filename: '/project/src/brokers/config/config-broker.test.ts',
       errors: [
         {
           messageId: 'multiplePropertyAssertions',

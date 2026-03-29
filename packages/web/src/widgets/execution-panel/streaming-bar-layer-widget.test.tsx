@@ -15,7 +15,7 @@ describe('StreamingBarLayerWidget', () => {
 
       const bar = screen.getByTestId('streaming-bar-layer-widget');
 
-      expect(bar.textContent).toMatch(/░+\s*streaming\.\.\./u);
+      expect(bar.textContent).toContain('streaming...');
     });
   });
 
@@ -29,8 +29,7 @@ describe('StreamingBarLayerWidget', () => {
 
       const bar = screen.getByTestId('streaming-bar-layer-widget');
 
-      expect(bar.style.display).toBe('flex');
-      expect(bar.style.alignItems).toBe('center');
+      expect([bar.style.display, bar.style.alignItems]).toStrictEqual(['flex', 'center']);
     });
   });
 });

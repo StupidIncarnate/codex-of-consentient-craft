@@ -17,7 +17,7 @@ describe('dependencyCountContract', () => {
   });
 
   describe('invalid counts', () => {
-    it('INVALID_VALUE: {value: -1} => throws validation error', () => {
+    it('INVALID: {value: -1} => throws validation error', () => {
       expect(() => dependencyCountContract.parse(-1)).toThrow(/too_small/u);
     });
   });

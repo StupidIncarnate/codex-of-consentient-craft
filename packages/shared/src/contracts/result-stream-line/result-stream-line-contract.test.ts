@@ -26,13 +26,18 @@ describe('resultStreamLineContract', () => {
 
       const result = resultStreamLineContract.parse(streamLine);
 
-      expect(result.type).toBe('result');
-      expect(result.session_id).toBe('session-123');
+      expect(result).toStrictEqual({
+        type: 'result',
+        session_id: 'session-123',
+        cost_usd: undefined,
+        duration_ms: undefined,
+        num_turns: undefined,
+      });
     });
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "system"} => throws validation error', () => {
+    it('INVALID: {type: "system"} => throws validation error', () => {
       expect(() => {
         resultStreamLineContract.parse({
           type: 'system',
@@ -41,7 +46,7 @@ describe('resultStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_MISSING: {missing session_id} => throws validation error', () => {
+    it('INVALID: {missing session_id} => throws validation error', () => {
       expect(() => {
         resultStreamLineContract.parse({
           type: 'result',

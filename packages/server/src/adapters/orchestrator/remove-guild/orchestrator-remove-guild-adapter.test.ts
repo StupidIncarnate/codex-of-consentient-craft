@@ -9,7 +9,7 @@ describe('orchestratorRemoveGuildAdapter', () => {
       orchestratorRemoveGuildAdapterProxy();
       const guildId = GuildIdStub();
 
-      await expect(orchestratorRemoveGuildAdapter({ guildId })).resolves.toBeUndefined();
+      await expect(orchestratorRemoveGuildAdapter({ guildId })).resolves.toBe(undefined);
     });
   });
 

@@ -34,7 +34,7 @@ describe('slotDataContract', () => {
   });
 
   describe('invalid slot data', () => {
-    it('INVALID_STEP_ID: {stepId: "INVALID"} => throws invalid_string', () => {
+    it('INVALID: {stepId: "INVALID"} => throws invalid_string', () => {
       const sessionId = SessionIdStub();
       const startedAt = IsoTimestampStub();
 
@@ -47,7 +47,7 @@ describe('slotDataContract', () => {
       ).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_SESSION_ID: {sessionId: ""} => throws too_small', () => {
+    it('INVALID: {sessionId: ""} => throws too_small', () => {
       const stepId = StepIdStub();
       const startedAt = IsoTimestampStub();
 
@@ -60,7 +60,7 @@ describe('slotDataContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_STARTED_AT: {startedAt: "not-a-datetime"} => throws Invalid datetime', () => {
+    it('INVALID: {startedAt: "not-a-datetime"} => throws Invalid datetime', () => {
       const stepId = StepIdStub();
       const sessionId = SessionIdStub();
 
@@ -73,7 +73,7 @@ describe('slotDataContract', () => {
       ).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_MISSING: {} => throws Required', () => {
+    it('INVALID: {} => throws Required', () => {
       expect(() => slotDataContract.parse({})).toThrow(/Required/u);
     });
   });

@@ -51,6 +51,14 @@ import { ruleBanWaitForTimeoutBrokerProxy } from '../../../brokers/rule/ban-wait
 import { ruleBanPageRouteInE2eBrokerProxy } from '../../../brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker.proxy';
 import { ruleEnforceE2eBaseImportBrokerProxy } from '../../../brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker.proxy';
 import { ruleBanSilentCatchBrokerProxy } from '../../../brokers/rule/ban-silent-catch/rule-ban-silent-catch-broker.proxy';
+import { ruleBanNotToThrowBrokerProxy } from '../../../brokers/rule/ban-not-to-throw/rule-ban-not-to-throw-broker.proxy';
+import { ruleBanWeakExistenceMatchersBrokerProxy } from '../../../brokers/rule/ban-weak-existence-matchers/rule-ban-weak-existence-matchers-broker.proxy';
+import { ruleBanTypeofAssertionsBrokerProxy } from '../../../brokers/rule/ban-typeof-assertions/rule-ban-typeof-assertions-broker.proxy';
+import { ruleEnforceTestNamePrefixBrokerProxy } from '../../../brokers/rule/enforce-test-name-prefix/rule-enforce-test-name-prefix-broker.proxy';
+import { ruleBanUnanchoredToMatchBrokerProxy } from '../../../brokers/rule/ban-unanchored-to-match/rule-ban-unanchored-to-match-broker.proxy';
+import { ruleEnforceTestidQueriesBrokerProxy } from '../../../brokers/rule/enforce-testid-queries/rule-enforce-testid-queries-broker.proxy';
+import { ruleBanPlaywrightEvaluateForStylesBrokerProxy } from '../../../brokers/rule/ban-playwright-evaluate-for-styles/rule-ban-playwright-evaluate-for-styles-broker.proxy';
+import { ruleBanPlaywrightExtractThenAssertBrokerProxy } from '../../../brokers/rule/ban-playwright-extract-then-assert/rule-ban-playwright-extract-then-assert-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -96,6 +104,14 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanPageRouteInE2eBrokerProxy();
   ruleEnforceE2eBaseImportBrokerProxy();
   ruleBanSilentCatchBrokerProxy();
+  ruleBanNotToThrowBrokerProxy();
+  ruleBanWeakExistenceMatchersBrokerProxy();
+  ruleBanTypeofAssertionsBrokerProxy();
+  ruleEnforceTestNamePrefixBrokerProxy();
+  ruleBanUnanchoredToMatchBrokerProxy();
+  ruleEnforceTestidQueriesBrokerProxy();
+  ruleBanPlaywrightEvaluateForStylesBrokerProxy();
+  ruleBanPlaywrightExtractThenAssertBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

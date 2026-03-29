@@ -16,10 +16,15 @@ describe('mswResponseToNetworkEntryTransformer', () => {
         response,
       });
 
-      expect(result.method).toBe(stub.method);
-      expect(result.url).toBe(stub.url);
-      expect(result.responseBody).toBe('{"id":"123"}');
-      expect(result.source).toBe('mock');
+      expect(result).toStrictEqual({
+        method: stub.method,
+        url: stub.url,
+        status: stub.status,
+        durationMs: stub.durationMs,
+        requestBody: undefined,
+        responseBody: '{"id":"123"}',
+        source: 'mock',
+      });
     });
 
     it('VALID: {response with request body} => returns entry with both bodies', async () => {
@@ -36,9 +41,15 @@ describe('mswResponseToNetworkEntryTransformer', () => {
         requestBody: stub.requestBody,
       });
 
-      expect(result.requestBody).toBe('{"name":"test"}');
-      expect(result.responseBody).toBe('{"created":true}');
-      expect(result.source).toBe('bypass');
+      expect(result).toStrictEqual({
+        method: stub.method,
+        url: stub.url,
+        status: stub.status,
+        durationMs: stub.durationMs,
+        requestBody: '{"name":"test"}',
+        responseBody: '{"created":true}',
+        source: 'bypass',
+      });
     });
 
     it('VALID: {empty response body} => returns entry without responseBody', async () => {
@@ -54,13 +65,15 @@ describe('mswResponseToNetworkEntryTransformer', () => {
         response,
       });
 
-      expect(result.method).toBe(stub.method);
-      expect(result.url).toBe(stub.url);
-      expect(result.source).toBe('mock');
-
-      const noBody = undefined;
-
-      expect(result.responseBody).toBe(noBody);
+      expect(result).toStrictEqual({
+        method: stub.method,
+        url: stub.url,
+        status: stub.status,
+        durationMs: stub.durationMs,
+        requestBody: undefined,
+        responseBody: undefined,
+        source: 'mock',
+      });
     });
   });
 });

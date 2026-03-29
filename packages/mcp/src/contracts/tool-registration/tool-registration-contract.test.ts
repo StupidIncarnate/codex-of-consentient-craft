@@ -11,13 +11,15 @@ describe('toolRegistrationContract', () => {
     it('VALID: default stub => returns complete tool registration', () => {
       const registration: ToolRegistration = ToolRegistrationStub();
 
-      expect(registration.name).toBe('stub-tool');
-      expect(registration.description).toBe('A stub tool for testing');
-      expect(registration.inputSchema).toStrictEqual({
-        type: 'object',
-        properties: {},
+      expect(registration).toStrictEqual({
+        name: 'stub-tool',
+        description: 'A stub tool for testing',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+        handler: expect.any(Function),
       });
-      expect(typeof registration.handler).toBe('function');
     });
 
     it('VALID: handler returns ToolResponse => resolves with valid response', async () => {
@@ -53,8 +55,15 @@ describe('toolRegistrationContract', () => {
         description: 'Retrieves a quest by ID',
       });
 
-      expect(registration.name).toBe('get-quest');
-      expect(registration.description).toBe('Retrieves a quest by ID');
+      expect(registration).toStrictEqual({
+        name: 'get-quest',
+        description: 'Retrieves a quest by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+        handler: expect.any(Function),
+      });
     });
   });
 

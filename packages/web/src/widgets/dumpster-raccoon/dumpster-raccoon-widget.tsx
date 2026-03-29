@@ -83,6 +83,7 @@ export const DumpsterRaccoonWidget = (): React.JSX.Element => {
       </Group>
       <Text
         ff="monospace"
+        data-testid="DUMPSTER_RACCOON_LOADING"
         style={{
           fontSize: 11,
           color: emberDepthsThemeStatics.colors['text-dim'],

@@ -73,7 +73,7 @@ describe('networkLogEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_METHOD: {method: number} => throws validation error', () => {
+    it('INVALID: {method: number} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({
           method: 123 as never,
@@ -83,7 +83,7 @@ describe('networkLogEntryContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_SOURCE: {source: "unknown"} => throws validation error', () => {
+    it('INVALID: {source: "unknown"} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({
           method: 'GET',
@@ -93,13 +93,13 @@ describe('networkLogEntryContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_STATUS: {status: 1.5} => throws validation error', () => {
+    it('INVALID: {status: 1.5} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({
           method: 'GET',
@@ -110,7 +110,7 @@ describe('networkLogEntryContract', () => {
       }).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_DURATION: {durationMs: -1} => throws validation error', () => {
+    it('INVALID: {durationMs: -1} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({
           method: 'GET',

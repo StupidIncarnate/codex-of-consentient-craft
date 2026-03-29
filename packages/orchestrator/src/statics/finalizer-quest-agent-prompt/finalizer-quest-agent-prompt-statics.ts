@@ -76,7 +76,7 @@ For each step, evaluate its structured assertions:
 
 **Coverage:**
 - Does each step have meaningful assertions, not just filler? (Bad: one VALID with vague input. Good: VALID + INVALID + EDGE covering real scenarios)
-- Do steps with non-Void \`inputContracts\` have \`INVALID\` or \`EMPTY\` assertions? (Bad: broker accepting LoginCredentials with only VALID assertions. Good: includes INVALID_email, INVALID_password, EMPTY for missing body)
+- Do steps with non-Void \`inputContracts\` have \`INVALID\` or \`EMPTY\` assertions? (Bad: broker accepting LoginCredentials with only VALID assertions. Good: includes INVALID assertions for email and password fields, EMPTY for missing body)
 - Are there negative assertions where needed? (Bad: delete step with no assertion about what should NOT be deleted. Good: \`{ prefix: "EDGE", input: "delete user with active orders", expected: "orders are NOT deleted" }\`)
 
 **Contract coherence:**

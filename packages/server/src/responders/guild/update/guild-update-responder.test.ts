@@ -39,7 +39,7 @@ describe('GuildUpdateResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = GuildUpdateResponderProxy();
 
       const result = await proxy.callResponder({ params: null, body: { name: 'Test' } });
@@ -50,7 +50,7 @@ describe('GuildUpdateResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       const proxy = GuildUpdateResponderProxy();
 
       const result = await proxy.callResponder({ params: {}, body: { name: 'Test' } });
@@ -61,7 +61,7 @@ describe('GuildUpdateResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {guildId is number} => returns 400 with error', async () => {
+    it('INVALID: {guildId is number} => returns 400 with error', async () => {
       const proxy = GuildUpdateResponderProxy();
 
       const result = await proxy.callResponder({
@@ -75,7 +75,7 @@ describe('GuildUpdateResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
       const proxy = GuildUpdateResponderProxy();
       const guildId = GuildIdStub();
 

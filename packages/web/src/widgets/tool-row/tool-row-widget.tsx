@@ -382,6 +382,7 @@ export const ToolRowWidget = ({
                     {truncateContentTransformer({ content: toolResult.content })}
                   </Text>
                   <Text
+                    data-testid="TOOL_ROW_TRUNCATION_TOGGLE"
                     ff="monospace"
                     style={{
                       fontSize: DETAIL_FONT_SIZE,

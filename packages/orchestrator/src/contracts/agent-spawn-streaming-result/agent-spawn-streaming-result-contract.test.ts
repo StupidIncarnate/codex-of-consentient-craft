@@ -14,16 +14,25 @@ describe('agentSpawnStreamingResultContract', () => {
         crashed: false,
       });
 
-      expect(result.crashed).toBe(false);
-      expect(result.capturedOutput).toStrictEqual([]);
+      expect(result).toStrictEqual({
+        sessionId: expect.any(String),
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        capturedOutput: [],
+      });
     });
 
     it('VALID: {stub} => parses successfully', () => {
       const stub = AgentSpawnStreamingResultStub();
 
-      expect(stub.crashed).toBe(false);
-      expect(stub.signal).toBeNull();
-      expect(stub.capturedOutput).toStrictEqual([]);
+      expect(stub).toStrictEqual({
+        sessionId: expect.any(String),
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        capturedOutput: [],
+      });
     });
 
     it('VALID: {nullable sessionId} => parses successfully', () => {
@@ -34,7 +43,7 @@ describe('agentSpawnStreamingResultContract', () => {
         crashed: false,
       });
 
-      expect(result.sessionId).toBeNull();
+      expect(result.sessionId).toBe(null);
     });
 
     it('VALID: {nullable exitCode} => parses successfully', () => {
@@ -45,7 +54,7 @@ describe('agentSpawnStreamingResultContract', () => {
         crashed: false,
       });
 
-      expect(result.exitCode).toBeNull();
+      expect(result.exitCode).toBe(null);
     });
 
     it('VALID: {capturedOutput omitted} => defaults to empty array', () => {

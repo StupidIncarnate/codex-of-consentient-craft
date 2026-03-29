@@ -20,13 +20,13 @@ describe('timeoutMsContract', () => {
     expect(timeout).toBe(0);
   });
 
-  it('INVALID_TIMEOUT: {value: -1} => throws validation error', () => {
+  it('INVALID: {value: -1} => throws validation error', () => {
     expect(() => {
       return timeoutMsContract.parse(-1);
     }).toThrow(/Number must be greater than or equal to 0/u);
   });
 
-  it('INVALID_TIMEOUT: {value: 1.5} => throws validation error for non-integer', () => {
+  it('INVALID: {value: 1.5} => throws validation error for non-integer', () => {
     expect(() => {
       return timeoutMsContract.parse(1.5);
     }).toThrow(/Expected integer/u);

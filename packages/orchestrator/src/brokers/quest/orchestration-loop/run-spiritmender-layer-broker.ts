@@ -77,9 +77,16 @@ export const runSpiritmenderLayerBroker = async ({
 
       try {
         const batchContents = await fsReadFileAdapter({ filePath: batchFilePath });
-        const { filePaths, errors } = parseBatchFileTransformer({ contents: batchContents });
+        const { filePaths, errors, verificationCommand } = parseBatchFileTransformer({
+          contents: batchContents,
+        });
 
-        return workUnitContract.parse({ role: 'spiritmender', filePaths, errors });
+        return workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths,
+          errors,
+          ...(verificationCommand === undefined ? {} : { verificationCommand }),
+        });
       } catch {
         // Batch file not found or invalid — create empty work unit
         return workUnitContract.parse({ role: 'spiritmender', filePaths: [], errors: [] });

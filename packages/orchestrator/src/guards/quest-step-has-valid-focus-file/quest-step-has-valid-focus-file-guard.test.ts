@@ -68,7 +68,7 @@ describe('questStepHasValidFocusFileGuard', () => {
   });
 
   describe('invalid focus files', () => {
-    it('INVALID_PATH: {focusFile path does not match known folder type} => returns false', () => {
+    it('INVALID: {focusFile path does not match known folder type} => returns false', () => {
       const steps = [
         DependencyStepStub({
           focusFile: StepFileReferenceStub({

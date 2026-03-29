@@ -29,7 +29,7 @@ describe('ForbiddenFolderNameStub', () => {
   it('VALID: default => returns branded ForbiddenFolderName with default value', () => {
     const result = ForbiddenFolderNameStub();
 
-    expect(typeof result).toBe('string');
+    expect(result).toBe('utils');
   });
 
   it('INVALID: {value: number} => throws ZodError with "Expected string"', () => {

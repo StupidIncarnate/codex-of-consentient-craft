@@ -29,43 +29,43 @@ describe('KebabCaseStringStub', () => {
   });
 
   describe('invalid strings', () => {
-    it('INVALID_FORMAT: {value: "CamelCase"} => throws ZodError', () => {
+    it('INVALID: {value: "CamelCase"} => throws ZodError', () => {
       expect(() => {
         kebabCaseStringContract.parse('CamelCase');
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "snake_case"} => throws ZodError', () => {
+    it('INVALID: {value: "snake_case"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: 'snake_case' });
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "UPPERCASE"} => throws ZodError', () => {
+    it('INVALID: {value: "UPPERCASE"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: 'UPPERCASE' });
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "has spaces"} => throws ZodError', () => {
+    it('INVALID: {value: "has spaces"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: 'has spaces' });
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "-starts-with-hyphen"} => throws ZodError', () => {
+    it('INVALID: {value: "-starts-with-hyphen"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: '-starts-with-hyphen' });
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "ends-with-hyphen-"} => throws ZodError', () => {
+    it('INVALID: {value: "ends-with-hyphen-"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: 'ends-with-hyphen-' });
       }).toThrow('Must be kebab-case');
     });
 
-    it('INVALID_FORMAT: {value: "multiple--hyphens"} => throws ZodError', () => {
+    it('INVALID: {value: "multiple--hyphens"} => throws ZodError', () => {
       expect(() => {
         KebabCaseStringStub({ value: 'multiple--hyphens' });
       }).toThrow('Must be kebab-case');

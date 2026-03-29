@@ -18,8 +18,10 @@ describe('workItemForUpsertContract', () => {
 
       const result = workItemForUpsertContract.parse(input);
 
-      expect(result.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(result.status).toBe('complete');
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        status: 'complete',
+      });
     });
 
     it('VALID: {id, sessionId} => parses partial update with sessionId', () => {
@@ -27,8 +29,10 @@ describe('workItemForUpsertContract', () => {
 
       const result = workItemForUpsertContract.parse(input);
 
-      expect(result.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(result.sessionId).toBe('session-abc-123');
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        sessionId: 'session-abc-123',
+      });
     });
 
     it('VALID: {id, status, completedAt} => parses partial update with multiple fields', () => {
@@ -40,10 +44,12 @@ describe('workItemForUpsertContract', () => {
 
       const result = workItemForUpsertContract.parse(input);
 
-      expect(result.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(result.status).toBe('failed');
-      expect(result.completedAt).toBe('2024-01-15T12:00:00.000Z');
-      expect(result.errorMessage).toBe('Agent exited without completing');
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        status: 'failed',
+        completedAt: '2024-01-15T12:00:00.000Z',
+        errorMessage: 'Agent exited without completing',
+      });
     });
 
     it('VALID: {full work item fields} => parses complete work item', () => {
@@ -56,27 +62,30 @@ describe('workItemForUpsertContract', () => {
 
       const result = workItemForUpsertContract.parse(input);
 
-      expect(result.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(result.role).toBe('codeweaver');
-      expect(result.status).toBe('pending');
-      expect(result.spawnerType).toBe('agent');
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
     });
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_ID: {missing id} => throws validation error', () => {
+    it('INVALID: {missing id} => throws validation error', () => {
       expect(() => {
         return workItemForUpsertContract.parse({ status: 'complete' });
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_ID: {id: "not-a-uuid"} => throws validation error', () => {
+    it('INVALID: {id: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
         return workItemForUpsertContract.parse({ id: 'not-a-uuid' });
       }).toThrow(/Invalid uuid/u);
     });
 
-    it('INVALID_STATUS: {id, status: "invalid"} => throws validation error', () => {
+    it('INVALID: {id, status: "invalid"} => throws validation error', () => {
       expect(() => {
         return workItemForUpsertContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

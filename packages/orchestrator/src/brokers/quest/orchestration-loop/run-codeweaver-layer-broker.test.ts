@@ -30,7 +30,7 @@ const COMPLETE_SIGNAL_LINE = JSON.stringify({
 describe('runCodeweaverLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof runCodeweaverLayerBroker).toBe('function');
+      expect(runCodeweaverLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 

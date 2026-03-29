@@ -153,13 +153,13 @@ describe('askUserQuestionInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUESTIONS: {empty questions array} => throws validation error', () => {
+    it('INVALID: {empty questions array} => throws validation error', () => {
       expect(() => {
         askUserQuestionInputContract.parse({ questions: [] });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUESTION: {question: ""} => throws validation error for empty question', () => {
+    it('INVALID: {question: ""} => throws validation error for empty question', () => {
       expect(() => {
         askUserQuestionInputContract.parse({
           questions: [
@@ -174,7 +174,7 @@ describe('askUserQuestionInputContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_LABEL: {label: ""} => throws validation error for empty label', () => {
+    it('INVALID: {label: ""} => throws validation error for empty label', () => {
       expect(() => {
         askUserQuestionInputContract.parse({
           questions: [
@@ -189,13 +189,13 @@ describe('askUserQuestionInputContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MULTIPLE: {missing questions} => throws validation error', () => {
+    it('INVALID: {missing questions} => throws validation error', () => {
       expect(() => {
         askUserQuestionInputContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTI_SELECT: {multiSelect: "yes"} => throws validation error for non-boolean', () => {
+    it('INVALID: {multiSelect: "yes"} => throws validation error for non-boolean', () => {
       expect(() => {
         askUserQuestionInputContract.parse({
           questions: [

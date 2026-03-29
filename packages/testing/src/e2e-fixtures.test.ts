@@ -51,8 +51,13 @@ describe('wireHarnessLifecycle', () => {
 
       const result = wireHarnessLifecycle({ harness, testObj });
 
-      expect(testObj.beforeEach).toHaveBeenCalledWith(harness.beforeEach);
-      expect(testObj.afterEach).not.toHaveBeenCalled();
+      expect({
+        beforeEachCalls: testObj.beforeEach.mock.calls,
+        afterEachCalls: testObj.afterEach.mock.calls,
+      }).toStrictEqual({
+        beforeEachCalls: [[harness.beforeEach]],
+        afterEachCalls: [],
+      });
       expect(result).toBe(harness);
     });
   });
@@ -64,8 +69,13 @@ describe('wireHarnessLifecycle', () => {
 
       wireHarnessLifecycle({ harness, testObj });
 
-      expect(testObj.afterEach).toHaveBeenCalledWith(harness.afterEach);
-      expect(testObj.beforeEach).not.toHaveBeenCalled();
+      expect({
+        beforeEachCalls: testObj.beforeEach.mock.calls,
+        afterEachCalls: testObj.afterEach.mock.calls,
+      }).toStrictEqual({
+        beforeEachCalls: [],
+        afterEachCalls: [[harness.afterEach]],
+      });
     });
   });
 
@@ -76,8 +86,13 @@ describe('wireHarnessLifecycle', () => {
 
       wireHarnessLifecycle({ harness, testObj });
 
-      expect(testObj.beforeEach).toHaveBeenCalledWith(harness.beforeEach);
-      expect(testObj.afterEach).toHaveBeenCalledWith(harness.afterEach);
+      expect({
+        beforeEachCalls: testObj.beforeEach.mock.calls,
+        afterEachCalls: testObj.afterEach.mock.calls,
+      }).toStrictEqual({
+        beforeEachCalls: [[harness.beforeEach]],
+        afterEachCalls: [[harness.afterEach]],
+      });
     });
   });
 
@@ -88,8 +103,13 @@ describe('wireHarnessLifecycle', () => {
 
       const result = wireHarnessLifecycle({ harness, testObj });
 
-      expect(testObj.beforeEach).not.toHaveBeenCalled();
-      expect(testObj.afterEach).not.toHaveBeenCalled();
+      expect({
+        beforeEachCalls: testObj.beforeEach.mock.calls,
+        afterEachCalls: testObj.afterEach.mock.calls,
+      }).toStrictEqual({
+        beforeEachCalls: [],
+        afterEachCalls: [],
+      });
       expect(result).toBe(harness);
     });
   });

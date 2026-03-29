@@ -31,13 +31,13 @@ describe('mockHandleEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_TYPE: null => throws validation error', () => {
+    it('INVALID: null => throws validation error', () => {
       expect(() => {
         return mockHandleEntryContract.parse(null);
       }).toThrow(/Expected object/u);
     });
 
-    it('INVALID_TYPE: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return mockHandleEntryContract.parse(undefined);
       }).toThrow(/Required/u);

@@ -11,7 +11,7 @@ describe('agentIdContract', () => {
   });
 
   describe('invalid agent ids', () => {
-    it('INVALID_VALUE: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => agentIdContract.parse('')).toThrow(/too_small/u);
     });
   });

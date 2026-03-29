@@ -108,12 +108,12 @@ describe('assistantStreamLineContract', () => {
 
       const result = assistantStreamLineContract.parse(streamLine);
 
-      expect(result.message.usage).toBeUndefined();
+      expect(result.message.usage).toBe(undefined);
     });
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "user"} => throws validation error', () => {
+    it('INVALID: {type: "user"} => throws validation error', () => {
       expect(() => {
         assistantStreamLineContract.parse({
           type: 'user',
@@ -122,7 +122,7 @@ describe('assistantStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_MISSING_MESSAGE: {no message field} => throws validation error', () => {
+    it('INVALID: {no message field} => throws validation error', () => {
       expect(() => {
         assistantStreamLineContract.parse({
           type: 'assistant',
@@ -130,7 +130,7 @@ describe('assistantStreamLineContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MISSING_CONTENT: {message without content array} => throws validation error', () => {
+    it('INVALID: {message without content array} => throws validation error', () => {
       expect(() => {
         assistantStreamLineContract.parse({
           type: 'assistant',

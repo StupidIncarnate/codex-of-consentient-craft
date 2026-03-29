@@ -18,7 +18,7 @@ describe('GuildAddResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
       const proxy = GuildAddResponderProxy();
 
       const result = await proxy.callResponder({ body: null });
@@ -29,7 +29,7 @@ describe('GuildAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object body} => returns 400 with error', async () => {
+    it('INVALID: {non-object body} => returns 400 with error', async () => {
       const proxy = GuildAddResponderProxy();
 
       const result = await proxy.callResponder({ body: 'not-an-object' });
@@ -40,7 +40,7 @@ describe('GuildAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing name and path} => returns 400 with error', async () => {
+    it('INVALID: {missing name and path} => returns 400 with error', async () => {
       const proxy = GuildAddResponderProxy();
 
       const result = await proxy.callResponder({ body: {} });
@@ -51,7 +51,7 @@ describe('GuildAddResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {name is number} => returns 400 with error', async () => {
+    it('INVALID: {name is number} => returns 400 with error', async () => {
       const proxy = GuildAddResponderProxy();
 
       const result = await proxy.callResponder({ body: { name: 123, path: '/tmp/test' } });

@@ -17,7 +17,7 @@ describe('toolNameContract', () => {
   });
 
   describe('invalid tool names', () => {
-    it('INVALID_MULTIPLE: {value: ""} => throws on empty string', () => {
+    it('INVALID: {value: ""} => throws on empty string', () => {
       expect(() => toolNameContract.parse('')).toThrow(/too_small/u);
     });
   });

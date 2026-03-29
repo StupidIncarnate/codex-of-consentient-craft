@@ -28,25 +28,25 @@ describe('isValidSchemaLibraryGuard', () => {
   });
 
   describe('invalid schema libraries', () => {
-    it('INVALID_VALUE: {library: "invalid"} => returns false', () => {
+    it('INVALID: {library: "invalid"} => returns false', () => {
       const result = isValidSchemaLibraryGuard({ library: 'invalid' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {library: 123} => returns false', () => {
+    it('INVALID: {library: 123} => returns false', () => {
       const result = isValidSchemaLibraryGuard({ library: 123 });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_UNDEFINED: {library: undefined} => returns false', () => {
+    it('INVALID: {library: undefined} => returns false', () => {
       const result = isValidSchemaLibraryGuard({});
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_NULL: {library: null} => returns false', () => {
+    it('INVALID: {library: null} => returns false', () => {
       const result = isValidSchemaLibraryGuard({ library: null });
 
       expect(result).toBe(false);

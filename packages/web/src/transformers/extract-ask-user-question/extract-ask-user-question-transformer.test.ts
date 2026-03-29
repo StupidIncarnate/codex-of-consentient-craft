@@ -128,7 +128,7 @@ describe('extractAskUserQuestionTransformer', () => {
         ],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -142,13 +142,13 @@ describe('extractAskUserQuestionTransformer', () => {
         ],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty entries array} => returns null', () => {
       const result = extractAskUserQuestionTransformer({ entries: [] });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

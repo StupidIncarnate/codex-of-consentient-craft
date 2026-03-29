@@ -60,7 +60,7 @@ Read the test file. Lint enforces proxy-per-test, no-jest-mock, stub-not-contrac
 toStrictEqual, and all forbidden matchers. Focus on what lint CANNOT catch:
 
 **Naming and structure:**
-- Test names use prefixes: \`VALID:\`, \`INVALID_FIELD:\`, \`ERROR:\`, \`EDGE:\`, \`EMPTY:\`
+- Test names use prefixes: \`VALID:\`, \`INVALID:\`, \`ERROR:\`, \`EDGE:\`, \`EMPTY:\`
 - Test names use \`{input} => {expected}\` format
 - \`describe\` blocks for organization (not comments)
 

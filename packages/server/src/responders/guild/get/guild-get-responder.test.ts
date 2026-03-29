@@ -19,7 +19,7 @@ describe('GuildGetResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = GuildGetResponderProxy();
 
       const result = await proxy.callResponder({ params: null });
@@ -30,7 +30,7 @@ describe('GuildGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object params} => returns 400 with error', async () => {
+    it('INVALID: {non-object params} => returns 400 with error', async () => {
       const proxy = GuildGetResponderProxy();
 
       const result = await proxy.callResponder({ params: 'not-an-object' });
@@ -41,7 +41,7 @@ describe('GuildGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       const proxy = GuildGetResponderProxy();
 
       const result = await proxy.callResponder({ params: {} });
@@ -52,7 +52,7 @@ describe('GuildGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {guildId is number} => returns 400 with error', async () => {
+    it('INVALID: {guildId is number} => returns 400 with error', async () => {
       const proxy = GuildGetResponderProxy();
 
       const result = await proxy.callResponder({ params: { guildId: 123 } });

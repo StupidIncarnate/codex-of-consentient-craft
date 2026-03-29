@@ -26,8 +26,8 @@ describe('ChatInputWidget', () => {
 
       expect(screen.getByTestId('CHAT_INPUT')).toBe(screen.getByTestId('CHAT_INPUT'));
       expect(screen.getByTestId('SEND_BUTTON')).toBe(screen.getByTestId('SEND_BUTTON'));
-      expect(screen.queryByTestId('STOP_BUTTON')).toBeNull();
-      expect(screen.queryByTestId('STREAMING_INDICATOR')).toBeNull();
+      expect(screen.queryByTestId('STOP_BUTTON')).toBe(null);
+      expect(screen.queryByTestId('STREAMING_INDICATOR')).toBe(null);
     });
 
     it('VALID: {isStreaming: true} => renders stop button and streaming indicator', () => {
@@ -50,7 +50,7 @@ describe('ChatInputWidget', () => {
       expect(screen.getByTestId('STREAMING_INDICATOR')).toBe(
         screen.getByTestId('STREAMING_INDICATOR'),
       );
-      expect(screen.queryByTestId('SEND_BUTTON')).toBeNull();
+      expect(screen.queryByTestId('SEND_BUTTON')).toBe(null);
     });
 
     it('VALID: {isStreaming: true} => textarea is disabled', () => {
@@ -245,7 +245,7 @@ describe('ChatInputWidget', () => {
 
       fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(null);
     });
 
     it('VALID: {no saved draft} => starts with empty textarea', () => {

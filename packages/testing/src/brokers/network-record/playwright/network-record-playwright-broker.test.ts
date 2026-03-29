@@ -53,9 +53,11 @@ describe('networkRecordPlaywrightBroker', () => {
         page: { on: () => undefined } as never,
       });
 
-      expect(typeof recorder.dump).toBe('function');
-      expect(typeof recorder.getEntries).toBe('function');
-      expect(typeof recorder.getWsEntries).toBe('function');
+      expect(recorder).toStrictEqual({
+        dump: expect.any(Function),
+        getEntries: expect.any(Function),
+        getWsEntries: expect.any(Function),
+      });
     });
 
     it('VALID: {page} => getEntries returns empty array initially', () => {

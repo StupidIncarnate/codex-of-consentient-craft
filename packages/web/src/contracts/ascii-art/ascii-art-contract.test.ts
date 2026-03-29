@@ -25,7 +25,7 @@ describe('asciiArtContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => asciiArtContract.parse('')).toThrow(/String must contain at least 1 character/u);
     });
 

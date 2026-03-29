@@ -9,9 +9,13 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
   setupSinglePackageFail: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
+  getStdoutCalls: () => unknown[][];
+  getExitCalls: () => unknown[][];
 } => {
-  registerSpyOn({ object: process, method: 'exit' }).mockImplementation(() => undefined as never);
-  registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(() => true);
+  const exitSpy = registerSpyOn({ object: process, method: 'exit' });
+  exitSpy.mockImplementation(() => undefined as never);
+  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+  stdoutSpy.mockImplementation(() => true);
   registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
@@ -40,5 +44,7 @@ export const commandRunBrokerProxy = (): {
     }): void => {
       multiProxy.setupSpawnAndLoad({ packageCount, subResultContent });
     },
+    getStdoutCalls: (): unknown[][] => stdoutSpy.mock.calls,
+    getExitCalls: (): unknown[][] => exitSpy.mock.calls,
   };
 };

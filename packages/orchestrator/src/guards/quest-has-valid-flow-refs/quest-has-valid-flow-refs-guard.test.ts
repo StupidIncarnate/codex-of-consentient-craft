@@ -75,7 +75,7 @@ describe('questHasValidFlowRefsGuard', () => {
   });
 
   describe('invalid references', () => {
-    it('INVALID_FLOW_REF: {edge from references non-existent node} => returns false', () => {
+    it('INVALID: {edge from references non-existent node} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [FlowNodeStub({ id: 'dashboard' })],
@@ -88,7 +88,7 @@ describe('questHasValidFlowRefsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_FLOW_REF: {edge to references non-existent node} => returns false', () => {
+    it('INVALID: {edge to references non-existent node} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [FlowNodeStub({ id: 'login-page' })],
@@ -101,7 +101,7 @@ describe('questHasValidFlowRefsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_FLOW_REF: {both from and to reference non-existent nodes} => returns false', () => {
+    it('INVALID: {both from and to reference non-existent nodes} => returns false', () => {
       const flows = [
         FlowStub({
           nodes: [FlowNodeStub({ id: 'login-page' })],

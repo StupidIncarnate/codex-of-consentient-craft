@@ -18,7 +18,7 @@ test.describe('Quest Spec Panel', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('session with linked quest shows spec panel instead of awaiting message', async ({
+  test('VALID: session with linked quest shows spec panel instead of awaiting message', async ({
     page,
     request,
   }) => {

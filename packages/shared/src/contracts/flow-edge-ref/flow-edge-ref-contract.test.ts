@@ -25,7 +25,7 @@ describe('flowEdgeRefContract', () => {
   });
 
   describe('invalid refs', () => {
-    it('INVALID_REF: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         flowEdgeRefContract.parse('');
       }).toThrow(/too_small/u);

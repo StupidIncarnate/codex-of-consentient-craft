@@ -2,7 +2,7 @@ import { isSilentBodyLayerBrokerProxy } from './is-silent-body-layer-broker.prox
 import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('isSilentBodyLayerBroker', () => {
-  it('NULL_BODY: null body => returns true', () => {
+  it('EDGE: null body => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({ body: null });
@@ -10,7 +10,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('UNDEFINED_BODY: undefined body => returns true', () => {
+  it('EDGE: undefined body => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({ body: undefined });
@@ -18,7 +18,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('EMPTY_BLOCK: BlockStatement with no statements => returns true', () => {
+  it('EMPTY: BlockStatement with no statements => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
@@ -28,7 +28,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('UNDEFINED_IDENTIFIER: expression body with undefined identifier => returns true', () => {
+  it('EDGE: expression body with undefined identifier => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
@@ -38,7 +38,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('VOID_ZERO: UnaryExpression with literal 0 => returns true', () => {
+  it('EDGE: UnaryExpression with literal 0 => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
@@ -51,7 +51,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('MEANINGFUL_EXPRESSION: expression body with CallExpression => returns false', () => {
+  it('VALID: expression body with CallExpression => returns false', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
@@ -61,7 +61,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(false);
   });
 
-  it('MEANINGFUL_BLOCK: BlockStatement with ThrowStatement => returns false', () => {
+  it('VALID: BlockStatement with ThrowStatement => returns false', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
@@ -74,7 +74,7 @@ describe('isSilentBodyLayerBroker', () => {
     expect(result).toBe(false);
   });
 
-  it('BLOCK_RETURN_UNDEFINED: BlockStatement with only return undefined => returns true', () => {
+  it('EDGE: BlockStatement with only return undefined => returns true', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({

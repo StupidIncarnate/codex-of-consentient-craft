@@ -71,7 +71,7 @@ describe('isAstFunctionParamsDestructuredGuard', () => {
     expect(isAstFunctionParamsDestructuredGuard({ funcNode })).toBe(true);
   });
 
-  it('INVALID_PARAM_TYPE: {funcNode: function with Identifier param} => returns false', () => {
+  it('INVALID: {funcNode: function with Identifier param} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       params: [
@@ -85,7 +85,7 @@ describe('isAstFunctionParamsDestructuredGuard', () => {
     expect(isAstFunctionParamsDestructuredGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_PARAM_TYPE: {funcNode: function with ArrayPattern param} => returns false', () => {
+  it('INVALID: {funcNode: function with ArrayPattern param} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       params: [
@@ -98,7 +98,7 @@ describe('isAstFunctionParamsDestructuredGuard', () => {
     expect(isAstFunctionParamsDestructuredGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_MIXED: {funcNode: first param ObjectPattern, second Identifier} => returns false', () => {
+  it('INVALID: {funcNode: first param ObjectPattern, second Identifier} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       params: [
@@ -115,7 +115,7 @@ describe('isAstFunctionParamsDestructuredGuard', () => {
     expect(isAstFunctionParamsDestructuredGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_MIXED: {funcNode: first param Identifier, second ObjectPattern} => returns false', () => {
+  it('INVALID: {funcNode: first param Identifier, second ObjectPattern} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       params: [
@@ -132,7 +132,7 @@ describe('isAstFunctionParamsDestructuredGuard', () => {
     expect(isAstFunctionParamsDestructuredGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_ASSIGNMENT: {funcNode: AssignmentPattern with Identifier left} => returns false', () => {
+  it('INVALID: {funcNode: AssignmentPattern with Identifier left} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       params: [

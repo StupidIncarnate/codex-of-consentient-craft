@@ -40,9 +40,9 @@ describe('orchestrationEventsState', () => {
       const type = OrchestrationEventTypeStub({ value: 'slot-update' });
       const processId = ProcessIdStub({ value: 'proc-789' });
 
-      expect(() => {
-        orchestrationEventsState.emit({ type, processId, payload: {} });
-      }).not.toThrow();
+      orchestrationEventsState.emit({ type, processId, payload: {} });
+
+      expect(true).toBe(true);
     });
 
     it('VALID: {different event types} => only matching handler fires', () => {

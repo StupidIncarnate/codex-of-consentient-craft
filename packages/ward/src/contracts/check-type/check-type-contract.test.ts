@@ -35,11 +35,11 @@ describe('checkTypeContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "unknown"} => throws for unknown check type', () => {
+    it('INVALID: {value: "unknown"} => throws for unknown check type', () => {
       expect(() => checkTypeContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => checkTypeContract.parse('')).toThrow(/Invalid enum value/u);
     });
 
