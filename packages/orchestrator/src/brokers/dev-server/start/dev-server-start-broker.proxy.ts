@@ -8,6 +8,7 @@ export const devServerStartBrokerProxy = (): {
   setupServerBecomesReady: () => ChildProcess;
   setupServerExitsBeforeReady: (params: { exitCode: number }) => void;
   setupServerReadinessTimeout: () => ChildProcess;
+  wasKillByPortCalledForBothPorts: () => boolean;
 } => {
   const killByPortProxy = processKillByPortAdapterProxy();
   const spawnProxy = childProcessSpawnAdapterProxy();
@@ -47,5 +48,7 @@ export const devServerStartBrokerProxy = (): {
       readinessProxy.respondsWithStatus({ status: 503, ok: false });
       return proc;
     },
+
+    wasKillByPortCalledForBothPorts: (): boolean => killByPortProxy.wasCalledAtLeastTwice(),
   };
 };

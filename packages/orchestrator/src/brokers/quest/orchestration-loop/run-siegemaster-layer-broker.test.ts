@@ -608,6 +608,97 @@ describe('runSiegemasterLayerBroker', () => {
     });
   });
 
+  describe('multi-flow: two sequential siege runs each do full build→start→siege→stop cycle', () => {
+    it('VALID: {two sequential siege calls with devServer} => each run starts fresh server, stops after siege', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siege1WorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const siege2WorkItemId = QuestWorkItemIdStub({
+        value: 'c3333333-3333-4333-8333-333333333333',
+      });
+      const workItem1 = WorkItemStub({ id: siege1WorkItemId, role: 'siegemaster' });
+      const workItem2 = WorkItemStub({ id: siege2WorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem1, workItem2] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      const [proc1, proc2] = proxy.setupTwoSequentialWithDevServer({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem: workItem1,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem: workItem2,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      // Both servers were stopped after their respective siege runs
+      expect(proc1.kill).toHaveBeenCalledWith('SIGTERM');
+      expect(proc2.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+  });
+
+  describe('multi-flow: first siege fails, second siege gets clean fresh server', () => {
+    it('VALID: {first siege fails, second siege succeeds} => second run starts its own fresh server independently', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siege1WorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const siege2WorkItemId = QuestWorkItemIdStub({
+        value: 'c3333333-3333-4333-8333-333333333333',
+      });
+      const workItem1 = WorkItemStub({
+        id: siege1WorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const workItem2 = WorkItemStub({ id: siege2WorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem1, workItem2] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      const proc2 = proxy.setupDevServerWithFirstFailSecondSucceeds({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem: workItem1,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem: workItem2,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      // Second run's server was stopped after successful siege
+      expect(proc2.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+  });
+
   describe('server stop always called (finally block)', () => {
     it('VALID: {devServer config, agent crashes} => dev server still stopped in finally', async () => {
       const observable = FlowObservableStub();

@@ -5,6 +5,7 @@ export const processKillByPortAdapterProxy = (): {
   portHasPids: (params: { pids: number[] }) => void;
   portIsEmpty: () => void;
   lsofThrows: (params: { error: Error }) => void;
+  wasCalledAtLeastTwice: () => boolean;
 } => {
   const handle = registerMock({ fn: execSync });
 
@@ -26,5 +27,7 @@ export const processKillByPortAdapterProxy = (): {
         throw error;
       });
     },
+
+    wasCalledAtLeastTwice: (): boolean => handle.mock.calls.length > 1,
   };
 };

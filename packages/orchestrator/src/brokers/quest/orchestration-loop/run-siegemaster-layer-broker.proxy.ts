@@ -128,6 +128,16 @@ export const runSiegemasterLayerBrokerProxy = (): {
   }) => void;
   setupBuildExhausted: (params: { quest: Quest }) => void;
   setupServerStartFails: (params: { quest: Quest }) => void;
+  setupTwoSequentialWithDevServer: (params: {
+    quest: Quest;
+    exitCode: ExitCode;
+    signal: StreamSignal;
+  }) => readonly [ChildProcess, ChildProcess];
+  setupDevServerWithFirstFailSecondSucceeds: (params: {
+    quest: Quest;
+    exitCode: ExitCode;
+    signal: StreamSignal;
+  }) => ChildProcess;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -307,5 +317,68 @@ export const runSiegemasterLayerBrokerProxy = (): {
       stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
 
     getModifyContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+
+    setupTwoSequentialWithDevServer: ({
+      quest,
+      exitCode,
+      signal,
+    }: {
+      quest: Quest;
+      exitCode: ExitCode;
+      signal: StreamSignal;
+    }): readonly [ChildProcess, ChildProcess] => {
+      // First siege run — use setupSpawnOnce (fires setImmediate during first await)
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      const proc1 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({ lines: buildSignalLine({ signal }), exitCode });
+
+      // Second siege run — use setupSpawnAutoLines so lines fire when readline is created,
+      // not via a setImmediate scheduled before the second siege even starts.
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnAutoLines({ lines: buildSignalLine({ signal }), exitCode });
+
+      return [proc1, proc2] as const;
+    },
+
+    setupDevServerWithFirstFailSecondSucceeds: ({
+      quest,
+      exitCode,
+      signal,
+    }: {
+      quest: Quest;
+      exitCode: ExitCode;
+      signal: StreamSignal;
+    }): ChildProcess => {
+      // First siege run — siege agent fails (not server failure, just siege outcome).
+      // Use setupSpawnOnce so lines fire during the first await.
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({
+        lines: buildSignalLine({ signal: { signal: 'failed' } as never }),
+        exitCode: 1 as never,
+      });
+
+      // Second siege run — fresh server, succeeds.
+      // Use setupSpawnAutoLines so lines fire when readline is created (second await).
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnAutoLines({ lines: buildSignalLine({ signal }), exitCode });
+
+      // First run's server is killed in its finally block; proc2 is killed after second siege
+      return proc2;
+    },
   };
 };

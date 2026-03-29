@@ -267,7 +267,15 @@ export const runSiegemasterLayerBroker = async ({
       ? errorMessageContract.parse(summaryText)
       : errorMessageContract.parse('siege_check_failed');
 
-    const pendingItems = quest.workItems.filter(
+    // Fetch fresh quest state — work items may have been added since the initial fetch
+    const freshQuestInput = getQuestInputContract.parse({ questId });
+    const freshQuestResult = await questGetBroker({ input: freshQuestInput });
+    const freshWorkItems =
+      freshQuestResult.success && freshQuestResult.quest
+        ? freshQuestResult.quest.workItems
+        : quest.workItems;
+
+    const pendingItems = freshWorkItems.filter(
       (wi) => wi.status === 'pending' && wi.id !== workItem.id,
     );
 

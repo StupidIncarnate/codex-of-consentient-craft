@@ -75,4 +75,22 @@ describe('devServerStartBroker', () => {
       ).rejects.toThrow(/Dev server did not become ready within/u);
     });
   });
+
+  describe('port cleanup before start', () => {
+    it('VALID: {server starts successfully} => kills stale processes on both server port and web port before spawning', async () => {
+      const proxy = devServerStartBrokerProxy();
+      proxy.setupServerBecomesReady();
+
+      await devServerStartBroker({
+        devCommand: 'npm run dev',
+        port: 3000,
+        hostname: 'localhost',
+        readinessPath: '/',
+        readinessTimeoutMs: 30000,
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.wasKillByPortCalledForBothPorts()).toBe(true);
+    });
+  });
 });
