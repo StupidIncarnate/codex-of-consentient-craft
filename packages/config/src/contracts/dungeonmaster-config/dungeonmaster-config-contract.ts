@@ -49,6 +49,32 @@ export const dungeonmasterConfigContract = z.object({
         .brand<'TimeoutMs'>(),
     })
     .optional(),
+  devServer: z
+    .object({
+      devCommand: z.string().min(1).brand<'DevCommand'>(),
+      port: z
+        .number()
+        .int()
+        .min(configDefaultsStatics.devServer.port.min)
+        .max(configDefaultsStatics.devServer.port.max)
+        .brand<'DevServerPort'>(),
+      buildCommand: z
+        .string()
+        .min(1)
+        .default(configDefaultsStatics.devServer.buildCommand)
+        .brand<'BuildCommand'>(),
+      readinessPath: z
+        .string()
+        .default(configDefaultsStatics.devServer.readinessPath)
+        .brand<'ReadinessPath'>(),
+      readinessTimeoutMs: z
+        .number()
+        .int()
+        .min(configDefaultsStatics.devServer.readinessTimeoutMs.min)
+        .default(configDefaultsStatics.devServer.readinessTimeoutMs.default)
+        .brand<'ReadinessTimeoutMs'>(),
+    })
+    .optional(),
 });
 
 export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;

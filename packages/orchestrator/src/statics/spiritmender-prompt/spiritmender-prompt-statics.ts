@@ -81,10 +81,7 @@ Fix in dependency order — compilation errors before type errors, type errors b
 3. **Test failures** — fix proxy setup, update assertions to match new behavior, fix mock return types
 4. **Lint errors** — fix naming, imports, architecture violations
 
-After each fix, run ward on the specific file:
-\`\`\`bash
-npm run ward -- -- path/to/file.ts
-\`\`\`
+After each fix, run the verification command from your Error Context on the specific file.
 
 If ward shows truncated errors, get full details:
 \`\`\`bash
@@ -93,10 +90,7 @@ npm run ward -- detail <runId> <filePath>
 
 ### 5. Verify
 
-Run ward on ALL files in your batch:
-\`\`\`bash
-npm run ward -- -- path/to/file1.ts path/to/file2.ts path/to/file3.ts
-\`\`\`
+Run the verification command from your Error Context on ALL files in your batch.
 
 All files must pass. If fixing one file introduced errors in another file in your batch, fix those too.
 If the error is in a file OUTSIDE your batch, note it in your signal but do not modify it.

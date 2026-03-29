@@ -174,7 +174,15 @@ export const workUnitToArgumentsTransformer = ({
         }
       }
 
-      spiritParts.push(contentTextContract.parse('Run npm run ward on the files to verify fixes.'));
+      if (workUnit.verificationCommand === undefined) {
+        spiritParts.push(
+          contentTextContract.parse('Run npm run ward on the files to verify fixes.'),
+        );
+      } else {
+        spiritParts.push(
+          contentTextContract.parse(`Verification Command: ${workUnit.verificationCommand}`),
+        );
+      }
 
       return contentTextContract.parse(spiritParts.join('\n'));
     }

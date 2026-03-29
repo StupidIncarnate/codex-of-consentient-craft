@@ -18,6 +18,18 @@ describe('configDefaultsStatics', () => {
           default: 900000,
         },
       },
+      devServer: {
+        buildCommand: 'npm run build',
+        readinessPath: '/',
+        port: {
+          min: 1,
+          max: 65535,
+        },
+        readinessTimeoutMs: {
+          min: 1000,
+          default: 30000,
+        },
+      },
     });
   });
 });

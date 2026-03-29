@@ -251,6 +251,106 @@ describe('dungeonmaster-config-contract', () => {
     });
   });
 
+  describe('devServer configurations', () => {
+    it('VALID: config without devServer => parses successfully', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+      });
+
+      expect(config.devServer).toBeUndefined();
+    });
+
+    it('VALID: config with devServer devCommand and port => applies defaults', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+        },
+      });
+
+      expect(parsed.devServer?.devCommand).toBe('npm run dev');
+      expect(parsed.devServer?.port).toBe(3000);
+      expect(parsed.devServer?.buildCommand).toBe('npm run build');
+      expect(parsed.devServer?.readinessPath).toBe('/');
+      expect(parsed.devServer?.readinessTimeoutMs).toBe(30000);
+    });
+
+    it('VALID: config with devServer overriding all fields => uses provided values', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'yarn start',
+          port: 4200,
+          buildCommand: 'yarn build',
+          readinessPath: '/health',
+          readinessTimeoutMs: 60000,
+        },
+      });
+
+      expect(parsed.devServer?.devCommand).toBe('yarn start');
+      expect(parsed.devServer?.port).toBe(4200);
+      expect(parsed.devServer?.buildCommand).toBe('yarn build');
+      expect(parsed.devServer?.readinessPath).toBe('/health');
+      expect(parsed.devServer?.readinessTimeoutMs).toBe(60000);
+    });
+
+    it('INVALID: devServer with empty devCommand => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: '',
+            port: 3000,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: devServer with port below minimum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 0,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: devServer with port above maximum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 65536,
+          },
+        });
+      }).toThrow(/too_big/u);
+    });
+
+    it('INVALID: devServer with readinessTimeoutMs below minimum => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            readinessTimeoutMs: 999,
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+  });
+
   describe('orchestration configurations', () => {
     it('VALID: config without orchestration => parses successfully', () => {
       const config = DungeonmasterConfigStub({
