@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Parses a spiritmender batch file JSON into typed filePaths and errors arrays
+ * PURPOSE: Parses a spiritmender batch file JSON into typed filePaths, errors, and optional verificationCommand
  *
  * USAGE:
- * parseBatchFileTransformer({ contents: FileContentsStub({ value: '{"filePaths":["/src/a.ts"],"errors":["error msg"]}' }) });
- * // Returns { filePaths: [AbsoluteFilePath], errors: [ErrorMessage] }
+ * parseBatchFileTransformer({ contents: FileContentsStub({ value: '{"filePaths":["/src/a.ts"],"errors":["error msg"],"verificationCommand":"npm run ward"}' }) });
+ * // Returns { filePaths: [AbsoluteFilePath], errors: [ErrorMessage], verificationCommand: VerificationCommand | undefined }
  */
 
 import {
@@ -14,19 +14,29 @@ import {
   type FileContents,
 } from '@dungeonmaster/shared/contracts';
 
+import { workUnitContract } from '../../contracts/work-unit/work-unit-contract';
+import type { SpiritmenderWorkUnit } from '../../contracts/work-unit/work-unit-contract';
+
+type VerificationCommand = SpiritmenderWorkUnit['verificationCommand'];
+
 export const parseBatchFileTransformer = ({
   contents,
 }: {
   contents: FileContents;
-}): { filePaths: AbsoluteFilePath[]; errors: ErrorMessage[] } => {
+}): {
+  filePaths: AbsoluteFilePath[];
+  errors: ErrorMessage[];
+  verificationCommand: VerificationCommand;
+} => {
   const parsed: unknown = JSON.parse(contents);
 
   if (typeof parsed !== 'object' || parsed === null) {
-    return { filePaths: [], errors: [] };
+    return { filePaths: [], errors: [], verificationCommand: undefined };
   }
 
   const rawFilePaths: unknown = Reflect.get(parsed, 'filePaths');
   const rawErrors: unknown = Reflect.get(parsed, 'errors');
+  const rawVerificationCommand: unknown = Reflect.get(parsed, 'verificationCommand');
 
   const filePaths: AbsoluteFilePath[] = [];
   if (Array.isArray(rawFilePaths)) {
@@ -50,5 +60,21 @@ export const parseBatchFileTransformer = ({
     }
   }
 
-  return { filePaths, errors };
+  const verificationCommand: VerificationCommand =
+    typeof rawVerificationCommand === 'string' && rawVerificationCommand.length > 0
+      ? (() => {
+          try {
+            const unit = workUnitContract.parse({
+              role: 'spiritmender',
+              filePaths: [],
+              verificationCommand: rawVerificationCommand,
+            });
+            return unit.role === 'spiritmender' ? unit.verificationCommand : undefined;
+          } catch {
+            return undefined;
+          }
+        })()
+      : undefined;
+
+  return { filePaths, errors, verificationCommand };
 };

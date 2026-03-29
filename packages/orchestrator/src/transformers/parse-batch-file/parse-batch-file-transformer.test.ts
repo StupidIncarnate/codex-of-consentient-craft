@@ -17,6 +17,7 @@ describe('parseBatchFileTransformer', () => {
       expect(result).toStrictEqual({
         filePaths: ['/src/app.ts'],
         errors: ['line 10: Unexpected any'],
+        verificationCommand: undefined,
       });
     });
 
@@ -33,6 +34,25 @@ describe('parseBatchFileTransformer', () => {
       expect(result).toStrictEqual({
         filePaths: ['/src/a.ts', '/src/b.ts'],
         errors: ['error a', 'error b'],
+        verificationCommand: undefined,
+      });
+    });
+
+    it('VALID: {batch with verificationCommand} => returns verificationCommand', () => {
+      const contents = FileContentsStub({
+        value: JSON.stringify({
+          filePaths: ['/src/app.ts'],
+          errors: ['line 10: Unexpected any'],
+          verificationCommand: 'npm run ward -- -- /src/app.ts',
+        }),
+      });
+
+      const result = parseBatchFileTransformer({ contents });
+
+      expect(result).toStrictEqual({
+        filePaths: ['/src/app.ts'],
+        errors: ['line 10: Unexpected any'],
+        verificationCommand: 'npm run ward -- -- /src/app.ts',
       });
     });
   });
@@ -45,7 +65,7 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [] });
+      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
     });
   });
 
@@ -55,7 +75,7 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [] });
+      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
     });
 
     it('EDGE: {null JSON} => returns empty arrays', () => {
@@ -63,7 +83,7 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [] });
+      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
     });
 
     it('ERROR: {malformed JSON} => throws SyntaxError', () => {
@@ -83,7 +103,11 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: ['some error'] });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: ['some error'],
+        verificationCommand: undefined,
+      });
     });
 
     it('EDGE: {no errors key} => returns empty errors', () => {
@@ -93,7 +117,11 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: ['/src/file.ts'], errors: [] });
+      expect(result).toStrictEqual({
+        filePaths: ['/src/file.ts'],
+        errors: [],
+        verificationCommand: undefined,
+      });
     });
 
     it('EDGE: {filePaths is not an array} => returns empty filePaths', () => {
@@ -103,7 +131,7 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [] });
+      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
     });
 
     it('EDGE: {errors is not an array} => returns empty errors', () => {
@@ -113,7 +141,43 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [] });
+      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+    });
+
+    it('EDGE: {verificationCommand is empty string} => returns undefined verificationCommand', () => {
+      const contents = FileContentsStub({
+        value: JSON.stringify({
+          filePaths: ['/src/app.ts'],
+          errors: [],
+          verificationCommand: '',
+        }),
+      });
+
+      const result = parseBatchFileTransformer({ contents });
+
+      expect(result).toStrictEqual({
+        filePaths: ['/src/app.ts'],
+        errors: [],
+        verificationCommand: undefined,
+      });
+    });
+
+    it('EDGE: {verificationCommand is not a string} => returns undefined verificationCommand', () => {
+      const contents = FileContentsStub({
+        value: JSON.stringify({
+          filePaths: ['/src/app.ts'],
+          errors: [],
+          verificationCommand: 42,
+        }),
+      });
+
+      const result = parseBatchFileTransformer({ contents });
+
+      expect(result).toStrictEqual({
+        filePaths: ['/src/app.ts'],
+        errors: [],
+        verificationCommand: undefined,
+      });
     });
   });
 
@@ -125,7 +189,11 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: ['/src/valid.ts'], errors: [] });
+      expect(result).toStrictEqual({
+        filePaths: ['/src/valid.ts'],
+        errors: [],
+        verificationCommand: undefined,
+      });
     });
 
     it('EDGE: {filePaths contains non-absolute path} => skips non-absolute paths', () => {
@@ -135,7 +203,11 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: ['/src/valid.ts'], errors: [] });
+      expect(result).toStrictEqual({
+        filePaths: ['/src/valid.ts'],
+        errors: [],
+        verificationCommand: undefined,
+      });
     });
 
     it('EDGE: {errors contains non-string item} => skips non-string items', () => {
@@ -145,7 +217,11 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: ['valid error'] });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: ['valid error'],
+        verificationCommand: undefined,
+      });
     });
   });
 });

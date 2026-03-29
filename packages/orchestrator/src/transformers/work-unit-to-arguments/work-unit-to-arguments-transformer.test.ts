@@ -327,6 +327,29 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
     });
 
+    it('VALID: {siegemaster with devServerUrl} => includes dev server URL after quest ID', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        devServerUrl: 'http://localhost:3000' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Quest ID: quest-1\nDev Server URL: http:\/\/localhost:3000\n/u);
+    });
+
+    it('VALID: {siegemaster without devServerUrl} => omits dev server URL line', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Dev Server URL:/u);
+    });
+
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),

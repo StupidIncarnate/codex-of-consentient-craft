@@ -108,8 +108,13 @@ export const workUnitToArgumentsTransformer = ({
         relatedObservables,
         relatedDesignDecisions,
         relatedFlows,
+        devServerUrl,
       } = workUnit;
       const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
+
+      if (devServerUrl !== undefined) {
+        siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
+      }
 
       siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
       for (const [type, desc] of Object.entries(outcomeTypeDescriptionsStatics)) {
