@@ -40,3 +40,42 @@ devServer: {
 - Route to spiritmender with server output/logs (let it try to fix missing packages, bad config)
 - Bubble to user as `blocked` with the error message (user fixes their dev config and retries)
 - Retry with diagnostics — capture stderr, try once more, then bubble if still failing
+
+## 3. Lawbringer should detect duplicated string lists and reusable syntax patterns
+
+**Where:** Lawbringer agent role — currently reviews file pairs for lint/style compliance
+
+**Problem:** Lawbringer doesn't check for duplicated string lists across files (e.g. the same array of allowed values hardcoded in multiple places) or duplicated syntax patterns that could be extracted into reusable structures (transformers, guards, statics). This kind of duplication is invisible to lint rules but creates maintenance burden — when a value changes, every copy needs updating.
+
+**Examples of what to catch:**
+- Same list of role names, status strings, or config keys repeated in multiple files
+- Identical validation/parsing logic copy-pasted across brokers
+- Repeated conditional patterns that should be a guard
+- Duplicated data transformations that should be a transformer
+
+**Fix:** Extend lawbringer's review scope to flag these patterns and suggest extraction into the appropriate architecture folder (statics for constant lists, guards for boolean checks, transformers for data reshaping).
+
+**Docs cleanup:** When extending lawbringer's scope, also audit standard docs (`CLAUDE.md` files, agent prompts, MCP tool output) to ensure they don't contain examples of the duplicated patterns lawbringer is now flagging. Update docs to show the correct extraction patterns.
+
+## 4. Ban `expect.any(Object)` in tests
+
+**Problem:** `expect.any(Object)` matches literally anything that isn't `null` or `undefined` — it's a non-assertion disguised as an assertion. Tests using it look like they're checking a value but they're actually accepting whatever garbage the implementation returns. This is the same class of problem as `toMatchObject` (which is already banned) — it lets tests pass without proving correctness.
+
+**Ban all of these:**
+- `expect.any(Object)` — matches anything non-null, proves nothing
+- `expect.any(String)` — accepts any string, doesn't verify the actual value
+- `expect.stringContaining()` — partial string match, hides what the full value should be
+- `toContain()` — same problem, partial match that lets garbage through
+
+**Also ban these matchers:**
+- `toHaveBeenCalled()` — proves the function was called but not with what. Useless without `toHaveBeenCalledWith`.
+- `toHaveBeenCalledTimes(N)` without a corresponding `toHaveBeenCalledWith` — knowing it was called 3 times means nothing if you don't verify what was passed each time. `toHaveBeenCalledTimes` is only allowed when paired with `toHaveBeenCalledWith` assertions covering the actual arguments.
+
+**Fix:** Add an ESLint rule (or extend an existing one like `enforce-contract-usage-in-tests`) to ban all of the above. Tests should assert on the exact value or use a contract stub/`toStrictEqual` to verify the exact shape. If the value is dynamic (timestamps, UUIDs), mock the source (`Date.now`, `crypto.randomUUID`) and assert the deterministic result.
+
+**Also ban:**
+- `.not.` negated matchers (`.not.toMatch`, `.not.toBe`, `.not.toContain`, etc.) — negated assertions prove what something ISN'T, not what it IS. A test that says "the result is not X" passes for infinite wrong values. Tests must assert the positive — what the value actually equals. If the test needs to verify absence, assert on the complete state instead (e.g. assert the full array with `toStrictEqual` rather than `.not.toContain` a single element).
+- `expect(true).toBe(true)` and any variant (`expect(false).toBe(false)`, `expect(1).toBe(1)`, etc.) — these are placeholder assertions that prove nothing happened. Every test must assert that something actually occurred. If the test verifies a side effect (function called, file written, event emitted), use `registerMock` to capture the call and assert on it with `toHaveBeenCalledWith`. If the test verifies a return value, assert on the actual return. There is no valid case for a tautological assertion.
+
+**Docs cleanup:** When implementing these bans, also audit and update all standard docs (`CLAUDE.md` files, `get-testing-patterns` MCP output, agent prompts in `packages/orchestrator/src/statics/`) to remove any examples or guidance that use the banned patterns. Docs that show `expect.any(Object)` or `toHaveBeenCalled()` as valid patterns will cause agents to keep producing banned code.
+
