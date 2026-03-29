@@ -11,6 +11,7 @@
 import { errorMessageContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { buildPreflightBroker } from '../../build/preflight/build-preflight-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
@@ -52,6 +53,7 @@ export const buildPreflightLoopLayerBroker = async ({
     filePaths: [],
     errors: buildOutputLines.map((line) => errorMessageContract.parse(line)),
     verificationCommand: buildCommand,
+    contextInstructions: spiritmenderContextStatics.buildFailure.instructions,
   });
 
   await agentSpawnByRoleBroker({

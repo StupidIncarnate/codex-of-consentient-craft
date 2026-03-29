@@ -26,6 +26,7 @@ import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/mod
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
 import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
 import { wardPersistResultBroker } from '../../ward/persist-result/ward-persist-result-broker';
@@ -229,6 +230,7 @@ export const runWardLayerBroker = async ({
           filePaths: spiritItem.batch.filePaths,
           errors: spiritItem.batch.errors,
           verificationCommand,
+          contextInstructions: spiritmenderContextStatics.wardFailure.instructions,
         });
 
         return fsWriteFileAdapter({

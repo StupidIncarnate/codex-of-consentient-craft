@@ -24,6 +24,7 @@ import { workItemIdContract } from '../../../contracts/work-item-id/work-item-id
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 
@@ -248,6 +249,7 @@ export const orchestrationLoopLayerBroker = async ({
                 role: 'spiritmender',
                 filePaths: 'filePaths' in workUnit ? workUnit.filePaths : [],
                 ...(signalResult.summary === undefined ? {} : { errors: [signalResult.summary] }),
+                contextInstructions: spiritmenderContextStatics.lawbringerFailure.instructions,
               })
             : workUnitContract.parse({
                 role: signalResult.targetRole,

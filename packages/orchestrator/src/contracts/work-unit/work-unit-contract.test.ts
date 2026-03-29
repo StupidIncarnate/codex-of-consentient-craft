@@ -233,6 +233,32 @@ describe('workUnitContract', () => {
         filePaths: [AbsoluteFilePathStub({ value: '/src/file.ts' })],
       });
     });
+
+    it('VALID: {spiritmender with contextInstructions} => parses with contextInstructions', () => {
+      const filePaths = [AbsoluteFilePathStub({ value: '/src/file.ts' })];
+
+      const result = workUnitContract.parse({
+        role: 'spiritmender',
+        filePaths,
+        contextInstructions: '## Instructions\nFix the build.',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'spiritmender',
+        filePaths,
+        contextInstructions: '## Instructions\nFix the build.',
+      });
+    });
+
+    it('INVALID: {spiritmender with empty contextInstructions} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths: [AbsoluteFilePathStub({ value: '/src/file.ts' })],
+          contextInstructions: '',
+        }),
+      ).toThrow(/too_small/u);
+    });
   });
 
   describe('lawbringer work unit', () => {

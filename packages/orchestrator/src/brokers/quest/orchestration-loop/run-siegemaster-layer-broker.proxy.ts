@@ -18,6 +18,7 @@ import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spa
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { buildPreflightLoopLayerBrokerProxy } from './build-preflight-loop-layer-broker.proxy';
+import { devServerStartLoopLayerBrokerProxy } from './dev-server-start-loop-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -51,6 +52,7 @@ const TEST_BUILD_COMMAND = 'npm run build' as never;
 const TEST_READINESS_PATH = '/' as never;
 const TEST_DEV_SERVER_PORT = parseInt('3000', 10) as never;
 const TEST_READINESS_TIMEOUT_MS = parseInt('30000', 10) as never;
+const FAST_READINESS_TIMEOUT_MS = parseInt('1000', 10) as never;
 
 type ConfigStubFn = (...args: never[]) => DungeonmasterConfig;
 
@@ -78,6 +80,22 @@ const makeDevServerConfig = (): DungeonmasterConfig => {
       buildCommand: TEST_BUILD_COMMAND,
       readinessPath: TEST_READINESS_PATH,
       readinessTimeoutMs: TEST_READINESS_TIMEOUT_MS,
+    },
+  } as never);
+};
+
+const makeDevServerConfigFastTimeout = (): DungeonmasterConfig => {
+  const { DungeonmasterConfigStub } = jest.requireActual<{
+    DungeonmasterConfigStub: ConfigStubFn;
+  }>('@dungeonmaster/config');
+
+  return DungeonmasterConfigStub({
+    devServer: {
+      devCommand: TEST_DEV_COMMAND,
+      port: TEST_DEV_SERVER_PORT,
+      buildCommand: TEST_BUILD_COMMAND,
+      readinessPath: TEST_READINESS_PATH,
+      readinessTimeoutMs: FAST_READINESS_TIMEOUT_MS,
     },
   } as never);
 };
@@ -151,6 +169,11 @@ export const runSiegemasterLayerBrokerProxy = (): {
   // where the siege spawn uses the fallback mockImplementation and must receive a stream-json process.
   const buildProxy = buildPreflightLoopLayerBrokerProxy();
   devServerStopBrokerProxy();
+  // The loop broker calls devServerStartBroker + agentSpawnByRoleBroker internally,
+  // so we create the child proxies directly (serverStartProxy + spawnProxy below).
+  // devServerStartLoopLayerBrokerProxy is created to satisfy enforce-proxy-child-creation
+  // but its setup methods are not used — the underlying adapter proxies handle mocking.
+  devServerStartLoopLayerBrokerProxy();
   const serverStartProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
@@ -285,9 +308,14 @@ export const runSiegemasterLayerBrokerProxy = (): {
       modifyProxy.setupQuestFound({ quest });
     },
     setupServerStartFails: ({ quest }: { quest: Quest }): void => {
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      // Use fast readiness timeout (1ms) so the poll times out immediately on every attempt.
+      // The readiness mock returns 503 (default from setupServerReadinessTimeout), which is
+      // ≥ 500 and treated as not ready. With 1ms timeout, each attempt times out instantly.
+      configProxy.setupConfigResolved({ config: makeDevServerConfigFastTimeout() });
       buildProxy.setupBuildSuccess();
-      serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      serverStartProxy.setupServerReadinessTimeout();
+      // Spiritmender spawns use the auto-lines fallback (exit code 0, no lines)
+      spawnProxy.setupSpawnAutoLines({ lines: [], exitCode: 0 as never });
       // quest fetched twice: once at start, once for replan
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });

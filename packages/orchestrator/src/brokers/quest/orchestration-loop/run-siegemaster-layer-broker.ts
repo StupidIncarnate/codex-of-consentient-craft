@@ -25,15 +25,17 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
-import { devServerStartBroker } from '../../dev-server/start/dev-server-start-broker';
+import type { devServerStartBroker } from '../../dev-server/start/dev-server-start-broker';
 import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { buildPreflightLoopLayerBroker } from './build-preflight-loop-layer-broker';
+import { devServerStartLoopLayerBroker } from './dev-server-start-loop-layer-broker';
 
 const FAILURE_MARKER = 'FAILED OBSERVABLES:';
 const MAX_BUILD_ATTEMPTS = 3;
+const MAX_DEV_SERVER_START_ATTEMPTS = 3;
 
 type DevServerProcess = Awaited<ReturnType<typeof devServerStartBroker>>['process'];
 
@@ -134,73 +136,68 @@ export const runSiegemasterLayerBroker = async ({
       return;
     }
 
-    if (abortSignal.aborted) {
-      return;
-    }
+    // START DEV SERVER — recursive retry loop with spiritmender between attempts
+    const serverResult = await devServerStartLoopLayerBroker({
+      devCommand,
+      port,
+      hostname: environmentStatics.hostname,
+      readinessPath,
+      readinessTimeoutMs,
+      cwd: absoluteStartPath,
+      startPath,
+      abortSignal,
+      attempt: 0,
+      maxAttempts: MAX_DEV_SERVER_START_ATTEMPTS,
+    });
 
-    // START DEV SERVER — wrap in a function returning null on failure to avoid reassignment narrowing issues
-    const startedServer: { process: DevServerProcess } | null = await (async () => {
-      try {
-        const serverResult = await devServerStartBroker({
-          devCommand,
-          port,
-          hostname: environmentStatics.hostname,
-          readinessPath,
-          readinessTimeoutMs,
-          cwd: absoluteStartPath,
-          abortSignal,
-        });
-        return { process: serverResult.process };
-      } catch {
-        // Dev server failed to start — mark failed and replan
-        const serverQuestInput = getQuestInputContract.parse({ questId });
-        const serverQuestResult = await questGetBroker({ input: serverQuestInput });
-        const completedAt = new Date().toISOString();
-
-        if (serverQuestResult.success && serverQuestResult.quest) {
-          const pendingItems = serverQuestResult.quest.workItems.filter(
-            (wi) => wi.status === 'pending' && wi.id !== workItem.id,
-          );
-          const skippedItems = pendingItems.map((wi) => ({
-            id: wi.id,
-            status: 'skipped' as const,
-            completedAt,
-          }));
-          const pathseekerReplan = workItemContract.parse({
-            id: crypto.randomUUID(),
-            role: 'pathseeker',
-            status: 'pending',
-            spawnerType: 'agent',
-            dependsOn: [workItem.id],
-            maxAttempts: 3,
-            createdAt: new Date().toISOString(),
-            insertedBy: workItem.id,
-          });
-          await questModifyBroker({
-            input: {
-              questId,
-              workItems: [
-                {
-                  id: workItem.id,
-                  status: 'failed',
-                  completedAt,
-                  errorMessage: errorMessageContract.parse('dev_server_start_failed'),
-                },
-                ...skippedItems,
-                pathseekerReplan,
-              ],
-            } as ModifyQuestInput,
-          });
-        }
-        return null;
+    if (!serverResult.success) {
+      if (abortSignal.aborted) {
+        return;
       }
-    })();
+      // Exhausted retries — mark failed and replan
+      const serverQuestInput = getQuestInputContract.parse({ questId });
+      const serverQuestResult = await questGetBroker({ input: serverQuestInput });
+      const completedAt = new Date().toISOString();
 
-    if (startedServer === null) {
+      if (serverQuestResult.success && serverQuestResult.quest) {
+        const pendingItems = serverQuestResult.quest.workItems.filter(
+          (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+        );
+        const skippedItems = pendingItems.map((wi) => ({
+          id: wi.id,
+          status: 'skipped' as const,
+          completedAt,
+        }));
+        const pathseekerReplan = workItemContract.parse({
+          id: crypto.randomUUID(),
+          role: 'pathseeker',
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [workItem.id],
+          maxAttempts: 3,
+          createdAt: new Date().toISOString(),
+          insertedBy: workItem.id,
+        });
+        await questModifyBroker({
+          input: {
+            questId,
+            workItems: [
+              {
+                id: workItem.id,
+                status: 'failed',
+                completedAt,
+                errorMessage: errorMessageContract.parse('dev_server_start_exhausted'),
+              },
+              ...skippedItems,
+              pathseekerReplan,
+            ],
+          } as ModifyQuestInput,
+        });
+      }
       return;
     }
 
-    devServerProcess = startedServer.process;
+    devServerProcess = serverResult.process;
     devServerUrl = devServerUrlContract.parse(`http://${environmentStatics.hostname}:${port}`);
   }
 
