@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'child_process';
 
-import type { DungeonmasterConfig } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub, type DungeonmasterConfig } from '@dungeonmaster/config';
 import {
   questContract,
   type ExitCode,
@@ -9,6 +9,7 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
@@ -54,8 +55,6 @@ const TEST_DEV_SERVER_PORT = parseInt('3000', 10) as never;
 const TEST_READINESS_TIMEOUT_MS = parseInt('30000', 10) as never;
 const FAST_READINESS_TIMEOUT_MS = parseInt('1000', 10) as never;
 
-type ConfigStubFn = (...args: never[]) => DungeonmasterConfig;
-
 const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
   proc.kill = jest.fn((sig) => {
     if (sig === 'SIGTERM' || sig === undefined) {
@@ -68,12 +67,8 @@ const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
   return proc;
 };
 
-const makeDevServerConfig = (): DungeonmasterConfig => {
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: ConfigStubFn;
-  }>('@dungeonmaster/config');
-
-  return DungeonmasterConfigStub({
+const makeDevServerConfig = (): DungeonmasterConfig =>
+  DungeonmasterConfigStub({
     devServer: {
       devCommand: TEST_DEV_COMMAND,
       port: TEST_DEV_SERVER_PORT,
@@ -82,14 +77,9 @@ const makeDevServerConfig = (): DungeonmasterConfig => {
       readinessTimeoutMs: TEST_READINESS_TIMEOUT_MS,
     },
   } as never);
-};
 
-const makeDevServerConfigFastTimeout = (): DungeonmasterConfig => {
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: ConfigStubFn;
-  }>('@dungeonmaster/config');
-
-  return DungeonmasterConfigStub({
+const makeDevServerConfigFastTimeout = (): DungeonmasterConfig =>
+  DungeonmasterConfigStub({
     devServer: {
       devCommand: TEST_DEV_COMMAND,
       port: TEST_DEV_SERVER_PORT,
@@ -98,15 +88,8 @@ const makeDevServerConfigFastTimeout = (): DungeonmasterConfig => {
       readinessTimeoutMs: FAST_READINESS_TIMEOUT_MS,
     },
   } as never);
-};
 
-const makeBasicConfig = (): DungeonmasterConfig => {
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: ConfigStubFn;
-  }>('@dungeonmaster/config');
-
-  return DungeonmasterConfigStub();
-};
+const makeBasicConfig = (): DungeonmasterConfig => DungeonmasterConfigStub();
 
 export const runSiegemasterLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
@@ -176,10 +159,13 @@ export const runSiegemasterLayerBrokerProxy = (): {
   devServerStartLoopLayerBrokerProxy();
   const serverStartProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const toIsoHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
+  toIsoHandle.mockReturnValue('2024-01-15T10:00:00.000Z');
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee');
+  const uuidHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  uuidHandle.mockReturnValue('aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee');
+
+  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -346,11 +332,11 @@ export const runSiegemasterLayerBrokerProxy = (): {
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      stderrHandle.mockImplementation(() => true);
     },
 
     getStderrWrites: (): readonly unknown[] =>
-      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
+      stderrHandle.mock.calls.map((call: readonly unknown[]) => call[0]),
 
     getModifyContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 

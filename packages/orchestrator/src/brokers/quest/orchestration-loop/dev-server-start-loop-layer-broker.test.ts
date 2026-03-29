@@ -12,12 +12,6 @@ const READINESS_TIMEOUT_MS = 5000;
 const START_PATH = FilePathStub({ value: '/project' });
 
 describe('devServerStartLoopLayerBroker', () => {
-  describe('export', () => {
-    it('VALID: {module} => exports a function', () => {
-      expect(typeof devServerStartLoopLayerBroker).toBe('function');
-    });
-  });
-
   describe('server starts immediately', () => {
     it('VALID: {server starts on first attempt} => returns { success: true, process }', async () => {
       const proxy = devServerStartLoopLayerBrokerProxy();
