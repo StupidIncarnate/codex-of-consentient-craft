@@ -130,7 +130,7 @@ describe("UserValidator", () => {
       it("VALID: {age: 18} => returns true")
     })
     describe("invalid input", () => {
-      it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
+      it("INVALID: {age: -1} => throws 'Age must be positive'")
     })
   })
 })
@@ -142,10 +142,9 @@ describe("UserValidator", () => {
 })
 \`\`\`
 
-**Required prefixes:**
+**Required prefixes (enforced by \`enforce-test-name-prefix\` lint rule):**
 - \`VALID:\` - Expected success paths
-- \`INVALID_[FIELD]:\` - Single field fails validation (e.g., \`INVALID_AGE\`)
-- \`INVALID_MULTIPLE:\` - Multiple fields fail together
+- \`INVALID:\` - Validation failures (single or multiple fields)
 - \`ERROR:\` - Runtime/system errors (not validation)
 - \`EDGE:\` - Boundary conditions
 - \`EMPTY:\` - Null/undefined/empty inputs

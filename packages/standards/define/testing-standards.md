@@ -401,8 +401,8 @@ describe("UserValidator", () => {
         })
 
         describe("invalid input", () => {
-            it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
-            it("INVALID_AGE: {age: 'twenty'} => throws 'Must be number'")
+            it("INVALID: {age: -1} => throws 'Age must be positive'")
+            it("INVALID: {age: 'twenty'} => throws 'Must be number'")
         })
 
         describe("edge cases", () => {
@@ -417,8 +417,8 @@ describe("UserValidator", () => {
         })
 
         describe("validation errors", () => {
-            it("INVALID_NAME: {name: ''} => throws 'Name required'")
-            it("INVALID_EMAIL: {email: 'bad'} => throws 'Invalid email'")
+            it("INVALID: {name: ''} => throws 'Name required'")
+            it("INVALID: {email: 'bad'} => throws 'Invalid email'")
             it("ERROR: {name: 'John', email: 'taken@test.com'} => throws 'Email exists'")
         })
     })
@@ -430,7 +430,7 @@ describe("UserValidator", () => {
     it("VALID: {age: 18} => returns true")
 
     // validateAge tests - invalid cases
-    it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
+    it("INVALID: {age: -1} => throws 'Age must be positive'")
 
     // createUser tests
     it("VALID: {name: 'John'} => returns User object")
@@ -447,16 +447,17 @@ describe("UserValidator", () => {
 ## Prefixes (Required)
 
 - `VALID:` - Expected success paths
-- `INVALID_[FIELD]:` - Single field fails validation (e.g., `INVALID_AGE`)
-- `INVALID_MULTIPLE:` - Multiple fields fail together
+- `INVALID:` - Validation failures (single or multiple fields)
 - `ERROR:` - Runtime/system errors (not validation)
 - `EDGE:` - Boundary conditions
 - `EMPTY:` - Null/undefined/empty inputs
 
+Only these 5 prefixes are allowed. Enforced by `enforce-test-name-prefix` lint rule.
+
 ### Complex Validation Patterns
 ```typescript
 // Multiple field errors (when ALL errors collected)
-it("INVALID_MULTIPLE: {name: '', email: ''} => throws 'Name required, Email required'")
+it("INVALID: {name: '', email: ''} => throws 'Name required, Email required'")
 
 // Interdependent fields
 it("ERROR: {discount: 0.1, coupon: 'SAVE10'} => throws 'Cannot use both discount and coupon'")
@@ -1446,10 +1447,10 @@ it("VALID: {a: 1, b: 2} => returns 3", () => {
 
 1. **Always use PREFIX** - Never write tests without category prefix
 2. **Action verbs in outcomes** - `=> returns user` not `=> user`
-3. **Specific over generic** - `INVALID_AGE` not just `ERROR`
+3. **Specific over generic** - `INVALID: {age: -1}` not just `ERROR:`
 4. **No filler words** - No "should", "when", "with", "given"
 5. **Real error messages** - Use actual strings from code
-6. **Group by prefix** - All VALID tests together, then INVALID_*, etc.
+6. **Group by prefix** - All VALID tests together, then INVALID, etc.
 
 ## Examples
 
@@ -1458,16 +1459,16 @@ describe("UserValidator", () => {
     describe("validateAge()", () => {
         it("VALID: {age: 18} => returns true")
         it("VALID: {age: 65} => returns true")
-        it("INVALID_AGE: {age: -1} => throws 'Age must be positive'")
-        it("INVALID_AGE: {age: 'twenty'} => throws 'Must be number'")
+        it("INVALID: {age: -1} => throws 'Age must be positive'")
+        it("INVALID: {age: 'twenty'} => throws 'Must be number'")
         it("EDGE: {age: 150} => throws 'Unrealistic age'")
         it("EMPTY: {age: null} => throws 'Age required'")
     })
 
     describe("createUser()", () => {
         it("VALID: {name: 'John', email: 'john@test.com'} => returns User object")
-        it("INVALID_NAME: {name: ''} => throws 'Name required'")
-        it("INVALID_EMAIL: {email: 'bad'} => throws 'Invalid email'")
+        it("INVALID: {name: ''} => throws 'Name required'")
+        it("INVALID: {email: 'bad'} => throws 'Invalid email'")
         it("ERROR: {name: 'John', email: 'taken@test.com'} => throws 'Email exists'")
     })
 
@@ -2210,7 +2211,7 @@ describe("UserCreateResponder", () => {
             });
         });
 
-        it("INVALID_EMAIL: {email: 'bad'} => returns 400", async () => {
+        it("INVALID: {email: 'bad'} => returns 400", async () => {
             const res = await request(app).post('/users').send({name: 'John', email: 'bad'});
 
             expect(res.status).toBe(400);
