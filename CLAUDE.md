@@ -28,7 +28,8 @@ Architecture documentation and code discovery are available as MCP tools.
     - Returns: Folder types, import hierarchy, decision tree (~1K tokens)
     - Purpose: Understand where code goes and architectural constraints
 
-- **`discover`** (params: `{ type, path?, fileType?, search?, name?, section? }`) - Find existing code
+- **`discover`** (params: `{ type, path?, fileType?, search?, name?, section? }`) - Find existing code rather than using
+  tools like grep or find.
     - Browse: `{ type: "files", path: "packages/X/src/guards" }` - Tree list of files with purposes
     - Details: `{ type: "files", name: "has-file-suffix-guard" }` - Full metadata (signature, usage, related files)
     - Purpose: Check if similar code exists before creating new
