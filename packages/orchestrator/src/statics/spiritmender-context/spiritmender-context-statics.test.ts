@@ -10,13 +10,11 @@ describe('spiritmenderContextStatics', () => {
     ]);
   });
 
-  it('VALID: each context => has instructions string', () => {
-    for (const key of Object.keys(spiritmenderContextStatics)) {
-      const entry = spiritmenderContextStatics[key as keyof typeof spiritmenderContextStatics];
+  it('VALID: each context => has non-empty instructions string', () => {
+    const entries = Object.values(spiritmenderContextStatics);
 
-      expect(typeof entry.instructions).toBe('string');
-      expect(entry.instructions.length).toBeGreaterThan(0);
-    }
+    expect(entries.every((entry) => typeof entry.instructions === 'string')).toBe(true);
+    expect(entries.every((entry) => entry.instructions.length > 0)).toBe(true);
   });
 
   it('VALID: wardFailure => references ward failures and dependency order', () => {
