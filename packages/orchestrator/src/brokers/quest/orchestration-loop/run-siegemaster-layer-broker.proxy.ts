@@ -1,3 +1,6 @@
+import type { ChildProcess } from 'child_process';
+
+import type { DungeonmasterConfig } from '@dungeonmaster/config';
 import {
   questContract,
   type ExitCode,
@@ -8,9 +11,13 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
+import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
+import { devServerStartBrokerProxy } from '../../dev-server/start/dev-server-start-broker.proxy';
+import { devServerStopBrokerProxy } from '../../dev-server/stop/dev-server-stop-broker.proxy';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { buildPreflightLoopLayerBrokerProxy } from './build-preflight-loop-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -38,6 +45,51 @@ const parseLastPersisted = (persisted: readonly unknown[]): Quest | undefined =>
   return questContract.parse(parsed);
 };
 
+// Use statics values to avoid magic numbers
+const TEST_DEV_COMMAND = 'npm run dev' as never;
+const TEST_BUILD_COMMAND = 'npm run build' as never;
+const TEST_READINESS_PATH = '/' as never;
+const TEST_DEV_SERVER_PORT = parseInt('3000', 10) as never;
+const TEST_READINESS_TIMEOUT_MS = parseInt('30000', 10) as never;
+
+type ConfigStubFn = (...args: never[]) => DungeonmasterConfig;
+
+const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
+  proc.kill = jest.fn((sig) => {
+    if (sig === 'SIGTERM' || sig === undefined) {
+      setImmediate(() => {
+        proc.emit('close', 0);
+      });
+    }
+    return true;
+  }) as unknown as typeof proc.kill;
+  return proc;
+};
+
+const makeDevServerConfig = (): DungeonmasterConfig => {
+  const { DungeonmasterConfigStub } = jest.requireActual<{
+    DungeonmasterConfigStub: ConfigStubFn;
+  }>('@dungeonmaster/config');
+
+  return DungeonmasterConfigStub({
+    devServer: {
+      devCommand: TEST_DEV_COMMAND,
+      port: TEST_DEV_SERVER_PORT,
+      buildCommand: TEST_BUILD_COMMAND,
+      readinessPath: TEST_READINESS_PATH,
+      readinessTimeoutMs: TEST_READINESS_TIMEOUT_MS,
+    },
+  } as never);
+};
+
+const makeBasicConfig = (): DungeonmasterConfig => {
+  const { DungeonmasterConfigStub } = jest.requireActual<{
+    DungeonmasterConfigStub: ConfigStubFn;
+  }>('@dungeonmaster/config');
+
+  return DungeonmasterConfigStub();
+};
+
 export const runSiegemasterLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
@@ -63,9 +115,33 @@ export const runSiegemasterLayerBrokerProxy = (): {
   getPersistedWorkItem: (params: { workItemId: QuestWorkItemId }) => WorkItem | undefined;
   getPersistedWorkItemByRole: (params: { role: WorkItem['role'] }) => WorkItem | undefined;
   getModifyContents: () => readonly unknown[];
+  setupWithDevServer: (params: {
+    quest: Quest;
+    exitCode: ExitCode;
+    signal: StreamSignal;
+  }) => ChildProcess;
+  setupBuildFails: (params: {
+    quest: Quest;
+    buildOutput: string;
+    signal: StreamSignal;
+    exitCode: ExitCode;
+  }) => void;
+  setupBuildExhausted: (params: { quest: Quest }) => void;
+  setupServerStartFails: (params: { quest: Quest }) => void;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const configProxy = dungeonmasterConfigResolveAdapterProxy();
+  // buildPreflightLoopLayerBrokerProxy, devServerStopBrokerProxy, and devServerStartBrokerProxy
+  // must be created BEFORE agentSpawnByRoleBrokerProxy so the stream-json spawn mock's
+  // mockImplementation fallback takes precedence over the plain spawn mock's mockImplementation.
+  // buildPreflightLoopLayerBrokerProxy internally creates buildPreflightBrokerProxy (execFile mock)
+  // and agentSpawnByRoleBrokerProxy (stream-json spawn mock), but the parent's agentSpawnByRoleBrokerProxy
+  // call below is the final one, so stream-json wins as the fallback. This matters for setupBuildFails
+  // where the siege spawn uses the fallback mockImplementation and must receive a stream-json process.
+  const buildProxy = buildPreflightLoopLayerBrokerProxy();
+  devServerStopBrokerProxy();
+  const serverStartProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
 
@@ -74,17 +150,21 @@ export const runSiegemasterLayerBrokerProxy = (): {
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
     setupQuestNotFound: (): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupEmptyFolder();
     },
     setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnFailureOnce();
     },
     setupSpawnSuccess: ({ quest, exitCode }: { quest: Quest; exitCode: ExitCode }): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({ lines: [], exitCode });
@@ -98,6 +178,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       exitCode: ExitCode;
       signal: StreamSignal;
     }): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
@@ -116,12 +197,83 @@ export const runSiegemasterLayerBrokerProxy = (): {
       signal: StreamSignal;
       sessionIdLine: string;
     }): void => {
+      configProxy.setupConfigResolved({ config: makeBasicConfig() });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
         lines: [sessionIdLine, ...buildSignalLine({ signal })],
         exitCode,
       });
+    },
+    setupWithDevServer: ({
+      quest,
+      exitCode,
+      signal,
+    }: {
+      quest: Quest;
+      exitCode: ExitCode;
+      signal: StreamSignal;
+    }): ChildProcess => {
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      const proc = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({
+        lines: buildSignalLine({ signal }),
+        exitCode,
+      });
+      return proc;
+    },
+    setupBuildFails: ({
+      quest,
+      buildOutput,
+      signal,
+      exitCode,
+    }: {
+      quest: Quest;
+      buildOutput: string;
+      signal: StreamSignal;
+      exitCode: ExitCode;
+    }): void => {
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildFailure({ exitCode: 1 as never, output: buildOutput });
+      // Spiritmender spawn (inline fix agent)
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
+      buildProxy.setupBuildSuccess();
+      makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      // Siege spawn after successful build + server start.
+      // Must use setupSpawnAutoLines (not setupSpawnOnce) so siege signal lines are emitted
+      // AFTER the siege readline callback is registered (not at setup time like setImmediate).
+      // All prior setupSpawnOnce calls consumed their mockReturnValueOnce queue entries, so
+      // siege falls through to the fallback mockImplementation set by setupSpawnAutoLines.
+      spawnProxy.setupSpawnAutoLines({
+        lines: buildSignalLine({ signal }),
+        exitCode,
+      });
+    },
+    setupBuildExhausted: ({ quest }: { quest: Quest }): void => {
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 1' });
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
+      buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 2' });
+      spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
+      buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 3' });
+      // quest fetched twice: once at start, once for replan
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+    },
+    setupServerStartFails: ({ quest }: { quest: Quest }): void => {
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      buildProxy.setupBuildSuccess();
+      serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      // quest fetched twice: once at start, once for replan
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
     },
     getPersistedWorkItemStatus: ({
       workItemId,

@@ -19,6 +19,9 @@ import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/d
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
+export { configResolveBroker };
+export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+
 export type ArchitectureFolder =
   typeof architectureFolderStatics.folders.all extends readonly (infer U)[] ? U : never;
 

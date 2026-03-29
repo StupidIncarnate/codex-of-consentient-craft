@@ -1,12 +1,15 @@
 /**
- * PURPOSE: Executes siegemaster phase — runs integration/e2e tests, skips pending on failure and spawns pathseeker replan
+ * PURPOSE: Executes siegemaster phase — optional build preflight + dev server lifecycle, then runs integration/e2e tests, skips pending on failure and spawns pathseeker replan
  *
  * USAGE:
  * await runSiegemasterLayerBroker({questId, workItem, startPath});
- * // Runs siegemaster agent. On failure: skips pending work items, creates pathseeker replan
+ * // Runs build preflight (if devServer config present), starts dev server, runs siegemaster agent.
+ * // On failure: skips pending work items, creates pathseeker replan. Dev server always stopped in finally.
  */
 
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import {
+  absoluteFilePathContract,
   errorMessageContract,
   type FilePath,
   type QuestId,
@@ -15,17 +18,24 @@ import {
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 
+import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
+import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-server-url-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
-
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { devServerStartBroker } from '../../dev-server/start/dev-server-start-broker';
+import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { buildPreflightLoopLayerBroker } from './build-preflight-loop-layer-broker';
 
 const FAILURE_MARKER = 'FAILED OBSERVABLES:';
+const MAX_BUILD_ATTEMPTS = 3;
+
+type DevServerProcess = Awaited<ReturnType<typeof devServerStartBroker>>['process'];
 
 export const runSiegemasterLayerBroker = async ({
   questId,
@@ -49,111 +59,255 @@ export const runSiegemasterLayerBroker = async ({
 
   const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
 
-  const workUnit = workUnitContract.parse({
-    role: 'siegemaster',
-    questId,
-    relatedObservables: allObservables,
-  });
+  // Load project config to check for devServer
+  const config = await dungeonmasterConfigResolveAdapter({ startPath });
+
+  let devServerProcess: DevServerProcess | null = null;
+  let devServerUrl: ReturnType<typeof devServerUrlContract.parse> | null = null;
+
+  if (config.devServer !== undefined) {
+    const { buildCommand, devCommand, port, readinessPath, readinessTimeoutMs } = config.devServer;
+    const absoluteStartPath = absoluteFilePathContract.parse(startPath);
+
+    // BUILD PREFLIGHT — recursive retry up to MAX_BUILD_ATTEMPTS via layer broker
+    const buildResult = await buildPreflightLoopLayerBroker({
+      buildCommand,
+      cwd: absoluteStartPath,
+      startPath,
+      abortSignal,
+      attempt: 0,
+      maxAttempts: MAX_BUILD_ATTEMPTS,
+    });
+
+    if (!buildResult.success) {
+      if (abortSignal.aborted) {
+        return;
+      }
+      // Exhausted retries — mark failed and replan
+      const preflightQuestInput = getQuestInputContract.parse({ questId });
+      const preflightQuestResult = await questGetBroker({ input: preflightQuestInput });
+      const completedAt = new Date().toISOString();
+
+      if (preflightQuestResult.success && preflightQuestResult.quest) {
+        const pendingItems = preflightQuestResult.quest.workItems.filter(
+          (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+        );
+        const skippedItems = pendingItems.map((wi) => ({
+          id: wi.id,
+          status: 'skipped' as const,
+          completedAt,
+        }));
+        const pathseekerReplan = workItemContract.parse({
+          id: crypto.randomUUID(),
+          role: 'pathseeker',
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [workItem.id],
+          maxAttempts: 3,
+          createdAt: new Date().toISOString(),
+          insertedBy: workItem.id,
+        });
+        await questModifyBroker({
+          input: {
+            questId,
+            workItems: [
+              {
+                id: workItem.id,
+                status: 'failed',
+                completedAt,
+                errorMessage: errorMessageContract.parse('build_preflight_exhausted'),
+              },
+              ...skippedItems,
+              pathseekerReplan,
+            ],
+          } as ModifyQuestInput,
+        });
+      }
+      return;
+    }
+
+    if (abortSignal.aborted) {
+      return;
+    }
+
+    // START DEV SERVER — wrap in a function returning null on failure to avoid reassignment narrowing issues
+    const startedServer: { process: DevServerProcess } | null = await (async () => {
+      try {
+        const serverResult = await devServerStartBroker({
+          devCommand,
+          port,
+          hostname: environmentStatics.hostname,
+          readinessPath,
+          readinessTimeoutMs,
+          cwd: absoluteStartPath,
+          abortSignal,
+        });
+        return { process: serverResult.process };
+      } catch {
+        // Dev server failed to start — mark failed and replan
+        const serverQuestInput = getQuestInputContract.parse({ questId });
+        const serverQuestResult = await questGetBroker({ input: serverQuestInput });
+        const completedAt = new Date().toISOString();
+
+        if (serverQuestResult.success && serverQuestResult.quest) {
+          const pendingItems = serverQuestResult.quest.workItems.filter(
+            (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+          );
+          const skippedItems = pendingItems.map((wi) => ({
+            id: wi.id,
+            status: 'skipped' as const,
+            completedAt,
+          }));
+          const pathseekerReplan = workItemContract.parse({
+            id: crypto.randomUUID(),
+            role: 'pathseeker',
+            status: 'pending',
+            spawnerType: 'agent',
+            dependsOn: [workItem.id],
+            maxAttempts: 3,
+            createdAt: new Date().toISOString(),
+            insertedBy: workItem.id,
+          });
+          await questModifyBroker({
+            input: {
+              questId,
+              workItems: [
+                {
+                  id: workItem.id,
+                  status: 'failed',
+                  completedAt,
+                  errorMessage: errorMessageContract.parse('dev_server_start_failed'),
+                },
+                ...skippedItems,
+                pathseekerReplan,
+              ],
+            } as ModifyQuestInput,
+          });
+        }
+        return null;
+      }
+    })();
+
+    if (startedServer === null) {
+      return;
+    }
+
+    devServerProcess = startedServer.process;
+    devServerUrl = devServerUrlContract.parse(`http://${environmentStatics.hostname}:${port}`);
+  }
 
   const slotIndex = slotIndexContract.parse(0);
   let trackedSessionId: SessionId | null = null;
 
-  const spawnResult = await agentSpawnByRoleBroker({
-    workUnit,
-    startPath,
-    abortSignal,
-    onLine: ({ line }: { line: string }) => {
-      onAgentEntry({
-        slotIndex,
-        entry: { raw: line },
-        ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
-      });
-    },
-    onSessionId: ({ sessionId }) => {
-      trackedSessionId = sessionId;
-      questModifyBroker({
-        input: {
-          questId,
-          workItems: [{ id: workItem.id, sessionId }],
-        } as ModifyQuestInput,
-      }).catch((error: unknown) => {
-        process.stderr.write(`[siegemaster] session-id update failed: ${String(error)}\n`);
-      });
-    },
+  const workUnit = workUnitContract.parse({
+    role: 'siegemaster',
+    questId,
+    relatedObservables: allObservables,
+    ...(devServerUrl === null ? {} : { devServerUrl }),
   });
 
-  // If aborted (paused), bail out without creating follow-up items
-  if (abortSignal.aborted) {
-    return;
-  }
+  try {
+    const spawnResult = await agentSpawnByRoleBroker({
+      workUnit,
+      startPath,
+      abortSignal,
+      onLine: ({ line }: { line: string }) => {
+        onAgentEntry({
+          slotIndex,
+          entry: { raw: line },
+          ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+        });
+      },
+      onSessionId: ({ sessionId }) => {
+        trackedSessionId = sessionId;
+        questModifyBroker({
+          input: {
+            questId,
+            workItems: [{ id: workItem.id, sessionId }],
+          } as ModifyQuestInput,
+        }).catch((error: unknown) => {
+          process.stderr.write(`[siegemaster] session-id update failed: ${String(error)}\n`);
+        });
+      },
+    });
 
-  const agentSummary = spawnResult.signal?.summary ?? undefined;
-  const summaryText = agentSummary ?? '';
-  const hasFailed = summaryText.includes(FAILURE_MARKER);
-  const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
+    // If aborted (paused), bail out without creating follow-up items
+    if (abortSignal.aborted) {
+      return;
+    }
 
-  const sessionId = spawnResult.sessionId ?? undefined;
+    const agentSummary = spawnResult.signal?.summary ?? undefined;
+    const summaryText = agentSummary ?? '';
+    const hasFailed = summaryText.includes(FAILURE_MARKER);
+    const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
 
-  if (isComplete) {
+    const sessionId = spawnResult.sessionId ?? undefined;
+
+    if (isComplete) {
+      await questModifyBroker({
+        input: {
+          questId,
+          workItems: [
+            {
+              id: workItem.id,
+              status: 'complete',
+              completedAt: new Date().toISOString(),
+              ...(sessionId === undefined ? {} : { sessionId }),
+              ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+            },
+          ],
+        } as ModifyQuestInput,
+      });
+      return;
+    }
+
+    // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
+    const completedAt = new Date().toISOString();
+    const errorMessage = hasFailed
+      ? errorMessageContract.parse(summaryText)
+      : errorMessageContract.parse('siege_check_failed');
+
+    const pendingItems = quest.workItems.filter(
+      (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+    );
+
+    const skippedItems = pendingItems.map((wi) => ({
+      id: wi.id,
+      status: 'skipped' as const,
+      completedAt,
+    }));
+
+    const pathseekerReplan = workItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'pathseeker',
+      status: 'pending',
+      spawnerType: 'agent',
+      dependsOn: [workItem.id],
+      maxAttempts: 3,
+      createdAt: new Date().toISOString(),
+      insertedBy: workItem.id,
+    });
+
     await questModifyBroker({
       input: {
         questId,
         workItems: [
           {
             id: workItem.id,
-            status: 'complete',
-            completedAt: new Date().toISOString(),
+            status: 'failed',
+            completedAt,
+            errorMessage,
             ...(sessionId === undefined ? {} : { sessionId }),
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
           },
+          ...skippedItems,
+          pathseekerReplan,
         ],
       } as ModifyQuestInput,
     });
-    return;
+  } finally {
+    if (devServerProcess !== null) {
+      await devServerStopBroker({ process: devServerProcess });
+    }
   }
-
-  // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
-  const completedAt = new Date().toISOString();
-  const errorMessage = hasFailed
-    ? errorMessageContract.parse(summaryText)
-    : errorMessageContract.parse('siege_check_failed');
-
-  const pendingItems = quest.workItems.filter(
-    (wi) => wi.status === 'pending' && wi.id !== workItem.id,
-  );
-
-  const skippedItems = pendingItems.map((wi) => ({
-    id: wi.id,
-    status: 'skipped' as const,
-    completedAt,
-  }));
-
-  const pathseekerReplan = workItemContract.parse({
-    id: crypto.randomUUID(),
-    role: 'pathseeker',
-    status: 'pending',
-    spawnerType: 'agent',
-    dependsOn: [workItem.id],
-    maxAttempts: 3,
-    createdAt: new Date().toISOString(),
-    insertedBy: workItem.id,
-  });
-
-  await questModifyBroker({
-    input: {
-      questId,
-      workItems: [
-        {
-          id: workItem.id,
-          status: 'failed',
-          completedAt,
-          errorMessage,
-          ...(sessionId === undefined ? {} : { sessionId }),
-          ...(agentSummary === undefined ? {} : { summary: agentSummary }),
-        },
-        ...skippedItems,
-        pathseekerReplan,
-      ],
-    } as ModifyQuestInput,
-  });
 };

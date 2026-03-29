@@ -416,4 +416,226 @@ describe('runSiegemasterLayerBroker', () => {
       expect(modifyContents).toStrictEqual([]);
     });
   });
+
+  describe('dev server preflight: build passes + server starts', () => {
+    it('VALID: {devServer config, build passes, server starts} => siege runs with devServerUrl in work unit', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupWithDevServer({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
+
+      expect(siegeItem?.status).toBe('complete');
+    });
+  });
+
+  describe('dev server preflight: build fails once, spiritmender fixes, retry succeeds', () => {
+    it('VALID: {build fails once, spiritmender runs, rebuild passes} => siege proceeds to completion', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupBuildFails({
+        quest,
+        buildOutput: 'ERROR: src/index.ts(5,1): error TS2345: type mismatch',
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
+
+      expect(siegeItem?.status).toBe('complete');
+    });
+  });
+
+  describe('dev server preflight: build exhausts retries', () => {
+    it('VALID: {build fails 3 times} => marks siege failed with build_preflight_exhausted, creates pathseeker', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupBuildExhausted({ quest });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'build_preflight_exhausted',
+      );
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
+        'skipped',
+      );
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([
+        siegeWorkItemId,
+      ]);
+    });
+  });
+
+  describe('dev server preflight: server fails to start', () => {
+    it('VALID: {build passes, server exits before ready} => marks siege failed with dev_server_start_failed', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const lawbringerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2222222-2222-4222-8222-222222222222',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        status: 'in_progress',
+      });
+      const lawbringerItem = WorkItemStub({
+        id: lawbringerWorkItemId,
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siegeWorkItemId],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem, lawbringerItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupServerStartFails({ quest });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
+      expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
+        'dev_server_start_failed',
+      );
+      expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([
+        siegeWorkItemId,
+      ]);
+    });
+  });
+
+  describe('no devServer config (backward compat)', () => {
+    it('VALID: {no devServer in config} => existing behavior unchanged, siege runs without devServerUrl', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      // setupSpawnWithSignal uses DungeonmasterConfigStub() which has no devServer
+      proxy.setupSpawnWithSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
+
+      expect(siegeItem?.status).toBe('complete');
+    });
+  });
+
+  describe('server stop always called (finally block)', () => {
+    it('VALID: {devServer config, agent crashes} => dev server still stopped in finally', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      const proc = proxy.setupWithDevServer({
+        quest,
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: StreamSignalStub({ signal: 'failed' }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      // Process kill was called with SIGTERM from devServerStopBroker
+      expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+  });
 });
