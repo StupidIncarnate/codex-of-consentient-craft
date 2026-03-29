@@ -42,6 +42,7 @@ export interface ExecutionRowLayerWidgetProps {
   dependsOn: DependencyLabel[];
   isAdhoc: boolean;
   errorMessage?: ErrorMessage;
+  summary?: WorkItem['summary'];
   entries?: ChatEntry[];
   isStreaming?: boolean;
   attempt?: WorkItem['attempt'];
@@ -94,6 +95,7 @@ export const ExecutionRowLayerWidget = ({
   dependsOn,
   isAdhoc,
   errorMessage,
+  summary,
   entries,
   isStreaming,
   attempt,
@@ -392,6 +394,20 @@ export const ExecutionRowLayerWidget = ({
                 </Box>
               ))
             : null}
+          {summary ? (
+            <Text
+              ff="monospace"
+              data-testid="execution-row-summary"
+              style={{
+                fontSize: EXPANDED_DETAIL_FONT_SIZE,
+                color: colors['text-dim'],
+                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              Summary: {summary}
+            </Text>
+          ) : null}
           {errorMessage ? (
             <Text
               ff="monospace"

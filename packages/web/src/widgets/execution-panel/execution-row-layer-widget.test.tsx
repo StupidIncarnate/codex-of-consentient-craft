@@ -321,6 +321,69 @@ describe('ExecutionRowLayerWidget', () => {
 
       expect(errorEl.textContent).toBe('Error: Type check failed');
     });
+
+    it('VALID: {expanded, summary} => shows summary text', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            summary={'Implemented auth with tests' as never}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const summaryEl = screen.getByTestId('execution-row-summary');
+
+      expect(summaryEl.textContent).toBe('Summary: Implemented auth with tests');
+    });
+
+    it('VALID: {expanded, summary + errorMessage} => shows both summary and error', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            summary={'BLOCKED: type errors in auth module' as never}
+            errorMessage={ErrorMessageStub({ value: 'verification_failed' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const summaryEl = screen.getByTestId('execution-row-summary');
+      const errorEl = screen.getByTestId('execution-row-error-message');
+
+      expect(summaryEl.textContent).toBe('Summary: BLOCKED: type errors in auth module');
+      expect(errorEl.textContent).toBe('Error: verification_failed');
+    });
+
+    it('VALID: {expanded, no summary} => does not render summary element', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-summary')).toBeNull();
+    });
   });
 
   describe('entries rendering', () => {

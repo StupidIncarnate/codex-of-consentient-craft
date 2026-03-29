@@ -22,6 +22,7 @@ import {
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
+import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotOperations } from '../../../contracts/slot-operations/slot-operations-contract';
 import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-contract';
@@ -88,6 +89,9 @@ export const runSpiritmenderLayerBroker = async ({
 
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });
 
+  type SignalSummary = NonNullable<StreamSignal['summary']>;
+  const summaryMap = new Map<WorkItemId, SignalSummary>();
+
   const result = await slotManagerOrchestrateBroker({
     questId,
     workTracker,
@@ -97,6 +101,9 @@ export const runSpiritmenderLayerBroker = async ({
     maxFollowupDepth,
     abortSignal,
     onAgentEntry,
+    onWorkItemSummary: ({ workItemId, summary }) => {
+      summaryMap.set(workItemId, summary as SignalSummary);
+    },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
       if (questItemId !== undefined) {
@@ -123,18 +130,21 @@ export const runSpiritmenderLayerBroker = async ({
 
   for (const [slotId, questItemId] of slotToQuestMap) {
     const sessionId = result.sessionIds[slotId];
+    const slotSummary = summaryMap.get(slotId);
     if (result.completed) {
       workItemUpdates.push({
         id: questItemId,
         status: 'complete',
         completedAt,
         ...(sessionId === undefined ? {} : { sessionId }),
+        ...(slotSummary === undefined ? {} : { summary: slotSummary }),
       });
     } else {
       workItemUpdates.push({
         id: questItemId,
         status: 'failed',
         ...(sessionId === undefined ? {} : { sessionId }),
+        ...(slotSummary === undefined ? {} : { summary: slotSummary }),
       });
     }
   }

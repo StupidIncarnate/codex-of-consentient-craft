@@ -14,6 +14,7 @@ import type {
   OnAgentEntryCallback,
   OnFollowupCreatedCallback,
   OnWorkItemSessionIdCallback,
+  OnWorkItemSummaryCallback,
 } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
@@ -32,6 +33,7 @@ export const runOrchestrationLayerBroker = async ({
   onAgentEntry,
   onWorkItemSessionId,
   onFollowupCreated,
+  onWorkItemSummary,
   abortSignal,
   maxFollowupDepth,
   sessionIds,
@@ -45,6 +47,7 @@ export const runOrchestrationLayerBroker = async ({
   onAgentEntry?: OnAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
+  onWorkItemSummary?: OnWorkItemSummaryCallback;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
@@ -69,6 +72,7 @@ export const runOrchestrationLayerBroker = async ({
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
+    ...(onWorkItemSummary === undefined ? {} : { onWorkItemSummary }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
   });
@@ -88,6 +92,7 @@ export const runOrchestrationLayerBroker = async ({
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
+    ...(onWorkItemSummary === undefined ? {} : { onWorkItemSummary }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });

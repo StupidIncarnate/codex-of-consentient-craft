@@ -15,6 +15,7 @@ import type {
   OnAgentEntryCallback,
   OnFollowupCreatedCallback,
   OnWorkItemSessionIdCallback,
+  OnWorkItemSummaryCallback,
 } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import type { SlotManagerResult } from '../../../contracts/slot-manager-result/slot-manager-result-contract';
@@ -44,6 +45,7 @@ export const orchestrationLoopLayerBroker = async ({
   onAgentEntry,
   onWorkItemSessionId,
   onFollowupCreated,
+  onWorkItemSummary,
   maxFollowupDepth,
   sessionIds,
   abortSignal,
@@ -57,6 +59,7 @@ export const orchestrationLoopLayerBroker = async ({
   onAgentEntry?: OnAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
+  onWorkItemSummary?: OnWorkItemSummaryCallback;
   maxFollowupDepth?: FollowupDepth;
   sessionIds: Record<WorkItemId, SessionId>;
   abortSignal?: AbortSignal;
@@ -208,6 +211,10 @@ export const orchestrationLoopLayerBroker = async ({
   if (result.signal === null) {
     await workTracker.markFailed({ workItemId: completedAgent.workItemId });
     return { done: false, activeAgents };
+  }
+
+  if (result.signal.summary !== undefined && onWorkItemSummary !== undefined) {
+    onWorkItemSummary({ workItemId: completedAgent.workItemId, summary: result.signal.summary });
   }
 
   const workUnit = workTracker.getWorkUnit({ workItemId: completedAgent.workItemId });

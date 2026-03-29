@@ -49,7 +49,7 @@ export const runPathseekerLayerBroker = async ({
   const slotIndex = slotIndexContract.parse(0);
   let trackedSessionId: SessionId | null = null;
 
-  await agentSpawnByRoleBroker({
+  const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     startPath,
     abortSignal,
@@ -74,6 +74,8 @@ export const runPathseekerLayerBroker = async ({
     },
   });
 
+  const agentSummary = spawnResult.signal?.summary ?? undefined;
+
   // If aborted (paused), bail out without creating follow-up items
   if (abortSignal.aborted) {
     return;
@@ -90,7 +92,14 @@ export const runPathseekerLayerBroker = async ({
     await questModifyBroker({
       input: {
         questId,
-        workItems: [{ id: workItem.id, status: 'complete', completedAt }],
+        workItems: [
+          {
+            id: workItem.id,
+            status: 'complete',
+            completedAt,
+            ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+          },
+        ],
       } as ModifyQuestInput,
     });
 
@@ -120,7 +129,13 @@ export const runPathseekerLayerBroker = async ({
       input: {
         questId,
         workItems: [
-          { id: workItem.id, status: 'failed', completedAt, errorMessage: 'verification_failed' },
+          {
+            id: workItem.id,
+            status: 'failed',
+            completedAt,
+            errorMessage: 'verification_failed',
+            ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+          },
         ],
       } as ModifyQuestInput,
     });
@@ -152,7 +167,13 @@ export const runPathseekerLayerBroker = async ({
       input: {
         questId,
         workItems: [
-          { id: workItem.id, status: 'failed', completedAt, errorMessage: 'verification_failed' },
+          {
+            id: workItem.id,
+            status: 'failed',
+            completedAt,
+            errorMessage: 'verification_failed',
+            ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+          },
         ],
       } as ModifyQuestInput,
     });

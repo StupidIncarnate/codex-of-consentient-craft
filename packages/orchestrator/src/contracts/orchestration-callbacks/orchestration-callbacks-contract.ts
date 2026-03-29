@@ -32,6 +32,10 @@ export const orchestrationCallbacksContract = z.object({
     role: agentRoleContract,
     failedWorkItemId: workItemIdContract,
   }),
+  onWorkItemSummaryParams: z.object({
+    workItemId: workItemIdContract,
+    summary: z.string().brand<'SignalSummary'>(),
+  }),
 });
 
 export type OnAgentEntryCallback = (params: {
@@ -49,4 +53,9 @@ export type OnFollowupCreatedCallback = (params: {
   followupWorkItemId: WorkItemId;
   role: AgentRole;
   failedWorkItemId: WorkItemId;
+}) => void;
+
+export type OnWorkItemSummaryCallback = (params: {
+  workItemId: WorkItemId;
+  summary: string;
 }) => void;
