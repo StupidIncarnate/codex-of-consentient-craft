@@ -9,6 +9,8 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
@@ -52,8 +54,6 @@ const TEST_READINESS_PATH = '/' as never;
 const TEST_DEV_SERVER_PORT = parseInt('3000', 10) as never;
 const TEST_READINESS_TIMEOUT_MS = parseInt('30000', 10) as never;
 
-type ConfigStubFn = (...args: never[]) => DungeonmasterConfig;
-
 const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
   proc.kill = jest.fn((sig) => {
     if (sig === 'SIGTERM' || sig === undefined) {
@@ -66,12 +66,10 @@ const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
   return proc;
 };
 
-const makeDevServerConfig = (): DungeonmasterConfig => {
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: ConfigStubFn;
-  }>('@dungeonmaster/config');
+type ConfigProxy = ReturnType<typeof dungeonmasterConfigResolveAdapterProxy>;
 
-  return DungeonmasterConfigStub({
+const makeDevServerConfig = ({ configProxy }: { configProxy: ConfigProxy }): DungeonmasterConfig =>
+  configProxy.makeConfigWithArgs({
     devServer: {
       devCommand: TEST_DEV_COMMAND,
       port: TEST_DEV_SERVER_PORT,
@@ -80,15 +78,9 @@ const makeDevServerConfig = (): DungeonmasterConfig => {
       readinessTimeoutMs: TEST_READINESS_TIMEOUT_MS,
     },
   } as never);
-};
 
-const makeBasicConfig = (): DungeonmasterConfig => {
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: ConfigStubFn;
-  }>('@dungeonmaster/config');
-
-  return DungeonmasterConfigStub();
-};
+const makeBasicConfig = ({ configProxy }: { configProxy: ConfigProxy }): DungeonmasterConfig =>
+  configProxy.makeRealConfig();
 
 export const runSiegemasterLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
@@ -153,28 +145,32 @@ export const runSiegemasterLayerBrokerProxy = (): {
   devServerStopBrokerProxy();
   const serverStartProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const stderrSpy: { current: SpyOnHandle | null } = { current: null };
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee',
+  );
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
     setupQuestNotFound: (): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       getProxy.setupEmptyFolder();
     },
     setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       getProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnFailureOnce();
     },
     setupSpawnSuccess: ({ quest, exitCode }: { quest: Quest; exitCode: ExitCode }): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       // Initial quest fetch + fresh quest fetch on failure path (exitCode != 0 means no signal → failure)
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
@@ -190,7 +186,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       exitCode: ExitCode;
       signal: StreamSignal;
     }): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       // Initial quest fetch + fresh quest fetch on failure path
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
@@ -211,7 +207,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       signal: StreamSignal;
       sessionIdLine: string;
     }): void => {
-      configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      configProxy.setupConfigResolved({ config: makeBasicConfig({ configProxy }) });
       // Initial quest fetch + fresh quest fetch on failure path
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
@@ -230,7 +226,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       exitCode: ExitCode;
       signal: StreamSignal;
     }): ChildProcess => {
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       const proc = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       // Initial quest fetch + fresh quest fetch on failure path
@@ -254,7 +250,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       signal: StreamSignal;
       exitCode: ExitCode;
     }): void => {
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: buildOutput });
       // Spiritmender spawn (inline fix agent)
       spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
@@ -273,7 +269,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       });
     },
     setupBuildExhausted: ({ quest }: { quest: Quest }): void => {
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 1' });
       spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 2' });
@@ -285,7 +281,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       modifyProxy.setupQuestFound({ quest });
     },
     setupServerStartFails: ({ quest }: { quest: Quest }): void => {
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
       // quest fetched twice: once at start, once for replan
@@ -318,7 +314,8 @@ export const runSiegemasterLayerBrokerProxy = (): {
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      stderrSpy.current = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy.current.mockImplementation(() => true);
     },
 
     getStderrWrites: (): readonly unknown[] =>
@@ -336,7 +333,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       signal: StreamSignal;
     }): readonly [ChildProcess, ChildProcess] => {
       // First siege run — use setupSpawnOnce (fires setImmediate during first await)
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       const proc1 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
@@ -346,7 +343,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
 
       // Second siege run — use setupSpawnAutoLines so lines fire when readline is created,
       // not via a setImmediate scheduled before the second siege even starts.
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
@@ -368,7 +365,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
     }): ChildProcess => {
       // First siege run — siege agent fails (not server failure, just siege outcome).
       // Use setupSpawnOnce so lines fire during the first await.
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
@@ -381,7 +378,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
 
       // Second siege run — fresh server, succeeds.
       // Use setupSpawnAutoLines so lines fire when readline is created (second await).
-      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
+      configProxy.setupConfigResolved({ config: makeDevServerConfig({ configProxy }) });
       buildProxy.setupBuildSuccess();
       const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
