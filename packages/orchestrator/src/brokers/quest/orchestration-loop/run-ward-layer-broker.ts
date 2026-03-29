@@ -223,9 +223,12 @@ export const runWardLayerBroker = async ({
         const batchFilePath = pathJoinAdapter({
           paths: [batchesDir, `${String(spiritItem.workItem.id)}.json`],
         });
+        const wardFileArgs = spiritItem.batch.filePaths.join(' ');
+        const verificationCommand = `npm run ward -- -- ${wardFileArgs}`;
         const batchContent = JSON.stringify({
           filePaths: spiritItem.batch.filePaths,
           errors: spiritItem.batch.errors,
+          verificationCommand,
         });
 
         return fsWriteFileAdapter({

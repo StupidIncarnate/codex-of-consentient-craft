@@ -40,6 +40,7 @@ const spiritmenderWorkUnitContract = z.object({
   role: z.literal('spiritmender'),
   filePaths: z.array(stepFilePathContract),
   errors: z.array(errorMessageContract).optional(),
+  verificationCommand: z.string().min(1).brand<'VerificationCommand'>().optional(),
 });
 
 const siegemasterWorkUnitContract = z.object({
@@ -48,6 +49,7 @@ const siegemasterWorkUnitContract = z.object({
   relatedDesignDecisions: z.array(designDecisionContract).default([]),
   relatedFlows: z.array(flowContract).default([]),
   relatedObservables: z.array(flowObservableContract),
+  devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
 });
 
 const lawbringerWorkUnitContract = z.object({

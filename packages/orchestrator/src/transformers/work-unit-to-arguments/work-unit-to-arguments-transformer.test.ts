@@ -327,6 +327,29 @@ describe('workUnitToArgumentsTransformer', () => {
       expect(result).toMatch(/Flows:\n {2}- Login Flow \(nodes: Login Page\)/u);
     });
 
+    it('VALID: {siegemaster with devServerUrl} => includes dev server URL after quest ID', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+        devServerUrl: 'http://localhost:3000' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Quest ID: quest-1\nDev Server URL: http:\/\/localhost:3000\n/u);
+    });
+
+    it('VALID: {siegemaster without devServerUrl} => omits dev server URL line', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        relatedObservables: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).not.toMatch(/Dev Server URL:/u);
+    });
+
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -403,6 +426,33 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe(
         'Files:\n  - /src/broken.ts\nRun npm run ward on the files to verify fixes.',
+      );
+    });
+
+    it('VALID: {spiritmender with verificationCommand} => uses verification command instead of hardcoded ward', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+        verificationCommand: 'npm run build --workspace=@dungeonmaster/shared' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Files:\n  - /src/broken.ts\nVerification Command: npm run build --workspace=@dungeonmaster/shared',
+      );
+    });
+
+    it('VALID: {spiritmender with verificationCommand and errors} => includes errors and verification command', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+        errors: [ErrorMessageStub({ value: 'Build failed' })],
+        verificationCommand: 'npm run build' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Files:\n  - /src/broken.ts\nErrors:\n  - Build failed\nVerification Command: npm run build',
       );
     });
   });
