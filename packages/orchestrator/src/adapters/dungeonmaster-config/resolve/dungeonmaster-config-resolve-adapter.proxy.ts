@@ -1,31 +1,34 @@
+import { configResolveBroker } from '@dungeonmaster/config';
 import type { DungeonmasterConfig } from '@dungeonmaster/config';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-jest.mock('@dungeonmaster/config');
+type ConfigStubFn = (...args: never[]) => DungeonmasterConfig;
 
 export const dungeonmasterConfigResolveAdapterProxy = (): {
   setupConfigResolved: (params: { config: DungeonmasterConfig }) => void;
   setupConfigResolveError: (params: { error: Error }) => void;
   makeRealConfig: () => DungeonmasterConfig;
+  makeConfigWithArgs: (args: never) => DungeonmasterConfig;
 } => {
-  const { configResolveBroker } = jest.requireMock<{
-    configResolveBroker: jest.Mock;
-  }>('@dungeonmaster/config');
+  const handle = registerMock({ fn: configResolveBroker });
 
-  const { DungeonmasterConfigStub } = jest.requireActual<{
-    DungeonmasterConfigStub: () => DungeonmasterConfig;
-  }>('@dungeonmaster/config');
+  handle.mockResolvedValue(undefined as never);
 
-  configResolveBroker.mockResolvedValue(undefined);
+  const { DungeonmasterConfigStub } = requireActual({ module: '@dungeonmaster/config' }) as {
+    DungeonmasterConfigStub: ConfigStubFn;
+  };
 
   return {
     setupConfigResolved: ({ config }: { config: DungeonmasterConfig }): void => {
-      configResolveBroker.mockResolvedValueOnce(config);
+      handle.mockResolvedValueOnce(config);
     },
 
     setupConfigResolveError: ({ error }: { error: Error }): void => {
-      configResolveBroker.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
 
     makeRealConfig: (): DungeonmasterConfig => DungeonmasterConfigStub(),
+
+    makeConfigWithArgs: (args: never): DungeonmasterConfig => DungeonmasterConfigStub(args),
   };
 };
