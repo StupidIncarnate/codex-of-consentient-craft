@@ -31,14 +31,14 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toMatch(/^.*🛑 New code quality violations detected:/u);
-      expect(result).toMatch(/^.*❌ Type Safety Violation: 1 violation/su);
-      expect(result).toMatch(
-        /^.*Using type "any" violates TypeScript's type safety rules\. Go explore types for this project and use a known or make a new type to use\./su,
+      expect(result).toContain('🛑 New code quality violations detected:');
+      expect(result).toContain('❌ Type Safety Violation: 1 violation');
+      expect(result).toContain(
+        'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
       );
-      expect(result).toMatch(/^.*Line 5:10 - Unexpected any/su);
-      expect(result).toMatch(
-        /^.*These rules help maintain code quality and safety\. The write\/edit\/multi edit operation has been blocked/su,
+      expect(result).toContain('Line 5:10 - Unexpected any');
+      expect(result).toContain(
+        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked',
       );
     });
 
@@ -89,7 +89,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toMatch(/^.*❌ Custom Rule Name: 1 violation/su);
+      expect(result).toContain('❌ Custom Rule Name: 1 violation');
     });
   });
 
@@ -124,7 +124,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toMatch(/^.*This is a custom message explaining the rule\./su);
+      expect(result).toContain('This is a custom message explaining the rule.');
     });
 
     it('VALID: {violations: rule with custom function message} => calls function and uses result', () => {
@@ -161,7 +161,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: { test: 'data' },
       });
 
-      expect(result).toMatch(/^.*Dynamic message for \{"test":"data"\}/su);
+      expect(result).toContain('Dynamic message for {"test":"data"}');
     });
 
     it('ERROR: {violations: rule with function message that throws} => returns error message', () => {
@@ -196,7 +196,7 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toMatch(/^.*Custom message function failed: Function failed/su);
+      expect(result).toContain('Custom message function failed: Function failed');
     });
   });
 });

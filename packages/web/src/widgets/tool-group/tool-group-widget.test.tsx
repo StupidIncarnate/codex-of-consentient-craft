@@ -45,7 +45,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/^.*25\.5k.*$/u);
+      expect(header.textContent).toContain('25.5k');
     });
   });
 
@@ -206,7 +206,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/^.*\u25B8.*$/u);
+      expect(header.textContent).toContain('▸');
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -227,7 +227,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/^.*\u25BE.*$/u);
+      expect(header.textContent).toContain('▾');
     });
   });
 

@@ -20,7 +20,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*THINKING)(?=.*Let me think about this).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).toContain('Let me think about this');
     });
 
     it('VALID: {type: thinking} => renders text-dim borders', () => {
@@ -65,7 +68,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*THINKING)(?=.*claude-opus-4-6).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).toContain('claude-opus-4-6');
     });
 
     it('VALID: {no model} => does not render model suffix', () => {
@@ -78,7 +84,10 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*THINKING)(?!.*claude).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('THINKING');
+      expect(messageText).not.toContain('claude');
     });
   });
 

@@ -19,10 +19,10 @@ describe('MermaidDiagramWidget', () => {
       mantineRenderAdapter({ ui: <MermaidDiagramWidget diagram={diagram} /> });
 
       await waitFor(() => {
-        expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toMatch(/rendered$/u);
+        expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
       });
 
-      expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toMatch(/rendered$/u);
+      expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
     });
   });
 

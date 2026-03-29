@@ -43,7 +43,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toMatch(/^.*01.*$/u);
+      expect(row.textContent).toContain('01');
     });
   });
 
@@ -88,7 +88,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toMatch(/^.*Build auth flow.*$/u);
+      expect(row.textContent).toContain('Build auth flow');
     });
   });
 
@@ -189,7 +189,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toMatch(/^.*dashed.*$/u);
+      expect(row.style.borderLeft).toContain('dashed');
     });
   });
 
@@ -208,7 +208,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toMatch(/^.*depends on: step-1.*$/u);
+      expect(subtitle.textContent).toContain('depends on: step-1');
     });
 
     it('VALID: {status: "queued", dependsOn: ["step-1"]} => renders waiting for slot subtitle', () => {
@@ -226,7 +226,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toMatch(/^.*waiting for slot.*$/u);
+      expect(subtitle.textContent).toContain('waiting for slot');
     });
 
     it('EMPTY: {no deps, no files} => does not render subtitle', () => {
@@ -442,7 +442,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toMatch(/^.*dashed.*$/u);
+      expect(row.style.borderLeft).toContain('dashed');
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
       expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
       expect(

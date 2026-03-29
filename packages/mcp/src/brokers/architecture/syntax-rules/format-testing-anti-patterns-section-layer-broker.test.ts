@@ -27,9 +27,9 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/^.*toMatchObject.*$/mu);
-    expect(content).toMatch(/^.*toBeDefined.*$/mu);
-    expect(content).toMatch(/^.*toHaveLength.*$/mu);
+    expect(content).toContain('toMatchObject');
+    expect(content).toContain('toBeDefined');
+    expect(content).toContain('toHaveLength');
   });
 
   it('VALID: {} => includes mocking anti-pattern violations', () => {
@@ -38,9 +38,9 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/^.*jest\.mocked.*$/mu);
-    expect(content).toMatch(/^.*jest\.mock.*$/mu);
-    expect(content).toMatch(/^.*jest\.clearAllMocks.*$/mu);
+    expect(content).toContain('jest.mocked');
+    expect(content).toContain('jest.mock');
+    expect(content).toContain('jest.clearAllMocks');
   });
 
   it('VALID: {} => includes type safety anti-pattern violations', () => {
@@ -49,8 +49,8 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/^.*\bany\b.*$/mu);
-    expect(content).toMatch(/^.*@ts-ignore.*$/mu);
+    expect(content).toContain('any');
+    expect(content).toContain('@ts-ignore');
   });
 
   it('VALID: {} => includes test organization anti-pattern violations', () => {
@@ -59,8 +59,8 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/^.*jest\.spyOn.*$/mu);
-    expect(content).toMatch(/^.*beforeEach.*$/mu);
+    expect(content).toContain('jest.spyOn');
+    expect(content).toContain('beforeEach');
   });
 
   it('VALID: {} => includes correct approach guidance for each category', () => {
@@ -69,10 +69,10 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/^.*Correct Approach.*$/mu);
-    expect(content).toMatch(/^.*toStrictEqual.*$/mu);
-    expect(content).toMatch(/^.*semantic methods.*$/mu);
-    expect(content).toMatch(/^.*ReturnType<typeof Stub>.*$/mu);
-    expect(content).toMatch(/^.*describe blocks.*$/mu);
+    expect(content).toContain('Correct Approach');
+    expect(content).toContain('toStrictEqual');
+    expect(content).toContain('semantic methods');
+    expect(content).toContain('ReturnType<typeof Stub>');
+    expect(content).toContain('describe blocks');
   });
 });

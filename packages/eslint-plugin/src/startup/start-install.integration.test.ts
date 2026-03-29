@@ -28,7 +28,7 @@ describe('StartInstall', () => {
         action: 'created',
         message: 'Created eslint.config.js',
       });
-      expect(configContent).toMatch(/^.*@dungeonmaster\/eslint-plugin.*$/mu);
+      expect(configContent).toMatch(/^const.*@dungeonmaster\/eslint-plugin/mu);
     });
   });
 });

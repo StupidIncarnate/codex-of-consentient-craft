@@ -596,13 +596,13 @@ describe('QuestChatWidget', () => {
       await proxy.clickApprove();
 
       await waitFor(() => {
-        expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).toMatch(
-          /^.*Flows approved\. Proceed to observables and contracts\..*$/u,
+        expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).toContain(
+          'Flows approved. Proceed to observables and contracts.',
         );
       });
 
-      expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).toMatch(
-        /^.*Flows approved\. Proceed to observables and contracts\..*$/u,
+      expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).toContain(
+        'Flows approved. Proceed to observables and contracts.',
       );
     });
 
@@ -645,8 +645,8 @@ describe('QuestChatWidget', () => {
 
       await proxy.clickApprove();
 
-      expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).not.toMatch(
-        /^.*Observables and contracts approved\. Spec is fully approved\..*$/u,
+      expect(screen.getByTestId('CHAT_MESSAGES_AREA').textContent).not.toContain(
+        'Observables and contracts approved. Spec is fully approved.',
       );
     });
   });
@@ -1293,7 +1293,7 @@ describe('QuestChatWidget', () => {
       expect(Array.from(messages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
         'CHAT_MESSAGE',
       ]);
-      expect(messages[0]?.textContent).toMatch(/^.*Live codeweaver output.*$/u);
+      expect(messages[0]?.textContent).toContain('Live codeweaver output');
     });
 
     it('VALID: {two codeweaver instances, live message for first sessionId} => routes to first instance only', async () => {
@@ -1389,7 +1389,7 @@ describe('QuestChatWidget', () => {
       expect(Array.from(firstRowMessages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
         'CHAT_MESSAGE',
       ]);
-      expect(firstRowMessages[0]?.textContent).toMatch(/^.*Codeweaver instance one working.*$/u);
+      expect(firstRowMessages[0]?.textContent).toContain('Codeweaver instance one working');
     });
 
     it('VALID: {two codeweaver instances, live message for second sessionId} => routes to second instance only', async () => {
@@ -1485,7 +1485,7 @@ describe('QuestChatWidget', () => {
       expect(Array.from(secondRowMessages).map((m) => m.getAttribute('data-testid'))).toStrictEqual(
         ['CHAT_MESSAGE'],
       );
-      expect(secondRowMessages[0]?.textContent).toMatch(/^.*Codeweaver instance two working.*$/u);
+      expect(secondRowMessages[0]?.textContent).toContain('Codeweaver instance two working');
     });
   });
 
@@ -1644,7 +1644,7 @@ describe('QuestChatWidget', () => {
       expect(
         Array.from(codeweaverMessages).map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
-      expect(codeweaverMessages[0]?.textContent).toMatch(/^.*Normal codeweaver output.*$/u);
+      expect(codeweaverMessages[0]?.textContent).toContain('Normal codeweaver output');
 
       const wardRow = stepRows.find((row) => row.textContent?.includes('WARD'));
       const wardHeader = wardRow!.querySelector('[data-testid="execution-row-header"]')!;
@@ -1919,7 +1919,7 @@ describe('QuestChatWidget', () => {
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
       expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toMatch(/^.*Exploring quest requirements.*$/u);
+      expect(messages[0]?.textContent).toContain('Exploring quest requirements');
     });
   });
 

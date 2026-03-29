@@ -95,9 +95,9 @@ describe('InstallAddDevDepsResponder', () => {
       const writtenContent = String(writtenFiles[0]?.content);
 
       expect(writtenFiles[0]?.path).toMatch(/package\.json$/u);
-      expect(writtenContent).toMatch(/"typescript": "\^5\.8\.3"/u);
-      expect(writtenContent).toMatch(/"eslint": "\^9\.36\.0"/u);
-      expect(writtenContent).toMatch(/"jest": "\^30\.0\.4"/u);
+      expect(writtenContent).toMatch(/^\s*"typescript": "\^5\.8\.3"/mu);
+      expect(writtenContent).toMatch(/^\s*"eslint": "\^9\.36\.0"/mu);
+      expect(writtenContent).toMatch(/^\s*"jest": "\^30\.0\.4"/mu);
     });
   });
 
@@ -129,7 +129,7 @@ describe('InstallAddDevDepsResponder', () => {
 
       const writtenContent = String(proxy.getWrittenFiles()[0]?.content);
 
-      expect(writtenContent).toMatch(/"typescript": "\^5\.0\.0"/u);
+      expect(writtenContent).toMatch(/^\s*"typescript": "\^5\.0\.0"/mu);
     });
   });
 

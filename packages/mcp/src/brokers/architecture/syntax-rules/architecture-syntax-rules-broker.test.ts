@@ -50,8 +50,8 @@ describe('architectureSyntaxRulesBroker', () => {
       const result = architectureSyntaxRulesBroker();
 
       expect(result).toMatch(/^### Use Reflect Methods/mu);
-      expect(result).toMatch(/^.*Reflect.deleteProperty\(\).*$/mu);
-      expect(result).toMatch(/^.*Reflect.get\(\).*$/mu);
+      expect(result).toContain('Reflect.deleteProperty()');
+      expect(result).toContain('Reflect.get()');
     });
 
     it('VALID: {} => includes summary checklist with items', () => {
@@ -78,8 +78,8 @@ describe('architectureSyntaxRulesBroker', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^.*✅.*$/mu);
-      expect(result).toMatch(/^.*❌.*$/mu);
+      expect(result).toContain('✅');
+      expect(result).toContain('❌');
     });
   });
 

@@ -28,7 +28,7 @@ describe('start-install integration', () => {
         action: 'created',
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
-      expect(configContent).toMatch(/^.*"dungeonmaster".*$/mu);
+      expect(configContent).toContain('"dungeonmaster"');
     });
   });
 });

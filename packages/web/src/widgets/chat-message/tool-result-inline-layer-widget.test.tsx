@@ -24,7 +24,10 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^(?=.*RESULT)(?=.*file contents here).*$/u);
+      const inlineText = inline.textContent;
+
+      expect(inlineText).toContain('RESULT');
+      expect(inlineText).toContain('file contents here');
     });
   });
 
@@ -43,7 +46,10 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^(?=.*TOOL ERROR)(?=.*Permission denied).*$/u);
+      const inlineText = inline.textContent;
+
+      expect(inlineText).toContain('TOOL ERROR');
+      expect(inlineText).toContain('Permission denied');
     });
   });
 
@@ -62,7 +68,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^.*HOOK BLOCKED.*$/u);
+      expect(inline.textContent).toContain('HOOK BLOCKED');
     });
   });
 
@@ -80,7 +86,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^.*SKIPPED.*$/u);
+      expect(inline.textContent).toContain('SKIPPED');
     });
   });
 
@@ -98,7 +104,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^.*Show full result.*$/u);
+      expect(inline.textContent).toContain('Show full result');
     });
 
     it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
@@ -117,7 +123,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/^.*Collapse.*$/u);
+      expect(inline.textContent).toContain('Collapse');
     });
   });
 });

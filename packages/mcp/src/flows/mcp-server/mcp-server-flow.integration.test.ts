@@ -101,7 +101,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^.*# Architecture Overview.*$/su);
+      expect(result.content[0]?.text).toContain('# Architecture Overview');
     });
   });
 
@@ -123,7 +123,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^.*# Testing Patterns & Philosophy.*$/su);
+      expect(result.content[0]?.text).toContain('# Testing Patterns & Philosophy');
     });
   });
 
@@ -153,7 +153,7 @@ describe('McpServerFlow', () => {
 
       const { results, count } = data;
 
-      expect(results).toMatch(/^.*broker.*$/mu);
+      expect(results).toContain('broker');
       expect(count).toBeGreaterThan(0);
     });
 
@@ -180,7 +180,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^.*adapters\/.*$/mu);
+      expect(data.results).toContain('adapters/');
     });
 
     it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
@@ -206,7 +206,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^.*fs-access-adapter \(adapter\).*$/mu);
+      expect(data.results).toContain('fs-access-adapter (adapter)');
     });
   });
 
@@ -223,7 +223,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error?.message).toMatch(/^.*Unknown tool.*$/u);
+      expect(response.error?.message).toContain('Unknown tool');
     });
   });
 
@@ -377,7 +377,7 @@ describe('McpServerFlow', () => {
       const { success, error } = getResultData;
 
       expect(success).toBe(false);
-      expect(error).toMatch(/^.*(?:not found|ENOENT).*$/iu);
+      expect(String(error)).toStrictEqual(expect.stringMatching(/(?:not found|ENOENT)/iu));
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
@@ -460,7 +460,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^.*brokers.*$/su);
+      expect(result.content[0]?.text).toContain('brokers');
     });
   });
 
@@ -482,7 +482,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^.*# Universal Syntax.*$/su);
+      expect(result.content[0]?.text).toContain('# Universal Syntax');
     });
   });
 
@@ -546,7 +546,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^.*Questions sent to user.*$/mu);
+      expect(result.content[0]?.text).toContain('Questions sent to user');
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {

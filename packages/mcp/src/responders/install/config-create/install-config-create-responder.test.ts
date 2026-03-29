@@ -31,9 +31,9 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toMatch(/^.*"dungeonmaster".*$/mu);
-      expect(writtenConfig).toMatch(/^.*"type": "stdio".*$/mu);
-      expect(writtenConfig).toMatch(/^.*@dungeonmaster\/mcp.*$/mu);
+      expect(writtenConfig).toContain('"dungeonmaster"');
+      expect(writtenConfig).toContain('"type": "stdio"');
+      expect(writtenConfig).toContain('@dungeonmaster/mcp');
     });
   });
 
@@ -105,8 +105,8 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toMatch(/^.*"other".*$/mu);
-      expect(writtenConfig).toMatch(/^.*"dungeonmaster".*$/mu);
+      expect(writtenConfig).toContain('"other"');
+      expect(writtenConfig).toContain('"dungeonmaster"');
     });
   });
 
@@ -134,7 +134,7 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toMatch(/^.*"dungeonmaster".*$/mu);
+      expect(writtenConfig).toContain('"dungeonmaster"');
     });
   });
 });

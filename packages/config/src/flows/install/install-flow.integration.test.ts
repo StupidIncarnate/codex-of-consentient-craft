@@ -34,8 +34,8 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
-      expect(configContent).toMatch(/^.*"framework": "node".*$/mu);
-      expect(configContent).toMatch(/^.*"schema": "zod".*$/mu);
+      expect(configContent).toMatch(/^\s*"framework": "node"/mu);
+      expect(configContent).toMatch(/^\s*"schema": "zod"/mu);
     });
 
     it('VALID: {context: config already exists} => skips installation', async () => {
@@ -70,8 +70,8 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
-      expect(configContent).toMatch(/^.*"framework": "custom".*$/mu);
-      expect(configContent).toMatch(/^.*"schema": "yup".*$/mu);
+      expect(configContent).toMatch(/^\s*"framework": "custom"/mu);
+      expect(configContent).toMatch(/^\s*"schema": "yup"/mu);
     });
   });
 });

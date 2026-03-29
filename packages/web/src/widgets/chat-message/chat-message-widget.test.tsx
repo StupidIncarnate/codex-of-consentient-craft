@@ -24,9 +24,11 @@ describe('ChatMessageWidget', () => {
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
+      const messageText = message.textContent;
       const messageStyle = message.style;
 
-      expect(message.textContent).toMatch(/^(?=.*YOU)(?=.*I need auth).*$/u);
+      expect(messageText).toContain('YOU');
+      expect(messageText).toContain('I need auth');
       expect(messageStyle.backgroundColor).toBe('rgb(42, 26, 20)');
     });
 
@@ -64,8 +66,10 @@ describe('ChatMessageWidget', () => {
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
+      const messageText = message.textContent;
 
-      expect(message.textContent).toMatch(/^(?=.*CHAOSWHISPERER)(?=.*Let me explore).*$/u);
+      expect(messageText).toContain('CHAOSWHISPERER');
+      expect(messageText).toContain('Let me explore');
     });
 
     it('VALID: {role: assistant, type: text} => renders primary left and right borders', () => {
@@ -274,7 +278,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*SUB-AGENT PROMPT)(?=.*Do this subtask).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('SUB-AGENT PROMPT');
+      expect(messageText).toContain('Do this subtask');
     });
 
     it('VALID: {role: user, source: subagent} => renders loot-rare borders', () => {
@@ -339,7 +346,7 @@ describe('ChatMessageWidget', () => {
 
       const row = screen.getByTestId('TOOL_ROW');
 
-      expect(row.style.borderLeft).toMatch(/^.*rgba\(232, 121, 249.*$/u);
+      expect(row.style.borderLeft).toContain('rgba(232, 121, 249');
     });
 
     it('VALID: {role: assistant, type: tool_use, source: subagent} => renders tool name in ToolRowWidget', () => {
@@ -370,7 +377,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^.*HOOK BLOCKED.*$/u);
+      expect(message.textContent).toContain('HOOK BLOCKED');
     });
 
     it('VALID: {tool_result, isError, PreToolUse prefix} => renders danger borders', () => {
@@ -402,7 +409,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^.*HOOK BLOCKED.*$/u);
+      expect(message.textContent).toContain('HOOK BLOCKED');
     });
   });
 
@@ -418,7 +425,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*TOOL ERROR)(?!.*HOOK BLOCKED).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('TOOL ERROR');
+      expect(messageText).not.toContain('HOOK BLOCKED');
     });
 
     it('VALID: {tool_result, isError: true} => renders danger borders', () => {
@@ -451,7 +461,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^.*SKIPPED.*$/u);
+      expect(message.textContent).toContain('SKIPPED');
     });
 
     it('VALID: {tool_result, content includes sibling errored} => renders warning borders', () => {
@@ -515,7 +525,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*5 tool calls)(?=.*12\.0s).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('5 tool calls');
+      expect(messageText).toContain('12.0s');
     });
 
     it('VALID: {task_notification without summary} => renders taskId as fallback', () => {
@@ -526,7 +539,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^.*task-001.*$/u);
+      expect(message.textContent).toContain('task-001');
     });
   });
 
@@ -576,7 +589,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^.*Show full result.*$/u);
+      expect(message.textContent).toContain('Show full result');
     });
 
     it('VALID: {long tool_result content, click Show full result} => expands and shows Collapse', () => {
@@ -594,7 +607,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*Collapse)(?!.*Show full result).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('Collapse');
+      expect(messageText).not.toContain('Show full result');
     });
 
     it('VALID: {short tool_result content} => does not render truncation toggle', () => {
@@ -605,7 +621,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).not.toMatch(/^.*Show full result.*$/u);
+      expect(message.textContent).not.toContain('Show full result');
     });
   });
 
@@ -652,7 +668,7 @@ describe('ChatMessageWidget', () => {
       const label = screen.getByTestId('THINKING_ROW_LABEL');
 
       expect(row).not.toBe(null);
-      expect(label.textContent).toMatch(/^.*THINKING.*$/u);
+      expect(label.textContent).toContain('THINKING');
     });
 
     it('VALID: {role: assistant, type: thinking, short content} => renders full content', () => {
@@ -697,7 +713,7 @@ describe('ChatMessageWidget', () => {
 
       const label = screen.getByTestId('THINKING_ROW_LABEL');
 
-      expect(label.textContent).toMatch(/^.*claude-opus-4-6.*$/u);
+      expect(label.textContent).toContain('claude-opus-4-6');
     });
   });
 
@@ -717,7 +733,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^CHAOSWHISPERERresponse$/u);
+      expect(message.textContent).toBe('CHAOSWHISPERERresponse');
     });
 
     it('VALID: {roleLabel: glyphsmith} => renders GLYPHSMITH label', () => {
@@ -732,7 +748,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^GLYPHSMITHresponse$/u);
+      expect(message.textContent).toBe('GLYPHSMITHresponse');
     });
 
     it('VALID: {roleLabel: pathseeker} => renders PATHSEEKER label', () => {
@@ -747,7 +763,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^PATHSEEKERresponse$/u);
+      expect(message.textContent).toBe('PATHSEEKERresponse');
     });
 
     it('VALID: {roleLabel: codeweaver} => renders CODEWEAVER label', () => {
@@ -762,7 +778,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^CODEWEAVERresponse$/u);
+      expect(message.textContent).toBe('CODEWEAVERresponse');
     });
 
     it('VALID: {roleLabel: ward} => renders WARD label', () => {
@@ -775,7 +791,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^WARDresponse$/u);
+      expect(message.textContent).toBe('WARDresponse');
     });
 
     it('VALID: {roleLabel: spiritmender} => renders SPIRITMENDER label', () => {
@@ -793,7 +809,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^SPIRITMENDERresponse$/u);
+      expect(message.textContent).toBe('SPIRITMENDERresponse');
     });
 
     it('VALID: {roleLabel: siegemaster} => renders SIEGEMASTER label', () => {
@@ -811,7 +827,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^SIEGEMASTERresponse$/u);
+      expect(message.textContent).toBe('SIEGEMASTERresponse');
     });
 
     it('VALID: {roleLabel: lawbringer} => renders LAWBRINGER label', () => {
@@ -826,7 +842,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^LAWBRINGERresponse$/u);
+      expect(message.textContent).toBe('LAWBRINGERresponse');
     });
 
     it('VALID: {no roleLabel} => defaults to CHAOSWHISPERER', () => {
@@ -837,7 +853,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^CHAOSWHISPERERresponse$/u);
+      expect(message.textContent).toBe('CHAOSWHISPERERresponse');
     });
 
     it('VALID: {roleLabel provided, source: subagent} => renders SUB-AGENT label instead of roleLabel', () => {
@@ -850,7 +866,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*SUB-AGENT)(?!.*WARD).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('SUB-AGENT');
+      expect(messageText).not.toContain('WARD');
     });
   });
 
@@ -879,7 +898,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*CHAOSWHISPERER)(?!.*claude).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('CHAOSWHISPERER');
+      expect(messageText).not.toContain('claude');
     });
   });
 
@@ -895,7 +917,10 @@ describe('ChatMessageWidget', () => {
 
       const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
 
-      expect(agentSection.textContent).toMatch(/^(?=.*AGENT PROMPT)(?=.*You are an agent\.).*$/u);
+      const sectionText = agentSection.textContent;
+
+      expect(sectionText).toContain('AGENT PROMPT');
+      expect(sectionText).toContain('You are an agent.');
     });
 
     it('VALID: {role: user, isInjectedPrompt: true} => renders extracted user request with YOU label', () => {
@@ -909,7 +934,10 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^(?=.*YOU)(?=.*Do the thing).*$/u);
+      const messageText = message.textContent;
+
+      expect(messageText).toContain('YOU');
+      expect(messageText).toContain('Do the thing');
     });
 
     it('VALID: {role: user, isInjectedPrompt not set} => renders normally with YOU label and full content', () => {
@@ -919,8 +947,10 @@ describe('ChatMessageWidget', () => {
       mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
+      const messageText = message.textContent;
 
-      expect(message.textContent).toMatch(/^(?=.*YOU)(?=.*Just a normal message).*$/u);
+      expect(messageText).toContain('YOU');
+      expect(messageText).toContain('Just a normal message');
       expect(screen.queryByTestId('AGENT_PROMPT_SECTION')).toBe(null);
     });
   });

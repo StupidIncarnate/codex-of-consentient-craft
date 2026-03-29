@@ -25,9 +25,9 @@ describe('InstallCreateSettingsResponder', () => {
 
       const written = String(proxy.getWrittenContent());
 
-      expect(written).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
-      expect(written).toMatch(/^.*dungeonmaster-session-start.*$/mu);
-      expect(written).toMatch(/^.*dungeonmaster-pre-bash.*$/mu);
+      expect(written).toContain('dungeonmaster-pre-edit-lint');
+      expect(written).toContain('dungeonmaster-session-start');
+      expect(written).toContain('dungeonmaster-pre-bash');
     });
   });
 
@@ -57,9 +57,9 @@ describe('InstallCreateSettingsResponder', () => {
 
       const written = String(proxy.getWrittenContent());
 
-      expect(written).toMatch(/^.*Write.*$/mu);
-      expect(written).toMatch(/^.*enabled.*$/mu);
-      expect(written).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
+      expect(written).toContain('Write');
+      expect(written).toContain('enabled');
+      expect(written).toContain('dungeonmaster-pre-edit-lint');
     });
   });
 
@@ -132,9 +132,9 @@ describe('InstallCreateSettingsResponder', () => {
 
       const written = String(proxy.getWrittenContent());
 
-      expect(written).toMatch(/^.*existing-hook.*$/mu);
-      expect(written).toMatch(/^.*existing-session-hook.*$/mu);
-      expect(written).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
+      expect(written).toContain('existing-hook');
+      expect(written).toContain('existing-session-hook');
+      expect(written).toContain('dungeonmaster-pre-edit-lint');
     });
   });
 });

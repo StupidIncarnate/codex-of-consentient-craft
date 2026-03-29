@@ -80,7 +80,7 @@ describe('ToolRowWidget', () => {
 
       const row = screen.getByTestId('TOOL_ROW');
 
-      expect(row.style.borderLeft).toMatch(/^.*rgba\(232, 121, 249.*$/u);
+      expect(row.style.borderLeft).toContain('rgba(232, 121, 249');
     });
 
     it('VALID: {empty toolInput} => renders tool name with no summary element', () => {
@@ -123,7 +123,7 @@ describe('ToolRowWidget', () => {
       const statusStyle = status.style;
 
       expect(status.textContent).toBe('\u00B7\u00B7\u00B7');
-      expect(statusStyle.animation).toMatch(/^.*pulse.*$/u);
+      expect(statusStyle.animation).toContain('pulse');
     });
 
     it('VALID: {successful result} => renders green check', () => {
@@ -258,7 +258,7 @@ describe('ToolRowWidget', () => {
 
       const detail = screen.getByTestId('TOOL_ROW_DETAIL');
 
-      expect(detail.textContent).toMatch(/^.*npm run ward.*$/u);
+      expect(detail.textContent).toContain('npm run ward');
     });
 
     it('VALID: {successful result} => renders RESULT label with content', () => {
@@ -281,7 +281,10 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/^(?=.*RESULT)(?=.*file contents here).*$/u);
+      const resultText = result.textContent;
+
+      expect(resultText).toContain('RESULT');
+      expect(resultText).toContain('file contents here');
     });
 
     it('VALID: {error result, expanded} => renders TOOL ERROR label', () => {
@@ -305,7 +308,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/^.*TOOL ERROR.*$/u);
+      expect(result.textContent).toContain('TOOL ERROR');
     });
 
     it('VALID: {hook blocked result, expanded} => renders HOOK BLOCKED label', () => {
@@ -329,7 +332,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/^.*HOOK BLOCKED.*$/u);
+      expect(result.textContent).toContain('HOOK BLOCKED');
     });
 
     it('VALID: {skipped result, expanded} => renders SKIPPED message', () => {
@@ -398,7 +401,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/^.*Show full result.*$/u);
+      expect(result.textContent).toContain('Show full result');
     });
 
     it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
@@ -424,7 +427,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/^.*Collapse.*$/u);
+      expect(result.textContent).toContain('Collapse');
     });
   });
 });

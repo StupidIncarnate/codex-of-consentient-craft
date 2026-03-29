@@ -15,7 +15,7 @@ describe('StreamingBarLayerWidget', () => {
 
       const bar = screen.getByTestId('streaming-bar-layer-widget');
 
-      expect(bar.textContent).toMatch(/^.*░+\s*streaming\.\.\..*$/u);
+      expect(bar.textContent).toContain('streaming...');
     });
   });
 

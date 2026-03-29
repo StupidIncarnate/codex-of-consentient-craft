@@ -23,7 +23,7 @@ describe('StartCli', () => {
 
       testbed.cleanup();
 
-      expect(packageJsonContent).toMatch(/^.*"devDependencies".*$/mu);
+      expect(packageJsonContent).toMatch(/^\s*"devDependencies"/mu);
     });
   });
 });

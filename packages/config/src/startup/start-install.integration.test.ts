@@ -26,7 +26,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
       });
-      expect(configContent).toMatch(/^.*"framework": "node".*$/mu);
+      expect(configContent).toMatch(/^\s*"framework": "node"/mu);
     });
   });
 });

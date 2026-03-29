@@ -12,10 +12,10 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Scanning for duplicate primitives\.\.\..*$/mu);
-      expect(output).toMatch(/^.*Pattern: \*\*\/\*\.ts.*$/mu);
-      expect(output).toMatch(/^.*Threshold: 3\+ occurrences.*$/mu);
-      expect(output).toMatch(/^.*Min length: 3 characters.*$/mu);
+      expect(output).toContain('Scanning for duplicate primitives...');
+      expect(output).toContain('Pattern: **/*.ts');
+      expect(output).toContain('Threshold: 3+ occurrences');
+      expect(output).toContain('Min length: 3 characters');
     });
   });
 
@@ -28,7 +28,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Pattern: src\/\*\*\/\*\.ts.*$/mu);
+      expect(output).toContain('Pattern: src/**/*.ts');
     });
   });
 
@@ -41,7 +41,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Directory: \/some\/path.*$/mu);
+      expect(output).toContain('Directory: /some/path');
     });
   });
 
@@ -54,7 +54,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Threshold: 5\+ occurrences.*$/mu);
+      expect(output).toContain('Threshold: 5+ occurrences');
     });
   });
 
@@ -67,7 +67,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Min length: 10 characters.*$/mu);
+      expect(output).toContain('Min length: 10 characters');
     });
   });
 
@@ -80,7 +80,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*No duplicate primitives found!.*$/mu);
+      expect(output).toContain('No duplicate primitives found!');
     });
   });
 
@@ -98,10 +98,10 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*Found 1 duplicate primitive\(s\).*$/mu);
-      expect(output).toMatch(/^.*STRING: "hello-world".*$/mu);
-      expect(output).toMatch(/^.*Occurrences: 3.*$/mu);
-      expect(output).toMatch(/^.*Suggestion: Extract these literals to statics files.*$/mu);
+      expect(output).toContain('Found 1 duplicate primitive(s)');
+      expect(output).toContain('STRING: "hello-world"');
+      expect(output).toContain('Occurrences: 3');
+      expect(output).toContain('Suggestion: Extract these literals to statics files');
     });
   });
 
@@ -119,8 +119,8 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toMatch(/^.*REGEX: "\/foo-bar\/".*$/mu);
-      expect(output).toMatch(/^.*Occurrences: 3.*$/mu);
+      expect(output).toContain('REGEX: "/foo-bar/"');
+      expect(output).toContain('Occurrences: 3');
     });
   });
 });

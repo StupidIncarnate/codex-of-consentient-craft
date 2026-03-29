@@ -73,7 +73,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'returns the correct value', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'returns the correct value',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },
@@ -85,7 +88,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'MISSING: {input} => returns null', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'MISSING: {input} => returns null',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },
@@ -97,7 +103,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'SAFETY: {memory} => stays under limit', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'SAFETY: {memory} => stays under limit',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },
@@ -109,7 +118,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'FALLBACK: {no file} => uses default', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'FALLBACK: {no file} => uses default',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },
@@ -121,7 +133,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'VALID_ONLY: {only lint} => parses', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'VALID_ONLY: {only lint} => parses',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },
@@ -133,7 +148,10 @@ ruleTester.run('enforce-test-name-prefix', ruleEnforceTestNamePrefixBroker(), {
       errors: [
         {
           messageId: 'missingPrefix',
-          data: { name: 'should render the component', prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:' },
+          data: {
+            name: 'should render the component',
+            prefixes: 'VALID:, INVALID:, ERROR:, EDGE:, EMPTY:',
+          },
         },
       ],
     },

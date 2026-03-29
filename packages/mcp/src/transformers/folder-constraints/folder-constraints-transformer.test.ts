@@ -14,9 +14,9 @@ describe('folderConstraintsTransformer', () => {
         }),
       });
 
-      expect(constraints).toMatch(/^.*MUST:.*$/mu);
-      expect(constraints).toMatch(/^.*kebab-case filenames.*$/mu);
-      expect(constraints).toMatch(/^.*export const.*$/mu);
+      expect(constraints).toContain('MUST:');
+      expect(constraints).toContain('kebab-case filenames');
+      expect(constraints).toContain('export const');
     });
   });
 
@@ -27,9 +27,9 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ requireProxy: true }),
       });
 
-      expect(constraints).toMatch(/^.*MUST \(Testing\):.*$/mu);
-      expect(constraints).toMatch(/^.*\.proxy\.ts.*$/mu);
-      expect(constraints).toMatch(/^.*Mock only I\/O boundaries.*$/mu);
+      expect(constraints).toContain('MUST (Testing):');
+      expect(constraints).toContain('.proxy.ts');
+      expect(constraints).toContain('Mock only I/O boundaries');
     });
 
     it('VALID: {config: {requireProxy: false}} => excludes proxy testing constraints', () => {
@@ -38,8 +38,8 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ requireProxy: false }),
       });
 
-      expect(constraints).not.toMatch(/^.*MUST \(Testing\):.*$/mu);
-      expect(constraints).not.toMatch(/^.*\.proxy\.ts.*$/mu);
+      expect(constraints).not.toContain('MUST (Testing):');
+      expect(constraints).not.toContain('.proxy.ts');
     });
   });
 
@@ -50,9 +50,9 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ disallowAdhocTypes: true }),
       });
 
-      expect(constraints).toMatch(/^.*MUST NOT:.*$/mu);
-      expect(constraints).toMatch(/^.*inline types.*$/mu);
-      expect(constraints).toMatch(/^.*raw primitives.*$/mu);
+      expect(constraints).toContain('MUST NOT:');
+      expect(constraints).toContain('inline types');
+      expect(constraints).toContain('raw primitives');
     });
 
     it('VALID: {config: {disallowAdhocTypes: false}} => excludes type constraints', () => {
@@ -61,8 +61,8 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ disallowAdhocTypes: false }),
       });
 
-      expect(constraints).not.toMatch(/^.*MUST NOT:.*$/mu);
-      expect(constraints).not.toMatch(/^.*inline types.*$/mu);
+      expect(constraints).not.toContain('MUST NOT:');
+      expect(constraints).not.toContain('inline types');
     });
   });
 
@@ -73,9 +73,9 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ allowedImports: ['guards/', 'contracts/'] }),
       });
 
-      expect(constraints).toMatch(/^.*IMPORT RESTRICTIONS:.*$/mu);
-      expect(constraints).toMatch(/^.*guards\/.*$/mu);
-      expect(constraints).toMatch(/^.*contracts\/.*$/mu);
+      expect(constraints).toContain('IMPORT RESTRICTIONS:');
+      expect(constraints).toContain('guards/');
+      expect(constraints).toContain('contracts/');
     });
 
     it('VALID: {config: {allowedImports: []}} => excludes import restrictions', () => {
@@ -84,7 +84,7 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ allowedImports: [] }),
       });
 
-      expect(constraints).not.toMatch(/^.*IMPORT RESTRICTIONS:.*$/mu);
+      expect(constraints).not.toContain('IMPORT RESTRICTIONS:');
     });
   });
 
@@ -100,8 +100,8 @@ describe('folderConstraintsTransformer', () => {
         supplementalConstraints,
       });
 
-      expect(constraints).toMatch(/^.*COMPLEXITY:.*$/mu);
-      expect(constraints).toMatch(/^.*300 lines.*$/mu);
+      expect(constraints).toContain('COMPLEXITY:');
+      expect(constraints).toContain('300 lines');
     });
 
     it('VALID: {supplementalConstraints: not provided} => excludes supplemental content', () => {
@@ -110,7 +110,7 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({}),
       });
 
-      expect(constraints).not.toMatch(/^.*COMPLEXITY:.*$/mu);
+      expect(constraints).not.toContain('COMPLEXITY:');
     });
 
     it('VALID: {supplementalConstraints: with examples} => includes example code', () => {
@@ -124,7 +124,7 @@ describe('folderConstraintsTransformer', () => {
         supplementalConstraints,
       });
 
-      expect(constraints).toMatch(/^.*EXAMPLES:.*$/mu);
+      expect(constraints).toContain('EXAMPLES:');
       expect(constraints).toMatch(/^```typescript$/mu);
       expect(constraints).toMatch(/^export const example/mu);
     });

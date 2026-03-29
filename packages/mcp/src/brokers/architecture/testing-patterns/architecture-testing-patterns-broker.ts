@@ -230,7 +230,7 @@ expect().toBeDefined()              // → Test actual value
 expect().toBeUndefined()            // → Use .toBe(undefined)
 expect.objectContaining({...})      // → Test complete object
 expect.arrayContaining([...])       // → Test complete array
-expect.stringContaining('text')     // → Use regex /^.*substring.*$/u
+expect.stringContaining('text')     // → Use .toContain('text') or test full value
 expect.any(String)                  // → Test actual string value
 expect.any(Number)                  // → Test actual number
 expect.any(Object)                  // → Test complete object shape

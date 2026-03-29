@@ -22,8 +22,10 @@ describe('ExecutionStatusBarLayerWidget', () => {
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
+      const barText = bar.textContent;
 
-      expect(bar.textContent).toMatch(/^(?=.*EXECUTION)(?=.*PLANNING).*$/u);
+      expect(barText).toContain('EXECUTION');
+      expect(barText).toContain('PLANNING');
     });
   });
 
@@ -42,8 +44,10 @@ describe('ExecutionStatusBarLayerWidget', () => {
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
+      const barText = bar.textContent;
 
-      expect(bar.textContent).toMatch(/^(?=.*EXECUTION)(?=.*3\/8 COMPLETE).*$/u);
+      expect(barText).toContain('EXECUTION');
+      expect(barText).toContain('3/8 COMPLETE');
     });
 
     it('VALID: {completedCount: 0, totalCount: 5} => renders zero completion', () => {
@@ -61,7 +65,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
 
-      expect(bar.textContent).toMatch(/^.*0\/5 COMPLETE.*$/u);
+      expect(bar.textContent).toContain('0/5 COMPLETE');
     });
   });
 

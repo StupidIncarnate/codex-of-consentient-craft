@@ -1390,7 +1390,7 @@ expect().toMatch('text')               // → Use .toMatch(/^exact text$/)
 expect().toHaveProperty('key')         // → Test actual value with .toBe()
 expect.objectContaining()      // → Test complete object
 expect.arrayContaining()       // → Test complete array
-expect.stringContaining()      // → Use regex /^.*substring.*$/
+expect.stringContaining('text')     // → Use .toContain('text') or test full value
 expect.any(String)             // → Test actual string value
 expect.any(Number)             // → Test actual number
 expect.any(Object)             // → Test complete object shape

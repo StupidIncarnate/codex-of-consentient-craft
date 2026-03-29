@@ -24,8 +24,7 @@ export const ruleEnforceTestNamePrefixBroker = (): EslintRule => ({
           'Enforce that all test names start with VALID:, INVALID:, ERROR:, EDGE:, or EMPTY: prefix.',
       },
       messages: {
-        missingPrefix:
-          'Test name must start with {{prefixes}} — found: "{{name}}"',
+        missingPrefix: 'Test name must start with {{prefixes}} — found: "{{name}}"',
       },
       schema: [],
     },
