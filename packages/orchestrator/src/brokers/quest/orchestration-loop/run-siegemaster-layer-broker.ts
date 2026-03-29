@@ -61,17 +61,19 @@ export const runSiegemasterLayerBroker = async ({
 
   // Load project config to check for devServer
   // Config resolution may fail if no .dungeonmaster.json exists — treat as "no devServer config"
-  let config: Awaited<ReturnType<typeof dungeonmasterConfigResolveAdapter>> | null = null;
-  try {
-    config = await dungeonmasterConfigResolveAdapter({ startPath });
-  } catch {
-    config = null;
-  }
+  const config: Awaited<ReturnType<typeof dungeonmasterConfigResolveAdapter>> | null =
+    await (async () => {
+      try {
+        return await dungeonmasterConfigResolveAdapter({ startPath });
+      } catch {
+        return null;
+      }
+    })();
 
   let devServerProcess: DevServerProcess | null = null;
   let devServerUrl: ReturnType<typeof devServerUrlContract.parse> | null = null;
 
-  if (config !== null && config.devServer !== undefined) {
+  if (config?.devServer !== undefined) {
     const { buildCommand, devCommand, port, readinessPath, readinessTimeoutMs } = config.devServer;
     const absoluteStartPath = absoluteFilePathContract.parse(startPath);
 

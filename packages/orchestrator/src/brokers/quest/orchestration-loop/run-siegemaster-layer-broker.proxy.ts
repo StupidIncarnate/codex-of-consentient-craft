@@ -175,6 +175,8 @@ export const runSiegemasterLayerBrokerProxy = (): {
     },
     setupSpawnSuccess: ({ quest, exitCode }: { quest: Quest; exitCode: ExitCode }): void => {
       configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      // Initial quest fetch + fresh quest fetch on failure path (exitCode != 0 means no signal → failure)
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({ lines: [], exitCode });
@@ -189,6 +191,8 @@ export const runSiegemasterLayerBrokerProxy = (): {
       signal: StreamSignal;
     }): void => {
       configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      // Initial quest fetch + fresh quest fetch on failure path
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
@@ -208,6 +212,8 @@ export const runSiegemasterLayerBrokerProxy = (): {
       sessionIdLine: string;
     }): void => {
       configProxy.setupConfigResolved({ config: makeBasicConfig() });
+      // Initial quest fetch + fresh quest fetch on failure path
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
@@ -227,6 +233,8 @@ export const runSiegemasterLayerBrokerProxy = (): {
       configProxy.setupConfigResolved({ config: makeDevServerConfig() });
       buildProxy.setupBuildSuccess();
       const proc = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      // Initial quest fetch + fresh quest fetch on failure path
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
@@ -332,6 +340,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       buildProxy.setupBuildSuccess();
       const proc1 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({ lines: buildSignalLine({ signal }), exitCode });
 
@@ -340,6 +349,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       configProxy.setupConfigResolved({ config: makeDevServerConfig() });
       buildProxy.setupBuildSuccess();
       const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnAutoLines({ lines: buildSignalLine({ signal }), exitCode });
@@ -362,6 +372,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       buildProxy.setupBuildSuccess();
       makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
       getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnOnce({
         lines: buildSignalLine({ signal: { signal: 'failed' } as never }),
@@ -373,6 +384,7 @@ export const runSiegemasterLayerBrokerProxy = (): {
       configProxy.setupConfigResolved({ config: makeDevServerConfig() });
       buildProxy.setupBuildSuccess();
       const proc2 = makeSigtermResponsive(serverStartProxy.setupServerBecomesReady());
+      getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnAutoLines({ lines: buildSignalLine({ signal }), exitCode });
