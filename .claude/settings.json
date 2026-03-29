@@ -71,7 +71,6 @@
       "Bash(npx @modelcontextprotocol/inspector:*)",
       "Bash(npx --version)",
       "Bash(npx:*)",
-      "Bash(npm:*)",
       "WebSearch",
       "WebFetch",
       "Bash(npm link)",
@@ -93,6 +92,8 @@
       "mcp__dungeonmaster__verify-quest",
       "mcp__dungeonmaster__ask-user-question"
     ],
-    "deny": ["Bash(sed:*)"]
+    "deny": [
+      "Bash(sed:*)"
+    ]
   }
 }

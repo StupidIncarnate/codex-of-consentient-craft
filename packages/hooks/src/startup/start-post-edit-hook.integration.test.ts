@@ -159,7 +159,11 @@ describe('post-edit-hook', () => {
         input: input as never,
       });
 
-      expect({ status: rawResult.status, stdout: rawResult.stdout, stderr: rawResult.stderr }).toStrictEqual({
+      expect({
+        status: rawResult.status,
+        stdout: rawResult.stdout,
+        stderr: rawResult.stderr,
+      }).toStrictEqual({
         status: 1,
         stdout: '',
         stderr: expect.stringMatching(stderrPattern),

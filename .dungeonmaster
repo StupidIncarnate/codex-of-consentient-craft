@@ -1,0 +1,4 @@
+{
+  "framework": "node",
+  "schema": "zod"
+}
