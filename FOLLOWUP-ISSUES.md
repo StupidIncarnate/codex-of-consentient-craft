@@ -81,6 +81,8 @@ devServer: {
 
 - expect(Object.keys(spiritmenderContextStatics.lawbringerFailure)).toStrictEqual(). It shouldnt be using keys to bypass
   the expect.
+- expect(String(questStartContent).includes('monitoring quest execution')).toBe(true): Need to properly expect the full
+  string
 
 **Docs cleanup:** When implementing these bans, also audit and update all standard docs (`CLAUDE.md` files, `get-testing-patterns` MCP output, agent prompts in `packages/orchestrator/src/statics/`) to remove any examples or guidance that use the banned patterns. Docs that show `expect.any(Object)` or `toHaveBeenCalled()` as valid patterns will cause agents to keep producing banned code.
 
