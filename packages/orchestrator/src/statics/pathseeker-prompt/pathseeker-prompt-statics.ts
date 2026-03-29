@@ -338,7 +338,9 @@ signal-back({
   signal: 'failed',
   summary: 'BLOCKED: [what prevented step planning]\\nATTEMPTED: [what you tried]\\nROOT CAUSE: [why it failed]'
 })
-\`\`\``,
+\`\`\`
+
+$ARGUMENTS`,
     placeholders: {
       arguments: '$ARGUMENTS',
     },

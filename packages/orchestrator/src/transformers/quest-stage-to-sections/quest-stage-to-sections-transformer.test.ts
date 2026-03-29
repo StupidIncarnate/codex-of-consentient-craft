@@ -34,7 +34,12 @@ describe('questStageToSectionsTransformer', () => {
         stage: QuestStageStub({ value: 'spec-obs' }),
       });
 
-      expect(result).toStrictEqual(['flows', 'contracts', 'toolingRequirements']);
+      expect(result).toStrictEqual([
+        'flows',
+        'designDecisions',
+        'contracts',
+        'toolingRequirements',
+      ]);
     });
 
     it('VALID: {stage: "implementation"} => returns steps and contracts', () => {

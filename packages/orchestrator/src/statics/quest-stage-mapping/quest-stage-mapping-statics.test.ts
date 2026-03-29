@@ -6,7 +6,7 @@ describe('questStageMappingStatics', () => {
       stages: {
         spec: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
         'spec-flows': ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
-        'spec-obs': ['flows', 'contracts', 'toolingRequirements'],
+        'spec-obs': ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
         implementation: ['steps', 'contracts', 'toolingRequirements'],
       },
     });

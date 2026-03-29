@@ -51,7 +51,7 @@ describe('agentSpawnByRoleBroker', () => {
       });
     });
 
-    it('VALID: {pathseeker workUnit} => resolves pathseeker prompt template', async () => {
+    it('VALID: {pathseeker workUnit} => resolves pathseeker prompt template with quest ID injected', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const workUnit = PathseekerWorkUnitStub();
 
@@ -71,6 +71,11 @@ describe('agentSpawnByRoleBroker', () => {
         crashed: false,
         capturedOutput: [],
       });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as unknown[];
+      const prompt = spawnedArgs[1];
+      expect(prompt).toContain('Quest ID: add-auth');
+      expect(prompt).not.toContain('$ARGUMENTS');
     });
 
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {

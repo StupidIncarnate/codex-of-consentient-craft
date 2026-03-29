@@ -12,7 +12,6 @@ Monitor the orchestration of a quest and report progress to the user.
 6. Report final completion when done
 
 ## Status Reporting
-
 - Show which work items are running (pathseeker, codeweaver, ward, etc.)
 - Show completed vs total work items
 - Show current step name if available

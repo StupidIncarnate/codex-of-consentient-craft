@@ -118,12 +118,12 @@ Three consumers read different parts:
 
 ## Quest Stages
 
-| Stage            | Sections Included                                         |
-|------------------|-----------------------------------------------------------|
-| `spec`           | flows (with observables), designDecisions, contracts, tooling |
+| Stage            | Sections Included                                                             |
+|------------------|-------------------------------------------------------------------------------|
+| `spec`           | flows (with observables), designDecisions, contracts, tooling                 |
 | `spec-flows`     | flows (nodes/edges only, no observables), designDecisions, contracts, tooling |
-| `spec-obs`       | flows (observables only), contracts, tooling              |
-| `implementation` | steps, contracts, tooling                                 |
+| `spec-obs`       | flows (observables only), designDecisions, contracts, tooling                 |
+| `implementation` | steps, contracts, tooling                                                     |
 
 Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
 

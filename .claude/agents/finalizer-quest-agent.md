@@ -29,15 +29,12 @@ the check name and details. These are structural problems that MUST be fixed bef
 Fetch the quest in stages via MCP tools to manage context size:
 
 **Fetch 1:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "spec-flows" }`)
-
 - Returns: flows (nodes, edges, entry/exit points), design decisions, contracts, tooling requirements
 
 **Fetch 2:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "spec-obs" }`)
-
 - Returns: flows with observables embedded in nodes, contracts (for cross-referencing)
 
 **Fetch 3:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "implementation" }`)
-
 - Returns: steps (assertions, focusFile, accompanyingFiles, dependencies), contracts (for reference validation)
 
 ### Step 3: Trace the Narrative
