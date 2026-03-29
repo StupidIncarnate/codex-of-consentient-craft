@@ -57,7 +57,7 @@ describe('focusFileToTestPathTransformer', () => {
         testType: 'none',
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -67,7 +67,7 @@ describe('focusFileToTestPathTransformer', () => {
         testType: 'unit',
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('EMPTY: {testType: undefined} => returns undefined', () => {
@@ -79,7 +79,7 @@ describe('focusFileToTestPathTransformer', () => {
         focusPath: ref.path,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

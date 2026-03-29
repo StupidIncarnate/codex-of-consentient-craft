@@ -89,7 +89,7 @@ describe('QuestSpecPanelWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(approveButton).toBeUndefined();
+      expect(approveButton).toBe(undefined);
     });
 
     it('VALID: {click APPROVE, status: review_observables, has flows} => calls onModify with approved status', async () => {
@@ -125,7 +125,7 @@ describe('QuestSpecPanelWidget', () => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
-      expect(approveButton).toBeUndefined();
+      expect(approveButton).toBe(undefined);
     });
   });
 
@@ -346,7 +346,7 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
-      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
     it('VALID: {status: pending} => shows flows and design decisions, hides contracts', () => {
@@ -359,7 +359,7 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
-      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
     it('VALID: {status: explore_flows} => shows flows and design decisions, hides contracts', () => {
@@ -372,7 +372,7 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
-      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
     it('VALID: {status: review_flows} => shows flows and design decisions, hides contracts', () => {
@@ -385,7 +385,7 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
-      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBeNull();
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
     it('VALID: {status: flows_approved} => shows flows, design decisions, and contracts', () => {
@@ -594,7 +594,7 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      expect(screen.getByText('Use JWT')).toBeInTheDocument();
+      expect(screen.getByTestId('DECISION_TITLE').textContent).toBe('Use JWT');
     });
   });
 
@@ -620,7 +620,7 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
       });
 
-      expect(screen.queryByTestId('ACTION_BAR')).toBeNull();
+      expect(screen.queryByTestId('ACTION_BAR')).toBe(null);
     });
 
     it('VALID: {readOnly: false} => shows action bar', () => {
@@ -744,7 +744,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(onDismissUpdate).toHaveBeenCalledTimes(1);
-      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBeNull();
+      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
     });
   });
 });

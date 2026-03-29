@@ -21,7 +21,7 @@ describe('fileContentContract', () => {
   });
 
   describe('invalid file content', () => {
-    it('INVALID_FILE_CONTENT: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return fileContentContract.parse(123 as never);
       }).toThrow(/Expected string/u);

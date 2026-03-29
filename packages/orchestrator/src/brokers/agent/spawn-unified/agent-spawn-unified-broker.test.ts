@@ -141,7 +141,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const resolvedSessionId = await sessionId$;
 
       expect(onComplete).toHaveBeenCalledWith({ exitCode: 0, sessionId: null });
-      expect(resolvedSessionId).toBeNull();
+      expect(resolvedSessionId).toBe(null);
     });
 
     it('VALID: {two session ID lines} => extracts first sessionId only', async () => {
@@ -192,7 +192,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const resolvedSessionId = await sessionId$;
 
-      expect(resolvedSessionId).toBeNull();
+      expect(resolvedSessionId).toBe(null);
     });
   });
 
@@ -250,7 +250,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       expect(mockProcess.kill).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenCalledWith({ exitCode: null, sessionId: null });
-      await expect(sessionId$).resolves.toBeNull();
+      await expect(sessionId$).resolves.toBe(null);
     });
   });
 

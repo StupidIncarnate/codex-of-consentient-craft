@@ -3,7 +3,7 @@ import { StartApp } from './start-app';
 describe('StartApp', () => {
   describe('export', () => {
     it('VALID: {} => exports StartApp function', () => {
-      expect(typeof StartApp).toBe('function');
+      expect(StartApp).toStrictEqual(expect.any(Function));
     });
   });
 });

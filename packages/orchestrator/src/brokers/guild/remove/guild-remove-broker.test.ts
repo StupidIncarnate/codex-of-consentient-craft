@@ -19,7 +19,7 @@ describe('guildRemoveBroker', () => {
         config: GuildConfigStub({ guilds: [guild] }),
       });
 
-      await expect(guildRemoveBroker({ guildId })).resolves.toBeUndefined();
+      await expect(guildRemoveBroker({ guildId })).resolves.toBe(undefined);
     });
 
     it('VALID: {guildId among multiple guilds} => removes only matching guild', async () => {
@@ -40,7 +40,7 @@ describe('guildRemoveBroker', () => {
         config: GuildConfigStub({ guilds: [guild1, guild2] }),
       });
 
-      await expect(guildRemoveBroker({ guildId })).resolves.toBeUndefined();
+      await expect(guildRemoveBroker({ guildId })).resolves.toBe(undefined);
     });
   });
 

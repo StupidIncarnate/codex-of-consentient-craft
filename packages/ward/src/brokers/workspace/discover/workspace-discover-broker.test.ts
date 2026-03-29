@@ -33,7 +33,7 @@ describe('workspaceDiscoverBroker', () => {
 
       const result = await workspaceDiscoverBroker({ rootPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -46,7 +46,7 @@ describe('workspaceDiscoverBroker', () => {
 
       const result = await workspaceDiscoverBroker({ rootPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

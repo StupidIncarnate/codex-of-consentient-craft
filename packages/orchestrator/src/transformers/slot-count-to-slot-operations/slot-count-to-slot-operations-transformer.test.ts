@@ -34,7 +34,7 @@ describe('slotCountToSlotOperationsTransformer', () => {
 
       const result = slotOperations.getAvailableSlot({ slotCount });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -46,7 +46,7 @@ describe('slotCountToSlotOperationsTransformer', () => {
 
       slotOperations.assignSlot({ slotIndex: SlotIndexStub({ value: 0 }), agentSlot });
 
-      expect(slotOperations.getAvailableSlot({ slotCount })).toBeUndefined();
+      expect(slotOperations.getAvailableSlot({ slotCount })).toBe(undefined);
     });
 
     it('VALID: {reassign occupied slot} => overwrites with new agent', () => {
@@ -195,7 +195,7 @@ describe('slotCountToSlotOperationsTransformer', () => {
 
       const result = slotOperations.getAvailableSlot({ slotCount });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('EDGE: {slotCount: 0} => getActiveSlots returns empty array', () => {

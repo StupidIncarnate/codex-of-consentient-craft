@@ -107,7 +107,7 @@ describe('folderConfigContract', () => {
   });
 
   describe('invalid configurations', () => {
-    it('INVALID_TYPE: {widgets: "react"} => throws validation error', () => {
+    it('INVALID: {widgets: "react"} => throws validation error', () => {
       expect(() => {
         folderConfigContract.parse({
           widgets: 'react',
@@ -126,7 +126,7 @@ describe('folderConfigContract', () => {
       }).toThrow(/Expected array/u);
     });
 
-    it('INVALID_TYPE: {contracts: null} => throws validation error', () => {
+    it('INVALID: {contracts: null} => throws validation error', () => {
       expect(() => {
         folderConfigContract.parse({
           widgets: null,
@@ -145,7 +145,7 @@ describe('folderConfigContract', () => {
       }).toThrow(/Expected array/u);
     });
 
-    it('INVALID_MISSING: {missing required field} => throws validation error', () => {
+    it('INVALID: {missing required field} => throws validation error', () => {
       expect(() => {
         folderConfigContract.parse({
           widgets: null,

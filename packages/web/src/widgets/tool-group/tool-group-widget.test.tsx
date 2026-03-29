@@ -45,7 +45,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/25\.5k/u);
+      expect(header.textContent).toContain('25.5k');
     });
   });
 
@@ -67,7 +67,7 @@ describe('ToolGroupWidget', () => {
       await proxy.clickHeader();
 
       expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_ROW')).not.toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW')).not.toBe(null);
     });
 
     it('VALID: {click header twice} => collapses back', async () => {
@@ -137,7 +137,7 @@ describe('ToolGroupWidget', () => {
       });
 
       expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_ROW_RESULT')).not.toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_RESULT')).not.toBe(null);
     });
 
     it('VALID: {isLastGroup: false, isStreaming: true} => stays collapsed', () => {
@@ -206,7 +206,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/\u25B8/u);
+      expect(header.textContent).toContain('▸');
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -227,7 +227,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toMatch(/\u25BE/u);
+      expect(header.textContent).toContain('▾');
     });
   });
 

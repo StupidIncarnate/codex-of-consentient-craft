@@ -76,13 +76,13 @@ describe('askUserQuestionContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUESTIONS: {empty questions array} => throws validation error', () => {
+    it('INVALID: {empty questions array} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({ questions: [] });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUESTION: {missing question field} => throws validation error', () => {
+    it('INVALID: {missing question field} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({
           questions: [{ header: 'H', options: [], multiSelect: false }],
@@ -90,7 +90,7 @@ describe('askUserQuestionContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_QUESTION: {empty question string} => throws validation error', () => {
+    it('INVALID: {empty question string} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({
           questions: [{ question: '', header: 'H', options: [], multiSelect: false }],
@@ -98,7 +98,7 @@ describe('askUserQuestionContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_LABEL: {empty option label string} => throws validation error', () => {
+    it('INVALID: {empty option label string} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({
           questions: [
@@ -113,7 +113,7 @@ describe('askUserQuestionContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({});
       }).toThrow(/Required/u);

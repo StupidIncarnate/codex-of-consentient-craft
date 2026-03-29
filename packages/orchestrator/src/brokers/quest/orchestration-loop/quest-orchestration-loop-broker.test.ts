@@ -33,7 +33,7 @@ describe('questOrchestrationLoopBroker', () => {
     // The loop reads the quest, finds no ready items, and sets the final quest status.
     // No dispatch happens — no terminalQuest needed.
 
-    it('T-STATUS-1: {all work items complete} => quest status set to complete', async () => {
+    it('VALID: {all work items complete} => quest status set to complete', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
@@ -57,7 +57,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -71,7 +71,7 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
-    it('T-STATUS-2: {blocked — pending items with skipped deps} => quest status set to blocked', async () => {
+    it('VALID: {blocked — pending items with skipped deps} => quest status set to blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const skippedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -98,7 +98,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -114,7 +114,7 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
-    it('T-STATUS-3: {all items terminal but some failed} => quest stays in_progress', async () => {
+    it('VALID: {all items terminal but some failed} => quest stays in_progress', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
@@ -148,15 +148,15 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Quest should not be marked complete — status stays in_progress because failed items exist
       const quests = proxy.getAllPersistedQuests();
 
-      expect(quests.find((q) => q.status === 'complete')).toBeUndefined();
+      expect(quests.find((q) => q.status === 'complete')).toBe(undefined);
     });
 
-    it('T-STATUS-4: {pre-execution quest status preserved when chat fails} => status stays explore_flows', async () => {
+    it('VALID: {pre-execution quest status preserved when chat fails} => status stays explore_flows', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
@@ -180,16 +180,16 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Pre-execution status should be preserved (not overwritten to complete or blocked)
       const quests = proxy.getAllPersistedQuests();
 
-      expect(quests.find((q) => q.status === 'complete')).toBeUndefined();
-      expect(quests.find((q) => q.status === 'blocked')).toBeUndefined();
+      expect(quests.find((q) => q.status === 'complete')).toBe(undefined);
+      expect(quests.find((q) => q.status === 'blocked')).toBe(undefined);
     });
 
-    it('T-STATUS-5: {items still in_progress} => quest stays in_progress', async () => {
+    it('VALID: {items still in_progress} => quest stays in_progress', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
@@ -218,7 +218,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // No items should be dispatched — returns at ready.length === 0 with in_progress items
       expect(proxy.wasCodeweaverLayerCalled()).toBe(false);
@@ -229,7 +229,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with a pending chat item, no userMessage provided
     // WRITES: nothing — loop returns before dispatching
     // No terminalQuest needed (no dispatch happens)
-    it('T-DISPATCH-2: {chaos item ready but no userMessage} => returns without spawning and item stays pending', async () => {
+    it('VALID: {chaos item ready but no userMessage} => returns without spawning and item stays pending', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -254,7 +254,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Chat layer should not have been called
       expect(proxy.wasChatLayerCalled()).toBe(false);
@@ -265,7 +265,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(dispatched).toBeUndefined();
+      expect(dispatched).toBe(undefined);
     });
 
     it('VALID: {glyphsmith item ready but no userMessage} => returns without spawning and item stays pending', async () => {
@@ -293,7 +293,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       expect(proxy.wasChatLayerCalled()).toBe(false);
 
@@ -302,7 +302,7 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(dispatched).toBeUndefined();
+      expect(dispatched).toBe(undefined);
     });
   });
 
@@ -343,7 +343,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: abortController.signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
   });
 
@@ -374,7 +374,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
   });
 
@@ -383,7 +383,7 @@ describe('questOrchestrationLoopBroker', () => {
     // No terminalQuest needed — the layer throws before recursion.
     // Two persists happen: [0] = dispatch write (in_progress), [1] = failure write (failed).
 
-    it('T-FAIL-1: {layer broker throws} => dispatched items marked failed with errorMessage', async () => {
+    it('VALID: {layer broker throws} => dispatched items marked failed with errorMessage', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -437,7 +437,7 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
-    it('T-FAIL-3: {double fault — catch block modify returns failure} => original error still propagates', async () => {
+    it('VALID: {double fault — catch block modify returns failure} => original error still propagates', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -482,7 +482,7 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
-    it('T-FAIL-6: {layer broker throws after timeout} => dispatched items marked failed (timeout treated as generic throw)', async () => {
+    it('VALID: {layer broker throws after timeout} => dispatched items marked failed (timeout treated as generic throw)', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -544,7 +544,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with a chat item already in_progress and another pending
     // WRITES: nothing — chat mutual exclusion prevents dispatch
     // No terminalQuest needed (no dispatch happens)
-    it('T-DISPATCH-1: {chat in_progress} => does not dispatch pending chat with satisfied deps', async () => {
+    it('VALID: {chat in_progress} => does not dispatch pending chat with satisfied deps', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -576,7 +576,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Glyphsmith should NOT have been dispatched
       expect(proxy.wasChatLayerCalled()).toBe(false);
@@ -586,13 +586,13 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(glyphDispatched).toBeUndefined();
+      expect(glyphDispatched).toBe(undefined);
     });
 
     // READS: quest with two pending chaos items, userMessage provided
     // WRITES: only first chaos → in_progress, second stays pending
     // No terminalQuest needed — chat layer returns, loop re-reads and finds no userMessage for second
-    it('T-DISPATCH-3: {multiple chat items ready} => dispatches only first chat item', async () => {
+    it('VALID: {multiple chat items ready} => dispatches only first chat item', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaos1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const chaos2Id = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -624,7 +624,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (only first chat marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -647,7 +647,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with 3 cw items — cw1+cw2 have deps satisfied, cw3 does not
     // WRITES (dispatch): cw1+cw2 → in_progress, cw3 stays pending
     // terminalQuest: recursion plumbing — cw1+cw2 are in_progress so loop returns (no new ready items)
-    it('T-DISPATCH-4: {multiple non-chat items ready} => dispatches all ready items of same role together', async () => {
+    it('VALID: {multiple non-chat items ready} => dispatches all ready items of same role together', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const cw1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const cw2Id = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -719,7 +719,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (CW-1 and CW-2 in_progress, CW-3 stays pending)
       const quests = proxy.getAllPersistedQuests();
@@ -752,7 +752,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with a cw and lb both pending with satisfied deps (different roles)
     // WRITES (dispatch): only cw → in_progress (one role group per iteration)
     // terminalQuest: recursion plumbing — cw is in_progress, lb deps unsatisfied → ready=[], loop exits
-    it('T-DISPATCH-5: {multiple role groups ready} => dispatches only one role group per iteration', async () => {
+    it('VALID: {multiple role groups ready} => dispatches only one role group per iteration', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const lbId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -792,7 +792,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (only codeweaver group dispatched)
       const quests = proxy.getAllPersistedQuests();
@@ -817,7 +817,7 @@ describe('questOrchestrationLoopBroker', () => {
     // WRITES (dispatch): first chaos → in_progress, second stays pending
     // secondQuest: recursion plumbing — first chaos is complete, second is pending but no
     //   userMessage on recursion so loop returns without dispatching it
-    it('T-DISPATCH-7: {loop recurses after chat completes} => recursion does NOT pass userMessage so second chat stays pending', async () => {
+    it('VALID: {loop recurses after chat completes} => recursion does NOT pass userMessage so second chat stays pending', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const chaos2Id = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -869,7 +869,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (only first chaos marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -893,7 +893,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with a single pending pathseeker
     // WRITES (dispatch): ps → in_progress + startedAt
     // terminalQuest: recursion plumbing — ps is complete → all terminal → loop exits
-    it('marks ready items as in_progress with startedAt before dispatching', async () => {
+    it('VALID: marks ready items as in_progress with startedAt before dispatching', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const quest = QuestStub({
@@ -925,7 +925,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -987,7 +987,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -1029,7 +1029,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // When pathseeker is never inserted, the loop sees only chaos=complete
       // → all terminal → quest=complete. This documents the observed failure.
@@ -1049,7 +1049,7 @@ describe('questOrchestrationLoopBroker', () => {
   describe('dependency resolution', () => {
     // READS: quest where ward depends on [cw1, cw2] but cw2 is still in_progress
     // WRITES: nothing — ward not ready (deps unsatisfied), no dispatch
-    it('T-DEP-1: {only some deps complete} => item is not ready', async () => {
+    it('VALID: {only some deps complete} => item is not ready', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const cw1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const cw2Id = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -1087,7 +1087,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Ward should not be dispatched — cw2 is still in_progress
       const wardDispatched = proxy.findPersistedWorkItem({
@@ -1095,12 +1095,12 @@ describe('questOrchestrationLoopBroker', () => {
         status: 'in_progress',
       });
 
-      expect(wardDispatched).toBeUndefined();
+      expect(wardDispatched).toBe(undefined);
     });
 
     // READS: quest where ward depends on cw1 (skipped) — skipped deps never satisfy
     // WRITES: quest status → blocked (pending items exist with unsatisfiable deps)
-    it('T-DEP-2: {skipped dependency} => item never becomes ready, quest becomes blocked', async () => {
+    it('VALID: {skipped dependency} => item never becomes ready, quest becomes blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const cw1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const wardId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -1132,7 +1132,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // Quest should be marked blocked, ward stays pending
       const quests = proxy.getAllPersistedQuests();
@@ -1156,7 +1156,7 @@ describe('questOrchestrationLoopBroker', () => {
     // READS: quest with ward-A(failed) → ward-B(failed) → ward-C(complete), siege depends on ward-C
     // WRITES (dispatch): siege → in_progress (ward-C is complete, so siege's dep is satisfied)
     // terminalQuest: recursion plumbing — siege is complete → all terminal → loop exits
-    it('T-DEP-5: {replacement chains compose} => downstream depends on latest retry', async () => {
+    it('VALID: {replacement chains compose} => downstream depends on latest retry', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const wardAId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const wardBId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
@@ -1223,7 +1223,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (siege marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -1320,7 +1320,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
 
       // First persist = dispatch write (retry pathseeker marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -1803,7 +1803,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         // ASSERT: dispatch write — cw1+cw2 flipped to in_progress + startedAt, everything else unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -1897,7 +1897,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         // ASSERT: dispatch write — cw1+cw2 flipped to in_progress + startedAt, cw3+cw4 unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -1995,7 +1995,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         // ASSERT: dispatch write — ps-retry flipped to in_progress + startedAt, others unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -2077,7 +2077,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         // ASSERT: dispatch write — ps-retry flipped to in_progress + startedAt
         const quests = proxy.getAllPersistedQuests();
@@ -2176,15 +2176,15 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
-        const blockedQuest = quests[0]!;
+        const { status, workItems } = quests[0]!;
 
-        expect(blockedQuest.status).toBe('blocked');
+        expect(status).toBe('blocked');
 
         // Work items unchanged — loop only sets quest status to blocked
-        expect(blockedQuest.workItems).toStrictEqual([
+        expect(workItems).toStrictEqual([
           WorkItemStub({
             id: psAId,
             role: 'pathseeker',
@@ -2293,7 +2293,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2388,7 +2388,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2514,7 +2514,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2642,7 +2642,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2753,7 +2753,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2881,7 +2881,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2975,7 +2975,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3046,7 +3046,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3112,7 +3112,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3180,7 +3180,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3273,7 +3273,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3388,7 +3388,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3525,7 +3525,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3658,7 +3658,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3781,7 +3781,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3887,7 +3887,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4028,7 +4028,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4157,7 +4157,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4312,7 +4312,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4493,7 +4493,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4609,7 +4609,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4736,7 +4736,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4889,7 +4889,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4980,7 +4980,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
       });
 
       it('VALID: {2 spiritmenders complete, ward-retry pending} => ward-retry in_progress, siege + lb + final-ward stay pending, quest stays in_progress', async () => {
@@ -5094,7 +5094,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5254,7 +5254,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5445,7 +5445,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5563,7 +5563,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5661,7 +5661,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5766,7 +5766,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5870,7 +5870,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5993,7 +5993,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6064,7 +6064,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6153,7 +6153,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6226,7 +6226,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6275,7 +6275,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
       });
 
       it('VALID: {2 lb complete, final-ward pending dependsOn [lb-1, lb-2]} => final-ward in_progress with wardMode full, quest stays in_progress', async () => {
@@ -6325,7 +6325,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6420,7 +6420,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6517,7 +6517,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6649,7 +6649,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6805,7 +6805,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6993,7 +6993,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7134,7 +7134,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7241,7 +7241,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7377,7 +7377,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7458,7 +7458,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7554,7 +7554,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7682,7 +7682,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7803,7 +7803,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7899,7 +7899,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8016,7 +8016,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8170,7 +8170,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8270,7 +8270,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBeUndefined();
+        ).resolves.toBe(undefined);
 
         const quests = proxy.getAllPersistedQuests();
 

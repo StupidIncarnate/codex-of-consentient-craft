@@ -21,13 +21,13 @@ describe('verifyQuestInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: ""} => throws validation error', () => {
+    it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         return verifyQuestInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUEST_ID: {missing questId} => throws validation error', () => {
+    it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         return verifyQuestInputContract.parse({});
       }).toThrow(/Required/u);

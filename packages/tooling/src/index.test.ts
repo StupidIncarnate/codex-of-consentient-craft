@@ -2,6 +2,6 @@ import { StartPrimitiveDuplicateDetection } from './index';
 
 describe('index', () => {
   it('VALID: exports StartPrimitiveDuplicateDetection', () => {
-    expect(typeof StartPrimitiveDuplicateDetection).toBe('function');
+    expect(StartPrimitiveDuplicateDetection).toStrictEqual(expect.any(Function));
   });
 });

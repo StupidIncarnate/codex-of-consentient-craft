@@ -11,8 +11,10 @@ describe('honoCreateNodeWebSocketAdapter', () => {
 
       const result = honoCreateNodeWebSocketAdapter({ app });
 
-      expect(typeof result.injectWebSocket).toBe('function');
-      expect(typeof result.upgradeWebSocket).toBe('function');
+      expect(result).toStrictEqual({
+        injectWebSocket: expect.any(Function),
+        upgradeWebSocket: expect.any(Function),
+      });
     });
   });
 });

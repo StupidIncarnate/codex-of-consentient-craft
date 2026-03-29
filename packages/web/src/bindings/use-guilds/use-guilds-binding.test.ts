@@ -40,9 +40,11 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -64,9 +66,11 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -88,9 +92,11 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -114,9 +120,11 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -127,9 +135,11 @@ describe('useGuildsBinding', () => {
         ],
       });
 
+      const { refresh } = result.current;
+
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch((error: unknown) => {
+          refresh().catch((error: unknown) => {
             globalThis.console.error('[test] refresh failed', error);
           });
         },
@@ -137,7 +147,7 @@ describe('useGuildsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -162,9 +172,11 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -188,13 +200,15 @@ describe('useGuildsBinding', () => {
         renderCallback: () => useGuildsBinding(),
       });
 
+      const getErrorCalls = (): unknown[][] => consoleErrorCalls;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(consoleErrorCalls[0]?.[0]).toBe('[use-guilds]');
+          expect(getErrorCalls()).toStrictEqual([['[use-guilds]', expect.any(Error)]]);
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
+      expect(consoleErrorCalls).toStrictEqual([['[use-guilds]', expect.any(Error)]]);
     });
   });
 });

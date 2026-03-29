@@ -17,7 +17,7 @@ describe('mcpServerClientContract', () => {
   it('VALID: {} => creates client with default close behavior that resolves', async () => {
     const result = McpServerClientStub();
 
-    await expect(result.close()).resolves.toBeUndefined();
+    await expect(result.close()).resolves.toBe(undefined);
   });
 
   it('VALID: {sendRequest: custom function} => uses provided function', async () => {

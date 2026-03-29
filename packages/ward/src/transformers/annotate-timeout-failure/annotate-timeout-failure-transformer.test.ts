@@ -87,7 +87,7 @@ describe('annotateTimeoutFailureTransformer', () => {
         failureMessages: ['thrown: "Exceeded timeout of 30000 ms for a test."'],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: {playwright timeout only} => returns null', () => {
@@ -95,7 +95,7 @@ describe('annotateTimeoutFailureTransformer', () => {
         failureMessages: ['Test timeout of 30000ms exceeded.'],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -107,7 +107,7 @@ describe('annotateTimeoutFailureTransformer', () => {
         ],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -117,7 +117,7 @@ describe('annotateTimeoutFailureTransformer', () => {
         failureMessages: ['Expected true to be false'],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty failureMessages} => returns null', () => {
@@ -125,7 +125,7 @@ describe('annotateTimeoutFailureTransformer', () => {
         failureMessages: [],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

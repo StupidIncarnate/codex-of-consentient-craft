@@ -315,19 +315,19 @@ describe('chatEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_ROLE: {role: "system", missing type} => throws validation error', () => {
+    it('INVALID: {role: "system", missing type} => throws validation error', () => {
       expect(() => {
         chatEntryContract.parse({ role: 'system', content: 'test' });
       }).toThrow(/Invalid input/u);
     });
 
-    it('INVALID_CONTENT: {role: "user", content: ""} => throws validation error', () => {
+    it('INVALID: {role: "user", content: ""} => throws validation error', () => {
       expect(() => {
         chatEntryContract.parse({ role: 'user', content: '' });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_TYPE: {role: "assistant", type: "unknown"} => throws validation error', () => {
+    it('INVALID: {role: "assistant", type: "unknown"} => throws validation error', () => {
       expect(() => {
         chatEntryContract.parse({
           role: 'assistant',
@@ -337,7 +337,7 @@ describe('chatEntryContract', () => {
       }).toThrow(/Invalid input/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         chatEntryContract.parse({});
       }).toThrow(/Invalid input/u);

@@ -23,11 +23,11 @@ describe('checkStatusContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "error"} => throws for unknown status', () => {
+    it('INVALID: {value: "error"} => throws for unknown status', () => {
       expect(() => checkStatusContract.parse('error')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => checkStatusContract.parse('')).toThrow(/Invalid enum value/u);
     });
 

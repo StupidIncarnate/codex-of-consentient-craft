@@ -262,7 +262,7 @@ describe('dependencyStepContract', () => {
   });
 
   describe('invalid steps', () => {
-    it('INVALID_ASSERTIONS: {assertions: []} => throws validation error for empty assertions', () => {
+    it('INVALID: {assertions: []} => throws validation error for empty assertions', () => {
       const parseEmptyAssertions = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
@@ -279,7 +279,7 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyAssertions).toThrow(/Array must contain at least 1 element/u);
     });
 
-    it('INVALID_FOCUS_FILE: {missing focusFile} => throws validation error', () => {
+    it('INVALID: {missing focusFile} => throws validation error', () => {
       const parseMissingFocusFile = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
@@ -301,7 +301,7 @@ describe('dependencyStepContract', () => {
       expect(parseMissingFocusFile).toThrow(/Required/u);
     });
 
-    it('INVALID_INPUT_CONTRACTS: {inputContracts: []} => throws validation error for empty array', () => {
+    it('INVALID: {inputContracts: []} => throws validation error for empty array', () => {
       const parseEmptyInputContracts = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
@@ -324,7 +324,7 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyInputContracts).toThrow(/Array must contain at least 1 element/u);
     });
 
-    it('INVALID_OUTPUT_CONTRACTS: {outputContracts: []} => throws validation error for empty array', () => {
+    it('INVALID: {outputContracts: []} => throws validation error for empty array', () => {
       const parseEmptyOutputContracts = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
@@ -347,7 +347,7 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyOutputContracts).toThrow(/Array must contain at least 1 element/u);
     });
 
-    it('INVALID_ID: {id: "Bad-Id"} => throws validation error', () => {
+    it('INVALID: {id: "Bad-Id"} => throws validation error', () => {
       const parseInvalidId = (): unknown =>
         dependencyStepContract.parse({
           id: 'Bad-Id',
@@ -370,7 +370,7 @@ describe('dependencyStepContract', () => {
       expect(parseInvalidId).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_NAME: {name: ""} => throws validation error', () => {
+    it('INVALID: {name: ""} => throws validation error', () => {
       const parseEmptyName = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',

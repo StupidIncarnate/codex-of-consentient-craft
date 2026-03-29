@@ -5,16 +5,17 @@ describe('RuleViolationStub', () => {
   it('VALID: {} => returns default RuleViolation', () => {
     const result = RuleViolationStub();
 
-    expect(result.message).toBe('Violation message');
-    expect(result.node).toStrictEqual({
-      type: 'Identifier',
-      range: [0, 10],
-      loc: {
-        start: { line: 1, column: 0 },
-        end: { line: 1, column: 10 },
+    expect(result).toStrictEqual({
+      message: 'Violation message',
+      node: {
+        type: 'Identifier',
+        range: [0, 10],
+        loc: {
+          start: { line: 1, column: 0 },
+          end: { line: 1, column: 10 },
+        },
       },
     });
-    expect(result.messageId).toBeUndefined();
   });
 
   it('VALID: {message: "Custom message"} => returns RuleViolation with custom message', () => {
@@ -39,7 +40,18 @@ describe('RuleViolationStub', () => {
     const fixFn = (): void => {};
     const result = RuleViolationStub({ fix: fixFn });
 
-    expect(typeof result.fix).toBe('function');
+    expect(result).toStrictEqual({
+      message: 'Violation message',
+      node: {
+        type: 'Identifier',
+        range: [0, 10],
+        loc: {
+          start: { line: 1, column: 0 },
+          end: { line: 1, column: 10 },
+        },
+      },
+      fix: expect.any(Function),
+    });
   });
 
   it('INVALID: {message: ""} => throws ZodError for empty message', () => {

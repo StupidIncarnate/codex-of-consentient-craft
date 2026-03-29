@@ -93,7 +93,7 @@ describe('questHasObservableCoverageGuard', () => {
   });
 
   describe('invalid coverage', () => {
-    it('INVALID_COVERAGE: {observable not in any step} => returns false', () => {
+    it('INVALID: {observable not in any step} => returns false', () => {
       const obsId1 = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const obsId2 = ObservableIdStub({ value: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e' });
       const flows = [
@@ -113,7 +113,7 @@ describe('questHasObservableCoverageGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COVERAGE: {steps have empty observablesSatisfied} => returns false', () => {
+    it('INVALID: {steps have empty observablesSatisfied} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const flows = [
         FlowStub({

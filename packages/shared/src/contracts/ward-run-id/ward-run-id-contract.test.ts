@@ -33,15 +33,15 @@ describe('wardRunIdContract', () => {
   });
 
   describe('invalid ward run ids', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => wardRunIdContract.parse('')).toThrow(/too_small/u);
     });
 
-    it('INVALID_TYPE: {value: number} => throws for non-string type', () => {
+    it('INVALID: {value: number} => throws for non-string type', () => {
       expect(() => wardRunIdContract.parse(123 as never)).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: {value: null} => throws for null', () => {
+    it('INVALID: {value: null} => throws for null', () => {
       expect(() => wardRunIdContract.parse(null as never)).toThrow(/Expected string/u);
     });
   });

@@ -16,7 +16,7 @@ import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.p
 describe('runSiegemasterLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof runSiegemasterLayerBroker).toBe('function');
+      expect(runSiegemasterLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 

@@ -23,19 +23,19 @@ describe('processIdContract', () => {
   });
 
   describe('invalid process IDs', () => {
-    it('INVALID_EMPTY: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         processIdContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_TYPE: {value: 123} => throws validation error', () => {
+    it('INVALID: {value: 123} => throws validation error', () => {
       expect(() => {
         processIdContract.parse(123 as never);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_NULL: {value: null} => throws validation error', () => {
+    it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         processIdContract.parse(null);
       }).toThrow(/Expected string/u);

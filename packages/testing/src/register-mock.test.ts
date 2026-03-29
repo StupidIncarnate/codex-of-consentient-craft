@@ -7,7 +7,7 @@ import { registerMock } from './register-mock';
 describe('register-mock barrel exports', () => {
   describe('registerMock', () => {
     it('VALID: exports registerMock => is defined as function', () => {
-      expect(typeof registerMock).toBe('function');
+      expect(registerMock).toStrictEqual(expect.any(Function));
     });
   });
 });

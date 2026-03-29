@@ -6,12 +6,12 @@ describe('mswHttpAdapter', () => {
     it('VALID: {} => returns http and HttpResponse from msw', () => {
       mswHttpAdapterProxy();
 
-      const { http, HttpResponse } = mswHttpAdapter();
+      const result = mswHttpAdapter();
 
-      expect(typeof http.get).toBe('function');
-      expect(typeof http.post).toBe('function');
-      expect(typeof HttpResponse.json).toBe('function');
-      expect(typeof HttpResponse.error).toBe('function');
+      expect(result).toStrictEqual({
+        http: expect.any(Object),
+        HttpResponse: expect.any(Function),
+      });
     });
   });
 });

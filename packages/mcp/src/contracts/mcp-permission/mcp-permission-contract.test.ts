@@ -17,11 +17,11 @@ describe('mcpPermissionContract', () => {
   });
 
   describe('invalid permissions', () => {
-    it('INVALID_VALUE: {value: 123} => throws Expected string', () => {
+    it('INVALID: {value: 123} => throws Expected string', () => {
       expect(() => mcpPermissionContract.parse(123 as never)).toThrow(/Expected string/u);
     });
 
-    it('INVALID_VALUE: {value: null} => throws Expected string', () => {
+    it('INVALID: {value: null} => throws Expected string', () => {
       expect(() => mcpPermissionContract.parse(null as never)).toThrow(/Expected string/u);
     });
 

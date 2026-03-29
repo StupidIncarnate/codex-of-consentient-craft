@@ -23,7 +23,7 @@ describe('stepFileReferenceContract', () => {
   });
 
   describe('invalid references', () => {
-    it('INVALID_PATH: {path: ""} => throws validation error', () => {
+    it('INVALID: {path: ""} => throws validation error', () => {
       const parseEmptyPath = (): unknown =>
         stepFileReferenceContract.parse({
           path: '',

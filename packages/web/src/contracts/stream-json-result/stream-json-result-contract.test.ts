@@ -38,13 +38,13 @@ describe('streamJsonResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_ENTRIES: {entries: "not-array"} => throws validation error', () => {
+    it('INVALID: {entries: "not-array"} => throws validation error', () => {
       expect(() => {
         streamJsonResultContract.parse({ entries: 'not-array', sessionId: null });
       }).toThrow(/Expected array/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         streamJsonResultContract.parse({});
       }).toThrow(/Required/u);

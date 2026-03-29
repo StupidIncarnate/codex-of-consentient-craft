@@ -20,9 +20,11 @@ describe('resolveRelatedDataItemTransformer', () => {
 
       const result = resolveRelatedDataItemTransformer({ ref, quest });
 
-      expect(result.collection).toBe('steps');
-      expect(result.id).toBe(String(stepId));
-      expect(result.item).toStrictEqual(step);
+      expect(result).toStrictEqual({
+        collection: 'steps',
+        id: String(stepId),
+        item: step,
+      });
     });
 
     it('ERROR: {ref: "steps/unknown-id"} => throws step not found', () => {
@@ -50,9 +52,11 @@ describe('resolveRelatedDataItemTransformer', () => {
 
       const result = resolveRelatedDataItemTransformer({ ref, quest });
 
-      expect(result.collection).toBe('wardResults');
-      expect(result.id).toBe('b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e');
-      expect(result.item).toStrictEqual(wardResult);
+      expect(result).toStrictEqual({
+        collection: 'wardResults',
+        id: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+        item: wardResult,
+      });
     });
 
     it('ERROR: {ref: "wardResults/unknown-id"} => throws wardResult not found', () => {

@@ -58,9 +58,9 @@ describe('readlineCreateInterfaceAdapter', () => {
       const input = Readable.from([]);
       const rl = readlineCreateInterfaceAdapter({ input });
 
-      expect(() => {
-        rl.close();
-      }).not.toThrow();
+      rl.close();
+
+      expect(rl).toStrictEqual(expect.any(Object));
     });
   });
 });

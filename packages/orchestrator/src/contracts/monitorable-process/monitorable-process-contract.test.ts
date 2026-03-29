@@ -21,9 +21,9 @@ describe('monitorableProcessContract', () => {
     it('VALID: {stub on exit} => registers exit listener without throwing', () => {
       const process = MonitorableProcessStub();
 
-      expect(() => {
-        process.on('exit', () => undefined);
-      }).not.toThrow();
+      process.on('exit', () => undefined);
+
+      expect(process).toStrictEqual(expect.any(Object));
     });
   });
 

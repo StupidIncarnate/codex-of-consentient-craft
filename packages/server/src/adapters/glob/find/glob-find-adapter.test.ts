@@ -4,7 +4,7 @@ import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.st
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('globFindAdapter', () => {
-  it('DEFENSIVE: {glob returns iterable non-array} => coerces to array and parses', async () => {
+  it('EDGE: {glob returns iterable non-array} => coerces to array and parses', async () => {
     const adapterProxy = globFindAdapterProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const expectedFiles = [

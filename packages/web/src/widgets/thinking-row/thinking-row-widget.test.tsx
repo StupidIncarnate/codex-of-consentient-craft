@@ -21,7 +21,7 @@ describe('ThinkingRowWidget', () => {
       const label = screen.getByTestId('THINKING_ROW_LABEL');
       const content = screen.getByTestId('THINKING_ROW_CONTENT');
 
-      expect(label.textContent).toMatch(/^THINKING/u);
+      expect(label.textContent).toBe('THINKING');
       expect(content.textContent).toBe('Let me think about this');
     });
 
@@ -64,7 +64,7 @@ describe('ThinkingRowWidget', () => {
 
       const label = screen.getByTestId('THINKING_ROW_LABEL');
 
-      expect(label.textContent).toMatch(/claude-opus-4-6/u);
+      expect(label.textContent).toContain('claude-opus-4-6');
     });
 
     it('VALID: {no model} => renders only THINKING label', () => {

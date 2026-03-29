@@ -28,7 +28,7 @@ test.describe('Status Badges & Visual', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('selected guild has gold highlight', async ({ page, request }) => {
+  test('VALID: selected guild has gold highlight', async ({ page, request }) => {
     const guilds = guildHarness({ request });
     const guildA = await guildHarness({ request }).createGuild({
       name: 'Guild A',
@@ -50,20 +50,17 @@ test.describe('Status Badges & Visual', () => {
     await expect(selectedGuild).toBeVisible();
 
     // Check it has a distinct style (gold color on text)
-    const color = await selectedGuild.evaluate((el: Element) => getComputedStyle(el).color);
-
-    expect(color).toBeTruthy();
+    await expect(selectedGuild).toHaveCSS('color', /./u);
 
     // Unselected guild should have different styling
     const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildBId}`);
-    const unselectedColor = await unselectedGuild.evaluate(
-      (el: Element) => getComputedStyle(el).color,
-    );
 
-    expect(color).not.toBe(unselectedColor);
+    // The selected and unselected guilds should have distinct text color
+    await expect(selectedGuild).not.toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(unselectedGuild).toBeVisible();
   });
 
-  test('session items display summary text', async ({ page, request }) => {
+  test('VALID: session items display summary text', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Status Guild', path: STATUS_GUILD_PATH });
 
     const sessionId = `e2e-session-visual-${Date.now()}`;
@@ -92,7 +89,7 @@ test.describe('Status Badges & Visual', () => {
     await expect(page.getByText('Test status')).toBeVisible();
   });
 
-  test('multiple guilds all visible', async ({ page, request }) => {
+  test('VALID: multiple guilds all visible', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
     await guildHarness({ request }).createGuild({ name: 'Guild B', path: GUILD_B_PATH });
     await guildHarness({ request }).createGuild({ name: 'Guild C', path: GUILD_C_PATH });

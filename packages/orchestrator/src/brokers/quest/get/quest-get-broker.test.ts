@@ -166,8 +166,10 @@ describe('questGetBroker', () => {
       const input = GetQuestInputStub({ questId: 'nonexistent' });
       const result = await questGetBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/not found/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^.*not found.*$/u),
+      });
     });
 
     it('ERROR: {empty folder} => returns not found error', async () => {
@@ -178,8 +180,10 @@ describe('questGetBroker', () => {
       const input = GetQuestInputStub({ questId: 'any-quest' });
       const result = await questGetBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/not found/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^.*not found.*$/u),
+      });
     });
   });
 
@@ -192,8 +196,10 @@ describe('questGetBroker', () => {
       const input = GetQuestInputStub({ questId: 'any-quest' });
       const result = await questGetBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/not found/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^.*not found.*$/u),
+      });
     });
   });
 });

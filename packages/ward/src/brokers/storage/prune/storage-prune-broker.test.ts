@@ -17,7 +17,7 @@ describe('storagePruneBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toBeUndefined();
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -34,7 +34,7 @@ describe('storagePruneBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toBeUndefined();
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -45,7 +45,7 @@ describe('storagePruneBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toBeUndefined();
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -61,7 +61,7 @@ describe('storagePruneBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toBeUndefined();
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -72,7 +72,7 @@ describe('storagePruneBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toBeUndefined();
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 });

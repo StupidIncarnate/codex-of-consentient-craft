@@ -22,7 +22,7 @@ describe('SessionNewResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
       SessionNewResponderProxy();
 
       const result = await SessionNewResponder({
@@ -35,7 +35,7 @@ describe('SessionNewResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       SessionNewResponderProxy();
 
       const result = await SessionNewResponder({
@@ -48,7 +48,7 @@ describe('SessionNewResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing message} => returns 400 with error', async () => {
+    it('INVALID: {missing message} => returns 400 with error', async () => {
       SessionNewResponderProxy();
 
       const result = await SessionNewResponder({
@@ -61,7 +61,7 @@ describe('SessionNewResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {empty message} => returns 400 with error', async () => {
+    it('INVALID: {empty message} => returns 400 with error', async () => {
       SessionNewResponderProxy();
 
       const result = await SessionNewResponder({

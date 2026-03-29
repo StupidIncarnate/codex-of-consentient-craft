@@ -105,7 +105,7 @@ describe('dungeonmasterConfigContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_FOLDER: {questFolder: 123} => throws validation error for non-string', () => {
+    it('INVALID: {questFolder: 123} => throws validation error for non-string', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: 123 as never,
@@ -114,7 +114,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_QUEST_FOLDER: {questFolder: null} => throws validation error for null', () => {
+    it('INVALID: {questFolder: null} => throws validation error for null', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: null as never,
@@ -123,7 +123,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_WARD_COMMANDS: {wardCommands: "commands"} => throws validation error for non-object', () => {
+    it('INVALID: {wardCommands: "commands"} => throws validation error for non-object', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: 'quest',
@@ -132,7 +132,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Expected object/u);
     });
 
-    it('INVALID_WARD_COMMANDS: {wardCommands: null} => throws validation error for null', () => {
+    it('INVALID: {wardCommands: null} => throws validation error for null', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: 'quest',
@@ -141,7 +141,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Expected object/u);
     });
 
-    it('INVALID_WARD_COMMANDS: {wardCommands: []} => throws validation error for array', () => {
+    it('INVALID: {wardCommands: []} => throws validation error for array', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: 'quest',
@@ -150,7 +150,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Expected object/u);
     });
 
-    it('INVALID_MULTIPLE: {missing questFolder} => throws validation error', () => {
+    it('INVALID: {missing questFolder} => throws validation error', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           wardCommands: {},
@@ -158,7 +158,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {missing wardCommands} => throws validation error', () => {
+    it('INVALID: {missing wardCommands} => throws validation error', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({
           questFolder: 'quest',
@@ -166,7 +166,7 @@ describe('dungeonmasterConfigContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {empty object} => throws validation error for all fields', () => {
+    it('INVALID: {empty object} => throws validation error for all fields', () => {
       expect(() => {
         return dungeonmasterConfigContract.parse({});
       }).toThrow(/Required/u);

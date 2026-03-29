@@ -48,7 +48,7 @@ describe('importPathToFilePathTransformer', () => {
         fileExists: false,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -65,7 +65,7 @@ describe('importPathToFilePathTransformer', () => {
         fileExists: true,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('INVALID: {scoped package import} => returns null', () => {
@@ -80,7 +80,7 @@ describe('importPathToFilePathTransformer', () => {
         fileExists: true,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

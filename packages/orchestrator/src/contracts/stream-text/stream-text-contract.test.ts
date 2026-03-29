@@ -29,19 +29,19 @@ describe('streamTextContract', () => {
   });
 
   describe('invalid stream text', () => {
-    it('INVALID_TYPE: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         streamTextContract.parse(123 as never);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: {value: null} => throws validation error', () => {
+    it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         streamTextContract.parse(null as never);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: {value: undefined} => throws validation error', () => {
+    it('INVALID: {value: undefined} => throws validation error', () => {
       expect(() => {
         streamTextContract.parse(undefined as never);
       }).toThrow(/Required/u);

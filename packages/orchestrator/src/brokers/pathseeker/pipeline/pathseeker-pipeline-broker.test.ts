@@ -83,8 +83,10 @@ describe('pathseekerPipelineBroker', () => {
         onProcessUpdate: proxy.onProcessUpdate,
       });
 
-      expect(proxy.onVerifySuccess).toHaveBeenCalledTimes(1);
-      expect(proxy.onProcessUpdate).not.toHaveBeenCalled();
+      const { onVerifySuccess, onProcessUpdate } = proxy;
+
+      expect(onVerifySuccess).toHaveBeenCalledTimes(1);
+      expect(onProcessUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -106,8 +108,10 @@ describe('pathseekerPipelineBroker', () => {
         onProcessUpdate: proxy.onProcessUpdate,
       });
 
-      expect(proxy.onVerifySuccess).not.toHaveBeenCalled();
-      expect(proxy.onProcessUpdate).not.toHaveBeenCalled();
+      const { onVerifySuccess, onProcessUpdate } = proxy;
+
+      expect(onVerifySuccess).not.toHaveBeenCalled();
+      expect(onProcessUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -160,8 +164,10 @@ describe('pathseekerPipelineBroker', () => {
         onProcessUpdate: proxy.onProcessUpdate,
       });
 
-      expect(proxy.onVerifySuccess).not.toHaveBeenCalled();
-      expect(proxy.onProcessUpdate).toHaveBeenCalledTimes(3);
+      const { onVerifySuccess, onProcessUpdate } = proxy;
+
+      expect(onVerifySuccess).not.toHaveBeenCalled();
+      expect(onProcessUpdate).toHaveBeenCalledTimes(3);
     });
   });
 });

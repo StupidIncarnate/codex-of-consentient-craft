@@ -14,7 +14,7 @@ describe('orchestratorReplayChatHistoryAdapter', () => {
           guildId: GuildIdStub(),
           chatProcessId: ProcessIdStub(),
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
   });
 

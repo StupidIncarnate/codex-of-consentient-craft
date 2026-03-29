@@ -47,7 +47,7 @@ describe('wardResultContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_RUN_ID: {runId: "bad"} => throws validation error', () => {
+    it('INVALID: {runId: "bad"} => throws validation error', () => {
       expect(() =>
         wardResultContract.parse({
           runId: 'bad',
@@ -58,7 +58,7 @@ describe('wardResultContract', () => {
       ).toThrow(/Invalid RunId format/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => wardResultContract.parse({})).toThrow(/Required/u);
     });
   });

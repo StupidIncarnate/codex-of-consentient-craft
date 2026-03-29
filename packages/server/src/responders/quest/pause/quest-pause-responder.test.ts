@@ -18,7 +18,7 @@ describe('QuestPauseResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = QuestPauseResponderProxy();
 
       const result = await proxy.callResponder({ params: null });
@@ -29,7 +29,7 @@ describe('QuestPauseResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing questId} => returns 400 with error', async () => {
+    it('INVALID: {missing questId} => returns 400 with error', async () => {
       const proxy = QuestPauseResponderProxy();
 
       const result = await proxy.callResponder({ params: {} });

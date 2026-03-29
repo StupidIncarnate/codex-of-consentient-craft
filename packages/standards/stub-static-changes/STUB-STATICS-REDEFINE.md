@@ -1093,7 +1093,8 @@ it('VALID: {admin with company email} => allows access', () => {
 
     // Broker uses guard to validate
     expect(isAdminRoleGuard({user})).toBe(true);
-    expect(() => processAdminAction({user})).not.toThrow();
+    const result = processAdminAction({user});
+    expect(result).toStrictEqual(expect.objectContaining({processed: true}));
 });
 ```
 

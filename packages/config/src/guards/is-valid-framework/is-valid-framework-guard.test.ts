@@ -22,25 +22,25 @@ describe('isValidFrameworkGuard', () => {
   });
 
   describe('invalid frameworks', () => {
-    it('INVALID_VALUE: {framework: "invalid"} => returns false', () => {
+    it('INVALID: {framework: "invalid"} => returns false', () => {
       const result = isValidFrameworkGuard({ framework: 'invalid' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {framework: 123} => returns false', () => {
+    it('INVALID: {framework: 123} => returns false', () => {
       const result = isValidFrameworkGuard({ framework: 123 });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_UNDEFINED: {framework: undefined} => returns false', () => {
+    it('INVALID: {framework: undefined} => returns false', () => {
       const result = isValidFrameworkGuard({});
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_NULL: {framework: null} => returns false', () => {
+    it('INVALID: {framework: null} => returns false', () => {
       const result = isValidFrameworkGuard({ framework: null });
 
       expect(result).toBe(false);

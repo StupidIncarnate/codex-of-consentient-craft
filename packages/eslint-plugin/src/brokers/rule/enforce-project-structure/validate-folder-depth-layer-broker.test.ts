@@ -7,7 +7,7 @@ import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateFolderDepthLayerBroker', () => {
   describe('correct folder depth', () => {
-    it('returns true for brokers at depth 2', () => {
+    it('VALID: brokers at depth 2 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -26,7 +26,7 @@ describe('validateFolderDepthLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for contracts at depth 1', () => {
+    it('VALID: contracts at depth 1 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -45,7 +45,7 @@ describe('validateFolderDepthLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for startup at depth 0', () => {
+    it('VALID: startup at depth 0 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -64,7 +64,7 @@ describe('validateFolderDepthLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for responders at depth 2', () => {
+    it('VALID: responders at depth 2 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -83,7 +83,7 @@ describe('validateFolderDepthLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for adapters at depth 2', () => {
+    it('VALID: adapters at depth 2 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -104,7 +104,7 @@ describe('validateFolderDepthLayerBroker', () => {
   });
 
   describe('invalid folder depth', () => {
-    it('reports invalidFolderDepth for responders at depth 0', () => {
+    it('INVALID: responders at depth 0 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -133,7 +133,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFolderDepth for responders at depth 1', () => {
+    it('INVALID: responders at depth 1 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -162,7 +162,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFolderDepth for guards at depth 2', () => {
+    it('INVALID: guards at depth 2 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -191,7 +191,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFolderDepth for contracts at depth 2', () => {
+    it('INVALID: contracts at depth 2 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -220,7 +220,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFolderDepth for startup at depth 1', () => {
+    it('INVALID: startup at depth 1 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -249,7 +249,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFolderDepth for adapters at depth 0', () => {
+    it('INVALID: adapters at depth 0 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -280,7 +280,7 @@ describe('validateFolderDepthLayerBroker', () => {
   });
 
   describe('non-kebab-case folder names', () => {
-    it('reports invalidFilenameCase for PascalCase folder segment', () => {
+    it('INVALID: PascalCase folder segment => reports invalidFilenameCase', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -308,7 +308,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('reports invalidFilenameCase for snake_case folder segment', () => {
+    it('INVALID: snake_case folder segment => reports invalidFilenameCase', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });

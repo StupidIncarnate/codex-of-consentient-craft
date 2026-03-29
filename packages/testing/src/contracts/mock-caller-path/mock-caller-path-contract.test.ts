@@ -29,13 +29,13 @@ describe('mockCallerPathContract', () => {
   });
 
   describe('invalid caller paths', () => {
-    it('INVALID_TYPE: null => throws validation error', () => {
+    it('INVALID: null => throws validation error', () => {
       expect(() => {
         return mockCallerPathContract.parse(null);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return mockCallerPathContract.parse(undefined);
       }).toThrow(/Required/u);

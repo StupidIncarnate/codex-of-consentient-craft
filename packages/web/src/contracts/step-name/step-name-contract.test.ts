@@ -11,11 +11,11 @@ describe('stepNameContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => stepNameContract.parse('')).toThrow(/String must contain at least 1/u);
     });
 
-    it('INVALID_VALUE: {value: 123} => throws for number', () => {
+    it('INVALID: {value: 123} => throws for number', () => {
       expect(() => stepNameContract.parse(123)).toThrow(/Expected string/u);
     });
   });

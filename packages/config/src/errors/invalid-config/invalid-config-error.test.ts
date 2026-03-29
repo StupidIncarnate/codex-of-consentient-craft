@@ -5,8 +5,10 @@ describe('InvalidConfigError', () => {
     it('VALID: {message: "test error"} => creates error without config path', () => {
       const error = new InvalidConfigError({ message: 'test error' });
 
-      expect(error.name).toBe('InvalidConfigError');
-      expect(error.message).toBe('Invalid configuration: test error');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration: test error',
+      });
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(InvalidConfigError);
     });
@@ -17,8 +19,10 @@ describe('InvalidConfigError', () => {
         configPath: '/path/config',
       });
 
-      expect(error.name).toBe('InvalidConfigError');
-      expect(error.message).toBe('Invalid configuration in /path/config: test error');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration in /path/config: test error',
+      });
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(InvalidConfigError);
     });
@@ -26,8 +30,10 @@ describe('InvalidConfigError', () => {
     it('EDGE: {message: ""} => handles empty message', () => {
       const error = new InvalidConfigError({ message: '' });
 
-      expect(error.message).toBe('Invalid configuration: ');
-      expect(error.name).toBe('InvalidConfigError');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration: ',
+      });
     });
 
     it('EDGE: {message: "test", configPath: ""} => handles empty config path', () => {
@@ -36,8 +42,10 @@ describe('InvalidConfigError', () => {
         configPath: '',
       });
 
-      expect(error.message).toBe('Invalid configuration: test');
-      expect(error.name).toBe('InvalidConfigError');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration: test',
+      });
     });
 
     it('VALID: {message: "complex message with\nnewlines"} => handles multiline messages', () => {
@@ -45,8 +53,10 @@ describe('InvalidConfigError', () => {
         message: 'complex message with\nnewlines',
       });
 
-      expect(error.message).toBe('Invalid configuration: complex message with\nnewlines');
-      expect(error.name).toBe('InvalidConfigError');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration: complex message with\nnewlines',
+      });
     });
 
     it('VALID: {message: "test", configPath: "/very/long/path/to/config/.dungeonmaster"} => handles long paths', () => {
@@ -55,10 +65,10 @@ describe('InvalidConfigError', () => {
         configPath: '/very/long/path/to/config/.dungeonmaster',
       });
 
-      expect(error.message).toBe(
-        'Invalid configuration in /very/long/path/to/config/.dungeonmaster: test',
-      );
-      expect(error.name).toBe('InvalidConfigError');
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'InvalidConfigError',
+        message: 'Invalid configuration in /very/long/path/to/config/.dungeonmaster: test',
+      });
     });
   });
 });

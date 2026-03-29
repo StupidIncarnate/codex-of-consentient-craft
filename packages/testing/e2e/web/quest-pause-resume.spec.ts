@@ -18,7 +18,7 @@ test.describe('Quest Pause and Resume', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('POST /api/quests/:questId/pause transitions quest to blocked and resets in_progress work items', async ({
+  test('VALID: POST /api/quests/:questId/pause transitions quest to blocked and resets in_progress work items', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -82,7 +82,7 @@ test.describe('Quest Pause and Resume', () => {
     expect(codeweaverItem.status).toBe('pending');
   });
 
-  test('pause then resume via PATCH unblocks quest status', async ({ request }) => {
+  test('EDGE: pause then resume via PATCH unblocks quest status', async ({ request }) => {
     const quests = questHarness({ request });
     const guild = await guildHarness({ request }).createGuild({
       name: 'Resume Guild',

@@ -22,25 +22,25 @@ describe('isValidRoutingLibraryGuard', () => {
   });
 
   describe('invalid routing libraries', () => {
-    it('INVALID_VALUE: {library: "invalid"} => returns false', () => {
+    it('INVALID: {library: "invalid"} => returns false', () => {
       const result = isValidRoutingLibraryGuard({ library: 'invalid' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {library: 123} => returns false', () => {
+    it('INVALID: {library: 123} => returns false', () => {
       const result = isValidRoutingLibraryGuard({ library: 123 });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_UNDEFINED: {library: undefined} => returns false', () => {
+    it('INVALID: {library: undefined} => returns false', () => {
       const result = isValidRoutingLibraryGuard({});
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_NULL: {library: null} => returns false', () => {
+    it('INVALID: {library: null} => returns false', () => {
       const result = isValidRoutingLibraryGuard({ library: null });
 
       expect(result).toBe(false);

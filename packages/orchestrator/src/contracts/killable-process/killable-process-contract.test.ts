@@ -33,19 +33,19 @@ describe('killableProcessContract', () => {
         waitForExit: async () => Promise.resolve(),
       });
 
-      expect(typeof result.kill).toBe('function');
+      expect(result.kill).toStrictEqual(expect.any(Function));
     });
 
     it('VALID: {waitForExit function} => parses successfully', () => {
       const process: KillableProcess = KillableProcessStub();
 
-      expect(typeof process.waitForExit).toBe('function');
+      expect(process.waitForExit).toStrictEqual(expect.any(Function));
     });
 
     it('VALID: {waitForExit returns promise} => resolves to void', async () => {
       const process: KillableProcess = KillableProcessStub();
 
-      await expect(process.waitForExit()).resolves.toBeUndefined();
+      await expect(process.waitForExit()).resolves.toBe(undefined);
     });
   });
 });

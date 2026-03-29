@@ -57,10 +57,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.entries).toStrictEqual([
-        { role: 'user', content: 'How do I add auth?' },
-      ]);
-      expect(result.current.isStreaming).toBe(true);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'How do I add auth?' }],
+        isStreaming: true,
+        currentSessionId: null,
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('VALID: {guildId, message, existing sessionId} => sends via session endpoint', async () => {
@@ -85,8 +91,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.entries).toStrictEqual([{ role: 'user', content: 'Continue' }]);
-      expect(result.current.isStreaming).toBe(true);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Continue' }],
+        isStreaming: true,
+        currentSessionId: 'session-existing-1',
+        chatProcessId: 'chat-proc-session',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EMPTY: {guildId: null} => sendMessage does not call broker', async () => {
@@ -106,8 +120,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.entries).toStrictEqual([]);
-      expect(result.current.isStreaming).toBe(false);
+      expect(result.current).toStrictEqual({
+        entries: [],
+        isStreaming: false,
+        currentSessionId: null,
+        chatProcessId: null,
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
   });
 
@@ -148,11 +170,19 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.entries).toStrictEqual([
-        { role: 'user', content: 'Hello' },
-        { role: 'assistant', type: 'text', content: 'Hi there' },
-      ]);
-      expect(result.current.isStreaming).toBe(true);
+      expect(result.current).toStrictEqual({
+        entries: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant', type: 'text', content: 'Hi there' },
+        ],
+        isStreaming: true,
+        currentSessionId: null,
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EDGE: {chat-output with non-matching chatProcessId} => ignores message', async () => {
@@ -287,8 +317,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.entries).toStrictEqual([]);
-      expect(result.current.isStreaming).toBe(false);
+      expect(result.current).toStrictEqual({
+        entries: [],
+        isStreaming: false,
+        currentSessionId: null,
+        chatProcessId: null,
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
   });
 
@@ -397,7 +435,7 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.pendingClarification).toBeNull();
+      expect(result.current.pendingClarification).toBe(null);
     });
 
     it('EDGE: {clarification-request with invalid questions payload} => does not set pendingClarification', async () => {
@@ -436,7 +474,7 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.pendingClarification).toBeNull();
+      expect(result.current.pendingClarification).toBe(null);
     });
 
     it('VALID: {sendMessage after clarification-request} => clears pendingClarification', async () => {
@@ -482,7 +520,9 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.pendingClarification).toStrictEqual({
+      const stateAfterClarification = result.current;
+
+      expect(stateAfterClarification.pendingClarification).toStrictEqual({
         questions: [
           {
             question: 'Which framework?',
@@ -504,7 +544,9 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.pendingClarification).toBeNull();
+      const stateAfterReply = result.current;
+
+      expect(stateAfterReply.pendingClarification).toBe(null);
     });
   });
 
@@ -530,7 +572,9 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.isStreaming).toBe(true);
+      const beforeComplete = result.current;
+
+      expect(beforeComplete.isStreaming).toBe(true);
 
       testingLibraryActAdapter({
         callback: () => {
@@ -547,7 +591,9 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.isStreaming).toBe(false);
+      const afterComplete = result.current;
+
+      expect(afterComplete.isStreaming).toBe(false);
     });
 
     it('VALID: {chat-complete with sessionId} => updates currentSessionId', async () => {
@@ -586,8 +632,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.currentSessionId).toBe('completed-session-id');
-      expect(result.current.isStreaming).toBe(false);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Hello' }],
+        isStreaming: false,
+        currentSessionId: 'completed-session-id',
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EDGE: {chat-complete with empty sessionId} => does not update currentSessionId', async () => {
@@ -626,8 +680,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.currentSessionId).toBeNull();
-      expect(result.current.isStreaming).toBe(false);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Hello' }],
+        isStreaming: false,
+        currentSessionId: null,
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EDGE: {chat-complete with non-string sessionId} => does not update currentSessionId', async () => {
@@ -666,8 +728,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.currentSessionId).toBeNull();
-      expect(result.current.isStreaming).toBe(false);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Hello' }],
+        isStreaming: false,
+        currentSessionId: null,
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EDGE: {chat-complete with non-matching chatProcessId} => keeps streaming', async () => {
@@ -986,15 +1056,23 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.isStreaming).toBe(false);
-      expect(result.current.entries).toStrictEqual([
-        { role: 'user', content: 'Hello' },
-        {
-          role: 'system',
-          type: 'error',
-          content: expect.any(String),
-        },
-      ]);
+      expect(result.current).toStrictEqual({
+        entries: [
+          { role: 'user', content: 'Hello' },
+          {
+            role: 'system',
+            type: 'error',
+            content: expect.any(String),
+          },
+        ],
+        isStreaming: false,
+        currentSessionId: null,
+        chatProcessId: null,
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
   });
 
@@ -1117,10 +1195,16 @@ describe('useSessionChatBinding', () => {
         },
       });
 
-      expect(result.current.currentSessionId).toBe('session-replay-done');
-      expect(result.current.entries).toStrictEqual([
-        { role: 'assistant', type: 'text', content: 'Historic answer' },
-      ]);
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'assistant', type: 'text', content: 'Historic answer' }],
+        isStreaming: false,
+        currentSessionId: 'session-replay-done',
+        chatProcessId: 'replay-session-replay-done',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
     });
 
     it('EDGE: {chat-history-complete with non-matching chatProcessId} => does not clear replay chatProcessId', () => {

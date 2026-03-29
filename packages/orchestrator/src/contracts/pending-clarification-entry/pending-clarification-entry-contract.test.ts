@@ -41,7 +41,7 @@ describe('pendingClarificationEntryContract', () => {
       });
     });
 
-    it('INVALID_QUESTIONS: {empty questions array} => throws validation error', () => {
+    it('INVALID: {empty questions array} => throws validation error', () => {
       expect(() =>
         pendingClarificationEntryContract.parse({ questId: 'test', questions: [] }),
       ).toThrow(/too_small/u);

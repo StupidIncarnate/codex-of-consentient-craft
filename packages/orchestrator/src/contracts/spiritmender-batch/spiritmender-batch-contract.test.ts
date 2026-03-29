@@ -66,17 +66,17 @@ describe('spiritmenderBatchContract', () => {
   });
 
   describe('invalid batches', () => {
-    it('INVALID_MULTIPLE: {missing filePaths and errors} => throws validation error', () => {
+    it('INVALID: {missing filePaths and errors} => throws validation error', () => {
       expect(() => spiritmenderBatchContract.parse({})).toThrow(/Required/u);
     });
 
-    it('INVALID_TYPE: {filePaths: string} => throws validation error', () => {
+    it('INVALID: {filePaths: string} => throws validation error', () => {
       expect(() => spiritmenderBatchContract.parse({ filePaths: 'not-array', errors: [] })).toThrow(
         /Expected array/u,
       );
     });
 
-    it('INVALID_TYPE: {filePaths contains non-absolute path} => throws validation error', () => {
+    it('INVALID: {filePaths contains non-absolute path} => throws validation error', () => {
       expect(() =>
         spiritmenderBatchContract.parse({
           filePaths: ['relative/path.ts'],
@@ -85,7 +85,7 @@ describe('spiritmenderBatchContract', () => {
       ).toThrow(/Path must be absolute/u);
     });
 
-    it('INVALID_TYPE: {errors: string} => throws validation error', () => {
+    it('INVALID: {errors: string} => throws validation error', () => {
       expect(() => spiritmenderBatchContract.parse({ filePaths: [], errors: 'not-array' })).toThrow(
         /Expected array/u,
       );

@@ -8,9 +8,11 @@ describe('pendingRequestContract', () => {
 
       const parsed = pendingRequestContract.parse(pending);
 
-      expect(parsed.method).toBe('GET');
-      expect(parsed.url).toBe('http://test.local/api/guilds');
-      expect(parsed.timestampMs).toBe(1700000000000);
+      expect(parsed).toStrictEqual({
+        method: 'GET',
+        url: 'http://test.local/api/guilds',
+        timestampMs: 1700000000000,
+      });
     });
 
     it('VALID: {with requestBody} => parses optional field', () => {
@@ -23,7 +25,7 @@ describe('pendingRequestContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_METHOD: {method: number} => throws validation error', () => {
+    it('INVALID: {method: number} => throws validation error', () => {
       expect(() => {
         return pendingRequestContract.parse({
           method: 123 as never,
@@ -33,7 +35,7 @@ describe('pendingRequestContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TIMESTAMP: {timestampMs: -1} => throws validation error', () => {
+    it('INVALID: {timestampMs: -1} => throws validation error', () => {
       expect(() => {
         return pendingRequestContract.parse({
           method: 'GET',

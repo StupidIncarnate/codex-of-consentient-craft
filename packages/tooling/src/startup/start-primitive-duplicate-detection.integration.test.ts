@@ -2,6 +2,6 @@ import { StartPrimitiveDuplicateDetection } from './start-primitive-duplicate-de
 
 describe('StartPrimitiveDuplicateDetection', () => {
   it('VALID: exports a function that delegates to PrimitiveDuplicateDetectionFlow', () => {
-    expect(typeof StartPrimitiveDuplicateDetection).toBe('function');
+    expect(StartPrimitiveDuplicateDetection).toBe(expect.any(Function));
   });
 });

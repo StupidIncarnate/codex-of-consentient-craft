@@ -29,37 +29,37 @@ describe('isoTimestampContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_FORMAT: {timezone offset instead of Z} => throws error', () => {
+    it('INVALID: {timezone offset instead of Z} => throws error', () => {
       expect(() => isoTimestampContract.parse('2024-01-15T10:00:00+05:30')).toThrow(
         /Invalid datetime/u,
       );
     });
 
-    it('INVALID_FORMAT: {not a datetime} => throws error', () => {
+    it('INVALID: {not a datetime} => throws error', () => {
       expect(() => isoTimestampContract.parse('not-a-date')).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_FORMAT: {date only} => throws error', () => {
+    it('INVALID: {date only} => throws error', () => {
       expect(() => isoTimestampContract.parse('2024-01-15')).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_FORMAT: {empty string} => throws error', () => {
+    it('INVALID: {empty string} => throws error', () => {
       expect(() => isoTimestampContract.parse('')).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_FORMAT: {time only} => throws error', () => {
+    it('INVALID: {time only} => throws error', () => {
       expect(() => isoTimestampContract.parse('10:00:00Z')).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_TYPE: {number} => throws error', () => {
+    it('INVALID: {number} => throws error', () => {
       expect(() => isoTimestampContract.parse(1705312800000)).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: {null} => throws error', () => {
+    it('INVALID: {null} => throws error', () => {
       expect(() => isoTimestampContract.parse(null)).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: {undefined} => throws error', () => {
+    it('INVALID: {undefined} => throws error', () => {
       expect(() => isoTimestampContract.parse(undefined)).toThrow(/Required/u);
     });
   });

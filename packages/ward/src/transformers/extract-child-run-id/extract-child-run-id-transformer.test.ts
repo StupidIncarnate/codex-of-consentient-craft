@@ -25,15 +25,15 @@ describe('extractChildRunIdTransformer', () => {
     it('EMPTY: {empty output} => returns null', () => {
       const result = extractChildRunIdTransformer({ output: '' });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
-    it('MISSING: {output without run: line} => returns null', () => {
+    it('EMPTY: {output without run: line} => returns null', () => {
       const result = extractChildRunIdTransformer({
         output: 'lint: PASS\ntypecheck: PASS',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('INVALID: {run: line with invalid format} => returns null', () => {
@@ -41,7 +41,7 @@ describe('extractChildRunIdTransformer', () => {
         output: 'run: not-a-valid-id',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

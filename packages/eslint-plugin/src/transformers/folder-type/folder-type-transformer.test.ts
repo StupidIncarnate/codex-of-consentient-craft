@@ -145,7 +145,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/config.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: path with /src/ but no folder returns null', () => {
@@ -153,7 +153,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/src/index.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: path with /src/ at the end returns null', () => {
@@ -161,7 +161,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/src/',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: invalid folder type returns null', () => {
@@ -169,7 +169,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/src/invalid-folder/file.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: non-standard folder type returns null', () => {
@@ -177,7 +177,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/src/utilities/helper.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -211,7 +211,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/source/brokers/user.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: multiple src occurrences uses first occurrence', () => {
@@ -237,7 +237,7 @@ describe('folderTypeTransformer', () => {
         filename: '/project/other/file.ts',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

@@ -22,31 +22,31 @@ describe('isRunIdGuard', () => {
   });
 
   describe('invalid run IDs', () => {
-    it('INVALID_VALUE: {value: "not-a-run-id"} => returns false', () => {
+    it('INVALID: {value: "not-a-run-id"} => returns false', () => {
       const result = isRunIdGuard({ value: 'not-a-run-id' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: ""} => returns false for empty string', () => {
+    it('INVALID: {value: ""} => returns false for empty string', () => {
       const result = isRunIdGuard({ value: '' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: "abc-ZZZZ"} => returns false for non-hex', () => {
+    it('INVALID: {value: "abc-ZZZZ"} => returns false for non-hex', () => {
       const result = isRunIdGuard({ value: 'abc-ZZZZ' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: "1739625600000"} => returns false for missing hex', () => {
+    it('INVALID: {value: "1739625600000"} => returns false for missing hex', () => {
       const result = isRunIdGuard({ value: '1739625600000' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {value: 123} => returns false for number', () => {
+    it('INVALID: {value: 123} => returns false for number', () => {
       const result = isRunIdGuard({ value: 123 });
 
       expect(result).toBe(false);

@@ -39,7 +39,7 @@ describe('partialEslintConfigContract', () => {
   });
 
   describe('invalid configs', () => {
-    it('INVALID_TYPE: {rules: string} => throws validation error', () => {
+    it('INVALID: {rules: string} => throws validation error', () => {
       expect(() => {
         return partialEslintConfigContract.parse({
           rules: 'invalid',
@@ -47,7 +47,7 @@ describe('partialEslintConfigContract', () => {
       }).toThrow(/Expected object, received string/u);
     });
 
-    it('INVALID_TYPE: {rules: array} => throws validation error', () => {
+    it('INVALID: {rules: array} => throws validation error', () => {
       expect(() => {
         return partialEslintConfigContract.parse({
           rules: ['no-console'],

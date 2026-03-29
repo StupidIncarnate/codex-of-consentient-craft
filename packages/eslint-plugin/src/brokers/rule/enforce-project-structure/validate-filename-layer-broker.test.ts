@@ -7,7 +7,7 @@ import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateFilenameLayerBroker', () => {
   describe('valid filenames with correct suffix', () => {
-    it('returns true for broker file with -broker.ts suffix', () => {
+    it('VALID: broker file with -broker.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -27,7 +27,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for contract file with -contract.ts suffix', () => {
+    it('VALID: contract file with -contract.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -47,7 +47,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for transformer file', () => {
+    it('VALID: transformer file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -67,7 +67,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for guard file', () => {
+    it('VALID: guard file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -87,7 +87,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for error file', () => {
+    it('VALID: error file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -107,7 +107,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for widget file with .tsx', () => {
+    it('VALID: widget file with .tsx => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -127,7 +127,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for flow file', () => {
+    it('VALID: flow file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -147,7 +147,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for startup file', () => {
+    it('VALID: startup file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -169,7 +169,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('proxy files', () => {
-    it('returns true for proxy file with .proxy.ts suffix', () => {
+    it('VALID: proxy file with .proxy.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -189,7 +189,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for proxy file with .proxy.tsx suffix', () => {
+    it('VALID: proxy file with .proxy.tsx suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -211,7 +211,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('layer files with correct suffix', () => {
-    it('returns true for layer broker file', () => {
+    it('VALID: layer broker file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -232,7 +232,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for layer widget file', () => {
+    it('VALID: layer widget file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -254,7 +254,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('missing suffix', () => {
-    it('reports invalidFileSuffixWithLayer for broker missing -broker.ts', () => {
+    it('INVALID: broker missing -broker.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -278,7 +278,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for contract missing -contract.ts', () => {
+    it('INVALID: contract missing -contract.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -302,7 +302,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for transformer missing -transformer.ts', () => {
+    it('INVALID: transformer missing -transformer.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -326,7 +326,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for guard missing -guard.ts', () => {
+    it('INVALID: guard missing -guard.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -350,7 +350,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for error missing -error.ts', () => {
+    it('INVALID: error missing -error.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -374,7 +374,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffixWithLayer for widget missing -widget.tsx', () => {
+    it('INVALID: widget missing -widget.tsx => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -398,7 +398,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for flow missing -flow.tsx', () => {
+    it('INVALID: flow missing -flow.tsx => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -422,7 +422,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFileSuffix for adapter missing -adapter.ts', () => {
+    it('INVALID: adapter missing -adapter.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -448,7 +448,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('non-kebab-case filename', () => {
-    it('reports invalidFilenameCaseWithLayer for PascalCase filename in brokers', () => {
+    it('INVALID: PascalCase filename in brokers => reports invalidFilenameCaseWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -472,7 +472,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports invalidFilenameCaseWithLayer for snake_case filename in brokers', () => {
+    it('INVALID: snake_case filename in brokers => reports invalidFilenameCaseWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -498,7 +498,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('multiple Level 3 errors', () => {
-    it('reports both suffix and case errors for adapter with wrong suffix and non-kebab name', () => {
+    it('INVALID: adapter with wrong suffix and non-kebab name => reports both suffix and case errors', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -532,7 +532,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('reports both suffix and case errors for broker with wrong suffix and PascalCase name', () => {
+    it('INVALID: broker with wrong suffix and PascalCase name => reports both suffix and case errors', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -564,7 +564,7 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('assets and migrations skip validation', () => {
-    it('returns true for assets (empty exportSuffix and exportCase)', () => {
+    it('VALID: assets (empty exportSuffix and exportCase) => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });

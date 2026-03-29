@@ -224,7 +224,7 @@ describe('userContract', () => {
     });
 
     describe('invalid users', () => {
-        it('INVALID_EMAIL: {email: "not-an-email"} => throws validation error', () => {
+        it('INVALID: {email: "not-an-email"} => throws validation error', () => {
             expect(() => {
                 return userContract.parse({
                     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -234,7 +234,7 @@ describe('userContract', () => {
             }).toThrow(/Invalid email/u);
         });
 
-        it('INVALID_ID: {id: "not-a-uuid"} => throws validation error', () => {
+        it('INVALID: {id: "not-a-uuid"} => throws validation error', () => {
             expect(() => {
                 return userContract.parse({
                     id: 'not-a-uuid',
@@ -244,7 +244,7 @@ describe('userContract', () => {
             }).toThrow(/Invalid uuid/u);
         });
 
-        it('INVALID_MULTIPLE: {missing name and email} => throws validation error', () => {
+        it('INVALID: {missing name and email} => throws validation error', () => {
             expect(() => {
                 return userContract.parse({
                     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

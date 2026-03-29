@@ -28,9 +28,14 @@ describe('flowObservableContract', () => {
         verificationNotes: 'Verified via integration test',
       });
 
-      expect(observable.verificationStatus).toBe('verified');
-      expect(observable.verifiedAt).toBe('2024-01-15T10:00:00.000Z');
-      expect(observable.verificationNotes).toBe('Verified via integration test');
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+        verificationStatus: 'verified',
+        verifiedAt: '2024-01-15T10:00:00.000Z',
+        verificationNotes: 'Verified via integration test',
+      });
     });
 
     it('VALID: {api-call type} => parses different outcome type', () => {
@@ -39,13 +44,16 @@ describe('flowObservableContract', () => {
         description: 'sends auth token to server',
       });
 
-      expect(observable.type).toBe('api-call');
-      expect(observable.description).toBe('sends auth token to server');
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'api-call',
+        description: 'sends auth token to server',
+      });
     });
   });
 
   describe('invalid flow observables', () => {
-    it('INVALID_ID: {id: "Bad"} => throws validation error', () => {
+    it('INVALID: {id: "Bad"} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({
           id: 'Bad',
@@ -55,7 +63,7 @@ describe('flowObservableContract', () => {
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_TYPE: {type: "invalid"} => throws validation error', () => {
+    it('INVALID: {type: "invalid"} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({
           id: 'valid-id',

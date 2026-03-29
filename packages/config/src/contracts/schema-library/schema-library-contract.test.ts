@@ -33,19 +33,19 @@ describe('schemaLibraryContract', () => {
   });
 
   describe('invalid schema libraries', () => {
-    it('INVALID_VALUE: "invalid" => throws validation error', () => {
+    it('INVALID: "invalid" => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse('invalid');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_TYPE: 123 => throws validation error', () => {
+    it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse(123);
       }).toThrow(/Expected/u);
     });
 
-    it('INVALID_UNDEFINED: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse(undefined);
       }).toThrow(/Required/u);

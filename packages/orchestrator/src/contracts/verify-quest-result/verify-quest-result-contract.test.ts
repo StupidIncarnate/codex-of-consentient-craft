@@ -101,13 +101,13 @@ describe('verifyQuestResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_MULTIPLE: {missing success and checks} => throws validation error', () => {
+    it('INVALID: {missing success and checks} => throws validation error', () => {
       expect(() => {
         return verifyQuestResultContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_CHECK: {check missing name} => throws validation error', () => {
+    it('INVALID: {check missing name} => throws validation error', () => {
       expect(() => {
         return verifyQuestResultContract.parse({
           success: true,

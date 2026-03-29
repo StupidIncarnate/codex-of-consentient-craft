@@ -235,7 +235,7 @@ describe('questContractEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_ID: {id: "Not-Valid"} => throws validation error', () => {
+    it('INVALID: {id: "Not-Valid"} => throws validation error', () => {
       expect(() => {
         return questContractEntryContract.parse({
           id: 'Not-Valid',
@@ -247,7 +247,7 @@ describe('questContractEntryContract', () => {
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_NAME: {name: ""} => throws validation error', () => {
+    it('INVALID: {name: ""} => throws validation error', () => {
       expect(() => {
         return questContractEntryContract.parse({
           id: 'valid-id',

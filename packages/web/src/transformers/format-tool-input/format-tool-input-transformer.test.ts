@@ -148,10 +148,10 @@ describe('formatToolInputTransformer', () => {
         toolInput: '',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
-    it('INVALID_TOOL_INPUT: {invalid JSON} => returns null', () => {
+    it('INVALID: {invalid JSON} => returns null', () => {
       formatToolInputTransformerProxy();
 
       const result = formatToolInputTransformer({
@@ -159,10 +159,10 @@ describe('formatToolInputTransformer', () => {
         toolInput: 'not json',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
-    it('INVALID_TOOL_INPUT: {JSON array} => returns null', () => {
+    it('INVALID: {JSON array} => returns null', () => {
       formatToolInputTransformerProxy();
 
       const result = formatToolInputTransformer({
@@ -170,10 +170,10 @@ describe('formatToolInputTransformer', () => {
         toolInput: '[1,2,3]',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
-    it('INVALID_TOOL_INPUT: {JSON primitive} => returns null', () => {
+    it('INVALID: {JSON primitive} => returns null', () => {
       formatToolInputTransformerProxy();
 
       const result = formatToolInputTransformer({
@@ -181,7 +181,7 @@ describe('formatToolInputTransformer', () => {
         toolInput: '"just a string"',
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

@@ -22,9 +22,13 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('created');
-      expect(configContent).toMatch(/"dungeonmaster"/u);
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/mcp',
+        success: true,
+        action: 'created',
+        message: 'Created .mcp.json with dungeonmaster config and added permissions',
+      });
+      expect(configContent).toContain('"dungeonmaster"');
     });
   });
 });

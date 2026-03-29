@@ -14,13 +14,13 @@ describe('guildIdContract', () => {
     expect(id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
   });
 
-  it('INVALID_ID: {value: "not-a-uuid"} => throws validation error', () => {
+  it('INVALID: {value: "not-a-uuid"} => throws validation error', () => {
     expect(() => {
       return guildIdContract.parse('not-a-uuid');
     }).toThrow(/Invalid uuid/u);
   });
 
-  it('INVALID_ID: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return guildIdContract.parse('');
     }).toThrow(/Invalid uuid/u);

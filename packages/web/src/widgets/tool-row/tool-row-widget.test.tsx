@@ -31,7 +31,7 @@ describe('ToolRowWidget', () => {
 
       expect(name.textContent).toBe('Read');
       expect(summary.textContent).toBe('/src/index.ts');
-      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
     });
 
     it('VALID: {toolName: Grep, multiple fields} => renders key: value pairs as summary', () => {
@@ -80,7 +80,7 @@ describe('ToolRowWidget', () => {
 
       const row = screen.getByTestId('TOOL_ROW');
 
-      expect(row.style.borderLeft).toMatch(/rgba\(232, 121, 249/u);
+      expect(row.style.borderLeft).toContain('rgba(232, 121, 249');
     });
 
     it('VALID: {empty toolInput} => renders tool name with no summary element', () => {
@@ -95,7 +95,7 @@ describe('ToolRowWidget', () => {
       });
 
       expect(screen.getByTestId('TOOL_ROW_NAME').textContent).toBe('read_file');
-      expect(screen.queryByTestId('TOOL_ROW_SUMMARY')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_SUMMARY')).toBe(null);
     });
   });
 
@@ -108,7 +108,7 @@ describe('ToolRowWidget', () => {
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
-      expect(screen.queryByTestId('TOOL_ROW_STATUS')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_STATUS')).toBe(null);
     });
 
     it('VALID: {isLoading, no result} => renders pulsing loading dots', () => {
@@ -120,9 +120,10 @@ describe('ToolRowWidget', () => {
       });
 
       const status = screen.getByTestId('TOOL_ROW_STATUS');
+      const statusStyle = status.style;
 
       expect(status.textContent).toBe('\u00B7\u00B7\u00B7');
-      expect(status.style.animation).toMatch(/pulse/u);
+      expect(statusStyle.animation).toContain('pulse');
     });
 
     it('VALID: {successful result} => renders green check', () => {
@@ -205,11 +206,11 @@ describe('ToolRowWidget', () => {
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
-      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
 
       await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
 
-      expect(screen.getByTestId('TOOL_ROW_DETAIL')).not.toBeNull();
+      expect(screen.getByTestId('TOOL_ROW_DETAIL')).not.toBe(null);
     });
 
     it('VALID: {defaultExpanded: true} => starts expanded', () => {
@@ -223,7 +224,7 @@ describe('ToolRowWidget', () => {
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
-      expect(screen.getByTestId('TOOL_ROW_DETAIL')).not.toBeNull();
+      expect(screen.getByTestId('TOOL_ROW_DETAIL')).not.toBe(null);
     });
 
     it('VALID: {click expanded header} => collapses detail panel', async () => {
@@ -239,7 +240,7 @@ describe('ToolRowWidget', () => {
 
       await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
 
-      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBeNull();
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
     });
   });
 
@@ -257,7 +258,7 @@ describe('ToolRowWidget', () => {
 
       const detail = screen.getByTestId('TOOL_ROW_DETAIL');
 
-      expect(detail.textContent).toMatch(/npm run ward/u);
+      expect(detail.textContent).toContain('npm run ward');
     });
 
     it('VALID: {successful result} => renders RESULT label with content', () => {
@@ -280,8 +281,10 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/RESULT/u);
-      expect(result.textContent).toMatch(/file contents here/u);
+      const resultText = result.textContent;
+
+      expect(resultText).toContain('RESULT');
+      expect(resultText).toContain('file contents here');
     });
 
     it('VALID: {error result, expanded} => renders TOOL ERROR label', () => {
@@ -305,7 +308,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/TOOL ERROR/u);
+      expect(result.textContent).toContain('TOOL ERROR');
     });
 
     it('VALID: {hook blocked result, expanded} => renders HOOK BLOCKED label', () => {
@@ -329,7 +332,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/HOOK BLOCKED/u);
+      expect(result.textContent).toContain('HOOK BLOCKED');
     });
 
     it('VALID: {skipped result, expanded} => renders SKIPPED message', () => {
@@ -352,9 +355,8 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/SKIPPED/u);
       expect(result.textContent).toMatch(
-        /This tool call was skipped because another tool call in the same batch failed/u,
+        /^(?=.*SKIPPED)(?=.*This tool call was skipped because another tool call in the same batch failed).*$/u,
       );
     });
 
@@ -399,7 +401,7 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/Show full result/u);
+      expect(result.textContent).toContain('Show full result');
     });
 
     it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
@@ -420,12 +422,12 @@ describe('ToolRowWidget', () => {
         ),
       });
 
-      const showLink = screen.getByText('Show full result');
+      const showLink = screen.getByTestId('TOOL_ROW_TRUNCATION_TOGGLE');
       await userEvent.click(showLink);
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(/Collapse/u);
+      expect(result.textContent).toContain('Collapse');
     });
   });
 });

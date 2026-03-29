@@ -209,7 +209,7 @@ describe('cliArgsParseTransformer', () => {
   });
 
   describe('flags after -- are rejected', () => {
-    it('REJECT: {--only test -- --only lint} => flags after separator are rejected', () => {
+    it('INVALID: {--only test -- --only lint} => flags after separator are rejected', () => {
       cliArgsParseTransformerProxy();
 
       expect(() =>
@@ -333,7 +333,7 @@ describe('cliArgsParseTransformer', () => {
         ['--noStackTrace'],
         ['--expand'],
         ['-e'],
-      ])('REJECT: jest flag %s => throws unknown flag error', (flag) => {
+      ])('INVALID: jest flag %s => throws unknown flag error', (flag) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -370,7 +370,7 @@ describe('cliArgsParseTransformer', () => {
         ['--no-color'],
         ['--parser'],
         ['--resolve-plugins-relative-to'],
-      ])('REJECT: eslint flag %s => throws unknown flag error', (flag) => {
+      ])('INVALID: eslint flag %s => throws unknown flag error', (flag) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -408,7 +408,7 @@ describe('cliArgsParseTransformer', () => {
         ['--traceResolution'],
         ['--noErrorTruncation'],
         ['--composite'],
-      ])('REJECT: tsc flag %s => throws unknown flag error', (flag) => {
+      ])('INVALID: tsc flag %s => throws unknown flag error', (flag) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -441,7 +441,7 @@ describe('cliArgsParseTransformer', () => {
         ['--output'],
         ['--trace'],
         ['--browser'],
-      ])('REJECT: playwright flag %s => throws unknown flag error', (flag) => {
+      ])('INVALID: playwright flag %s => throws unknown flag error', (flag) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -481,7 +481,7 @@ describe('cliArgsParseTransformer', () => {
         ['--config'],
         ['--init'],
         ['--reset'],
-      ])('REJECT: random flag %s => throws unknown flag error', (flag) => {
+      ])('INVALID: random flag %s => throws unknown flag error', (flag) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -499,7 +499,7 @@ describe('cliArgsParseTransformer', () => {
         ['src/index.ts'],
         ['file.ts'],
         ['some-random-word'],
-      ])('REJECT: positional arg "%s" without -- separator => throws', (arg) => {
+      ])('INVALID: positional arg "%s" without -- separator => throws', (arg) => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -511,7 +511,7 @@ describe('cliArgsParseTransformer', () => {
     });
 
     describe('error message quality', () => {
-      it('REJECT: unknown flag error includes the flag name', () => {
+      it('INVALID: unknown flag error includes the flag name', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -521,7 +521,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/--coverage/u);
       });
 
-      it('REJECT: unknown flag error includes usage hint', () => {
+      it('INVALID: unknown flag error includes usage hint', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -531,7 +531,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/Usage:/u);
       });
 
-      it('REJECT: positional arg error includes separator hint', () => {
+      it('INVALID: positional arg error includes separator hint', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -541,7 +541,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/after "--" separator/u);
       });
 
-      it('REJECT: unknown flag mixed with valid flags still throws', () => {
+      it('INVALID: unknown flag mixed with valid flags still throws', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -557,7 +557,7 @@ describe('cliArgsParseTransformer', () => {
     });
 
     describe('flags after -- separator are also rejected', () => {
-      it('REJECT: jest flags after -- are rejected as non-file-path args', () => {
+      it('INVALID: jest flags after -- are rejected as non-file-path args', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -571,7 +571,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/Flags after "--" are not forwarded.*--watch.*--bail/su);
       });
 
-      it('REJECT: mixed files and flags after -- rejects the flags', () => {
+      it('INVALID: mixed files and flags after -- rejects the flags', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -585,7 +585,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/Flags after "--" are not forwarded.*--verbose/su);
       });
 
-      it('REJECT: short flags after -- are also rejected', () => {
+      it('INVALID: short flags after -- are also rejected', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>
@@ -599,7 +599,7 @@ describe('cliArgsParseTransformer', () => {
         ).toThrow(/Flags after "--" are not forwarded.*-t/su);
       });
 
-      it('REJECT: passthrough error mentions flags are not forwarded to tools', () => {
+      it('INVALID: passthrough error mentions flags are not forwarded to tools', () => {
         cliArgsParseTransformerProxy();
 
         expect(() =>

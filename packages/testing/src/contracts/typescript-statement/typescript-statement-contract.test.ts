@@ -6,7 +6,7 @@ describe('typescriptStatementContract', () => {
     it('VALID: {any value} => returns TypescriptStatement', () => {
       const result = typescriptStatementContract.parse(undefined);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -14,7 +14,7 @@ describe('typescriptStatementContract', () => {
     it('VALID: {value: undefined} => returns TypescriptStatement', () => {
       const result = TypescriptStatementStub({ value: undefined });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

@@ -271,7 +271,7 @@ describe('checkRunIntegrationBroker', () => {
         }),
       );
 
-      expect(proxy.getSpawnedArgs()).toBeUndefined();
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
 
     it('VALID: {fileList with mix of integration and unit test files} => only passes integration files to --findRelatedTests', async () => {
@@ -336,7 +336,7 @@ describe('checkRunIntegrationBroker', () => {
         }),
       );
 
-      expect(proxy.getSpawnedArgs()).toBeUndefined();
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
   });
 

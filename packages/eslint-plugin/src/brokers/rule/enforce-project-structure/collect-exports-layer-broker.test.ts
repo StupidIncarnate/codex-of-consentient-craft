@@ -6,7 +6,7 @@ import { IdentifierStub } from '@dungeonmaster/shared/contracts';
 
 describe('collectExportsLayerBroker', () => {
   describe('valid named exports', () => {
-    it('collects arrow function variable declaration', () => {
+    it('VALID: arrow function variable declaration => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -50,7 +50,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('collects class declaration export', () => {
+    it('VALID: class declaration export => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -87,7 +87,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('collects function declaration export', () => {
+    it('VALID: function declaration export => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -124,7 +124,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('skips type-only exports', () => {
+    it('VALID: type-only export => skips and returns empty', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -154,7 +154,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns empty array for no exports', () => {
+    it('EMPTY: no exports => returns empty array', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -179,7 +179,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns empty array when body is undefined', () => {
+    it('EMPTY: body is undefined => returns empty array', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -202,7 +202,7 @@ describe('collectExportsLayerBroker', () => {
   });
 
   describe('forbidden export patterns', () => {
-    it('reports noDefaultExport and returns null for default export', () => {
+    it('INVALID: default export => reports noDefaultExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -223,12 +223,12 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({ node, messageId: 'noDefaultExport' });
     });
 
-    it('reports noNamespaceExport and returns null for export * from', () => {
+    it('INVALID: export * from => reports noNamespaceExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -249,12 +249,12 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({ node, messageId: 'noNamespaceExport' });
     });
 
-    it('reports noReExport and returns null for re-export with source', () => {
+    it('INVALID: re-export with source => reports noReExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -278,7 +278,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -287,7 +287,7 @@ describe('collectExportsLayerBroker', () => {
       });
     });
 
-    it('reports noReExport for named export without declaration', () => {
+    it('INVALID: named export without declaration => reports noReExport', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -311,7 +311,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -322,7 +322,7 @@ describe('collectExportsLayerBroker', () => {
   });
 
   describe('adapter must be arrow function', () => {
-    it('reports adapterMustBeArrowFunction for re-exported variable in adapters', () => {
+    it('INVALID: re-exported variable in adapters => reports adapterMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -359,7 +359,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -368,7 +368,7 @@ describe('collectExportsLayerBroker', () => {
       });
     });
 
-    it('reports adapterMustBeArrowFunction for function declaration in adapters', () => {
+    it('INVALID: function declaration in adapters => reports adapterMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -398,7 +398,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -407,7 +407,7 @@ describe('collectExportsLayerBroker', () => {
       });
     });
 
-    it('reports adapterMustBeArrowFunction for class declaration in adapters', () => {
+    it('INVALID: class declaration in adapters => reports adapterMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -437,7 +437,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -448,7 +448,7 @@ describe('collectExportsLayerBroker', () => {
   });
 
   describe('proxy must be arrow function', () => {
-    it('reports proxyMustBeArrowFunction for function declaration in proxy file', () => {
+    it('INVALID: function declaration in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -478,7 +478,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -487,7 +487,7 @@ describe('collectExportsLayerBroker', () => {
       });
     });
 
-    it('reports proxyMustBeArrowFunction for class declaration in proxy file', () => {
+    it('INVALID: class declaration in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -517,7 +517,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -526,7 +526,7 @@ describe('collectExportsLayerBroker', () => {
       });
     });
 
-    it('reports proxyMustBeArrowFunction for non-arrow variable in proxy file', () => {
+    it('INVALID: non-arrow variable in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -563,7 +563,7 @@ describe('collectExportsLayerBroker', () => {
         firstFolder,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
@@ -574,7 +574,7 @@ describe('collectExportsLayerBroker', () => {
   });
 
   describe('arrow function adapters and proxies pass', () => {
-    it('collects arrow function adapter without error', () => {
+    it('VALID: arrow function adapter => collects without error', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -618,7 +618,7 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('collects arrow function proxy without error', () => {
+    it('VALID: arrow function proxy => collects without error', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });

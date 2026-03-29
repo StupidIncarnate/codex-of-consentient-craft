@@ -16,7 +16,7 @@ describe('eslintRuleNameContract', () => {
       expect(result).toBe('enforce-test-colocation');
     });
 
-    it("INVALID_EMPTY: {value: ''} => throws 'String must contain at least 1 character(s)'", () => {
+    it("INVALID: {value: ''} => throws 'String must contain at least 1 character(s)'", () => {
       expect(() => {
         EslintRuleNameStub({ value: '' });
       }).toThrow('String must contain at least 1 character(s)');

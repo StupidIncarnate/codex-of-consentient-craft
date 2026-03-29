@@ -111,7 +111,7 @@ export const MermaidDiagramWidget = ({ diagram }: MermaidDiagramWidgetProps): Re
         }}
       >
         <Box>
-          <Box ref={inlineContainerRef} />
+          <Box ref={inlineContainerRef} data-testid="MERMAID_SVG_CONTENT" />
         </Box>
       </Box>
       {svgContent ? (

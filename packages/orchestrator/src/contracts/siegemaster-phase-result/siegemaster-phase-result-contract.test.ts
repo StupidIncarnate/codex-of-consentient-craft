@@ -24,7 +24,7 @@ describe('siegemasterPhaseResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_FAILED_OBSERVABLE_IDS: {missing failedObservableIds} => throws', () => {
+    it('INVALID: {missing failedObservableIds} => throws', () => {
       expect(() => {
         siegemasterPhaseResultContract.parse({});
       }).toThrow(/Required/u);

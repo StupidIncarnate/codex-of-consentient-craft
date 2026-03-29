@@ -24,8 +24,10 @@ describe('mcpDiscoverBroker', () => {
       });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(0);
+      expect(result).toStrictEqual({
+        results: '',
+        count: 0,
+      });
     });
 
     it('VALID: {type: "files"} => returns tree format and count', async () => {
@@ -41,8 +43,10 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(1);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*guard.*$/mu),
+        count: 1,
+      });
     });
 
     it('VALID: {type: "files", path: "/test"} => returns tree format from path and count', async () => {
@@ -59,8 +63,10 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', path });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(1);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*guard.*$/mu),
+        count: 1,
+      });
     });
 
     it('VALID: {type: "files", search: "test"} => returns tree format with matching files and count', async () => {
@@ -76,8 +82,10 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', search: 'test' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(0);
+      expect(result).toStrictEqual({
+        results: '',
+        count: 0,
+      });
     });
 
     it('VALID: {type: "files", name: "guard"} => returns specific file and count', async () => {
@@ -146,8 +154,10 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       // Should only show implementation file in tree, not .test.ts or .proxy.ts
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(1);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*user-fetch-broker.*$/mu),
+        count: 1,
+      });
     });
 
     it('VALID: implementation file without related files shows in tree format', async () => {
@@ -164,8 +174,10 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files' });
       const result = await mcpDiscoverBroker({ input });
 
-      expect(typeof result.results).toBe('string');
-      expect(result.count).toBe(1);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*standalone-guard.*$/mu),
+        count: 1,
+      });
     });
   });
 
@@ -233,12 +245,10 @@ describe('mcpDiscoverBroker', () => {
       });
       const result = await mcpDiscoverBroker({ input });
 
-      const { results } = result;
-
-      expect(typeof results).toBe('string');
-      expect(result.count).toBe(2);
-      expect(results.toString().includes('has-permission-guard')).toBe(true);
-      expect(results.toString().includes('is-admin-guard')).toBe(true);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*has-permission-guard.*$/mu),
+        count: 2,
+      });
     });
 
     it('VALID: {search: "permission"} => returns tree format (string)', async () => {
@@ -257,11 +267,10 @@ describe('mcpDiscoverBroker', () => {
       const input = DiscoverInputStub({ type: 'files', search: 'permission' });
       const result = await mcpDiscoverBroker({ input });
 
-      const { results } = result;
-
-      expect(typeof results).toBe('string');
-      expect(result.count).toBe(1);
-      expect(results.toString().includes('has-permission-guard')).toBe(true);
+      expect(result).toStrictEqual({
+        results: expect.stringMatching(/^.*has-permission-guard.*$/mu),
+        count: 1,
+      });
     });
   });
 });

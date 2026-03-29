@@ -29,7 +29,7 @@ describe('InstallFlow', () => {
         message:
           'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
-      expect(questContent).toMatch(/ChaosWhisperer/u);
+      expect(questContent).toMatch(/^ChaosWhisperer$/u);
     });
   });
 });

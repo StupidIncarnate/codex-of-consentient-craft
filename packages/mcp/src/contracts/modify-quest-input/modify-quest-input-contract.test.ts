@@ -33,8 +33,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.contracts).toStrictEqual([
+      const { questId, contracts } = result;
+
+      expect(questId).toBe('add-auth');
+      expect(contracts).toStrictEqual([
         {
           id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
           name: 'LoginCredentials',
@@ -78,8 +80,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.steps).toStrictEqual([
+      const { questId, steps } = result;
+
+      expect(questId).toBe('add-auth');
+      expect(steps).toStrictEqual([
         {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'Create API',
@@ -117,8 +121,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.toolingRequirements).toStrictEqual([
+      const { questId, toolingRequirements } = result;
+
+      expect(questId).toBe('add-auth');
+      expect(toolingRequirements).toStrictEqual([
         {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           name: 'PostgreSQL Driver',
@@ -137,8 +143,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.title).toBe('New Quest Title');
+      const { questId, title } = result;
+
+      expect(questId).toBe('add-auth');
+      expect(title).toBe('New Quest Title');
     });
 
     it('VALID: {questId, designDecisions} => parses with design decisions array', () => {
@@ -156,8 +164,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.designDecisions).toStrictEqual([
+      const { questId, designDecisions } = result;
+
+      expect(questId).toBe('add-auth');
+      expect(designDecisions).toStrictEqual([
         {
           id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
           title: 'Use JWT for auth',
@@ -480,13 +490,13 @@ describe('modifyQuestInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: ""} => throws validation error', () => {
+    it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         return modifyQuestInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUEST_ID: {missing questId} => throws validation error', () => {
+    it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         return modifyQuestInputContract.parse({});
       }).toThrow(/Required/u);

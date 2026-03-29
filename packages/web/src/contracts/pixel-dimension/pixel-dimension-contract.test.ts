@@ -23,19 +23,19 @@ describe('pixelDimensionContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: 0} => throws for zero', () => {
+    it('INVALID: {value: 0} => throws for zero', () => {
       expect(() => pixelDimensionContract.parse(0)).toThrow(/Number must be greater than 0/u);
     });
 
-    it('INVALID_VALUE: {value: -1} => throws for negative number', () => {
+    it('INVALID: {value: -1} => throws for negative number', () => {
       expect(() => pixelDimensionContract.parse(-1)).toThrow(/Number must be greater than 0/u);
     });
 
-    it('INVALID_VALUE: {value: 1.5} => throws for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws for non-integer', () => {
       expect(() => pixelDimensionContract.parse(1.5)).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_VALUE: {value: "8"} => throws for string', () => {
+    it('INVALID: {value: "8"} => throws for string', () => {
       expect(() => pixelDimensionContract.parse('8')).toThrow(/Expected number/u);
     });
 

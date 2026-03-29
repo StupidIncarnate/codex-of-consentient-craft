@@ -28,19 +28,19 @@ describe('isCheckTypeGuard', () => {
   });
 
   describe('invalid check types', () => {
-    it('INVALID_VALUE: {value: "unknown"} => returns false', () => {
+    it('INVALID: {value: "unknown"} => returns false', () => {
       const result = isCheckTypeGuard({ value: 'unknown' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: ""} => returns false', () => {
+    it('INVALID: {value: ""} => returns false', () => {
       const result = isCheckTypeGuard({ value: '' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {value: 123} => returns false', () => {
+    it('INVALID: {value: 123} => returns false', () => {
       const result = isCheckTypeGuard({ value: 123 });
 
       expect(result).toBe(false);

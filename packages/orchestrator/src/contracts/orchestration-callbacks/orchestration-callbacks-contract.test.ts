@@ -11,9 +11,25 @@ describe('orchestrationCallbacksContract', () => {
   it('VALID: {all params} => parses successfully', () => {
     const result = OrchestrationCallbacksParamsStub();
 
-    expect(result.onAgentEntryParams.slotIndex).toBe(0);
-    expect(result.onWorkItemSessionIdParams.workItemId).toBe('work-item-0');
-    expect(result.onFollowupCreatedParams.role).toBe('spiritmender');
+    expect(result).toStrictEqual({
+      onAgentEntryParams: {
+        slotIndex: 0,
+        entry: { raw: 'test line' },
+      },
+      onWorkItemSessionIdParams: {
+        workItemId: 'work-item-0',
+        sessionId: 'test-session-id',
+      },
+      onFollowupCreatedParams: {
+        followupWorkItemId: 'followup-item-0',
+        role: 'spiritmender',
+        failedWorkItemId: 'work-item-0',
+      },
+      onWorkItemSummaryParams: {
+        workItemId: 'work-item-0',
+        summary: 'Implemented feature with tests',
+      },
+    });
   });
 
   it('VALID: {custom onAgentEntryParams} => overrides defaults', () => {
@@ -21,8 +37,10 @@ describe('orchestrationCallbacksContract', () => {
       onAgentEntryParams: { slotIndex: 2 as never, entry: { custom: true } },
     });
 
-    expect(result.onAgentEntryParams.slotIndex).toBe(2);
-    expect(result.onAgentEntryParams.entry).toStrictEqual({ custom: true });
+    expect(result.onAgentEntryParams).toStrictEqual({
+      slotIndex: 2,
+      entry: { custom: true },
+    });
   });
 
   it('VALID: {custom onFollowupCreatedParams} => overrides defaults', () => {

@@ -5,11 +5,13 @@ describe('lintMessageContract', () => {
   it('VALID: {default values} => parses successfully', () => {
     const result = LintMessageStub();
 
-    expect(result.ruleId).toBe('@typescript-eslint/no-explicit-any');
-    expect(result.message).toBe('Unexpected any. Specify a different type.');
-    expect(result.line).toBe(1);
-    expect(result.column).toBe(1);
-    expect(result.severity).toBe(2);
+    expect(result).toStrictEqual({
+      ruleId: '@typescript-eslint/no-explicit-any',
+      message: 'Unexpected any. Specify a different type.',
+      line: 1,
+      column: 1,
+      severity: 2,
+    });
   });
 
   it('VALID: {custom lint message} => parses successfully', () => {
@@ -21,8 +23,13 @@ describe('lintMessageContract', () => {
       severity: 1,
     });
 
-    expect(result.ruleId).toBe('no-console');
-    expect(result.severity).toBe(1);
+    expect(result).toStrictEqual({
+      ruleId: 'no-console',
+      message: 'Unexpected console statement',
+      line: 10,
+      column: 5,
+      severity: 1,
+    });
   });
 
   describe('invalid input', () => {

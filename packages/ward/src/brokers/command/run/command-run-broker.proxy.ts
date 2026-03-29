@@ -8,9 +8,11 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
   setupSinglePackageFail: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
+  getStdoutCalls: () => unknown[][];
+  getExitCalls: () => unknown[][];
 } => {
-  jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-  jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+  const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
   jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
@@ -39,5 +41,7 @@ export const commandRunBrokerProxy = (): {
     }): void => {
       multiProxy.setupSpawnAndLoad({ packageCount, subResultContent });
     },
+    getStdoutCalls: (): unknown[][] => stdoutSpy.mock.calls,
+    getExitCalls: (): unknown[][] => exitSpy.mock.calls,
   };
 };

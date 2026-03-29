@@ -21,7 +21,7 @@ describe('designDecisionContract', () => {
     expect(decision.relatedNodeIds).toStrictEqual(['login-page', 'auth-check']);
   });
 
-  it('INVALID_TITLE: {title: ""} => throws validation error', () => {
+  it('INVALID: {title: ""} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
         id: 'use-jwt-auth',
@@ -32,7 +32,7 @@ describe('designDecisionContract', () => {
     }).toThrow(/too_small/u);
   });
 
-  it('INVALID_ID: {id: "Not-Valid"} => throws validation error', () => {
+  it('INVALID: {id: "Not-Valid"} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
         id: 'Not-Valid',
@@ -43,7 +43,7 @@ describe('designDecisionContract', () => {
     }).toThrow(/invalid_string/u);
   });
 
-  it('INVALID_RELATED: {relatedNodeIds: ["Bad-Id"]} => throws validation error', () => {
+  it('INVALID: {relatedNodeIds: ["Bad-Id"]} => throws validation error', () => {
     expect(() => {
       return designDecisionContract.parse({
         id: 'use-jwt-auth',

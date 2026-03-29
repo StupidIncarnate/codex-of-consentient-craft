@@ -17,15 +17,15 @@ describe('maxConcurrentContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_VALUE: {value: 0} => throws too small error', () => {
+    it('INVALID: {value: 0} => throws too small error', () => {
       expect(() => maxConcurrentContract.parse(0)).toThrow(/too_small/u);
     });
 
-    it('INVALID_VALUE: {value: -1} => throws too small error', () => {
+    it('INVALID: {value: -1} => throws too small error', () => {
       expect(() => maxConcurrentContract.parse(-1)).toThrow(/too_small/u);
     });
 
-    it('INVALID_VALUE: {value: 1.5} => throws invalid type error', () => {
+    it('INVALID: {value: 1.5} => throws invalid type error', () => {
       expect(() => maxConcurrentContract.parse(1.5)).toThrow(/invalid_type/u);
     });
   });

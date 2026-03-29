@@ -140,8 +140,21 @@ describe('checkRunLintBroker', () => {
         fileList: [],
       });
 
-      expect(result.filesCount).toBe(2);
-      expect(result.status).toBe('pass');
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 2,
+          discoveredCount: 2,
+          rawOutput: RawOutputStub({
+            stdout: `${eslintOutput}Warning: some deprecation notice from eslint plugin`,
+            stderr: '',
+            exitCode: 0,
+          }),
+        }),
+      );
     });
   });
 

@@ -13,7 +13,7 @@ test.describe('Not Found', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('bogus guild slug shows NOT FOUND', async ({ page, request }) => {
+  test('ERROR: bogus guild slug shows NOT FOUND', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Real Guild', path: GUILD_PATH });
 
     const guildsResponsePromise = page.waitForResponse(
@@ -31,7 +31,7 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
 
-  test('bogus guild slug with session ID shows NOT FOUND', async ({ page, request }) => {
+  test('ERROR: bogus guild slug with session ID shows NOT FOUND', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Real Guild', path: GUILD_PATH });
 
     const guildsResponsePromise = page.waitForResponse(
@@ -46,7 +46,7 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
 
-  test('valid guild slug renders chat (no false positive)', async ({ page, request }) => {
+  test('EDGE: valid guild slug renders chat (no false positive)', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Real Guild',
       path: GUILD_PATH,
@@ -65,7 +65,10 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('NOT_FOUND')).not.toBeVisible();
   });
 
-  test('valid guild slug with bogus session ID shows NOT FOUND', async ({ page, request }) => {
+  test('ERROR: valid guild slug with bogus session ID shows NOT FOUND', async ({
+    page,
+    request,
+  }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Real Guild',
       path: GUILD_PATH,
@@ -86,7 +89,7 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
 
-  test('GET /api/guilds/:guildId returns 404 for nonexistent guild', async ({ request }) => {
+  test('ERROR: GET /api/guilds/:guildId returns 404 for nonexistent guild', async ({ request }) => {
     const response = await request.get('/api/guilds/91c4944d-55e3-4231-bd48-140245f11867');
 
     expect(response.status()).toBe(HTTP_NOT_FOUND);

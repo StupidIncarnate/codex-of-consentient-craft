@@ -53,10 +53,15 @@ describe('MapFrameWidget', () => {
 
       const frame = screen.getByTestId('MAP_FRAME');
 
-      expect(frame.style.border).toBe('2px solid rgb(61, 42, 30)');
-      expect(frame.style.borderRadius).toBe('2px');
-      expect(frame.style.padding).toBe('16px');
-      expect(frame.style.position).toBe('relative');
+      expect([
+        frame.style.border,
+
+        frame.style.borderRadius,
+
+        frame.style.padding,
+
+        frame.style.position,
+      ]).toStrictEqual(['2px solid rgb(61, 42, 30)', '2px', '16px', 'relative']);
     });
 
     it('VALID: {default props} => uses minHeight 0 and default maxWidth', () => {
@@ -72,9 +77,13 @@ describe('MapFrameWidget', () => {
 
       const frame = screen.getByTestId('MAP_FRAME');
 
-      expect(frame.style.minHeight).toBe('0');
-      expect(frame.style.maxWidth).toBe('740px');
-      expect(frame.style.width).toBe('100%');
+      expect([frame.style.minHeight, frame.style.maxWidth, frame.style.width]).toStrictEqual([
+        '0',
+
+        '740px',
+
+        '100%',
+      ]);
     });
 
     it('VALID: {custom maxWidth} => overrides default', () => {
@@ -126,14 +135,17 @@ describe('MapFrameWidget', () => {
 
       const topLeft = screen.getByTestId('CORNER_TOP_LEFT');
 
-      expect(topLeft.style.position).toBe('absolute');
-      expect(topLeft.style.top).toBe('-1px');
-      expect(topLeft.style.left).toBe('8px');
+      expect([topLeft.style.position, topLeft.style.top, topLeft.style.left]).toStrictEqual([
+        'absolute',
+
+        '-1px',
+
+        '8px',
+      ]);
 
       const topRight = screen.getByTestId('CORNER_TOP_RIGHT');
 
-      expect(topRight.style.position).toBe('absolute');
-      expect(topRight.style.top).toBe('-1px');
+      expect([topRight.style.position, topRight.style.top]).toStrictEqual(['absolute', '-1px']);
     });
 
     it('VALID: {bottom corners} => positions bottom-left and bottom-right absolutely', () => {
@@ -153,9 +165,13 @@ describe('MapFrameWidget', () => {
 
       const bottomLeft = screen.getByTestId('CORNER_BOTTOM_LEFT');
 
-      expect(bottomLeft.style.position).toBe('absolute');
-      expect(bottomLeft.style.bottom).toBe('-1px');
-      expect(bottomLeft.style.left).toBe('8px');
+      expect([
+        bottomLeft.style.position,
+
+        bottomLeft.style.bottom,
+
+        bottomLeft.style.left,
+      ]).toStrictEqual(['absolute', '-1px', '8px']);
 
       const bottomRight = screen.getByTestId('CORNER_BOTTOM_RIGHT');
 
@@ -175,8 +191,7 @@ describe('MapFrameWidget', () => {
 
       const bottomRight = screen.getByTestId('CORNER_BOTTOM_RIGHT');
 
-      expect(bottomRight.style.bottom).toBe('-1px');
-      expect(bottomRight.style.right).toBe('8px');
+      expect([bottomRight.style.bottom, bottomRight.style.right]).toStrictEqual(['-1px', '8px']);
     });
   });
 });

@@ -17,7 +17,7 @@ describe('topologicalDepthContract', () => {
   });
 
   describe('invalid depths', () => {
-    it('INVALID_VALUE: {value: -1} => throws validation error', () => {
+    it('INVALID: {value: -1} => throws validation error', () => {
       expect(() => topologicalDepthContract.parse(-1)).toThrow(/too_small/u);
     });
   });

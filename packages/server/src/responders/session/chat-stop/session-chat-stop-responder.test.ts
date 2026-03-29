@@ -32,7 +32,7 @@ describe('SessionChatStopResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', () => {
+    it('INVALID: {null params} => returns 400 with error', () => {
       const proxy = SessionChatStopResponderProxy();
 
       const result = proxy.callResponder({ params: null });
@@ -43,7 +43,7 @@ describe('SessionChatStopResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object params} => returns 400 with error', () => {
+    it('INVALID: {non-object params} => returns 400 with error', () => {
       const proxy = SessionChatStopResponderProxy();
 
       const result = proxy.callResponder({ params: 'not-an-object' });
@@ -54,7 +54,7 @@ describe('SessionChatStopResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing chatProcessId} => returns 400 with error', () => {
+    it('INVALID: {missing chatProcessId} => returns 400 with error', () => {
       const proxy = SessionChatStopResponderProxy();
 
       const result = proxy.callResponder({ params: {} });
@@ -65,7 +65,7 @@ describe('SessionChatStopResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {chatProcessId is number} => returns 400 with error', () => {
+    it('INVALID: {chatProcessId is number} => returns 400 with error', () => {
       const proxy = SessionChatStopResponderProxy();
 
       const result = proxy.callResponder({ params: { chatProcessId: 123 } });

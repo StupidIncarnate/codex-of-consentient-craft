@@ -17,8 +17,10 @@ describe('questItemDeepMergeTransformer', () => {
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
-      expect(result.id).toBe('flow-a');
-      expect(result.name).toBe('New Name');
+      const { id, name } = result;
+
+      expect(id).toBe('flow-a');
+      expect(name).toBe('New Name');
     });
   });
 

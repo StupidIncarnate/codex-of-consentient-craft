@@ -73,7 +73,7 @@ export const userFetchBroker = () => {};`,
 
     const result = metadataExtractorTransformer({ fileContents });
 
-    expect(result).toBeNull();
+    expect(result).toBe(null);
   });
 
   describe('spacing variations', () => {
@@ -229,7 +229,7 @@ export const userFetchBroker = () => {};`,
 
       const result = metadataExtractorTransformer({ fileContents });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing USAGE} => returns null', () => {
@@ -241,7 +241,7 @@ export const userFetchBroker = () => {};`,
 
       const result = metadataExtractorTransformer({ fileContents });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: {metadata comment not at start of file} => extracts metadata', () => {

@@ -27,7 +27,7 @@ test.describe('Guild Selection & Session Loading', () => {
     sessionsEmpty.cleanSessionFiles();
   });
 
-  test('click guild loads its session list', async ({ page, request }) => {
+  test('VALID: click guild loads its session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
 
     const sessionId = `e2e-session-guild-a-${Date.now()}`;
@@ -48,7 +48,7 @@ test.describe('Guild Selection & Session Loading', () => {
     await expect(page.getByText('Quest Alpha session')).toBeVisible();
   });
 
-  test('click guild with no quests shows empty state', async ({ page, request }) => {
+  test('EMPTY: click guild with no quests shows empty state', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Empty Guild', path: EMPTY_GUILD_PATH });
 
     await page.goto('/');
@@ -58,7 +58,7 @@ test.describe('Guild Selection & Session Loading', () => {
     await expect(page.getByText('No sessions yet')).toBeVisible();
   });
 
-  test('switch between guilds refreshes session list', async ({ page, request }) => {
+  test('EDGE: switch between guilds refreshes session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
     await guildHarness({ request }).createGuild({ name: 'Guild B', path: GUILD_B_PATH });
 

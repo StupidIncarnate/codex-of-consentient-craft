@@ -24,7 +24,7 @@ describe('SessionChatResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({
@@ -38,7 +38,7 @@ describe('SessionChatResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing sessionId} => returns 400 with error', async () => {
+    it('INVALID: {missing sessionId} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({
@@ -52,7 +52,7 @@ describe('SessionChatResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {null body} => returns 400 with error', async () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({
@@ -66,7 +66,7 @@ describe('SessionChatResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing message} => returns 400 with error', async () => {
+    it('INVALID: {missing message} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({
@@ -80,7 +80,7 @@ describe('SessionChatResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({
@@ -94,7 +94,7 @@ describe('SessionChatResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {empty message} => returns 400 with error', async () => {
+    it('INVALID: {empty message} => returns 400 with error', async () => {
       SessionChatResponderProxy();
 
       const result = await SessionChatResponder({

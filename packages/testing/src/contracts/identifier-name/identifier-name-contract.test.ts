@@ -29,7 +29,7 @@ describe('identifierNameContract', () => {
   });
 
   describe('invalid identifier names', () => {
-    it('INVALID_EMPTY: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return identifierNameContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);

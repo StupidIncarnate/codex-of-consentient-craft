@@ -89,6 +89,10 @@ interface RecursiveNodeOutput {
   elementType?: RecursiveNodeOutput | null | undefined;
   // ArrayExpression properties
   elements?: (RecursiveNodeOutput | null)[] | undefined;
+  // UnaryExpression properties
+  operator?: 'typeof' | 'void' | 'delete' | '!' | '-' | '+' | '~' | undefined;
+  // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
+  regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
 
 // Input type (before parsing)
@@ -151,6 +155,10 @@ interface RecursiveNodeInput {
   elementType?: RecursiveNodeInput | null | undefined;
   // ArrayExpression properties
   elements?: (RecursiveNodeInput | null)[] | undefined;
+  // UnaryExpression properties
+  operator?: 'typeof' | 'void' | 'delete' | '!' | '-' | '+' | '~' | undefined;
+  // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
+  regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
@@ -272,6 +280,10 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .optional(),
   // ArrayExpression properties
   elements: z.array(z.lazy(() => recursiveBase).nullable()).optional(),
+  // UnaryExpression properties
+  operator: z.enum(['typeof', 'void', 'delete', '!', '-', '+', '~']).optional(),
+  // Literal regex properties
+  regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
@@ -336,6 +348,10 @@ export const tsestreeContract = z.object({
   elementType: recursiveBase.nullable().optional(),
   // ArrayExpression properties
   elements: z.array(recursiveBase.nullable()).optional(),
+  // UnaryExpression properties
+  operator: z.enum(['typeof', 'void', 'delete', '!', '-', '+', '~']).optional(),
+  // Literal regex properties
+  regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

@@ -20,7 +20,7 @@ describe('questIdContract', () => {
     expect(id).toBe('feature-123');
   });
 
-  it('INVALID_ID: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return questIdContract.parse('');
     }).toThrow(/String must contain at least 1 character/u);

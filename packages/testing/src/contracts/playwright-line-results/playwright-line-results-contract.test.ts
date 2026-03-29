@@ -33,7 +33,7 @@ describe('playwrightLineResultsContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_PASSED: {passed: [empty string]} => throws validation error', () => {
+    it('INVALID: {passed: [empty string]} => throws validation error', () => {
       expect(() =>
         playwrightLineResultsContract.parse({
           passed: [''],
@@ -43,7 +43,7 @@ describe('playwrightLineResultsContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_TOTAL: {total: negative} => throws validation error', () => {
+    it('INVALID: {total: negative} => throws validation error', () => {
       expect(() =>
         playwrightLineResultsContract.parse({
           passed: [],

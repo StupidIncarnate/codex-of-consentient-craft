@@ -124,7 +124,7 @@ describe('violationsFindNewTransformer', () => {
       ]);
     });
 
-    it('COMPLEX: {oldViolations: [mixed], newViolations: [some removed, some added]} => returns only new violations', () => {
+    it('EDGE: {oldViolations: [mixed], newViolations: [some removed, some added]} => returns only new violations', () => {
       const oldViolations: ViolationCount[] = [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
         ViolationCountStub({ ruleId: '@typescript-eslint/ban-ts-comment', count: 2 }),

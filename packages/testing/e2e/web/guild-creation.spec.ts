@@ -2,7 +2,7 @@ import { test, expect } from '@dungeonmaster/testing/e2e';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 
 test.describe('Guild Creation Flow', () => {
-  test('empty state inline form has correct fields', async ({ page, request }) => {
+  test('EMPTY: empty state inline form has correct fields', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
@@ -15,7 +15,7 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByText('CANCEL')).not.toBeVisible();
   });
 
-  test('type name and path then CREATE succeeds', async ({ page, request }) => {
+  test('VALID: type name and path then CREATE succeeds', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
@@ -30,7 +30,7 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
   });
 
-  test('browse directory defaults to OS user home, not DUNGEONMASTER_HOME', async ({
+  test('VALID: browse directory defaults to OS user home, not DUNGEONMASTER_HOME', async ({
     page,
     request,
   }) => {
@@ -46,25 +46,25 @@ test.describe('Guild Creation Flow', () => {
     // Default path must be the real OS user home directory, not DUNGEONMASTER_HOME.
     // When DUNGEONMASTER_HOME is set (worktree isolation), the directory browser
     // must still show the actual filesystem home so users can pick project paths.
-    const pathText = await page.getByTestId('CURRENT_PATH_DISPLAY').textContent();
     const userHome = process.env.E2E_SERVER_HOME;
 
-    expect(pathText).toBe(userHome);
+    await expect(page.getByTestId('CURRENT_PATH_DISPLAY')).toHaveText(String(userHome));
 
     // Directory entries MUST be visible — the user home always has subdirectories
     const dirEntries = page.locator('[data-testid^="DIR_ENTRY_"]');
 
     await expect(dirEntries.first()).toBeVisible({ timeout: 3000 });
 
-    const count = await dirEntries.count();
-
-    expect(count).toBeGreaterThan(0);
+    await expect(dirEntries).not.toHaveCount(0);
 
     // "No subdirectories found" must NOT be shown
     await expect(page.getByTestId('EMPTY_DIRECTORY')).not.toBeVisible();
   });
 
-  test('browse directory navigate and select populates path input', async ({ page, request }) => {
+  test('VALID: browse directory navigate and select populates path input', async ({
+    page,
+    request,
+  }) => {
     await guildHarness({ request }).cleanGuilds();
     await page.goto('/');
 
@@ -91,13 +91,13 @@ test.describe('Guild Creation Flow', () => {
     // Modal closes, path input populated with selected directory
     await expect(page.getByText('Browse Directory')).not.toBeVisible();
 
-    const pathValue = await page.getByTestId('GUILD_PATH_INPUT').inputValue();
-
-    expect(pathValue.length).toBeGreaterThan(0);
-    expect(pathValue).toContain(String(entryName));
+    await expect(page.getByTestId('GUILD_PATH_INPUT')).not.toHaveValue('');
+    await expect(page.getByTestId('GUILD_PATH_INPUT')).toHaveValue(
+      new RegExp(String(entryName).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'), 'u'),
+    );
   });
 
-  test('main view + button shows inline form with CANCEL', async ({ page, request }) => {
+  test('VALID: main view + button shows inline form with CANCEL', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await guildHarness({ request }).createGuild({ name: 'Existing Guild', path: '/tmp/existing' });
 
@@ -126,7 +126,7 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByText('Existing Guild')).toBeVisible();
   });
 
-  test('main view + then CREATE adds new guild', async ({ page, request }) => {
+  test('VALID: main view + then CREATE adds new guild', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
     await guildHarness({ request }).createGuild({ name: 'Existing Guild', path: '/tmp/existing' });
 
@@ -142,7 +142,7 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByText('New Guild')).toBeVisible();
   });
 
-  test('CREATE with empty fields stays on form', async ({ page, request }) => {
+  test('INVALID: CREATE with empty fields stays on form', async ({ page, request }) => {
     await guildHarness({ request }).cleanGuilds();
 
     // Verify all guilds are actually deleted before proceeding

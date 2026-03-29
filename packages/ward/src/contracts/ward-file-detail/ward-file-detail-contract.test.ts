@@ -11,7 +11,7 @@ describe('wardFileDetailContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_VALUE: {value: number} => throws ZodError', () => {
+    it('INVALID: {value: number} => throws ZodError', () => {
       expect(() => wardFileDetailContract.parse(123 as never)).toThrow(/Expected string/u);
     });
   });

@@ -50,7 +50,7 @@ describe('dagTopologicalSortTransformer', () => {
   });
 
   describe('cyclic graphs', () => {
-    it('INVALID_CYCLE: {A <-> B mutual dependency} => returns partial (not all nodes)', () => {
+    it('INVALID: {A <-> B mutual dependency} => returns partial (not all nodes)', () => {
       const edgeA = DagEdgeStub({ id: 'node-a', dependsOn: ['node-b'] });
       const edgeB = DagEdgeStub({ id: 'node-b', dependsOn: ['node-a'] });
 
@@ -59,7 +59,7 @@ describe('dagTopologicalSortTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('INVALID_CYCLE: {self-dependency} => returns empty', () => {
+    it('INVALID: {self-dependency} => returns empty', () => {
       const edgeA = DagEdgeStub({ id: 'node-a', dependsOn: ['node-a'] });
 
       const result = dagTopologicalSortTransformer({ edges: [edgeA] });
@@ -67,7 +67,7 @@ describe('dagTopologicalSortTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('INVALID_CYCLE: {A -> B -> C -> A} => returns empty', () => {
+    it('INVALID: {A -> B -> C -> A} => returns empty', () => {
       const edgeA = DagEdgeStub({ id: 'node-a', dependsOn: ['node-c'] });
       const edgeB = DagEdgeStub({ id: 'node-b', dependsOn: ['node-a'] });
       const edgeC = DagEdgeStub({ id: 'node-c', dependsOn: ['node-b'] });

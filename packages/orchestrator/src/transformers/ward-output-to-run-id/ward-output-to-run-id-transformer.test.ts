@@ -43,7 +43,7 @@ describe('wardOutputToRunIdTransformer', () => {
 
       const result = wardOutputToRunIdTransformer({ output });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty output} => returns null', () => {
@@ -51,7 +51,7 @@ describe('wardOutputToRunIdTransformer', () => {
 
       const result = wardOutputToRunIdTransformer({ output });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

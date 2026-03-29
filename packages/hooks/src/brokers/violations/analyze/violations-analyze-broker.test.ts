@@ -81,12 +81,15 @@ describe('violationsAnalyzeBroker', () => {
 
     const result = violationsAnalyzeBroker({ oldResults, newResults });
 
-    expect(result.hasNewViolations).toBe(true);
-    expect(result.newViolations).toStrictEqual([
-      ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
-    ]);
-    expect(result.message).toMatch(/🛑 New code quality violations detected:/u);
-    expect(result.message).toMatch(/Code Quality Issue: 1 violation/u);
+    expect(result).toStrictEqual({
+      hasNewViolations: true,
+      newViolations: [
+        ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
+      ],
+      message: expect.stringMatching(
+        /^.*🛑 New code quality violations detected:.*Code Quality Issue: 1 violation.*$/su,
+      ),
+    });
   });
 
   it('INVALID: {oldResults: [1 any], newResults: [3 any, 1 ts-ignore]} => returns new violations with formatted message', () => {
@@ -151,41 +154,43 @@ describe('violationsAnalyzeBroker', () => {
 
     const result = violationsAnalyzeBroker({ oldResults, newResults });
 
-    expect(result.hasNewViolations).toBe(true);
-    expect(result.newViolations).toStrictEqual([
-      ViolationCountStub({
-        ruleId: '@typescript-eslint/no-explicit-any',
-        count: 2,
-        details: [
-          ViolationDetailStub({
-            ruleId: '@typescript-eslint/no-explicit-any',
-            line: 2,
-            column: 20,
-            message: 'Unexpected any. Specify a different type.',
-          }),
-          ViolationDetailStub({
-            ruleId: '@typescript-eslint/no-explicit-any',
-            line: 3,
-            column: 25,
-            message: 'Unexpected any. Specify a different type.',
-          }),
-        ],
-      }),
-      ViolationCountStub({
-        ruleId: '@typescript-eslint/ban-ts-comment',
-        count: 1,
-        details: [
-          ViolationDetailStub({
-            ruleId: '@typescript-eslint/ban-ts-comment',
-            line: 4,
-            column: 1,
-            message: 'Do not use "@ts-ignore" because it alters compilation errors.',
-          }),
-        ],
-      }),
-    ]);
-    expect(result.message).toMatch(/🛑 New code quality violations detected:/u);
-    expect(result.message).toMatch(/Code Quality Issue: 2 violations/u);
-    expect(result.message).toMatch(/Code Quality Issue: 1 violation/u);
+    expect(result).toStrictEqual({
+      hasNewViolations: true,
+      newViolations: [
+        ViolationCountStub({
+          ruleId: '@typescript-eslint/no-explicit-any',
+          count: 2,
+          details: [
+            ViolationDetailStub({
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 2,
+              column: 20,
+              message: 'Unexpected any. Specify a different type.',
+            }),
+            ViolationDetailStub({
+              ruleId: '@typescript-eslint/no-explicit-any',
+              line: 3,
+              column: 25,
+              message: 'Unexpected any. Specify a different type.',
+            }),
+          ],
+        }),
+        ViolationCountStub({
+          ruleId: '@typescript-eslint/ban-ts-comment',
+          count: 1,
+          details: [
+            ViolationDetailStub({
+              ruleId: '@typescript-eslint/ban-ts-comment',
+              line: 4,
+              column: 1,
+              message: 'Do not use "@ts-ignore" because it alters compilation errors.',
+            }),
+          ],
+        }),
+      ],
+      message: expect.stringMatching(
+        /^.*🛑 New code quality violations detected:.*Code Quality Issue: 2 violations.*Code Quality Issue: 1 violation.*$/su,
+      ),
+    });
   });
 });

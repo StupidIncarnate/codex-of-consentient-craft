@@ -1,7 +1,7 @@
 import { StartServer } from './start-server';
 
 describe('StartServer', () => {
-  it('exports a function', () => {
-    expect(typeof StartServer).toBe('function');
+  it('VALID: {export} => StartServer is a function', () => {
+    expect(StartServer).toStrictEqual(expect.any(Function));
   });
 });

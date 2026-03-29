@@ -64,7 +64,7 @@ describe('FlowsLayerWidget', () => {
         ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
       });
 
-      expect(screen.queryByTestId('FLOW_SCOPE')).toBeNull();
+      expect(screen.queryByTestId('FLOW_SCOPE')).toBe(null);
     });
 
     it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
@@ -91,7 +91,7 @@ describe('FlowsLayerWidget', () => {
         ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
       });
 
-      expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeNull();
+      expect(screen.queryByTestId('FLOW_DIAGRAM')).toBe(null);
     });
 
     it('EMPTY: {flows: []} => renders section with FLOWS header', () => {
@@ -102,7 +102,7 @@ describe('FlowsLayerWidget', () => {
         ui: <FlowsLayerWidget flows={flows} editing={false} onChange={jest.fn()} />,
       });
 
-      expect(screen.getByText('FLOWS')).toBeInTheDocument();
+      expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('FLOWS');
     });
   });
 

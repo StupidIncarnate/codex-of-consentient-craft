@@ -20,8 +20,11 @@ describe('streamLineToJsonLineTransformer', () => {
 
       const parsed = JSON.parse(result) as Record<PropertyKey, unknown>;
 
-      expect(parsed.type).toBe('system');
-      expect(parsed.subtype).toBe('init');
+      expect(parsed).toStrictEqual({
+        type: 'system',
+        subtype: 'init',
+        session_id: 'session-abc-123',
+      });
     });
   });
 
@@ -35,7 +38,13 @@ describe('streamLineToJsonLineTransformer', () => {
 
       const parsed = JSON.parse(result) as Record<PropertyKey, unknown>;
 
-      expect(parsed.type).toBe('assistant');
+      expect(parsed).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Hello, I can help with that.' }],
+        },
+      });
     });
   });
 
@@ -49,7 +58,13 @@ describe('streamLineToJsonLineTransformer', () => {
 
       const parsed = JSON.parse(result) as Record<PropertyKey, unknown>;
 
-      expect(parsed.type).toBe('result');
+      expect(parsed).toStrictEqual({
+        type: 'result',
+        session_id: 'session-123',
+        cost_usd: 0.003,
+        duration_ms: 1500,
+        num_turns: 3,
+      });
     });
   });
 });

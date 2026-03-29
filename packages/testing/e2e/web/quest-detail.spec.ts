@@ -16,7 +16,7 @@ test.describe('Quest Detail Navigation', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('click session item opens quest chat view', async ({ page, request }) => {
+  test('VALID: click session item opens quest chat view', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Test Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-detail-${Date.now()}`;
@@ -37,7 +37,7 @@ test.describe('Quest Detail Navigation', () => {
     await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
-  test('quest chat view has input and activity panel', async ({ page, request }) => {
+  test('VALID: quest chat view has input and activity panel', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Tab Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-tab-${Date.now()}`;
@@ -57,7 +57,7 @@ test.describe('Quest Detail Navigation', () => {
     await expect(page.getByTestId('QUEST_CHAT_DIVIDER')).toBeVisible();
   });
 
-  test('browser back returns to session list', async ({ page, request }) => {
+  test('EDGE: browser back returns to session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Back Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-back-${Date.now()}`;

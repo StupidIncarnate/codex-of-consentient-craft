@@ -17,8 +17,10 @@ describe('toolResponseContract', () => {
       success: false,
     });
 
-    expect(result.success).toBe(false);
-    expect(result.filePath).toBe('/src/test.ts');
+    expect(result).toStrictEqual({
+      filePath: '/src/test.ts',
+      success: false,
+    });
   });
 
   describe('invalid input', () => {

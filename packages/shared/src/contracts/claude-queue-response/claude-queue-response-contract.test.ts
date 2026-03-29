@@ -16,8 +16,10 @@ describe('claudeQueueResponseContract', () => {
         lines: [StreamJsonLineStub()],
       });
 
-      expect(result.sessionId).toBe(SessionIdStub());
-      expect(result.lines).toStrictEqual([StreamJsonLineStub()]);
+      expect(result).toStrictEqual({
+        sessionId: SessionIdStub(),
+        lines: [StreamJsonLineStub()],
+      });
     });
 
     it('VALID: {all fields} => parses response with all optional fields', () => {
@@ -28,8 +30,12 @@ describe('claudeQueueResponseContract', () => {
         delayMs: TimeoutMsStub(),
       });
 
-      expect(result.exitCode).toBe(ExitCodeStub());
-      expect(result.delayMs).toBe(TimeoutMsStub());
+      expect(result).toStrictEqual({
+        sessionId: SessionIdStub(),
+        lines: [],
+        exitCode: ExitCodeStub(),
+        delayMs: TimeoutMsStub(),
+      });
     });
   });
 
@@ -37,17 +43,19 @@ describe('claudeQueueResponseContract', () => {
     it('VALID: stub default => returns default response', () => {
       const response: ClaudeQueueResponse = ClaudeQueueResponseStub();
 
-      expect(response.sessionId).toBe('sess-stub-001');
-      expect(response.lines).toStrictEqual([]);
+      expect(response).toStrictEqual({
+        sessionId: 'sess-stub-001',
+        lines: [],
+      });
     });
   });
 
   describe('invalid responses', () => {
-    it('INVALID_TYPE: {sessionId: missing} => throws for missing sessionId', () => {
+    it('INVALID: {sessionId: missing} => throws for missing sessionId', () => {
       expect(() => claudeQueueResponseContract.parse({ lines: [] })).toThrow(/invalid_type/u);
     });
 
-    it('INVALID_TYPE: {lines: missing} => throws for missing lines', () => {
+    it('INVALID: {lines: missing} => throws for missing lines', () => {
       expect(() => claudeQueueResponseContract.parse({ sessionId: 'sess-1' })).toThrow(
         /invalid_type/u,
       );

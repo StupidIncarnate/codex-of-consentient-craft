@@ -7,6 +7,6 @@ describe('eslintPluginEslintCommentsLoadAdapter', () => {
 
     const result = eslintPluginEslintCommentsLoadAdapter();
 
-    expect(typeof result.rules).toBe('object');
+    expect('disable-enable-pair' in (result.rules as object)).toBe(true);
   });
 });

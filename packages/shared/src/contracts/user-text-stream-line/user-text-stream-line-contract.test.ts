@@ -36,7 +36,7 @@ describe('userTextStreamLineContract', () => {
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "assistant"} => throws validation error', () => {
+    it('INVALID: {type: "assistant"} => throws validation error', () => {
       expect(() => {
         userTextStreamLineContract.parse({
           type: 'assistant',
@@ -45,7 +45,7 @@ describe('userTextStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_ROLE: {role: "assistant"} => throws validation error', () => {
+    it('INVALID: {role: "assistant"} => throws validation error', () => {
       expect(() => {
         userTextStreamLineContract.parse({
           type: 'user',
@@ -54,7 +54,7 @@ describe('userTextStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_MISSING: {missing message} => throws validation error', () => {
+    it('INVALID: {missing message} => throws validation error', () => {
       expect(() => {
         userTextStreamLineContract.parse({
           type: 'user',

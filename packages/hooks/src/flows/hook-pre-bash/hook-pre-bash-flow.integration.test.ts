@@ -14,8 +14,11 @@ describe('HookPreBashFlow', () => {
 
       const result = HookPreBashFlow({ inputData });
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/Blocked: direct jest invocation/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Blocked: direct jest invocation.*$/su),
+      });
     });
 
     it('VALID: {inputData: piped ward command JSON} => returns exitCode 0 with updatedInput in stdout', () => {
@@ -30,15 +33,17 @@ describe('HookPreBashFlow', () => {
 
       const result = HookPreBashFlow({ inputData });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe('');
-      expect(JSON.parse(result.stdout)).toStrictEqual({
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          updatedInput: {
-            command: 'npm run ward -- --only unit',
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: {
+              command: 'npm run ward -- --only unit',
+            },
           },
-        },
+        }),
+        stderr: '',
       });
     });
 
@@ -54,15 +59,21 @@ describe('HookPreBashFlow', () => {
 
       const result = HookPreBashFlow({ inputData });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe('');
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
     });
 
     it('ERROR: {inputData: invalid JSON} => returns exitCode 1 with error in stderr', () => {
       const result = HookPreBashFlow({ inputData: 'not json' });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/u);
+      expect(result).toStrictEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+      });
     });
   });
 });

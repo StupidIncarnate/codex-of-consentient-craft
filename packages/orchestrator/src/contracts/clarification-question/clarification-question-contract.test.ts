@@ -37,7 +37,7 @@ describe('clarificationQuestionContract', () => {
   });
 
   describe('invalid questions', () => {
-    it('INVALID_QUESTION: {question: ""} => throws validation error', () => {
+    it('INVALID: {question: ""} => throws validation error', () => {
       expect(() =>
         clarificationQuestionContract.parse({
           question: '',
@@ -48,7 +48,7 @@ describe('clarificationQuestionContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_LABEL: {option with label: ""} => throws validation error', () => {
+    it('INVALID: {option with label: ""} => throws validation error', () => {
       expect(() =>
         clarificationQuestionContract.parse({
           question: 'Valid question',
@@ -59,7 +59,7 @@ describe('clarificationQuestionContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_MISSING_FIELDS: {missing question field} => throws validation error', () => {
+    it('INVALID: {missing question field} => throws validation error', () => {
       expect(() =>
         clarificationQuestionContract.parse({
           header: 'H',
@@ -69,7 +69,7 @@ describe('clarificationQuestionContract', () => {
       ).toThrow(/invalid_type/u);
     });
 
-    it('INVALID_TYPE: {multiSelect as string} => throws validation error', () => {
+    it('INVALID: {multiSelect as string} => throws validation error', () => {
       expect(() =>
         clarificationQuestionContract.parse({
           question: 'Q',

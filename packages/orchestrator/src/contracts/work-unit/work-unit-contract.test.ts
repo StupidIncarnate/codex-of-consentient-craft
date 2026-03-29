@@ -362,7 +362,7 @@ describe('workUnitContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID_ROLE: {lawbringer fields with codeweaver step} => throws validation error', () => {
+    it('INVALID: {lawbringer fields with codeweaver step} => throws validation error', () => {
       expect(() =>
         workUnitContract.parse({
           role: 'lawbringer',

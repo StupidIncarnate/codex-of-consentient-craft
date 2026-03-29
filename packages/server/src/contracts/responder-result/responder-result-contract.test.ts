@@ -20,7 +20,7 @@ describe('responderResultContract', () => {
     });
   });
 
-  it('INVALID_MULTIPLE: {missing status} => throws validation error', () => {
+  it('INVALID: {missing status} => throws validation error', () => {
     expect(() => {
       responderResultContract.parse({ data: 'test' });
     }).toThrow(/Required/u);

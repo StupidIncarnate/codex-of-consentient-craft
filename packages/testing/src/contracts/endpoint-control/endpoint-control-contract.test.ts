@@ -14,11 +14,13 @@ describe('endpointControlContract', () => {
     it('VALID: {defaults} => creates EndpointControl with all methods', () => {
       const control = EndpointControlStub();
 
-      expect(typeof control.resolves).toBe('function');
-      expect(typeof control.responds).toBe('function');
-      expect(typeof control.respondRaw).toBe('function');
-      expect(typeof control.networkError).toBe('function');
-      expect(typeof control.getRequestCount).toBe('function');
+      expect(control).toStrictEqual({
+        resolves: expect.any(Function),
+        responds: expect.any(Function),
+        respondRaw: expect.any(Function),
+        networkError: expect.any(Function),
+        getRequestCount: expect.any(Function),
+      });
     });
 
     it('VALID: {custom resolves} => creates EndpointControl with overridden method', () => {

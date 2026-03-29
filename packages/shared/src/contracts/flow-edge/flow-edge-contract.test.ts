@@ -31,13 +31,16 @@ describe('flowEdgeContract', () => {
         to: 'dashboard-flow:start',
       });
 
-      expect(edge.from).toBe('login-flow:end');
-      expect(edge.to).toBe('dashboard-flow:start');
+      expect(edge).toStrictEqual({
+        id: 'cross-flow-edge',
+        from: 'login-flow:end',
+        to: 'dashboard-flow:start',
+      });
     });
   });
 
   describe('invalid edges', () => {
-    it('INVALID_FROM: {from: ""} => throws validation error', () => {
+    it('INVALID: {from: ""} => throws validation error', () => {
       expect(() => {
         flowEdgeContract.parse({
           id: 'test-edge',
@@ -47,7 +50,7 @@ describe('flowEdgeContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_TO: {to: ""} => throws validation error', () => {
+    it('INVALID: {to: ""} => throws validation error', () => {
       expect(() => {
         flowEdgeContract.parse({
           id: 'test-edge',

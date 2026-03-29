@@ -9,8 +9,11 @@ describe('dungeonmaster-config-contract', () => {
         routing: 'react-router-dom',
       });
 
-      expect(config.framework).toBe('react');
-      expect(config.routing).toBe('react-router-dom');
+      expect(config).toStrictEqual({
+        framework: 'react',
+        routing: 'react-router-dom',
+        schema: 'zod',
+      });
     });
 
     it('VALID: minimal backend config => parses successfully', () => {
@@ -19,8 +22,11 @@ describe('dungeonmaster-config-contract', () => {
         routing: 'express',
       });
 
-      expect(config.framework).toBe('express');
-      expect(config.routing).toBe('express');
+      expect(config).toStrictEqual({
+        framework: 'express',
+        routing: 'express',
+        schema: 'zod',
+      });
     });
 
     it('VALID: minimal library config without routing => parses successfully', () => {
@@ -28,8 +34,10 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'node-library',
       });
 
-      expect(config.framework).toBe('node-library');
-      expect(config.routing).toBeUndefined();
+      expect(config).toStrictEqual({
+        framework: 'node-library',
+        schema: 'zod',
+      });
     });
   });
 
@@ -125,8 +133,29 @@ describe('dungeonmaster-config-contract', () => {
         },
       });
 
-      expect(parsed.framework).toBe('react');
-      expect(parsed.schema).toStrictEqual(['zod']);
+      expect(parsed).toStrictEqual({
+        framework: 'react',
+        routing: 'react-router-dom',
+        schema: ['zod'],
+        architecture: {
+          overrides: {
+            widgets: {
+              add: ['@mui/material', 'styled-components'],
+            },
+            bindings: {
+              add: ['react-query', 'swr'],
+            },
+            state: {
+              add: ['zustand', 'redux-toolkit'],
+            },
+            adapters: {
+              add: ['axios', 'fetch'],
+            },
+          },
+          allowedRootFiles: ['global.d.ts', 'vite-env.d.ts'],
+          booleanFunctionPrefixes: ['is', 'has', 'can', 'should'],
+        },
+      });
     });
 
     it('VALID: complex backend config => parses successfully through contract', () => {
@@ -151,8 +180,26 @@ describe('dungeonmaster-config-contract', () => {
         },
       });
 
-      expect(parsed.framework).toBe('fastify');
-      expect(parsed.schema).toBe('zod');
+      expect(parsed).toStrictEqual({
+        framework: 'fastify',
+        routing: 'fastify',
+        schema: 'zod',
+        architecture: {
+          overrides: {
+            brokers: {
+              add: ['prisma', 'mongoose'],
+            },
+            adapters: {
+              add: ['redis', 'bullmq'],
+            },
+            middleware: {
+              add: ['helmet', 'cors'],
+            },
+          },
+          allowedRootFiles: ['global.d.ts', 'server.d.ts'],
+          booleanFunctionPrefixes: ['is', 'has', 'validate', 'check'],
+        },
+      });
     });
 
     it('VALID: library config with overrides => parses successfully through contract', () => {
@@ -173,8 +220,22 @@ describe('dungeonmaster-config-contract', () => {
         },
       });
 
-      expect(parsed.framework).toBe('node-library');
-      expect(parsed.routing).toBeUndefined();
+      expect(parsed).toStrictEqual({
+        framework: 'node-library',
+        schema: ['zod'],
+        architecture: {
+          overrides: {
+            contracts: {
+              add: ['json-schema'],
+            },
+            transformers: {
+              add: ['lodash', 'ramda'],
+            },
+          },
+          allowedRootFiles: ['global.d.ts', 'index.d.ts'],
+          booleanFunctionPrefixes: ['is', 'has'],
+        },
+      });
     });
   });
 
@@ -185,8 +246,11 @@ describe('dungeonmaster-config-contract', () => {
         routing: '@angular/router',
       });
 
-      expect(config.framework).toBe('angular');
-      expect(config.routing).toBe('@angular/router');
+      expect(config).toStrictEqual({
+        framework: 'angular',
+        routing: '@angular/router',
+        schema: 'zod',
+      });
     });
 
     it('VALID: Vue config => parses successfully', () => {
@@ -195,8 +259,11 @@ describe('dungeonmaster-config-contract', () => {
         routing: 'vue-router',
       });
 
-      expect(config.framework).toBe('vue');
-      expect(config.routing).toBe('vue-router');
+      expect(config).toStrictEqual({
+        framework: 'vue',
+        routing: 'vue-router',
+        schema: 'zod',
+      });
     });
 
     it('VALID: Svelte config without routing => parses successfully', () => {
@@ -204,8 +271,10 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'svelte',
       });
 
-      expect(config.framework).toBe('svelte');
-      expect(config.routing).toBeUndefined();
+      expect(config).toStrictEqual({
+        framework: 'svelte',
+        schema: 'zod',
+      });
     });
 
     it('VALID: CLI config without routing => parses successfully', () => {
@@ -213,8 +282,10 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'cli',
       });
 
-      expect(config.framework).toBe('cli');
-      expect(config.routing).toBeUndefined();
+      expect(config).toStrictEqual({
+        framework: 'cli',
+        schema: 'zod',
+      });
     });
 
     it('VALID: Ink CLI config without routing => parses successfully', () => {
@@ -222,8 +293,10 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'ink-cli',
       });
 
-      expect(config.framework).toBe('ink-cli');
-      expect(config.routing).toBeUndefined();
+      expect(config).toStrictEqual({
+        framework: 'ink-cli',
+        schema: 'zod',
+      });
     });
 
     it('VALID: Monorepo config without routing => parses successfully', () => {
@@ -231,8 +304,10 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'monorepo',
       });
 
-      expect(config.framework).toBe('monorepo');
-      expect(config.routing).toBeUndefined();
+      expect(config).toStrictEqual({
+        framework: 'monorepo',
+        schema: 'zod',
+      });
     });
   });
 
@@ -357,7 +432,7 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'react',
       });
 
-      expect(config.orchestration).toBeUndefined();
+      expect(config.orchestration).toBe(undefined);
     });
 
     it('VALID: config with orchestration slotCount and timeoutMs => parses successfully', () => {
@@ -370,8 +445,10 @@ describe('dungeonmaster-config-contract', () => {
         },
       });
 
-      expect(parsed.orchestration?.slotCount).toBe(5);
-      expect(parsed.orchestration?.timeoutMs).toBe(120000);
+      expect(parsed.orchestration).toStrictEqual({
+        slotCount: 5,
+        timeoutMs: 120000,
+      });
     });
 
     it('VALID: config with orchestration defaults => applies default values', () => {
@@ -381,8 +458,10 @@ describe('dungeonmaster-config-contract', () => {
         orchestration: {},
       });
 
-      expect(parsed.orchestration?.slotCount).toBe(3);
-      expect(parsed.orchestration?.timeoutMs).toBe(900000);
+      expect(parsed.orchestration).toStrictEqual({
+        slotCount: 3,
+        timeoutMs: 900000,
+      });
     });
 
     it('VALID: config with minimum slotCount => parses successfully', () => {

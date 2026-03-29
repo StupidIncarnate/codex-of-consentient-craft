@@ -87,7 +87,7 @@ describe('toolInputGetContentChangesBroker', () => {
       ]);
     });
 
-    it('BUG: EditToolInput with full file context => should return full file content before and after edit for proper linting', async () => {
+    it('EDGE: EditToolInput with full file context => should return full file content before and after edit for proper linting', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
       const existingFileContent = `function test(param: string): void {
   console.log(param);

@@ -66,17 +66,16 @@ describe('websocketConnectAdapter', () => {
       expect(onOpen).toHaveBeenCalledTimes(2);
     });
 
-    it('VALID: {server closes without onOpen} => reconnect does not throw', () => {
+    it('VALID: {server closes without onOpen} => reconnect creates new socket', () => {
       const proxy = websocketConnectAdapterProxy();
       const onMessage = jest.fn();
 
       websocketConnectAdapter({ url: 'ws://localhost:3001/ws', onMessage });
 
       proxy.triggerClose();
+      proxy.triggerReconnect();
 
-      expect(() => {
-        proxy.triggerReconnect();
-      }).not.toThrow();
+      expect(globalThis.WebSocket).toHaveBeenCalledTimes(2);
     });
 
     it('VALID: {close called then server closes} => does not schedule reconnect', () => {
@@ -103,8 +102,7 @@ describe('websocketConnectAdapter', () => {
 
       const socket = proxy.getSocket();
 
-      expect(socket.send).toHaveBeenCalledTimes(1);
-      expect(socket.send).toHaveBeenCalledWith('{"type":"test","value":"hello"}');
+      expect(socket.send.mock.calls).toStrictEqual([['{"type":"test","value":"hello"}']]);
     });
 
     it('EDGE: {socket not open} => does not send', () => {
@@ -133,13 +131,16 @@ describe('websocketConnectAdapter', () => {
       expect(onOpen).toHaveBeenCalledTimes(1);
     });
 
-    it('EDGE: {onOpen not provided} => does not throw when socket opens', () => {
+    it('EDGE: {onOpen not provided} => returns connection object when socket opens', () => {
       websocketConnectAdapterProxy();
       const onMessage = jest.fn();
 
-      expect(() => {
-        websocketConnectAdapter({ url: 'ws://localhost:3001/ws', onMessage });
-      }).not.toThrow();
+      const result = websocketConnectAdapter({ url: 'ws://localhost:3001/ws', onMessage });
+
+      expect(result).toStrictEqual({
+        close: expect.any(Function),
+        send: expect.any(Function),
+      });
     });
   });
 });

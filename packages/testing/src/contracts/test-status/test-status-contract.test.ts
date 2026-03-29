@@ -17,7 +17,7 @@ describe('testStatusContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_VALUE: {value: "unknown"} => throws validation error', () => {
+    it('INVALID: {value: "unknown"} => throws validation error', () => {
       expect(() => {
         return testStatusContract.parse('unknown');
       }).toThrow(/Invalid enum value/u);
