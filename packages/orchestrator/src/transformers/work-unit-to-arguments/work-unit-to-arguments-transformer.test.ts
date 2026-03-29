@@ -347,7 +347,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/Dev Server URL:/u);
+      expect(result).not.toContain('Dev Server URL:');
     });
 
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {

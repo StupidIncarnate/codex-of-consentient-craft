@@ -9,7 +9,7 @@ const BUILD_COMMAND = 'npm run build';
 describe('buildPreflightLoopLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof buildPreflightLoopLayerBroker).toBe('function');
+      expect(buildPreflightLoopLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 
