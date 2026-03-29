@@ -77,5 +77,10 @@ devServer: {
 - `.not.` negated matchers (`.not.toMatch`, `.not.toBe`, `.not.toContain`, etc.) — negated assertions prove what something ISN'T, not what it IS. A test that says "the result is not X" passes for infinite wrong values. Tests must assert the positive — what the value actually equals. If the test needs to verify absence, assert on the complete state instead (e.g. assert the full array with `toStrictEqual` rather than `.not.toContain` a single element).
 - `expect(true).toBe(true)` and any variant (`expect(false).toBe(false)`, `expect(1).toBe(1)`, etc.) — these are placeholder assertions that prove nothing happened. Every test must assert that something actually occurred. If the test verifies a side effect (function called, file written, event emitted), use `registerMock` to capture the call and assert on it with `toHaveBeenCalledWith`. If the test verifies a return value, assert on the actual return. There is no valid case for a tautological assertion.
 
+**Also ban:**
+
+- expect(Object.keys(spiritmenderContextStatics.lawbringerFailure)).toStrictEqual(). It shouldnt be using keys to bypass
+  the expect.
+
 **Docs cleanup:** When implementing these bans, also audit and update all standard docs (`CLAUDE.md` files, `get-testing-patterns` MCP output, agent prompts in `packages/orchestrator/src/statics/`) to remove any examples or guidance that use the banned patterns. Docs that show `expect.any(Object)` or `toHaveBeenCalled()` as valid patterns will cause agents to keep producing banned code.
 
