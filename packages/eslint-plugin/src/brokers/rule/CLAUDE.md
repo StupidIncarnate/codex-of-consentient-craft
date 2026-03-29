@@ -80,7 +80,7 @@ ruleTester.run('rule-name', myRuleBroker(), {
 - **No describe/it blocks** - Use `ruleTester.run()` with `valid` and `invalid` arrays
 - **Integration tests** - ESLint parses real code and validates AST selectors
 - **Mocking adapters** - Mock underlying adapters (e.g., `fsExistsSyncAdapter`) using `beforeEach()`
-- **Mock at adapter level** - Use `jest.mock('../../../adapters/...')`, not npm packages directly
+- **Mock at adapter level** - Use `registerMock` from `@dungeonmaster/testing/register-mock` to mock adapters
 
 ## When to Mock
 
@@ -88,10 +88,9 @@ Mock file system checks and external dependencies that rules need for validation
 
 ```typescript
 import {fsExistsSyncAdapter} from '../../../adapters/fs/fs-exists-sync';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 
-jest.mock('../../../adapters/fs/fs-exists-sync');
-
-const mockFsExistsSync = jest.mocked(fsExistsSyncAdapter);
+const mockFsExistsSync = registerMock({fn: fsExistsSyncAdapter});
 
 beforeEach(() => {
     mockFsExistsSync.mockImplementation(({filePath}) => {

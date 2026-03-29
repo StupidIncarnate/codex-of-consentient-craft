@@ -125,7 +125,7 @@ export const httpTelemetryMiddlewareProxy = () => {
     const logProxy = winstonLogAdapterProxy();
     const metricsProxy = prometheusIncrementCounterAdapterProxy();
 
-    // NO jest.mocked(middleware) - middleware runs real!
+    // NO mocking of middleware - middleware runs real!
 
     return {
         // Semantic setup delegates to both adapters

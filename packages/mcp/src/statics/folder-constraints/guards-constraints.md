@@ -154,7 +154,7 @@ type User = ReturnType<typeof UserStub>;
 type UserId = ReturnType<typeof UserIdStub>;
 
 export const hasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real in tests
+    // NO mocking of guard - guard runs real in tests
 
     return {
         // Semantic helper for "own profile" path
