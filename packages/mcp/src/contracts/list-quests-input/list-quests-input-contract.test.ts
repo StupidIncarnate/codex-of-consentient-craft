@@ -25,13 +25,13 @@ describe('listQuestsInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_GUILD_ID: {guildId: "not-a-uuid"} => throws validation error', () => {
+    it('INVALID: {guildId: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
         listQuestsInputContract.parse({ guildId: 'not-a-uuid' });
       }).toThrow(/Invalid uuid/u);
     });
 
-    it('INVALID_GUILD_ID: {guildId: missing} => throws validation error', () => {
+    it('INVALID: {guildId: missing} => throws validation error', () => {
       expect(() => {
         listQuestsInputContract.parse({});
       }).toThrow(/Required/u);

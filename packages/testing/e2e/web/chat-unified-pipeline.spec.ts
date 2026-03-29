@@ -24,7 +24,7 @@ test.describe('Unified JSONL Pipeline', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('chat entries reload via WS replay after navigating away and back', async ({
+  test('EDGE: chat entries reload via WS replay after navigating away and back', async ({
     page,
     request,
   }) => {
@@ -80,7 +80,10 @@ test.describe('Unified JSONL Pipeline', () => {
     expect(httpChatHistoryRequests).toHaveLength(0);
   });
 
-  test('page refresh replays assistant response via WS history', async ({ page, request }) => {
+  test('EDGE: page refresh replays assistant response via WS history', async ({
+    page,
+    request,
+  }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Refresh Guild',
       path: GUILD_PATH,
@@ -130,7 +133,7 @@ test.describe('Unified JSONL Pipeline', () => {
     expect(httpChatHistoryRequests).toHaveLength(0);
   });
 
-  test('live streaming entries arrive via unified processor', async ({ page, request }) => {
+  test('VALID: live streaming entries arrive via unified processor', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Stream Guild',
       path: GUILD_PATH,
@@ -161,7 +164,7 @@ test.describe('Unified JSONL Pipeline', () => {
     });
   });
 
-  test('sub-agent entries appear in replayed session history', async ({ page, request }) => {
+  test('VALID: sub-agent entries appear in replayed session history', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Subagent Guild',
       path: GUILD_PATH,
@@ -205,7 +208,7 @@ test.describe('Unified JSONL Pipeline', () => {
     await expect(page.getByText('Sub-agent output text')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
-  test('old HTTP chat history endpoint returns 404', async ({ request }) => {
+  test('ERROR: old HTTP chat history endpoint returns 404', async ({ request }) => {
     const response = await request.get('/api/sessions/fake-session-id/chat/history');
 
     expect(response.status()).toBe(HTTP_NOT_FOUND);

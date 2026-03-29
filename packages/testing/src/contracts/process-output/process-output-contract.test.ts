@@ -38,13 +38,13 @@ describe('processOutputContract', () => {
   });
 
   describe('invalid process output', () => {
-    it('INVALID_PROCESS_OUTPUT: {value: 123} => throws validation error for number', () => {
+    it('INVALID: {value: 123} => throws validation error for number', () => {
       expect(() => {
         return processOutputContract.parse(123 as never);
       }).toThrow(/string/iu);
     });
 
-    it('INVALID_PROCESS_OUTPUT: {value: null} => throws validation error for null', () => {
+    it('INVALID: {value: null} => throws validation error for null', () => {
       expect(() => {
         return processOutputContract.parse(null as never);
       }).toThrow(/string/iu);

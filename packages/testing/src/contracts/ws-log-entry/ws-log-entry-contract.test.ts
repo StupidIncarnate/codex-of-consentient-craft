@@ -45,7 +45,7 @@ describe('wsLogEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_DIRECTION: {direction: "unknown"} => throws validation error', () => {
+    it('INVALID: {direction: "unknown"} => throws validation error', () => {
       expect(() => {
         return wsLogEntryContract.parse({
           direction: 'unknown',
@@ -55,7 +55,7 @@ describe('wsLogEntryContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_DATA: {data: number} => throws validation error', () => {
+    it('INVALID: {data: number} => throws validation error', () => {
       expect(() => {
         return wsLogEntryContract.parse({
           direction: 'received',
@@ -65,7 +65,7 @@ describe('wsLogEntryContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_ELAPSED: {elapsedMs: -1} => throws validation error', () => {
+    it('INVALID: {elapsedMs: -1} => throws validation error', () => {
       expect(() => {
         return wsLogEntryContract.parse({
           direction: 'received',
@@ -75,7 +75,7 @@ describe('wsLogEntryContract', () => {
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return wsLogEntryContract.parse({});
       }).toThrow(/Required/u);

@@ -135,13 +135,13 @@ describe('workItemContract', () => {
   });
 
   describe('invalid work items', () => {
-    it('INVALID: missing required fields => throws validation error', () => {
+    it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID: non-uuid id => throws validation error', () => {
+    it('INVALID: {non-uuid id} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'not-a-uuid',
@@ -153,7 +153,7 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid uuid/u);
     });
 
-    it('INVALID: unknown role => throws validation error', () => {
+    it('INVALID: {unknown role} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -165,7 +165,7 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID: unknown status => throws validation error', () => {
+    it('INVALID: {unknown status} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -177,7 +177,7 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID: invalid createdAt timestamp => throws validation error', () => {
+    it('INVALID: {invalid createdAt timestamp} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -189,7 +189,7 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID: invalid relatedDataItem format => throws validation error', () => {
+    it('INVALID: {invalid relatedDataItem format} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -202,7 +202,7 @@ describe('workItemContract', () => {
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
-    it('INVALID_WARD_MODE: invalid wardMode => throws validation error', () => {
+    it('INVALID: {invalid wardMode} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -215,7 +215,7 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_ATTEMPT: negative attempt => throws validation error', () => {
+    it('INVALID: {negative attempt} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -228,7 +228,7 @@ describe('workItemContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MAX_ATTEMPTS: zero maxAttempts => throws validation error', () => {
+    it('INVALID: {zero maxAttempts} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

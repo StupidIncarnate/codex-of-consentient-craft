@@ -134,7 +134,6 @@ describe('computeAllowedImportsTransformer', () => {
 
       const result = computeAllowedImportsTransformer({ config });
 
-      expect(result.flows).toBeNull();
       expect(result).toStrictEqual({
         widgets: null,
         bindings: null,
@@ -192,7 +191,6 @@ describe('computeAllowedImportsTransformer', () => {
 
       const result = computeAllowedImportsTransformer({ config });
 
-      expect(result.flows).toStrictEqual([]);
       expect(result).toStrictEqual({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
@@ -218,8 +216,6 @@ describe('computeAllowedImportsTransformer', () => {
 
       const result = computeAllowedImportsTransformer({ config });
 
-      // Routing should not be added when flows is null
-      expect(result.flows).toBeNull();
       expect(result).toStrictEqual({
         widgets: null,
         bindings: null,

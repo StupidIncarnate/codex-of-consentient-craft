@@ -35,13 +35,13 @@ describe('questContractKindContract', () => {
   });
 
   describe('invalid kinds', () => {
-    it('INVALID_KIND: {value: "invalid"} => throws validation error', () => {
+    it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questContractKindContract.parse('invalid');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_KIND: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return questContractKindContract.parse('');
       }).toThrow(/Invalid enum value/u);

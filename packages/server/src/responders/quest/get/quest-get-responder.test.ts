@@ -47,7 +47,7 @@ describe('QuestGetResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = QuestGetResponderProxy();
 
       const result = await proxy.callResponder({ params: null, query: {} });
@@ -58,7 +58,7 @@ describe('QuestGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object params} => returns 400 with error', async () => {
+    it('INVALID: {non-object params} => returns 400 with error', async () => {
       const proxy = QuestGetResponderProxy();
 
       const result = await proxy.callResponder({ params: 'not-an-object', query: {} });
@@ -69,7 +69,7 @@ describe('QuestGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing questId} => returns 400 with error', async () => {
+    it('INVALID: {missing questId} => returns 400 with error', async () => {
       const proxy = QuestGetResponderProxy();
 
       const result = await proxy.callResponder({ params: {}, query: {} });
@@ -80,7 +80,7 @@ describe('QuestGetResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {questId is number} => returns 400 with error', async () => {
+    it('INVALID: {questId is number} => returns 400 with error', async () => {
       const proxy = QuestGetResponderProxy();
 
       const result = await proxy.callResponder({ params: { questId: 123 }, query: {} });

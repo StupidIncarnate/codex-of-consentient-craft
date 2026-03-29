@@ -29,19 +29,19 @@ describe('baseNameContract', () => {
   });
 
   describe('invalid base names', () => {
-    it('INVALID_EMPTY: "" => throws validation error', () => {
+    it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_TYPE: null => throws validation error', () => {
+    it('INVALID: null => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse(null);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_TYPE: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse(undefined);
       }).toThrow(/Required/u);

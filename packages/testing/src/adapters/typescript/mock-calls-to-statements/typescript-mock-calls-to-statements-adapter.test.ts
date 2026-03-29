@@ -29,8 +29,11 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u)]);
-      expect(outputs[0]).toMatch(/Auto-hoisted from.*test\.proxy\.ts/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /^[\s\S]*uto-hoisted from[\s\S]*test\.proxy\.ts[\s\S]*jest\.mock\(['"]fs['"]\)/u,
+        ),
+      ]);
     });
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
@@ -54,8 +57,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]axios['"]/u)]);
-      expect(outputs[0]).toMatch(/get.*jest\.fn/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]axios['"][\s\S]*et[\s\S]*jest\.fn/u),
+      ]);
     });
 
     it('VALID: {factory with nested property access} => clones correctly', () => {
@@ -79,9 +83,11 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]/u)]);
-      expect(outputs[0]).toMatch(/readFile.*jest\.fn/u);
-      expect(outputs[0]).toMatch(/mockResolvedValue/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /^[\s\S]*jest\.mock\(['"]fs['"][\s\S]*eadFile[\s\S]*jest\.fn[\s\S]*ockResolvedValue/u,
+        ),
+      ]);
     });
 
     it('VALID: {factory with spread assignment} => clones correctly', () => {
@@ -105,8 +111,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/\.\.\.actualConfig/u)]);
-      expect(outputs[0]).toMatch(/override.*true/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(/^[\s\S]*\.\.\.actualConfig[\s\S]*verride[\s\S]*true/u),
+      ]);
     });
 
     it('VALID: {factory with arrow function parameters} => clones correctly', () => {
@@ -130,8 +137,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/fetch.*url/u)]);
-      expect(outputs[0]).toMatch(/json/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*fetch[\s\S]*url[\s\S]*son/u)]);
     });
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {

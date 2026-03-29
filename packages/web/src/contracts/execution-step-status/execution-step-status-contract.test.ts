@@ -53,11 +53,11 @@ describe('executionStepStatusContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "unknown"} => throws for invalid status', () => {
+    it('INVALID: {value: "unknown"} => throws for invalid status', () => {
       expect(() => executionStepStatusContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: 123} => throws for number', () => {
+    it('INVALID: {value: 123} => throws for number', () => {
       expect(() => executionStepStatusContract.parse(123)).toThrow(/received number/u);
     });
   });

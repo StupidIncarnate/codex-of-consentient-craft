@@ -21,7 +21,7 @@ describe('fileNameContract', () => {
   });
 
   describe('invalid file names', () => {
-    it('INVALID_FILE_NAME: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return fileNameContract.parse(123 as never);
       }).toThrow(/Expected string/u);

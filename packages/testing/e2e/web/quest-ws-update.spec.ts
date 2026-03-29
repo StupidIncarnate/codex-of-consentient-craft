@@ -25,7 +25,7 @@ test.describe('Quest WS Update', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('spec panel appears via WebSocket when quest gains content after page load', async ({
+  test('VALID: spec panel appears via WebSocket when quest gains content after page load', async ({
     page,
     request,
   }) => {
@@ -96,7 +96,7 @@ test.describe('Quest WS Update', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('spec panel updates with new flows added via WS after initial render', async ({
+  test('VALID: spec panel updates with new flows added via WS after initial render', async ({
     page,
     request,
   }) => {
@@ -167,7 +167,7 @@ test.describe('Quest WS Update', () => {
     await expect(page.getByText('Live WS Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('spec panel appears when quest is linked mid-chat via quest-session-linked WS event', async ({
+  test('VALID: spec panel appears when quest is linked mid-chat via quest-session-linked WS event', async ({
     page,
     request,
   }) => {

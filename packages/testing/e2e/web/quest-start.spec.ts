@@ -18,7 +18,7 @@ test.describe('Quest Start Pipeline', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
+  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -59,7 +59,7 @@ test.describe('Quest Start Pipeline', () => {
 
     const startData = await startResponse.json();
 
-    expect(startData.processId).toBeTruthy();
+    expect(startData.processId).toBe(true);
 
     const questResponse = await request.get(`/api/quests/${questId}`);
 
@@ -70,7 +70,7 @@ test.describe('Quest Start Pipeline', () => {
     expect(questData.quest.status).toBe('in_progress');
   });
 
-  test('POST /api/quests/:questId/start launches pipeline (process is registered)', async ({
+  test('VALID: POST /api/quests/:questId/start launches pipeline (process is registered)', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -117,7 +117,11 @@ test.describe('Quest Start Pipeline', () => {
 
     const status = await statusResponse.json();
 
-    expect(status.processId).toBe(processId);
-    expect(status.questId).toBe(questId);
+    expect(status).toStrictEqual(
+      expect.objectContaining({
+        processId,
+        questId,
+      }),
+    );
   });
 });

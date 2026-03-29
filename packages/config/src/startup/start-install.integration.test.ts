@@ -22,9 +22,11 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('created');
-      expect(configContent).toMatch(/"framework": "node"/u);
+      expect({ success: result.success, action: result.action }).toStrictEqual({
+        success: true,
+        action: 'created',
+      });
+      expect(configContent).toMatch(/^.*"framework": "node".*$/mu);
     });
   });
 });

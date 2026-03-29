@@ -98,7 +98,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
   });
 
   describe('invalid contracts', () => {
-    it('INVALID_TYPE: {property using string type} => returns false', () => {
+    it('INVALID: {property using string type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([createPropertyWithRawType({ name: 'name', type: 'string' })]),
       ];
@@ -108,7 +108,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {property using number type} => returns false', () => {
+    it('INVALID: {property using number type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([createPropertyWithRawType({ name: 'age', type: 'number' })]),
       ];
@@ -118,7 +118,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {property using any type} => returns false', () => {
+    it('INVALID: {property using any type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([createPropertyWithRawType({ name: 'data', type: 'any' })]),
       ];
@@ -128,7 +128,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {property using object type} => returns false', () => {
+    it('INVALID: {property using object type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([createPropertyWithRawType({ name: 'config', type: 'object' })]),
       ];
@@ -138,7 +138,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {property using unknown type} => returns false', () => {
+    it('INVALID: {property using unknown type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([
           createPropertyWithRawType({ name: 'payload', type: 'unknown' }),
@@ -150,7 +150,7 @@ describe('questContractHasNoRawPrimitivesGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {deeply nested property using string type} => returns false', () => {
+    it('INVALID: {deeply nested property using string type} => returns false', () => {
       const contracts = [
         createEntryWithProperties([
           createPropertyWithRawType({

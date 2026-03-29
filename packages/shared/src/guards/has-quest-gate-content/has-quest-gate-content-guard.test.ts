@@ -14,7 +14,7 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('INVALID_FLOWS: {quest with empty flows, nextStatus: flows_approved} => returns false', () => {
+    it('INVALID: {quest with empty flows, nextStatus: flows_approved} => returns false', () => {
       const quest = QuestStub({ flows: [] });
       const nextStatus = QuestStatusStub({ value: 'flows_approved' });
 
@@ -34,7 +34,7 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('INVALID_FLOWS: {quest with empty flows, nextStatus: approved} => returns false', () => {
+    it('INVALID: {quest with empty flows, nextStatus: approved} => returns false', () => {
       const quest = QuestStub({ flows: [] });
       const nextStatus = QuestStatusStub({ value: 'approved' });
 
@@ -54,7 +54,7 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('INVALID_FLOWS: {quest with empty flows, nextStatus: design_approved} => returns false', () => {
+    it('INVALID: {quest with empty flows, nextStatus: design_approved} => returns false', () => {
       const quest = QuestStub({ flows: [] });
       const nextStatus = QuestStatusStub({ value: 'design_approved' });
 

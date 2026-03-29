@@ -18,8 +18,11 @@ describe('violationComparisonContract', () => {
       message: 'Found 2 new violations',
     });
 
-    expect(result.hasNewViolations).toBe(true);
-    expect(result.message).toBe('Found 2 new violations');
+    expect(result).toStrictEqual({
+      hasNewViolations: true,
+      newViolations: [],
+      message: 'Found 2 new violations',
+    });
   });
 
   it('VALID: {without message} => parses successfully', () => {
@@ -27,7 +30,7 @@ describe('violationComparisonContract', () => {
       message: undefined,
     });
 
-    expect(result.message).toBeUndefined();
+    expect(result.message).toBe(undefined);
   });
 
   describe('invalid input', () => {

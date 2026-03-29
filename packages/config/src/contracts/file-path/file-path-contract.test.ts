@@ -33,19 +33,19 @@ describe('filePathContract', () => {
   });
 
   describe('invalid file paths', () => {
-    it('INVALID_EMPTY: "" => throws validation error', () => {
+    it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return filePathContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_TYPE: 123 => throws validation error', () => {
+    it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return filePathContract.parse(123);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_UNDEFINED: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return filePathContract.parse(undefined);
       }).toThrow(/Required/u);

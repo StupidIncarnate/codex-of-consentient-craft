@@ -34,7 +34,7 @@ describe('pre-edit-lint', () => {
   describe('process smoke tests', () => {
     const runner = hookRunnerHarness();
 
-    it('SMOKE: success path via spawnSync => returns exit code 0', () => {
+    it('VALID: success path via spawnSync => returns exit code 0', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'smoke-success' }),
         baseDir: BASE_DIR,
@@ -63,7 +63,7 @@ describe('pre-edit-lint', () => {
       });
     });
 
-    it('SMOKE: failure path via spawnSync => returns exit code 2', () => {
+    it('VALID: failure path via spawnSync => returns exit code 2', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'smoke-failure' }),
         baseDir: BASE_DIR,
@@ -83,8 +83,11 @@ describe('pre-edit-lint', () => {
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+      });
     });
   });
 
@@ -177,7 +180,7 @@ describe('pre-edit-lint', () => {
     });
 
     describe('failure cases', () => {
-      it('INVALID_ANY: {content: new explicit any type} => returns exit code 2', async () => {
+      it('INVALID: {content: new explicit any type} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
           baseName: BaseNameStub({ value: 'any-violation-write' }),
           baseDir: BASE_DIR,
@@ -197,28 +200,32 @@ describe('pre-edit-lint', () => {
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-        expect(result.stderr).toMatch(/Type Safety Violation/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(
+            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+          ),
+        });
       });
 
       it.each([
         {
-          label: 'INVALID_TS_IGNORE: {content: @ts-ignore comment}',
+          label: 'INVALID: {content: @ts-ignore comment}',
           baseName: 'ts-ignore-write',
           content: `// @ts-ignore
 export function test(): void {}`,
           expectedPattern: /Type Error Suppression/u,
         },
         {
-          label: 'INVALID_TS_EXPECT_ERROR: {content: @ts-expect-error comment}',
+          label: 'INVALID: {content: @ts-expect-error comment}',
           baseName: 'ts-expect-error-write',
           content: `// @ts-expect-error
 export function test(): void {}`,
           expectedPattern: /Type Error Suppression/u,
         },
         {
-          label: 'INVALID_ESLINT_DISABLE: {content: eslint-disable comment}',
+          label: 'INVALID: {content: eslint-disable comment}',
           baseName: 'eslint-disable-write',
           content: `// eslint-disable-next-line no-console
 console.log('test');`,
@@ -244,12 +251,19 @@ console.log('test');`,
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-        expect(result.stderr).toMatch(expectedPattern);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(
+            new RegExp(
+              `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+              'su',
+            ),
+          ),
+        });
       });
 
-      it('INVALID_MULTIPLE: {content: multiple violations} => returns exit code 2', async () => {
+      it('INVALID: {content: multiple violations} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
           baseName: BaseNameStub({ value: 'multiple-violations-write' }),
           baseDir: BASE_DIR,
@@ -272,10 +286,13 @@ export function dirty({ param }: { param: any }): any {
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-        expect(result.stderr).toMatch(/Type Safety Violation/u);
-        expect(result.stderr).toMatch(/Type Error Suppression/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(
+            /^.*🛑 New code quality violations detected.*Type Safety Violation.*Type Error Suppression.*$/su,
+          ),
+        });
       });
     });
   });
@@ -433,7 +450,7 @@ export function newFunc(): void {}`,
     describe('failure cases', () => {
       it.each([
         {
-          label: 'INVALID_ANY: {old_string: clean code, new_string: adds any type}',
+          label: 'INVALID: {old_string: clean code, new_string: adds any type}',
           baseName: 'add-any-edit',
           initialContent: `export function test(): void {}`,
           oldString: `export function test(): void {}`,
@@ -441,7 +458,7 @@ export function newFunc(): void {}`,
           expectedPattern: /Type Safety Violation/u,
         },
         {
-          label: 'INVALID_ANY: {old_string: partial function signature, new_string: adds any type}',
+          label: 'INVALID: {old_string: partial function signature, new_string: adds any type}',
           baseName: 'add-any-partial-edit',
           initialContent: `function testClean(param: string): void {
     console.log(param);
@@ -451,7 +468,7 @@ export function newFunc(): void {}`,
           expectedPattern: /Type Safety Violation/u,
         },
         {
-          label: 'INVALID_TS_IGNORE: {old_string: clean code, new_string: adds @ts-ignore}',
+          label: 'INVALID: {old_string: clean code, new_string: adds @ts-ignore}',
           baseName: 'add-ts-ignore-edit',
           initialContent: `export function test(): void {}`,
           oldString: `export function test(): void {}`,
@@ -460,8 +477,7 @@ export function test(): void {}`,
           expectedPattern: /Type Error Suppression/u,
         },
         {
-          label:
-            'INVALID_ESLINT_DISABLE: {old_string: console.log, new_string: adds eslint-disable}',
+          label: 'INVALID: {old_string: console.log, new_string: adds eslint-disable}',
           baseName: 'add-eslint-disable-edit',
           initialContent: `console.log('test');`,
           oldString: `console.log('test');`,
@@ -497,9 +513,16 @@ console.log('test');`,
 
           testbed.cleanup();
 
-          expect(result.exitCode).toBe(2);
-          expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-          expect(result.stderr).toMatch(expectedPattern);
+          expect(result).toStrictEqual({
+            exitCode: 2,
+            stdout: '',
+            stderr: expect.stringMatching(
+              new RegExp(
+                `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+                'su',
+              ),
+            ),
+          });
         },
       );
 
@@ -532,9 +555,13 @@ export function test({ param }: { param: any }): void {}`,
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-        expect(result.stderr).toMatch(/Type Safety Violation/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(
+            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+          ),
+        });
       });
     });
 
@@ -675,7 +702,7 @@ export class Calculator {
     });
 
     describe('failure cases', () => {
-      it('INVALID_ANY: {edits: one edit adds any violation} => returns exit code 2', async () => {
+      it('INVALID: {edits: one edit adds any violation} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
           baseName: BaseNameStub({ value: 'add-any-multiedit' }),
           baseDir: BASE_DIR,
@@ -718,11 +745,14 @@ export class Calculator {
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+        });
       });
 
-      it('INVALID_MULTIPLE: {edits: multiple edits add different violations} => returns exit code 2', async () => {
+      it('INVALID: {edits: multiple edits add different violations} => returns exit code 2', async () => {
         const testbed = installTestbedCreateBroker({
           baseName: BaseNameStub({ value: 'multiple-violations-multiedit' }),
           baseDir: BASE_DIR,
@@ -763,8 +793,11 @@ export class Calculator {
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+        });
       });
 
       it('EDGE: {edits: replace_all adds violations} => returns exit code 2', async () => {
@@ -808,9 +841,13 @@ export function processItems({ items }: { items: string[] }): string[] {
 
         testbed.cleanup();
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stderr).toMatch(/🛑 New code quality violations detected/u);
-        expect(result.stderr).toMatch(/Type Safety Violation/u);
+        expect(result).toStrictEqual({
+          exitCode: 2,
+          stdout: '',
+          stderr: expect.stringMatching(
+            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+          ),
+        });
       });
     });
   });
@@ -893,9 +930,11 @@ export const handler: any = getValue();`,
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/Type Safety Violation/u);
-      expect(result.stderr).toMatch(/Type Error Suppression/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Type Safety Violation.*Type Error Suppression.*$/su),
+      });
     });
 
     it('EDGE: {tool_input: very large file with violations} => detects violations', async () => {
@@ -925,8 +964,11 @@ export const handler: any = processData;`;
 
       testbed.cleanup();
 
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toMatch(/Type Safety Violation/u);
+      expect(result).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Type Safety Violation.*$/su),
+      });
     });
 
     it('EMPTY: {tool_input: empty old_string to empty new_string} => returns exit code 0', async () => {

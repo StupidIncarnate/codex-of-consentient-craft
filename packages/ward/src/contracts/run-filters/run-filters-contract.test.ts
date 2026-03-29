@@ -44,15 +44,15 @@ describe('runFiltersContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_ONLY: {only: ["invalid"]} => throws for invalid check type', () => {
+    it('INVALID: {only: ["invalid"]} => throws for invalid check type', () => {
       expect(() => runFiltersContract.parse({ only: ['invalid'] })).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_CHANGED: {changed: "yes"} => throws for non-boolean', () => {
+    it('INVALID: {changed: "yes"} => throws for non-boolean', () => {
       expect(() => runFiltersContract.parse({ changed: 'yes' })).toThrow(/Expected boolean/u);
     });
 
-    it('INVALID_PASSTHROUGH: {passthrough: [123]} => throws for non-string element', () => {
+    it('INVALID: {passthrough: [123]} => throws for non-string element', () => {
       expect(() => runFiltersContract.parse({ passthrough: [123] })).toThrow(/Expected string/u);
     });
   });

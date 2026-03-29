@@ -29,8 +29,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/Run tests/u);
-      expect(header.textContent).toMatch(/2 entries/u);
+      expect(header.textContent).toMatch(/^(?=.*Run tests)(?=.*2 entries).*$/u);
     });
 
     it('VALID: {collapsed} => shows SUB-AGENT badge in header', () => {
@@ -58,7 +57,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/7 entries, 1\.9k/u);
+      expect(header.textContent).toMatch(/^.*7 entries, 1\.9k.*$/u);
     });
 
     it('VALID: {collapsed without contextTokens} => shows only entry count', () => {
@@ -75,8 +74,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/3 entries/u);
-      expect(header.textContent).not.toMatch(/,/u);
+      expect(header.textContent).toMatch(/^(?=.*3 entries)(?!.*,).*$/u);
     });
 
     it('VALID: {collapsed} => shows right-pointing chevron', () => {
@@ -89,7 +87,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/\u25B8/u);
+      expect(header.textContent).toMatch(/^.*\u25B8.*$/u);
     });
   });
 
@@ -133,7 +131,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/\u25BE/u);
+      expect(header.textContent).toMatch(/^.*\u25BE.*$/u);
     });
   });
 
@@ -208,7 +206,7 @@ describe('SubagentChainWidget', () => {
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
       expect(messages.length).toBeGreaterThan(0);
-      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toMatch(/SUB-AGENT/u);
+      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toMatch(/^.*SUB-AGENT.*$/u);
     });
 
     it('VALID: {expanded without task notification} => does not render extra message at bottom', async () => {

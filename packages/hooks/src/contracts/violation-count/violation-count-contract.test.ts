@@ -6,9 +6,11 @@ describe('violationCountContract', () => {
   it('VALID: {default values} => parses successfully', () => {
     const result = ViolationCountStub();
 
-    expect(result.ruleId).toBe('@typescript-eslint/no-explicit-any');
-    expect(result.count).toBe(1);
-    expect(result.details[0]?.ruleId).toBe('@typescript-eslint/no-explicit-any');
+    expect(result).toStrictEqual({
+      ruleId: '@typescript-eslint/no-explicit-any',
+      count: 1,
+      details: [ViolationDetailStub()],
+    });
   });
 
   it('VALID: {multiple violations} => parses successfully', () => {

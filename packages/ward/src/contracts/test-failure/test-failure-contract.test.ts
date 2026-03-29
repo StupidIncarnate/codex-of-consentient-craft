@@ -32,7 +32,7 @@ describe('testFailureContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SUITE_PATH: {suitePath: number} => throws validation error', () => {
+    it('INVALID: {suitePath: number} => throws validation error', () => {
       expect(() =>
         testFailureContract.parse({
           suitePath: 123 as never,
@@ -42,7 +42,7 @@ describe('testFailureContract', () => {
       ).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => testFailureContract.parse({})).toThrow(/Required/u);
     });
   });

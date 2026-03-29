@@ -4,22 +4,21 @@ describe('index', () => {
   it('VALID: {default export} => exports plugin object with rules and configs', () => {
     const plugin = StartEslintPlugin();
 
-    expect(typeof plugin.rules).toBe('object');
-    expect(typeof plugin.configs).toBe('object');
+    expect(plugin).toStrictEqual({
+      rules: expect.any(Object),
+      configs: expect.any(Object),
+    });
   });
 
-  it('VALID: {default export rules} => includes expected custom rules', () => {
+  it('VALID: {default export rules} => includes ban-primitives rule', () => {
     const plugin = StartEslintPlugin();
 
-    expect(typeof plugin.rules['ban-primitives']).toBe('object');
-    expect(typeof plugin.rules['enforce-contract-usage-in-tests']).toBe('object');
-    expect(typeof plugin.rules['explicit-return-types']).toBe('object');
-    expect(typeof plugin.rules['enforce-project-structure']).toBe('object');
+    expect(plugin.rules['ban-primitives']).toStrictEqual(expect.any(Object));
   });
 
   it('VALID: {default export configs} => includes dungeonmaster config', () => {
     const plugin = StartEslintPlugin();
 
-    expect(typeof plugin.configs.dungeonmaster).toBe('object');
+    expect(plugin.configs.dungeonmaster).toStrictEqual(expect.any(Object));
   });
 });

@@ -52,7 +52,7 @@ describe('flowNodeContract', () => {
   });
 
   describe('invalid flow nodes', () => {
-    it('INVALID_ID: {id: "Bad-Id"} => throws validation error', () => {
+    it('INVALID: {id: "Bad-Id"} => throws validation error', () => {
       expect(() => {
         flowNodeContract.parse({
           id: 'Bad-Id',
@@ -62,7 +62,7 @@ describe('flowNodeContract', () => {
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_LABEL: {label: ""} => throws validation error', () => {
+    it('INVALID: {label: ""} => throws validation error', () => {
       expect(() => {
         flowNodeContract.parse({
           id: 'start',
@@ -72,7 +72,7 @@ describe('flowNodeContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_TYPE: {type: "invalid"} => throws validation error', () => {
+    it('INVALID: {type: "invalid"} => throws validation error', () => {
       expect(() => {
         flowNodeContract.parse({
           id: 'start',

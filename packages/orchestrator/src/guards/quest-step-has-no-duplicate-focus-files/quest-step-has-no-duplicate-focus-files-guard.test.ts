@@ -47,7 +47,7 @@ describe('questStepHasNoDuplicateFocusFilesGuard', () => {
   });
 
   describe('duplicate focus files', () => {
-    it('INVALID_DUPLICATE: {two steps with same focusFile path} => returns false', () => {
+    it('INVALID: {two steps with same focusFile path} => returns false', () => {
       const steps = [
         DependencyStepStub({
           id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',

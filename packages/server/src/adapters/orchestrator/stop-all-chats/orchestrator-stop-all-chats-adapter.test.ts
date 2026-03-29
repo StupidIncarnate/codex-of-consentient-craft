@@ -4,11 +4,11 @@ import { orchestratorStopAllChatsAdapterProxy } from './orchestrator-stop-all-ch
 describe('orchestratorStopAllChatsAdapter', () => {
   describe('successful stop all', () => {
     it('VALID: {} => completes without error', () => {
-      orchestratorStopAllChatsAdapterProxy();
+      const proxy = orchestratorStopAllChatsAdapterProxy();
 
-      expect(() => {
-        orchestratorStopAllChatsAdapter();
-      }).not.toThrow();
+      orchestratorStopAllChatsAdapter();
+
+      expect(proxy.wasCalled()).toBe(true);
     });
   });
 

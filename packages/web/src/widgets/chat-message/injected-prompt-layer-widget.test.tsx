@@ -30,8 +30,7 @@ describe('InjectedPromptLayerWidget', () => {
 
       const agentSection = screen.getByTestId('AGENT_PROMPT_SECTION');
 
-      expect(agentSection.textContent).toMatch(/AGENT PROMPT/u);
-      expect(agentSection.textContent).toMatch(/You are an agent\./u);
+      expect(agentSection.textContent).toMatch(/^(?=.*AGENT PROMPT)(?=.*You are an agent\.).*$/u);
     });
 
     it('VALID: {injected prompt} => renders extracted user request with YOU label', () => {
@@ -53,8 +52,7 @@ describe('InjectedPromptLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/YOU/u);
-      expect(message.textContent).toMatch(/Do the thing/u);
+      expect(message.textContent).toMatch(/^(?=.*YOU)(?=.*Do the thing).*$/u);
     });
 
     it('VALID: {injected prompt without ## User Request separator} => renders full content as user request', () => {
@@ -76,7 +74,7 @@ describe('InjectedPromptLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/Just some prompt without separator/u);
+      expect(message.textContent).toMatch(/^.*Just some prompt without separator.*$/u);
     });
   });
 
@@ -100,8 +98,11 @@ describe('InjectedPromptLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.style.borderLeft).toBe('2px solid rgb(251, 191, 36)');
-      expect(message.style.borderRight).toBe('2px solid rgb(251, 191, 36)');
+      expect([message.style.borderLeft, message.style.borderRight]).toStrictEqual([
+        '2px solid rgb(251, 191, 36)',
+
+        '2px solid rgb(251, 191, 36)',
+      ]);
     });
   });
 });

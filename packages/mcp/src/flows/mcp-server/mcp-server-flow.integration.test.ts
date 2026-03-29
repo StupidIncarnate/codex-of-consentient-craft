@@ -38,8 +38,10 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
-      expect(typeof response.result).toBe('object');
+      const { error, result } = response;
+
+      expect(error).toBe(undefined);
+      expect(result).not.toBe(undefined);
     });
   });
 
@@ -49,7 +51,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolListResultStub(response.result as never);
 
@@ -71,7 +73,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolListResultStub(response.result as never);
 
@@ -94,7 +96,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
@@ -116,7 +118,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
@@ -141,7 +143,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
@@ -149,8 +151,10 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(typeof data.results).toBe('string');
-      expect(data.count).toBeGreaterThan(0);
+      const { results, count } = data;
+
+      expect(results).toMatch(/^.*broker.*$/mu);
+      expect(count).toBeGreaterThan(0);
     });
 
     it('VALID: {type: files, fileType: adapter} => returns adapters from @dungeonmaster/shared', async () => {
@@ -168,7 +172,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
@@ -176,7 +180,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/adapters\//u);
+      expect(data.results).toMatch(/^.*adapters\/.*$/mu);
     });
 
     it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
@@ -194,7 +198,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
       const [firstContent] = result.content;
@@ -202,7 +206,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/fs-access-adapter \(adapter\)/u);
+      expect(data.results).toMatch(/^.*fs-access-adapter \(adapter\).*$/mu);
     });
   });
 
@@ -263,7 +267,7 @@ describe('McpServerFlow', () => {
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
       const getResultData = GetQuestResultStub(getParsedData as never);
 
-      expect(getResponse.error).toBeUndefined();
+      expect(getResponse.error).toBe(undefined);
       expect(getResultData.success).toBe(true);
       expect(getResultData.quest!.id).toBe(questId);
     });
@@ -332,11 +336,14 @@ describe('McpServerFlow', () => {
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
       const getResultData = GetQuestResultStub(getParsedData as never);
 
-      expect(modifyResponse.error).toBeUndefined();
+      expect(modifyResponse.error).toBe(undefined);
       expect(modifyResultData.success).toBe(true);
-      expect(getResponse.error).toBeUndefined();
-      expect(getResultData.success).toBe(true);
-      expect(getResultData.quest!.designDecisions).toStrictEqual([
+      expect(getResponse.error).toBe(undefined);
+
+      const { success: getSuccess, quest: retrievedQuest } = getResultData;
+
+      expect(getSuccess).toBe(true);
+      expect(retrievedQuest!.designDecisions).toStrictEqual([
         {
           id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
           title: 'Use JWT for auth',
@@ -365,9 +372,12 @@ describe('McpServerFlow', () => {
       const getParsedData: unknown = JSON.parse(String(getContent!.text));
       const getResultData = GetQuestResultStub(getParsedData as never);
 
-      expect(getResponse.error).toBeUndefined();
-      expect(getResultData.success).toBe(false);
-      expect(getResultData.error).toMatch(/not found|ENOENT/iu);
+      expect(getResponse.error).toBe(undefined);
+
+      const { success, error } = getResultData;
+
+      expect(success).toBe(false);
+      expect(error).toMatch(/^.*(?:not found|ENOENT).*$/iu);
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
@@ -386,7 +396,7 @@ describe('McpServerFlow', () => {
 
       const getResult = ToolCallResultStub(getResponse.result as never);
 
-      expect(getResponse.error).toBeUndefined();
+      expect(getResponse.error).toBe(undefined);
       expect(getResult.isError).toBe(true);
     });
 
@@ -425,8 +435,8 @@ describe('McpServerFlow', () => {
 
       const getResult = ToolCallResultStub(getResponse.result as never);
 
-      expect(getResponse.error).toBeUndefined();
-      expect(getResult.isError).toBeUndefined();
+      expect(getResponse.error).toBe(undefined);
+      expect(getResult.isError).toBe(undefined);
     });
   });
 
@@ -445,7 +455,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
@@ -467,7 +477,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
@@ -491,7 +501,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
@@ -531,12 +541,12 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/Questions sent to user/u);
+      expect(result.content[0]?.text).toMatch(/^.*Questions sent to user.*$/mu);
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {
@@ -553,7 +563,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(typeof response.error).toBe('object');
+      expect(response.error).not.toBe(undefined);
     });
   });
 });

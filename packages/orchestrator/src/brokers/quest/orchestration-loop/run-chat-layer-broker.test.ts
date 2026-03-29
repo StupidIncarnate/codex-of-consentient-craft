@@ -32,7 +32,7 @@ describe('runChatLayerBroker', () => {
           userMessage: UserInputStub({ value: 'Help me build auth' }),
           onAgentEntry: jest.fn(),
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
 
     it('VALID: {glyphsmith work item} => spawns agent and completes work item', async () => {
@@ -54,7 +54,7 @@ describe('runChatLayerBroker', () => {
           userMessage: UserInputStub({ value: 'Design the login page' }),
           onAgentEntry: jest.fn(),
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
 
     it('ERROR: {spawn throws} => marks work item as failed and rethrows', async () => {

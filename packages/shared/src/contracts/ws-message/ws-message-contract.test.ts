@@ -19,8 +19,11 @@ describe('wsMessageContract', () => {
         payload: { slotId: 0, status: 'running' },
       });
 
-      expect(message.type).toBe('slot-update');
-      expect(message.payload).toStrictEqual({ slotId: 0, status: 'running' });
+      expect(message).toStrictEqual({
+        type: 'slot-update',
+        payload: { slotId: 0, status: 'running' },
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
     });
 
     it('VALID: {type: progress-update} => parses progress-update type', () => {
@@ -52,7 +55,7 @@ describe('wsMessageContract', () => {
   });
 
   describe('invalid messages', () => {
-    it('INVALID_TYPE: {type: "unknown"} => throws validation error', () => {
+    it('INVALID: {type: "unknown"} => throws validation error', () => {
       expect(() => {
         wsMessageContract.parse({
           type: 'unknown',
@@ -62,7 +65,7 @@ describe('wsMessageContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_TIMESTAMP: {timestamp: "not-a-date"} => throws validation error', () => {
+    it('INVALID: {timestamp: "not-a-date"} => throws validation error', () => {
       expect(() => {
         wsMessageContract.parse({
           type: 'phase-change',
@@ -72,7 +75,7 @@ describe('wsMessageContract', () => {
       }).toThrow(/Invalid/u);
     });
 
-    it('INVALID_MISSING_TYPE: {} => throws validation error', () => {
+    it('INVALID: {missing type} => throws validation error', () => {
       expect(() => {
         wsMessageContract.parse({
           payload: {},
@@ -81,7 +84,7 @@ describe('wsMessageContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MISSING_PAYLOAD: {} => throws validation error', () => {
+    it('INVALID: {missing payload} => throws validation error', () => {
       expect(() => {
         wsMessageContract.parse({
           type: 'phase-change',

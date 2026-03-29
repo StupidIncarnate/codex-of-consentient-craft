@@ -21,9 +21,12 @@ describe('violationDetailContract', () => {
       message: 'Unexpected console statement.',
     });
 
-    expect(result.ruleId).toBe('no-console');
-    expect(result.line).toBe(42);
-    expect(result.column).toBe(10);
+    expect(result).toStrictEqual({
+      ruleId: 'no-console',
+      line: 42,
+      column: 10,
+      message: 'Unexpected console statement.',
+    });
   });
 
   describe('invalid input', () => {

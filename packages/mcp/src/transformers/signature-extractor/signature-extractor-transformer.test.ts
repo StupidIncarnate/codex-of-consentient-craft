@@ -48,6 +48,6 @@ describe('signatureExtractorTransformer', () => {
 
     const result = signatureExtractorTransformer({ fileContents });
 
-    expect(result).toBeNull();
+    expect(result).toBe(null);
   });
 });

@@ -9,14 +9,14 @@ describe('StartWard', () => {
 
   describe('delegation to ward flow', () => {
     it('VALID: {args: ["node", "ward", "unknown-command"]} => completes without throwing for unknown command', async () => {
-      await expect(
-        StartWard({ args: ['node', 'ward', 'unknown-command'] }),
-      ).resolves.toBeUndefined();
+      await expect(StartWard({ args: ['node', 'ward', 'unknown-command'] })).resolves.toBe(
+        undefined,
+      );
     });
   });
 
   describe('memory ceiling', () => {
-    it('SAFETY: {--only lint, all packages} => RSS stays under 300MB', async () => {
+    it('EDGE: {--only lint, all packages} => RSS stays under 300MB', async () => {
       expect(harness.wardBinExists()).toBe(true);
 
       const { maxRssKb } = await harness.runAndMonitorMemory({

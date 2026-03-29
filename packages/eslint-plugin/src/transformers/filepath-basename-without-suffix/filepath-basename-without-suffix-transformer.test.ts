@@ -98,7 +98,7 @@ describe('filepathBasenameWithoutSuffixTransformer', () => {
   });
 
   describe('no suffix match (fallback)', () => {
-    it('FALLBACK: {filePath: "/path/to/user-broker.ts", suffix: "-contract"} => returns "user-broker"', () => {
+    it('EDGE: {filePath: "/path/to/user-broker.ts", suffix: "-contract"} => returns "user-broker"', () => {
       expect(
         filepathBasenameWithoutSuffixTransformer({
           filePath: '/path/to/user-broker.ts',
@@ -107,7 +107,7 @@ describe('filepathBasenameWithoutSuffixTransformer', () => {
       ).toBe('user-broker');
     });
 
-    it('FALLBACK: {filePath: "/path/file.ts", suffix: ".proxy.ts"} => returns "file"', () => {
+    it('EDGE: {filePath: "/path/file.ts", suffix: ".proxy.ts"} => returns "file"', () => {
       expect(
         filepathBasenameWithoutSuffixTransformer({
           filePath: '/path/file.ts',
@@ -116,7 +116,7 @@ describe('filepathBasenameWithoutSuffixTransformer', () => {
       ).toBe('file');
     });
 
-    it('FALLBACK: {filePath: "name.tsx", suffix: ["-broker", "-contract"]} => returns "name"', () => {
+    it('EDGE: {filePath: "name.tsx", suffix: ["-broker", "-contract"]} => returns "name"', () => {
       expect(
         filepathBasenameWithoutSuffixTransformer({
           filePath: 'name.tsx',

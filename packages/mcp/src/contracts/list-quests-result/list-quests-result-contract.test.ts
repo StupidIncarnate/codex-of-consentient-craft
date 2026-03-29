@@ -28,8 +28,10 @@ describe('listQuestsResultContract', () => {
         quests: [questItem],
       });
 
-      expect(result.success).toBe(true);
-      expect(result.quests).toStrictEqual([questItem]);
+      expect(result).toStrictEqual({
+        success: true,
+        quests: [questItem],
+      });
     });
 
     it('VALID: {success: false, error} => parses successfully', () => {
@@ -46,7 +48,7 @@ describe('listQuestsResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_SUCCESS: {success: missing} => throws validation error', () => {
+    it('INVALID: {success: missing} => throws validation error', () => {
       expect(() => {
         listQuestsResultContract.parse({});
       }).toThrow(/Required/u);

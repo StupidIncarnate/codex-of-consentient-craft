@@ -198,8 +198,10 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({ questId: 'nonexistent' });
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/not found/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^.*not found.*$/u),
+      });
     });
 
     it('ERROR: {empty folder} => returns not found error', async () => {
@@ -210,8 +212,10 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({ questId: 'any-quest' });
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/not found/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^.*not found.*$/u),
+      });
     });
   });
 
@@ -229,8 +233,10 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/Invalid status transition/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^Invalid status transition.*$/u),
+      });
     });
 
     it('ERROR: {status: "in_progress"} with quest at "created" => returns invalid transition error', async () => {
@@ -246,8 +252,10 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/Invalid status transition/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^Invalid status transition.*$/u),
+      });
     });
   });
 
@@ -270,8 +278,12 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/Missing required content for transition to flows_approved/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(
+          /^Missing required content for transition to flows_approved$/u,
+        ),
+      });
     });
 
     it('ERROR: {status: "approved"} with empty flows => returns missing content error', async () => {
@@ -292,8 +304,10 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/Missing required content for transition to approved/u);
+      expect(result).toStrictEqual({
+        success: false,
+        error: expect.stringMatching(/^Missing required content for transition to approved$/u),
+      });
     });
   });
 });

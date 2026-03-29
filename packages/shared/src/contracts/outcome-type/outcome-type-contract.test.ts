@@ -31,13 +31,13 @@ describe('outcomeTypeContract', () => {
     expect(outcomeTypeContract.parse(type)).toBe(type);
   });
 
-  it('INVALID_TYPE: {value: "invalid"} => throws validation error', () => {
+  it('INVALID: {value: "invalid"} => throws validation error', () => {
     expect(() => {
       return outcomeTypeContract.parse('invalid');
     }).toThrow(/Invalid enum value/u);
   });
 
-  it('INVALID_TYPE: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return outcomeTypeContract.parse('');
     }).toThrow(/Invalid enum value/u);

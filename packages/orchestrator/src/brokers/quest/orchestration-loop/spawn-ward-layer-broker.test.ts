@@ -14,8 +14,7 @@ describe('spawnWardLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.runId).toBe('1739625600000-a3f1');
+      expect(result).toStrictEqual({ exitCode: 0, runId: '1739625600000-a3f1' });
     });
 
     it('VALID: {ward exits 1 with run ID} => returns exitCode 1 and runId', async () => {
@@ -27,8 +26,7 @@ describe('spawnWardLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.runId).toBe('1739625600000-a3f1');
+      expect(result).toStrictEqual({ exitCode: 1, runId: '1739625600000-a3f1' });
     });
 
     it('VALID: {ward exits 1 without run ID} => returns exitCode 1 and null runId', async () => {
@@ -40,8 +38,7 @@ describe('spawnWardLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.runId).toBeNull();
+      expect(result).toStrictEqual({ exitCode: 1, runId: null });
     });
 
     it('VALID: {ward process is killed} => returns exitCode 1 and null runId', async () => {
@@ -53,8 +50,7 @@ describe('spawnWardLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.runId).toBeNull();
+      expect(result).toStrictEqual({ exitCode: 1, runId: null });
     });
   });
 

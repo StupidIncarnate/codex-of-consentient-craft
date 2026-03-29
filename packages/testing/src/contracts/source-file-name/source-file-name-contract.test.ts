@@ -29,13 +29,13 @@ describe('sourceFileNameContract', () => {
   });
 
   describe('invalid source file names', () => {
-    it('INVALID_EMPTY: "" => throws validation error', () => {
+    it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return sourceFileNameContract.parse('');
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_TYPE: null => throws validation error', () => {
+    it('INVALID: null => throws validation error', () => {
       expect(() => {
         return sourceFileNameContract.parse(null);
       }).toThrow(/Expected string/u);

@@ -21,7 +21,7 @@ describe('commandNameContract', () => {
   });
 
   describe('invalid command names', () => {
-    it('INVALID_COMMAND_NAME: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return commandNameContract.parse(123 as never);
       }).toThrow(/Expected string/u);

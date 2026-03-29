@@ -20,8 +20,7 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/THINKING/u);
-      expect(message.textContent).toMatch(/Let me think about this/u);
+      expect(message.textContent).toMatch(/^(?=.*THINKING)(?=.*Let me think about this).*$/u);
     });
 
     it('VALID: {type: thinking} => renders text-dim borders', () => {
@@ -34,8 +33,11 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.style.borderLeft).toBe('2px solid rgb(138, 114, 96)');
-      expect(message.style.borderRight).toBe('2px solid rgb(138, 114, 96)');
+      expect([message.style.borderLeft, message.style.borderRight]).toStrictEqual([
+        '2px solid rgb(138, 114, 96)',
+
+        '2px solid rgb(138, 114, 96)',
+      ]);
     });
 
     it('VALID: {type: thinking} => renders with 15% paddingLeft', () => {
@@ -63,8 +65,7 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/THINKING/u);
-      expect(message.textContent).toMatch(/claude-opus-4-6/u);
+      expect(message.textContent).toMatch(/^(?=.*THINKING)(?=.*claude-opus-4-6).*$/u);
     });
 
     it('VALID: {no model} => does not render model suffix', () => {
@@ -77,8 +78,7 @@ describe('ThinkingLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/^THINKING/u);
-      expect(message.textContent).not.toMatch(/claude/u);
+      expect(message.textContent).toMatch(/^(?=.*THINKING)(?!.*claude).*$/u);
     });
   });
 
@@ -91,7 +91,7 @@ describe('ThinkingLayerWidget', () => {
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
-      expect(screen.queryByTestId('THINKING_TOGGLE')).toBeNull();
+      expect(screen.queryByTestId('THINKING_TOGGLE')).toBe(null);
     });
 
     it('VALID: {long content} => renders expand toggle', () => {

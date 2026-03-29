@@ -9,10 +9,16 @@ describe('questToListItemTransformer', () => {
 
       const result = questToListItemTransformer({ quest });
 
-      expect(result.id).toBe(quest.id);
-      expect(result.title).toBe(quest.title);
-      expect(result.status).toBe(quest.status);
-      expect(result.stepProgress).toBeUndefined();
+      expect(result).toStrictEqual({
+        id: quest.id,
+        folder: quest.folder,
+        title: quest.title,
+        status: quest.status,
+        createdAt: quest.createdAt,
+        stepProgress: undefined,
+        activeSessionId: undefined,
+        userRequest: quest.userRequest,
+      });
     });
 
     it('VALID: {quest with steps and work items} => returns list item with stepProgress', () => {
@@ -113,7 +119,7 @@ describe('questToListItemTransformer', () => {
 
       const result = questToListItemTransformer({ quest });
 
-      expect(result.activeSessionId).toBeUndefined();
+      expect(result.activeSessionId).toBe(undefined);
     });
   });
 });

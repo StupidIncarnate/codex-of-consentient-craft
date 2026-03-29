@@ -40,7 +40,7 @@ describe('questHasNoOrphanStepsGuard', () => {
   });
 
   describe('orphan steps', () => {
-    it('INVALID_ORPHAN: {step with empty observablesSatisfied} => returns false', () => {
+    it('INVALID: {step with empty observablesSatisfied} => returns false', () => {
       const steps = [DependencyStepStub({ observablesSatisfied: [] })];
 
       const result = questHasNoOrphanStepsGuard({ steps });
@@ -48,7 +48,7 @@ describe('questHasNoOrphanStepsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_ORPHAN: {one valid, one orphan step} => returns false', () => {
+    it('INVALID: {one valid, one orphan step} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({

@@ -24,8 +24,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/RESULT/u);
-      expect(inline.textContent).toMatch(/file contents here/u);
+      expect(inline.textContent).toMatch(/^(?=.*RESULT)(?=.*file contents here).*$/u);
     });
   });
 
@@ -44,8 +43,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/TOOL ERROR/u);
-      expect(inline.textContent).toMatch(/Permission denied/u);
+      expect(inline.textContent).toMatch(/^(?=.*TOOL ERROR)(?=.*Permission denied).*$/u);
     });
   });
 
@@ -64,7 +62,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/HOOK BLOCKED/u);
+      expect(inline.textContent).toMatch(/^.*HOOK BLOCKED.*$/u);
     });
   });
 
@@ -82,7 +80,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/SKIPPED/u);
+      expect(inline.textContent).toMatch(/^.*SKIPPED.*$/u);
     });
   });
 
@@ -100,7 +98,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/Show full result/u);
+      expect(inline.textContent).toMatch(/^.*Show full result.*$/u);
     });
 
     it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
@@ -114,12 +112,12 @@ describe('ToolResultInlineLayerWidget', () => {
         ui: <ToolResultInlineLayerWidget toolResult={toolResult as ToolResultEntry} />,
       });
 
-      const showLink = screen.getByText('Show full result');
+      const showLink = screen.getByTestId('TOOL_RESULT_TRUNCATION_TOGGLE');
       await userEvent.click(showLink);
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toMatch(/Collapse/u);
+      expect(inline.textContent).toMatch(/^.*Collapse.*$/u);
     });
   });
 });

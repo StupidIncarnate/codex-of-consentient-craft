@@ -11,7 +11,7 @@ describe('floorGroupKeyContract', () => {
   });
 
   describe('invalid keys', () => {
-    it('INVALID_VALUE: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => floorGroupKeyContract.parse('')).toThrow(/too_small/u);
     });
   });

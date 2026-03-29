@@ -33,13 +33,13 @@ describe('modifyQuestResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID_SUCCESS: {missing success} => throws validation error', () => {
+    it('INVALID: {missing success} => throws validation error', () => {
       expect(() => {
         return modifyQuestResultContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_SUCCESS: {success: "true"} => throws validation error', () => {
+    it('INVALID: {success: "true"} => throws validation error', () => {
       expect(() => {
         return modifyQuestResultContract.parse({ success: 'true' });
       }).toThrow(/Expected boolean/u);

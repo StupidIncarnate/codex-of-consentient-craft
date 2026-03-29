@@ -268,7 +268,7 @@ describe('GuildFlow', () => {
       testbed.cleanup();
       restore();
 
-      expect(errorMessage).toMatch(/Guild not found/u);
+      expect(errorMessage).toMatch(/^Guild not found$/u);
     });
 
     it('ERROR: {guildId: nonexistent} => remove throws guild not found', async () => {
@@ -285,7 +285,7 @@ describe('GuildFlow', () => {
       testbed.cleanup();
       restore();
 
-      expect(errorMessage).toMatch(/Guild not found/u);
+      expect(errorMessage).toMatch(/^Guild not found$/u);
     });
 
     it('ERROR: {guildId: nonexistent} => update throws guild not found', async () => {
@@ -302,7 +302,7 @@ describe('GuildFlow', () => {
       testbed.cleanup();
       restore();
 
-      expect(errorMessage).toMatch(/Guild not found/u);
+      expect(errorMessage).toMatch(/^Guild not found$/u);
     });
 
     it('ERROR: {duplicate path} => add throws duplicate path error', async () => {
@@ -327,7 +327,7 @@ describe('GuildFlow', () => {
       restore();
 
       expect(errorMessage).toMatch(
-        /A guild with path \/home\/user\/duplicate-path already exists/u,
+        /^A guild with path \/home\/user\/duplicate-path already exists$/u,
       );
     });
   });

@@ -44,9 +44,9 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
-      expect(configContent).toMatch(/"dungeonmaster"/u);
-      expect(configContent).toMatch(/"type": "stdio"/u);
-      expect(settingsContent).toMatch(/mcp__dungeonmaster__get-architecture/u);
+      expect(configContent).toMatch(/^.*"dungeonmaster".*$/mu);
+      expect(configContent).toMatch(/^.*"type": "stdio".*$/mu);
+      expect(settingsContent).toMatch(/^.*mcp__dungeonmaster__get-architecture.*$/mu);
     });
 
     it('VALID: {context: config exists with dungeonmaster} => returns skipped', async () => {

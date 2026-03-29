@@ -11,7 +11,7 @@ describe('planSectionTestItemContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {text: ""} => throws for empty text', () => {
+    it('INVALID: {text: ""} => throws for empty text', () => {
       expect(() => planSectionTestItemContract.parse({ text: '' })).toThrow(
         /String must contain at least 1 character/u,
       );

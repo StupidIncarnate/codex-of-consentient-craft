@@ -6,7 +6,7 @@ describe('AppHomeResponder', () => {
     it('VALID: => is a function', () => {
       AppHomeResponderProxy();
 
-      expect(typeof AppHomeResponder).toBe('function');
+      expect(AppHomeResponder).toStrictEqual(expect.any(Function));
     });
   });
 });

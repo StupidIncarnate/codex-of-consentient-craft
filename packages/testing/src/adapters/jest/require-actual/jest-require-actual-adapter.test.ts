@@ -7,6 +7,6 @@ describe('jestRequireActualAdapter', () => {
 
     const realPath = jestRequireActualAdapter({ module: 'path' });
 
-    expect(typeof Reflect.get(realPath as object, 'resolve')).toBe('function');
+    expect(Reflect.get(realPath as object, 'resolve')).toStrictEqual(expect.any(Function));
   });
 });

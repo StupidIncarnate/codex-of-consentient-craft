@@ -24,9 +24,13 @@ describe('NetworkRecordLifecycleResponder', () => {
       lifecycle.start();
       await lifecycle.afterEach();
 
-      expect(() => {
-        lifecycle.stop();
-      }).not.toThrow();
+      lifecycle.stop();
+
+      expect(lifecycle).toStrictEqual({
+        start: expect.any(Function),
+        afterEach: expect.any(Function),
+        stop: expect.any(Function),
+      });
     });
   });
 

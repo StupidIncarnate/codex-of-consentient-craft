@@ -15,33 +15,24 @@ import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config
  */
 
 describe('ESLint Plugin Module Loading', () => {
-  it('should be able to call configDungeonmasterBroker without errors', () => {
-    // This ensures the module and all its dependencies load correctly
-    expect(() => {
-      return configDungeonmasterBroker();
-    }).not.toThrow();
-  });
-
-  it('should return valid config from configDungeonmasterBroker', () => {
+  it('VALID: {configDungeonmasterBroker} => returns config with typescript and test keys', () => {
     const config = configDungeonmasterBroker();
 
-    expect(typeof config.typescript).toBe('object');
-    expect(typeof config.test).toBe('object');
-    expect(typeof config.ruleEnforceOn).toBe('object');
-    expect(Array.isArray(config.fileOverrides)).toBe(true);
+    expect(config).toStrictEqual({
+      typescript: expect.any(Object),
+      test: expect.any(Object),
+      ruleEnforceOn: expect.any(Object),
+      fileOverrides: expect.any(Array),
+    });
   });
 
-  it('should be able to require the built package from node_modules', () => {
-    // This import will fail if the package.json "main" doesn't point to a valid file
-    // or if the module structure is broken
+  it('VALID: {require @dungeonmaster/eslint-plugin} => returns module object', () => {
     const importPlugin = (): unknown => {
       return require('@dungeonmaster/eslint-plugin');
     };
 
-    expect(importPlugin).not.toThrow();
-
     const module = importPlugin();
 
-    expect(typeof module).toBe('object');
+    expect(module).toStrictEqual(expect.any(Object));
   });
 });

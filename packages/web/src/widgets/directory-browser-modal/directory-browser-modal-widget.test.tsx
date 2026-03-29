@@ -23,7 +23,7 @@ describe('DirectoryBrowserModalWidget', () => {
         },
       });
 
-      expect(screen.getByText('Browse Directory')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Browse Directory' })).toBeInTheDocument();
     });
 
     it('VALID: {opened: true} => renders current path display', async () => {

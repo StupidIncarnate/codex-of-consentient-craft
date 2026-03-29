@@ -35,25 +35,25 @@ describe('questStageContract', () => {
   });
 
   describe('invalid stages', () => {
-    it('INVALID_STAGE: {value: "invalid"} => throws validation error', () => {
+    it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questStageContract.parse('invalid');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_STAGE: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return questStageContract.parse('');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_STAGE: {value: "spec-decisions"} => throws validation error (removed stage)', () => {
+    it('INVALID: {value: "spec-decisions"} => throws validation error (removed stage)', () => {
       expect(() => {
         return questStageContract.parse('spec-decisions');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_STAGE: {value: "spec-bdd"} => throws validation error (removed stage)', () => {
+    it('INVALID: {value: "spec-bdd"} => throws validation error (removed stage)', () => {
       expect(() => {
         return questStageContract.parse('spec-bdd');
       }).toThrow(/Invalid enum value/u);

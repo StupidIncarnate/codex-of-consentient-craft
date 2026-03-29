@@ -11,10 +11,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/# Testing Patterns & Philosophy/u);
-      expect(result).toMatch(/Mock only at I\/O boundaries/u);
-      expect(result).toMatch(/## Core Principles/u);
+      expect(result).toMatch(/^# Testing Patterns & Philosophy/mu);
+      expect(result).toMatch(/^.*Mock only at I\/O boundaries.*$/mu);
+      expect(result).toMatch(/^## Core Principles/mu);
     });
 
     it('VALID: {} => includes type safety section', () => {
@@ -22,9 +21,11 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Type Safety/u);
-      expect(result).toMatch(/ReturnType<typeof StubName>/u);
-      expect(result).toMatch(/Test files AND proxy files CANNOT import types from contracts\./u);
+      expect(result).toMatch(/^### Type Safety/mu);
+      expect(result).toMatch(/^.*ReturnType<typeof StubName>.*$/mu);
+      expect(result).toMatch(
+        /^.*Test files AND proxy files CANNOT import types from contracts\./mu,
+      );
     });
 
     it('VALID: {} => includes DAMP > DRY principle', () => {
@@ -32,8 +33,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### DAMP > DRY/u);
-      expect(result).toMatch(/Descriptive And Meaningful/u);
+      expect(result).toMatch(/^### DAMP > DRY/mu);
+      expect(result).toMatch(/^.*Descriptive And Meaningful.*$/mu);
     });
 
     it('VALID: {} => includes test behavior not implementation', () => {
@@ -41,8 +42,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Test Behavior, Not Implementation/u);
-      expect(result).toMatch(/VALID: \{price: 100, tax: 0\.1\} => returns 110/u);
+      expect(result).toMatch(/^### Test Behavior, Not Implementation/mu);
+      expect(result).toMatch(/^.*VALID: \{price: 100, tax: 0\.1\} => returns 110.*$/mu);
     });
 
     it('VALID: {} => includes unit vs integration tests', () => {
@@ -50,9 +51,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Unit Tests vs Integration Tests/u);
-      expect(result).toMatch(/Unit Test \(mock dependencies\)/u);
-      expect(result).toMatch(/Integration Test \(real dependencies\)/u);
+      expect(result).toMatch(/^### Unit Tests vs Integration Tests/mu);
+      expect(result).toMatch(/^.*Unit Test \(mock dependencies\).*$/mu);
+      expect(result).toMatch(/^.*Integration Test \(real dependencies\).*$/mu);
     });
 
     it('VALID: {} => includes 100% branch coverage', () => {
@@ -60,8 +61,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### 100% Branch Coverage/u);
-      expect(result).toMatch(/manually verify test cases/u);
+      expect(result).toMatch(/^### 100% Branch Coverage/mu);
+      expect(result).toMatch(/^.*manually verify test cases.*$/mu);
     });
 
     it('VALID: {} => includes test structure section', () => {
@@ -69,10 +70,10 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Test Structure/u);
-      expect(result).toMatch(/Always use describe blocks/u);
-      expect(result).toMatch(/VALID:/u);
-      expect(result).toMatch(/INVALID_/u);
+      expect(result).toMatch(/^## Test Structure/mu);
+      expect(result).toMatch(/^.*Always use describe blocks.*$/mu);
+      expect(result).toMatch(/^.*VALID:.*$/mu);
+      expect(result).toMatch(/^.*INVALID_.*$/mu);
     });
 
     it('VALID: {} => includes core assertions section', () => {
@@ -80,9 +81,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Core Assertions/u);
-      expect(result).toMatch(/Use toStrictEqual for all objects\/arrays/u);
-      expect(result).toMatch(/toMatchObject/u);
+      expect(result).toMatch(/^## Core Assertions/mu);
+      expect(result).toMatch(/^.*Use toStrictEqual for all objects\/arrays.*$/mu);
+      expect(result).toMatch(/^.*toMatchObject.*$/mu);
     });
 
     it('VALID: {} => includes proxy architecture section', () => {
@@ -90,9 +91,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Proxy Architecture/u);
-      expect(result).toMatch(/### Core Rule/u);
-      expect(result).toMatch(/Mock only at I\/O boundaries\. Everything else runs REAL\./u);
+      expect(result).toMatch(/^## Proxy Architecture/mu);
+      expect(result).toMatch(/^### Core Rule/mu);
+      expect(result).toMatch(/^.*Mock only at I\/O boundaries\. Everything else runs REAL\..*$/mu);
     });
 
     it('VALID: {} => includes what gets mocked diagram', () => {
@@ -100,10 +101,10 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### What Gets Mocked vs What Runs Real/u);
-      expect(result).toMatch(/Widget Test:/u);
-      expect(result).toMatch(/REAL/u);
-      expect(result).toMatch(/MOCKED/u);
+      expect(result).toMatch(/^### What Gets Mocked vs What Runs Real/mu);
+      expect(result).toMatch(/^.*Widget Test:.*$/mu);
+      expect(result).toMatch(/^.*REAL.*$/mu);
+      expect(result).toMatch(/^.*MOCKED.*$/mu);
     });
 
     it('VALID: {} => includes quick reference table', () => {
@@ -111,10 +112,10 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Quick Reference: What Needs Proxies\?/u);
-      expect(result).toMatch(/\| Contracts/u);
-      expect(result).toMatch(/\| Adapters/u);
-      expect(result).toMatch(/\| Brokers/u);
+      expect(result).toMatch(/^### Quick Reference: What Needs Proxies\?/mu);
+      expect(result).toMatch(/^\| Contracts/mu);
+      expect(result).toMatch(/^\| Adapters/mu);
+      expect(result).toMatch(/^\| Brokers/mu);
     });
 
     it('VALID: {} => includes detailed proxy patterns reference', () => {
@@ -122,10 +123,10 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Detailed Proxy Patterns/u);
-      expect(result).toMatch(/Use `get-folder-detail\(\{ folderType: "\.\.\."/u);
-      expect(result).toMatch(/Empty Proxy Pattern/u);
-      expect(result).toMatch(/Record<PropertyKey, never>/u);
+      expect(result).toMatch(/^### Detailed Proxy Patterns/mu);
+      expect(result).toMatch(/^.*Use `get-folder-detail\(\{ folderType: "\.\.\."/mu);
+      expect(result).toMatch(/^.*Empty Proxy Pattern.*$/mu);
+      expect(result).toMatch(/^.*Record<PropertyKey, never>.*$/mu);
     });
 
     it('VALID: {} => includes create-per-test pattern', () => {
@@ -133,9 +134,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Create-Per-Test Pattern/u);
-      expect(result).toMatch(/Create a fresh proxy in each test/u);
-      expect(result).toMatch(/Proxies set up mocks in their constructor/u);
+      expect(result).toMatch(/^### Create-Per-Test Pattern/mu);
+      expect(result).toMatch(/^.*Create a fresh proxy in each test.*$/mu);
+      expect(result).toMatch(/^.*Proxies set up mocks in their constructor.*$/mu);
     });
 
     it('VALID: {} => includes child proxy creation', () => {
@@ -143,8 +144,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Child Proxy Creation/u);
-      expect(result).toMatch(/When to assign child proxy to variable/u);
+      expect(result).toMatch(/^### Child Proxy Creation/mu);
+      expect(result).toMatch(/^.*When to assign child proxy to variable.*$/mu);
     });
 
     it('VALID: {} => includes global function mocking', () => {
@@ -152,9 +153,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/### Global Function Mocking/u);
-      expect(result).toMatch(/Date\.now\(\)/u);
-      expect(result).toMatch(/crypto\.randomUUID\(\)/u);
+      expect(result).toMatch(/^### Global Function Mocking/mu);
+      expect(result).toMatch(/^.*Date\.now\(\).*$/mu);
+      expect(result).toMatch(/^.*crypto\.randomUUID\(\).*$/mu);
     });
 
     it('VALID: {} => includes stub factories section', () => {
@@ -162,9 +163,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Stub Factories/u);
-      expect(result).toMatch(/Complete stub patterns in contracts\/ folder detail/u);
-      expect(result).toMatch(/Use `get-folder-detail\(\{ folderType: "contracts"/u);
+      expect(result).toMatch(/^## Stub Factories/mu);
+      expect(result).toMatch(/^.*Complete stub patterns in contracts\/ folder detail.*$/mu);
+      expect(result).toMatch(/^.*Use `get-folder-detail\(\{ folderType: "contracts".*$/mu);
     });
 
     it('VALID: {} => includes mocking mechanics section with registerMock', () => {
@@ -172,10 +173,10 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Mocking Mechanics/u);
-      expect(result).toMatch(/registerMock/u);
-      expect(result).toMatch(/Stack-based dispatch/u);
-      expect(result).toMatch(/MockHandle API/u);
+      expect(result).toMatch(/^## Mocking Mechanics/mu);
+      expect(result).toMatch(/^.*registerMock.*$/mu);
+      expect(result).toMatch(/^.*Stack-based dispatch.*$/mu);
+      expect(result).toMatch(/^.*MockHandle API.*$/mu);
     });
 
     it('VALID: {} => includes integration testing section', () => {
@@ -183,9 +184,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Integration Testing/u);
-      expect(result).toMatch(/Integration tests are \*\*ONLY for startup files\*\*/u);
-      expect(result).toMatch(/\.integration\.test\.ts/u);
+      expect(result).toMatch(/^## Integration Testing/mu);
+      expect(result).toMatch(/^.*Integration tests are \*\*ONLY for startup files\*\*.*$/mu);
+      expect(result).toMatch(/^.*\.integration\.test\.ts.*$/mu);
     });
 
     it('VALID: {} => includes no hooks or conditionals section', () => {
@@ -193,9 +194,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## No Hooks or Conditionals/u);
-      expect(result).toMatch(/beforeEach/u);
-      expect(result).toMatch(/afterEach/u);
+      expect(result).toMatch(/^## No Hooks or Conditionals/mu);
+      expect(result).toMatch(/^.*beforeEach.*$/mu);
+      expect(result).toMatch(/^.*afterEach.*$/mu);
     });
 
     it('VALID: {} => includes common anti-patterns reference', () => {
@@ -203,9 +204,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Common Anti-Patterns/u);
-      expect(result).toMatch(/Common testing anti-patterns are documented in syntax rules/u);
-      expect(result).toMatch(/Use `get-syntax-rules\(\)`/u);
+      expect(result).toMatch(/^## Common Anti-Patterns/mu);
+      expect(result).toMatch(/^.*Common testing anti-patterns are documented in syntax rules.*$/mu);
+      expect(result).toMatch(/^.*Use `get-syntax-rules\(\)`.*$/mu);
     });
 
     it('VALID: {} => includes summary checklist', () => {
@@ -213,9 +214,9 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
 
-      expect(result).toMatch(/## Summary Checklist/u);
-      expect(result).toMatch(/Created fresh proxy in test/u);
-      expect(result).toMatch(/Used ReturnType<typeof Stub>/u);
+      expect(result).toMatch(/^## Summary Checklist/mu);
+      expect(result).toMatch(/^.*Created fresh proxy in test.*$/mu);
+      expect(result).toMatch(/^.*Used ReturnType<typeof Stub>.*$/mu);
     });
   });
 });

@@ -29,19 +29,19 @@ describe('delayMillisecondsContract', () => {
   });
 
   describe('invalid delays', () => {
-    it('INVALID_DELAY: {value: -1} => throws validation error for negative', () => {
+    it('INVALID: {value: -1} => throws validation error for negative', () => {
       expect(() => {
         return delayMillisecondsContract.parse(-1);
       }).toThrow(/too_small|minimum/iu);
     });
 
-    it('INVALID_DELAY: {value: 1.5} => throws validation error for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws validation error for non-integer', () => {
       expect(() => {
         return delayMillisecondsContract.parse(1.5);
       }).toThrow(/integer/iu);
     });
 
-    it('INVALID_DELAY: {value: "1000"} => throws validation error for string', () => {
+    it('INVALID: {value: "1000"} => throws validation error for string', () => {
       expect(() => {
         return delayMillisecondsContract.parse('1000' as never);
       }).toThrow(/number/iu);

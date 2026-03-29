@@ -29,7 +29,7 @@ describe('cliSignalContract', () => {
   });
 
   describe('invalid signals', () => {
-    it('INVALID_ACTION: {action: "invalid"} => throws validation error', () => {
+    it('INVALID: {action: "invalid"} => throws validation error', () => {
       expect(() => {
         cliSignalContract.parse({
           action: 'invalid',
@@ -39,7 +39,7 @@ describe('cliSignalContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_SCREEN: {screen: "invalid"} => throws validation error', () => {
+    it('INVALID: {screen: "invalid"} => throws validation error', () => {
       expect(() => {
         cliSignalContract.parse({
           action: 'return',
@@ -49,7 +49,7 @@ describe('cliSignalContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_TIMESTAMP: {timestamp: "not-a-date"} => throws validation error', () => {
+    it('INVALID: {timestamp: "not-a-date"} => throws validation error', () => {
       expect(() => {
         cliSignalContract.parse({
           action: 'return',
@@ -59,7 +59,7 @@ describe('cliSignalContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         cliSignalContract.parse({});
       }).toThrow(/Required/u);

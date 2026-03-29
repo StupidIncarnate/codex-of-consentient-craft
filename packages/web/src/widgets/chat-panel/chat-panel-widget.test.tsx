@@ -74,7 +74,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('TOOL_LOADING')).not.toBeNull();
+      expect(screen.queryByTestId('TOOL_LOADING')).not.toBe(null);
     });
 
     it('VALID: {multiple parallel tool_use, no text response, isStreaming true} => shows Running on last entry of last tool group', () => {
@@ -185,7 +185,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('TOOL_LOADING')).toBeNull();
+      expect(screen.queryByTestId('TOOL_LOADING')).toBe(null);
     });
 
     it('EMPTY: {no entries} => renders empty message area', () => {
@@ -221,7 +221,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('RACCOON_SPRITE')).not.toBeNull();
+      expect(screen.queryByTestId('RACCOON_SPRITE')).not.toBe(null);
     });
   });
 
@@ -404,7 +404,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      const textarea = screen.getByPlaceholderText('Describe your quest...');
+      const textarea = screen.getByRole('textbox');
 
       expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
     });
@@ -475,7 +475,7 @@ describe('ChatPanelWidget', () => {
 
       const tokenBadge = screen.queryByTestId('TOKEN_BADGE');
 
-      expect(tokenBadge).not.toBeNull();
+      expect(tokenBadge).not.toBe(null);
       expect(tokenBadge?.textContent).toBe('500 context');
     });
   });

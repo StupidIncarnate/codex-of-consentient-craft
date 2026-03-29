@@ -11,8 +11,10 @@ describe('QuestVerifyResponder', () => {
 
       const result = await proxy.callResponder({ questId: quest.id });
 
-      expect(result.success).toBe(true);
-      expect(result.checks).toStrictEqual(expect.any(Array));
+      const { success, checks } = result;
+
+      expect(success).toBe(true);
+      expect(checks).toStrictEqual(expect.any(Array));
     });
   });
 

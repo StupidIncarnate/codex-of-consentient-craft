@@ -7,10 +7,13 @@ describe('StartEndpointMock', () => {
     it('VALID: {method, url} => delegates to EndpointMockFlow and returns EndpointControl', () => {
       const control = StartEndpointMock.listen({ method: 'get', url: `${BASE}/test/startup` });
 
-      expect(typeof control.resolves).toBe('function');
-      expect(typeof control.responds).toBe('function');
-      expect(typeof control.respondRaw).toBe('function');
-      expect(typeof control.networkError).toBe('function');
+      expect(control).toStrictEqual({
+        resolves: expect.any(Function),
+        responds: expect.any(Function),
+        respondRaw: expect.any(Function),
+        networkError: expect.any(Function),
+        getRequestCount: expect.any(Function),
+      });
     });
   });
 });

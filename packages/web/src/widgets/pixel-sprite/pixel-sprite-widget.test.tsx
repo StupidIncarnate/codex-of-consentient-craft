@@ -22,9 +22,13 @@ describe('PixelSpriteWidget', () => {
 
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
-      expect(sprite.style.boxShadow).toBe('8px 12px 0 0 #ff4500');
-      expect(sprite.style.width).toBe('4px');
-      expect(sprite.style.height).toBe('4px');
+      expect([sprite.style.boxShadow, sprite.style.width, sprite.style.height]).toStrictEqual([
+        '8px 12px 0 0 #ff4500',
+
+        '4px',
+
+        '4px',
+      ]);
     });
 
     it('VALID: {multiple pixels} => renders comma-separated box-shadows', () => {
@@ -62,8 +66,11 @@ describe('PixelSpriteWidget', () => {
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
       // flip: (width - 1 - x) * scale = (8 - 1 - 2) * 4 = 20
-      expect(sprite.style.boxShadow).toBe('20px 0px 0 0 #ff4500');
-      expect(sprite.style.transform).toBe('scaleX(-1)');
+      expect([sprite.style.boxShadow, sprite.style.transform]).toStrictEqual([
+        '20px 0px 0 0 #ff4500',
+
+        'scaleX(-1)',
+      ]);
     });
 
     it('VALID: {flip: false} => uses normal margins', () => {
@@ -80,9 +87,13 @@ describe('PixelSpriteWidget', () => {
 
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
-      expect(sprite.style.marginRight).toBe('28px');
-      expect(sprite.style.marginLeft).toBe('0px');
-      expect(sprite.style.marginBottom).toBe('76px');
+      expect([
+        sprite.style.marginRight,
+
+        sprite.style.marginLeft,
+
+        sprite.style.marginBottom,
+      ]).toStrictEqual(['28px', '0px', '76px']);
     });
 
     it('VALID: {flip: true} => uses flipped margins', () => {
@@ -99,8 +110,7 @@ describe('PixelSpriteWidget', () => {
 
       const sprite = screen.getByTestId('PIXEL_SPRITE');
 
-      expect(sprite.style.marginRight).toBe('0px');
-      expect(sprite.style.marginLeft).toBe('28px');
+      expect([sprite.style.marginRight, sprite.style.marginLeft]).toStrictEqual(['0px', '28px']);
     });
 
     it('EMPTY: {pixels: []} => renders div with empty box-shadow', () => {

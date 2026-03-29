@@ -33,13 +33,13 @@ describe('fileContentsContract', () => {
   });
 
   describe('invalid file contents', () => {
-    it('INVALID_TYPE: 123 => throws validation error', () => {
+    it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return fileContentsContract.parse(123);
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_UNDEFINED: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return fileContentsContract.parse(undefined);
       }).toThrow(/Required/u);

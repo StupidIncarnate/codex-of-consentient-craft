@@ -29,7 +29,7 @@ const COMPLETE_SIGNAL_LINE = JSON.stringify({
 describe('runLawbringerLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof runLawbringerLayerBroker).toBe('function');
+      expect(runLawbringerLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 
@@ -366,7 +366,7 @@ describe('runLawbringerLayerBroker', () => {
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
-      expect(typeof status).toBe('string');
+      expect(status).toStrictEqual(expect.any(String));
     });
   });
 
@@ -448,9 +448,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(typeof statusA).toBe('string');
-      expect(typeof statusB).toBe('string');
-      expect(typeof statusC).toBe('string');
+      expect(statusA).toStrictEqual(expect.any(String));
+      expect(statusB).toStrictEqual(expect.any(String));
+      expect(statusC).toStrictEqual(expect.any(String));
     });
   });
 
@@ -748,9 +748,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(typeof statusA).toBe('string');
-      expect(typeof statusB).toBe('string');
-      expect(typeof statusC).toBe('string');
+      expect(statusA).toStrictEqual(expect.any(String));
+      expect(statusB).toStrictEqual(expect.any(String));
+      expect(statusC).toStrictEqual(expect.any(String));
     });
   });
 });

@@ -16,7 +16,7 @@ test.describe('Session Creation', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('session file appears in session list', async ({ page, request }) => {
+  test('VALID: session file appears in session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Quest Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-first-${Date.now()}`;
@@ -33,7 +33,7 @@ test.describe('Session Creation', () => {
     await expect(page.getByText('Build a feature')).toBeVisible();
   });
 
-  test('multiple sessions show in session list', async ({ page, request }) => {
+  test('VALID: multiple sessions show in session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Multi Session Guild', path: GUILD_PATH });
 
     const now = Date.now();
@@ -59,7 +59,7 @@ test.describe('Session Creation', () => {
     await expect(page.getByText('Third task')).toBeVisible();
   });
 
-  test('session item is clickable', async ({ page, request }) => {
+  test('VALID: session item is clickable', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Click Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-click-${Date.now()}`;

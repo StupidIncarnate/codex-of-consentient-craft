@@ -5,7 +5,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {default state} => completes initialization without error', async () => {
       const proxy = ServerInitResponderProxy();
 
-      await expect(proxy.callResponder()).resolves.toBeUndefined();
+      await expect(proxy.callResponder()).resolves.toBe(undefined);
     });
   });
 });

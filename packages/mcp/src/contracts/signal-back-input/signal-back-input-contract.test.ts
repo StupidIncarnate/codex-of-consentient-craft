@@ -54,7 +54,7 @@ describe('signalBackInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SIGNAL: {signal: "unknown"} => throws validation error', () => {
+    it('INVALID: {signal: "unknown"} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({
           signal: 'unknown',
@@ -62,7 +62,7 @@ describe('signalBackInputContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SIGNAL: {signal: "partially-complete"} => throws validation error', () => {
+    it('INVALID: {signal: "partially-complete"} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({
           signal: 'partially-complete',
@@ -70,7 +70,7 @@ describe('signalBackInputContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SIGNAL: {signal: "needs-role-followup"} => throws validation error', () => {
+    it('INVALID: {signal: "needs-role-followup"} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({
           signal: 'needs-role-followup',
@@ -78,7 +78,7 @@ describe('signalBackInputContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SUMMARY: {summary: ""} => throws validation error for empty string', () => {
+    it('INVALID: {summary: ""} => throws validation error for empty string', () => {
       expect(() => {
         signalBackInputContract.parse({
           signal: 'complete',
@@ -87,7 +87,7 @@ describe('signalBackInputContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MULTIPLE: {missing signal} => throws validation error', () => {
+    it('INVALID: {missing signal} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({});
       }).toThrow(/Required/u);

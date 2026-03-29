@@ -17,7 +17,7 @@ describe('chatLineSourceContract', () => {
   });
 
   describe('invalid sources', () => {
-    it('INVALID_VALUE: {value: "unknown"} => throws validation error', () => {
+    it('INVALID: {value: "unknown"} => throws validation error', () => {
       expect(() => chatLineSourceContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
   });

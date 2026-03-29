@@ -26,7 +26,7 @@ describe('projectFolderContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_NAME: {name: number} => throws validation error', () => {
+    it('INVALID: {name: number} => throws validation error', () => {
       expect(() =>
         projectFolderContract.parse({
           name: 123 as never,
@@ -35,7 +35,7 @@ describe('projectFolderContract', () => {
       ).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => projectFolderContract.parse({})).toThrow(/Required/u);
     });
   });

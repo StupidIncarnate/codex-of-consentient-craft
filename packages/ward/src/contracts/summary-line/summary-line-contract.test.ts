@@ -19,7 +19,7 @@ describe('summaryLineContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_VALUE: {value: empty string} => throws min length error', () => {
+    it('INVALID: {value: empty string} => throws min length error', () => {
       expect(() => summaryLineContract.parse('')).toThrow(/too_small/u);
     });
   });

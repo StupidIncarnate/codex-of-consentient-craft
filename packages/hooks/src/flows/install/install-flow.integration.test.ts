@@ -28,7 +28,7 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Created .claude/settings.json with hooks',
       });
-      expect(settingsContent).toMatch(/dungeonmaster/u);
+      expect(settingsContent).toMatch(/^.*dungeonmaster.*$/mu);
     });
   });
 });

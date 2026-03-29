@@ -47,31 +47,31 @@ describe('questSectionContract', () => {
   });
 
   describe('invalid sections', () => {
-    it('INVALID_SECTION: {value: "invalid"} => throws validation error', () => {
+    it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questSectionContract.parse('invalid');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SECTION: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return questSectionContract.parse('');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SECTION: {value: "requirements"} => throws validation error (removed section)', () => {
+    it('INVALID: {value: "requirements"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('requirements');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SECTION: {value: "contexts"} => throws validation error (removed section)', () => {
+    it('INVALID: {value: "contexts"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('contexts');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_SECTION: {value: "observables"} => throws validation error (removed section)', () => {
+    it('INVALID: {value: "observables"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('observables');
       }).toThrow(/Invalid enum value/u);

@@ -9,7 +9,7 @@ describe('StartupRecoveryFlow', () => {
 
   describe('export', () => {
     it('VALID: StartupRecoveryFlow => exports an async function', () => {
-      expect(typeof StartupRecoveryFlow).toBe('function');
+      expect(StartupRecoveryFlow).toStrictEqual(expect.any(Function));
     });
   });
 

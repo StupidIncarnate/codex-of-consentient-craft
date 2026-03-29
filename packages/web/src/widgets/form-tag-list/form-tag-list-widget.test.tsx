@@ -15,7 +15,7 @@ describe('FormTagListWidget', () => {
 
       mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
 
-      expect(screen.getByText('Tags:')).toBeInTheDocument();
+      expect(screen.getByTestId('FORM_TAG_LABEL')).toBeInTheDocument();
     });
 
     it('VALID: {items: ["alpha","beta"]} => renders all tag items', () => {
@@ -38,7 +38,7 @@ describe('FormTagListWidget', () => {
 
       mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
 
-      expect(screen.queryByTestId('FORM_TAG_EMPTY')).toBeNull();
+      expect(screen.queryByTestId('FORM_TAG_EMPTY')).toBe(null);
     });
   });
 

@@ -4,6 +4,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 export const orchestratorStopAllChatsAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
+  wasCalled: () => boolean;
 } => {
   const mock = jest.mocked(StartOrchestrator.stopAllChats);
   mock.mockReturnValue(undefined);
@@ -14,5 +15,6 @@ export const orchestratorStopAllChatsAdapterProxy = (): {
         throw error;
       });
     },
+    wasCalled: (): boolean => mock.mock.calls.length > 0,
   };
 };

@@ -15,10 +15,10 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/### Assertion Anti-Patterns/u);
-    expect(content).toMatch(/### Mock\/Proxy Anti-Patterns/u);
-    expect(content).toMatch(/### Type Safety Anti-Patterns/u);
-    expect(content).toMatch(/### Test Organization Anti-Patterns/u);
+    expect(content).toMatch(/^### Assertion Anti-Patterns/mu);
+    expect(content).toMatch(/^### Mock\/Proxy Anti-Patterns/mu);
+    expect(content).toMatch(/^### Type Safety Anti-Patterns/mu);
+    expect(content).toMatch(/^### Test Organization Anti-Patterns/mu);
   });
 
   it('VALID: {} => includes assertion anti-pattern violations', () => {
@@ -27,9 +27,9 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/toMatchObject/u);
-    expect(content).toMatch(/toBeDefined/u);
-    expect(content).toMatch(/toHaveLength/u);
+    expect(content).toMatch(/^.*toMatchObject.*$/mu);
+    expect(content).toMatch(/^.*toBeDefined.*$/mu);
+    expect(content).toMatch(/^.*toHaveLength.*$/mu);
   });
 
   it('VALID: {} => includes mocking anti-pattern violations', () => {
@@ -38,9 +38,9 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/jest\.mocked/u);
-    expect(content).toMatch(/jest\.mock/u);
-    expect(content).toMatch(/jest\.clearAllMocks/u);
+    expect(content).toMatch(/^.*jest\.mocked.*$/mu);
+    expect(content).toMatch(/^.*jest\.mock.*$/mu);
+    expect(content).toMatch(/^.*jest\.clearAllMocks.*$/mu);
   });
 
   it('VALID: {} => includes type safety anti-pattern violations', () => {
@@ -49,8 +49,8 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/any/u);
-    expect(content).toMatch(/@ts-ignore/u);
+    expect(content).toMatch(/^.*\bany\b.*$/mu);
+    expect(content).toMatch(/^.*@ts-ignore.*$/mu);
   });
 
   it('VALID: {} => includes test organization anti-pattern violations', () => {
@@ -59,8 +59,8 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/jest\.spyOn/u);
-    expect(content).toMatch(/beforeEach/u);
+    expect(content).toMatch(/^.*jest\.spyOn.*$/mu);
+    expect(content).toMatch(/^.*beforeEach.*$/mu);
   });
 
   it('VALID: {} => includes correct approach guidance for each category', () => {
@@ -69,10 +69,10 @@ describe('formatTestingAntiPatternsSectionLayerBroker', () => {
 
     const content = result.join('\n');
 
-    expect(content).toMatch(/Correct Approach/u);
-    expect(content).toMatch(/toStrictEqual/u);
-    expect(content).toMatch(/semantic methods/u);
-    expect(content).toMatch(/ReturnType<typeof Stub>/u);
-    expect(content).toMatch(/describe blocks/u);
+    expect(content).toMatch(/^.*Correct Approach.*$/mu);
+    expect(content).toMatch(/^.*toStrictEqual.*$/mu);
+    expect(content).toMatch(/^.*semantic methods.*$/mu);
+    expect(content).toMatch(/^.*ReturnType<typeof Stub>.*$/mu);
+    expect(content).toMatch(/^.*describe blocks.*$/mu);
   });
 });

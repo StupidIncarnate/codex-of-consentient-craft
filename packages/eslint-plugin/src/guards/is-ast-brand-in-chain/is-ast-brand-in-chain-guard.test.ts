@@ -94,7 +94,7 @@ describe('isAstBrandInChainGuard', () => {
     expect(isAstBrandInChainGuard({ node: stringCall })).toBe(true);
   });
 
-  it('INVALID_NO_BRAND: {node: z.string() without .brand()} => returns false', () => {
+  it('INVALID: {node: z.string() without .brand()} => returns false', () => {
     const stringCall = TsestreeStub({
       type: 'CallExpression',
       parent: null,
@@ -103,7 +103,7 @@ describe('isAstBrandInChainGuard', () => {
     expect(isAstBrandInChainGuard({ node: stringCall })).toBe(false);
   });
 
-  it('INVALID_NO_BRAND: {node: z.string().email() without .brand()} => returns false', () => {
+  it('INVALID: {node: z.string().email() without .brand()} => returns false', () => {
     const emailCall = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -124,7 +124,7 @@ describe('isAstBrandInChainGuard', () => {
     expect(isAstBrandInChainGuard({ node: stringCall })).toBe(false);
   });
 
-  it('INVALID_DIFFERENT_METHOD: {node: chain with .optional() but not .brand()} => returns false', () => {
+  it('INVALID: {node: chain with .optional() but not .brand()} => returns false', () => {
     const optionalCall = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -144,7 +144,7 @@ describe('isAstBrandInChainGuard', () => {
     expect(isAstBrandInChainGuard({ node: stringCall })).toBe(false);
   });
 
-  it('INVALID_NO_PROPERTY: {node: parent with no property} => returns false', () => {
+  it('INVALID: {node: parent with no property} => returns false', () => {
     const parentNode = TsestreeStub({
       type: 'CallExpression',
       property: undefined,

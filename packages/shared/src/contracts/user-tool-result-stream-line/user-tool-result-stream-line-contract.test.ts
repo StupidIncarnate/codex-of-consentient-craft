@@ -13,16 +13,21 @@ describe('userToolResultStreamLineContract', () => {
 
       const result = userToolResultStreamLineContract.parse(streamLine);
 
-      expect(result.type).toBe('user');
-      expect(result.message.content).toStrictEqual([
-        {
-          type: 'tool_result',
-          tool_use_id: 'toolu_016sbUuxidMBZVMKM9jpHsqK',
-          content:
-            "Claude requested permissions to use mcp__dungeonmaster__list-guilds, but you haven't granted it yet.",
-          is_error: true,
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_016sbUuxidMBZVMKM9jpHsqK',
+              content:
+                "Claude requested permissions to use mcp__dungeonmaster__list-guilds, but you haven't granted it yet.",
+              is_error: true,
+            },
+          ],
         },
-      ]);
+      });
     });
 
     it('VALID: {successful tool result} => parses without is_error', () => {
@@ -30,14 +35,19 @@ describe('userToolResultStreamLineContract', () => {
 
       const result = userToolResultStreamLineContract.parse(streamLine);
 
-      expect(result.type).toBe('user');
-      expect(result.message.content).toStrictEqual([
-        {
-          type: 'tool_result',
-          tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-          content: 'File contents retrieved successfully',
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+            },
+          ],
         },
-      ]);
+      });
     });
 
     it('VALID: {mixed text and tool result} => parses both content items', () => {
@@ -73,7 +83,7 @@ describe('userToolResultStreamLineContract', () => {
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "assistant"} => throws validation error', () => {
+    it('INVALID: {type: "assistant"} => throws validation error', () => {
       expect(() => {
         userToolResultStreamLineContract.parse({
           type: 'assistant',

@@ -107,7 +107,7 @@ describe('stepAssertionContract', () => {
   });
 
   describe('invalid assertions', () => {
-    it('INVALID_FIELD: {prefix: INVALID, no field} => throws validation error', () => {
+    it('INVALID: {prefix: INVALID, no field} => throws validation error', () => {
       const parseWithoutField = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'INVALID',
@@ -120,7 +120,7 @@ describe('stepAssertionContract', () => {
       );
     });
 
-    it('INVALID_FIELD: {prefix: VALID, with field} => throws validation error', () => {
+    it('INVALID: {prefix: VALID, with field} => throws validation error', () => {
       const parseWithField = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'VALID',
@@ -134,7 +134,7 @@ describe('stepAssertionContract', () => {
       );
     });
 
-    it('INVALID_FIELD: {prefix: ERROR, with field} => throws validation error', () => {
+    it('INVALID: {prefix: ERROR, with field} => throws validation error', () => {
       const parseWithField = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'ERROR',
@@ -148,7 +148,7 @@ describe('stepAssertionContract', () => {
       );
     });
 
-    it('INVALID_FIELD: {prefix: EDGE, with field} => throws validation error', () => {
+    it('INVALID: {prefix: EDGE, with field} => throws validation error', () => {
       const parseWithField = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'EDGE',
@@ -162,7 +162,7 @@ describe('stepAssertionContract', () => {
       );
     });
 
-    it('INVALID_FIELD: {prefix: EMPTY, with field} => throws validation error', () => {
+    it('INVALID: {prefix: EMPTY, with field} => throws validation error', () => {
       const parseWithField = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'EMPTY',
@@ -176,7 +176,7 @@ describe('stepAssertionContract', () => {
       );
     });
 
-    it('INVALID_INPUT: {input: ""} => throws validation error', () => {
+    it('INVALID: {input: ""} => throws validation error', () => {
       const parseEmptyInput = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'VALID',
@@ -187,7 +187,7 @@ describe('stepAssertionContract', () => {
       expect(parseEmptyInput).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_EXPECTED: {expected: ""} => throws validation error', () => {
+    it('INVALID: {expected: ""} => throws validation error', () => {
       const parseEmptyExpected = (): unknown =>
         stepAssertionContract.parse({
           prefix: 'VALID',

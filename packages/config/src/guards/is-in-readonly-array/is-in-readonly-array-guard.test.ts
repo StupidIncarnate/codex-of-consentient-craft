@@ -24,43 +24,43 @@ describe('isInReadonlyArrayGuard', () => {
   });
 
   describe('invalid cases', () => {
-    it('INVALID_VALUE: {value: "svelte", array: testArray} => returns false', () => {
+    it('INVALID: {value: "svelte", array: testArray} => returns false', () => {
       const result = isInReadonlyArrayGuard({ value: 'svelte', array: testArray });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {value: 123, array: testArray} => returns false', () => {
+    it('INVALID: {value: 123, array: testArray} => returns false', () => {
       const result = isInReadonlyArrayGuard({ value: 123, array: testArray });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_UNDEFINED: {value: undefined, array: testArray} => returns false', () => {
+    it('INVALID: {value: undefined, array: testArray} => returns false', () => {
       const result = isInReadonlyArrayGuard({ array: testArray });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_NULL: {value: null, array: testArray} => returns false', () => {
+    it('INVALID: {value: null, array: testArray} => returns false', () => {
       const result = isInReadonlyArrayGuard({ value: null, array: testArray });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_ARRAY: {value: "react", array: undefined} => returns false', () => {
+    it('INVALID: {value: "react", array: undefined} => returns false', () => {
       const result = isInReadonlyArrayGuard({ value: 'react' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_EMPTY_ARRAY: {value: "react", array: []} => returns false', () => {
+    it('INVALID: {value: "react", array: []} => returns false', () => {
       const result = isInReadonlyArrayGuard({ value: 'react', array: [] });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_BOTH: {value: undefined, array: undefined} => returns false', () => {
+    it('INVALID: {value: undefined, array: undefined} => returns false', () => {
       const result = isInReadonlyArrayGuard({});
 
       expect(result).toBe(false);

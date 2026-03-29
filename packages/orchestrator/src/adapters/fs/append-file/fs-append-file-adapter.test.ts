@@ -11,7 +11,7 @@ describe('fsAppendFileAdapter', () => {
 
       proxy.succeeds();
 
-      await expect(fsAppendFileAdapter({ filePath, contents })).resolves.toBeUndefined();
+      await expect(fsAppendFileAdapter({ filePath, contents })).resolves.toBe(undefined);
     });
 
     it('VALID: {filePath: "/log.txt", contents: "entry"} => appends with correct path and content', async () => {

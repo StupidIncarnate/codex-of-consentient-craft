@@ -141,7 +141,7 @@ describe('questContractPropertyContract', () => {
   });
 
   describe('invalid properties', () => {
-    it('INVALID_NAME: {name: ""} => throws validation error', () => {
+    it('INVALID: {name: ""} => throws validation error', () => {
       const parseEmptyName = (): unknown =>
         questContractPropertyContract.parse({
           name: '',
@@ -152,7 +152,7 @@ describe('questContractPropertyContract', () => {
       expect(parseEmptyName).toThrow(/too_small/u);
     });
 
-    it('INVALID_TYPE: {type: ""} => throws validation error', () => {
+    it('INVALID: {type: ""} => throws validation error', () => {
       const parseEmptyType = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',
@@ -163,7 +163,7 @@ describe('questContractPropertyContract', () => {
       expect(parseEmptyType).toThrow(/too_small/u);
     });
 
-    it('INVALID_TYPE: {type: "string"} => rejects raw primitive type', () => {
+    it('INVALID: {type: "string"} => rejects raw primitive type', () => {
       const parseRawString = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',
@@ -174,7 +174,7 @@ describe('questContractPropertyContract', () => {
       expect(parseRawString).toThrow(/branded type reference/u);
     });
 
-    it('INVALID_TYPE: {type: "number"} => rejects raw primitive type', () => {
+    it('INVALID: {type: "number"} => rejects raw primitive type', () => {
       const parseRawNumber = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',
@@ -185,7 +185,7 @@ describe('questContractPropertyContract', () => {
       expect(parseRawNumber).toThrow(/branded type reference/u);
     });
 
-    it('INVALID_TYPE: {type: "String"} => rejects raw primitive type case-insensitively', () => {
+    it('INVALID: {type: "String"} => rejects raw primitive type case-insensitively', () => {
       const parseUpperString = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',
@@ -196,7 +196,7 @@ describe('questContractPropertyContract', () => {
       expect(parseUpperString).toThrow(/branded type reference/u);
     });
 
-    it('INVALID_TYPE: {type: "NUMBER"} => rejects raw primitive type case-insensitively', () => {
+    it('INVALID: {type: "NUMBER"} => rejects raw primitive type case-insensitively', () => {
       const parseUpperNumber = (): unknown =>
         questContractPropertyContract.parse({
           name: 'validName',

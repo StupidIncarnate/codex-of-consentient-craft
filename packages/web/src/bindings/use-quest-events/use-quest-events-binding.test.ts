@@ -124,7 +124,7 @@ describe('useQuestEventsBinding', () => {
   });
 
   describe('cleanup', () => {
-    it('CLEANUP: {unmount} => closes WS connection', () => {
+    it('EDGE: {unmount} => closes WS connection', () => {
       const proxy = useQuestEventsBindingProxy();
 
       const { unmount } = testingLibraryRenderHookAdapter({
@@ -163,7 +163,7 @@ describe('useQuestEventsBinding', () => {
         },
       });
 
-      expect(result.current.questData).toBeNull();
+      expect(result.current.questData).toBe(null);
     });
   });
 });

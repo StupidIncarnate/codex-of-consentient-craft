@@ -139,8 +139,7 @@ console.log(add(2, 3));`,
       const configContent = fs.readFileSync(configPath, 'utf-8');
       const config = JSON.parse(configContent);
 
-      expect(config.name).toBe('test-app');
-      expect(config.version).toBe('1.0.0');
+      expect(config).toStrictEqual({ name: 'test-app', version: '1.0.0' });
     });
 
     it('VALID: can test file existence checks in /tmp', () => {

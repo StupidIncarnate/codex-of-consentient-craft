@@ -94,7 +94,7 @@ describe('mockSpawnResultContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_CODE: {code: 1.5} => throws validation error for non-integer', () => {
+    it('INVALID: {code: 1.5} => throws validation error for non-integer', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           code: 1.5,
@@ -104,7 +104,7 @@ describe('mockSpawnResultContract', () => {
       }).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_CODE: {code: "0"} => throws validation error for string code', () => {
+    it('INVALID: {code: "0"} => throws validation error for string code', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           code: '0' as never,
@@ -114,7 +114,7 @@ describe('mockSpawnResultContract', () => {
       }).toThrow(/Expected number/u);
     });
 
-    it('INVALID_STDOUT: {stdout: 123} => throws validation error for non-string stdout', () => {
+    it('INVALID: {stdout: 123} => throws validation error for non-string stdout', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           code: 0,
@@ -124,7 +124,7 @@ describe('mockSpawnResultContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_STDERR: {stderr: null} => throws validation error for null stderr', () => {
+    it('INVALID: {stderr: null} => throws validation error for null stderr', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           code: 0,
@@ -134,7 +134,7 @@ describe('mockSpawnResultContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing code and stdout} => throws validation error', () => {
+    it('INVALID: {missing code and stdout} => throws validation error', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           stderr: '',
@@ -142,7 +142,7 @@ describe('mockSpawnResultContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {empty object} => throws validation error for all fields', () => {
+    it('INVALID: {empty object} => throws validation error for all fields', () => {
       expect(() => {
         return mockSpawnResultContract.parse({});
       }).toThrow(/Required/u);

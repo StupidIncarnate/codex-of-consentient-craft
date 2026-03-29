@@ -23,11 +23,11 @@ describe('continuationContextContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_CONTINUATION_CONTEXT: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => continuationContextContract.parse('')).toThrow(/too_small/u);
     });
 
-    it('INVALID_CONTINUATION_CONTEXT: {value: 123} => throws for non-string', () => {
+    it('INVALID: {value: 123} => throws for non-string', () => {
       expect(() => continuationContextContract.parse(123 as never)).toThrow(/Expected string/u);
     });
   });

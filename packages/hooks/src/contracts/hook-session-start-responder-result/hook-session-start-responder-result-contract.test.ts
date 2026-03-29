@@ -27,7 +27,7 @@ describe('hookSessionStartResponderResultContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_SHOULDOUTPUT: {shouldOutput: not a boolean} => throws validation error', () => {
+    it('INVALID: {shouldOutput: not a boolean} => throws validation error', () => {
       expect(() => {
         return hookSessionStartResponderResultContract.parse({
           shouldOutput: 'not a boolean' as never,
@@ -35,7 +35,7 @@ describe('hookSessionStartResponderResultContract', () => {
       }).toThrow(/Expected boolean/u);
     });
 
-    it('INVALID_CONTENT: {content: not a string} => throws validation error', () => {
+    it('INVALID: {content: not a string} => throws validation error', () => {
       expect(() => {
         return hookSessionStartResponderResultContract.parse({
           shouldOutput: false,

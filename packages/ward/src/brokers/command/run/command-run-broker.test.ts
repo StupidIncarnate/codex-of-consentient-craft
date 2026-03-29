@@ -16,10 +16,13 @@ describe('commandRunBroker', () => {
 
       await commandRunBroker({ config, rootPath });
 
-      expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringMatching(/^run: 1739625600000-a38e\n/u),
-      );
-      expect(process.exit).not.toHaveBeenCalled();
+      expect({
+        stdoutFirstArg: proxy.getStdoutCalls()[0]?.[0],
+        exitCalls: proxy.getExitCalls(),
+      }).toStrictEqual({
+        stdoutFirstArg: expect.stringMatching(/^run: 1739625600000-a38e\n/u),
+        exitCalls: [],
+      });
     });
   });
 
@@ -33,8 +36,13 @@ describe('commandRunBroker', () => {
 
       await commandRunBroker({ config, rootPath });
 
-      expect(process.exitCode).toBe(1);
-      expect(process.exit).not.toHaveBeenCalled();
+      expect({
+        exitCode: process.exitCode,
+        exitCalls: proxy.getExitCalls(),
+      }).toStrictEqual({
+        exitCode: 1,
+        exitCalls: [],
+      });
     });
   });
 });

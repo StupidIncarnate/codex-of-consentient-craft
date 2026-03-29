@@ -72,19 +72,19 @@ describe('getQuestInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: ""} => throws validation error', () => {
+    it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUEST_ID: {missing questId} => throws validation error', () => {
+    it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_STAGE: {stage with invalid value} => throws validation error', () => {
+    it('INVALID: {stage with invalid value} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
       }).toThrow(/Invalid enum value/u);

@@ -110,7 +110,7 @@ describe('editToolInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_FILE_PATH: {missing file_path} => throws validation error', () => {
+    it('INVALID: {missing file_path} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           old_string: 'old',
@@ -119,7 +119,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_FILE_PATH: {empty file_path} => throws validation error', () => {
+    it('INVALID: {empty file_path} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '',
@@ -129,7 +129,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_OLD_STRING: {missing old_string} => throws validation error', () => {
+    it('INVALID: {missing old_string} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
@@ -138,7 +138,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_NEW_STRING: {missing new_string} => throws validation error', () => {
+    it('INVALID: {missing new_string} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
@@ -147,13 +147,13 @@ describe('editToolInputContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all required fields} => throws validation error', () => {
+    it('INVALID: {missing all required fields} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_FILE_PATH: {file_path is number} => throws validation error', () => {
+    it('INVALID: {file_path is number} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: 123 as never,
@@ -163,7 +163,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_OLD_STRING: {old_string is number} => throws validation error', () => {
+    it('INVALID: {old_string is number} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
@@ -173,7 +173,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_NEW_STRING: {new_string is number} => throws validation error', () => {
+    it('INVALID: {new_string is number} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
@@ -183,7 +183,7 @@ describe('editToolInputContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_REPLACE_ALL: {replace_all is string} => throws validation error', () => {
+    it('INVALID: {replace_all is string} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',

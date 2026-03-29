@@ -17,7 +17,7 @@ describe('configIndexContract', () => {
   });
 
   describe('invalid indices', () => {
-    it('INVALID_VALUE: {value: -1} => throws validation error', () => {
+    it('INVALID: {value: -1} => throws validation error', () => {
       expect(() => configIndexContract.parse(-1)).toThrow(/too_small/u);
     });
   });

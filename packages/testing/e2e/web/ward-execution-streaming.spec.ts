@@ -25,7 +25,10 @@ test.describe('Ward Execution Streaming', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('mini boss ward streams output lines to execution panel', async ({ page, request }) => {
+  test('VALID: mini boss ward streams output lines to execution panel', async ({
+    page,
+    request,
+  }) => {
     test.slow();
 
     const guild = await guildHarness({ request }).createGuild({
@@ -159,7 +162,10 @@ test.describe('Ward Execution Streaming', () => {
     });
   });
 
-  test('floor boss ward streams output lines to execution panel', async ({ page, request }) => {
+  test('VALID: floor boss ward streams output lines to execution panel', async ({
+    page,
+    request,
+  }) => {
     test.slow();
 
     const guild = await guildHarness({ request }).createGuild({

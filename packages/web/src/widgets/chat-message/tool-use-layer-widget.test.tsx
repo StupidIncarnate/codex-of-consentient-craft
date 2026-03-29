@@ -29,9 +29,7 @@ describe('ToolUseLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/TOOL CALL/u);
-      expect(message.textContent).toMatch(/path/u);
-      expect(message.textContent).toMatch(/\/src/u);
+      expect(message.textContent).toMatch(/^(?=.*TOOL CALL)(?=.*path)(?=.*\/src).*$/u);
     });
 
     it('VALID: {isSubagent: true} => renders SUB-AGENT TOOL label', () => {
@@ -54,7 +52,7 @@ describe('ToolUseLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/SUB-AGENT TOOL/u);
+      expect(message.textContent).toMatch(/^.*SUB-AGENT TOOL.*$/u);
     });
 
     it('VALID: {isLoading: true} => renders Running... indicator', () => {
@@ -98,8 +96,7 @@ describe('ToolUseLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(/SKILL/u);
-      expect(message.textContent).toMatch(/commit/u);
+      expect(message.textContent).toMatch(/^(?=.*SKILL)(?=.*commit).*$/u);
     });
   });
 });

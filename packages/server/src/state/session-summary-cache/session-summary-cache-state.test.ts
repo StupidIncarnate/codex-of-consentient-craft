@@ -34,7 +34,7 @@ describe('sessionSummaryCacheState', () => {
       expect(result).toStrictEqual({ hit: true, summary });
     });
 
-    it('STALE: {mtimeMs mismatch} => returns hit: false', () => {
+    it('EDGE: {mtimeMs mismatch} => returns hit: false', () => {
       const proxy = sessionSummaryCacheStateProxy();
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: 'stale-session' });

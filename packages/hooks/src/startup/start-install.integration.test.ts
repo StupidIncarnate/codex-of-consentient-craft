@@ -30,7 +30,7 @@ describe('start-install integration', () => {
 
       const settings = testbed.getClaudeSettings();
 
-      expect(settings).not.toBeNull();
+      expect(settings).not.toBe(null);
 
       const settingsContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/settings.json' }),
@@ -38,8 +38,8 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(settingsContent).toMatch(/dungeonmaster-pre-edit-lint/u);
-      expect(settingsContent).toMatch(/dungeonmaster-session-start/u);
+      expect(settingsContent).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
+      expect(settingsContent).toMatch(/^.*dungeonmaster-session-start.*$/mu);
     });
 
     it('VALID: {context: existing settings without dungeonmaster} => merges hooks into existing settings', async () => {
@@ -74,9 +74,9 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(settingsContent).toMatch(/Write/u);
-      expect(settingsContent).toMatch(/enabled/u);
-      expect(settingsContent).toMatch(/dungeonmaster-pre-edit-lint/u);
+      expect(settingsContent).toMatch(/^.*Write.*$/mu);
+      expect(settingsContent).toMatch(/^.*enabled.*$/mu);
+      expect(settingsContent).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
     });
 
     it('VALID: {context: settings already has dungeonmaster hooks} => skips installation', async () => {
@@ -157,9 +157,9 @@ describe('start-install integration', () => {
 
       testbed.cleanup();
 
-      expect(settingsContent).toMatch(/existing-hook/u);
-      expect(settingsContent).toMatch(/existing-session-hook/u);
-      expect(settingsContent).toMatch(/dungeonmaster-pre-edit-lint/u);
+      expect(settingsContent).toMatch(/^.*existing-hook.*$/mu);
+      expect(settingsContent).toMatch(/^.*existing-session-hook.*$/mu);
+      expect(settingsContent).toMatch(/^.*dungeonmaster-pre-edit-lint.*$/mu);
     });
   });
 });

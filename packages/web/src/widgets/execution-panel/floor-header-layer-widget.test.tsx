@@ -23,7 +23,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toMatch(/FLOOR 1: CARTOGRAPHY/u);
+      expect(header.textContent).toMatch(/^.*FLOOR 1: CARTOGRAPHY.*$/u);
     });
 
     it('VALID: {floorNumber: 3, name: "GAUNTLET"} => renders different floor', () => {
@@ -40,7 +40,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toMatch(/FLOOR 3: GAUNTLET/u);
+      expect(header.textContent).toMatch(/^.*FLOOR 3: GAUNTLET.*$/u);
     });
   });
 
@@ -54,7 +54,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toMatch(/──/u);
+      expect(header.textContent).toMatch(/^.*──.*$/u);
     });
   });
 
@@ -87,7 +87,7 @@ describe('FloorHeaderLayerWidget', () => {
         ui: <FloorHeaderLayerWidget floorNumber={FloorNumberStub()} name={FloorNameStub()} />,
       });
 
-      expect(screen.queryByTestId('floor-header-concurrent')).toBeNull();
+      expect(screen.queryByTestId('floor-header-concurrent')).toBe(null);
     });
   });
 
@@ -103,8 +103,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toMatch(/HOMEBASE/u);
-      expect(header.textContent).not.toMatch(/FLOOR/u);
+      expect(header.textContent).toMatch(/^(?=.*HOMEBASE)(?!.*FLOOR).*$/u);
     });
 
     it('VALID: {floorNumber: null, name: "ENTRANCE: CARTOGRAPHY"} => renders entrance name', () => {
@@ -121,8 +120,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toMatch(/ENTRANCE: CARTOGRAPHY/u);
-      expect(header.textContent).not.toMatch(/FLOOR/u);
+      expect(header.textContent).toMatch(/^(?=.*ENTRANCE: CARTOGRAPHY)(?!.*FLOOR).*$/u);
     });
   });
 });

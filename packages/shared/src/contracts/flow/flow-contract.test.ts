@@ -66,7 +66,7 @@ describe('flowContract', () => {
   });
 
   describe('invalid flows', () => {
-    it('INVALID_ID: {id: "Bad"} => throws validation error', () => {
+    it('INVALID: {id: "Bad"} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
           id: 'Bad',
@@ -77,7 +77,7 @@ describe('flowContract', () => {
       }).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_NAME: {name: ""} => throws validation error', () => {
+    it('INVALID: {name: ""} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
           id: 'login-flow',
@@ -88,7 +88,7 @@ describe('flowContract', () => {
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_ENTRY_POINT: {entryPoint: ""} => throws validation error', () => {
+    it('INVALID: {entryPoint: ""} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
           id: 'login-flow',

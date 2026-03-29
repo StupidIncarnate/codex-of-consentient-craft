@@ -20,11 +20,15 @@ describe('EndpointMockSetupResponder', () => {
 
       const lifecycle = EndpointMockSetupResponder();
 
-      expect(() => {
-        lifecycle.listen();
-        lifecycle.resetHandlers();
-        lifecycle.close();
-      }).not.toThrow();
+      lifecycle.listen();
+      lifecycle.resetHandlers();
+      lifecycle.close();
+
+      expect(lifecycle).toStrictEqual({
+        listen: expect.any(Function),
+        resetHandlers: expect.any(Function),
+        close: expect.any(Function),
+      });
     });
   });
 });

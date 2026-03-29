@@ -11,8 +11,7 @@ describe('ProcessFlow', () => {
       const response = await app.request(`/api/process/${processId}`);
       const body: unknown = await response.json();
 
-      expect(typeof body).toBe('object');
-      expect(body).not.toBeNull();
+      expect(body).toStrictEqual(expect.any(Object));
     });
   });
 
@@ -25,8 +24,7 @@ describe('ProcessFlow', () => {
       const body: unknown = await response.json();
 
       expect(response.status).toBe(200);
-      expect(typeof body).toBe('object');
-      expect(body).not.toBeNull();
+      expect(body).toStrictEqual(expect.any(Object));
     });
   });
 });

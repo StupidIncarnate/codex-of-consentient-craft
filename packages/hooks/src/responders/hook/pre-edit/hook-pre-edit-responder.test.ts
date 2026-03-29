@@ -41,9 +41,10 @@ describe('HookPreEditResponder', () => {
 
     const result = await HookPreEditResponder({ input: hookData });
 
-    expect(result.shouldBlock).toBe(true);
-    expect(result.message).toMatch(/Code Quality Issue/u);
-    expect(result.message).toMatch(/Unexpected console statement/u);
+    expect(result).toStrictEqual({
+      shouldBlock: true,
+      message: expect.stringMatching(/^.*Code Quality Issue.*Unexpected console statement.*$/su),
+    });
   });
 
   it('VALID: {hasNewViolations: true, message: "New violations detected"} => returns {shouldBlock: true, message}', async () => {
@@ -60,9 +61,10 @@ describe('HookPreEditResponder', () => {
 
     const result = await HookPreEditResponder({ input: hookData });
 
-    expect(result.shouldBlock).toBe(true);
-    expect(result.message).toMatch(/Code Quality Issue/u);
-    expect(result.message).toMatch(/Unexpected console statement/u);
+    expect(result).toStrictEqual({
+      shouldBlock: true,
+      message: expect.stringMatching(/^.*Code Quality Issue.*Unexpected console statement.*$/su),
+    });
   });
 
   // It('ERROR: {hook_event_name: "SessionStart"} => throws "Unsupported hook event: SessionStart"', async () => {

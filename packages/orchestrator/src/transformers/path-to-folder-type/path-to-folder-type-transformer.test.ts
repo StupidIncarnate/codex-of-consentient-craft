@@ -46,7 +46,7 @@ describe('pathToFolderTypeTransformer', () => {
   });
 
   describe('invalid paths', () => {
-    it('INVALID_PATH: {path with unknown folder} => returns undefined', () => {
+    it('INVALID: {path with unknown folder} => returns undefined', () => {
       const ref = StepFileReferenceStub({
         path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
       });
@@ -56,10 +56,10 @@ describe('pathToFolderTypeTransformer', () => {
         folderConfigs: folderConfigStatics,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
-    it('INVALID_PATH: {path without src segment} => returns undefined', () => {
+    it('INVALID: {path without src segment} => returns undefined', () => {
       const ref = StepFileReferenceStub({
         path: 'packages/orchestrator/guards/some-file.ts',
       });
@@ -69,7 +69,7 @@ describe('pathToFolderTypeTransformer', () => {
         folderConfigs: folderConfigStatics,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -79,7 +79,7 @@ describe('pathToFolderTypeTransformer', () => {
         folderConfigs: folderConfigStatics,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it('EMPTY: {folderConfigs: undefined} => returns undefined', () => {
@@ -91,7 +91,7 @@ describe('pathToFolderTypeTransformer', () => {
         filePath: ref.path,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

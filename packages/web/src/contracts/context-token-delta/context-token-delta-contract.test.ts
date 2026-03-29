@@ -23,11 +23,11 @@ describe('contextTokenDeltaContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: 1.5} => throws for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws for non-integer', () => {
       expect(() => contextTokenDeltaContract.parse(1.5)).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_VALUE: {value: "0"} => throws for string', () => {
+    it('INVALID: {value: "0"} => throws for string', () => {
       expect(() => contextTokenDeltaContract.parse('0')).toThrow(/Expected number/u);
     });
 

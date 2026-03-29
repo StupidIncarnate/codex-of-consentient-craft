@@ -17,7 +17,7 @@ describe('mergedChatItemContract', () => {
   });
 
   describe('invalid items', () => {
-    it('INVALID_MULTIPLE: {kind: unknown} => throws validation error', () => {
+    it('INVALID: {kind: unknown} => throws validation error', () => {
       expect(() => mergedChatItemContract.parse({ kind: 'unknown', entry: {} })).toThrow(
         /Invalid discriminator/u,
       );

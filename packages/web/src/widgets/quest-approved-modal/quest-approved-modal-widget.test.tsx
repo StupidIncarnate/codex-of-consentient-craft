@@ -20,7 +20,7 @@ describe('QuestApprovedModalWidget', () => {
         ),
       });
 
-      expect(screen.getByText('Shall we go dumpster diving for some code?')).toBeInTheDocument();
+      expect(screen.getByTestId('QUEST_APPROVED_MODAL_TITLE')).toBeInTheDocument();
     });
 
     it('VALID: {opened: true} => renders Begin Quest button', () => {
@@ -37,7 +37,7 @@ describe('QuestApprovedModalWidget', () => {
         ),
       });
 
-      expect(screen.getByText('Begin Quest')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Begin Quest' })).toBeInTheDocument();
     });
 
     it('VALID: {opened: true} => renders Keep Chatting button', () => {
@@ -54,7 +54,7 @@ describe('QuestApprovedModalWidget', () => {
         ),
       });
 
-      expect(screen.getByText('Keep Chatting')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Keep Chatting' })).toBeInTheDocument();
     });
 
     it('VALID: {opened: true} => renders Start a new Quest button', () => {
@@ -71,7 +71,7 @@ describe('QuestApprovedModalWidget', () => {
         ),
       });
 
-      expect(screen.getByText('Start a new Quest')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Start a new Quest' })).toBeInTheDocument();
     });
 
     it('VALID: {opened: false} => does not render modal title', () => {
@@ -88,7 +88,7 @@ describe('QuestApprovedModalWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('QUEST_APPROVED_MODAL_TITLE')).toBeNull();
+      expect(screen.queryByTestId('QUEST_APPROVED_MODAL_TITLE')).toBe(null);
     });
   });
 

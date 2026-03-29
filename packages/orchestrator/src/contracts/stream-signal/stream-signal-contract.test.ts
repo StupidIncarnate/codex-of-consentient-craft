@@ -60,7 +60,7 @@ describe('streamSignalContract', () => {
   });
 
   describe('invalid signals', () => {
-    it('INVALID_SIGNAL: {signal: "unknown"} => throws for invalid signal type', () => {
+    it('INVALID: {signal: "unknown"} => throws for invalid signal type', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'unknown',
@@ -68,7 +68,7 @@ describe('streamSignalContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_SIGNAL: {signal: "partially-complete"} => throws for removed signal type', () => {
+    it('INVALID: {signal: "partially-complete"} => throws for removed signal type', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'partially-complete',
@@ -76,7 +76,7 @@ describe('streamSignalContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_SIGNAL: {signal: "needs-role-followup"} => throws for removed signal type', () => {
+    it('INVALID: {signal: "needs-role-followup"} => throws for removed signal type', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'needs-role-followup',
@@ -84,11 +84,11 @@ describe('streamSignalContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_SIGNAL: {signal: missing} => throws for missing signal', () => {
+    it('INVALID: {signal: missing} => throws for missing signal', () => {
       expect(() => streamSignalContract.parse({})).toThrow(/Required/u);
     });
 
-    it('INVALID_SUMMARY: {summary: ""} => throws for empty summary', () => {
+    it('INVALID: {summary: ""} => throws for empty summary', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'complete',

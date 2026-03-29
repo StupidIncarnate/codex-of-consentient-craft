@@ -13,7 +13,7 @@ describe('fsWriteFileAdapter', () => {
 
     adapterProxy.succeeds({ filepath, contents });
 
-    await expect(fsWriteFileAdapter({ filepath, contents })).resolves.toBeUndefined();
+    await expect(fsWriteFileAdapter({ filepath, contents })).resolves.toBe(undefined);
   });
 
   it('ERROR: {filepath: "/readonly/file.json", contents: "..."} => throws error', async () => {

@@ -45,8 +45,18 @@ describe('installTestbedCreateBroker', () => {
 
       testbed.cleanup();
 
-      expect(typeof testbed.writeFile).toBe('function');
-      expect(typeof testbed.readFile).toBe('function');
+      expect(testbed).toStrictEqual({
+        guildPath: expect.any(String),
+        dungeonmasterPath: expect.any(String),
+        cleanup: expect.any(Function),
+        writeFile: expect.any(Function),
+        readFile: expect.any(Function),
+        getClaudeSettings: expect.any(Function),
+        getMcpConfig: expect.any(Function),
+        getDungeonmasterConfig: expect.any(Function),
+        getEslintConfig: expect.any(Function),
+        runInitCommand: expect.any(Function),
+      });
     });
   });
 
@@ -61,7 +71,7 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.getClaudeSettings();
       testbed.cleanup();
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: getMcpConfig returns null when .mcp.json does not exist', () => {
@@ -74,7 +84,7 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.getMcpConfig();
       testbed.cleanup();
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: getDungeonmasterConfig returns null when .dungeonmaster does not exist', () => {
@@ -87,7 +97,7 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.getDungeonmasterConfig();
       testbed.cleanup();
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: getEslintConfig returns null when eslint.config.js does not exist', () => {
@@ -100,7 +110,7 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.getEslintConfig();
       testbed.cleanup();
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

@@ -88,49 +88,49 @@ describe('agentSlotContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_STEP_ID: {uppercase string} => throws validation error', () => {
+    it('INVALID: {uppercase string} => throws validation error', () => {
       expect(() => AgentSlotStub({ stepId: 'INVALID_STEP' as never })).toThrow(/invalid_string/u);
     });
 
-    it('INVALID_STEP_ID: {empty string} => throws validation error', () => {
+    it('INVALID: {empty string} => throws validation error', () => {
       expect(() => AgentSlotStub({ stepId: '' as never })).toThrow(/too_small/u);
     });
 
-    it('INVALID_SESSION_ID: {non-string value} => throws validation error', () => {
+    it('INVALID: {non-string sessionId} => throws validation error', () => {
       expect(() => AgentSlotStub({ sessionId: 123 as never })).toThrow(/Expected string/u);
     });
 
-    it('INVALID_STEP_ID: {non-string value} => throws validation error', () => {
+    it('INVALID: {non-string stepId} => throws validation error', () => {
       expect(() => AgentSlotStub({ stepId: 123 as never })).toThrow(/Expected string/u);
     });
 
-    it('INVALID_STARTED_AT: {non-string value} => throws validation error', () => {
+    it('INVALID: {non-string startedAt} => throws validation error', () => {
       expect(() => AgentSlotStub({ startedAt: 123 as never })).toThrow(/Expected string/u);
     });
 
-    it('INVALID_STARTED_AT: {non-datetime string} => throws validation error', () => {
+    it('INVALID: {non-datetime string} => throws validation error', () => {
       expect(() => AgentSlotStub({ startedAt: 'not-a-date' as never })).toThrow(
         /Invalid datetime/u,
       );
     });
 
-    it('INVALID_STARTED_AT: {invalid date format} => throws validation error', () => {
+    it('INVALID: {invalid date format} => throws validation error', () => {
       expect(() => AgentSlotStub({ startedAt: '2024-13-45T99:99:99.000Z' as never })).toThrow(
         /Invalid datetime/u,
       );
     });
 
-    it('INVALID_PROCESS: {null value} => throws validation error', () => {
+    it('INVALID: {null value} => throws validation error', () => {
       expect(() => AgentSlotStub({ process: null as never })).toThrow(/Expected object/u);
     });
 
-    it('INVALID_PROCESS: {non-object value} => throws validation error', () => {
+    it('INVALID: {non-object value} => throws validation error', () => {
       expect(() => AgentSlotStub({ process: 'not-a-process' as never })).toThrow(
         /Expected object/u,
       );
     });
 
-    it('INVALID_PROCESS: {missing kill method} => throws validation error', () => {
+    it('INVALID: {missing kill method} => throws validation error', () => {
       expect(() =>
         agentSlotContract.parse({
           stepId: 'create-login-api',
@@ -141,7 +141,7 @@ describe('agentSlotContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID_PROCESS: {missing waitForExit method} => throws validation error', () => {
+    it('INVALID: {missing waitForExit method} => throws validation error', () => {
       expect(() =>
         agentSlotContract.parse({
           stepId: 'create-login-api',

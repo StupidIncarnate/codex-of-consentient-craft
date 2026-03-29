@@ -25,9 +25,12 @@ describe('questAddBroker', () => {
 
     const result = await questAddBroker({ input, guildId });
 
-    expect(result.success).toBe(true);
-    expect(result.questId).toMatch(UUID_PATTERN);
-    expect(result.filePath).toBe(questFilePath);
+    expect(result).toStrictEqual({
+      success: true,
+      questId: expect.stringMatching(UUID_PATTERN),
+      questFolder: expect.stringMatching(UUID_PATTERN),
+      filePath: questFilePath,
+    });
   });
 
   it('VALID: {input: {title, userRequest}} => quest folder equals quest id (UUID)', async () => {
@@ -48,8 +51,13 @@ describe('questAddBroker', () => {
 
     const result = await questAddBroker({ input, guildId });
 
+    expect(result).toStrictEqual({
+      success: true,
+      questId: expect.stringMatching(UUID_PATTERN),
+      questFolder: expect.stringMatching(UUID_PATTERN),
+      filePath: expect.any(String),
+    });
     expect(result.questFolder).toBe(result.questId);
-    expect(result.questFolder).toMatch(UUID_PATTERN);
   });
 
   it('VALID: {input: {title, userRequest}} => creates quest with status created', async () => {
@@ -94,9 +102,10 @@ describe('questAddBroker', () => {
     await questAddBroker({ input, guildId });
 
     const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+    const { id, folder } = writtenQuest;
 
-    expect(writtenQuest.id).toMatch(UUID_PATTERN);
-    expect(writtenQuest.folder).toBe(writtenQuest.id);
+    expect(id).toMatch(UUID_PATTERN);
+    expect(folder).toBe(id);
   });
 
   it('VALID: {two quests with same title} => creates quests with different UUIDs', async () => {
@@ -168,7 +177,9 @@ describe('questAddBroker', () => {
 
     const result = await questAddBroker({ input, guildId });
 
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Permission denied');
+    expect(result).toStrictEqual({
+      success: false,
+      error: 'Permission denied',
+    });
   });
 });

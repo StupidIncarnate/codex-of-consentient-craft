@@ -11,7 +11,7 @@ describe('fsWriteFileAdapter', () => {
 
       proxy.succeeds();
 
-      await expect(fsWriteFileAdapter({ filePath, contents })).resolves.toBeUndefined();
+      await expect(fsWriteFileAdapter({ filePath, contents })).resolves.toBe(undefined);
     });
   });
 

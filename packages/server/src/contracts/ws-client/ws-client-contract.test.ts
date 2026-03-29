@@ -8,7 +8,7 @@ describe('wsClientContract', () => {
 
       const result = wsClientContract.parse(client);
 
-      expect(typeof result.send).toBe('function');
+      expect(result).toStrictEqual({ send: expect.any(Function) });
     });
   });
 
@@ -16,7 +16,7 @@ describe('wsClientContract', () => {
     it('VALID: {default} => creates ws client with jest.fn send', () => {
       const result = WsClientStub();
 
-      expect(typeof result.send).toBe('function');
+      expect(result).toStrictEqual({ send: expect.any(Function) });
     });
 
     it('VALID: {custom send} => creates ws client with provided send', () => {

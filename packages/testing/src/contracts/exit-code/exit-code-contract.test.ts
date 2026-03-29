@@ -29,13 +29,13 @@ describe('exitCodeContract', () => {
   });
 
   describe('invalid exit codes', () => {
-    it('INVALID_EXIT_CODE: {value: 1.5} => throws validation error for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws validation error for non-integer', () => {
       expect(() => {
         return exitCodeContract.parse(1.5);
       }).toThrow(/integer/iu);
     });
 
-    it('INVALID_EXIT_CODE: {value: "0"} => throws validation error for string', () => {
+    it('INVALID: {value: "0"} => throws validation error for string', () => {
       expect(() => {
         return exitCodeContract.parse('0' as never);
       }).toThrow(/number/iu);

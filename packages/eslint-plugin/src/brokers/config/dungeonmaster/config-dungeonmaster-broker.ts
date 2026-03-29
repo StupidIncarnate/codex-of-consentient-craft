@@ -116,6 +116,14 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-wait-for-timeout': 'error',
     '@dungeonmaster/ban-page-route-in-e2e': 'error',
     '@dungeonmaster/enforce-e2e-base-import': 'error',
+    '@dungeonmaster/ban-not-to-throw': 'error',
+    '@dungeonmaster/ban-weak-existence-matchers': 'error',
+    '@dungeonmaster/ban-typeof-assertions': 'error',
+    '@dungeonmaster/enforce-test-name-prefix': 'error',
+    '@dungeonmaster/ban-unanchored-to-match': 'error',
+    '@dungeonmaster/enforce-testid-queries': 'error',
+    '@dungeonmaster/ban-playwright-evaluate-for-styles': 'error',
+    '@dungeonmaster/ban-playwright-extract-then-assert': 'error',
     // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',

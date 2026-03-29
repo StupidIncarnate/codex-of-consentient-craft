@@ -23,19 +23,19 @@ describe('runIdContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {empty string} => throws validation error', () => {
+    it('INVALID: {empty string} => throws validation error', () => {
       expect(() => runIdContract.parse('')).toThrow(/Invalid RunId format/u);
     });
 
-    it('INVALID_VALUE: {no hyphen} => throws validation error', () => {
+    it('INVALID: {no hyphen} => throws validation error', () => {
       expect(() => runIdContract.parse('1739625600000a3f1')).toThrow(/Invalid RunId format/u);
     });
 
-    it('INVALID_VALUE: {non-hex after hyphen} => throws validation error', () => {
+    it('INVALID: {non-hex after hyphen} => throws validation error', () => {
       expect(() => runIdContract.parse('1739625600000-ZZZZ')).toThrow(/Invalid RunId format/u);
     });
 
-    it('INVALID_VALUE: {letters in timestamp} => throws validation error', () => {
+    it('INVALID: {letters in timestamp} => throws validation error', () => {
       expect(() => runIdContract.parse('abc-a3f1')).toThrow(/Invalid RunId format/u);
     });
 

@@ -53,31 +53,31 @@ describe('agentRoleContract', () => {
   });
 
   describe('invalid roles', () => {
-    it('INVALID_ROLE: {unknown role} => throws validation error', () => {
+    it('INVALID: {unknown role} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse('unknown_role');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_TYPE: {number} => throws validation error', () => {
+    it('INVALID: {number} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(123 as never);
       }).toThrow(/Expected/u);
     });
 
-    it('INVALID_TYPE: {null} => throws validation error', () => {
+    it('INVALID: {null} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(null as never);
       }).toThrow(/Expected/u);
     });
 
-    it('INVALID_TYPE: {undefined} => throws validation error', () => {
+    it('INVALID: {undefined} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(undefined as never);
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_TYPE: {object} => throws validation error', () => {
+    it('INVALID: {object} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse({} as never);
       }).toThrow(/Expected/u);

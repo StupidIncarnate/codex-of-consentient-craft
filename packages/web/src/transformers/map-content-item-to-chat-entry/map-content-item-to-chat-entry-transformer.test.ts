@@ -484,7 +484,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
         usage: undefined,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

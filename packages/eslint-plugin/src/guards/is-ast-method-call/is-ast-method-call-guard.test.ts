@@ -40,7 +40,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'console', method: 'log' })).toBe(true);
   });
 
-  it('INVALID_OBJECT: {object: "jest", method: "spyOn", node: foo.spyOn()} => returns false', () => {
+  it('INVALID: {object: "jest", method: "spyOn", node: foo.spyOn()} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -59,7 +59,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
-  it('INVALID_METHOD: {object: "jest", method: "spyOn", node: jest.mock()} => returns false', () => {
+  it('INVALID: {object: "jest", method: "spyOn", node: jest.mock()} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -78,7 +78,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
-  it('INVALID_CALLEE: {node without callee} => returns false', () => {
+  it('INVALID: {node without callee} => returns false', () => {
     const node = TsestreeStub({
       type: 'Identifier',
       callee: undefined,
@@ -87,7 +87,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
-  it('INVALID_CALLEE_TYPE: {callee is not MemberExpression} => returns false', () => {
+  it('INVALID: {callee is not MemberExpression} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -99,7 +99,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
-  it('INVALID_OBJECT_TYPE: {callee.object is not Identifier} => returns false', () => {
+  it('INVALID: {callee.object is not Identifier} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -118,7 +118,7 @@ describe('isAstMethodCallGuard', () => {
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
-  it('INVALID_PROPERTY_TYPE: {callee.property is not Identifier} => returns false', () => {
+  it('INVALID: {callee.property is not Identifier} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({

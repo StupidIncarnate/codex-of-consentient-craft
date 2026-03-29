@@ -26,8 +26,11 @@ describe('nextReadyResultContract', () => {
         questBlocked: false,
       });
 
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [expect.any(Object)],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
   });
 });

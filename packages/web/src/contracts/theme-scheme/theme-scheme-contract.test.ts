@@ -60,25 +60,25 @@ describe('themeSchemeContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_NAME: {missing name} => throws validation error', () => {
+    it('INVALID: {missing name} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ desc: 'A theme', colors: {} });
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_DESC: {missing desc} => throws validation error', () => {
+    it('INVALID: {missing desc} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ name: 'Test', colors: {} });
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_COLORS: {missing colors} => throws validation error', () => {
+    it('INVALID: {missing colors} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ name: 'Test', desc: 'A theme' });
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_COLORS: {invalid color token key} => throws validation error', () => {
+    it('INVALID: {invalid color token key} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({
           name: 'Test',
@@ -88,7 +88,7 @@ describe('themeSchemeContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_COLORS: {invalid hex value} => throws validation error', () => {
+    it('INVALID: {invalid hex value} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({
           name: 'Test',
@@ -103,21 +103,23 @@ describe('themeSchemeContract', () => {
     it('VALID: {default} => creates valid theme scheme', () => {
       const result = ThemeSchemeStub();
 
-      expect(result.name).toBe('Ember Depths');
-      expect(result.desc).toBe('Dark volcanic caverns with ember accents');
-      expect(result.colors).toStrictEqual({
-        'bg-deep': '#1a0a2e',
-        'bg-surface': '#2d1b4e',
-        'bg-raised': '#3d2b5e',
-        border: '#4a3866',
-        text: '#e8e0f0',
-        'text-dim': '#8b7fa8',
-        primary: '#ff4500',
-        success: '#00c853',
-        warning: '#ffd600',
-        danger: '#ff1744',
-        'loot-gold': '#ffd700',
-        'loot-rare': '#bb86fc',
+      expect(result).toStrictEqual({
+        name: 'Ember Depths',
+        desc: 'Dark volcanic caverns with ember accents',
+        colors: {
+          'bg-deep': '#1a0a2e',
+          'bg-surface': '#2d1b4e',
+          'bg-raised': '#3d2b5e',
+          border: '#4a3866',
+          text: '#e8e0f0',
+          'text-dim': '#8b7fa8',
+          primary: '#ff4500',
+          success: '#00c853',
+          warning: '#ffd600',
+          danger: '#ff1744',
+          'loot-gold': '#ffd700',
+          'loot-rare': '#bb86fc',
+        },
       });
     });
   });

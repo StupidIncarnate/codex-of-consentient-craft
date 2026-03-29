@@ -41,7 +41,7 @@ describe('configFileLoadBroker', () => {
   });
 
   describe('config validation errors', () => {
-    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is null', async () => {
+    it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is null', async () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
@@ -50,7 +50,7 @@ describe('configFileLoadBroker', () => {
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is string', async () => {
+    it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is string', async () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
@@ -59,7 +59,7 @@ describe('configFileLoadBroker', () => {
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_CONFIG: {configPath: "/project/.dungeonmaster"} => throws when config is number', async () => {
+    it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when config is number', async () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
@@ -68,7 +68,7 @@ describe('configFileLoadBroker', () => {
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_FRAMEWORK: {configPath: "/project/.dungeonmaster"} => throws when framework is missing', async () => {
+    it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when framework is missing', async () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
@@ -77,7 +77,7 @@ describe('configFileLoadBroker', () => {
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
 
-    it('INVALID_FRAMEWORK: {configPath: "/project/.dungeonmaster"} => throws when framework is null', async () => {
+    it('INVALID: {configPath: "/project/.dungeonmaster"} => throws when framework is null', async () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 

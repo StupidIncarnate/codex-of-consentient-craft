@@ -40,8 +40,23 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.status).toBe('complete');
-      expect(result.completedAt).toBe('2024-01-16T10:00:00.000Z');
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        completedAt: '2024-01-16T10:00:00.000Z',
+        designDecisions: [],
+        steps: [],
+        toolingRequirements: [],
+        contracts: [],
+        flows: [],
+        needsDesign: false,
+        userRequest: 'Add authentication to the application',
+        workItems: [],
+        wardResults: [],
+      });
     });
 
     it('VALID: abandoned quest with reason => parses successfully', () => {
@@ -52,8 +67,23 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.status).toBe('abandoned');
-      expect(result.abandonReason).toBe('Requirements changed');
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'abandoned',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        abandonReason: 'Requirements changed',
+        designDecisions: [],
+        steps: [],
+        toolingRequirements: [],
+        contracts: [],
+        flows: [],
+        needsDesign: false,
+        userRequest: 'Add authentication to the application',
+        workItems: [],
+        wardResults: [],
+      });
     });
 
     it('VALID: quest with steps => parses successfully', () => {
@@ -113,7 +143,7 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.designPort).toBeUndefined();
+      expect(result.designPort).toBe(undefined);
     });
 
     it('VALID: quest with design fields => parses successfully', () => {
@@ -124,8 +154,23 @@ describe('questContract', () => {
 
       const result = questContract.parse(quest);
 
-      expect(result.needsDesign).toBe(true);
-      expect(result.designPort).toBe(5173);
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        designDecisions: [],
+        steps: [],
+        toolingRequirements: [],
+        contracts: [],
+        flows: [],
+        needsDesign: true,
+        designPort: 5173,
+        userRequest: 'Add authentication to the application',
+        workItems: [],
+        wardResults: [],
+      });
     });
 
     it('VALID: quest without flows field => backward compat defaults to empty array', () => {

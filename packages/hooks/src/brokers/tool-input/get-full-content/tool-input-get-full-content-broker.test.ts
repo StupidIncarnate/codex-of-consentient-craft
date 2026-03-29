@@ -82,7 +82,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: file read error (not ENOENT) => throws error', async () => {
@@ -165,7 +165,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -179,7 +179,7 @@ describe('toolInputGetFullContentBroker', () => {
         toolInput: { ...toolInputNoPath, file_path: '' } as never,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

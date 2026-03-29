@@ -138,6 +138,7 @@ export const ChatMessageWidget = ({
             </Text>
             {needsTruncation ? (
               <Text
+                data-testid="CHAT_MESSAGE_TRUNCATION_TOGGLE"
                 ff="monospace"
                 size="xs"
                 style={{ color: colors.primary, cursor: 'pointer' }}
@@ -365,6 +366,7 @@ export const ChatMessageWidget = ({
             {truncateContentTransformer({ content: contentString })}
           </Text>
           <Text
+            data-testid="CHAT_MESSAGE_TRUNCATION_TOGGLE"
             ff="monospace"
             size="xs"
             style={{ color: colors.primary, cursor: 'pointer' }}

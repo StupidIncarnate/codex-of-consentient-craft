@@ -50,8 +50,10 @@ describe('QuestLoadResponder', () => {
 
       const result = await proxy.callResponder({ questId: quest.id });
 
-      expect(result.id).toBe(quest.id);
-      expect(result.title).toBe(quest.title);
+      const { id, title } = result;
+
+      expect(id).toBe(quest.id);
+      expect(title).toBe(quest.title);
     });
   });
 });

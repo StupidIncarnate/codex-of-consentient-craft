@@ -11,8 +11,11 @@ describe('floorGroupContract', () => {
 
       const result = floorGroupContract.parse(group);
 
-      expect(result.floorName).toBe('FORGE');
-      expect(result.floorNumber).toBe(1);
+      expect(result).toStrictEqual({
+        floorName: 'FORGE',
+        floorNumber: 1,
+        workItems: [],
+      });
     });
 
     it('VALID: {floorNumber: null} => parses entrance-type floor', () => {
@@ -20,7 +23,7 @@ describe('floorGroupContract', () => {
 
       const result = floorGroupContract.parse(group);
 
-      expect(result.floorNumber).toBeNull();
+      expect(result.floorNumber).toBe(null);
     });
   });
 });

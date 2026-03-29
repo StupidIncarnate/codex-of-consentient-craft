@@ -5,8 +5,11 @@ describe('HookPostEditFlow', () => {
     it('ERROR: {inputData: invalid JSON} => returns exitCode 1 with error in stderr', async () => {
       const result = await HookPostEditFlow({ inputData: 'not json' });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toMatch(/Hook error/u);
+      expect(result).toStrictEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+      });
     });
 
     it('ERROR: {inputData: unsupported hook event} => returns exitCode 1 with error in stderr', async () => {
@@ -21,8 +24,11 @@ describe('HookPostEditFlow', () => {
 
       const result = await HookPostEditFlow({ inputData });
 
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toMatch(/Unsupported hook event/u);
+      expect(result).toStrictEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^.*Unsupported hook event.*$/su),
+      });
     });
   });
 });

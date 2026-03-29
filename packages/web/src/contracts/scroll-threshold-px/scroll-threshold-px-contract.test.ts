@@ -17,11 +17,11 @@ describe('scrollThresholdPxContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: -1} => throws for negative', () => {
+    it('INVALID: {value: -1} => throws for negative', () => {
       expect(() => scrollThresholdPxContract.parse(-1)).toThrow(/too_small/u);
     });
 
-    it('INVALID_VALUE: {value: 1.5} => throws for non-integer', () => {
+    it('INVALID: {value: 1.5} => throws for non-integer', () => {
       expect(() => scrollThresholdPxContract.parse(1.5)).toThrow(/Expected integer/u);
     });
   });

@@ -80,7 +80,7 @@ describe('EslintConfigStub', () => {
     });
   });
 
-  it('INVALID_RULE: {rules: {"test": "invalid"}} => throws ZodError', () => {
+  it('INVALID: {rules: {"test": "invalid"}} => throws ZodError', () => {
     expect(() => {
       eslintConfigContract.parse({
         plugins: {},
@@ -97,7 +97,7 @@ describe('EslintConfigStub', () => {
     }).toThrow('Invalid input');
   });
 
-  it('INVALID_FILES: {files: [""]} => throws ZodError for empty string', () => {
+  it('INVALID: {files: [""]} => throws ZodError for empty string', () => {
     expect(() => {
       EslintConfigStub({
         files: [''],

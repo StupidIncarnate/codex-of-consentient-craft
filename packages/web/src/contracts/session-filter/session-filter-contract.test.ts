@@ -17,11 +17,11 @@ describe('sessionFilterContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "sessions-only"} => throws for unknown filter', () => {
+    it('INVALID: {value: "sessions-only"} => throws for unknown filter', () => {
       expect(() => sessionFilterContract.parse('sessions-only')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => sessionFilterContract.parse('')).toThrow(/Invalid enum value/u);
     });
 

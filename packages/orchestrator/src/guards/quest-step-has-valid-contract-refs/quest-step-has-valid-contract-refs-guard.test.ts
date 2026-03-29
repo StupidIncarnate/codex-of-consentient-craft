@@ -110,7 +110,7 @@ describe('questStepHasValidContractRefsGuard', () => {
   });
 
   describe('invalid references', () => {
-    it('INVALID_CONTRACTS: {step with inputContracts referencing non-existent contract} => returns false', () => {
+    it('INVALID: {step with inputContracts referencing non-existent contract} => returns false', () => {
       const existingName = ContractNameStub({ value: 'LoginCredentials' });
       const nonExistentName = ContractNameStub({ value: 'NonExistentContract' });
       const contracts = [QuestContractEntryStub({ name: existingName })];
@@ -126,7 +126,7 @@ describe('questStepHasValidContractRefsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_CONTRACTS: {step with outputContracts referencing non-existent contract} => returns false', () => {
+    it('INVALID: {step with outputContracts referencing non-existent contract} => returns false', () => {
       const existingName = ContractNameStub({ value: 'LoginCredentials' });
       const nonExistentName = ContractNameStub({ value: 'NonExistentContract' });
       const contracts = [QuestContractEntryStub({ name: existingName })];

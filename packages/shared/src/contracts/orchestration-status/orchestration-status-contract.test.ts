@@ -101,7 +101,7 @@ describe('orchestrationStatusContract', () => {
   });
 
   describe('invalid status', () => {
-    it('INVALID_PHASE: {phase: "unknown"} => throws validation error', () => {
+    it('INVALID: {phase: "unknown"} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           processId: 'proc-123',
@@ -114,7 +114,7 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_COMPLETED: {completed: -1} => throws validation error', () => {
+    it('INVALID: {completed: -1} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           processId: 'proc-123',
@@ -127,7 +127,7 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
-    it('INVALID_COMPLETED: {completed: 1.5} => throws validation error', () => {
+    it('INVALID: {completed: 1.5} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           processId: 'proc-123',
@@ -140,7 +140,7 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Expected integer, received float/u);
     });
 
-    it('INVALID_TOTAL: {total: -1} => throws validation error', () => {
+    it('INVALID: {total: -1} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           processId: 'proc-123',
@@ -153,7 +153,7 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
-    it('INVALID_TOTAL: {total: 2.7} => throws validation error', () => {
+    it('INVALID: {total: 2.7} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           processId: 'proc-123',
@@ -166,7 +166,7 @@ describe('orchestrationStatusContract', () => {
       }).toThrow(/Expected integer, received float/u);
     });
 
-    it('INVALID_MISSING_PROCESS_ID: {} => throws validation error', () => {
+    it('INVALID: {} => throws validation error', () => {
       expect(() => {
         orchestrationStatusContract.parse({
           questId: 'add-auth',
