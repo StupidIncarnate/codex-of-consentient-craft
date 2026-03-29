@@ -1,6 +1,7 @@
 import Panzoom from '@panzoom/panzoom';
 
-jest.mock('@panzoom/panzoom');
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const panzoomCreateAdapterProxy = (): {
   getInstance: () => {
@@ -9,7 +10,7 @@ export const panzoomCreateAdapterProxy = (): {
     reset: jest.Mock;
     destroy: jest.Mock;
   };
-  getConstructor: () => jest.Mock;
+  getConstructor: () => MockHandle;
 } => {
   const mockInstance = {
     zoomIn: jest.fn(),
@@ -21,7 +22,7 @@ export const panzoomCreateAdapterProxy = (): {
     getScale: jest.fn().mockReturnValue(1),
   };
 
-  const mockPanzoom = jest.mocked(Panzoom);
+  const mockPanzoom = registerMock({ fn: Panzoom });
   mockPanzoom.mockReturnValue(mockInstance as never);
 
   return {

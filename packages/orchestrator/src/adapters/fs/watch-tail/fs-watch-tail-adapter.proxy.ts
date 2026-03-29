@@ -1,9 +1,8 @@
-jest.mock('fs');
-jest.mock('readline');
-
 import { watch, createReadStream, statSync, type FSWatcher } from 'fs';
 import { createInterface } from 'readline';
 import { EventEmitter } from 'events';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const fsWatchTailAdapterProxy = (): {
   triggerChange: () => void;
@@ -12,10 +11,10 @@ export const fsWatchTailAdapterProxy = (): {
   setupStreamError: (params: { error: Error }) => void;
   setupStatError: (params: { error: Error }) => void;
 } => {
-  const mockWatch = jest.mocked(watch);
-  const mockCreateReadStream = jest.mocked(createReadStream);
-  const mockStatSync = jest.mocked(statSync);
-  const mockCreateInterface = jest.mocked(createInterface);
+  const mockWatch: MockHandle = registerMock({ fn: watch });
+  const mockCreateReadStream: MockHandle = registerMock({ fn: createReadStream });
+  const mockStatSync: MockHandle = registerMock({ fn: statSync });
+  const mockCreateInterface: MockHandle = registerMock({ fn: createInterface });
 
   const watchEmitter = Object.assign(new EventEmitter(), {
     close: jest.fn(),

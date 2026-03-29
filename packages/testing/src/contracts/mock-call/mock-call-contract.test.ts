@@ -19,6 +19,7 @@ describe('mockCallContract', () => {
         moduleName: 'axios',
         factory: null,
         sourceFile: 'test.proxy.ts',
+        identifierNames: [],
       });
     });
 
@@ -35,6 +36,7 @@ describe('mockCallContract', () => {
         moduleName: 'fs',
         factory: '() => ({ readFile: jest.fn() })',
         sourceFile: 'adapter.proxy.ts',
+        identifierNames: [],
       });
     });
 
@@ -51,6 +53,7 @@ describe('mockCallContract', () => {
         moduleName: '@testing-library/react',
         factory: null,
         sourceFile: 'widget.proxy.tsx',
+        identifierNames: [],
       });
     });
   });

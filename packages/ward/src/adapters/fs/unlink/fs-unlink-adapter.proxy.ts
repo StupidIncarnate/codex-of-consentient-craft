@@ -1,12 +1,11 @@
 import { unlink } from 'fs/promises';
-
-jest.mock('fs/promises');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsUnlinkAdapterProxy = (): {
   succeeds: () => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(unlink);
+  const mock = registerMock({ fn: unlink });
 
   mock.mockResolvedValue(undefined);
 

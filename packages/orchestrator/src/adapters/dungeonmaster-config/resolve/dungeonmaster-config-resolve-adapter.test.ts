@@ -6,7 +6,7 @@ import { dungeonmasterConfigResolveAdapterProxy } from './dungeonmaster-config-r
 describe('dungeonmasterConfigResolveAdapter', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof dungeonmasterConfigResolveAdapter).toBe('function');
+      expect(dungeonmasterConfigResolveAdapter).toStrictEqual(expect.any(Function));
     });
   });
 

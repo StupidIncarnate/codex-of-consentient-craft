@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
-
-jest.mock('child_process');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessSpawnLongLivedAdapterProxy = (): {
   getKillFn: () => jest.Mock;
@@ -14,7 +13,8 @@ export const childProcessSpawnLongLivedAdapterProxy = (): {
     on: jest.fn(),
   };
 
-  jest.mocked(spawn).mockReturnValue(mockChild as never);
+  const mock = registerMock({ fn: spawn });
+  mock.mockReturnValue(mockChild as never);
 
   return {
     getKillFn: (): jest.Mock => mockKill,

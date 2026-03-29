@@ -8,30 +8,30 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { ModifyQuestResult } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
-
-jest.mock('@dungeonmaster/orchestrator');
 
 export const orchestratorModifyQuestAdapterProxy = (): {
   returns: (params: { result: ModifyQuestResult }) => void;
   throws: (params: { error: Error }) => void;
   getLastCalledInput: () => unknown;
 } => {
-  const mock = jest.mocked(StartOrchestrator.modifyQuest);
+  const handle = registerMock({ fn: StartOrchestrator.modifyQuest });
 
-  mock.mockResolvedValue(ModifyQuestResultStub());
+  handle.mockResolvedValue(ModifyQuestResultStub());
 
   return {
     returns: ({ result }: { result: ModifyQuestResult }): void => {
-      mock.mockResolvedValueOnce(result);
+      handle.mockResolvedValueOnce(result);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
     getLastCalledInput: (): unknown => {
-      const lastCall = mock.mock.calls.at(-1);
-      return lastCall?.[0]?.input;
+      const lastCall = handle.mock.calls.at(-1);
+      const firstArg = lastCall?.[0] as { input?: unknown } | undefined;
+      return firstArg?.input;
     },
   };
 };

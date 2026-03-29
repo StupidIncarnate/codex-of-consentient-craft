@@ -1,4 +1,6 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unified-broker.proxy';
 
@@ -11,7 +13,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnFailureOnce: () => void;
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
   getSpawnedArgs: () => unknown;
-  setupStderrCapture: () => jest.SpyInstance;
+  setupStderrCapture: () => SpyOnHandle;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
 
@@ -82,7 +84,10 @@ export const agentSpawnByRoleBrokerProxy = (): {
 
     getSpawnedArgs: (): unknown => unifiedProxy.getSpawnedArgs(),
 
-    setupStderrCapture: (): jest.SpyInstance =>
-      jest.spyOn(process.stderr, 'write').mockImplementation(() => true),
+    setupStderrCapture: (): SpyOnHandle => {
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      return handle;
+    },
   };
 };

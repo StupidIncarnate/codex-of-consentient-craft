@@ -1,4 +1,5 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
   FileNameStub,
@@ -41,7 +42,9 @@ export const OrchestrationStartResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  );
 
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
     const guildId = GuildIdStub();

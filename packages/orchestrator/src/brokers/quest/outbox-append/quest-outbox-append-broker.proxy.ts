@@ -3,6 +3,7 @@ import {
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 
@@ -20,7 +21,9 @@ export const questOutboxAppendBrokerProxy = (): {
   const pathJoinProxy = pathJoinAdapterProxy();
   const appendFileProxy = fsAppendFileAdapterProxy();
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
 
   return {
     setupOutboxAppend: ({

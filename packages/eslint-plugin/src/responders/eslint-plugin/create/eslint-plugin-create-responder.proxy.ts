@@ -3,11 +3,14 @@
 // that call jest.mock('fs'). The eslint-plugin-jest npm package uses fs.readdirSync at load
 // time which breaks under the fs mock. Provide a minimal mock to prevent the crash.
 import _eslintPluginJest from 'eslint-plugin-jest';
+import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-jest.mock('eslint-plugin-jest', () => ({
-  __esModule: true,
-  default: { rules: {}, configs: {} },
-}));
+registerModuleMock({
+  module: 'eslint-plugin-jest',
+  factory: () => ({
+    default: { rules: {}, configs: {} },
+  }),
+});
 
 import { ruleBanAdhocTypesBrokerProxy } from '../../../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker.proxy';
 import { ruleBanPrimitivesBrokerProxy } from '../../../brokers/rule/ban-primitives/rule-ban-primitives-broker.proxy';

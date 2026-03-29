@@ -22,7 +22,7 @@ export const MermaidDiagramWidgetProxy = (): {
       adapterProxy.returns({ svg });
     },
     setupError: ({ error }: { error: Error }) => {
-      adapterProxy.throws({ error });
+      adapterProxy.setupError({ error });
     },
     getPanzoomInstance: () => panzoomProxy.getInstance(),
   };

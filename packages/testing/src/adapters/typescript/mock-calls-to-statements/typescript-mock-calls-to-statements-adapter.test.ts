@@ -5,6 +5,7 @@ import { MockCallStub } from '../../../contracts/mock-call/mock-call.stub';
 import { ModuleNameStub } from '../../../contracts/module-name/module-name.stub';
 import { SourceFileNameStub } from '../../../contracts/source-file-name/source-file-name.stub';
 import { TypescriptNodeFactoryStub } from '../../../contracts/typescript-node-factory/typescript-node-factory.stub';
+import { IdentifierNameStub } from '../../../contracts/identifier-name/identifier-name.stub';
 
 describe('typescriptMockCallsToStatementsAdapter', () => {
   describe('valid mock calls conversion', () => {
@@ -240,6 +241,69 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       expect(outputs).toStrictEqual([
         expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u),
         expect.stringMatching(/jest\.mock\(['"]path['"]\)/u),
+      ]);
+    });
+  });
+
+  describe('selective factory mock generation', () => {
+    it('VALID: {mockCall with identifierNames} => returns jest.mock with selective factory', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        identifierNames: [IdentifierNameStub({ value: 'readFile' })],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /jest\.mock\(["']fs\/promises["'],\s*\(\)\s*=>\s*\([\s\S]*\.\.\.jest\.requireActual\(["']fs\/promises["']\)[\s\S]*readFile:\s*jest\.fn\(\)/u,
+        ),
+      ]);
+    });
+
+    it('VALID: {mockCall with multiple identifierNames} => returns factory with all identifiers', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        identifierNames: [
+          IdentifierNameStub({ value: 'readFile' }),
+          IdentifierNameStub({ value: 'writeFile' }),
+        ],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /jest\.mock\(["']fs\/promises["'][\s\S]*requireActual[\s\S]*readFile:\s*jest\.fn\(\)[\s\S]*writeFile:\s*jest\.fn\(\)/u,
+        ),
       ]);
     });
   });

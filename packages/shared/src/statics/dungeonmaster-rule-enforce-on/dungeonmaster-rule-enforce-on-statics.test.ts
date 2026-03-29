@@ -55,6 +55,7 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/enforce-testid-queries': 'pre-edit',
       '@dungeonmaster/ban-playwright-evaluate-for-styles': 'pre-edit',
       '@dungeonmaster/ban-playwright-extract-then-assert': 'pre-edit',
+      '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit',
       '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',

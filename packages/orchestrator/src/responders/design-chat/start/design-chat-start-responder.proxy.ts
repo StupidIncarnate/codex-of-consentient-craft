@@ -1,5 +1,7 @@
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
@@ -43,7 +45,7 @@ export const DesignChatStartResponderProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const processStateProxy = orchestrationProcessesStateProxy();
   orchestrationEventsStateProxy();
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const stderrSpy: { current: SpyOnHandle | null } = { current: null };
 
   return {
     callResponder: DesignChatStartResponder,
@@ -69,7 +71,9 @@ export const DesignChatStartResponderProxy = (): {
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      stderrSpy.current = handle;
     },
 
     getStderrWrites: (): readonly unknown[] =>

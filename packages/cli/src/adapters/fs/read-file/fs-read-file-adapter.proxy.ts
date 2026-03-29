@@ -1,22 +1,21 @@
-jest.mock('fs/promises');
-
 import { readFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReadFileAdapterProxy = (): {
   resolves: (params: { content: string }) => void;
   rejects: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(readFile);
+  const handle = registerMock({ fn: readFile });
 
-  mock.mockResolvedValue('');
+  handle.mockResolvedValue('');
 
   return {
     resolves: ({ content }: { content: string }): void => {
-      mock.mockResolvedValueOnce(content);
+      handle.mockResolvedValueOnce(content);
     },
 
     rejects: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

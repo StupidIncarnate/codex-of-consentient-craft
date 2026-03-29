@@ -30,6 +30,6 @@ dungeonmaster init
 
 ## Testing
 
-- Unit tests use proxy files for mocking (no `jest.spyOn` in test files)
+- Unit tests use proxy files for mocking (no direct `jest.mock`/`jest.spyOn` — use `registerMock`/`registerSpyOn` from `@dungeonmaster/testing/register-mock`)
 - Integration tests for startup files use `installTestbedCreateBroker` for isolated temp directories
 - E2E test (`bin/dungeonmaster.e2e.test.ts`) requires `npm run build` first

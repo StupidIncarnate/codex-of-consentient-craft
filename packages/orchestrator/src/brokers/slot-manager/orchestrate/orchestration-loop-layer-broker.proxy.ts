@@ -1,4 +1,5 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import { handleSignalLayerBrokerProxy } from './handle-signal-layer-broker.proxy';
@@ -59,7 +60,7 @@ export const orchestrationLoopLayerBrokerProxy = (): {
       spawnProxy.setupSpawnFailure();
     },
     setupDateNow: ({ timestamp }: { timestamp: number }): void => {
-      jest.spyOn(Date, 'now').mockReturnValue(timestamp);
+      registerSpyOn({ object: Date, method: 'now' }).mockReturnValue(timestamp);
     },
   };
 };

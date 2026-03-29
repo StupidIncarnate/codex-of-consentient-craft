@@ -1,29 +1,12 @@
-jest.mock('@dungeonmaster/orchestrator', () => ({
-  ...jest.requireActual('@dungeonmaster/orchestrator'),
-  StartOrchestrator: {
-    listQuests: jest.fn(),
-    loadQuest: jest.fn(),
-    recoverActiveQuests: jest.fn(),
-    replayChatHistory: jest.fn(),
-    stopAllChats: jest.fn(),
-  },
-  orchestrationEventsState: {
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    removeAllListeners: jest.fn(),
-  },
-  questFindQuestPathBroker: jest.fn(),
-}));
-
-import * as orchestrator from '@dungeonmaster/orchestrator';
+import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorFindQuestPathAdapterProxy = (): {
   returns: (params: { questPath: AbsoluteFilePath; guildId: GuildId }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(orchestrator.questFindQuestPathBroker);
+  const mock = registerMock({ fn: questFindQuestPathBroker });
   mock.mockResolvedValue({
     questPath: '/default/quest/path' as AbsoluteFilePath,
     guildId: 'default-guild' as GuildId,

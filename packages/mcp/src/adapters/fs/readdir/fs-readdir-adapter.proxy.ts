@@ -1,16 +1,15 @@
 import { readdir } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FolderName } from '../../../contracts/folder-name/folder-name-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-jest.mock('fs/promises');
 
 export const fsReaddirAdapterProxy = (): {
   returns: ({ filepath, entries }: { filepath: FilePath; entries: FolderName[] }) => void;
   throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
 } => {
-  const mockReaddir = jest.mocked(readdir);
+  const handle = registerMock({ fn: readdir });
 
-  mockReaddir.mockResolvedValue([]);
+  handle.mockResolvedValue([]);
 
   return {
     returns: ({
@@ -20,10 +19,10 @@ export const fsReaddirAdapterProxy = (): {
       filepath: FilePath;
       entries: FolderName[];
     }): void => {
-      mockReaddir.mockResolvedValueOnce(entries as unknown as ReturnType<typeof readdir>);
+      handle.mockResolvedValueOnce(entries);
     },
     throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
-      mockReaddir.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

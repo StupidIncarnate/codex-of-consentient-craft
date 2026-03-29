@@ -1,13 +1,13 @@
 import { createInterface } from 'readline';
-
-jest.mock('readline');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const readlineCreateInterfaceAdapterProxy = (): {
   emitLines: (params: { lines: readonly string[] }) => void;
   setAutoEmitLines: (params: { lines: readonly string[] }) => void;
   skipAutoEmitOnce: () => void;
 } => {
-  const mock = jest.mocked(createInterface);
+  const mock: MockHandle = registerMock({ fn: createInterface });
   const lineCallbacks: ((line: string) => void)[] = [];
   const autoLines = [] as Parameters<
     ReturnType<typeof readlineCreateInterfaceAdapterProxy>['emitLines']

@@ -32,19 +32,15 @@ export const typescriptAstToMockCallsAdapter = ({
   for (const statement of tsSourceFile.statements) {
     const nodesToVisit: ts.Node[] = [];
 
-    // For expression statements (e.g., `jest.mock('os');`), check the expression directly
     if (ts.isExpressionStatement(statement)) {
       nodesToVisit.push(statement.expression);
     }
 
-    // Also check variable declarations at module level that might contain jest.mock
-    // (e.g., `const x = jest.mock(...)`) - though this is rare
     if (ts.isVariableStatement(statement)) {
-      for (const decl of statement.declarationList.declarations) {
-        if (decl.initializer) {
-          nodesToVisit.push(decl.initializer);
-        }
-      }
+      const initializers = statement.declarationList.declarations
+        .map((decl) => decl.initializer)
+        .filter((init): init is ts.Expression => init !== undefined);
+      nodesToVisit.push(...initializers);
     }
 
     for (const node of nodesToVisit) {
@@ -59,11 +55,9 @@ export const typescriptAstToMockCallsAdapter = ({
         const [firstArg, secondArg] = node.arguments;
         if (firstArg && ts.isStringLiteral(firstArg)) {
           const moduleName = moduleNameContract.parse(firstArg.text);
-
-          let factoryText: ReturnType<typeof factoryFunctionTextContract.parse> | null = null;
-          if (secondArg) {
-            factoryText = factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile));
-          }
+          const factoryText = secondArg
+            ? factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile))
+            : null;
 
           mockCalls.push(
             mockCallContract.parse({
@@ -77,8 +71,11 @@ export const typescriptAstToMockCallsAdapter = ({
     }
   }
 
-  // Build import map: identifier name -> module specifier for registerMock resolution
-  const importMap = new Map<IdentifierName, ModuleName>();
+  // Build two maps for registerMock resolution:
+  // importModuleMap: identifier -> module name (for all import types)
+  // namedExportMap: identifier -> original export name (for named imports only, enables selective mocking)
+  const importModuleMap = new Map<IdentifierName, ModuleName>();
+  const namedExportMap = new Map<IdentifierName, IdentifierName>();
 
   for (const statement of tsSourceFile.statements) {
     if (!ts.isImportDeclaration(statement)) {
@@ -96,25 +93,35 @@ export const typescriptAstToMockCallsAdapter = ({
       continue;
     }
 
-    if (importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
-      for (const element of importClause.namedBindings.elements) {
-        if (!element.isTypeOnly) {
-          importMap.set(identifierNameContract.parse(element.name.text), moduleName);
-        }
-      }
-    }
-
     if (importClause.name) {
-      importMap.set(identifierNameContract.parse(importClause.name.text), moduleName);
+      importModuleMap.set(identifierNameContract.parse(importClause.name.text), moduleName);
     }
 
-    if (importClause.namedBindings && ts.isNamespaceImport(importClause.namedBindings)) {
-      importMap.set(identifierNameContract.parse(importClause.namedBindings.name.text), moduleName);
+    const { namedBindings } = importClause;
+    if (!namedBindings) {
+      continue;
+    }
+
+    if (ts.isNamespaceImport(namedBindings)) {
+      importModuleMap.set(identifierNameContract.parse(namedBindings.name.text), moduleName);
+      continue;
+    }
+
+    for (const element of namedBindings.elements) {
+      if (!element.isTypeOnly) {
+        const localName = identifierNameContract.parse(element.name.text);
+        const exportName = identifierNameContract.parse(
+          element.propertyName ? element.propertyName.text : element.name.text,
+        );
+        importModuleMap.set(localName, moduleName);
+        namedExportMap.set(localName, exportName);
+      }
     }
   }
 
   // Walk all nodes to find registerMock({ fn: IDENTIFIER }) calls at any depth
   const nodeStack: ts.Node[] = [...tsSourceFile.statements];
+  const parsedSourceFile = sourceFileNameContract.parse(tsSourceFile.fileName);
 
   while (nodeStack.length > 0) {
     const node = nodeStack.shift();
@@ -134,31 +141,55 @@ export const typescriptAstToMockCallsAdapter = ({
           if (
             ts.isPropertyAssignment(prop) &&
             ts.isIdentifier(prop.name) &&
-            prop.name.text === 'fn' &&
-            ts.isIdentifier(prop.initializer)
+            prop.name.text === 'fn'
           ) {
-            const resolvedModule = importMap.get(
-              identifierNameContract.parse(prop.initializer.text),
-            );
-            if (resolvedModule) {
-              mockCalls.push(
-                mockCallContract.parse({
-                  moduleName: moduleNameContract.parse(resolvedModule),
-                  factory: null,
-                  sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
-                }),
-              );
+            // Resolve root identifier. For property access (Obj.method), walk to the leftmost identifier.
+            let rootIdentifier: IdentifierName | null = null;
+            let isPropertyAccess = false;
+
+            if (ts.isIdentifier(prop.initializer)) {
+              rootIdentifier = identifierNameContract.parse(prop.initializer.text);
+            } else if (ts.isPropertyAccessExpression(prop.initializer)) {
+              isPropertyAccess = true;
+              let current: ts.Expression = prop.initializer;
+              while (ts.isPropertyAccessExpression(current)) {
+                current = current.expression;
+              }
+              if (ts.isIdentifier(current)) {
+                rootIdentifier = identifierNameContract.parse(current.text);
+              }
+            }
+
+            if (rootIdentifier) {
+              const resolvedModule = importModuleMap.get(rootIdentifier);
+              const exportName = namedExportMap.get(rootIdentifier);
+              if (resolvedModule) {
+                // Selective mock only for direct named imports (not property access, not default/namespace)
+                const identifierNames = exportName && !isPropertyAccess ? [exportName] : [];
+                mockCalls.push(
+                  mockCallContract.parse({
+                    moduleName: moduleNameContract.parse(resolvedModule),
+                    factory: null,
+                    sourceFile: parsedSourceFile,
+                    identifierNames,
+                  }),
+                );
+              }
             }
           }
 
           if (ts.isShorthandPropertyAssignment(prop) && prop.name.text === 'fn') {
-            const resolvedModule = importMap.get(identifierNameContract.parse(prop.name.text));
+            const shorthandIdentifier = identifierNameContract.parse(prop.name.text);
+            const resolvedModule = importModuleMap.get(shorthandIdentifier);
+            const exportName = namedExportMap.get(shorthandIdentifier);
             if (resolvedModule) {
+              const identifierNames = exportName ? [exportName] : [];
               mockCalls.push(
                 mockCallContract.parse({
                   moduleName: moduleNameContract.parse(resolvedModule),
                   factory: null,
-                  sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+                  sourceFile: parsedSourceFile,
+                  identifierNames,
                 }),
               );
             }

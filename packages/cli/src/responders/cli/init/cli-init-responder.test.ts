@@ -35,17 +35,12 @@ describe('CliInitResponder', () => {
 
       await proxy.callResponder({ context });
 
-      const spy = proxy.getStdoutOutput();
+      const output = proxy.getStdoutOutput();
 
-      expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenNthCalledWith(
-        1,
+      expect(output).toStrictEqual([
         '[OK] @dungeonmaster/cli: Added devDependencies to package.json\n',
-      );
-      expect(spy).toHaveBeenNthCalledWith(
-        2,
         '[FAIL] @dungeonmaster/hooks: No package.json found\n',
-      );
+      ]);
     });
   });
 
@@ -82,11 +77,12 @@ describe('CliInitResponder', () => {
 
       await proxy.callResponder({ context });
 
-      const spy = proxy.getStdoutOutput();
+      const output = proxy.getStdoutOutput();
 
-      expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenNthCalledWith(1, '[OK] @dungeonmaster/cli: Installed successfully\n');
-      expect(spy).toHaveBeenNthCalledWith(2, '[OK] @dungeonmaster/hooks: Installed successfully\n');
+      expect(output).toStrictEqual([
+        '[OK] @dungeonmaster/cli: Installed successfully\n',
+        '[OK] @dungeonmaster/hooks: Installed successfully\n',
+      ]);
     });
   });
 
@@ -105,9 +101,9 @@ describe('CliInitResponder', () => {
 
       await proxy.callResponder({ context });
 
-      const spy = proxy.getStdoutOutput();
+      const output = proxy.getStdoutOutput();
 
-      expect(spy).not.toHaveBeenCalled();
+      expect(output).toStrictEqual([]);
     });
   });
 });

@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 import { checkRunLintBrokerProxy } from '../../check-run/lint/check-run-lint-broker.proxy';
 import { checkRunTypecheckBrokerProxy } from '../../check-run/typecheck/check-run-typecheck-broker.proxy';
@@ -14,9 +15,10 @@ export const commandRunLayerSingleBrokerProxy = (): {
   setupE2eOnlySkip: () => void;
   getStderrCalls: () => unknown[];
 } => {
-  jest.spyOn(Date, 'now').mockReturnValue(runIdMockStatics.timestamp);
-  jest.spyOn(Math, 'random').mockReturnValue(runIdMockStatics.randomValue);
-  const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  registerSpyOn({ object: Date, method: 'now' }).mockReturnValue(runIdMockStatics.timestamp);
+  registerSpyOn({ object: Math, method: 'random' }).mockReturnValue(runIdMockStatics.randomValue);
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.mockImplementation(() => true);
 
   const lintProxy = checkRunLintBrokerProxy();
   const typecheckProxy = checkRunTypecheckBrokerProxy();

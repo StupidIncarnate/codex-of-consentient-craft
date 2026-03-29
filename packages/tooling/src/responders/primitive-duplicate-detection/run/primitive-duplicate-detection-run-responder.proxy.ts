@@ -2,6 +2,7 @@ import { duplicateDetectionDetectBrokerProxy } from '../../../brokers/duplicate-
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
@@ -13,10 +14,12 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
   const writes: unknown[] = [];
 
-  jest.spyOn(process.stdout, 'write').mockImplementation((chunk: unknown) => {
-    writes.push(chunk);
-    return true;
-  });
+  registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(
+    (chunk: unknown) => {
+      writes.push(chunk);
+      return true;
+    },
+  );
 
   return {
     callResponder: PrimitiveDuplicateDetectionRunResponder,

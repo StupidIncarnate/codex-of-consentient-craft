@@ -5,6 +5,8 @@ import {
   GuildStub,
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
@@ -29,7 +31,7 @@ export const chatSpawnBrokerProxy = (): {
   refreshGuildConfig: () => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
-  setupStderrCapture: () => jest.SpyInstance;
+  setupStderrCapture: () => SpyOnHandle;
 } => {
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
@@ -37,7 +39,9 @@ export const chatSpawnBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  );
 
   const defaultGuildId = GuildIdStub();
   const defaultGuild = GuildStub({ id: defaultGuildId });
@@ -122,7 +126,10 @@ export const chatSpawnBrokerProxy = (): {
       modifyProxy.setupReject({ error });
     },
 
-    setupStderrCapture: (): jest.SpyInstance =>
-      jest.spyOn(process.stderr, 'write').mockImplementation(() => true),
+    setupStderrCapture: (): SpyOnHandle => {
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      return handle;
+    },
   };
 };

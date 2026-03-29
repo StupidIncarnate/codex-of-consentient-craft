@@ -1,8 +1,7 @@
 import { PassThrough } from 'stream';
 import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
-import type { ChildProcess, spawn } from 'child_process';
-
-jest.mock('child_process');
+import { spawn, type ChildProcess } from 'child_process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type ErrorCallback = (error: Error) => void;
 type CloseCallback = (code: number | null) => void;
@@ -18,11 +17,9 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
 } => {
-  const mock = jest.mocked(
-    jest.requireMock<{ spawn: typeof spawn }>('child_process').spawn,
-  ) as jest.Mock;
+  const handle = registerMock({ fn: spawn });
 
-  mock.mockImplementation(() => {
+  handle.mockImplementation(() => {
     const stdout = new PassThrough();
     const stderr = new PassThrough();
     const listeners = {
@@ -66,7 +63,7 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
       stderrChunks?: string[];
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const stdout = new PassThrough();
         const stderr = new PassThrough();
         const listeners = {
@@ -111,7 +108,7 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
     },
 
     setupError: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         const stdout = new PassThrough();
         const stderr = new PassThrough();
         const listeners = {
@@ -146,21 +143,21 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 0);
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 1);
     },
 
     getSpawnedCwd: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];

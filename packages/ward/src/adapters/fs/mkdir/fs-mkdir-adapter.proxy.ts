@@ -1,12 +1,11 @@
 import { mkdir } from 'fs/promises';
-
-jest.mock('fs/promises');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsMkdirAdapterProxy = (): {
   succeeds: () => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(mkdir);
+  const mock = registerMock({ fn: mkdir });
 
   mock.mockResolvedValue(undefined);
 

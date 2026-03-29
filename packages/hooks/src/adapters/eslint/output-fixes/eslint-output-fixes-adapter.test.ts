@@ -33,7 +33,7 @@ describe('eslintOutputFixesAdapter', () => {
 
       const handler = proxy.getOutputFixesHandler();
 
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls).toStrictEqual([[results]]);
     });
 
     it('EMPTY: {results: empty} => calls ESLint.outputFixes with empty array', async () => {
@@ -46,7 +46,7 @@ describe('eslintOutputFixesAdapter', () => {
 
       const handler = proxy.getOutputFixesHandler();
 
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls).toStrictEqual([[emptyResults]]);
     });
   });
 

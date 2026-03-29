@@ -332,7 +332,7 @@ describe('dungeonmaster-config-contract', () => {
         framework: 'react',
       });
 
-      expect(config.devServer).toBeUndefined();
+      expect(config.devServer).toBe(undefined);
     });
 
     it('VALID: config with devServer devCommand and port => applies defaults', () => {

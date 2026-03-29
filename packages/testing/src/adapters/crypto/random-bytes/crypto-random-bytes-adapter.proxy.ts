@@ -8,13 +8,12 @@
  */
 
 import { randomBytes } from 'crypto';
-
-jest.mock('crypto');
+import { registerMock } from '../../../register-mock';
 
 export const cryptoRandomBytesAdapterProxy = (): {
   returns: (params: { length: number; bytes: Buffer }) => void;
 } => {
-  const mock = jest.mocked(randomBytes) as unknown as jest.MockedFunction<(size: number) => Buffer>;
+  const mock = registerMock({ fn: randomBytes });
 
   mock.mockReturnValue(Buffer.from('test'));
 

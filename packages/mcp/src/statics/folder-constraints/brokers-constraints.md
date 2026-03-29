@@ -264,7 +264,7 @@ export const pureBrokerProxy = (): Record<PropertyKey, never> => ({});
 - Delegate to child proxies (adapter/broker/state proxies)
 - Mock globals (Date.now, crypto.randomUUID) via registerMock or registerSpyOn in constructor if broker uses them
 - Export semantic methods that describe scenarios, not implementation details
-- Tests never call registerMock or jest.mocked() directly - only use proxy methods
+- Tests never call registerMock directly - only use proxy semantic methods
 
 **TEST EXAMPLE:**
 

@@ -1,12 +1,11 @@
 import { readdir } from 'fs/promises';
-
-jest.mock('fs/promises');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReaddirAdapterProxy = (): {
   returns: (params: { entries: string[] }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(readdir);
+  const mock = registerMock({ fn: readdir });
 
   mock.mockResolvedValue([] as never);
 

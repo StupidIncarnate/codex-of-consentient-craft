@@ -1,7 +1,6 @@
 import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
-import type { execFile } from 'child_process';
-
-jest.mock('child_process');
+import { execFile } from 'child_process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type ExecFileCallback = (error: Error | null, stdout: string, stderr: string) => void;
 
@@ -13,13 +12,9 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
   getSpawnedCwd: () => unknown;
   getSpawnedOptions: () => unknown;
 } => {
-  // Re-acquire execFile from the current mock registry to avoid stale references
-  // when this proxy is used cross-package from compiled dist (where jest.mock is not hoisted)
-  const mock = jest.mocked(
-    jest.requireMock<{ execFile: typeof execFile }>('child_process').execFile,
-  ) as jest.Mock;
+  const handle = registerMock({ fn: execFile });
 
-  mock.mockImplementation(
+  handle.mockImplementation(
     (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
       callback(null, '', '');
     },
@@ -36,7 +31,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       stderr: string;
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      mock.mockImplementationOnce(
+      handle.mockImplementationOnce(
         (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
           if (exitCode === successCode) {
             callback(null, stdout, stderr);
@@ -50,7 +45,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     },
 
     setupError: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(
+      handle.mockImplementationOnce(
         (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
           callback(error, '', '');
         },
@@ -58,21 +53,21 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 0);
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return Reflect.get(lastCall as object, 1);
     },
 
     getSpawnedCwd: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];
@@ -81,7 +76,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     },
 
     getSpawnedOptions: (): unknown => {
-      const { calls } = mock.mock;
+      const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];

@@ -1,3 +1,4 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
@@ -11,9 +12,11 @@ export const commandRunBrokerProxy = (): {
   getStdoutCalls: () => unknown[][];
   getExitCalls: () => unknown[][];
 } => {
-  const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-  const stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
-  jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  const exitSpy = registerSpyOn({ object: process, method: 'exit' });
+  exitSpy.mockImplementation(() => undefined as never);
+  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+  stdoutSpy.mockImplementation(() => true);
+  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   gitDiffFilesBrokerProxy();

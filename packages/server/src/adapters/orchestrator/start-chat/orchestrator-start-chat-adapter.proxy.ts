@@ -1,6 +1,5 @@
-jest.mock('@dungeonmaster/orchestrator');
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 type ProcessId = ReturnType<typeof ProcessIdStub>;
@@ -10,7 +9,7 @@ export const orchestratorStartChatAdapterProxy = (): {
   throws: (params: { error: Error }) => void;
   getLastCalledArgs: () => unknown;
 } => {
-  const mock = jest.mocked(StartOrchestrator.startChat);
+  const mock = registerMock({ fn: StartOrchestrator.startChat });
 
   mock.mockResolvedValue({ chatProcessId: ProcessIdStub() });
 

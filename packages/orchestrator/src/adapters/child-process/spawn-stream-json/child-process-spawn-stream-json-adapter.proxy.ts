@@ -1,8 +1,8 @@
 import type { ExitCode, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter, Readable } from 'stream';
-
-jest.mock('child_process');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 interface ProxyConfig {
   exitCode: ExitCode | null;
@@ -23,7 +23,7 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
 } => {
-  const mock = jest.mocked(spawn);
+  const mock: MockHandle = registerMock({ fn: spawn });
   const config: ProxyConfig = {
     exitCode: null,
     error: null,

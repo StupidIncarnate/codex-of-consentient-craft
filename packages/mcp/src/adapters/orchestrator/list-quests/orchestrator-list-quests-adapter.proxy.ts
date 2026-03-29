@@ -8,8 +8,7 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts';
-
-jest.mock('@dungeonmaster/orchestrator');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 
@@ -17,16 +16,16 @@ export const orchestratorListQuestsAdapterProxy = (): {
   returns: (params: { quests: QuestListItem[] }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.listQuests);
+  const handle = registerMock({ fn: StartOrchestrator.listQuests });
 
-  mock.mockResolvedValue([]);
+  handle.mockResolvedValue([]);
 
   return {
     returns: ({ quests }: { quests: QuestListItem[] }): void => {
-      mock.mockResolvedValueOnce(quests);
+      handle.mockResolvedValueOnce(quests);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

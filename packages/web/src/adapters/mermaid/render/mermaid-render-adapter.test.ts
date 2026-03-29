@@ -23,7 +23,7 @@ describe('mermaidRenderAdapter', () => {
     it('ERROR: {invalid definition} => throws render error', async () => {
       const proxy = mermaidRenderAdapterProxy();
 
-      proxy.throws({ error: new Error('Parse error') });
+      proxy.setupError({ error: new Error('Parse error') });
 
       await expect(
         mermaidRenderAdapter({ id: 'bad-diagram', definition: 'invalid' }),

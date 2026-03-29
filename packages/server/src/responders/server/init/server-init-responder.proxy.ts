@@ -3,6 +3,46 @@ import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contrac
 import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+
+// Preserve real orchestrator exports (contracts, types) while mocking functions used by adapters
+registerModuleMock({
+  module: '@dungeonmaster/orchestrator',
+  factory: () => ({
+    ...jest.requireActual('@dungeonmaster/orchestrator'),
+    StartOrchestrator: {
+      addGuild: jest.fn(),
+      addQuest: jest.fn(),
+      browseDirectories: jest.fn(),
+      getGuild: jest.fn(),
+      getQuest: jest.fn(),
+      getQuestStatus: jest.fn(),
+      listGuilds: jest.fn(),
+      listQuests: jest.fn(),
+      loadQuest: jest.fn(),
+      modifyQuest: jest.fn(),
+      pauseQuest: jest.fn(),
+      recoverActiveQuests: jest.fn(),
+      removeGuild: jest.fn(),
+      replayChatHistory: jest.fn(),
+      startChat: jest.fn(),
+      startDesignChat: jest.fn(),
+      startQuest: jest.fn(),
+      stopAllChats: jest.fn(),
+      stopChat: jest.fn(),
+      updateGuild: jest.fn(),
+      verifyQuest: jest.fn(),
+    },
+    orchestrationEventsState: {
+      on: jest.fn(),
+      off: jest.fn(),
+      emit: jest.fn(),
+      removeAllListeners: jest.fn(),
+    },
+    questFindQuestPathBroker: jest.fn(),
+  }),
+});
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
@@ -37,14 +77,19 @@ export const ServerInitResponderProxy = (): {
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   enableDevLogs: () => void;
-  getDevLogOutput: () => jest.SpyInstance;
+  getDevLogOutput: () => SpyOnHandle;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getOutboxWatchCallbacks: () => {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
     onError: ((args: { error: unknown }) => void) | undefined;
   };
 } => {
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-01T00:00:00.000Z');
+  const dateSpy = registerSpyOn({
+    object: Date.prototype,
+    method: 'toISOString',
+    passthrough: true,
+  });
+  dateSpy.mockReturnValue('2024-01-01T00:00:00.000Z');
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
@@ -63,6 +108,10 @@ export const ServerInitResponderProxy = (): {
 
   return {
     callResponder: (): void => {
+      // Clean up leftover signal handlers from previous tests to prevent listener leaks.
+      // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
+      process.removeAllListeners('SIGTERM');
+      process.removeAllListeners('SIGINT');
       ServerInitResponder({ app: new Hono() });
     },
     simulateConnection: ({ client }: { client: WsClient }): void => {
@@ -104,6 +153,6 @@ export const ServerInitResponderProxy = (): {
     enableDevLogs: (): void => {
       devLogProxy.enableDev();
     },
-    getDevLogOutput: (): jest.SpyInstance => devLogProxy.getWrittenLines(),
+    getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
   };
 };

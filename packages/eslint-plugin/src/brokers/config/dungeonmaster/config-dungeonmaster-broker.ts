@@ -124,7 +124,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-testid-queries': 'error',
     '@dungeonmaster/ban-playwright-evaluate-for-styles': 'error',
     '@dungeonmaster/ban-playwright-extract-then-assert': 'error',
-    // '@dungeonmaster/ban-jest-mock-in-proxies': 'error', // TODO: Enable after migrating existing proxies to registerMock
+    '@dungeonmaster/ban-jest-mock-in-proxies': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

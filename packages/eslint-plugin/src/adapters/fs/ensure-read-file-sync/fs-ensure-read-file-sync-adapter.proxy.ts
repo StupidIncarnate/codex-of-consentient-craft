@@ -1,18 +1,15 @@
 import { existsSync, readFileSync } from 'fs';
 import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-
-// ✅ Mock declared in proxy - automatically hoisted when proxy is imported
-jest.mock('fs');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsEnsureReadFileSyncAdapterProxy = (): {
   returns: (args: { filePath: FilePath; contents: FileContents }) => void;
   throwsFileNotFound: () => void;
   setupFileSystem: (args: { getContents: (filePath: FilePath) => FileContents | null }) => void;
 } => {
-  // ✅ Mock the npm dependencies (fs.existsSync and fs.readFileSync), not the adapter!
-  const mockExistsSync = jest.mocked(existsSync);
-  const mockReadFileSync = jest.mocked(readFileSync);
+  const mockExistsSync = registerMock({ fn: existsSync });
+  const mockReadFileSync = registerMock({ fn: readFileSync });
 
   // Set up default mock behavior
   mockExistsSync.mockReturnValue(false);

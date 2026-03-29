@@ -183,5 +183,5 @@ startup/
 **"How do I mock this in tests?"**
 
 - Create colocated `.proxy.ts` file
-- Proxy uses `jest.spyOn()` or `jest.fn()` to mock dependencies
+- Proxy uses `registerMock`/`registerSpyOn` from `@dungeonmaster/testing/register-mock` to mock dependencies
 - See testing-standards.md for full patterns

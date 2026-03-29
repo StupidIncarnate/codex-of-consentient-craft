@@ -1,4 +1,5 @@
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { chatHistoryReplayBrokerProxy } from '../../../brokers/chat/history-replay/chat-history-replay-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
@@ -38,7 +39,9 @@ export const ChatReplayResponderProxy = (): {
   const questListProxy = questListBrokerProxy();
   orchestrationEventsStateProxy();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  );
 
   return {
     callResponder: ChatReplayResponder,

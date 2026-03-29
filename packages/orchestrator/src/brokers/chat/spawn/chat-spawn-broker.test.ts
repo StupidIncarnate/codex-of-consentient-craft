@@ -505,8 +505,9 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u),
+      expect(stderrSpy.mock.calls.length).toBeGreaterThan(0);
+      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
+        /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u,
       );
     });
   });

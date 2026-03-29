@@ -1,6 +1,5 @@
-jest.mock('@dungeonmaster/orchestrator');
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { GuildStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
@@ -9,7 +8,7 @@ export const orchestratorUpdateGuildAdapterProxy = (): {
   returns: (params: { guild: Guild }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.updateGuild);
+  const mock = registerMock({ fn: StartOrchestrator.updateGuild });
 
   mock.mockResolvedValue(GuildStub());
 

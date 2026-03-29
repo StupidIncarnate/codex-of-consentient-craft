@@ -66,7 +66,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/enforce-testid-queries': 'pre-edit',
   '@dungeonmaster/ban-playwright-evaluate-for-styles': 'pre-edit',
   '@dungeonmaster/ban-playwright-extract-then-assert': 'pre-edit',
-  // '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit', // TODO: Enable after migrating existing proxies to registerMock
+  '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

@@ -1,12 +1,11 @@
-jest.mock('child_process');
-
 import { execSync } from 'child_process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessExecSyncAdapterProxy = (): {
   returns: ({ output }: { output: string | Buffer }) => void;
   throws: ({ error }: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(execSync);
+  const mock = registerMock({ fn: execSync });
 
   mock.mockReturnValue(Buffer.from(''));
 

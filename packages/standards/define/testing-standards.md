@@ -38,7 +38,7 @@ it('VALID: {error} => handles exec error', () => {
 **Why:** Stubs are the single source of truth for test data. Tests and proxies should never directly reference
 contracts.
 
-**Exception for mocks:** Use `jest.mocked()` instead of type assertions. When mocking functions that return branded
+**Exception for mocks:** Use `registerMock` from `@dungeonmaster/testing/register-mock` instead of type assertions. When mocking functions that return branded
 types (Zod `.brand<'Type'>()`), use the stub to create the branded value:
 
 ```typescript
@@ -767,19 +767,18 @@ logic. See "Unit Tests vs Integration Tests" section.
 ```typescript
 // adapters/http/http-adapter.proxy.ts
 import axios from 'axios';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 import type {Url} from '../../contracts/url/url-contract';
 import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
 import {HttpStatusStub} from '../../contracts/http-status/http-status.stub';
 
-// ✅ Mock declared in proxy - automatically hoisted when proxy is imported
-jest.mock('axios');
-
 export const httpAdapterProxy = () => {
-    // ✅ Mock the npm dependency (axios), not the adapter!
-    const mock = jest.mocked(axios);
+    // ✅ registerMock mocks the npm dependency (axios), not the adapter!
+    // The AST transformer auto-generates jest.mock('axios') — no manual call needed
+    const handle = registerMock({fn: axios});
 
     // ✅ Setup default mock behavior (runs fresh in each test when proxy is created)
-    mock.mockImplementation(async () => ({
+    handle.mockImplementation(async () => ({
         data: {},
         status: HttpStatusStub(200),
         statusText: 'OK'
@@ -787,11 +786,11 @@ export const httpAdapterProxy = () => {
 
     return {
         returns: ({url, response}: { url: Url; response: HttpResponse }): void => {
-            mock.mockResolvedValueOnce(response);
+            handle.mockResolvedValueOnce(response);
         },
 
         throws: ({url, error}: { url: Url; error: Error }): void => {
-            mock.mockRejectedValueOnce(error);
+            handle.mockRejectedValueOnce(error);
         }
     };
 };
@@ -854,7 +853,7 @@ export const userProfileWidgetProxy = () => {
     // Create child proxy (which creates entire chain and sets up all mocks)
     const bindingProxy = useUserProfileBindingProxy();
 
-    // NO jest.mocked(widget) - widget renders real!
+    // NO mocking of widget - widget renders real!
 
     return {
         // Delegate to binding proxy
@@ -879,8 +878,8 @@ export const userProfileWidgetProxy = () => {
 
 #### Other Proxy Types (Brief Reference)
 
-**State Proxy** - Spy on state methods with `jest.spyOn()`, clear state in constructor. For external systems (Redis,
-DB), mock the npm package and swap with in-memory version.
+**State Proxy** - Spy on state methods with `registerMock`/`registerSpyOn`, clear state in constructor. For external
+systems (Redis, DB), mock the npm package and swap with in-memory version.
 
 **Guard Proxy** - Provide semantic data builders for different guard paths. Guard runs real, proxy just builds test
 data.
@@ -891,7 +890,7 @@ setup methods. Code runs real.
 **Transformer Proxy** - Provide semantic data builders for test data. Transformers run real, proxy builds input data.
 
 **Statics Proxy** - Override immutable values for edge case testing. Use `Reflect.set()` to mutate readonly constants at
-runtime, or `jest.spyOn()` for getters.
+runtime, or `registerSpyOn` for getters.
 
 ```typescript
 // Use Reflect.set for direct properties
@@ -901,9 +900,12 @@ export const userStaticsProxy = () => ({
     }
 });
 
-// Use jest.spyOn for getters
+// Use registerSpyOn for getters
+import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
+
 export const apiStaticsProxy = () => {
-    jest.spyOn(apiStatics, 'timeout', 'get').mockReturnValue(0);
+    const handle = registerSpyOn({object: apiStatics, method: 'timeout'});
+    handle.mockReturnValue(0);
     return {};
 };
 ```
@@ -947,7 +949,7 @@ it('VALID: {admin, different user} => shows edit button', () => {
 ```typescript
 // guards/has-edit-permission/has-edit-permission-guard.proxy.ts
 export const hasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real!
+    // NO mocking of guard - guard runs real!
 
     return {
         // Semantic helper for Path 1
@@ -1006,13 +1008,17 @@ non-deterministic functions.
 **Common globals to mock:** `Date.now()`, `crypto.randomUUID()`, `Math.random()`, `console.*`
 
 ```typescript
+import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
+
 // Example: Broker proxy mocking globals because broker uses them
 export const userCreateBrokerProxy = () => {
     const httpProxy = httpAdapterProxy();
 
     // Mock in constructor (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    const dateHandle = registerSpyOn({object: Date, method: 'now'});
+    dateHandle.mockReturnValue(1609459200000);
+    const uuidHandle = registerSpyOn({object: crypto, method: 'randomUUID'});
+    uuidHandle.mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
     return {
         setupUserCreate: ({userData}): void => {
@@ -1023,7 +1029,8 @@ export const userCreateBrokerProxy = () => {
 
 // Example: Adapter proxy mocking console because adapter logs
 export const emailAdapterProxy = () => {
-    jest.spyOn(console, 'log').mockImplementation();  // Silence logs in tests
+    const logHandle = registerSpyOn({object: console, method: 'log'});
+    logHandle.mockImplementation();  // Silence logs in tests
 
     return { /* semantic methods */ };
 };
@@ -1145,27 +1152,29 @@ export const userFetchBrokerProxy = () => {
 
 ## Mocking Mechanics
 
-### jest.mock() + jest.mocked()
+### registerMock — The Standard Mock API
 
-**Used in proxy files, not tests.** `jest.mock()` is automatically hoisted to run before imports. `jest.mocked()`
-provides type-safe access.
+**All proxy mocking uses `registerMock` from `@dungeonmaster/testing/register-mock`.** Direct `jest.mock()`,
+`jest.mocked()`, and `jest.spyOn()` are banned in proxy files (enforced by the `ban-jest-mock` ESLint rule).
+
+`registerMock({ fn: importedFunction })` mocks a single imported function. The AST transformer generates a selective
+`jest.mock('module', () => ({ ...jest.requireActual('module'), fn: jest.fn() }))` that only replaces the targeted
+function. No manual `jest.mock()` call needed.
 
 ```typescript
 import {readFile} from 'fs/promises';
-jest.mock('fs/promises');  // Hoisted automatically
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 
 export const fsReadFileAdapterProxy = () => {
-    const mockReadFile = jest.mocked(readFile);  // Type-safe
-    mockReadFile.mockImplementation(async () => Buffer.from(''));
+    const handle = registerMock({fn: readFile});
+    handle.mockImplementation(async () => Buffer.from(''));
     return { /* semantic methods */ };
 };
 ```
 
-### registerMock — Collision-Safe Mock Dispatch
-
-When two adapter proxies in the same broker both mock the **same function** from the **same module** (e.g., two proxies
-both wrapping `existsSync` from `fs`), `jest.mock()` creates a single shared mock. The second proxy's
-`mockImplementation` silently overwrites the first, breaking tests.
+**Collision-safe dispatch:** When two adapter proxies in the same broker both mock the **same function** from the
+**same module** (e.g., two proxies both wrapping `existsSync` from `fs`), `registerMock` gives each proxy its own
+independent handle, and a dispatcher routes calls based on which adapter file appears in the call stack.
 
 `registerMock` solves this with stack-based dispatch: each proxy gets its own independent handle, and a dispatcher
 routes
@@ -1231,17 +1240,9 @@ export const fsExistsAdapterProxy = (): {
 - `handle.mock.calls` — array of call arguments for this handle only
 - `handle.mockClear()` — reset calls, queue, and base implementation
 
-**When to use `registerMock` vs `jest.mock()` + `jest.mocked()`:**
-
-| Scenario                                             | Use                                                                      |
-|------------------------------------------------------|--------------------------------------------------------------------------|
-| Only one proxy mocks a given function                | Either works — `jest.mock()` is fine                                     |
-| Two+ proxies mock the same function from same module | **Must use `registerMock`**                                              |
-| Migrating incrementally                              | Both patterns coexist — AST transformer deduplicates `jest.mock()` calls |
-
-**AST transformer integration:** The proxy-mock-transformer automatically detects `registerMock({ fn: IDENTIFIER })`
-calls, traces `IDENTIFIER` to its import declaration, and generates `jest.mock('module')` in the test file. No manual
-`jest.mock()` call needed in the proxy.
+**Always use `registerMock`** — direct `jest.mock()` + `jest.mocked()` is banned. The AST transformer automatically
+detects `registerMock({ fn: IDENTIFIER })` calls, traces `IDENTIFIER` to its import declaration, and generates the
+appropriate `jest.mock('module')` in the test file.
 
 ### registerSpyOn — Spy on Global Object Methods
 
@@ -1350,13 +1351,12 @@ mockFsReadFileAdapter.mockResolvedValue(FileContentsStub({value: 'content'}));
 
 ### Mock/Proxy Anti-Patterns
 
-- **Direct Mock Manipulation**: Using `jest.mocked()` directly in tests instead of proxy semantic methods
-- **Mocking Application Code**: Using `jest.mock()` on application code - only mock npm packages in proxies
+- **Direct Jest Mock APIs**: Using `jest.mock()`, `jest.mocked()`, or `jest.spyOn()` directly — use `registerMock`/`registerSpyOn` from `@dungeonmaster/testing/register-mock` instead (enforced by `ban-jest-mock` ESLint rule)
+- **Mocking Application Code**: Using `jest.mock()` on application code - only mock npm packages via `registerMock` in proxies
 - **Conditional Mocking**: Using if/else logic inside mock implementations
 - **Manual Mock Cleanup**: Calling `mockReset()`, `mockClear()`, `clearAllMocks()` - @dungeonmaster/testing handles this
-- **Using jest.spyOn() for Modules**: Only use spyOn for global objects (crypto, Date), not module imports
-- **Unsafe Type Assertions**: Using `as jest.MockedFunction<typeof fn>` instead of `jest.mocked()`
-- **Manual Mock Factories**: Using `jest.mock('module', () => ({...}))` when auto-mocking works
+- **Unsafe Type Assertions**: Using `as jest.MockedFunction<typeof fn>` instead of `registerMock`
+- **Manual Mock Factories**: Using `jest.mock('module', () => ({...}))` when `registerMock` auto-generates it
 - **Shared Proxy Instances**: Creating proxy once outside tests - always create fresh proxy per test
 - **Bootstrap Pattern**: Using `proxy.bootstrap()` method - proxies use constructor setup instead
 
@@ -1838,7 +1838,7 @@ import {StartInstall} from './start-install';
 import {installTestbedCreateBroker} from '@dungeonmaster/testing';
 ```
 
-**Why:** Integration tests validate real system behavior. Proxies contain `jest.mock()` calls that mock dependencies,
+**Why:** Integration tests validate real system behavior. Proxies contain `registerMock` calls that mock dependencies,
 defeating the purpose of integration testing. Integration tests run the full stack with real implementations.
 
 **File Location:**
@@ -2025,7 +2025,7 @@ knowledge of which endpoints its broker calls, so it calls `StartEndpointMock.li
 - **Server-side tests** — The server package tests mock Hono's `serve()`, not fetch. Server code handles incoming
   requests; it does not make outgoing HTTP calls via fetch adapters.
 - **Non-HTTP I/O** — Filesystem operations, child process spawning, and similar I/O use existing adapter proxies
-  (`jest.mock('fs/promises')`, etc.), not endpoint mocking.
+  (`registerMock` in adapter proxies), not endpoint mocking.
 
 ### JSON vs Non-JSON Responses
 
@@ -2512,7 +2512,7 @@ src/**/*.integration.test.ts → test/harnesses/*.harness.ts, application contra
 
 **`.harness.ts` files CANNOT import:**
 
-- `.proxy.ts` files (different mock mechanism — harnesses don't use jest.mock)
+- `.proxy.ts` files (different mock mechanism — harnesses don't use registerMock)
 - Contract value imports (use `.stub.ts` instead, same rule as proxies)
 
 **Unit test files (`.test.ts`) CANNOT import:**

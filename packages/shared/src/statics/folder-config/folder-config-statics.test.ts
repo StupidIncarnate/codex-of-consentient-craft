@@ -154,6 +154,7 @@ describe('folderConfigStatics', () => {
           'statics/',
           'contracts/',
           'guards/',
+          'transformers/',
           '@dungeonmaster/shared/adapters',
         ],
         disallowAdhocTypes: false,

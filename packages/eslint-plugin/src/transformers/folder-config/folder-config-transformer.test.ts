@@ -31,6 +31,7 @@ describe('folderConfigTransformer', () => {
         'statics/',
         'contracts/',
         'guards/',
+        'transformers/',
         '@dungeonmaster/shared/adapters',
       ]);
     });

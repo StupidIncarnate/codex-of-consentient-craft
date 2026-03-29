@@ -1,5 +1,7 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -40,9 +42,12 @@ export const runPathseekerLayerBrokerProxy = (): {
   const verifyProxy = questVerifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const insertProxy = questWorkItemInsertBrokerProxy();
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const stderrSpy: { current: SpyOnHandle | null } = { current: null };
+  const uuidSpy: { current: SpyOnHandle | null } = { current: null };
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
 
   return {
     setupSuccess: ({
@@ -115,21 +120,21 @@ export const runPathseekerLayerBrokerProxy = (): {
 
     setupDeterministicUuids: ({ uuids }: { uuids: readonly string[] }): void => {
       const counter = { value: 0 };
-      const spy = jest.spyOn(crypto, 'randomUUID');
+      const spy = registerSpyOn({ object: crypto, method: 'randomUUID' });
       spy.mockImplementation(() => uuids[counter.value++] as ReturnType<typeof crypto.randomUUID>);
+      uuidSpy.current = spy;
     },
 
-    getUuidCalls: (): readonly unknown[] => {
-      const mock = jest.spyOn(crypto, 'randomUUID');
-      return mock.mock.calls;
-    },
+    getUuidCalls: (): readonly unknown[] => uuidSpy.current?.mock.calls ?? [],
 
     setupModifyReject: ({ error }: { error: Error }): void => {
       modifyProxy.setupReject({ error });
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      stderrSpy.current = handle;
     },
 
     getStderrWrites: (): readonly unknown[] =>
