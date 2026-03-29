@@ -1,25 +1,27 @@
+import type { ChildProcess } from 'child_process';
+
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
-import { buildPreflightBrokerProxy } from '../../build/preflight/build-preflight-broker.proxy';
+import { devServerStartBrokerProxy } from '../../dev-server/start/dev-server-start-broker.proxy';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 
-export const buildPreflightLoopLayerBrokerProxy = (): {
-  setupBuildSuccess: () => void;
-  setupBuildFailure: (params: { exitCode: ExitCode; output: string }) => void;
+export const devServerStartLoopLayerBrokerProxy = (): {
+  setupServerBecomesReady: () => ChildProcess;
+  setupServerExitsBeforeReady: (params: { exitCode: number }) => void;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   getSpawnedArgs: () => unknown;
 } => {
-  const buildProxy = buildPreflightBrokerProxy();
+  const serverProxy = devServerStartBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
 
   return {
-    setupBuildSuccess: (): void => {
-      buildProxy.setupBuildSuccess();
+    setupServerBecomesReady: (): ChildProcess => serverProxy.setupServerBecomesReady(),
+
+    setupServerExitsBeforeReady: ({ exitCode }: { exitCode: number }): void => {
+      serverProxy.setupServerExitsBeforeReady({ exitCode });
     },
-    setupBuildFailure: ({ exitCode, output }: { exitCode: ExitCode; output: string }): void => {
-      buildProxy.setupBuildFailure({ exitCode, output });
-    },
+
     setupSpawnOnce: ({
       lines,
       exitCode,
@@ -29,6 +31,7 @@ export const buildPreflightLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnOnce({ lines, exitCode });
     },
+
     setupSpawnAutoLines: ({
       lines,
       exitCode,
@@ -38,6 +41,7 @@ export const buildPreflightLoopLayerBrokerProxy = (): {
     }): void => {
       spawnProxy.setupSpawnAutoLines({ lines, exitCode });
     },
+
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
   };
 };

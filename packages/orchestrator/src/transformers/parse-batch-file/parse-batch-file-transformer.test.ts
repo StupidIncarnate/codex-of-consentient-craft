@@ -18,6 +18,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/app.ts'],
         errors: ['line 10: Unexpected any'],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -35,6 +36,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/a.ts', '/src/b.ts'],
         errors: ['error a', 'error b'],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -53,6 +55,45 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/app.ts'],
         errors: ['line 10: Unexpected any'],
         verificationCommand: 'npm run ward -- -- /src/app.ts',
+        contextInstructions: undefined,
+      });
+    });
+
+    it('VALID: {batch with contextInstructions} => returns contextInstructions', () => {
+      const contents = FileContentsStub({
+        value: JSON.stringify({
+          filePaths: ['/src/app.ts'],
+          errors: ['line 10: Unexpected any'],
+          contextInstructions: '## Instructions\nFix ward failures.',
+        }),
+      });
+
+      const result = parseBatchFileTransformer({ contents });
+
+      expect(result).toStrictEqual({
+        filePaths: ['/src/app.ts'],
+        errors: ['line 10: Unexpected any'],
+        verificationCommand: undefined,
+        contextInstructions: '## Instructions\nFix ward failures.',
+      });
+    });
+
+    it('EDGE: {contextInstructions is empty string} => returns undefined contextInstructions', () => {
+      const contents = FileContentsStub({
+        value: JSON.stringify({
+          filePaths: ['/src/app.ts'],
+          errors: [],
+          contextInstructions: '',
+        }),
+      });
+
+      const result = parseBatchFileTransformer({ contents });
+
+      expect(result).toStrictEqual({
+        filePaths: ['/src/app.ts'],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
   });
@@ -65,7 +106,12 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
+      });
     });
   });
 
@@ -75,7 +121,12 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
+      });
     });
 
     it('EDGE: {null JSON} => returns empty arrays', () => {
@@ -83,7 +134,12 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
+      });
     });
 
     it('ERROR: {malformed JSON} => throws SyntaxError', () => {
@@ -107,6 +163,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: [],
         errors: ['some error'],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -121,6 +178,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/file.ts'],
         errors: [],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -131,7 +189,12 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
+      });
     });
 
     it('EDGE: {errors is not an array} => returns empty errors', () => {
@@ -141,7 +204,12 @@ describe('parseBatchFileTransformer', () => {
 
       const result = parseBatchFileTransformer({ contents });
 
-      expect(result).toStrictEqual({ filePaths: [], errors: [], verificationCommand: undefined });
+      expect(result).toStrictEqual({
+        filePaths: [],
+        errors: [],
+        verificationCommand: undefined,
+        contextInstructions: undefined,
+      });
     });
 
     it('EDGE: {verificationCommand is empty string} => returns undefined verificationCommand', () => {
@@ -159,6 +227,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/app.ts'],
         errors: [],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -177,6 +246,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/app.ts'],
         errors: [],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
   });
@@ -193,6 +263,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/valid.ts'],
         errors: [],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -207,6 +278,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: ['/src/valid.ts'],
         errors: [],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
 
@@ -221,6 +293,7 @@ describe('parseBatchFileTransformer', () => {
         filePaths: [],
         errors: ['valid error'],
         verificationCommand: undefined,
+        contextInstructions: undefined,
       });
     });
   });

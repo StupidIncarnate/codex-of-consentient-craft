@@ -455,6 +455,31 @@ describe('workUnitToArgumentsTransformer', () => {
         'Files:\n  - /src/broken.ts\nErrors:\n  - Build failed\nVerification Command: npm run build',
       );
     });
+
+    it('VALID: {spiritmender with contextInstructions} => prepends instructions before files', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+        errors: [ErrorMessageStub({ value: 'Build failed' })],
+        verificationCommand: 'npm run build' as never,
+        contextInstructions: '## Instructions\nFix the build.' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        '## Instructions\nFix the build.\n\nFiles:\n  - /src/broken.ts\nErrors:\n  - Build failed\nVerification Command: npm run build',
+      );
+    });
+
+    it('VALID: {spiritmender without contextInstructions} => no preamble before files', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broken.ts' })],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toMatch(/^Files:/u);
+    });
   });
 
   describe('pathseeker role', () => {

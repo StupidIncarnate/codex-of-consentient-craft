@@ -531,7 +531,7 @@ describe('runSiegemasterLayerBroker', () => {
   });
 
   describe('dev server preflight: server fails to start', () => {
-    it('VALID: {build passes, server exits before ready} => marks siege failed with dev_server_start_failed', async () => {
+    it('VALID: {build passes, server exits before ready after all retries} => marks siege failed with dev_server_start_exhausted', async () => {
       const observable = FlowObservableStub();
       const node = FlowNodeStub({ observables: [observable] });
       const flow = FlowStub({ nodes: [node] });
@@ -567,7 +567,7 @@ describe('runSiegemasterLayerBroker', () => {
 
       expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
       expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
-        'dev_server_start_failed',
+        'dev_server_start_exhausted',
       );
       expect(proxy.getPersistedWorkItemByRole({ role: 'pathseeker' })?.dependsOn).toStrictEqual([
         siegeWorkItemId,

@@ -59,7 +59,7 @@ test.describe('Quest Start Pipeline', () => {
 
     const startData = await startResponse.json();
 
-    expect(startData.processId).toBe(true);
+    expect(startData.processId).toStrictEqual(expect.any(String));
 
     const questResponse = await request.get(`/api/quests/${questId}`);
 

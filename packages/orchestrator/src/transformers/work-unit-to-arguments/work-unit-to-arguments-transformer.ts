@@ -167,6 +167,11 @@ export const workUnitToArgumentsTransformer = ({
       const { filePaths: spiritPaths } = workUnit;
       const spiritParts: ContentText[] = [];
 
+      if (workUnit.contextInstructions !== undefined) {
+        spiritParts.push(contentTextContract.parse(workUnit.contextInstructions));
+        spiritParts.push(contentTextContract.parse(''));
+      }
+
       spiritParts.push(contentTextContract.parse('Files:'));
       for (const fp of spiritPaths) {
         spiritParts.push(contentTextContract.parse(`  - ${fp}`));

@@ -49,6 +49,27 @@ describe('buildPreflightLoopLayerBroker', () => {
 
       expect(result.success).toBe(true);
     });
+
+    it('VALID: {build fails once, spiritmender launched} => spiritmender receives buildFailure context', async () => {
+      const proxy = buildPreflightLoopLayerBrokerProxy();
+      proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'type error' });
+      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupBuildSuccess();
+
+      await buildPreflightLoopLayerBroker({
+        buildCommand: BUILD_COMMAND,
+        cwd: CWD,
+        startPath: FilePathStub({ value: '/project' }),
+        abortSignal: new AbortController().signal,
+        attempt: 0,
+        maxAttempts: 3,
+      });
+
+      const spawnedArgs = String(proxy.getSpawnedArgs());
+
+      expect(spawnedArgs.includes('build command failed')).toBe(true);
+      expect(spawnedArgs.includes('Verification Command: npm run build')).toBe(true);
+    });
   });
 
   describe('build exhausts all attempts', () => {
