@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const rule = ruleEnforceTestidQueriesBroker();
- * // Returns ESLint rule that bans getByText, container.querySelector, etc. in .test.tsx files
+ * // Returns ESLint rule that bans getByText, container.querySelector, etc. in all test files
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce accessible, stable test queries
  */
@@ -35,9 +35,9 @@ export const ruleEnforceTestidQueriesBroker = (): EslintRule => ({
     return {
       CallExpression: (node: Tsestree): void => {
         const filename = ctx.filename ?? '';
-        const isTestTsx = isTestFileGuard({ filename }) && filename.endsWith('.tsx');
+        const isTest = isTestFileGuard({ filename });
 
-        if (!isTestTsx) {
+        if (!isTest) {
           return;
         }
 

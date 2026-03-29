@@ -239,7 +239,7 @@ describe('hasPermissionGuard', () => {
     });
 
     describe('invalid permissions', () => {
-        it('INVALID_PERMISSION: {user without permission} => returns false', () => {
+        it('INVALID: {user without permission} => returns false', () => {
             const readPermission = PermissionStub({value: 'admin:read'});
             const deletePermission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
@@ -251,7 +251,7 @@ describe('hasPermissionGuard', () => {
             expect(result).toBe(false);
         });
 
-        it('INVALID_PERMISSION: {user with empty permissions} => returns false', () => {
+        it('INVALID: {user with empty permissions} => returns false', () => {
             const permission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
                 permissions: [],

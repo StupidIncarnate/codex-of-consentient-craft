@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if a regex pattern string contains at least one anchor (^ or $)
+ * PURPOSE: Checks if a regex pattern string contains at least one meaningful anchor (^ or $)
  *
  * USAGE:
  * const isAnchored = hasRegexAnchorGuard({ pattern: '^hello$' });
@@ -12,5 +12,8 @@ export const hasRegexAnchorGuard = ({ pattern }: { pattern?: string }): boolean 
     return false;
   }
 
-  return pattern.includes('^') || pattern.includes('$');
+  const hasStartAnchor = pattern.startsWith('^') && !pattern.startsWith('^.*');
+  const hasEndAnchor = pattern.endsWith('$') && !pattern.endsWith('.*$');
+
+  return hasStartAnchor || hasEndAnchor;
 };

@@ -25,7 +25,7 @@ export const ruleEnforceTestNamePrefixBroker = (): EslintRule => ({
       },
       messages: {
         missingPrefix:
-          'Test name must start with VALID:, INVALID:, ERROR:, EDGE:, or EMPTY: — found: "{{name}}"',
+          'Test name must start with {{prefixes}} — found: "{{name}}"',
       },
       schema: [],
     },
@@ -85,7 +85,10 @@ export const ruleEnforceTestNamePrefixBroker = (): EslintRule => ({
           ctx.report({
             node,
             messageId: 'missingPrefix',
-            data: { name: displayName },
+            data: {
+              name: displayName,
+              prefixes: testNamePrefixStatics.validPrefixes.join(', '),
+            },
           });
         }
       },

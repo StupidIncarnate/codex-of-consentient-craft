@@ -29,12 +29,6 @@ ruleTester.run('enforce-testid-queries', ruleEnforceTestidQueriesBroker(), {
       filename: '/project/src/widgets/user/user-widget.test.tsx',
     },
 
-    // Non-tsx test files are not checked
-    {
-      code: "screen.getByText('Submit');",
-      filename: '/project/src/brokers/user/user-broker.test.ts',
-    },
-
     // Non-test files are not checked
     {
       code: "container.querySelector('.class');",
@@ -94,6 +88,21 @@ ruleTester.run('enforce-testid-queries', ruleEnforceTestidQueriesBroker(), {
           messageId: 'contentBasedQuery',
           data: {
             method: 'screen.getByLabelText',
+            replacement: 'screen.getByTestId',
+          },
+        },
+      ],
+    },
+
+    // Non-tsx test file (still checked)
+    {
+      code: "screen.getByText('Submit');",
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'contentBasedQuery',
+          data: {
+            method: 'screen.getByText',
             replacement: 'screen.getByTestId',
           },
         },

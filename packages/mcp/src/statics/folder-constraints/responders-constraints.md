@@ -385,7 +385,7 @@ describe('UserCreateResponder', () => {
     });
 
     describe('validation errors', () => {
-        it('INVALID_EMAIL: {invalid email} => returns 400 with error', async () => {
+        it('INVALID: {invalid email} => returns 400 with error', async () => {
             const proxy = UserCreateResponderProxy();
 
             const result = await proxy.callResponder({body: {name: 'John Doe', email: 'invalid-email'}});
@@ -396,7 +396,7 @@ describe('UserCreateResponder', () => {
             });
         });
 
-        it('INVALID_MULTIPLE: {missing name and email} => returns 400 with error', async () => {
+        it('INVALID: {missing name and email} => returns 400 with error', async () => {
             const proxy = UserCreateResponderProxy();
 
             const result = await proxy.callResponder({body: {}});

@@ -25,6 +25,20 @@ describe('hasRegexAnchorGuard', () => {
     });
   });
 
+  describe('sham anchors (^.* or .*$ defeat the purpose)', () => {
+    it('INVALID: {pattern: "^.*text.*$"} => returns false', () => {
+      expect(hasRegexAnchorGuard({ pattern: '^.*text.*$' })).toBe(false);
+    });
+
+    it('INVALID: {pattern: "^.*something"} => returns false', () => {
+      expect(hasRegexAnchorGuard({ pattern: '^.*something' })).toBe(false);
+    });
+
+    it('INVALID: {pattern: "something.*$"} => returns false', () => {
+      expect(hasRegexAnchorGuard({ pattern: 'something.*$' })).toBe(false);
+    });
+  });
+
   describe('empty/missing', () => {
     it('EMPTY: {pattern: undefined} => returns false', () => {
       expect(hasRegexAnchorGuard({})).toBe(false);

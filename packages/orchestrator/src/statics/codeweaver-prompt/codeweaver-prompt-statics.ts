@@ -73,7 +73,6 @@ Create ALL accompanying files before writing implementation:
 **Test file:** Each assertion maps to one \`it()\` block.
 
 Test naming: \`{prefix}: {input} => {expected}\`
-- \`INVALID\` prefix becomes: \`INVALID_{field}: {input} => {expected}\`
 
 \`\`\`
 assertions: [
@@ -83,7 +82,7 @@ assertions: [
 ]
 
 → it('VALID: valid credentials => returns AuthResult', ...)
-  it('INVALID_email: non-existent email => throws AuthError', ...)
+  it('INVALID: non-existent email => throws AuthError', ...)
   it('EMPTY: undefined input => throws contract parse error', ...)
 \`\`\`
 

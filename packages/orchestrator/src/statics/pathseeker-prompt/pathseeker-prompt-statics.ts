@@ -116,15 +116,14 @@ Each step requires:
 **CRITICAL: Define behavior as structured assertions, NOT pseudo-code.**
 
 Each assertion has:
-- \`prefix\` - One of: \`VALID\`, \`INVALID\`, \`INVALID_MULTIPLE\`, \`ERROR\`, \`EDGE\`, \`EMPTY\`
-- \`field\` - Required for \`INVALID\` prefix, optional for \`INVALID_MULTIPLE\`: which field is invalid
+- \`prefix\` - One of: \`VALID\`, \`INVALID\`, \`ERROR\`, \`EDGE\`, \`EMPTY\`
+- \`field\` - Required for \`INVALID\` prefix: which field is invalid
 - \`input\` - What is given to the function/component
 - \`expected\` - What the function/component must do/return/throw
 
 **Prefix meanings:**
 - \`VALID\` - Core happy-path behavior
-- \`INVALID\` - Single field validation failure (requires \`field\`)
-- \`INVALID_MULTIPLE\` - Multiple simultaneous validation failures (optional \`field\`)
+- \`INVALID\` - Validation failure (requires \`field\` for single-field failures, omit \`field\` for multiple simultaneous failures)
 - \`ERROR\` - Runtime/system error conditions (adapter failure, network error, etc.)
 - \`EDGE\` - Boundary values, unusual but valid inputs
 - \`EMPTY\` - Empty/missing/null input handling
