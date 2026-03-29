@@ -30,7 +30,7 @@ describe('storageLoadBroker', () => {
 
       const result = await storageLoadBroker({ rootPath, runId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -58,7 +58,7 @@ describe('storageLoadBroker', () => {
 
       const result = await storageLoadBroker({ rootPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {no runId, readdir fails} => returns null', async () => {
@@ -69,7 +69,7 @@ describe('storageLoadBroker', () => {
 
       const result = await storageLoadBroker({ rootPath });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

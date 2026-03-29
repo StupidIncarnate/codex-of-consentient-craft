@@ -25,9 +25,10 @@ describe('treeItemContract', () => {
       path: '/src/transformers/plain-transformer.ts',
     });
 
-    expect(result.name).toBe('plain-transformer');
-    expect(result.type).toBe('transformer');
-    expect(result.path).toBe('/src/transformers/plain-transformer.ts');
-    expect(result.purpose).toBeUndefined();
+    expect(result).toStrictEqual({
+      name: 'plain-transformer',
+      type: 'transformer',
+      path: '/src/transformers/plain-transformer.ts',
+    });
   });
 });

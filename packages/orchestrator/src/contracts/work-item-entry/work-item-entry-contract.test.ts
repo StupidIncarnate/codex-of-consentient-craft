@@ -8,8 +8,11 @@ describe('workItemEntryContract', () => {
 
       const result = workItemEntryContract.parse(entry);
 
-      expect(result.status).toBe('pending');
-      expect(result.retryCount).toBe(0);
+      expect(result).toStrictEqual({
+        workUnit: expect.any(Object),
+        status: 'pending',
+        retryCount: 0,
+      });
     });
 
     it('VALID: {status: completed} => parses successfully', () => {
@@ -38,7 +41,7 @@ describe('workItemEntryContract', () => {
   });
 
   describe('invalid entries', () => {
-    it('INVALID_STATUS: {status: "unknown"} => throws', () => {
+    it('INVALID: {status: "unknown"} => throws', () => {
       expect(() =>
         workItemEntryContract.parse({
           ...WorkItemEntryStub(),
@@ -47,7 +50,7 @@ describe('workItemEntryContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_STATUS: {status: "partially-completed"} => throws (removed status)', () => {
+    it('INVALID: {status: "partially-completed"} => throws (removed status)', () => {
       expect(() =>
         workItemEntryContract.parse({
           ...WorkItemEntryStub(),
@@ -56,7 +59,7 @@ describe('workItemEntryContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_STATUS: {status: "blocked"} => throws (removed status)', () => {
+    it('INVALID: {status: "blocked"} => throws (removed status)', () => {
       expect(() =>
         workItemEntryContract.parse({
           ...WorkItemEntryStub(),
@@ -65,7 +68,7 @@ describe('workItemEntryContract', () => {
       ).toThrow(/invalid_enum_value/u);
     });
 
-    it('INVALID_MULTIPLE: {empty object} => throws', () => {
+    it('INVALID: {empty object} => throws', () => {
       expect(() => workItemEntryContract.parse({})).toThrow(/Required/u);
     });
   });

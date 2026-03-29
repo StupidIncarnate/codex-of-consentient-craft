@@ -6,7 +6,7 @@ describe('AppQuestChatResponder', () => {
     it('VALID: => is a function', () => {
       AppQuestChatResponderProxy();
 
-      expect(typeof AppQuestChatResponder).toBe('function');
+      expect(AppQuestChatResponder).toStrictEqual(expect.any(Function));
     });
   });
 });

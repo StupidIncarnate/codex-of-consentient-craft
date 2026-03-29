@@ -52,7 +52,7 @@ describe('pathToSubPathTransformer', () => {
         filepath: FilePathStub({ value: 'packages/orchestrator/lib/utils' }),
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -60,7 +60,7 @@ describe('pathToSubPathTransformer', () => {
     it('EMPTY: {filepath: undefined} => returns null', () => {
       const result = pathToSubPathTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

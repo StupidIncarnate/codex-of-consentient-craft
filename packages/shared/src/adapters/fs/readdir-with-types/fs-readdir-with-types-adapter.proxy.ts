@@ -1,21 +1,20 @@
 import { readdirSync, type Dirent } from 'fs';
-
-jest.mock('fs');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReaddirWithTypesAdapterProxy = (): {
   returns: ({ entries }: { entries: Dirent[] }) => void;
   throws: ({ error }: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(readdirSync);
+  const handle = registerMock({ fn: readdirSync });
 
-  mock.mockReturnValue([]);
+  handle.mockReturnValue([]);
 
   return {
     returns: ({ entries }: { entries: Dirent[] }): void => {
-      mock.mockReturnValueOnce(entries as never);
+      handle.mockReturnValueOnce(entries as never);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
+      handle.mockImplementationOnce(() => {
         throw error;
       });
     },

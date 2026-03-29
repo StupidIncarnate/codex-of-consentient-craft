@@ -35,7 +35,7 @@ describe('workspaceDiscoverLayerReadBroker', () => {
         rootPath,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -51,7 +51,7 @@ describe('workspaceDiscoverLayerReadBroker', () => {
         rootPath,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -67,10 +67,10 @@ describe('workspaceDiscoverLayerReadBroker', () => {
         rootPath,
       });
 
-      expect(result).toBeNull();
-      expect(proxy.getStderrOutput()).toHaveBeenCalledWith(
+      expect(result).toBe(null);
+      expect(proxy.getStderrCalls()).toStrictEqual([
         'ward: skipping @dungeonmaster/standards (no src/ directory)\n',
-      );
+      ]);
     });
   });
 });

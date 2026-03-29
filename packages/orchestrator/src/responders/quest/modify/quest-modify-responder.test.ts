@@ -48,7 +48,7 @@ describe('QuestModifyResponder', () => {
         questId: 'add-auth' as ReturnType<typeof QuestStub>['id'],
       });
 
-      expect(registeredProcess).toBeUndefined();
+      expect(registeredProcess).toBe(undefined);
     });
 
     it('VALID: {status: explore_observables} => does not trigger orchestration loop (no longer auto-resumable)', async () => {
@@ -77,7 +77,7 @@ describe('QuestModifyResponder', () => {
         questId: 'add-auth' as ReturnType<typeof QuestStub>['id'],
       });
 
-      expect(registeredProcess).toBeUndefined();
+      expect(registeredProcess).toBe(undefined);
     });
 
     it('VALID: {status: in_progress from blocked} => triggers orchestration loop and registers process', async () => {

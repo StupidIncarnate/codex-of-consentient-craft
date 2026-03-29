@@ -9,14 +9,13 @@
 
 import { execSync } from 'child_process';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
-
-jest.mock('child_process');
+import { registerMock } from '../../../register-mock';
 
 export const childProcessExecSyncAdapterProxy = (): {
   returns: ({ output }: { command: string; output: Buffer | FileContent }) => void;
   throws: ({ error }: { command: string; error: Error }) => void;
 } => {
-  const mock = jest.mocked(execSync);
+  const mock = registerMock({ fn: execSync });
 
   mock.mockReturnValue(Buffer.from(''));
 

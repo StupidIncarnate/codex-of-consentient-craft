@@ -12,7 +12,7 @@ describe('GuildRemoveResponder', () => {
         config: GuildConfigStub({ guilds: [guild] }),
       });
 
-      await expect(proxy.callResponder({ guildId })).resolves.toBeUndefined();
+      await expect(proxy.callResponder({ guildId })).resolves.toBe(undefined);
     });
   });
 });

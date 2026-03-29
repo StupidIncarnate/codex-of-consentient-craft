@@ -9,6 +9,9 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
 import type {
   GuildListItemStub,
   GuildStub,
@@ -80,7 +83,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   clickApprovedModalNewQuest: () => Promise<void>;
   setupQuestStart: (params: { processId: string }) => void;
   getQuestStartRequestCount: () => RequestCount;
-  setupConsoleErrorCapture: () => jest.SpyInstance;
+  setupConsoleErrorCapture: () => SpyOnHandle;
   setupQuestStartError: () => void;
   setupQuestModifyError: () => void;
   setupQuestPauseError: () => void;
@@ -223,8 +226,11 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
       startProxy.setupStart({ processId });
     },
     getQuestStartRequestCount: (): RequestCount => startProxy.getRequestCount(),
-    setupConsoleErrorCapture: (): jest.SpyInstance =>
-      jest.spyOn(globalThis.console, 'error').mockImplementation(() => undefined),
+    setupConsoleErrorCapture: (): SpyOnHandle => {
+      const handle = registerSpyOn({ object: globalThis.console, method: 'error' });
+      handle.mockImplementation(() => undefined);
+      return handle;
+    },
     setupQuestStartError: (): void => {
       startProxy.setupError();
     },

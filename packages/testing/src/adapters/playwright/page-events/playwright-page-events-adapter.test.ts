@@ -6,7 +6,7 @@ describe('playwrightPageEventsAdapter', () => {
     it('VALID: {adapter} => is a function', () => {
       playwrightPageEventsAdapterProxy();
 
-      expect(typeof playwrightPageEventsAdapter).toBe('function');
+      expect(playwrightPageEventsAdapter).toStrictEqual(expect.any(Function));
     });
   });
 });

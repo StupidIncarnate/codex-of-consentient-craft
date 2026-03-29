@@ -25,7 +25,13 @@ export const SectionHeaderWidget = ({
 
   return (
     <Group gap={6} mb={4} data-testid="SECTION_HEADER">
-      <Text ff="monospace" size="xs" fw={600} style={{ color: colors.primary }}>
+      <Text
+        ff="monospace"
+        size="xs"
+        fw={600}
+        data-testid="SECTION_HEADER_LABEL"
+        style={{ color: colors.primary }}
+      >
         {label}
       </Text>
       {count !== undefined && (

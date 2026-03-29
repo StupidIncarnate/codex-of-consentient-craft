@@ -35,22 +35,24 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.contracts).toStrictEqual([
-        {
-          id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
-          name: 'LoginCredentials',
-          kind: 'data',
-          status: 'new',
-          properties: [
-            {
-              name: 'email',
-              type: 'EmailAddress',
-              description: 'User email for authentication',
-            },
-          ],
-        },
-      ]);
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'LoginCredentials',
+            kind: 'data',
+            status: 'new',
+            properties: [
+              {
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email for authentication',
+              },
+            ],
+          },
+        ],
+      });
     });
 
     it('VALID: {questId, flows} => parses with flows array', () => {
@@ -62,8 +64,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.flows).toStrictEqual([flow]);
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        flows: [flow],
+      });
     });
 
     it('VALID: {questId, status} => parses with status field', () => {
@@ -74,8 +78,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.status).toBe('approved');
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        status: 'approved',
+      });
     });
 
     it('VALID: {questId, steps} => parses with steps array', () => {
@@ -98,8 +104,23 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.steps?.[0]?.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Create API',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
+            observablesSatisfied: [],
+            dependsOn: [],
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
+            uses: [],
+          },
+        ],
+      });
     });
 
     it('VALID: {questId, title} => parses with title', () => {
@@ -110,8 +131,10 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.title).toBe('New Quest Title');
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        title: 'New Quest Title',
+      });
     });
 
     it('VALID: {questId, designDecisions} => parses with design decisions array', () => {
@@ -129,15 +152,17 @@ describe('modifyQuestInputContract', () => {
 
       const result = modifyQuestInputContract.parse(input);
 
-      expect(result.questId).toBe('add-auth');
-      expect(result.designDecisions).toStrictEqual([
-        {
-          id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
-          title: 'Use JWT for auth',
-          rationale: 'Stateless authentication',
-          relatedNodeIds: [],
-        },
-      ]);
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        designDecisions: [
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+            relatedNodeIds: [],
+          },
+        ],
+      });
     });
   });
 
@@ -453,13 +478,13 @@ describe('modifyQuestInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: ""} => throws validation error', () => {
+    it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         return modifyQuestInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_QUEST_ID: {missing questId} => throws validation error', () => {
+    it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         return modifyQuestInputContract.parse({});
       }).toThrow(/Required/u);

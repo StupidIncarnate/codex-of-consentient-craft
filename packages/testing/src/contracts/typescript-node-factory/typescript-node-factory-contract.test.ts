@@ -6,7 +6,7 @@ describe('typescriptNodeFactoryContract', () => {
     it('VALID: {any value} => returns TypescriptNodeFactory', () => {
       const result = typescriptNodeFactoryContract.parse(undefined);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 
@@ -14,7 +14,7 @@ describe('typescriptNodeFactoryContract', () => {
     it('VALID: {value: undefined} => returns TypescriptNodeFactory', () => {
       const result = TypescriptNodeFactoryStub({ value: undefined });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

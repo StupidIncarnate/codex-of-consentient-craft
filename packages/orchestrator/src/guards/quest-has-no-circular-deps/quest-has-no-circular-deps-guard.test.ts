@@ -61,7 +61,7 @@ describe('questHasNoCircularDepsGuard', () => {
   });
 
   describe('circular dependencies', () => {
-    it('INVALID_CYCLE: {A depends on B, B depends on A} => returns false', () => {
+    it('INVALID: {A depends on B, B depends on A} => returns false', () => {
       const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
       const steps = [
@@ -74,7 +74,7 @@ describe('questHasNoCircularDepsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_CYCLE: {A -> B -> C -> A} => returns false', () => {
+    it('INVALID: {A -> B -> C -> A} => returns false', () => {
       const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
       const stepId3 = StepIdStub({ value: 'a7b8c9d0-e1f2-4a3b-c4d5-6e7f8a9b0c1d' });
@@ -89,7 +89,7 @@ describe('questHasNoCircularDepsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_CYCLE: {self-dependency} => returns false', () => {
+    it('INVALID: {self-dependency} => returns false', () => {
       const stepId = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
       const steps = [DependencyStepStub({ id: stepId, dependsOn: [stepId] })];
 

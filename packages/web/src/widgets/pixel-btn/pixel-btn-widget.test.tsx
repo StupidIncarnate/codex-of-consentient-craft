@@ -162,9 +162,13 @@ describe('PixelBtnWidget', () => {
 
       const button = screen.getByTestId('PIXEL_BTN');
 
-      expect(button.style.backgroundColor).toBe('rgb(239, 68, 68)');
-      expect(button.style.opacity).toBe('0.4');
-      expect(button.style.pointerEvents).toBe('none');
+      expect([
+        button.style.backgroundColor,
+
+        button.style.opacity,
+
+        button.style.pointerEvents,
+      ]).toStrictEqual(['rgb(239, 68, 68)', '0.4', 'none']);
     });
   });
 

@@ -76,7 +76,7 @@ describe('isPathSuffixMatchGuard', () => {
   });
 
   describe('no match', () => {
-    it('INVALID_PATH: {storedPath: unrelated to queryPath} => returns false', () => {
+    it('INVALID: {storedPath: unrelated to queryPath} => returns false', () => {
       const { filePath: storedPath } = ErrorEntryStub({
         filePath:
           '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts',

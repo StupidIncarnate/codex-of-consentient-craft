@@ -11,6 +11,7 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 
@@ -115,8 +116,11 @@ export const runWardLayerBrokerProxy = (): {
   // Extra pathJoin proxy for queuing values consumed by wardPersistResult and batch file writes
   const extraPathJoin = pathJoinAdapterProxy();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
+  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  uuidSpy.mockReturnValue('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
 
   const clearEnv = (): void => {
     Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
@@ -229,11 +233,9 @@ export const runWardLayerBrokerProxy = (): {
       uuids: readonly [string, string, string];
     }): void => {
       clearEnv();
-      jest
-        .spyOn(crypto, 'randomUUID')
-        .mockReturnValueOnce(uuids[0] as ReturnType<typeof crypto.randomUUID>)
-        .mockReturnValueOnce(uuids[1] as ReturnType<typeof crypto.randomUUID>)
-        .mockReturnValueOnce(uuids[2] as ReturnType<typeof crypto.randomUUID>);
+      uuidSpy.mockReturnValueOnce(uuids[0] as ReturnType<typeof crypto.randomUUID>);
+      uuidSpy.mockReturnValueOnce(uuids[1] as ReturnType<typeof crypto.randomUUID>);
+      uuidSpy.mockReturnValueOnce(uuids[2] as ReturnType<typeof crypto.randomUUID>);
       // 1. modify(session ID)
       setupModify({ quest });
       // 2. spawn ward (failure)

@@ -27,8 +27,7 @@ describe('devServerStopBroker', () => {
 
       jest.useRealTimers();
 
-      expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
-      expect(proc.kill).toHaveBeenCalledWith('SIGKILL');
+      expect(proxy.getKillCalls(proc)).toStrictEqual([['SIGTERM'], ['SIGKILL']]);
     });
   });
 
@@ -37,7 +36,7 @@ describe('devServerStopBroker', () => {
       const proxy = devServerStopBrokerProxy();
       const proc = proxy.makeProcessWhereKillThrows();
 
-      await expect(devServerStopBroker({ process: proc })).resolves.toBeUndefined();
+      await expect(devServerStopBroker({ process: proc })).resolves.toBe(undefined);
     });
   });
 });

@@ -41,7 +41,7 @@ describe('isAstCallbackFunctionGuard', () => {
     expect(isAstCallbackFunctionGuard({ funcNode })).toBe(true);
   });
 
-  it('INVALID_PARENT: {funcNode: arrow function inside BlockStatement} => returns false', () => {
+  it('INVALID: {funcNode: arrow function inside BlockStatement} => returns false', () => {
     const blockStatement = TsestreeStub({
       type: 'BlockStatement',
     });
@@ -54,7 +54,7 @@ describe('isAstCallbackFunctionGuard', () => {
     expect(isAstCallbackFunctionGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_PARENT: {funcNode: function with no parent} => returns false', () => {
+  it('INVALID: {funcNode: function with no parent} => returns false', () => {
     const funcNode = TsestreeStub({
       type: 'ArrowFunctionExpression',
       parent: null,
@@ -63,7 +63,7 @@ describe('isAstCallbackFunctionGuard', () => {
     expect(isAstCallbackFunctionGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_PARENT: {funcNode: function inside VariableDeclarator} => returns false', () => {
+  it('INVALID: {funcNode: function inside VariableDeclarator} => returns false', () => {
     const variableDeclarator = TsestreeStub({
       type: 'VariableDeclarator',
     });
@@ -76,7 +76,7 @@ describe('isAstCallbackFunctionGuard', () => {
     expect(isAstCallbackFunctionGuard({ funcNode })).toBe(false);
   });
 
-  it('INVALID_PARENT: {funcNode: function inside ExportDefaultDeclaration} => returns false', () => {
+  it('INVALID: {funcNode: function inside ExportDefaultDeclaration} => returns false', () => {
     const exportDeclaration = TsestreeStub({
       type: 'ExportDefaultDeclaration',
     });

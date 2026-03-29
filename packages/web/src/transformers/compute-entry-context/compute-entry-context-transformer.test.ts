@@ -12,7 +12,7 @@ describe('computeEntryContextTransformer', () => {
 
       const result = computeEntryContextTransformer({ entry });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: {assistant text without usage} => returns null', () => {
@@ -20,7 +20,7 @@ describe('computeEntryContextTransformer', () => {
 
       const result = computeEntryContextTransformer({ entry });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 

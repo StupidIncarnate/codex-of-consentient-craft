@@ -70,13 +70,13 @@ describe('typeNameFromAnnotationTransformer', () => {
     it('EMPTY: {} => returns null', () => {
       const result = typeNameFromAnnotationTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {typeAnnotation: null} => returns null', () => {
       const result = typeNameFromAnnotationTransformer({ typeAnnotation: null });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {type: TSTypeReference without typeName} => returns null', () => {
@@ -87,7 +87,7 @@ describe('typeNameFromAnnotationTransformer', () => {
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {type: TSTypeReference with non-Identifier typeName} => returns null', () => {
@@ -100,7 +100,7 @@ describe('typeNameFromAnnotationTransformer', () => {
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {type: TSTypeReference with Identifier but no name} => returns null', () => {
@@ -114,7 +114,7 @@ describe('typeNameFromAnnotationTransformer', () => {
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {type: unknown node type} => returns null', () => {
@@ -124,7 +124,7 @@ describe('typeNameFromAnnotationTransformer', () => {
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

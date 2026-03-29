@@ -102,7 +102,7 @@ describe('questStepHasContractRefsGuard', () => {
   });
 
   describe('missing contract refs', () => {
-    it('INVALID_CONTRACTS: {step creating broker file but outputContracts is Void} => returns false', () => {
+    it('INVALID: {step creating broker file but outputContracts is Void} => returns false', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({
@@ -118,7 +118,7 @@ describe('questStepHasContractRefsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_CONTRACTS: {step creating guard file but outputContracts is Void} => returns false', () => {
+    it('INVALID: {step creating guard file but outputContracts is Void} => returns false', () => {
       const contracts = [QuestContractEntryStub()];
       const steps = [
         DependencyStepStub({

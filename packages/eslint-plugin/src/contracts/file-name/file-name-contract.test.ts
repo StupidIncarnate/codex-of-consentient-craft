@@ -32,25 +32,25 @@ describe('fileNameContract', () => {
     expect(result).toBe('file_with_underscores.ts');
   });
 
-  it('INVALID_PATH_SEPARATOR: {value: "path/to/file.ts"} => throws error', () => {
+  it('INVALID: {value: "path/to/file.ts"} => throws error', () => {
     expect(() => {
       return fileNameContract.parse('path/to/file.ts');
     }).toThrow(/path separators/u);
   });
 
-  it('INVALID_PATH_SEPARATOR: {value: "path\\to\\file.ts"} => throws error', () => {
+  it('INVALID: {value: "path\\to\\file.ts"} => throws error', () => {
     expect(() => {
       return FileNameStub({ value: 'path\\to\\file.ts' });
     }).toThrow(/path separators/u);
   });
 
-  it('INVALID_PATH_SEPARATOR: {value: "/file.ts"} => throws error', () => {
+  it('INVALID: {value: "/file.ts"} => throws error', () => {
     expect(() => {
       return FileNameStub({ value: '/file.ts' });
     }).toThrow(/path separators/u);
   });
 
-  it('INVALID_PATH_SEPARATOR: {value: "\\file.ts"} => throws error', () => {
+  it('INVALID: {value: "\\file.ts"} => throws error', () => {
     expect(() => {
       return FileNameStub({ value: '\\file.ts' });
     }).toThrow(/path separators/u);

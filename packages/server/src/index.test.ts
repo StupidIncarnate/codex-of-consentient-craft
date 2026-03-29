@@ -1,7 +1,7 @@
 import {} from './index.js';
 
 describe('server index', () => {
-  it('should export the public API', () => {
+  it('VALID: {import} => exports the public API', () => {
     expect(true).toBe(true);
   });
 });

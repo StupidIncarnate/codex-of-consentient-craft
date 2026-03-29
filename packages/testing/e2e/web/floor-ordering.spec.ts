@@ -58,7 +58,7 @@ test.describe('Floor Ordering', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('happy path: floor headers in topological order with roles under correct headers', async ({
+  test('VALID: happy path: floor headers in topological order with roles under correct headers', async ({
     page,
     request,
   }) => {
@@ -149,7 +149,7 @@ test.describe('Floor Ordering', () => {
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[WARD]']);
   });
 
-  test('ward fail → spiritmender → ward retry: FORGE before MINI BOSS, INFIRMARY between bosses', async ({
+  test('ERROR: ward fail → spiritmender → ward retry: FORGE before MINI BOSS, INFIRMARY between bosses', async ({
     page,
     request,
   }) => {
@@ -249,7 +249,7 @@ test.describe('Floor Ordering', () => {
     ]);
   });
 
-  test('siegemaster fail → pathseeker replan: CARTOGRAPHY after ARENA, skipped items hidden', async ({
+  test('ERROR: siegemaster fail → pathseeker replan: CARTOGRAPHY after ARENA, skipped items hidden', async ({
     page,
     request,
   }) => {

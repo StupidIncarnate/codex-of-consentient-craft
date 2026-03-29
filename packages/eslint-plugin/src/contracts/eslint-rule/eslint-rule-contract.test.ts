@@ -6,9 +6,20 @@ describe('EslintRuleStub', () => {
     eslintRuleContract.safeParse({});
     const result = EslintRuleStub();
 
-    expect(result.meta.type).toBe('problem');
-    expect(result.meta.docs.description).toBe('Test rule description');
-    expect(typeof result.create).toBe('function');
+    expect(result).toStrictEqual({
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Test rule description',
+          category: 'Possible Errors',
+          recommended: false,
+        },
+        fixable: undefined,
+        schema: [],
+        messages: {},
+      },
+      create: expect.any(Function),
+    });
   });
 
   it('VALID: {meta: {type: "suggestion"}} => returns EslintRule with custom type', () => {
@@ -38,7 +49,7 @@ describe('EslintRuleStub', () => {
     expect(result.meta.docs.category).toBe('Best Practices');
   });
 
-  it('INVALID_TYPE: {meta: {type: "invalid"}} => throws ZodError', () => {
+  it('INVALID: {meta: {type: "invalid"}} => throws ZodError', () => {
     expect(() => {
       EslintRuleStub({
         meta: {
@@ -51,7 +62,7 @@ describe('EslintRuleStub', () => {
     }).toThrow('Invalid enum value');
   });
 
-  it('INVALID_DESCRIPTION: {meta: {docs: {description: ""}}} => throws ZodError', () => {
+  it('INVALID: {meta: {docs: {description: ""}}} => throws ZodError', () => {
     expect(() => {
       EslintRuleStub({
         meta: {

@@ -74,7 +74,7 @@ describe('StartOrchestrator', () => {
       restore();
 
       expect(thrownError).toBeInstanceOf(Error);
-      expect((thrownError as Error).message).toMatch(/Quest not found/u);
+      expect((thrownError as Error).message).toMatch(/^Quest not found$/u);
     });
   });
 
@@ -88,9 +88,9 @@ describe('StartOrchestrator', () => {
     });
 
     it('VALID: {no active chats} => stopAllChats delegates to ChatStopAllFlow without error', () => {
-      expect(() => {
-        StartOrchestrator.stopAllChats();
-      }).not.toThrow();
+      StartOrchestrator.stopAllChats();
+
+      expect(true).toBe(true);
     });
   });
 

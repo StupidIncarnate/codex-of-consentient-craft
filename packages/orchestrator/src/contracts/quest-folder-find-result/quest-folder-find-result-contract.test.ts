@@ -16,9 +16,11 @@ describe('questFolderFindResultContract', () => {
         quest,
       });
 
-      expect(result.found).toBe(true);
-      expect(result.folderPath).toBe('/project/.dungeonmaster-quests/001-add-auth');
-      expect(result.quest?.id).toBe('add-auth');
+      expect(result).toStrictEqual({
+        found: true,
+        folderPath: '/project/.dungeonmaster-quests/001-add-auth',
+        quest: expect.any(Object),
+      });
     });
   });
 
@@ -30,14 +32,16 @@ describe('questFolderFindResultContract', () => {
         quest: undefined,
       });
 
-      expect(result.found).toBe(false);
-      expect(result.folderPath).toBeUndefined();
-      expect(result.quest).toBeUndefined();
+      expect(result).toStrictEqual({
+        found: false,
+        folderPath: undefined,
+        quest: undefined,
+      });
     });
   });
 
   describe('invalid input', () => {
-    it('INVALID_FOUND: {found: true without folderPath} => throws', () => {
+    it('INVALID: {found: true without folderPath} => throws', () => {
       expect(() =>
         questFolderFindResultContract.parse({
           found: true,
@@ -46,7 +50,7 @@ describe('questFolderFindResultContract', () => {
       ).toThrow(/required/iu);
     });
 
-    it('INVALID_FOUND: {found: true without quest} => throws', () => {
+    it('INVALID: {found: true without quest} => throws', () => {
       expect(() =>
         questFolderFindResultContract.parse({
           found: true,

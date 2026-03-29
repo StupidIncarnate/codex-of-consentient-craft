@@ -84,7 +84,7 @@ describe('extractFileMetadataTransformer', () => {
 
       const result = extractFileMetadataTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('INVALID: {commentText missing USAGE} => returns null', () => {
@@ -94,7 +94,7 @@ describe('extractFileMetadataTransformer', () => {
 
       const result = extractFileMetadataTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('INVALID: {commentText with empty PURPOSE} => returns null', () => {
@@ -107,7 +107,7 @@ describe('extractFileMetadataTransformer', () => {
 
       const result = extractFileMetadataTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('INVALID: {commentText with empty USAGE} => returns null', () => {
@@ -120,7 +120,7 @@ describe('extractFileMetadataTransformer', () => {
 
       const result = extractFileMetadataTransformer({ commentText });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 

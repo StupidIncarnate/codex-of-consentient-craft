@@ -21,15 +21,17 @@ describe('HookPostEditResponder', () => {
 
       const result = await HookPostEditResponder({ input: hookData });
 
-      expect(result.violations).toStrictEqual([
-        {
-          filePath: '/test/file.ts',
-          messages: [],
-          errorCount: 0,
-          warningCount: 0,
-        },
-      ]);
-      expect(result.message).toBe('All violations auto-fixed successfully');
+      expect(result).toStrictEqual({
+        violations: [
+          {
+            filePath: '/test/file.ts',
+            messages: [],
+            errorCount: 0,
+            warningCount: 0,
+          },
+        ],
+        message: 'All violations auto-fixed successfully',
+      });
     });
 
     it('VALID: {PostToolUse with violations} => returns violations result', async () => {
@@ -47,23 +49,25 @@ describe('HookPostEditResponder', () => {
 
       const result = await HookPostEditResponder({ input: hookData });
 
-      expect(result.violations).toStrictEqual([
-        {
-          filePath: '/test/file.ts',
-          messages: [
-            {
-              ruleId: 'no-console',
-              severity: 2,
-              message: 'Unexpected console statement',
-              line: 1,
-              column: 1,
-            },
-          ],
-          errorCount: 1,
-          warningCount: 0,
-        },
-      ]);
-      expect(result.message).toMatch(/Unexpected console statement/iu);
+      expect(result).toStrictEqual({
+        violations: [
+          {
+            filePath: '/test/file.ts',
+            messages: [
+              {
+                ruleId: 'no-console',
+                severity: 2,
+                message: 'Unexpected console statement',
+                line: 1,
+                column: 1,
+              },
+            ],
+            errorCount: 1,
+            warningCount: 0,
+          },
+        ],
+        message: expect.stringMatching(/^.*Unexpected console statement.*$/isu),
+      });
     });
   });
 

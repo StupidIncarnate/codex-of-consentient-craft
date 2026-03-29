@@ -54,17 +54,32 @@ export const typescriptProxyMockTransformerMiddleware = ({
     return sourceFile;
   }
 
-  // Deduplicate mocks by module name, keeping only the first occurrence for each module.
-  // The first occurrence is preferred because it's typically the simple auto-mock,
-  // while later occurrences might be factory mocks that are too specific for cross-file use.
-  const seenModules = new Set<ModuleName>();
-  const deduplicatedMocks = mockCalls.filter((mock) => {
-    if (seenModules.has(mock.moduleName)) {
-      return false;
+  // Deduplicate and merge mocks by module name.
+  // - When both an auto-mock (no factory, no identifierNames) and a factory-mock exist
+  //   for the same module, the factory-mock wins.
+  // - When multiple registerMock calls target the same module with different identifierNames,
+  //   merge them into one MockCall with all identifierNames combined.
+  // - An explicit factory always wins over identifierNames-based selective mocking.
+  const mocksByModule = new Map<ModuleName, MockCall>();
+  for (const mock of mockCalls) {
+    const existing = mocksByModule.get(mock.moduleName);
+    if (!existing) {
+      mocksByModule.set(mock.moduleName, mock);
+    } else if (mock.factory && !existing.factory) {
+      // Explicit factory wins over auto-mock or identifier-based mock
+      mocksByModule.set(mock.moduleName, mock);
+    } else if (!mock.factory && !existing.factory && mock.identifierNames.length > 0) {
+      // Merge identifierNames from multiple registerMock calls for the same module
+      const mergedIdentifiers = [...existing.identifierNames];
+      for (const name of mock.identifierNames) {
+        if (!mergedIdentifiers.includes(name)) {
+          mergedIdentifiers.push(name);
+        }
+      }
+      mocksByModule.set(mock.moduleName, { ...existing, identifierNames: mergedIdentifiers });
     }
-    seenModules.add(mock.moduleName);
-    return true;
-  });
+  }
+  const deduplicatedMocks = [...mocksByModule.values()];
 
   const mockStatements = typescriptMockCallsToStatementsAdapter({
     mockCalls: deduplicatedMocks,

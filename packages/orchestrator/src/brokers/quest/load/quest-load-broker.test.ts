@@ -21,10 +21,11 @@ describe('questLoadBroker', () => {
       proxy.setupQuestFile({ questJson });
 
       const result = await questLoadBroker({ questFilePath });
+      const { id, title, status } = result;
 
-      expect(result.id).toBe('add-auth');
-      expect(result.title).toBe('Add Authentication');
-      expect(result.status).toBe('in_progress');
+      expect(id).toBe('add-auth');
+      expect(title).toBe('Add Authentication');
+      expect(status).toBe('in_progress');
     });
 
     it('VALID: {questFilePath: "/quests/quest-2.json"} => handles quest with all optional fields', async () => {
@@ -46,10 +47,11 @@ describe('questLoadBroker', () => {
       proxy.setupQuestFile({ questJson });
 
       const result = await questLoadBroker({ questFilePath });
+      const { id, completedAt, userRequest } = result;
 
-      expect(result.id).toBe('fix-bug');
-      expect(result.completedAt).toBe('2024-01-03T00:00:00Z');
-      expect(result.userRequest).toBe('Fix the login bug');
+      expect(id).toBe('fix-bug');
+      expect(completedAt).toBe('2024-01-03T00:00:00Z');
+      expect(userRequest).toBe('Fix the login bug');
     });
   });
 

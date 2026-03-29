@@ -131,10 +131,8 @@ describe('networkRecordCaptureBroker', () => {
 
       recorder.stop();
 
-      expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /^\[network-record\] request body read failed:.*body stream locked\n$/u,
-        ),
+      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
+        /^\[network-record\] request body read failed:.*body stream locked\n$/u,
       );
     });
   });

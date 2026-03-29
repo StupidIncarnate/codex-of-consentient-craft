@@ -39,19 +39,19 @@ describe('frameworkContract', () => {
   });
 
   describe('invalid frameworks', () => {
-    it('INVALID_VALUE: "invalid" => throws validation error', () => {
+    it('INVALID: "invalid" => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse('invalid');
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_TYPE: 123 => throws validation error', () => {
+    it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse(123);
       }).toThrow(/Expected/u);
     });
 
-    it('INVALID_UNDEFINED: undefined => throws validation error', () => {
+    it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse(undefined);
       }).toThrow(/Required/u);

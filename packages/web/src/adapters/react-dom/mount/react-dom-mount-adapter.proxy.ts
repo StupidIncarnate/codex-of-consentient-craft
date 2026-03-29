@@ -1,16 +1,20 @@
 import { createRoot } from 'react-dom/client';
 
-jest.mock('react-dom/client', () => ({
-  ...jest.requireActual('react-dom/client'),
-  createRoot: jest.fn(),
-}));
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({
+  module: 'react-dom/client',
+  factory: () => ({
+    createRoot: jest.fn(),
+  }),
+});
 
 export const reactDomMountAdapterProxy = (): {
   renderWasCalled: () => boolean;
 } => {
   const renderMock = jest.fn();
 
-  const mock = jest.mocked(createRoot);
+  const mock = registerMock({ fn: createRoot });
   mock.mockReturnValue({
     render: renderMock,
     unmount: jest.fn(),

@@ -43,7 +43,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {empty JSON object} => returns null', () => {
@@ -53,7 +53,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {session_id is not a string} => returns null', () => {
@@ -63,7 +63,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {session_id is null} => returns null', () => {
@@ -73,7 +73,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {session_id is empty string} => returns null', () => {
@@ -83,7 +83,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON string literal} => returns null', () => {
@@ -93,7 +93,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON number literal} => returns null', () => {
@@ -103,7 +103,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON boolean literal} => returns null', () => {
@@ -113,7 +113,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON null literal} => returns null', () => {
@@ -123,7 +123,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON array} => returns null', () => {
@@ -133,7 +133,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -145,7 +145,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {subtype: hook_response with session_id} => returns null', () => {
@@ -155,7 +155,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('VALID: {subtype: other with session_id} => returns SessionId', () => {
@@ -177,7 +177,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {truncated JSON} => returns null', () => {
@@ -187,7 +187,7 @@ describe('sessionIdExtractorTransformer', () => {
 
       const result = sessionIdExtractorTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

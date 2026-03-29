@@ -29,8 +29,10 @@ describe('GuildAddResponder', () => {
         path: GuildPathStub({ value: '/home/user/my-project' }),
       });
 
-      expect(result.name).toBe('My Guild');
-      expect(result.path).toBe('/home/user/my-project');
+      const { name, path } = result;
+
+      expect(name).toBe('My Guild');
+      expect(path).toBe('/home/user/my-project');
     });
   });
 });

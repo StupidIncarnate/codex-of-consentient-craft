@@ -18,7 +18,7 @@ describe('pathIsAccessibleBroker', () => {
   });
 
   describe('inaccessible paths', () => {
-    it('INVALID_PATH: {path: "/missing/project"} => returns false when path is not accessible', async () => {
+    it('INVALID: {path: "/missing/project"} => returns false when path is not accessible', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
       const path = GuildPathStub({ value: '/missing/project' });
 

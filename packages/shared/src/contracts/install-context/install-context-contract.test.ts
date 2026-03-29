@@ -9,8 +9,10 @@ describe('installContextContract', () => {
         dungeonmasterRoot: '/home/user/.dungeonmaster',
       });
 
-      expect(result.targetProjectRoot).toBe('/home/user/project');
-      expect(result.dungeonmasterRoot).toBe('/home/user/.dungeonmaster');
+      expect(result).toStrictEqual({
+        targetProjectRoot: '/home/user/project',
+        dungeonmasterRoot: '/home/user/.dungeonmaster',
+      });
     });
 
     it('VALID: {relative paths} => parses successfully', () => {
@@ -19,8 +21,10 @@ describe('installContextContract', () => {
         dungeonmasterRoot: '../dungeonmaster',
       });
 
-      expect(result.targetProjectRoot).toBe('./project');
-      expect(result.dungeonmasterRoot).toBe('../dungeonmaster');
+      expect(result).toStrictEqual({
+        targetProjectRoot: './project',
+        dungeonmasterRoot: '../dungeonmaster',
+      });
     });
 
     it('VALID: {Windows paths} => parses successfully', () => {
@@ -29,8 +33,10 @@ describe('installContextContract', () => {
         dungeonmasterRoot: 'C:\\Users\\.dungeonmaster',
       });
 
-      expect(result.targetProjectRoot).toBe('C:\\Users\\project');
-      expect(result.dungeonmasterRoot).toBe('C:\\Users\\.dungeonmaster');
+      expect(result).toStrictEqual({
+        targetProjectRoot: 'C:\\Users\\project',
+        dungeonmasterRoot: 'C:\\Users\\.dungeonmaster',
+      });
     });
 
     it('VALID: {mixed path types} => parses successfully', () => {
@@ -39,8 +45,10 @@ describe('installContextContract', () => {
         dungeonmasterRoot: './dungeonmaster',
       });
 
-      expect(result.targetProjectRoot).toBe('/home/user/project');
-      expect(result.dungeonmasterRoot).toBe('./dungeonmaster');
+      expect(result).toStrictEqual({
+        targetProjectRoot: '/home/user/project',
+        dungeonmasterRoot: './dungeonmaster',
+      });
     });
   });
 

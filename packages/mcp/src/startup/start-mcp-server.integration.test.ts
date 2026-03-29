@@ -19,7 +19,7 @@ describe('StartMcpServer', () => {
 
       await client.close();
 
-      expect(response.error).toBeUndefined();
+      expect(response.error).toBe(undefined);
 
       const result = ToolListResultStub(response.result as never);
 

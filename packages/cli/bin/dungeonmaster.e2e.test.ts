@@ -87,7 +87,7 @@ describe('dungeonmaster binary', () => {
       // Verify the module can be imported without throwing
       const modulePromise = import(BIN_PATH);
 
-      await expect(modulePromise).resolves.toBeDefined();
+      await expect(modulePromise).resolves.not.toBe(null);
     });
   });
 });

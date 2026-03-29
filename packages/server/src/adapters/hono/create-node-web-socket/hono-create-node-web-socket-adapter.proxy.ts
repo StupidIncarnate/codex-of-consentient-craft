@@ -1,6 +1,5 @@
-jest.mock('@hono/node-ws');
-
 import { createNodeWebSocket } from '@hono/node-ws';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 
@@ -9,7 +8,7 @@ export const honoCreateNodeWebSocketAdapterProxy = (): {
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
 } => {
-  const mock = jest.mocked(createNodeWebSocket);
+  const mock = registerMock({ fn: createNodeWebSocket });
 
   const captured: {
     factory?: () => {

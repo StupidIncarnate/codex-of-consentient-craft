@@ -35,25 +35,25 @@ describe('bashToolInputContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_COMMAND: {missing command} => throws validation error', () => {
+    it('INVALID: {missing command} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_COMMAND: {empty command} => throws validation error', () => {
+    it('INVALID: {empty command} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({ command: '' });
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_COMMAND: {command is number} => throws validation error', () => {
+    it('INVALID: {command is number} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({ command: 123 as never });
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({} as never);
       }).toThrow(/Required/u);

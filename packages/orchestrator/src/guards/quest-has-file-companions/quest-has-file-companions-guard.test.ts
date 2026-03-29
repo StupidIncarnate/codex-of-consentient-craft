@@ -175,7 +175,7 @@ describe('questHasFileCompanionsGuard', () => {
   });
 
   describe('missing companions', () => {
-    it('INVALID_COMPANION: {broker without test} => returns false', () => {
+    it('INVALID: {broker without test} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -196,7 +196,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {broker without proxy} => returns false', () => {
+    it('INVALID: {broker without proxy} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -217,7 +217,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {contract without stub} => returns false', () => {
+    it('INVALID: {contract without stub} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -238,7 +238,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {guard without test} => returns false', () => {
+    it('INVALID: {guard without test} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -255,7 +255,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {flow without integration test} => returns false', () => {
+    it('INVALID: {flow without integration test} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -272,7 +272,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {statics without test} => returns false', () => {
+    it('INVALID: {statics without test} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -289,7 +289,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {modify broker without companions} => returns false', () => {
+    it('INVALID: {modify broker without companions} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -308,7 +308,7 @@ describe('questHasFileCompanionsGuard', () => {
   });
 
   describe('extra companions', () => {
-    it('INVALID_COMPANION: {guard with test and unexpected proxy} => returns false', () => {
+    it('INVALID: {guard with test and unexpected proxy} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -332,7 +332,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {statics with test and unexpected proxy} => returns false', () => {
+    it('INVALID: {statics with test and unexpected proxy} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({
@@ -356,7 +356,7 @@ describe('questHasFileCompanionsGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_COMPANION: {flow with unit test instead of integration test} => returns false', () => {
+    it('INVALID: {flow with unit test instead of integration test} => returns false', () => {
       const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
       const steps = [
         DependencyStepStub({

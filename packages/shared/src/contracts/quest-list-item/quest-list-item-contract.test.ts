@@ -26,8 +26,14 @@ describe('questListItemContract', () => {
 
       const result = questListItemContract.parse(item);
 
-      expect(result.status).toBe('complete');
-      expect(result.stepProgress).toBe('5/5');
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'complete',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        stepProgress: '5/5',
+      });
     });
 
     it('VALID: item without step progress => parses successfully', () => {
@@ -83,7 +89,7 @@ describe('questListItemContract', () => {
   });
 
   describe('invalid list items', () => {
-    it('INVALID_ID: {id: empty string} => throws validation error', () => {
+    it('INVALID: {id: empty string} => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({
           ...QuestListItemStub(),
@@ -92,7 +98,7 @@ describe('questListItemContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_FOLDER: {folder: empty string} => throws validation error', () => {
+    it('INVALID: {folder: empty string} => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({
           ...QuestListItemStub(),
@@ -101,7 +107,7 @@ describe('questListItemContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_TITLE: {title: empty string} => throws validation error', () => {
+    it('INVALID: {title: empty string} => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({
           ...QuestListItemStub(),
@@ -110,7 +116,7 @@ describe('questListItemContract', () => {
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_CREATED_AT: {createdAt: invalid} => throws validation error', () => {
+    it('INVALID: {createdAt: invalid} => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({
           ...QuestListItemStub(),
@@ -119,7 +125,7 @@ describe('questListItemContract', () => {
       }).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_ACTIVE_SESSION_ID: {activeSessionId: empty string} => throws validation error', () => {
+    it('INVALID: {activeSessionId: empty string} => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({
           ...QuestListItemStub(),

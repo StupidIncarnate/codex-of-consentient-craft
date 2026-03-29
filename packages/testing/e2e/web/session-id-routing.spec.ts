@@ -148,7 +148,7 @@ test.describe('Session ID Routing', () => {
     }
   });
 
-  test('pathseeker live streaming routes text content to pathseeker panel via sessionId', async ({
+  test('VALID: pathseeker live streaming routes text content to pathseeker panel via sessionId', async ({
     page,
     request,
   }) => {
@@ -223,7 +223,7 @@ test.describe('Session ID Routing', () => {
     });
   });
 
-  test('multi-instance same-role: streamed text routes to correct codeweaver panel by sessionId', async ({
+  test('VALID: multi-instance same-role: streamed text routes to correct codeweaver panel by sessionId', async ({
     page,
     request,
   }) => {

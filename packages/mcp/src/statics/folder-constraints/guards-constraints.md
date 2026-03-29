@@ -154,7 +154,7 @@ type User = ReturnType<typeof UserStub>;
 type UserId = ReturnType<typeof UserIdStub>;
 
 export const hasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real in tests
+    // NO mocking of guard - guard runs real in tests
 
     return {
         // Semantic helper for "own profile" path
@@ -239,7 +239,7 @@ describe('hasPermissionGuard', () => {
     });
 
     describe('invalid permissions', () => {
-        it('INVALID_PERMISSION: {user without permission} => returns false', () => {
+        it('INVALID: {user without permission} => returns false', () => {
             const readPermission = PermissionStub({value: 'admin:read'});
             const deletePermission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
@@ -251,7 +251,7 @@ describe('hasPermissionGuard', () => {
             expect(result).toBe(false);
         });
 
-        it('INVALID_PERMISSION: {user with empty permissions} => returns false', () => {
+        it('INVALID: {user with empty permissions} => returns false', () => {
             const permission = PermissionStub({value: 'admin:delete'});
             const user = UserStub({
                 permissions: [],

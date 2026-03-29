@@ -1,6 +1,6 @@
-jest.mock('fs/promises');
-
 import { appendFile } from 'fs/promises';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const fsAppendFileAdapterProxy = (): {
   succeeds: () => void;
@@ -9,7 +9,7 @@ export const fsAppendFileAdapterProxy = (): {
   getAppendedPath: () => unknown;
   getAllAppendedFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
-  const mock = jest.mocked(appendFile);
+  const mock: MockHandle = registerMock({ fn: appendFile });
 
   mock.mockResolvedValue(undefined);
 

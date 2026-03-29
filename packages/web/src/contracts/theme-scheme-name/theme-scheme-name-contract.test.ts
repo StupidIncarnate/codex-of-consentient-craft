@@ -26,13 +26,13 @@ describe('themeSchemeNameContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: ""} => throws for empty string', () => {
+    it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => themeSchemeNameContract.parse('')).toThrow(
         /String must contain at least 1 character/u,
       );
     });
 
-    it('INVALID_VALUE: {value: exceeds max} => throws for exceeding max length', () => {
+    it('INVALID: {value: exceeds max} => throws for exceeding max length', () => {
       expect(() =>
         themeSchemeNameContract.parse('A'.repeat(MAX_THEME_SCHEME_NAME_LENGTH + 1)),
       ).toThrow(/String must contain at most 50 character/u);

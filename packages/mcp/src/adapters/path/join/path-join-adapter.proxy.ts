@@ -1,22 +1,17 @@
 import { join } from 'path';
-import type * as Path from 'path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-jest.mock('path');
 
 export const pathJoinAdapterProxy = (): {
   returns: ({ paths, result }: { paths: readonly string[]; result: FilePath }) => void;
 } => {
-  const mockJoin = jest.mocked(join);
+  const handle = registerMock({ fn: join });
 
-  mockJoin.mockImplementation((...segments) => {
-    const actualPath = jest.requireActual<typeof Path>('path');
-    return actualPath.join(...segments);
-  });
+  handle.mockReturnValue('');
 
   return {
     returns: ({ paths: _paths, result }: { paths: readonly string[]; result: FilePath }): void => {
-      mockJoin.mockReturnValueOnce(result);
+      handle.mockReturnValueOnce(result);
     },
   };
 };

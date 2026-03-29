@@ -42,7 +42,7 @@ describe('postToolUseHookDataContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_HOOK_EVENT_NAME: {hook_event_name: not PostToolUse} => throws validation error', () => {
+    it('INVALID: {hook_event_name: not PostToolUse} => throws validation error', () => {
       expect(() => {
         return postToolUseHookDataContract.parse({
           session_id: 'test',
@@ -55,7 +55,7 @@ describe('postToolUseHookDataContract', () => {
       }).toThrow(/PostToolUse/u);
     });
 
-    it('INVALID_MISSING_TOOL_NAME: {missing tool_name} => throws validation error', () => {
+    it('INVALID: {missing tool_name} => throws validation error', () => {
       expect(() => {
         return postToolUseHookDataContract.parse({
           session_id: 'test',

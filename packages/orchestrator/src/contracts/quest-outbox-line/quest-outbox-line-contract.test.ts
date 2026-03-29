@@ -30,7 +30,7 @@ describe('questOutboxLineContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_QUEST_ID: {questId: ""} => throws error', () => {
+    it('INVALID: {questId: ""} => throws error', () => {
       expect(() =>
         questOutboxLineContract.parse({
           questId: '',
@@ -39,7 +39,7 @@ describe('questOutboxLineContract', () => {
       ).toThrow(/too_small/u);
     });
 
-    it('INVALID_TIMESTAMP: {timestamp: "not-a-date"} => throws error', () => {
+    it('INVALID: {timestamp: "not-a-date"} => throws error', () => {
       expect(() =>
         questOutboxLineContract.parse({
           questId: 'add-auth',
@@ -48,7 +48,7 @@ describe('questOutboxLineContract', () => {
       ).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_TIMESTAMP: {timestamp: ""} => throws error', () => {
+    it('INVALID: {timestamp: ""} => throws error', () => {
       expect(() =>
         questOutboxLineContract.parse({
           questId: 'add-auth',
@@ -57,11 +57,11 @@ describe('questOutboxLineContract', () => {
       ).toThrow(/Invalid datetime/u);
     });
 
-    it('INVALID_MULTIPLE: {missing both fields} => throws error', () => {
+    it('INVALID: {missing both fields} => throws error', () => {
       expect(() => questOutboxLineContract.parse({})).toThrow(/Required/u);
     });
 
-    it('INVALID_TYPE: {questId: number} => throws error', () => {
+    it('INVALID: {questId: number} => throws error', () => {
       expect(() =>
         questOutboxLineContract.parse({
           questId: 123,

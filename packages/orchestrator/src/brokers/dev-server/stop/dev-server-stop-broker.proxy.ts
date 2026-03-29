@@ -7,6 +7,7 @@ export const devServerStopBrokerProxy = (): {
   makeProcessThatExitsOnSigterm: () => ChildProcess;
   makeProcessThatIgnoresSigterm: () => ChildProcess;
   makeProcessWhereKillThrows: () => ChildProcess;
+  getKillCalls: (proc: ChildProcess) => unknown[][];
 } => {
   childProcessSpawnAdapterProxy();
 
@@ -40,5 +41,8 @@ export const devServerStopBrokerProxy = (): {
       });
       return proc;
     },
+
+    getKillCalls: (proc: ChildProcess): unknown[][] =>
+      (proc.kill as unknown as jest.Mock).mock.calls,
   };
 };

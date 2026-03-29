@@ -8,13 +8,12 @@
  */
 
 import { writeFileSync } from 'fs';
-
-jest.mock('fs');
+import { registerMock } from '../../../register-mock';
 
 export const fsWriteFileAdapterProxy = (): {
   throws: ({ filePath, error }: { filePath: string; error: Error }) => void;
 } => {
-  const mock = jest.mocked(writeFileSync);
+  const mock = registerMock({ fn: writeFileSync });
 
   mock.mockImplementation(() => undefined);
 

@@ -59,8 +59,13 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(registerProcess).toHaveBeenCalledTimes(1);
-      expect(typeof registerProcess.mock.calls[0][0].processId).toBe('string');
-      expect(typeof registerProcess.mock.calls[0][0].kill).toBe('function');
+
+      const [[registerArg]] = registerProcess.mock.calls;
+
+      expect(registerArg).toStrictEqual({
+        processId: expect.any(String),
+        kill: expect.any(Function),
+      });
     });
   });
 
@@ -152,8 +157,11 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete.mock.calls[0][0].chatProcessId).toBe(chatProcessId);
-      expect(onComplete.mock.calls[0][0].sessionId).toBe(sessionId);
+      expect(onComplete.mock.calls[0][0]).toStrictEqual({
+        chatProcessId,
+        exitCode: 0,
+        sessionId,
+      });
     });
   });
 
@@ -180,8 +188,13 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(onQuestCreated).toHaveBeenCalledTimes(1);
-      expect(onQuestCreated.mock.calls[0][0].chatProcessId).toBe(result.chatProcessId);
-      expect(typeof onQuestCreated.mock.calls[0][0].questId).toBe('string');
+
+      const [[questCreatedArg]] = onQuestCreated.mock.calls;
+
+      expect(questCreatedArg).toStrictEqual({
+        chatProcessId: result.chatProcessId,
+        questId: expect.any(String),
+      });
     });
 
     it('VALID: {chaoswhisperer resume session} => does not call onQuestCreated', async () => {
@@ -351,8 +364,13 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(onDesignSessionLinked).toHaveBeenCalledTimes(1);
-      expect(onDesignSessionLinked.mock.calls[0][0].chatProcessId).toBe(chatProcessId);
-      expect(typeof onDesignSessionLinked.mock.calls[0][0].questId).toBe('string');
+
+      const [[designLinkedArg]] = onDesignSessionLinked.mock.calls;
+
+      expect(designLinkedArg).toStrictEqual({
+        chatProcessId,
+        questId: expect.any(String),
+      });
     });
   });
 
@@ -487,8 +505,9 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u),
+      expect(stderrSpy.mock.calls.length).toBeGreaterThan(0);
+      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
+        /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u,
       );
     });
   });
@@ -522,7 +541,7 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete.mock.calls[0][0].exitCode).toBeNull();
+      expect(onComplete.mock.calls[0][0].exitCode).toBe(null);
     });
   });
 
@@ -626,8 +645,13 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(registerProcess).toHaveBeenCalledTimes(1);
-      expect(typeof registerProcess.mock.calls[0][0].processId).toBe('string');
-      expect(typeof registerProcess.mock.calls[0][0].kill).toBe('function');
+
+      const [[registerArg]] = registerProcess.mock.calls;
+
+      expect(registerArg).toStrictEqual({
+        processId: expect.any(String),
+        kill: expect.any(Function),
+      });
     });
   });
 

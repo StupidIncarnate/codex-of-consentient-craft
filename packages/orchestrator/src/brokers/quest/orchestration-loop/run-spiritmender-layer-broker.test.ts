@@ -43,7 +43,7 @@ const BATCH_THREE_FILES = JSON.stringify({
 describe('runSpiritmenderLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof runSpiritmenderLayerBroker).toBe('function');
+      expect(runSpiritmenderLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 

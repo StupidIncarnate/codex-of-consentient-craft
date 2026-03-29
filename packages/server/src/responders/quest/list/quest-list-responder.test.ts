@@ -32,7 +32,7 @@ describe('QuestListResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null query} => returns 400 with error', async () => {
+    it('INVALID: {null query} => returns 400 with error', async () => {
       const proxy = QuestListResponderProxy();
 
       const result = await proxy.callResponder({ query: null });
@@ -43,7 +43,7 @@ describe('QuestListResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {non-object query} => returns 400 with error', async () => {
+    it('INVALID: {non-object query} => returns 400 with error', async () => {
       const proxy = QuestListResponderProxy();
 
       const result = await proxy.callResponder({ query: 'not-an-object' });
@@ -54,7 +54,7 @@ describe('QuestListResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       const proxy = QuestListResponderProxy();
 
       const result = await proxy.callResponder({ query: {} });
@@ -65,7 +65,7 @@ describe('QuestListResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {guildId is number} => returns 400 with error', async () => {
+    it('INVALID: {guildId is number} => returns 400 with error', async () => {
       const proxy = QuestListResponderProxy();
 
       const result = await proxy.callResponder({ query: { guildId: 123 } });

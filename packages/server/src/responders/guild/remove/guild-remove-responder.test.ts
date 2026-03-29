@@ -17,7 +17,7 @@ describe('GuildRemoveResponder', () => {
   });
 
   describe('validation errors', () => {
-    it('INVALID_MULTIPLE: {null params} => returns 400 with error', async () => {
+    it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = GuildRemoveResponderProxy();
 
       const result = await proxy.callResponder({ params: null });
@@ -28,7 +28,7 @@ describe('GuildRemoveResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {missing guildId} => returns 400 with error', async () => {
+    it('INVALID: {missing guildId} => returns 400 with error', async () => {
       const proxy = GuildRemoveResponderProxy();
 
       const result = await proxy.callResponder({ params: {} });
@@ -39,7 +39,7 @@ describe('GuildRemoveResponder', () => {
       });
     });
 
-    it('INVALID_MULTIPLE: {guildId is number} => returns 400 with error', async () => {
+    it('INVALID: {guildId is number} => returns 400 with error', async () => {
       const proxy = GuildRemoveResponderProxy();
 
       const result = await proxy.callResponder({ params: { guildId: 123 } });

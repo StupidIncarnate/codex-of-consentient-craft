@@ -150,7 +150,7 @@ export const useUserDataBindingProxy = () => {
     // Delegate to broker proxy (which sets up adapter mocks, globals, etc.)
     const brokerProxy = userFetchBrokerProxy();
 
-    // NO jest.mocked(useUserDataBinding) - binding runs real!
+    // NO mocking of binding - binding runs real!
 
     return {
         // Semantic setup - delegate to broker

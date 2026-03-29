@@ -23,13 +23,13 @@ describe('fileNameContract', () => {
   });
 
   describe('FileNameStub', () => {
-    it('STUB: default => returns test-file.txt', () => {
+    it('VALID: default => returns test-file.txt', () => {
       const result = FileNameStub();
 
       expect(result).toBe('test-file.txt');
     });
 
-    it('STUB: {value: "custom.txt"} => returns custom value', () => {
+    it('VALID: {value: "custom.txt"} => returns custom value', () => {
       const result = FileNameStub({ value: 'custom.txt' });
 
       expect(result).toBe('custom.txt');

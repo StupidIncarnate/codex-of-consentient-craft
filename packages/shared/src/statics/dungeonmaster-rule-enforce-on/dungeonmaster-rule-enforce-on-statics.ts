@@ -58,7 +58,15 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-wait-for-timeout': 'pre-edit',
   '@dungeonmaster/ban-page-route-in-e2e': 'pre-edit',
   '@dungeonmaster/enforce-e2e-base-import': 'pre-edit',
-  // '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit', // TODO: Enable after migrating existing proxies to registerMock
+  '@dungeonmaster/ban-not-to-throw': 'pre-edit',
+  '@dungeonmaster/ban-weak-existence-matchers': 'pre-edit',
+  '@dungeonmaster/ban-typeof-assertions': 'pre-edit',
+  '@dungeonmaster/enforce-test-name-prefix': 'pre-edit',
+  '@dungeonmaster/ban-unanchored-to-match': 'pre-edit',
+  '@dungeonmaster/enforce-testid-queries': 'pre-edit',
+  '@dungeonmaster/ban-playwright-evaluate-for-styles': 'pre-edit',
+  '@dungeonmaster/ban-playwright-extract-then-assert': 'pre-edit',
+  '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

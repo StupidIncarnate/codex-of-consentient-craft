@@ -42,7 +42,7 @@ describe('questStepHasExportNameGuard', () => {
   });
 
   describe('invalid steps', () => {
-    it('INVALID_EXPORT: {step with entry focusFile but no exportName} => returns false', () => {
+    it('INVALID: {step with entry focusFile but no exportName} => returns false', () => {
       const steps = [
         DependencyStepStub({
           focusFile: StepFileReferenceStub({

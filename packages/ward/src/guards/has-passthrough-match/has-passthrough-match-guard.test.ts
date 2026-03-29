@@ -29,7 +29,7 @@ describe('hasPassthroughMatchGuard', () => {
   });
 
   describe('non-matching paths', () => {
-    it('INVALID_PASSTHROUGH: {passthrough for different package} => returns false', () => {
+    it('INVALID: {passthrough for different package} => returns false', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
       const passthroughArg = CliArgStub({ value: 'packages/ward/src/foo.test.ts' });
@@ -39,7 +39,7 @@ describe('hasPassthroughMatchGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_PASSTHROUGH: {similar prefix but different package} => returns false', () => {
+    it('INVALID: {similar prefix but different package} => returns false', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
       const passthroughArg = CliArgStub({ value: 'packages/hooks-extra/src/foo.test.ts' });
@@ -49,7 +49,7 @@ describe('hasPassthroughMatchGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_PASSTHROUGH: {root-level file with no packages prefix} => returns false', () => {
+    it('INVALID: {root-level file with no packages prefix} => returns false', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
       const passthroughArg = CliArgStub({ value: 'eslint.config.js' });
@@ -59,7 +59,7 @@ describe('hasPassthroughMatchGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_PASSTHROUGH: {passthrough is partial package name} => returns false', () => {
+    it('INVALID: {passthrough is partial package name} => returns false', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const projectFolder = ProjectFolderStub({ path: '/home/user/project/packages/hooks' });
       const passthroughArg = CliArgStub({ value: 'packages/hook' });

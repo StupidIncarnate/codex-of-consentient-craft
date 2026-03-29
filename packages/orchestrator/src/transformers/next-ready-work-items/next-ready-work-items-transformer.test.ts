@@ -55,9 +55,11 @@ describe('nextReadyWorkItemsTransformer', () => {
 
       const result = nextReadyWorkItemsTransformer({ workItems: [item] });
 
-      expect(result.ready).toStrictEqual([item]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [item],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
 
     it('VALID: {item with completed dep} => ready', () => {
@@ -71,9 +73,11 @@ describe('nextReadyWorkItemsTransformer', () => {
 
       const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
 
-      expect(result.ready).toStrictEqual([item]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [item],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
 
     it('VALID: {multiple ready items} => all returned', () => {
@@ -90,9 +94,11 @@ describe('nextReadyWorkItemsTransformer', () => {
 
       const result = nextReadyWorkItemsTransformer({ workItems: [item1, item2] });
 
-      expect(result.ready).toStrictEqual([item1, item2]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [item1, item2],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
   });
 
@@ -108,9 +114,11 @@ describe('nextReadyWorkItemsTransformer', () => {
 
       const result = nextReadyWorkItemsTransformer({ workItems: [dep, item] });
 
-      expect(result.ready).toStrictEqual([item]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [item],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
 
     it('VALID: {pending item with skipped dep} => blocked', () => {
@@ -188,10 +196,11 @@ describe('nextReadyWorkItemsTransformer', () => {
         workItems: [completeDep, failedDep, item],
       });
 
-      expect(result.ready).toStrictEqual([item]);
-      expect(result.ready[0]?.dependsOn).toStrictEqual([completeId, failedId]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [item],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
 
     it('VALID: {depends on complete + pending} => NOT ready (pending does not satisfy)', () => {
@@ -213,9 +222,11 @@ describe('nextReadyWorkItemsTransformer', () => {
         workItems: [completeDep, pendingDep, item],
       });
 
-      expect(result.ready).toStrictEqual([pendingDep]);
-      expect(result.questTerminal).toBe(false);
-      expect(result.questBlocked).toBe(false);
+      expect(result).toStrictEqual({
+        ready: [pendingDep],
+        questTerminal: false,
+        questBlocked: false,
+      });
     });
   });
 

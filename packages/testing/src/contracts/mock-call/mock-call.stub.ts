@@ -9,5 +9,6 @@ export const MockCallStub = ({ ...props }: StubArgument<MockCall> = {}): MockCal
     moduleName: ModuleNameStub({ value: 'fs' }),
     factory: null,
     sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+    identifierNames: [],
     ...props,
   });

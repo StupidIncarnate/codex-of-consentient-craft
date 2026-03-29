@@ -61,7 +61,7 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const [firstMessage] = result.messages;
 
-      expect(firstMessage?.ruleId).toBeUndefined();
+      expect(firstMessage?.ruleId).toBe(undefined);
     });
 
     it('VALID: {eslintResult with message with ruleId} => preserves ruleId', () => {
@@ -155,8 +155,12 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
-      expect(result.errorCount).toBe(5);
-      expect(result.warningCount).toBe(3);
+      expect(result).toStrictEqual({
+        filePath: '/test/counts.ts',
+        messages: [],
+        errorCount: 5,
+        warningCount: 3,
+      });
     });
 
     it('EDGE: {eslintResult with zero counts} => preserves zero counts', () => {
@@ -169,8 +173,12 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
-      expect(result.errorCount).toBe(0);
-      expect(result.warningCount).toBe(0);
+      expect(result).toStrictEqual({
+        filePath: '/test/zero-counts.ts',
+        messages: [],
+        errorCount: 0,
+        warningCount: 0,
+      });
     });
 
     it('EDGE: {eslintResult with high counts} => preserves large counts', () => {
@@ -183,8 +191,12 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const result = eslintResultToLintResultTransformer({ eslintResult });
 
-      expect(result.errorCount).toBe(999);
-      expect(result.warningCount).toBe(1500);
+      expect(result).toStrictEqual({
+        filePath: '/test/high-counts.ts',
+        messages: [],
+        errorCount: 999,
+        warningCount: 1500,
+      });
     });
   });
 
@@ -250,7 +262,7 @@ describe('eslintResultToLintResultTransformer()', () => {
 
       const [firstMessage] = result.messages;
 
-      expect(firstMessage?.ruleId).toBeUndefined();
+      expect(firstMessage?.ruleId).toBe(undefined);
     });
 
     it('EDGE: {eslintResult with no messages} => returns empty messages array', () => {

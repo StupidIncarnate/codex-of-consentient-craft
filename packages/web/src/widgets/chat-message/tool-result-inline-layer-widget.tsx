@@ -84,6 +84,7 @@ export const ToolResultInlineLayerWidget = ({
             {truncateContentTransformer({ content: toolResult.content })}
           </Text>
           <Text
+            data-testid="TOOL_RESULT_TRUNCATION_TOGGLE"
             ff="monospace"
             size="xs"
             style={{ color: colors.primary, cursor: 'pointer' }}

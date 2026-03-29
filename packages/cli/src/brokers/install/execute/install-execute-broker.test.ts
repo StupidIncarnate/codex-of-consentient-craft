@@ -9,6 +9,7 @@ import {
   PackageNameStub,
   InstallContextStub,
   InstallResultStub,
+  ErrorMessageStub,
 } from '@dungeonmaster/shared/contracts';
 
 describe('installExecuteBroker', () => {
@@ -40,8 +41,15 @@ describe('installExecuteBroker', () => {
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('created');
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: true,
+            action: 'created',
+          },
+        }),
+      );
     });
 
     it('ERROR: {packageName, installPath, context} => returns failed result when runtime has no StartInstall', async () => {
@@ -59,8 +67,18 @@ describe('installExecuteBroker', () => {
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
-      expect(result.success).toBe(false);
-      expect(result.action).toBe('failed');
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/test',
+            success: false,
+            action: 'failed',
+            error: ErrorMessageStub({
+              value: 'No StartInstall function found in /path/to/invalid.ts',
+            }),
+          },
+        }),
+      );
     });
 
     it('ERROR: {packageName, installPath, context} => returns failed result when runtime import fails', async () => {
@@ -78,8 +96,16 @@ describe('installExecuteBroker', () => {
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
-      expect(result.success).toBe(false);
-      expect(result.action).toBe('failed');
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/test',
+            success: false,
+            action: 'failed',
+            error: ErrorMessageStub({ value: 'Module not found' }),
+          },
+        }),
+      );
     });
 
     it('ERROR: {packageName, installPath, context} => returns failed result when StartInstall throws', async () => {
@@ -101,8 +127,16 @@ describe('installExecuteBroker', () => {
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
-      expect(result.success).toBe(false);
-      expect(result.action).toBe('failed');
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/test',
+            success: false,
+            action: 'failed',
+            error: ErrorMessageStub({ value: 'Install failed' }),
+          },
+        }),
+      );
     });
   });
 });

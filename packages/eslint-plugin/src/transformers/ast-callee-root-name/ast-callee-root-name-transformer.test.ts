@@ -126,13 +126,13 @@ describe('astCalleeRootNameTransformer', () => {
     it('EMPTY: {} => returns null', () => {
       const result = astCalleeRootNameTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {node: omitted} => returns null', () => {
       const result = astCalleeRootNameTransformer({});
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: no callee} => returns null', () => {
@@ -143,7 +143,7 @@ describe('astCalleeRootNameTransformer', () => {
 
       const result = astCalleeRootNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EDGE: {node: callee is Literal} => returns null', () => {
@@ -154,7 +154,7 @@ describe('astCalleeRootNameTransformer', () => {
 
       const result = astCalleeRootNameTransformer({ node });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

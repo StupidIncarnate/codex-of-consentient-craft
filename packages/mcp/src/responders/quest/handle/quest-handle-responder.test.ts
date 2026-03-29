@@ -136,7 +136,7 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('SANITIZE: {workItems in args} => strips workItems before passing to adapter', async () => {
+    it('EDGE: {workItems in args} => strips workItems before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
       proxy.setupModifyQuestReturns({ result: modifyResult });
@@ -158,7 +158,7 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('SANITIZE: {wardResults in args} => strips wardResults before passing to adapter', async () => {
+    it('EDGE: {wardResults in args} => strips wardResults before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
       proxy.setupModifyQuestReturns({ result: modifyResult });

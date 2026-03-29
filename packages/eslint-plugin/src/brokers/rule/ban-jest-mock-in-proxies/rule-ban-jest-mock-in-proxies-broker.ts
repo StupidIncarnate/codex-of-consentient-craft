@@ -60,6 +60,22 @@ export const ruleBanJestMockInProxiesBroker = (): EslintRule => ({
           return;
         }
 
+        // Allow jest.requireActual and jest.fn inside registerModuleMock factory callbacks
+        // These are hoisted by the AST transformer into jest.mock(module, factory) calls
+        if (functionName === 'requireActual' || functionName === 'fn') {
+          let ancestor = node.parent;
+          while (ancestor) {
+            if (
+              ancestor.type === 'CallExpression' &&
+              ancestor.callee?.type === 'Identifier' &&
+              ancestor.callee.name === 'registerModuleMock'
+            ) {
+              return;
+            }
+            ancestor = ancestor.parent;
+          }
+        }
+
         ctx.report({
           node,
           messageId: 'useRegisterMock',

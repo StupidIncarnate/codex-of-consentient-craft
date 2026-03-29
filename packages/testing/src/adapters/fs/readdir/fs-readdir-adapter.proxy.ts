@@ -1,13 +1,12 @@
 import { readdirSync } from 'fs';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
-
-jest.mock('fs');
+import { registerMock } from '../../../register-mock';
 
 export const fsReaddirAdapterProxy = (): {
   returns: ({ files }: { dirPath: string; files: FileName[] }) => void;
   throws: ({ error }: { dirPath: string; error: Error }) => void;
 } => {
-  const mock = jest.mocked(readdirSync);
+  const mock = registerMock({ fn: readdirSync });
 
   mock.mockReturnValue([]);
 

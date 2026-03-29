@@ -8,8 +8,7 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-
-jest.mock('@dungeonmaster/orchestrator');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 
@@ -17,16 +16,16 @@ export const orchestratorStartQuestAdapterProxy = (): {
   returns: (params: { processId: ProcessId }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.startQuest);
+  const handle = registerMock({ fn: StartOrchestrator.startQuest });
 
-  mock.mockResolvedValue(ProcessIdStub());
+  handle.mockResolvedValue(ProcessIdStub());
 
   return {
     returns: ({ processId }: { processId: ProcessId }): void => {
-      mock.mockResolvedValueOnce(processId);
+      handle.mockResolvedValueOnce(processId);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

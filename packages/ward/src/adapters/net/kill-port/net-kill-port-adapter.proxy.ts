@@ -1,6 +1,5 @@
 import { exec } from 'child_process';
-
-jest.mock('child_process');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 interface ExecCall {
   command: unknown;
@@ -12,7 +11,7 @@ export const netKillPortAdapterProxy = (): {
   getExecCalls: () => ExecCall[];
 } => {
   const calls: ExecCall[] = [];
-  const mockExec = jest.mocked(exec) as unknown as jest.Mock;
+  const mockExec = registerMock({ fn: exec });
 
   const setupImpl = ({ stdout }: { stdout: unknown }): void => {
     mockExec.mockImplementation(

@@ -21,7 +21,7 @@ describe('cssSpacingContract', () => {
       expect(() => cssSpacingContract.parse(null)).toThrow(/Expected number/u);
     });
 
-    it('INVALID_VALUE: {value: "8px"} => throws for string', () => {
+    it('INVALID: {value: "8px"} => throws for string', () => {
       expect(() => cssSpacingContract.parse('8px')).toThrow(/Expected number/u);
     });
   });

@@ -3,7 +3,7 @@ import { EslintContextStub } from '../../../contracts/eslint-context/eslint-cont
 import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('checkPrimitiveViolationLayerBroker', () => {
-  it('VALID_PARAM: {allowPrimitiveInputs: true, node in parameter} => does not report', () => {
+  it('VALID: {allowPrimitiveInputs: true, node in parameter} => does not report', () => {
     const proxy = checkPrimitiveViolationLayerBrokerProxy();
     const mockReport = jest.fn();
     const ctx = EslintContextStub({ report: mockReport });
@@ -41,7 +41,7 @@ describe('checkPrimitiveViolationLayerBroker', () => {
     expect(mockReport).not.toHaveBeenCalled();
   });
 
-  it('INVALID_RETURN: {allowPrimitiveInputs: true, node in return type} => reports error', () => {
+  it('INVALID: {allowPrimitiveInputs: true, node in return type} => reports error', () => {
     const proxy = checkPrimitiveViolationLayerBrokerProxy();
     const mockReport = jest.fn();
     const ctx = EslintContextStub({ report: mockReport });
@@ -85,7 +85,7 @@ describe('checkPrimitiveViolationLayerBroker', () => {
     });
   });
 
-  it('VALID_CONFIG: {allowPrimitiveReturns: true} => configuration is respected', () => {
+  it('VALID: {allowPrimitiveReturns: true} => configuration is respected', () => {
     const proxy = checkPrimitiveViolationLayerBrokerProxy();
     const mockReport = jest.fn();
     const ctx = EslintContextStub({ report: mockReport });
@@ -116,7 +116,7 @@ describe('checkPrimitiveViolationLayerBroker', () => {
     });
   });
 
-  it('INVALID_PROPERTY: {allowPrimitiveInputs: true, node in type property} => reports error', () => {
+  it('INVALID: {allowPrimitiveInputs: true, node in type property} => reports error', () => {
     const proxy = checkPrimitiveViolationLayerBrokerProxy();
     const mockReport = jest.fn();
     const ctx = EslintContextStub({ report: mockReport });

@@ -40,7 +40,7 @@ describe('isExecutionPhaseGuard', () => {
   });
 
   describe('non-execution phase statuses', () => {
-    it('INVALID_STATUS: {status: created} => returns false', () => {
+    it('INVALID: {status: created} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'created' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -48,7 +48,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: pending} => returns false', () => {
+    it('INVALID: {status: pending} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'pending' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -56,7 +56,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: approved} => returns false', () => {
+    it('INVALID: {status: approved} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'approved' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -64,7 +64,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: explore_flows} => returns false', () => {
+    it('INVALID: {status: explore_flows} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'explore_flows' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -72,7 +72,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: review_flows} => returns false', () => {
+    it('INVALID: {status: review_flows} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'review_flows' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -80,7 +80,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: flows_approved} => returns false', () => {
+    it('INVALID: {status: flows_approved} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'flows_approved' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -88,7 +88,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: explore_observables} => returns false', () => {
+    it('INVALID: {status: explore_observables} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'explore_observables' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -96,7 +96,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: review_observables} => returns false', () => {
+    it('INVALID: {status: review_observables} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'review_observables' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -104,7 +104,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: explore_design} => returns false', () => {
+    it('INVALID: {status: explore_design} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'explore_design' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -112,7 +112,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: review_design} => returns false', () => {
+    it('INVALID: {status: review_design} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'review_design' });
 
       const result = isExecutionPhaseGuard({ status });
@@ -120,7 +120,7 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID_STATUS: {status: design_approved} => returns false', () => {
+    it('INVALID: {status: design_approved} => returns false', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'design_approved' });
 
       const result = isExecutionPhaseGuard({ status });

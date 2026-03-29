@@ -11,10 +11,12 @@ describe('installResultContract', () => {
         message: 'Package installed successfully',
       });
 
-      expect(result.packageName).toBe('@dungeonmaster/eslint');
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('created');
-      expect(result.message).toBe('Package installed successfully');
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint',
+        success: true,
+        action: 'created',
+        message: 'Package installed successfully',
+      });
     });
 
     it('VALID: {failed with error} => parses successfully', () => {
@@ -25,10 +27,12 @@ describe('installResultContract', () => {
         error: 'File not found',
       });
 
-      expect(result.packageName).toBe('@dungeonmaster/eslint');
-      expect(result.success).toBe(false);
-      expect(result.action).toBe('failed');
-      expect(result.error).toBe('File not found');
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint',
+        success: false,
+        action: 'failed',
+        error: 'File not found',
+      });
     });
 
     it('VALID: {skipped without message} => parses successfully', () => {
@@ -38,11 +42,11 @@ describe('installResultContract', () => {
         action: 'skipped',
       });
 
-      expect(result.packageName).toBe('@dungeonmaster/eslint');
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('skipped');
-      expect(result.message).toBeUndefined();
-      expect(result.error).toBeUndefined();
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/eslint',
+        success: true,
+        action: 'skipped',
+      });
     });
 
     it('VALID: {merged action} => parses successfully', () => {
@@ -53,10 +57,12 @@ describe('installResultContract', () => {
         message: 'Configuration merged with existing files',
       });
 
-      expect(result.packageName).toBe('@dungeonmaster/shared');
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('merged');
-      expect(result.message).toBe('Configuration merged with existing files');
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/shared',
+        success: true,
+        action: 'merged',
+        message: 'Configuration merged with existing files',
+      });
     });
   });
 

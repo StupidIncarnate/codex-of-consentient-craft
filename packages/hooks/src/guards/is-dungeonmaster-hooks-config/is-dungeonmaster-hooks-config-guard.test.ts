@@ -23,37 +23,37 @@ describe('isDungeonmasterHooksConfigGuard', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_VALUE: {null} => returns false', () => {
+    it('INVALID: {null} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard(null);
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {undefined} => returns false', () => {
+    it('INVALID: {undefined} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard(undefined);
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {string} => returns false', () => {
+    it('INVALID: {string} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard('not a config');
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {number} => returns false', () => {
+    it('INVALID: {number} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard(123);
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {object without preEditLint} => returns false', () => {
+    it('INVALID: {object without preEditLint} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard({ other: 'property' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {array} => returns false', () => {
+    it('INVALID: {array} => returns false', () => {
       const result = isDungeonmasterHooksConfigGuard([]);
 
       expect(result).toBe(false);

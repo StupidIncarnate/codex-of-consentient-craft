@@ -248,7 +248,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with empty content array} => returns null', () => {
@@ -263,7 +263,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -278,7 +278,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {result message type} => returns null', () => {
@@ -291,7 +291,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -301,7 +301,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing message property} => returns null', () => {
@@ -313,7 +313,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {missing content property} => returns null', () => {
@@ -326,7 +326,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {content is not array} => returns null', () => {
@@ -341,7 +341,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {tool_use without name property} => returns null', () => {
@@ -356,7 +356,7 @@ describe('streamJsonToToolUseTransformer', () => {
 
       const result = streamJsonToToolUseTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

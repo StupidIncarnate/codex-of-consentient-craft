@@ -24,7 +24,7 @@ describe('summaryStreamLineContract', () => {
   });
 
   describe('invalid stream lines', () => {
-    it('INVALID_TYPE: {type: "result"} => throws validation error', () => {
+    it('INVALID: {type: "result"} => throws validation error', () => {
       expect(() => {
         summaryStreamLineContract.parse({
           type: 'result',
@@ -33,7 +33,7 @@ describe('summaryStreamLineContract', () => {
       }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID_MISSING: {missing summary} => throws validation error', () => {
+    it('INVALID: {missing summary} => throws validation error', () => {
       expect(() => {
         summaryStreamLineContract.parse({
           type: 'summary',

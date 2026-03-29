@@ -68,16 +68,16 @@ Proxy Creation (when test creates top-level proxy):
 const widgetProxy = createWidgetProxy()
   → creates bindingProxy
     → creates brokerProxy
-      → jest.spyOn(Date, 'now').mockReturnValue(...)  ← Mock global
+      → registerSpyOn({object: Date, method: 'now'}).mockReturnValue(...)  ← Mock global
       → creates httpAdapterProxy
-        → jest.mocked(axios).mockImplementation(...)  ← Mock npm dependency
+        → registerMock({fn: axios}).mockImplementation(...)  ← Mock npm dependency
 
 Setup Chain (via proxies):
 widgetProxy.setupUser({userId, user})
   → bindingProxy.setupUser({userId, user})
     → brokerProxy.setupUser({userId, user})
       → httpAdapterProxy.returns({url, response: data})
-        → jest.mocked(axios).mockResolvedValue(data)
+        → handle.mockResolvedValue(data)  // registerMock handle for axios
 
 Execution Chain (real code):
 Widget renders
@@ -304,7 +304,7 @@ it('VALID: {different user, not admin} => no edit button', async () => {
 ```typescript
 // guards/has-edit-permission/has-edit-permission-guard.proxy.ts
 export const createHasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real!
+    // NO mocking of guard - guard runs real!
     // Proxy provides SEMANTIC HELPERS for setting up test data
 
     return {
@@ -524,17 +524,19 @@ export const userCreateBroker = async ({userData}: { userData: UserData }): Prom
 ```typescript
 // brokers/user/create/user-create-broker.proxy.ts
 import {createHttpAdapterProxy} from '../../../adapters/http/http-adapter.proxy';
+import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
 
 export const createUserCreateBrokerProxy = () => {
     // Create child proxy (sets up axios mock)
     const httpProxy = createHttpAdapterProxy();
 
     // Mock global Date.now for predictable timestamps (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+    const dateHandle = registerSpyOn({object: Date, method: 'now'});
+    dateHandle.mockReturnValue(1609459200000);
 
     // Mock global crypto.randomUUID for predictable IDs (runs when proxy is created)
-    jest.spyOn(crypto, 'randomUUID')
-        .mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    const uuidHandle = registerSpyOn({object: crypto, method: 'randomUUID'});
+    uuidHandle.mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
     // Note: @dungeonmaster/testing automatically resets all mocks globally
     // No manual cleanup needed!
@@ -549,10 +551,10 @@ export const createUserCreateBrokerProxy = () => {
         }) => {
             // Override global mocks for this specific scenario (optional)
             if (timestamp !== undefined) {
-                jest.spyOn(Date, 'now').mockReturnValue(timestamp);
+                dateHandle.mockReturnValue(timestamp);
             }
             if (id !== undefined) {
-                jest.spyOn(crypto, 'randomUUID').mockReturnValue(id);
+                uuidHandle.mockReturnValue(id);
             }
 
             // Mock the HTTP response
@@ -655,7 +657,7 @@ it('VALID: {specific ID} => creates user with that ID', async () => {
 
 ### When to Use Global Mocks
 
-**Use `jest.spyOn()` for:**
+**Use `registerSpyOn` for:**
 
 - `Date.now()`, `Date.UTC()`, `new Date()`
 - `crypto.randomUUID()`, `crypto.getRandomValues()`
@@ -666,7 +668,7 @@ it('VALID: {specific ID} => creates user with that ID', async () => {
 
 **Don't use for:**
 
-- npm package dependencies (use adapter proxies with `jest.mock()`)
+- npm package dependencies (use adapter proxies with `registerMock`)
 - Custom functions (use contracts/stubs)
 
 ### Higher-Layer Proxies Inherit Global Mocks
@@ -717,7 +719,7 @@ Test Lifecycle with Create-Per-Test:
 │      - Date.now()                      │
 │      - crypto.randomUUID()             │
 │   3. Setup adapter mocks               │
-│      - jest.mock('axios')              │
+│      - registerMock({fn: axios})       │
 │                                        │
 │   proxy.setupScenario()                │
 │     ↓                                  │
@@ -792,8 +794,8 @@ expect(Date.now).toHaveBeenCalledTimes(2);
 
 ```
 Mock globals in bootstrap:
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('abc-123')
-  jest.spyOn(Date, 'now').mockReturnValue(1234567890)
+  registerSpyOn({object: crypto, method: 'randomUUID'}).mockReturnValue('abc-123')
+  registerSpyOn({object: Date, method: 'now'}).mockReturnValue(1234567890)
 
 Function generates values:
   const id = crypto.randomUUID()        // Returns 'abc-123'
@@ -811,12 +813,12 @@ For simple cases where you want to share global mock setup:
 ```typescript
 // ❌ Don't repeat in every test
 it('test 1', () => {
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
+    registerSpyOn({object: Date, method: 'now'}).mockReturnValue(1609459200000);
     // ...
 });
 
 it('test 2', () => {
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);  // Duplicate!
+    registerSpyOn({object: Date, method: 'now'}).mockReturnValue(1609459200000);  // Duplicate!
     // ...
 });
 
@@ -859,8 +861,10 @@ export const createUserCreateBrokerProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
     // Default values used by all tests unless overridden (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000);
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('default-uuid');
+    const dateHandle = registerSpyOn({object: Date, method: 'now'});
+    dateHandle.mockReturnValue(1609459200000);
+    const uuidHandle = registerSpyOn({object: crypto, method: 'randomUUID'});
+    uuidHandle.mockReturnValue('default-uuid');
 
     return {
         // ... setup methods
@@ -878,10 +882,10 @@ setupUserCreate: ({userData, timestamp, id}: {
 }) => {
     // Override defaults for this specific scenario
     if (timestamp !== undefined) {
-        jest.spyOn(Date, 'now').mockReturnValue(timestamp);
+        dateHandle.mockReturnValue(timestamp);
     }
     if (id !== undefined) {
-        jest.spyOn(crypto, 'randomUUID').mockReturnValue(id);
+        uuidHandle.mockReturnValue(id);
     }
 
     // Setup HTTP mock
@@ -933,8 +937,8 @@ it('VALID: edge case with specific timestamp', async () => {
     // Setup with defaults
     brokerProxy.setupUserCreate({userData});
 
-    // Override just for this test (after setup)
-    jest.spyOn(Date, 'now').mockReturnValue(9999999999);
+    // Override just for this test (after setup) — use registerSpyOn
+    registerSpyOn({object: Date, method: 'now'}).mockReturnValue(9999999999);
 
     const result = await userCreateBroker({userData});
 
@@ -968,27 +972,29 @@ export const createUserCreateBrokerProxy = () => {
     const httpProxy = createHttpAdapterProxy();
 
     // Constructor sets defaults (runs when proxy is created)
-    jest.spyOn(Date, 'now').mockReturnValue(1609459200000); // 2021-01-01
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('default-uuid');
+    const dateHandle = registerSpyOn({object: Date, method: 'now'});
+    dateHandle.mockReturnValue(1609459200000); // 2021-01-01
+    const uuidHandle = registerSpyOn({object: crypto, method: 'randomUUID'});
+    uuidHandle.mockReturnValue('default-uuid');
 
     return {
         // Semantic helper: User from 2020
         setupUserFrom2020: ({userData}: { userData: UserData }) => {
             const timestamp2020 = 1577836800000; // 2020-01-01
-            jest.spyOn(Date, 'now').mockReturnValue(timestamp2020);
+            dateHandle.mockReturnValue(timestamp2020);
             httpProxy.returns({...});
         },
 
         // Semantic helper: User with specific ID pattern
         setupUserWithShortId: ({userData}: { userData: UserData }) => {
-            jest.spyOn(crypto, 'randomUUID').mockReturnValue('short-123');
+            uuidHandle.mockReturnValue('short-123');
             httpProxy.returns({...});
         },
 
         // Generic helper with options
         setupUserCreate: ({userData, timestamp, id}: { ... }) => {
-            if (timestamp) jest.spyOn(Date, 'now').mockReturnValue(timestamp);
-            if (id) jest.spyOn(crypto, 'randomUUID').mockReturnValue(id);
+            if (timestamp) dateHandle.mockReturnValue(timestamp);
+            if (id) uuidHandle.mockReturnValue(id);
             httpProxy.returns({...});
         }
     };

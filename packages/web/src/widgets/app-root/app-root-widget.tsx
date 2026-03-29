@@ -23,6 +23,7 @@ export const AppRootWidget = ({ children }: AppRootWidgetProps): React.JSX.Eleme
   <BrowserRouter>
     <MantineProvider theme={theme} forceColorScheme="dark">
       <div
+        data-testid="APP_ROOT_BG"
         style={{
           backgroundColor: emberDepthsThemeStatics.colors['bg-deep'],
           minHeight: '100vh',

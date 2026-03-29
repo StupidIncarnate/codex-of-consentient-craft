@@ -102,7 +102,7 @@ describe('mockProcessBehaviorContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_SHOULD_THROW: {shouldThrow: "true"} => throws validation error for string', () => {
+    it('INVALID: {shouldThrow: "true"} => throws validation error for string', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           shouldThrow: 'true' as never,
@@ -110,7 +110,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Expected boolean/u);
     });
 
-    it('INVALID_THROW_ERROR: {throwError: "error"} => throws validation error for non-Error', () => {
+    it('INVALID: {throwError: "error"} => throws validation error for non-Error', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           throwError: 'error' as never,
@@ -118,7 +118,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Input not instance of Error/u);
     });
 
-    it('INVALID_RESULT: {result: {code: "0"}} => throws validation error for invalid result', () => {
+    it('INVALID: {result: {code: "0"}} => throws validation error for invalid result', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           result: { code: '0', stdout: '', stderr: '' } as never,
@@ -126,7 +126,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Expected number/u);
     });
 
-    it('INVALID_DELAY: {delay: -1} => throws validation error for negative delay', () => {
+    it('INVALID: {delay: -1} => throws validation error for negative delay', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           delay: -1,
@@ -134,7 +134,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
-    it('INVALID_DELAY: {delay: 1.5} => throws validation error for non-integer delay', () => {
+    it('INVALID: {delay: 1.5} => throws validation error for non-integer delay', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           delay: 1.5,
@@ -142,7 +142,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_DELAY: {delay: "1000"} => throws validation error for string delay', () => {
+    it('INVALID: {delay: "1000"} => throws validation error for string delay', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           delay: '1000' as never,
@@ -150,7 +150,7 @@ describe('mockProcessBehaviorContract', () => {
       }).toThrow(/Expected number/u);
     });
 
-    it('INVALID_MULTIPLE: {shouldThrow: 1, delay: "fast"} => throws validation error for multiple invalid fields', () => {
+    it('INVALID: {shouldThrow: 1, delay: "fast"} => throws validation error for multiple invalid fields', () => {
       expect(() => {
         return mockProcessBehaviorContract.parse({
           shouldThrow: 1 as never,

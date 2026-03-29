@@ -1,13 +1,12 @@
-jest.mock('@dungeonmaster/orchestrator');
-
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { AddQuestResult } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorAddQuestAdapterProxy = (): {
   returns: (params: { result: AddQuestResult }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.addQuest);
+  const mock = registerMock({ fn: StartOrchestrator.addQuest });
 
   mock.mockResolvedValue({
     success: true,

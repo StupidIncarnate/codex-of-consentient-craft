@@ -32,11 +32,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Scanning for duplicate primitives\.\.\./u);
-      expect(result.stdout).toMatch(/Pattern: \*\*\/\*\.ts/u);
-      expect(result.stdout).toMatch(/Threshold: 3\+ occurrences/u);
-      expect(result.stdout).toMatch(/✅ No duplicate primitives found!/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(
+          /^.*Scanning for duplicate primitives\.\.\..*Pattern: \*\*\/\*\.ts.*Threshold: 3\+ occurrences.*No duplicate primitives found!.*$/su,
+        ),
+      });
     });
   });
 
@@ -70,11 +74,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
-      expect(result.stdout).toMatch(/STRING: "duplicate string"/u);
-      expect(result.stdout).toMatch(/Occurrences: 3/u);
-      expect(result.stdout).toMatch(/file3\.ts:[\s\S]*file2\.ts:[\s\S]*file1\.ts:/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(
+          /^.*Found 1 duplicate primitive\(s\):.*STRING: "duplicate string".*Occurrences: 3.*file3\.ts:[\s\S]*file2\.ts:[\s\S]*file1\.ts:.*$/su,
+        ),
+      });
     });
   });
 
@@ -100,11 +108,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`, `--threshold=2`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Threshold: 2\+ occurrences/u);
-      expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
-      expect(result.stdout).toMatch(/STRING: "twice only"/u);
-      expect(result.stdout).toMatch(/Occurrences: 2/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(
+          /^.*Threshold: 2\+ occurrences.*Found 1 duplicate primitive\(s\):.*STRING: "twice only".*Occurrences: 2.*$/su,
+        ),
+      });
     });
   });
 
@@ -121,8 +133,13 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/✅ No duplicate primitives found!/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(/^.*No duplicate primitives found!.*$/su),
+      });
     });
 
     it('EDGE: {files: very long string duplicated} => reports duplicate with full value', () => {
@@ -151,12 +168,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
-      expect(result.stdout).toMatch(
-        /STRING: "This is a very long string that appears multiple times in the codebase"/u,
-      );
-      expect(result.stdout).toMatch(/Occurrences: 3/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(
+          /^.*Found 1 duplicate primitive\(s\):.*STRING: "This is a very long string that appears multiple times in the codebase".*Occurrences: 3.*$/su,
+        ),
+      });
     });
   });
 
@@ -186,10 +206,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
         args: [`--pattern=**/*.ts`, `--cwd=${env.guildPath}`],
       });
 
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/Found 1 duplicate primitive\(s\):/u);
-      expect(result.stdout).toMatch(/REGEX: "\/\^\[a-z\]\+\$\/"/u);
-      expect(result.stdout).toMatch(/Occurrences: 3/u);
+      expect({
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+      }).toStrictEqual({
+        exitCode: 0,
+        stdout: expect.stringMatching(
+          /^.*Found 1 duplicate primitive\(s\):.*REGEX: "\/\^\[a-z\]\+\$\/".*Occurrences: 3.*$/su,
+        ),
+      });
     });
   });
 });

@@ -9,7 +9,7 @@ const allowedFolders = Object.keys(folderConfigStatics);
 
 describe('validateFolderLocationLayerBroker', () => {
   describe('valid known folder types', () => {
-    it('returns true for brokers folder', () => {
+    it('VALID: brokers folder => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -28,7 +28,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for contracts folder', () => {
+    it('VALID: contracts folder => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -47,7 +47,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for transformers folder', () => {
+    it('VALID: transformers folder => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -68,7 +68,7 @@ describe('validateFolderLocationLayerBroker', () => {
   });
 
   describe('layer files in allowed folder types', () => {
-    it('returns true for layer file in brokers', () => {
+    it('VALID: layer file in brokers => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -87,7 +87,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for layer file in widgets', () => {
+    it('VALID: layer file in widgets => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -106,7 +106,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).not.toHaveBeenCalled();
     });
 
-    it('returns true for layer file in responders', () => {
+    it('VALID: layer file in responders => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -127,7 +127,7 @@ describe('validateFolderLocationLayerBroker', () => {
   });
 
   describe('forbidden folders', () => {
-    it('reports forbiddenFolder for utils/ and returns false', () => {
+    it('INVALID: utils/ folder => reports forbiddenFolder and returns false', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -151,7 +151,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports forbiddenFolder for lib/', () => {
+    it('INVALID: lib/ folder => reports forbiddenFolder', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -175,7 +175,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports forbiddenFolder for helpers/', () => {
+    it('INVALID: helpers/ folder => reports forbiddenFolder', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -199,7 +199,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports forbiddenFolder for services/', () => {
+    it('INVALID: services/ folder => reports forbiddenFolder', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -223,7 +223,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports forbiddenFolder for types/', () => {
+    it('INVALID: types/ folder => reports forbiddenFolder', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -249,7 +249,7 @@ describe('validateFolderLocationLayerBroker', () => {
   });
 
   describe('unknown folder', () => {
-    it('reports unknownFolder and returns false', () => {
+    it('INVALID: unknown-folder => reports unknownFolder and returns false', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -275,7 +275,7 @@ describe('validateFolderLocationLayerBroker', () => {
   });
 
   describe('layer files in disallowed folder types', () => {
-    it('reports layerFilesNotAllowed for guards/', () => {
+    it('INVALID: layer file in guards/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -299,7 +299,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for transformers/', () => {
+    it('INVALID: layer file in transformers/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -323,7 +323,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for adapters/', () => {
+    it('INVALID: layer file in adapters/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -347,7 +347,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for contracts/', () => {
+    it('INVALID: layer file in contracts/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -371,7 +371,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for statics/', () => {
+    it('INVALID: layer file in statics/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -395,7 +395,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for state/', () => {
+    it('INVALID: layer file in state/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -419,7 +419,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for bindings/', () => {
+    it('INVALID: layer file in bindings/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -443,7 +443,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
     });
 
-    it('reports layerFilesNotAllowed for middleware/', () => {
+    it('INVALID: layer file in middleware/ => reports layerFilesNotAllowed', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });

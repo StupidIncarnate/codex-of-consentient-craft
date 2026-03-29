@@ -87,7 +87,7 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
-      expect(typeof Reflect.get(harness.toPlain(body) as object, 'error')).toBe('string');
+      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
     });
   });
 });

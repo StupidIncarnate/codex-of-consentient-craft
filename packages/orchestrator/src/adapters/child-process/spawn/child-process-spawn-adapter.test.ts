@@ -14,7 +14,7 @@ describe('childProcessSpawnAdapter', () => {
         options: { stdio: 'inherit' },
       });
 
-      expect(typeof result.on).toBe('function');
+      expect(result.on).toStrictEqual(expect.any(Function));
     });
 
     it('VALID: {command: "node", args: ["-v"]} => spawns child process without options', () => {
@@ -26,7 +26,7 @@ describe('childProcessSpawnAdapter', () => {
         args: ['-v'],
       });
 
-      expect(typeof result.on).toBe('function');
+      expect(result.on).toStrictEqual(expect.any(Function));
     });
 
     it('VALID: {command: "npm", args: ["test", "--", "path/to/test.ts"], options: {cwd: "/project"}} => spawns with cwd', () => {
@@ -39,7 +39,7 @@ describe('childProcessSpawnAdapter', () => {
         options: { cwd: '/project' },
       });
 
-      expect(typeof result.on).toBe('function');
+      expect(result.on).toStrictEqual(expect.any(Function));
     });
   });
 

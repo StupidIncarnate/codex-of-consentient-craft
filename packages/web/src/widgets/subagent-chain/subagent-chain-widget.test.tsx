@@ -29,8 +29,10 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/Run tests/u);
-      expect(header.textContent).toMatch(/2 entries/u);
+      const headerText = header.textContent;
+
+      expect(headerText).toContain('Run tests');
+      expect(headerText).toContain('2 entries');
     });
 
     it('VALID: {collapsed} => shows SUB-AGENT badge in header', () => {
@@ -58,7 +60,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/7 entries, 1\.9k/u);
+      expect(header.textContent).toContain('7 entries, 1.9k');
     });
 
     it('VALID: {collapsed without contextTokens} => shows only entry count', () => {
@@ -75,8 +77,10 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/3 entries/u);
-      expect(header.textContent).not.toMatch(/,/u);
+      const headerText = header.textContent;
+
+      expect(headerText).toContain('3 entries');
+      expect(headerText).not.toContain(',');
     });
 
     it('VALID: {collapsed} => shows right-pointing chevron', () => {
@@ -89,7 +93,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/\u25B8/u);
+      expect(header.textContent).toContain('▸');
     });
   });
 
@@ -133,7 +137,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toMatch(/\u25BE/u);
+      expect(header.textContent).toContain('▾');
     });
   });
 
@@ -208,7 +212,7 @@ describe('SubagentChainWidget', () => {
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
       expect(messages.length).toBeGreaterThan(0);
-      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toMatch(/SUB-AGENT/u);
+      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toContain('SUB-AGENT');
     });
 
     it('VALID: {expanded without task notification} => does not render extra message at bottom', async () => {

@@ -43,7 +43,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toMatch(/01/u);
+      expect(row.textContent).toContain('01');
     });
   });
 
@@ -88,7 +88,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toMatch(/Build auth flow/u);
+      expect(row.textContent).toContain('Build auth flow');
     });
   });
 
@@ -177,7 +177,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
-      expect(screen.queryByTestId('execution-row-adhoc-tag')).toBeNull();
+      expect(screen.queryByTestId('execution-row-adhoc-tag')).toBe(null);
     });
 
     it('VALID: {isAdhoc: true} => renders dashed border', () => {
@@ -189,7 +189,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toMatch(/dashed/u);
+      expect(row.style.borderLeft).toContain('dashed');
     });
   });
 
@@ -208,7 +208,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toMatch(/depends on: step-1/u);
+      expect(subtitle.textContent).toContain('depends on: step-1');
     });
 
     it('VALID: {status: "queued", dependsOn: ["step-1"]} => renders waiting for slot subtitle', () => {
@@ -226,7 +226,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toMatch(/waiting for slot/u);
+      expect(subtitle.textContent).toContain('waiting for slot');
     });
 
     it('EMPTY: {no deps, no files} => does not render subtitle', () => {
@@ -236,7 +236,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
-      expect(screen.queryByTestId('execution-row-subtitle')).toBeNull();
+      expect(screen.queryByTestId('execution-row-subtitle')).toBe(null);
     });
   });
 
@@ -254,12 +254,12 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('execution-row-expanded')).toBeNull();
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
 
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
+      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
     });
 
     it('VALID: {status: "pending"} => clicking header does not expand', async () => {
@@ -272,7 +272,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-expanded')).toBeNull();
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
     });
   });
 
@@ -382,7 +382,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-summary')).toBeNull();
+      expect(screen.queryByTestId('execution-row-summary')).toBe(null);
     });
   });
 
@@ -400,7 +400,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
+      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
       expect(
         screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
@@ -420,7 +420,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('streaming-bar-layer-widget')).not.toBeNull();
+      expect(screen.getByTestId('streaming-bar-layer-widget')).not.toBe(null);
     });
 
     it('VALID: {ad-hoc with spiritmender entries} => renders with dashed border, AD-HOC tag, and messages', () => {
@@ -442,9 +442,9 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toMatch(/dashed/u);
+      expect(row.style.borderLeft).toContain('dashed');
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
-      expect(screen.getByTestId('execution-row-expanded')).not.toBeNull();
+      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
       expect(
         screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
@@ -530,7 +530,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-ward-result')).toBeNull();
+      expect(screen.queryByTestId('execution-row-ward-result')).toBe(null);
     });
   });
 
@@ -550,7 +550,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-description')).toBeNull();
+      expect(screen.queryByTestId('execution-row-description')).toBe(null);
     });
   });
 
@@ -595,7 +595,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-observables')).toBeNull();
+      expect(screen.queryByTestId('execution-row-observables')).toBe(null);
     });
   });
 
@@ -680,7 +680,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('execution-row-retry-badge')).toBeNull();
+      expect(screen.queryByTestId('execution-row-retry-badge')).toBe(null);
     });
   });
 
@@ -716,7 +716,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('execution-row-duration')).toBeNull();
+      expect(screen.queryByTestId('execution-row-duration')).toBe(null);
     });
   });
 });

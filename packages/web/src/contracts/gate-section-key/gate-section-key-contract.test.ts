@@ -29,15 +29,15 @@ describe('gateSectionKeyContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "unknown"} => throws for invalid key', () => {
+    it('INVALID: {value: "unknown"} => throws for invalid key', () => {
       expect(() => gateSectionKeyContract.parse('unknown')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: "requirements"} => throws for removed key', () => {
+    it('INVALID: {value: "requirements"} => throws for removed key', () => {
       expect(() => gateSectionKeyContract.parse('requirements')).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_VALUE: {value: "observables"} => throws for removed key', () => {
+    it('INVALID: {value: "observables"} => throws for removed key', () => {
       expect(() => gateSectionKeyContract.parse('observables')).toThrow(/Invalid enum value/u);
     });
 

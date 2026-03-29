@@ -1,11 +1,13 @@
-jest.mock('@hono/node-server');
-
 import { serve } from '@hono/node-server';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+
+// Module-level mock prevents @hono/node-server from loading and registering SIGTERM listeners
+registerModuleMock({ module: '@hono/node-server' });
 
 export const honoServeAdapterProxy = (): {
   getCapturedFetch: () => (request: Request) => Response | Promise<Response>;
 } => {
-  const mock = jest.mocked(serve);
+  const mock = registerMock({ fn: serve });
   const captured: { fetch?: (request: Request) => Response | Promise<Response> } = {};
 
   mock.mockImplementation(((options: {

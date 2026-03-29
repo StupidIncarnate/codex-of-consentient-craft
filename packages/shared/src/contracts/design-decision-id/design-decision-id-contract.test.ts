@@ -20,13 +20,13 @@ describe('designDecisionIdContract', () => {
     expect(id).toBe('caching');
   });
 
-  it('INVALID_ID: {value: "Not-Kebab"} => throws validation error', () => {
+  it('INVALID: {value: "Not-Kebab"} => throws validation error', () => {
     expect(() => {
       return designDecisionIdContract.parse('Not-Kebab');
     }).toThrow(/invalid_string/u);
   });
 
-  it('INVALID_ID: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return designDecisionIdContract.parse('');
     }).toThrow(/too_small/u);

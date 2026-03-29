@@ -20,30 +20,29 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => applies dark background color from theme statics', () => {
       AppRootWidgetProxy();
 
-      const { container } = render(
+      render(
         <AppRootWidget>
           <span>Content</span>
         </AppRootWidget>,
       );
 
-      const bgDiv = container.querySelector<HTMLDivElement>('div[style]');
+      const bgDiv = screen.getByTestId('APP_ROOT_BG');
 
-      expect(bgDiv).not.toBeNull();
-      expect(bgDiv?.style.backgroundColor).toBe('rgb(13, 9, 7)');
+      expect(bgDiv.style.backgroundColor).toBe('rgb(13, 9, 7)');
     });
 
     it('VALID: {children} => applies min-height of 100vh', () => {
       AppRootWidgetProxy();
 
-      const { container } = render(
+      render(
         <AppRootWidget>
           <span>Content</span>
         </AppRootWidget>,
       );
 
-      const bgDiv = container.querySelector<HTMLDivElement>('div[style]');
+      const bgDiv = screen.getByTestId('APP_ROOT_BG');
 
-      expect(bgDiv?.style.minHeight).toBe('100vh');
+      expect(bgDiv.style.minHeight).toBe('100vh');
     });
   });
 });

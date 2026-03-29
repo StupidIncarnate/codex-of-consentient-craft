@@ -22,25 +22,25 @@ describe('isValidArchitectureFolderGuard', () => {
   });
 
   describe('invalid architecture folders', () => {
-    it('INVALID_VALUE: {folder: "invalid"} => returns false', () => {
+    it('INVALID: {folder: "invalid"} => returns false', () => {
       const result = isValidArchitectureFolderGuard({ folder: 'invalid' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_TYPE: {folder: 123} => returns false', () => {
+    it('INVALID: {folder: 123} => returns false', () => {
       const result = isValidArchitectureFolderGuard({ folder: 123 });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_UNDEFINED: {folder: undefined} => returns false', () => {
+    it('INVALID: {folder: undefined} => returns false', () => {
       const result = isValidArchitectureFolderGuard({});
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_NULL: {folder: null} => returns false', () => {
+    it('INVALID: {folder: null} => returns false', () => {
       const result = isValidArchitectureFolderGuard({ folder: null });
 
       expect(result).toBe(false);

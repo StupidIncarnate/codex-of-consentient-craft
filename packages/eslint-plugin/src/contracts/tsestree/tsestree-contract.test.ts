@@ -5,11 +5,15 @@ describe('TsestreeStub', () => {
   it('VALID: {} => returns default Tsestree', () => {
     const result = TsestreeStub();
 
-    expect(result.type).toBe(TsestreeNodeType.Identifier);
-    expect(result.parent).toBeNull();
+    expect(result).toStrictEqual({
+      type: TsestreeNodeType.Identifier,
+      parent: null,
+    });
 
     // Validate contract parsing
-    expect(() => tsestreeContract.parse(result)).not.toThrow();
+    const parsed = tsestreeContract.parse(result);
+
+    expect(parsed.type).toBe(TsestreeNodeType.Identifier);
   });
 
   it('VALID: {type: TsestreeNodeType.CallExpression} => returns Tsestree with custom type', () => {
@@ -31,7 +35,7 @@ describe('TsestreeStub', () => {
     expect(result.parent?.type).toBe(TsestreeNodeType.Program);
   });
 
-  it('INVALID_TYPE: {type: ""} => throws ZodError for invalid enum value', () => {
+  it('INVALID: {type: ""} => throws ZodError for invalid enum value', () => {
     expect(() => {
       TsestreeStub({
         type: '' as unknown as typeof TsestreeNodeType.Identifier,
@@ -39,11 +43,29 @@ describe('TsestreeStub', () => {
     }).toThrow(/Invalid enum value/u);
   });
 
-  it('INVALID_TYPE: {type: "InvalidNodeType"} => throws ZodError for invalid enum value', () => {
+  it('INVALID: {type: "InvalidNodeType"} => throws ZodError for invalid enum value', () => {
     expect(() => {
       TsestreeStub({
         type: 'InvalidNodeType' as unknown as typeof TsestreeNodeType.Identifier,
       });
     }).toThrow(/Invalid enum value/u);
+  });
+
+  it('VALID: {type: UnaryExpression, operator: "typeof"} => returns Tsestree with operator', () => {
+    const result = TsestreeStub({
+      type: TsestreeNodeType.UnaryExpression,
+      operator: 'typeof',
+    });
+
+    expect(result).toStrictEqual({
+      type: TsestreeNodeType.UnaryExpression,
+      operator: 'typeof',
+      parent: null,
+    });
+
+    // Validate contract parsing
+    const parsed = tsestreeContract.parse(result);
+
+    expect(parsed.type).toBe(TsestreeNodeType.UnaryExpression);
   });
 });

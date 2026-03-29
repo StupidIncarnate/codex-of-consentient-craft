@@ -11,6 +11,7 @@
 
 import { typescriptSourceFileGetterAdapter } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter';
 import { typescriptAstToMockCallsAdapter } from '../../adapters/typescript/ast-to-mock-calls/typescript-ast-to-mock-calls-adapter';
+import { typescriptAstToModuleMockCallsAdapter } from '../../adapters/typescript/ast-to-module-mock-calls/typescript-ast-to-module-mock-calls-adapter';
 import { typescriptAstToProxyImportsAdapter } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
@@ -43,7 +44,10 @@ export const proxyMockCollectorMiddleware = ({
       continue;
     }
 
-    const mocks = typescriptAstToMockCallsAdapter({ sourceFile });
+    const mocks = [
+      ...typescriptAstToMockCallsAdapter({ sourceFile }),
+      ...typescriptAstToModuleMockCallsAdapter({ sourceFile }),
+    ];
 
     // Resolve relative module names to absolute paths so they work when hoisted
     // to test files in different directories

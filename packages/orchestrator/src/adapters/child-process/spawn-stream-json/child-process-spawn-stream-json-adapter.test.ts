@@ -13,8 +13,10 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         prompt: PromptTextStub({ value: 'Hello' }),
       });
 
-      expect(result.process).toBe(mockChildProcess);
-      expect(result.stdout).toBe(mockChildProcess.stdout);
+      expect(result).toStrictEqual({
+        process: mockChildProcess,
+        stdout: mockChildProcess.stdout,
+      });
       expect(proxy.getSpawnedCommand()).toBe('claude');
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
@@ -36,8 +38,10 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
       });
 
-      expect(result.process).toBe(mockChildProcess);
-      expect(result.stdout).toBe(mockChildProcess.stdout);
+      expect(result).toStrictEqual({
+        process: mockChildProcess,
+        stdout: mockChildProcess.stdout,
+      });
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
         'Hello',

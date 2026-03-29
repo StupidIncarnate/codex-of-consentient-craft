@@ -101,7 +101,7 @@ describe('testGuildContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_PROJECT_PATH: {guildPath: 123} => throws validation error for non-string', () => {
+    it('INVALID: {guildPath: 123} => throws validation error for non-string', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: 123 as never,
@@ -111,7 +111,7 @@ describe('testGuildContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_PROJECT_PATH: {guildPath: null} => throws validation error for null', () => {
+    it('INVALID: {guildPath: null} => throws validation error for null', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: null as never,
@@ -121,7 +121,7 @@ describe('testGuildContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_PROJECT_NAME: {guildName: 123} => throws validation error for non-string', () => {
+    it('INVALID: {guildName: 123} => throws validation error for non-string', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',
@@ -131,7 +131,7 @@ describe('testGuildContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_ROOT_DIR: {rootDir: []} => throws validation error for array', () => {
+    it('INVALID: {rootDir: []} => throws validation error for array', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',
@@ -141,7 +141,7 @@ describe('testGuildContract', () => {
       }).toThrow(/Expected string/u);
     });
 
-    it('INVALID_MULTIPLE: {missing guildPath and guildName} => throws validation error', () => {
+    it('INVALID: {missing guildPath and guildName} => throws validation error', () => {
       expect(() => {
         return testGuildContract.parse({
           rootDir: '/tmp',
@@ -149,13 +149,13 @@ describe('testGuildContract', () => {
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error for empty object', () => {
+    it('INVALID: {missing all fields} => throws validation error for empty object', () => {
       expect(() => {
         return testGuildContract.parse({});
       }).toThrow(/Required/u);
     });
 
-    it('INVALID_MULTIPLE: {only guildPath} => throws validation error for missing fields', () => {
+    it('INVALID: {only guildPath} => throws validation error for missing fields', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',

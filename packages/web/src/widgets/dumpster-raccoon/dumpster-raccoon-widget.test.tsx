@@ -38,7 +38,7 @@ describe('DumpsterRaccoonWidget', () => {
         ui: <DumpsterRaccoonWidget />,
       });
 
-      expect(screen.getByText('Loading dumpster dungeon visuals...')).toBeInTheDocument();
+      expect(screen.getByTestId('DUMPSTER_RACCOON_LOADING')).toBeInTheDocument();
     });
   });
 });

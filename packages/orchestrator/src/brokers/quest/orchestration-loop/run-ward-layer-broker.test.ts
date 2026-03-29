@@ -33,7 +33,7 @@ const WARD_RETRY_UUID = '33333333-3333-3333-3333-333333333333';
 describe('runWardLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
-      expect(typeof runWardLayerBroker).toBe('function');
+      expect(runWardLayerBroker).toStrictEqual(expect.any(Function));
     });
   });
 

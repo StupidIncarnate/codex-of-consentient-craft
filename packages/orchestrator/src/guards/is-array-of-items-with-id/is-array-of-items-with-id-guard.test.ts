@@ -16,25 +16,25 @@ describe('isArrayOfItemsWithIdGuard', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_VALUE: {value: "string"} => returns false', () => {
+    it('INVALID: {value: "string"} => returns false', () => {
       const result = isArrayOfItemsWithIdGuard({ value: 'string' });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: [{name: "no-id"}]} => returns false', () => {
+    it('INVALID: {value: [{name: "no-id"}]} => returns false', () => {
       const result = isArrayOfItemsWithIdGuard({ value: [{ name: 'no-id' }] });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: [1, 2, 3]} => returns false', () => {
+    it('INVALID: {value: [1, 2, 3]} => returns false', () => {
       const result = isArrayOfItemsWithIdGuard({ value: [1, 2, 3] });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID_VALUE: {value: [{id: "a"}, "not-object"]} => returns false', () => {
+    it('INVALID: {value: [{id: "a"}, "not-object"]} => returns false', () => {
       const result = isArrayOfItemsWithIdGuard({ value: [{ id: 'a' }, 'not-object'] });
 
       expect(result).toBe(false);

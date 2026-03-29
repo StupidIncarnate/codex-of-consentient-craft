@@ -40,19 +40,19 @@ describe('hasFolderTypeSuffixGuard', () => {
   });
 
   describe('invalid folder type suffixes', () => {
-    it('VALID: {name: "user-fetch"} => returns false', () => {
+    it('INVALID: {name: "user-fetch"} => returns false', () => {
       const result = hasFolderTypeSuffixGuard({ name: 'user-fetch' });
 
       expect(result).toBe(false);
     });
 
-    it('VALID: {name: "broker"} => returns false', () => {
+    it('INVALID: {name: "broker"} => returns false', () => {
       const result = hasFolderTypeSuffixGuard({ name: 'broker' });
 
       expect(result).toBe(false);
     });
 
-    it('VALID: {name: "user"} => returns false', () => {
+    it('INVALID: {name: "user"} => returns false', () => {
       const result = hasFolderTypeSuffixGuard({ name: 'user' });
 
       expect(result).toBe(false);

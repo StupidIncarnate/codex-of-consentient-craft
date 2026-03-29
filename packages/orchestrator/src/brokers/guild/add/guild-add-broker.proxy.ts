@@ -4,6 +4,7 @@ import {
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
 import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
@@ -25,8 +26,12 @@ export const guildAddBrokerProxy = (): {
   const mkdirProxy = fsMkdirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
 
-  jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  );
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
 
   return {
     setupAddGuild: ({

@@ -11,6 +11,7 @@ import type { playwrightPageEventsAdapter } from '../../../adapters/playwright/p
 
 import { playwrightPageEventsAdapterProxy } from '../../../adapters/playwright/page-events/playwright-page-events-adapter.proxy';
 import { playwrightTestInfoAttachAdapterProxy } from '../../../adapters/playwright/test-info-attach/playwright-test-info-attach-adapter.proxy';
+import { registerSpyOn } from '../../../register-mock';
 
 type AdapterParams = Parameters<typeof playwrightPageEventsAdapter>[0];
 type OnResponseArgs = Parameters<AdapterParams['onResponse']>[0];
@@ -27,7 +28,7 @@ export const networkRecordPlaywrightBrokerProxy = (): {
   playwrightPageEventsAdapterProxy();
   playwrightTestInfoAttachAdapterProxy();
 
-  const stderrSpy: { current: jest.SpyInstance | null } = { current: null };
+  const stderrSpy: { current: ReturnType<typeof registerSpyOn> | null } = { current: null };
   const capturedResponseHandler: { current: PageHandler | null } = { current: null };
   const capturedRequestHandler: { current: PageHandler | null } = { current: null };
   const mockPage = {
@@ -66,7 +67,9 @@ export const networkRecordPlaywrightBrokerProxy = (): {
     },
 
     setupStderrCapture: (): void => {
-      stderrSpy.current = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      handle.mockImplementation(() => true);
+      stderrSpy.current = handle;
     },
 
     getStderrWrites: (): readonly unknown[] =>

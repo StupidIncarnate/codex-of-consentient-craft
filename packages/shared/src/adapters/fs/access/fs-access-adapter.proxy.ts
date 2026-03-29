@@ -1,22 +1,21 @@
 import { access } from 'fs/promises';
-
-jest.mock('fs/promises');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsAccessAdapterProxy = (): {
   resolves: () => void;
   rejects: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(access);
+  const handle = registerMock({ fn: access });
 
-  mock.mockResolvedValue(undefined);
+  handle.mockResolvedValue(undefined);
 
   return {
     resolves: () => {
-      mock.mockResolvedValueOnce(undefined);
+      handle.mockResolvedValueOnce(undefined);
     },
 
     rejects: ({ error }: { error: Error }) => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

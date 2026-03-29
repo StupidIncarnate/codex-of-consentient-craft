@@ -1,5 +1,6 @@
 import type { InstallResultStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installRunBrokerProxy } from '../../../brokers/install/run/install-run-broker.proxy';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { CliInitResponder } from './cli-init-responder';
@@ -9,13 +10,16 @@ type InstallResult = ReturnType<typeof InstallResultStub>;
 export const CliInitResponderProxy = (): {
   callResponder: typeof CliInitResponder;
   setupInstallResults: (params: { results: InstallResult[] }) => void;
-  getStdoutOutput: () => jest.SpyInstance;
+  getStdoutOutput: () => readonly unknown[];
 } => {
   const brokerProxy = installRunBrokerProxy();
 
-  const stdoutWriteSpy = jest
-    .spyOn(process.stdout, 'write')
-    .mockImplementation((): boolean => true);
+  const stdoutWriteSpy = registerSpyOn({
+    object: process.stdout,
+    method: 'write',
+    passthrough: true,
+  });
+  stdoutWriteSpy.mockImplementation((): boolean => true);
 
   return {
     callResponder: CliInitResponder,
@@ -43,6 +47,6 @@ export const CliInitResponderProxy = (): {
       brokerProxy.setupImport({ module });
     },
 
-    getStdoutOutput: (): jest.SpyInstance => stdoutWriteSpy,
+    getStdoutOutput: (): readonly unknown[] => stdoutWriteSpy.mock.calls.map((call) => call[0]),
   };
 };

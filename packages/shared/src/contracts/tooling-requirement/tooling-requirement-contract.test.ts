@@ -51,7 +51,7 @@ describe('toolingRequirementContract', () => {
     });
   });
 
-  it('INVALID_ID: {id: "Bad"} => throws validation error', () => {
+  it('INVALID: {id: "Bad"} => throws validation error', () => {
     const parseInvalidId = (): unknown =>
       toolingRequirementContract.parse({
         id: 'Bad',
@@ -64,7 +64,7 @@ describe('toolingRequirementContract', () => {
     expect(parseInvalidId).toThrow(/invalid_string/u);
   });
 
-  it('INVALID_NAME: {name: ""} => throws validation error', () => {
+  it('INVALID: {name: ""} => throws validation error', () => {
     const parseEmptyName = (): unknown =>
       toolingRequirementContract.parse({
         id: 'valid-id',
@@ -77,7 +77,7 @@ describe('toolingRequirementContract', () => {
     expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
   });
 
-  it('INVALID_PACKAGE_NAME: {packageName: ""} => throws validation error', () => {
+  it('INVALID: {packageName: ""} => throws validation error', () => {
     const parseEmptyPackageName = (): unknown =>
       toolingRequirementContract.parse({
         id: 'valid-id',
@@ -90,7 +90,7 @@ describe('toolingRequirementContract', () => {
     expect(parseEmptyPackageName).toThrow(/String must contain at least 1 character/u);
   });
 
-  it('INVALID_REQUIRED_BY: {requiredByObservables: ["Bad"]} => throws validation error', () => {
+  it('INVALID: {requiredByObservables: ["Bad"]} => throws validation error', () => {
     const parseInvalidRequiredBy = (): unknown =>
       toolingRequirementContract.parse({
         id: 'valid-id',

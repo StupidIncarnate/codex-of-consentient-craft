@@ -33,7 +33,7 @@ describe('activeAgentContract', () => {
         promise: Promise.resolve(AgentSpawnStreamingResultStub()),
       });
 
-      expect(result.sessionId).toBeNull();
+      expect(result.sessionId).toBe(null);
     });
 
     it('VALID: {followupDepth omitted} => defaults to 0', () => {

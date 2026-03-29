@@ -29,13 +29,13 @@ describe('contractNameContract', () => {
   });
 
   describe('invalid names', () => {
-    it('INVALID_NAME: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return contractNameContract.parse('');
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_NAME: {value: number} => throws validation error', () => {
+    it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return contractNameContract.parse(123 as never);
       }).toThrow(/Expected string/u);

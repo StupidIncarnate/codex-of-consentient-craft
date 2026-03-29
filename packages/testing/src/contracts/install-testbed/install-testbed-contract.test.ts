@@ -20,11 +20,18 @@ describe('installTestbedContract', () => {
     it('VALID: creates InstallTestbed with default values', () => {
       const result = InstallTestbedStub();
 
-      expect(typeof result.guildPath).toBe('string');
-      expect(typeof result.dungeonmasterPath).toBe('string');
-      expect(typeof result.cleanup).toBe('function');
-      expect(typeof result.writeFile).toBe('function');
-      expect(typeof result.readFile).toBe('function');
+      expect(result).toStrictEqual({
+        guildPath: expect.any(String),
+        dungeonmasterPath: expect.any(String),
+        cleanup: expect.any(Function),
+        writeFile: expect.any(Function),
+        readFile: expect.any(Function),
+        getClaudeSettings: expect.any(Function),
+        getMcpConfig: expect.any(Function),
+        getDungeonmasterConfig: expect.any(Function),
+        getEslintConfig: expect.any(Function),
+        runInitCommand: expect.any(Function),
+      });
     });
 
     it('VALID: creates InstallTestbed with custom guildPath', () => {

@@ -17,11 +17,11 @@ describe('workItemIdContract', () => {
   });
 
   describe('invalid work item ids', () => {
-    it('INVALID_VALUE: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => workItemIdContract.parse('')).toThrow(/too_small/u);
     });
 
-    it('INVALID_VALUE: {value: 123} => throws validation error', () => {
+    it('INVALID: {value: 123} => throws validation error', () => {
       expect(() => workItemIdContract.parse(123 as never)).toThrow(/Expected string/u);
     });
   });

@@ -6,10 +6,18 @@ describe('TsconfigOptionsStub', () => {
     const result = TsconfigOptionsStub();
     tsconfigOptionsContract.safeParse({});
 
-    expect(result.target).toBe('ES2020');
-    expect(result.module).toBe('commonjs');
-    expect(result.lib).toStrictEqual(['ES2020']);
-    expect(result.strict).toBe(true);
+    expect(result).toStrictEqual({
+      target: 'ES2020',
+      module: 'commonjs',
+      lib: ['ES2020'],
+      strict: true,
+      noEmit: false,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      forceConsistentCasingInFileNames: true,
+      resolveJsonModule: true,
+      moduleResolution: 'node',
+    });
   });
 
   it('VALID: {target: "ES2021"} => returns TsconfigOptions with custom target', () => {

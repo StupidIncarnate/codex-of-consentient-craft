@@ -3,13 +3,18 @@
  * Mocks process.exit and process.stderr to test error handling
  *
  * NOTE: Nested functions allowed in proxies per testing standards
- * Uses jest.spyOn for global objects (process) per standards
+ * Uses registerSpyOn for global objects (process) per standards
  */
+
+import { resolve } from 'path';
+import { registerSpyOn, isolateModules } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { FilePathStub } from './contracts/file-path/file-path.stub';
 
 export const indexProxy = (): {
   captureProcessInteractions: () => {
-    exitSpy: jest.SpyInstance;
-    stderrSpy: jest.SpyInstance;
+    exitSpy: SpyOnHandle;
+    stderrSpy: SpyOnHandle;
   };
   loadIndexWithStartupBehavior: (startMcpServerBehavior: () => Promise<void>) => void;
 } => {
@@ -18,28 +23,36 @@ export const indexProxy = (): {
    * Returns spies that are automatically restored by @dungeonmaster/testing
    */
   const captureProcessInteractions = (): {
-    exitSpy: jest.SpyInstance;
-    stderrSpy: jest.SpyInstance;
+    exitSpy: SpyOnHandle;
+    stderrSpy: SpyOnHandle;
   } => {
-    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(((_code?: number) => {
+    const exitSpy = registerSpyOn({ object: process, method: 'exit', passthrough: true });
+
+    exitSpy.mockImplementation((() => {
       // Prevent actual process exit in tests
     }) as never);
-    const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write', passthrough: true });
+
+    stderrSpy.mockImplementation((() => true) as never);
 
     return { exitSpy, stderrSpy };
   };
 
   /**
    * Load index with custom StartMcpServer behavior to test entry point
-   * Uses jest.isolateModules to prevent module cache pollution
+   * Uses isolateModules to prevent module cache pollution
    */
   const loadIndexWithStartupBehavior = (startMcpServerBehavior: () => Promise<void>): void => {
-    jest.isolateModules(() => {
-      jest.doMock('./startup/start-mcp-server.js', () => ({
-        StartMcpServer: jest.fn(startMcpServerBehavior),
-      }));
-
-      require('./index.js');
+    isolateModules({
+      mocks: [
+        {
+          module: FilePathStub({ value: resolve(__dirname, './startup/start-mcp-server') }),
+          factory: () => ({
+            StartMcpServer: startMcpServerBehavior,
+          }),
+        },
+      ],
+      entrypoint: FilePathStub({ value: resolve(__dirname, './index') }),
     });
   };
 

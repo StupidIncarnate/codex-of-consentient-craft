@@ -26,7 +26,7 @@ test.describe('Quest Dual Panel', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('clarify panel and spec panel are visible simultaneously after ask-user-question tool use', async ({
+  test('VALID: clarify panel and spec panel are visible simultaneously after ask-user-question tool use', async ({
     page,
     request,
   }) => {
@@ -114,7 +114,7 @@ test.describe('Quest Dual Panel', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('clarify panel disappears after answering and does not reappear during continued chat', async ({
+  test('VALID: clarify panel disappears after answering and does not reappear during continued chat', async ({
     page,
     request,
   }) => {
@@ -204,7 +204,7 @@ test.describe('Quest Dual Panel', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('spec panel loads quest data on initial page load without sending a message', async ({
+  test('VALID: spec panel loads quest data on initial page load without sending a message', async ({
     page,
     request,
   }) => {
@@ -263,7 +263,7 @@ test.describe('Quest Dual Panel', () => {
     await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('history replay of session with answered clarification does not show clarify panel', async ({
+  test('VALID: history replay of session with answered clarification does not show clarify panel', async ({
     page,
     request,
   }) => {
@@ -321,7 +321,7 @@ test.describe('Quest Dual Panel', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('page reload after answering clarification preserves spec panel and hides clarify panel', async ({
+  test('EDGE: page reload after answering clarification preserves spec panel and hides clarify panel', async ({
     page,
     request,
   }) => {

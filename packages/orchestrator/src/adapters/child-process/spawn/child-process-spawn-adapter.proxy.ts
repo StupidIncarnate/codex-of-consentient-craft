@@ -1,8 +1,8 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
-
-jest.mock('child_process');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessSpawnAdapterProxy = (): {
   setupSuccess: (params: { exitCode: ExitCode }) => ChildProcess;
@@ -12,7 +12,7 @@ export const childProcessSpawnAdapterProxy = (): {
   getSpawnedArgs: () => unknown;
 } => {
   // Mock the npm package, not the adapter
-  const mock = jest.mocked(spawn);
+  const mock: MockHandle = registerMock({ fn: spawn });
 
   // Helper to create mock child process with kill method
   const createMockChildProcess = (): ChildProcess => {

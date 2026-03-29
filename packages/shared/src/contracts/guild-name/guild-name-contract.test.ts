@@ -14,13 +14,13 @@ describe('guildNameContract', () => {
     expect(name).toBe('My Guild');
   });
 
-  it('INVALID_NAME: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return guildNameContract.parse('');
     }).toThrow(/String must contain at least 1 character/u);
   });
 
-  it('INVALID_NAME: {value: 101 chars} => throws validation error', () => {
+  it('INVALID: {value: 101 chars} => throws validation error', () => {
     const tooLong = 'a'.repeat(101);
 
     expect(() => {

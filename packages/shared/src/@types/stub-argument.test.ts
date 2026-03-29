@@ -26,8 +26,11 @@ describe('StubArgument', () => {
     it('VALID: {} => returns stub with default functions', () => {
       const result = TestStub();
 
-      expect(typeof result.onUpdate).toBe('function');
-      expect(typeof result.getValue).toBe('function');
+      expect(result).toStrictEqual({
+        name: 'default',
+        onUpdate: expect.any(Function),
+        getValue: expect.any(Function),
+      });
       expect(result.getValue()).toBe('default');
     });
 
@@ -59,8 +62,11 @@ describe('StubArgument', () => {
       };
       const result = TestStub({ name: 'test-name', getValue: customFn });
 
-      expect(result.name).toBe('test-name');
-      expect(result.getValue).toBe(customFn);
+      expect(result).toStrictEqual({
+        name: 'test-name',
+        onUpdate: expect.any(Function),
+        getValue: customFn,
+      });
       expect(result.getValue()).toBe('custom');
     });
   });
@@ -167,9 +173,11 @@ describe('StubArgument', () => {
     it('VALID: {} => returns stub with default data and functions', () => {
       const result = ContextStub();
 
-      expect(result.filename).toBe('/test/file.ts');
-      expect(typeof result.report).toBe('function');
-      expect(typeof result.getFilename).toBe('function');
+      expect(result).toStrictEqual({
+        filename: '/test/file.ts',
+        report: expect.any(Function),
+        getFilename: expect.any(Function),
+      });
       expect(result.report()).toBe(true);
       expect(result.getFilename?.()).toBe('/test/file.ts');
     });
@@ -194,8 +202,11 @@ describe('StubArgument', () => {
         getFilename: customGetFilename,
       });
 
-      expect(result.filename).toBe('/override/file.ts');
-      expect(result.getFilename).toBe(customGetFilename);
+      expect(result).toStrictEqual({
+        filename: '/override/file.ts',
+        report: expect.any(Function),
+        getFilename: customGetFilename,
+      });
       expect(result.getFilename?.()).toBe('/custom/path.ts');
     });
   });
@@ -237,9 +248,13 @@ describe('StubArgument', () => {
         },
       });
 
-      expect(result.id).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
-      expect(result.address.id).toBe('addr-456');
-      expect(result.address.city).toBe('New York');
+      expect(result).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        address: {
+          id: 'addr-456',
+          city: 'New York',
+        },
+      });
     });
   });
 
@@ -307,7 +322,7 @@ describe('StubArgument', () => {
       const result2 = OptionalUserIdStub();
 
       expect(result1).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
-      expect(result2).toBeUndefined();
+      expect(result2).toBe(undefined);
     });
   });
 

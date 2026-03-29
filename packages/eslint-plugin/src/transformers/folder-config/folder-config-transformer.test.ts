@@ -31,6 +31,7 @@ describe('folderConfigTransformer', () => {
         'statics/',
         'contracts/',
         'guards/',
+        'transformers/',
         '@dungeonmaster/shared/adapters',
       ]);
     });
@@ -47,13 +48,13 @@ describe('folderConfigTransformer', () => {
     it("INVALID: {folderType: 'unknown'} => returns undefined", () => {
       const result = folderConfigTransformer({ folderType: 'unknown' });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
 
     it("INVALID: {folderType: ''} => returns undefined", () => {
       const result = folderConfigTransformer({ folderType: '' });
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(undefined);
     });
   });
 });

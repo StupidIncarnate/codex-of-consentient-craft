@@ -185,7 +185,7 @@ export const userCardWidgetProxy = () => {
     // Create child binding proxy (which creates entire chain and sets up all mocks)
     const bindingProxy = useUserDataBindingProxy();
 
-    // NO jest.mocked(widget) - widget renders real!
+    // NO mocking of widget - widget renders real!
 
     return {
         // Delegate to binding proxy for data setup

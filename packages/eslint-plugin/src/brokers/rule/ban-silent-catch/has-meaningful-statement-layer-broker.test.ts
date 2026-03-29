@@ -2,7 +2,7 @@ import { hasMeaningfulStatementLayerBrokerProxy } from './has-meaningful-stateme
 import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('hasMeaningfulStatementLayerBroker', () => {
-  it('THROW: ThrowStatement => returns true', () => {
+  it('VALID: ThrowStatement => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -12,7 +12,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('RETURN_VALUE: ReturnStatement with argument => returns true', () => {
+  it('VALID: ReturnStatement with argument => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -27,7 +27,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('RETURN_BARE: ReturnStatement without argument => returns false', () => {
+  it('INVALID: ReturnStatement without argument => returns false', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -37,7 +37,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(false);
   });
 
-  it('RETURN_UNDEFINED: ReturnStatement with undefined identifier => returns false', () => {
+  it('INVALID: ReturnStatement with undefined identifier => returns false', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -52,7 +52,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(false);
   });
 
-  it('CALL: ExpressionStatement with CallExpression => returns true', () => {
+  it('VALID: ExpressionStatement with CallExpression => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -67,7 +67,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('ASSIGNMENT: ExpressionStatement with AssignmentExpression => returns true', () => {
+  it('VALID: ExpressionStatement with AssignmentExpression => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -82,7 +82,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('VARIABLE: VariableDeclaration => returns true', () => {
+  it('VALID: VariableDeclaration => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -92,7 +92,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('IF: IfStatement => returns true', () => {
+  it('VALID: IfStatement => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -112,7 +112,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(false);
   });
 
-  it('AWAIT: ExpressionStatement with AwaitExpression => returns true', () => {
+  it('VALID: ExpressionStatement with AwaitExpression => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -127,7 +127,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('UPDATE: ExpressionStatement with UpdateExpression => returns true', () => {
+  it('VALID: ExpressionStatement with UpdateExpression => returns true', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({
@@ -142,7 +142,7 @@ describe('hasMeaningfulStatementLayerBroker', () => {
     expect(result).toBe(true);
   });
 
-  it('EXPRESSION_OTHER: ExpressionStatement with non-meaningful expression => returns false', () => {
+  it('INVALID: ExpressionStatement with non-meaningful expression => returns false', () => {
     const proxy = hasMeaningfulStatementLayerBrokerProxy();
 
     const result = proxy.hasMeaningfulStatementLayerBroker({

@@ -1,14 +1,11 @@
 import { readFileSync } from 'fs';
 import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
-
-// ✅ Mock declared in proxy - automatically hoisted when proxy is imported
-jest.mock('fs');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReadFileSyncAdapterProxy = (): {
   returns: (args: { filePath: FilePath; contents: FileContents }) => void;
 } => {
-  // ✅ Mock the npm dependency (fs.readFileSync), not the adapter!
-  const mock = jest.mocked(readFileSync);
+  const mock = registerMock({ fn: readFileSync });
 
   // Set up default mock behavior
   mock.mockReturnValue('');

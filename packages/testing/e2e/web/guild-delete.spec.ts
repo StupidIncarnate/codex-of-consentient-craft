@@ -13,7 +13,7 @@ test.describe('Guild Deletion', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('delete guild via API removes from list', async ({ page, request }) => {
+  test('VALID: delete guild via API removes from list', async ({ page, request }) => {
     const guildA = await guildHarness({ request }).createGuild({
       name: 'Guild Alpha',
       path: GUILD_PATH_A,
@@ -30,7 +30,7 @@ test.describe('Guild Deletion', () => {
     await expect(page.getByText('Guild Alpha')).not.toBeVisible();
   });
 
-  test('delete selected guild clears quest panel', async ({ page, request }) => {
+  test('VALID: delete selected guild clears quest panel', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Selected Guild',
       path: GUILD_PATH_A,
@@ -49,7 +49,7 @@ test.describe('Guild Deletion', () => {
     await expect(page.getByText('Selected Guild')).not.toBeVisible();
   });
 
-  test('delete last guild shows empty state', async ({ page, request }) => {
+  test('EMPTY: delete last guild shows empty state', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Only Guild',
       path: GUILD_PATH_A,

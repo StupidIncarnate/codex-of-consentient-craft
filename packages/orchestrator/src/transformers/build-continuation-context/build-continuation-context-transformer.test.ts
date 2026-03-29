@@ -52,7 +52,7 @@ describe('buildContinuationContextTransformer', () => {
         capturedOutput: [],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Creates ESLint rule that disallows multiple toStrictEqual assertions on properties of the same root object
+ * PURPOSE: Creates ESLint rule that disallows multiple assertions on properties of the same root object
  *
  * USAGE:
  * const rule = ruleNoMultiplePropertyAssertionsBroker();
@@ -13,6 +13,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
+import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
@@ -21,7 +22,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Disallow multiple toStrictEqual assertions on properties of the same root object. Use a single assertion on the complete object to prevent property bleedthrough.',
+          'Disallow multiple assertions on properties of the same root object. Use a single toStrictEqual assertion on the complete object to prevent property bleedthrough.',
       },
       messages: {
         multiplePropertyAssertions:
@@ -93,36 +94,15 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         currentItBlock = null;
       },
 
-      // Detect expect(obj.property).toStrictEqual() pattern
+      // Detect expect(obj.property).<anyMatcher>() pattern
       CallExpression: (node: Tsestree): void => {
         if (currentItBlock === null) {
           return;
         }
 
-        // Check if this is .toStrictEqual() call
-        const isToStrictEqual =
-          node.callee?.type === 'MemberExpression' &&
-          node.callee.property?.name === 'toStrictEqual';
-
-        if (!isToStrictEqual) {
-          return;
-        }
-
-        // Check if the object is expect() call
-        const expectCall = node.callee?.object;
-        if (
-          expectCall === null ||
-          expectCall === undefined ||
-          expectCall.type !== 'CallExpression'
-        ) {
-          return;
-        }
-
-        // Verify it's expect() function
-        const isExpectCall =
-          expectCall.callee?.type === 'Identifier' && expectCall.callee.name === 'expect';
-
-        if (!isExpectCall) {
+        // Walk the expect chain to find expect() call regardless of matcher
+        const expectCall = astFindExpectCallTransformer({ node });
+        if (expectCall === null) {
           return;
         }
 

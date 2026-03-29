@@ -20,13 +20,13 @@ describe('questWorkItemIdContract', () => {
     expect(id).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
   });
 
-  it('INVALID_ID: {value: "not-a-uuid"} => throws validation error', () => {
+  it('INVALID: {value: "not-a-uuid"} => throws validation error', () => {
     expect(() => {
       return questWorkItemIdContract.parse('not-a-uuid');
     }).toThrow(/Invalid uuid/u);
   });
 
-  it('INVALID_ID: {value: ""} => throws validation error', () => {
+  it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return questWorkItemIdContract.parse('');
     }).toThrow(/Invalid uuid/u);

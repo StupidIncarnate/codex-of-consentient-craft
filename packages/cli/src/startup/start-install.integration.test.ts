@@ -28,8 +28,8 @@ describe('StartInstall', () => {
         action: 'created',
         message: 'Added devDependencies to package.json',
       });
-      expect(packageJsonContent).toMatch(/"devDependencies"/u);
-      expect(packageJsonContent).toMatch(/"typescript"/u);
+      expect(packageJsonContent).toMatch(/^\s*"devDependencies"/mu);
+      expect(packageJsonContent).toMatch(/^\s*"typescript"/mu);
     });
   });
 });

@@ -16,7 +16,7 @@ describe('honoServeAdapter', () => {
 
       const capturedFetch = proxy.getCapturedFetch();
 
-      expect(typeof capturedFetch).toBe('function');
+      expect(capturedFetch).toStrictEqual(expect.any(Function));
     });
   });
 });

@@ -41,7 +41,7 @@ describe('isAstMemberExpressionGuard', () => {
     expect(isAstMemberExpressionGuard({ node })).toBe(true);
   });
 
-  it('INVALID_TYPE: {node: Identifier} => returns false', () => {
+  it('INVALID: {node: Identifier} => returns false', () => {
     const node = TsestreeStub({
       type: 'Identifier',
       name: 'foo',
@@ -50,7 +50,7 @@ describe('isAstMemberExpressionGuard', () => {
     expect(isAstMemberExpressionGuard({ node })).toBe(false);
   });
 
-  it('INVALID_TYPE: {node: CallExpression} => returns false', () => {
+  it('INVALID: {node: CallExpression} => returns false', () => {
     const node = TsestreeStub({
       type: 'CallExpression',
       callee: TsestreeStub({
@@ -62,7 +62,7 @@ describe('isAstMemberExpressionGuard', () => {
     expect(isAstMemberExpressionGuard({ node })).toBe(false);
   });
 
-  it('INVALID_TYPE: {node: Literal} => returns false', () => {
+  it('INVALID: {node: Literal} => returns false', () => {
     const node = TsestreeStub({
       type: 'Literal',
       value: 'test',

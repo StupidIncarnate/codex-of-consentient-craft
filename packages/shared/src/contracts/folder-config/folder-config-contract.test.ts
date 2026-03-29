@@ -83,7 +83,7 @@ describe('folderConfigContract', () => {
   });
 
   describe('invalid configs', () => {
-    it('INVALID_TEST_TYPE: {testType: "unknown"} => throws validation error', () => {
+    it('INVALID: {testType: "unknown"} => throws validation error', () => {
       const parseInvalidTestType = (): unknown =>
         folderConfigContract.parse({
           ...FolderConfigStub(),

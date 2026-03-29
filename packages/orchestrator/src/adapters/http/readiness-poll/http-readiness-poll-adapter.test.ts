@@ -121,8 +121,10 @@ describe('httpReadinessPollAdapter', () => {
         intervalMs: 0,
       });
 
-      expect(result.ready).toBe(false);
-      expect(result.elapsedMs).toBeGreaterThanOrEqual(0);
+      expect(result).toStrictEqual({
+        ready: false,
+        elapsedMs: expect.any(Number),
+      });
     });
   });
 

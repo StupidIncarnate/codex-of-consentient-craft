@@ -8,25 +8,24 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { VerifyQuestResult } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
-
-jest.mock('@dungeonmaster/orchestrator');
 
 export const orchestratorVerifyQuestAdapterProxy = (): {
   returns: (params: { result: VerifyQuestResult }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(StartOrchestrator.verifyQuest);
+  const handle = registerMock({ fn: StartOrchestrator.verifyQuest });
 
-  mock.mockResolvedValue(VerifyQuestResultStub());
+  handle.mockResolvedValue(VerifyQuestResultStub());
 
   return {
     returns: ({ result }: { result: VerifyQuestResult }): void => {
-      mock.mockResolvedValueOnce(result);
+      handle.mockResolvedValueOnce(result);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      handle.mockRejectedValueOnce(error);
     },
   };
 };

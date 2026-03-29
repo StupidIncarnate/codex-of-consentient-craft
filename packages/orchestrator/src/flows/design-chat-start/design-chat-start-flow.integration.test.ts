@@ -10,7 +10,7 @@ describe('DesignChatStartFlow', () => {
 
   describe('export', () => {
     it('VALID: DesignChatStartFlow => exports an async function', () => {
-      expect(typeof DesignChatStartFlow).toBe('function');
+      expect(DesignChatStartFlow).toStrictEqual(expect.any(Function));
     });
   });
 
@@ -31,7 +31,7 @@ describe('DesignChatStartFlow', () => {
       restore();
 
       expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toMatch(/Guild not found/u);
+      expect((error as Error).message).toMatch(/^Guild not found$/u);
     });
   });
 });

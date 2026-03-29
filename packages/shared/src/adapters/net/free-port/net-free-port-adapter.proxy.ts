@@ -1,7 +1,6 @@
 import { createServer } from 'net';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
-
-jest.mock('net');
 
 interface MockServer {
   listen: jest.Mock;
@@ -14,7 +13,7 @@ export const netFreePortAdapterProxy = (): {
   setupPort: (params: { port: number }) => void;
   setupError: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(createServer);
+  const handle = registerMock({ fn: createServer });
   const defaultPort = NetworkPortStub();
 
   const mockServer: MockServer = {
@@ -31,7 +30,7 @@ export const netFreePortAdapterProxy = (): {
     callback();
   });
   mockServer.address.mockReturnValue({ port: defaultPort });
-  mock.mockReturnValue(mockServer as never);
+  handle.mockReturnValue(mockServer as never);
 
   return {
     setupPort: ({ port }: { port: number }): void => {

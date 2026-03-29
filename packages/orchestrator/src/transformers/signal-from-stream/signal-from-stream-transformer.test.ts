@@ -99,7 +99,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON primitive string} => returns null', () => {
@@ -109,7 +109,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {object without type property} => returns null', () => {
@@ -121,7 +121,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {non-assistant message} => returns null', () => {
@@ -134,7 +134,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message without tool calls} => returns null', () => {
@@ -144,7 +144,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {different MCP tool call} => returns null', () => {
@@ -168,7 +168,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with no content property} => returns null', () => {
@@ -181,7 +181,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with null message} => returns null', () => {
@@ -194,7 +194,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant without message property} => returns null', () => {
@@ -206,7 +206,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with empty content array} => returns null', () => {
@@ -221,7 +221,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with non-array content} => returns null', () => {
@@ -236,7 +236,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {signal-back with invalid input} => returns null', () => {
@@ -259,7 +259,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {signal-back tool use without input property} => returns null', () => {
@@ -279,7 +279,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -291,7 +291,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {truncated JSON} => returns null', () => {
@@ -301,7 +301,7 @@ describe('signalFromStreamTransformer', () => {
 
       const result = signalFromStreamTransformer({ line });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

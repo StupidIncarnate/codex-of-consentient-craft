@@ -12,7 +12,7 @@ describe('sessionChatStopBroker', () => {
 
       proxy.setupStop();
 
-      await expect(sessionChatStopBroker({ sessionId, chatProcessId })).resolves.toBeUndefined();
+      await expect(sessionChatStopBroker({ sessionId, chatProcessId })).resolves.toBe(undefined);
     });
   });
 

@@ -37,7 +37,7 @@ describe('gitDetectDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

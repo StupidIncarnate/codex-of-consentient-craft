@@ -58,7 +58,7 @@ describe('wardDetailBroker', () => {
 
       const result = await wardDetailBroker({ startPath, runId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {empty output} => returns null', async () => {
@@ -70,7 +70,7 @@ describe('wardDetailBroker', () => {
 
       const result = await wardDetailBroker({ startPath, runId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {non-JSON output} => returns null', async () => {
@@ -82,7 +82,7 @@ describe('wardDetailBroker', () => {
 
       const result = await wardDetailBroker({ startPath, runId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
 
     it('ERROR: {whitespace-only output} => returns null', async () => {
@@ -94,7 +94,7 @@ describe('wardDetailBroker', () => {
 
       const result = await wardDetailBroker({ startPath, runId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 });

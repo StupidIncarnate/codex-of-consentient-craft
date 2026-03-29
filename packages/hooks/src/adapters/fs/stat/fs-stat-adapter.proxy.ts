@@ -1,7 +1,6 @@
-jest.mock('fs/promises');
-
 import { stat } from 'fs/promises';
 import type { Stats } from 'node:fs';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FileStatsStub } from '../../../contracts/file-stats/file-stats.stub';
 import type { FileStats } from '../../../contracts/file-stats/file-stats-contract';
 
@@ -9,7 +8,7 @@ export const fsStatAdapterProxy = (): {
   returns: ({ stats }: { stats: FileStats }) => void;
   throws: ({ error }: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(stat);
+  const mock = registerMock({ fn: stat });
 
   const defaultStats = FileStatsStub();
   mock.mockResolvedValue(defaultStats as unknown as Stats);

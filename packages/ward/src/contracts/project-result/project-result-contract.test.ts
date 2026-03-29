@@ -152,7 +152,7 @@ describe('projectResultContract', () => {
   });
 
   describe('invalid inputs', () => {
-    it('INVALID_STATUS: {status: "unknown"} => throws validation error', () => {
+    it('INVALID: {status: "unknown"} => throws validation error', () => {
       expect(() =>
         projectResultContract.parse({
           projectFolder: { name: 'ward', path: '/path' },
@@ -164,11 +164,11 @@ describe('projectResultContract', () => {
       ).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID_MULTIPLE: {missing all fields} => throws validation error', () => {
+    it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => projectResultContract.parse({})).toThrow(/Required/u);
     });
 
-    it('INVALID_FILES_COUNT: {filesCount: -1} => throws validation error', () => {
+    it('INVALID: {filesCount: -1} => throws validation error', () => {
       expect(() =>
         projectResultContract.parse({
           projectFolder: { name: 'ward', path: '/path' },

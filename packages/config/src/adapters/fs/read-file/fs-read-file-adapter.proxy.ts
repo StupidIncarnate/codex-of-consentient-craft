@@ -1,13 +1,12 @@
 import { readFile } from 'fs/promises';
 import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-
-jest.mock('fs/promises');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReadFileAdapterProxy = (): {
   returns: (params: { contents: ReturnType<typeof FileContentsStub> }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const mock = jest.mocked(readFile);
+  const mock = registerMock({ fn: readFile });
 
   mock.mockResolvedValue('');
 

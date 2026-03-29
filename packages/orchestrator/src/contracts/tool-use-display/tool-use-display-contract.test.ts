@@ -17,7 +17,7 @@ describe('toolUseDisplayContract', () => {
   });
 
   describe('invalid input', () => {
-    it('INVALID_VALUE: {value: empty string} => throws ZodError', () => {
+    it('INVALID: {value: empty string} => throws ZodError', () => {
       expect(() => toolUseDisplayContract.parse('')).toThrow(
         /String must contain at least 1 character/u,
       );

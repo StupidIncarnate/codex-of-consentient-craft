@@ -11,7 +11,7 @@ describe('toolUseIdContract', () => {
   });
 
   describe('invalid tool use ids', () => {
-    it('INVALID_VALUE: {value: ""} => throws validation error', () => {
+    it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => toolUseIdContract.parse('')).toThrow(/too_small/u);
     });
   });

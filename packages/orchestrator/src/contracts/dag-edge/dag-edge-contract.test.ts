@@ -30,13 +30,13 @@ describe('dagEdgeContract', () => {
   });
 
   describe('invalid edges', () => {
-    it('INVALID_ID: {id: ""} => throws validation error', () => {
+    it('INVALID: {id: ""} => throws validation error', () => {
       expect(() => {
         return dagEdgeContract.parse({ id: '', dependsOn: [] });
       }).toThrow(/too_small/u);
     });
 
-    it('INVALID_MULTIPLE: {missing fields} => throws validation error', () => {
+    it('INVALID: {missing fields} => throws validation error', () => {
       expect(() => {
         return dagEdgeContract.parse({});
       }).toThrow(/Required/u);

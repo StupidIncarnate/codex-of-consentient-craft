@@ -24,7 +24,7 @@ test.describe('Chat Advanced Features', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('tool use displays in chat', async ({ page, request }) => {
+  test('VALID: tool use displays in chat', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Tool Guild',
       path: GUILD_PATH,
@@ -54,7 +54,7 @@ test.describe('Chat Advanced Features', () => {
     });
   });
 
-  test('error response shows gracefully', async ({ page, request }) => {
+  test('EDGE: error response shows gracefully', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Error Guild',
       path: GUILD_PATH,
@@ -82,7 +82,7 @@ test.describe('Chat Advanced Features', () => {
     await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
   });
 
-  test('multi-turn conversation', async ({ page, request }) => {
+  test('VALID: multi-turn conversation', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Multi Guild',
       path: GUILD_PATH,
@@ -114,7 +114,7 @@ test.describe('Chat Advanced Features', () => {
     await expect(page.getByText('Second response')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
-  test('empty message not sent', async ({ page, request }) => {
+  test('EDGE: empty message not sent', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Empty Msg Guild',
       path: GUILD_PATH,
@@ -142,7 +142,7 @@ test.describe('Chat Advanced Features', () => {
     }
   });
 
-  test('user message appears in chat', async ({ page, request }) => {
+  test('VALID: user message appears in chat', async ({ page, request }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'User Msg Guild',
       path: GUILD_PATH,

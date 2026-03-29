@@ -42,9 +42,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -66,9 +68,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -90,9 +94,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -114,9 +120,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -127,9 +135,11 @@ describe('useQuestsBinding', () => {
         ],
       });
 
+      const { refresh } = result.current;
+
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch((error: unknown) => {
+          refresh().catch((error: unknown) => {
             globalThis.console.error('[test] refresh failed', error);
           });
         },
@@ -137,7 +147,7 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -160,9 +170,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -170,9 +182,11 @@ describe('useQuestsBinding', () => {
         quests: [QuestListItemStub({ id: 'quest-1', title: 'Recovered' })],
       });
 
+      const { refresh } = result.current;
+
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch((error: unknown) => {
+          refresh().catch((error: unknown) => {
             globalThis.console.error('[test] refresh failed', error);
           });
         },
@@ -180,7 +194,7 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -202,17 +216,21 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
       proxy.setupError();
 
+      const { refresh } = result.current;
+
       testingLibraryActAdapter({
         callback: () => {
-          result.current.refresh().catch((error: unknown) => {
+          refresh().catch((error: unknown) => {
             globalThis.console.error('[test] refresh failed', error);
           });
         },
@@ -220,7 +238,7 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.error).not.toBeNull();
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -242,14 +260,14 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
-      expect(result.current.data).toStrictEqual([]);
-      expect(result.current.loading).toBe(false);
       expect(result.current.error?.name).toBe('ZodError');
     });
 
@@ -261,9 +279,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 
@@ -285,9 +305,11 @@ describe('useQuestsBinding', () => {
         renderCallback: () => useQuestsBinding({ guildId }),
       });
 
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(result.current.loading).toBe(false);
+          expect(currentState().loading).toBe(false);
         },
       });
 

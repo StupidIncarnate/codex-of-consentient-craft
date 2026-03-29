@@ -411,7 +411,7 @@ describe('validateObjectExpressionLayerBroker', () => {
   });
 
   describe('object with multiple properties', () => {
-    it('INVALID_MULTIPLE: {properties: [bootstrap, mockUser]} => reports both violations', () => {
+    it('INVALID: {properties: [bootstrap, mockUser]} => reports both violations', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = EslintContextStub({ report: mockReport });

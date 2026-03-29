@@ -17,7 +17,10 @@ test.describe('Quest Approve Button', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('clicking APPROVE sends PATCH with next status transition', async ({ page, request }) => {
+  test('VALID: clicking APPROVE sends PATCH with next status transition', async ({
+    page,
+    request,
+  }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Approve Guild',
       path: GUILD_PATH,

@@ -1,11 +1,16 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 
 export const commandListBrokerProxy = (): {
   setupWithResult: (params: { content: string }) => void;
   setupNoResult: () => void;
+  getStdoutCalls: () => unknown[][];
+  getStderrCalls: () => unknown[][];
 } => {
-  jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
-  jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+  stdoutSpy.mockImplementation(() => true);
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.mockImplementation(() => true);
 
   const storageProxy = storageLoadBrokerProxy();
 
@@ -16,5 +21,7 @@ export const commandListBrokerProxy = (): {
     setupNoResult: (): void => {
       storageProxy.setupReadFail({ error: new Error('ENOENT') });
     },
+    getStdoutCalls: (): unknown[][] => stdoutSpy.mock.calls,
+    getStderrCalls: (): unknown[][] => stderrSpy.mock.calls,
   };
 };

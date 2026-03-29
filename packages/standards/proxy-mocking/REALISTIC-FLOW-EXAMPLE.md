@@ -53,19 +53,18 @@ export const httpAdapter = async ({url, method = 'GET'}: {
 ```typescript
 // adapters/http/http-adapter.proxy.ts
 import axios from 'axios';
+import {registerMock} from '@dungeonmaster/testing/register-mock';
 import type {Url} from '../../contracts/url/url-contract';
 import type {HttpResponse} from '../../contracts/http-response/http-response-contract';
 
-// ✅ Mock declared in proxy - automatically hoisted when proxy is imported
-jest.mock('axios');
-
 export const createHttpAdapterProxy = () => {
-    // ✅ Mock the npm dependency (axios), not the adapter!
+    // ✅ registerMock mocks the npm dependency (axios), not the adapter!
+    // The AST transformer auto-generates jest.mock('axios') — no manual call needed
     // This lets httpAdapter run REAL in all tests (adapter, broker, widget)
-    const mock = jest.mocked(axios);
+    const handle = registerMock({fn: axios});
 
     // ✅ Setup default mock behavior (runs fresh in each test when proxy is created)
-    mock.mockImplementation(async () => ({
+    handle.mockImplementation(async () => ({
         data: {},
         status: 200,
         statusText: 'OK'
@@ -74,18 +73,18 @@ export const createHttpAdapterProxy = () => {
     return {
         returns: ({url, response}: { url: Url; response: HttpResponse }) => {
             // Mock axios to return this response
-            mock.mockResolvedValueOnce(response);
+            handle.mockResolvedValueOnce(response);
         },
 
         throws: ({url, error}: { url: Url; error: Error }) => {
             // Mock axios to throw this error
-            mock.mockRejectedValueOnce(error);
+            handle.mockRejectedValueOnce(error);
         },
 
-        getCallCount: () => mock.mock.calls.length,
+        getCallCount: () => handle.mock.calls.length,
 
         wasCalledWith: ({url, method}: { url: Url; method?: string }) => {
-            return mock.mock.calls.some(call => {
+            return handle.mock.calls.some(call => {
                 const callConfig = call[0];
                 return callConfig.url === url &&
                     (!method || callConfig.method === method);
@@ -100,7 +99,7 @@ export const createHttpAdapterProxy = () => {
 ```typescript
 // adapters/http/http-adapter.test.ts
 import {httpAdapter} from './http-adapter';
-import {createHttpAdapterProxy} from './http-adapter.proxy';  // jest.mock('axios') hoisted from here
+import {createHttpAdapterProxy} from './http-adapter.proxy';  // registerMock sets up axios mock
 import {UrlStub} from '../../contracts/url/url.stub';
 
 it('VALID: makes GET request', async () => {
@@ -247,7 +246,7 @@ export const formatUserNameTransformer = ({user, includeTitle}: {
 // transformers/format-user-name/format-user-name-transformer.proxy.ts
 
 export const createFormatUserNameTransformerProxy = () => {
-    // NO jest.mocked() - transformer runs real!
+    // NO mocking of transformer - transformer runs real!
 
     return {
         // For rare edge cases where you need to verify calls
@@ -336,7 +335,7 @@ export const hasEditPermissionGuard = ({currentUser, profileUserId}: {
 // guards/has-edit-permission/has-edit-permission-guard.proxy.ts
 
 export const createHasEditPermissionGuardProxy = () => {
-    // NO jest.mocked() - guard runs real!
+    // NO mocking of guard - guard runs real!
 
     return {};
 };
@@ -452,7 +451,7 @@ export const createUserProfileBrokerProxy = () => {
     // Create child proxy (which sets up axios mock)
     const httpProxy = createHttpAdapterProxy();
 
-    // NO jest.mocked(broker) - broker runs real!
+    // NO mocking of broker - broker runs real!
 
     return {
         // Semantic setup - encapsulates what "viewing own profile" means
@@ -693,7 +692,7 @@ export const createUseUserProfileBindingProxy = () => {
     // Create child proxy (which creates httpProxy and sets up axios mock)
     const brokerProxy = createUserProfileBrokerProxy();
 
-    // NO jest.mocked(binding) - binding runs real!
+    // NO mocking of binding - binding runs real!
 
     return {
         // Delegate to broker proxy (don't know URLs)
@@ -880,7 +879,7 @@ export const createUserProfileWidgetProxy = () => {
     // Create child proxy (which creates entire chain and sets up all mocks)
     const bindingProxy = createUseUserProfileBindingProxy();
 
-    // NO jest.mocked(widget) - widget renders real!
+    // NO mocking of widget - widget renders real!
 
     return {
         // Delegate to binding proxy
@@ -1098,7 +1097,7 @@ export const createDashboardWidgetProxy = () => {
     // Create child proxy (which creates entire chain and sets up all mocks)
     const profileProxy = createUserProfileWidgetProxy();
 
-    // NO jest.mocked(widget) - widget renders real!
+    // NO mocking of widget - widget renders real!
 
     return {
         // Delegate to child proxy (don't know child's details)

@@ -1,17 +1,16 @@
 import { homedir } from 'os';
-
-jest.mock('os');
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const osUserHomedirAdapterProxy = (): {
   returns: ({ path }: { path: string }) => void;
 } => {
-  const mock = jest.mocked(homedir);
+  const handle = registerMock({ fn: homedir });
 
-  mock.mockReturnValue('/home/default');
+  handle.mockReturnValue('/home/default');
 
   return {
     returns: ({ path }: { path: string }): void => {
-      mock.mockReturnValueOnce(path);
+      handle.mockReturnValueOnce(path);
     },
   };
 };

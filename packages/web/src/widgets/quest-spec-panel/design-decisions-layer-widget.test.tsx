@@ -77,7 +77,7 @@ describe('DesignDecisionsLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByText('DESIGN DECISIONS')).toBeInTheDocument();
+      expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('DESIGN DECISIONS');
     });
   });
 

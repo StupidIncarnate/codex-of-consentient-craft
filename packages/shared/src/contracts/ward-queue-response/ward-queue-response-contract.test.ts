@@ -11,8 +11,7 @@ describe('wardQueueResponseContract', () => {
     it('VALID: {empty object} => parses response with no fields', () => {
       const result = wardQueueResponseContract.parse({});
 
-      expect(result.exitCode).toBeUndefined();
-      expect(result.runId).toBeUndefined();
+      expect(result).toStrictEqual({});
     });
 
     it('VALID: {all fields} => parses response with all fields', () => {
@@ -22,8 +21,11 @@ describe('wardQueueResponseContract', () => {
         wardResultJson: { summary: 'test' },
       });
 
-      expect(result.exitCode).toBe(ExitCodeStub());
-      expect(result.runId).toBe(WardRunIdStub());
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub(),
+        runId: WardRunIdStub(),
+        wardResultJson: { summary: 'test' },
+      });
     });
   });
 
@@ -36,7 +38,7 @@ describe('wardQueueResponseContract', () => {
   });
 
   describe('invalid responses', () => {
-    it('INVALID_TYPE: {value: null} => throws for null', () => {
+    it('INVALID: {value: null} => throws for null', () => {
       expect(() => wardQueueResponseContract.parse(null as never)).toThrow(/invalid_type/u);
     });
   });

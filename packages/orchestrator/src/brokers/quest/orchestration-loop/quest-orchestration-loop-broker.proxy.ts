@@ -6,6 +6,8 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -24,24 +26,34 @@ import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker
 import { runWardLayerBroker as wardLayer } from './run-ward-layer-broker';
 import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
 
-jest.mock('./run-chat-layer-broker');
-jest.mock('./run-codeweaver-layer-broker');
-jest.mock('./run-lawbringer-layer-broker');
-jest.mock('./run-pathseeker-layer-broker');
-jest.mock('./run-siegemaster-layer-broker');
-jest.mock('./run-spiritmender-layer-broker');
-jest.mock('./run-ward-layer-broker');
-
 type QuestParam = ReturnType<typeof QuestStub>;
 
-const layerMocks = (): void => {
-  jest.mocked(chatLayer).mockResolvedValue(undefined);
-  jest.mocked(cwLayer).mockResolvedValue(undefined);
-  jest.mocked(lbLayer).mockResolvedValue(undefined);
-  jest.mocked(psLayer).mockResolvedValue(undefined);
-  jest.mocked(smLayer).mockResolvedValue(undefined);
-  jest.mocked(spLayer).mockResolvedValue(undefined);
-  jest.mocked(wardLayer).mockResolvedValue(undefined);
+const createLayerMocks = (): {
+  chatHandle: MockHandle;
+  cwHandle: MockHandle;
+  lbHandle: MockHandle;
+  psHandle: MockHandle;
+  smHandle: MockHandle;
+  spHandle: MockHandle;
+  wardHandle: MockHandle;
+} => {
+  const chatHandle = registerMock({ fn: chatLayer });
+  const cwHandle = registerMock({ fn: cwLayer });
+  const lbHandle = registerMock({ fn: lbLayer });
+  const psHandle = registerMock({ fn: psLayer });
+  const smHandle = registerMock({ fn: smLayer });
+  const spHandle = registerMock({ fn: spLayer });
+  const wardHandle = registerMock({ fn: wardLayer });
+
+  chatHandle.mockResolvedValue(undefined);
+  cwHandle.mockResolvedValue(undefined);
+  lbHandle.mockResolvedValue(undefined);
+  psHandle.mockResolvedValue(undefined);
+  smHandle.mockResolvedValue(undefined);
+  spHandle.mockResolvedValue(undefined);
+  wardHandle.mockResolvedValue(undefined);
+
+  return { chatHandle, cwHandle, lbHandle, psHandle, smHandle, spHandle, wardHandle };
 };
 
 const parsePersistedQuests = ({
@@ -110,9 +122,11 @@ export const questOrchestrationLoopBrokerProxy = (): {
   runLawbringerLayerBrokerProxy();
   runSpiritmenderLayerBrokerProxy();
 
-  layerMocks();
+  const handles = createLayerMocks();
 
-  jest.spyOn(Date.prototype, 'toISOString').mockReturnValue('2024-01-15T10:00:00.000Z');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
+    '2024-01-15T10:00:00.000Z',
+  );
 
   return {
     setupQuestTerminal: ({ quest }: { quest: QuestParam }): void => {
@@ -159,7 +173,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Loop catch: update quest status
       modifyProxy.setupQuestFound({ quest });
 
-      jest.mocked(psLayer).mockRejectedValueOnce(error);
+      handles.psHandle.mockRejectedValueOnce(error);
     },
 
     setupLayerThrowsWithCatchFailure: ({
@@ -174,7 +188,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Loop: mark items in_progress
       modifyProxy.setupQuestFound({ quest });
 
-      jest.mocked(psLayer).mockRejectedValueOnce(error);
+      handles.psHandle.mockRejectedValueOnce(error);
 
       // Catch block: no modify mocks queued, so questModifyBroker returns { success: false }
       // Original error still propagates due to inner try/catch in catch block
@@ -192,7 +206,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Mark chat item in_progress
       modifyProxy.setupQuestFound({ quest: firstQuest });
 
-      // Chat layer resolves (jest.mock auto-returns undefined = success)
+      // Chat layer resolves (registerMock auto-returns undefined = success)
 
       // Recursion: load quest with second chat ready but no userMessage
       getProxy.setupQuestFound({ quest: secondQuest });
@@ -211,7 +225,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Mark ready item in_progress
       modifyProxy.setupQuestFound({ quest: blockedQuest });
 
-      // Layer resolves (jest.mock auto-returns undefined = success)
+      // Layer resolves (registerMock auto-returns undefined = success)
 
       // Recursion: load terminal quest
       getProxy.setupQuestFound({ quest: terminalQuest });
@@ -331,9 +345,9 @@ export const questOrchestrationLoopBrokerProxy = (): {
       return undefined;
     },
 
-    wasChatLayerCalled: (): boolean => jest.mocked(chatLayer).mock.calls.length > 0,
+    wasChatLayerCalled: (): boolean => handles.chatHandle.mock.calls.length > 0,
 
-    wasCodeweaverLayerCalled: (): boolean => jest.mocked(cwLayer).mock.calls.length > 0,
+    wasCodeweaverLayerCalled: (): boolean => handles.cwHandle.mock.calls.length > 0,
 
     wasOnAgentEntryPassedTo: ({
       role,
@@ -348,13 +362,13 @@ export const questOrchestrationLoopBrokerProxy = (): {
         | 'spiritmender';
     }): boolean => {
       const getCalls = (): readonly unknown[][] => {
-        if (role === 'chat') return jest.mocked(chatLayer).mock.calls;
-        if (role === 'pathseeker') return jest.mocked(psLayer).mock.calls;
-        if (role === 'codeweaver') return jest.mocked(cwLayer).mock.calls;
-        if (role === 'ward') return jest.mocked(wardLayer).mock.calls;
-        if (role === 'siegemaster') return jest.mocked(smLayer).mock.calls;
-        if (role === 'lawbringer') return jest.mocked(lbLayer).mock.calls;
-        return jest.mocked(spLayer).mock.calls;
+        if (role === 'chat') return handles.chatHandle.mock.calls;
+        if (role === 'pathseeker') return handles.psHandle.mock.calls;
+        if (role === 'codeweaver') return handles.cwHandle.mock.calls;
+        if (role === 'ward') return handles.wardHandle.mock.calls;
+        if (role === 'siegemaster') return handles.smHandle.mock.calls;
+        if (role === 'lawbringer') return handles.lbHandle.mock.calls;
+        return handles.spHandle.mock.calls;
       };
       const calls = getCalls();
       if (calls.length === 0) return false;

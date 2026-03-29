@@ -19,6 +19,7 @@ describe('mockCallContract', () => {
         moduleName: 'axios',
         factory: null,
         sourceFile: 'test.proxy.ts',
+        identifierNames: [],
       });
     });
 
@@ -35,6 +36,7 @@ describe('mockCallContract', () => {
         moduleName: 'fs',
         factory: '() => ({ readFile: jest.fn() })',
         sourceFile: 'adapter.proxy.ts',
+        identifierNames: [],
       });
     });
 
@@ -51,12 +53,13 @@ describe('mockCallContract', () => {
         moduleName: '@testing-library/react',
         factory: null,
         sourceFile: 'widget.proxy.tsx',
+        identifierNames: [],
       });
     });
   });
 
   describe('invalid mock calls', () => {
-    it('INVALID_MODULE_NAME: {moduleName: ""} => throws validation error', () => {
+    it('INVALID: {moduleName: ""} => throws validation error', () => {
       expect(() => {
         return mockCallContract.parse({
           moduleName: '',
@@ -66,7 +69,7 @@ describe('mockCallContract', () => {
       }).toThrow(/String must contain at least 1 character/u);
     });
 
-    it('INVALID_MULTIPLE: {missing sourceFile} => throws validation error', () => {
+    it('INVALID: {missing sourceFile} => throws validation error', () => {
       expect(() => {
         return mockCallContract.parse({
           moduleName: 'axios',

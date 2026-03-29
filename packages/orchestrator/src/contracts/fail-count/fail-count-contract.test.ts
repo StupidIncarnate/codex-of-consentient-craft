@@ -17,19 +17,19 @@ describe('failCountContract', () => {
   });
 
   describe('invalid values', () => {
-    it('INVALID_VALUE: {negative number} => throws validation error', () => {
+    it('INVALID: {negative number} => throws validation error', () => {
       expect(() => {
         failCountContract.parse(-1);
       }).toThrow(/Number must be greater than or equal to 0/u);
     });
 
-    it('INVALID_VALUE: {decimal number} => throws validation error', () => {
+    it('INVALID: {decimal number} => throws validation error', () => {
       expect(() => {
         failCountContract.parse(1.5);
       }).toThrow(/Expected integer/u);
     });
 
-    it('INVALID_TYPE: {string} => throws validation error', () => {
+    it('INVALID: {string} => throws validation error', () => {
       expect(() => {
         failCountContract.parse('1' as never);
       }).toThrow(/Expected number/u);

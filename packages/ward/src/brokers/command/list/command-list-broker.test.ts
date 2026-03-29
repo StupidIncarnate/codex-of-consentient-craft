@@ -37,8 +37,13 @@ describe('commandListBroker', () => {
 
       await commandListBroker({ rootPath, runId });
 
-      expect(process.stderr.write).not.toHaveBeenCalled();
-      expect(process.stdout.write).toHaveBeenCalledTimes(1);
+      expect({
+        stderrCalls: proxy.getStderrCalls(),
+        stdoutCallCount: proxy.getStdoutCalls().length,
+      }).toStrictEqual({
+        stderrCalls: [],
+        stdoutCallCount: 1,
+      });
     });
   });
 
@@ -52,8 +57,13 @@ describe('commandListBroker', () => {
 
       await commandListBroker({ rootPath, runId });
 
-      expect(process.stderr.write).toHaveBeenCalledWith('No ward results found\n');
-      expect(process.stdout.write).not.toHaveBeenCalled();
+      expect({
+        stderrCalls: proxy.getStderrCalls(),
+        stdoutCalls: proxy.getStdoutCalls(),
+      }).toStrictEqual({
+        stderrCalls: [['No ward results found\n']],
+        stdoutCalls: [],
+      });
     });
   });
 });

@@ -1,18 +1,12 @@
 import { globSync } from 'fs';
-
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  globSync: jest.fn(),
-  existsSync: jest.fn(),
-  readFileSync: jest.fn(),
-}));
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsGlobSyncAdapterProxy = (): {
   returnsCount: (params: { count: number }) => void;
   returnsFiles: (params: { files: string[] }) => void;
   returnsEmpty: () => void;
 } => {
-  const mock = jest.mocked(globSync);
+  const mock = registerMock({ fn: globSync });
 
   mock.mockReturnValue(['discovered.ts']);
 

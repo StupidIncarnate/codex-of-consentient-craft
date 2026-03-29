@@ -28,7 +28,7 @@ describe('designProcessState', () => {
       const questId = QuestIdStub();
       const result = designProcessState.get({ questId });
 
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -46,7 +46,7 @@ describe('designProcessState', () => {
       const result = designProcessState.get({ questId });
 
       expect(removed).toBe(true);
-      expect(result).toBeNull();
+      expect(result).toBe(null);
     });
   });
 
@@ -68,8 +68,8 @@ describe('designProcessState', () => {
 
       expect(kill1).toHaveBeenCalledTimes(1);
       expect(kill2).toHaveBeenCalledTimes(1);
-      expect(designProcessState.get({ questId: questId1 })).toBeNull();
-      expect(designProcessState.get({ questId: questId2 })).toBeNull();
+      expect(designProcessState.get({ questId: questId1 })).toBe(null);
+      expect(designProcessState.get({ questId: questId2 })).toBe(null);
     });
   });
 });

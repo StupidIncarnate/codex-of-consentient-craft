@@ -40,44 +40,44 @@ describe('projectFolderTypeFromFilePathTransformer', () => {
   });
 
   describe('files directly in /src/ (no subfolders)', () => {
-    it('NULL: {filename: "/project/src/index.ts"} => returns null', () => {
-      expect(
-        projectFolderTypeFromFilePathTransformer({ filename: '/project/src/index.ts' }),
-      ).toBeNull();
+    it('EMPTY: {filename: "/project/src/index.ts"} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/index.ts' })).toBe(
+        null,
+      );
     });
 
-    it('NULL: {filename: "/project/src/main.ts"} => returns null', () => {
-      expect(
-        projectFolderTypeFromFilePathTransformer({ filename: '/project/src/main.ts' }),
-      ).toBeNull();
+    it('EMPTY: {filename: "/project/src/main.ts"} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/main.ts' })).toBe(
+        null,
+      );
     });
   });
 
   describe('files not in /src/', () => {
-    it('NULL: {filename: "/project/lib/utils.ts"} => returns null', () => {
-      expect(
-        projectFolderTypeFromFilePathTransformer({ filename: '/project/lib/utils.ts' }),
-      ).toBeNull();
+    it('EMPTY: {filename: "/project/lib/utils.ts"} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/lib/utils.ts' })).toBe(
+        null,
+      );
     });
 
-    it('NULL: {filename: "/project/test/helper.ts"} => returns null', () => {
+    it('EMPTY: {filename: "/project/test/helper.ts"} => returns null', () => {
       expect(
         projectFolderTypeFromFilePathTransformer({ filename: '/project/test/helper.ts' }),
-      ).toBeNull();
+      ).toBe(null);
     });
 
-    it('NULL: {filename: "utils.ts"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: 'utils.ts' })).toBeNull();
+    it('EMPTY: {filename: "utils.ts"} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: 'utils.ts' })).toBe(null);
     });
   });
 
   describe('edge cases', () => {
-    it('NULL: {filename: "/project/src/"} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/' })).toBeNull();
+    it('EMPTY: {filename: "/project/src/"} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '/project/src/' })).toBe(null);
     });
 
-    it('NULL: {filename: ""} => returns null', () => {
-      expect(projectFolderTypeFromFilePathTransformer({ filename: '' })).toBeNull();
+    it('EMPTY: {filename: ""} => returns null', () => {
+      expect(projectFolderTypeFromFilePathTransformer({ filename: '' })).toBe(null);
     });
   });
 });

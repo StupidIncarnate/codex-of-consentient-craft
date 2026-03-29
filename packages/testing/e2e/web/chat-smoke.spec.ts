@@ -19,7 +19,10 @@ test.describe('Chat Smoke', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('guild chat sends message and displays Claude response', async ({ page, request }) => {
+  test('VALID: guild chat sends message and displays Claude response', async ({
+    page,
+    request,
+  }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Chat Guild',
       path: GUILD_PATH,

@@ -5,6 +5,7 @@ import { MockCallStub } from '../../../contracts/mock-call/mock-call.stub';
 import { ModuleNameStub } from '../../../contracts/module-name/module-name.stub';
 import { SourceFileNameStub } from '../../../contracts/source-file-name/source-file-name.stub';
 import { TypescriptNodeFactoryStub } from '../../../contracts/typescript-node-factory/typescript-node-factory.stub';
+import { IdentifierNameStub } from '../../../contracts/identifier-name/identifier-name.stub';
 
 describe('typescriptMockCallsToStatementsAdapter', () => {
   describe('valid mock calls conversion', () => {
@@ -29,8 +30,11 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u)]);
-      expect(outputs[0]).toMatch(/Auto-hoisted from.*test\.proxy\.ts/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /^[\s\S]*uto-hoisted from[\s\S]*test\.proxy\.ts[\s\S]*jest\.mock\(['"]fs['"]\)/u,
+        ),
+      ]);
     });
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
@@ -54,8 +58,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]axios['"]/u)]);
-      expect(outputs[0]).toMatch(/get.*jest\.fn/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]axios['"][\s\S]*et[\s\S]*jest\.fn/u),
+      ]);
     });
 
     it('VALID: {factory with nested property access} => clones correctly', () => {
@@ -79,9 +84,11 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/jest\.mock\(['"]fs['"]/u)]);
-      expect(outputs[0]).toMatch(/readFile.*jest\.fn/u);
-      expect(outputs[0]).toMatch(/mockResolvedValue/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /^[\s\S]*jest\.mock\(['"]fs['"][\s\S]*eadFile[\s\S]*jest\.fn[\s\S]*ockResolvedValue/u,
+        ),
+      ]);
     });
 
     it('VALID: {factory with spread assignment} => clones correctly', () => {
@@ -105,8 +112,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/\.\.\.actualConfig/u)]);
-      expect(outputs[0]).toMatch(/override.*true/u);
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(/^[\s\S]*\.\.\.actualConfig[\s\S]*verride[\s\S]*true/u),
+      ]);
     });
 
     it('VALID: {factory with arrow function parameters} => clones correctly', () => {
@@ -130,8 +138,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/fetch.*url/u)]);
-      expect(outputs[0]).toMatch(/json/u);
+      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*fetch[\s\S]*url[\s\S]*son/u)]);
     });
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {
@@ -234,6 +241,69 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       expect(outputs).toStrictEqual([
         expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u),
         expect.stringMatching(/jest\.mock\(['"]path['"]\)/u),
+      ]);
+    });
+  });
+
+  describe('selective factory mock generation', () => {
+    it('VALID: {mockCall with identifierNames} => returns jest.mock with selective factory', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        identifierNames: [IdentifierNameStub({ value: 'readFile' })],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /jest\.mock\(["']fs\/promises["'],\s*\(\)\s*=>\s*\([\s\S]*\.\.\.jest\.requireActual\(["']fs\/promises["']\)[\s\S]*readFile:\s*jest\.fn\(\)/u,
+        ),
+      ]);
+    });
+
+    it('VALID: {mockCall with multiple identifierNames} => returns factory with all identifiers', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        identifierNames: [
+          IdentifierNameStub({ value: 'readFile' }),
+          IdentifierNameStub({ value: 'writeFile' }),
+        ],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        expect.stringMatching(
+          /jest\.mock\(["']fs\/promises["'][\s\S]*requireActual[\s\S]*readFile:\s*jest\.fn\(\)[\s\S]*writeFile:\s*jest\.fn\(\)/u,
+        ),
       ]);
     });
   });

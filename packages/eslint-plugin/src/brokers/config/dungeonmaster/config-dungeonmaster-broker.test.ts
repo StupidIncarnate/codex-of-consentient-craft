@@ -3,25 +3,29 @@ import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.pr
 
 describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {
-    it('VALID: {} => returns object with typescript, test, fileOverrides, and ruleEnforceOn configs', () => {
+    it('VALID: {} => returns object with typescript, test, fileOverrides, and ruleEnforceOn keys', () => {
       configDungeonmasterBrokerProxy();
 
       const result = configDungeonmasterBroker();
 
-      expect(typeof result.typescript).toBe('object');
-      expect(typeof result.test).toBe('object');
-      expect(Array.isArray(result.fileOverrides)).toBe(true);
-      expect(typeof result.ruleEnforceOn).toBe('object');
+      expect(Object.keys(result).sort()).toStrictEqual(
+        ['fileOverrides', 'ruleEnforceOn', 'test', 'typescript'].sort(),
+      );
     });
 
-    it('VALID: {} => typescript config contains main rules', () => {
+    it('VALID: {} => typescript config contains enforce-contract-usage-in-tests rule', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typeof typescript).toBe('object');
-      expect(typeof typescript.rules).toBe('object');
       expect(typescript.rules?.['@dungeonmaster/enforce-contract-usage-in-tests']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config contains enforce-object-destructuring-params rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
       expect(typescript.rules?.['@dungeonmaster/enforce-object-destructuring-params']).toBe(
         'error',
       );
@@ -40,52 +44,127 @@ describe('configDungeonmasterBroker', () => {
       });
 
       expect(stubConfig?.files).toStrictEqual(['**/*.stub.ts', '**/*.stub.tsx']);
+    });
+
+    it('VALID: {} => stub file config disables magic numbers', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { fileOverrides } = configDungeonmasterBroker();
+      const stubConfig = fileOverrides.find((config) => {
+        return Boolean(
+          config.files?.some((file) => {
+            return file === '**/*.stub.ts';
+          }),
+        );
+      });
+
       expect(stubConfig?.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
-    it('VALID: {} => typescript config includes TypeScript rules', () => {
+    it('VALID: {} => typescript config includes no-explicit-any rule', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['@typescript-eslint/no-explicit-any']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config includes explicit-function-return-type rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
       expect(typescript.rules?.['@typescript-eslint/explicit-function-return-type']).toStrictEqual([
         'error',
         { allowExpressions: true },
       ]);
     });
 
-    it('VALID: {} => typescript config includes eslint-comments rules', () => {
+    it('VALID: {} => typescript config includes eslint-comments no-unlimited-disable rule', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
 
-      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['eslint-comments/no-unlimited-disable']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config includes eslint-comments no-use rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
       expect(typescript.rules?.['eslint-comments/no-use']).toStrictEqual(['error', { allow: [] }]);
     });
 
-    it('VALID: {} => ruleEnforceOn contains pre-edit rules', () => {
+    it('VALID: {} => ruleEnforceOn contains ban-primitives as pre-edit', () => {
       configDungeonmasterBrokerProxy();
 
       const { ruleEnforceOn } = configDungeonmasterBroker();
 
       expect(ruleEnforceOn['@dungeonmaster/ban-primitives']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains enforce-object-destructuring-params as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@dungeonmaster/enforce-object-destructuring-params']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains no-explicit-any as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@typescript-eslint/no-explicit-any']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains eslint-comments no-use as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['eslint-comments/no-use']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains ban-fetch-in-proxies as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@dungeonmaster/ban-fetch-in-proxies']).toBe('pre-edit');
     });
 
-    it('VALID: {} => ruleEnforceOn contains post-edit rules', () => {
+    it('VALID: {} => ruleEnforceOn contains enforce-proxy-patterns as post-edit', () => {
       configDungeonmasterBrokerProxy();
 
       const { ruleEnforceOn } = configDungeonmasterBroker();
 
       expect(ruleEnforceOn['@dungeonmaster/enforce-proxy-patterns']).toBe('post-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains enforce-proxy-child-creation as post-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@dungeonmaster/enforce-proxy-child-creation']).toBe('post-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains enforce-implementation-colocation as post-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@dungeonmaster/enforce-implementation-colocation']).toBe('post-edit');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains enforce-test-colocation as post-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
       expect(ruleEnforceOn['@dungeonmaster/enforce-test-colocation']).toBe('post-edit');
     });
   });
@@ -126,14 +205,12 @@ describe('configDungeonmasterBroker', () => {
   });
 
   describe('forTesting parameter', () => {
-    it('VALID: {forTesting: true} => test config has jest plugin', () => {
+    it('VALID: {forTesting: true} => test config has jest plugin key', () => {
       configDungeonmasterBrokerProxy();
 
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
-      expect(typeof test).toBe('object');
-      expect(typeof test.plugins).toBe('object');
-      expect(typeof test.plugins?.jest).toBe('object');
+      expect('jest' in (test.plugins as object)).toBe(true);
     });
 
     it('VALID: {forTesting: true} => test config disables magic numbers', () => {
@@ -141,7 +218,6 @@ describe('configDungeonmasterBroker', () => {
 
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
-      expect(typeof test).toBe('object');
       expect(test.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
@@ -150,7 +226,6 @@ describe('configDungeonmasterBroker', () => {
 
       const { typescript } = configDungeonmasterBroker({ forTesting: false });
 
-      expect(typeof typescript).toBe('object');
       expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).not.toBe('off');
     });
   });

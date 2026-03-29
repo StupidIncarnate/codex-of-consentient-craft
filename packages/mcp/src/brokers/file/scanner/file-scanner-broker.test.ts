@@ -844,7 +844,7 @@ export const isKeyOfGuard = <T extends object>({ obj, key }: { obj: T; key: Prop
       expect(sharedFiles.length).toBeGreaterThan(0);
 
       // First shared file should have transformed path
-      expect(sharedFiles[0]?.path).toMatch(/@dungeonmaster\/shared\//u);
+      expect(sharedFiles[0]?.path).toContain('@dungeonmaster/shared/');
     });
   });
 
