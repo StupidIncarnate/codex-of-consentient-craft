@@ -73,7 +73,8 @@ describe('agentSpawnByRoleBroker', () => {
       });
 
       const spawnedArgs = proxy.getSpawnedArgs() as unknown[];
-      const prompt = spawnedArgs[1];
+      const [, prompt] = spawnedArgs;
+
       expect(prompt).toContain('Quest ID: add-auth');
       expect(prompt).not.toContain('$ARGUMENTS');
     });
