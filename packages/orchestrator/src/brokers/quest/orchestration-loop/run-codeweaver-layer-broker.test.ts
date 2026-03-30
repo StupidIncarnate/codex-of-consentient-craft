@@ -837,7 +837,7 @@ describe('runCodeweaverLayerBroker', () => {
 
       const summary = proxy.getLastPersistedWorkItemSummary({ workItemId });
 
-      expect(summary).toBeUndefined();
+      expect(summary).toBe(undefined);
     });
   });
 });

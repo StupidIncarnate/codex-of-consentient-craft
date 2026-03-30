@@ -2198,8 +2198,8 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      const header = screen.getAllByTestId('execution-row-header')[0];
-      await userEvent.click(header as HTMLElement);
+      const [header] = screen.getAllByTestId('execution-row-header');
+      await userEvent.click(header!);
 
       const summaryEl = screen.getByTestId('execution-row-summary');
 
@@ -2224,10 +2224,10 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      const header = screen.getAllByTestId('execution-row-header')[0];
-      await userEvent.click(header as HTMLElement);
+      const [header2] = screen.getAllByTestId('execution-row-header');
+      await userEvent.click(header2!);
 
-      expect(screen.queryByTestId('execution-row-summary')).toBeNull();
+      expect(screen.queryByTestId('execution-row-summary')).toBe(null);
     });
 
     it('VALID: {stepped work item with summary} => passes summary to step execution row', async () => {
@@ -2250,8 +2250,8 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      const header = screen.getAllByTestId('execution-row-header')[0];
-      await userEvent.click(header as HTMLElement);
+      const [header3] = screen.getAllByTestId('execution-row-header');
+      await userEvent.click(header3!);
 
       const summaryEl = screen.getByTestId('execution-row-summary');
 
@@ -2283,7 +2283,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       const headers = screen.getAllByTestId('execution-row-header');
-      await userEvent.click(headers[0] as HTMLElement);
+      await userEvent.click(headers[0]!);
 
       const summaryEl = screen.getByTestId('execution-row-summary');
 

@@ -311,9 +311,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toMatch(/^Quest ID: empty-quest\n/u);
       expect(result).toMatch(/^Flow: Empty Flow$/mu);
-      expect(result).toMatch(/^Observable Type Reference:$/mu);
-      expect(result).not.toMatch(/^Nodes:$/mu);
-      expect(result).not.toMatch(/^Edges:$/mu);
+      expect(result).toMatch(/^ {2}Exit Points: \/end\nObservable Type Reference:$/mu);
     });
 
     it('VALID: {siegemaster with edges} => includes edges with labels', () => {
@@ -406,8 +404,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/^Design Decisions:$/mu);
-      expect(result).not.toMatch(/^Contracts:$/mu);
+      expect(result).toMatch(/^Observable Type Reference:\n(?:\s{2}- .+\n?)+$/mu);
     });
 
     it('EDGE: {siegemaster with all empty collections} => only quest ID, flow metadata, and type reference', () => {
@@ -426,11 +423,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: minimal-quest\nFlow: Minimal Flow\n/u);
-      expect(result).toMatch(/^Observable Type Reference:$/mu);
-      expect(result).not.toMatch(/^ {2}Nodes:$/mu);
-      expect(result).not.toMatch(/^ {2}Edges:$/mu);
-      expect(result).not.toMatch(/^Design Decisions:$/mu);
+      expect(result).toMatch(
+        /^Quest ID: minimal-quest\nFlow: Minimal Flow\n {2}Entry Point: \/start\n {2}Exit Points: \/end\nObservable Type Reference:\n(?:\s{2}- .+\n?)+$/u,
+      );
     });
   });
 

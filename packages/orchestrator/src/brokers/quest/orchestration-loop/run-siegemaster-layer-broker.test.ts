@@ -515,7 +515,11 @@ describe('runSiegemasterLayerBroker', () => {
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
       });
-      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
@@ -547,7 +551,11 @@ describe('runSiegemasterLayerBroker', () => {
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
       });
-      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
@@ -587,6 +595,7 @@ describe('runSiegemasterLayerBroker', () => {
         id: siegeWorkItemId,
         role: 'siegemaster',
         status: 'in_progress',
+        relatedDataItems: [FLOW_REF],
       });
       const lawbringerItem = WorkItemStub({
         id: lawbringerWorkItemId,
@@ -635,6 +644,7 @@ describe('runSiegemasterLayerBroker', () => {
         id: siegeWorkItemId,
         role: 'siegemaster',
         status: 'in_progress',
+        relatedDataItems: [FLOW_REF],
       });
       const lawbringerItem = WorkItemStub({
         id: lawbringerWorkItemId,
@@ -673,7 +683,11 @@ describe('runSiegemasterLayerBroker', () => {
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
       });
-      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
@@ -709,8 +723,16 @@ describe('runSiegemasterLayerBroker', () => {
       const siege2WorkItemId = QuestWorkItemIdStub({
         value: 'c3333333-3333-4333-8333-333333333333',
       });
-      const workItem1 = WorkItemStub({ id: siege1WorkItemId, role: 'siegemaster' });
-      const workItem2 = WorkItemStub({ id: siege2WorkItemId, role: 'siegemaster' });
+      const workItem1 = WorkItemStub({
+        id: siege1WorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
+      const workItem2 = WorkItemStub({
+        id: siege2WorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem1, workItem2] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
@@ -757,8 +779,13 @@ describe('runSiegemasterLayerBroker', () => {
         id: siege1WorkItemId,
         role: 'siegemaster',
         status: 'in_progress',
+        relatedDataItems: [FLOW_REF],
       });
-      const workItem2 = WorkItemStub({ id: siege2WorkItemId, role: 'siegemaster' });
+      const workItem2 = WorkItemStub({
+        id: siege2WorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem1, workItem2] });
 
       const proxy = runSiegemasterLayerBrokerProxy();
@@ -797,7 +824,11 @@ describe('runSiegemasterLayerBroker', () => {
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
       });
-      const workItem = WorkItemStub({ id: siegeWorkItemId, role: 'siegemaster' });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [FLOW_REF],
+      });
       const quest = QuestStub({ flows: [flow], workItems: [workItem] });
 
       const proxy = runSiegemasterLayerBrokerProxy();

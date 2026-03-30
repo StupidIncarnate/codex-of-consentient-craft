@@ -845,7 +845,7 @@ describe('runLawbringerLayerBroker', () => {
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
       expect(persistedItem?.status).toBe('complete');
-      expect(persistedItem?.summary).toBeUndefined();
+      expect(persistedItem?.summary).toBe(undefined);
     });
   });
 
@@ -953,7 +953,7 @@ describe('runLawbringerLayerBroker', () => {
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
       expect(persistedItem?.status).toBe('failed');
-      expect(persistedItem?.completedAt).toBeUndefined();
+      expect(persistedItem?.completedAt).toBe(undefined);
     });
   });
 

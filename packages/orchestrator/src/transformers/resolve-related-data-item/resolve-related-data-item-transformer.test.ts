@@ -84,9 +84,11 @@ describe('resolveRelatedDataItemTransformer', () => {
 
       const result = resolveRelatedDataItemTransformer({ ref, quest });
 
-      expect(result.collection).toBe('flows');
-      expect(result.id).toBe(String(flowId));
-      expect(result.item).toStrictEqual(flow);
+      expect(result).toStrictEqual({
+        collection: 'flows',
+        id: String(flowId),
+        item: flow,
+      });
     });
 
     it('ERROR: {ref: "flows/unknown-id"} => throws flow not found', () => {

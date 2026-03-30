@@ -567,7 +567,7 @@ describe('runSpiritmenderLayerBroker', () => {
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
       expect(persistedItem?.status).toBe('complete');
-      expect(persistedItem?.summary).toBeUndefined();
+      expect(persistedItem?.summary).toBe(undefined);
     });
 
     it('VALID: {agent fails with summary from earlier signal} => persists summary on failed work item', async () => {
@@ -607,7 +607,7 @@ describe('runSpiritmenderLayerBroker', () => {
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
       expect(persistedItem?.status).toBe('failed');
-      expect(persistedItem?.summary).toBeUndefined();
+      expect(persistedItem?.summary).toBe(undefined);
     });
   });
 
@@ -683,7 +683,7 @@ describe('runSpiritmenderLayerBroker', () => {
 
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
-      expect(persistedItem?.completedAt).toBeUndefined();
+      expect(persistedItem?.completedAt).toBe(undefined);
     });
   });
 
@@ -798,7 +798,7 @@ describe('runSpiritmenderLayerBroker', () => {
       const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
 
       expect(persistedItem?.status).toBe('complete');
-      expect(persistedItem?.sessionId).toBeUndefined();
+      expect(persistedItem?.sessionId).toBe(undefined);
     });
   });
 
@@ -884,7 +884,7 @@ describe('runSpiritmenderLayerBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(undefined);
     });
   });
 });
