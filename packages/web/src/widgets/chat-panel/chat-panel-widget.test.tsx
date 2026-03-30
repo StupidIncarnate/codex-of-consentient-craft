@@ -478,6 +478,98 @@ describe('ChatPanelWidget', () => {
       expect(tokenBadge).not.toBe(null);
       expect(tokenBadge?.textContent).toBe('500 context');
     });
+
+    it('VALID: {assistant text with usage, not streaming} => renders context divider with cumulative tokens', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Hello' }),
+        AssistantTextChatEntryStub({
+          content: 'Hi there',
+          usage: {
+            inputTokens: 500,
+            outputTokens: 50,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 0,
+          },
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasDividerCount({ count: 1 })).toBe(true);
+    });
+
+    it('VALID: {entries without usage} => does not render token badge or divider', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Hello' }),
+        AssistantTextChatEntryStub({ content: 'Hi there' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('TOKEN_BADGE')).toBe(null);
+      expect(proxy.hasDividerCount({ count: 0 })).toBe(true);
+    });
+
+    it('VALID: {two assistant texts with usage} => renders rolling delta on second badge', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Hello' }),
+        AssistantTextChatEntryStub({
+          content: 'First response',
+          usage: {
+            inputTokens: 500,
+            outputTokens: 50,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 0,
+          },
+        }),
+        UserChatEntryStub({ content: 'Follow up' }),
+        AssistantTextChatEntryStub({
+          content: 'Second response',
+          usage: {
+            inputTokens: 1200,
+            outputTokens: 80,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 0,
+          },
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={jest.fn()}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['500 context', '700 context']);
+    });
   });
 
   describe('subagent chain rendering', () => {

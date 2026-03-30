@@ -47,6 +47,26 @@ describe('ToolGroupWidget', () => {
 
       expect(header.textContent).toContain('25.5k');
     });
+
+    it('VALID: {group with null contextTokens} => renders header without context suffix', () => {
+      ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+          AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+        ],
+        toolCount: 1,
+        contextTokens: null,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      const header = screen.getByTestId('TOOL_GROUP_HEADER');
+
+      expect(header.textContent).toBe('\u25B8 1 Tools');
+    });
   });
 
   describe('expanded state', () => {
