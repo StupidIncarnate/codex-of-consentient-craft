@@ -102,6 +102,8 @@
       "mcp__dungeonmaster__verify-quest",
       "mcp__dungeonmaster__ask-user-question"
     ],
-    "deny": ["Bash(sed:*)"]
+    "deny": [
+      "Bash(sed:*)"
+    ]
   }
 }
