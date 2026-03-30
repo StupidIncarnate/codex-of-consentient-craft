@@ -38,7 +38,7 @@ describe('checkPrimitiveViolationLayerBroker', () => {
       ctx,
     });
 
-    expect(mockReport).not.toHaveBeenCalled();
+    expect(mockReport.mock.calls).toStrictEqual([]);
   });
 
   it('INVALID: {allowPrimitiveInputs: true, node in return type} => reports error', () => {

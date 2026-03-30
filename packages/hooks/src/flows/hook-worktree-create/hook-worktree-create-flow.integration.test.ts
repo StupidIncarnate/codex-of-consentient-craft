@@ -8,7 +8,7 @@ describe('HookWorktreeCreateFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
 
@@ -18,7 +18,7 @@ describe('HookWorktreeCreateFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
   });

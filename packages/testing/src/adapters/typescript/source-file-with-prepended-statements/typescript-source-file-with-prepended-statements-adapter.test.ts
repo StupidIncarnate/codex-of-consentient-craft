@@ -108,8 +108,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
       const printer = ts.createPrinter();
       const output = printer.printFile(result as unknown as ts.SourceFile);
 
-      expect(output).toMatch(/^const x = 1/mu);
-      expect(output).not.toMatch(/^jest\.mock/mu);
+      expect(output).toBe('const x = 1;\n');
     });
   });
 });

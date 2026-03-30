@@ -16,7 +16,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -32,7 +32,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -51,7 +51,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -70,7 +70,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {body.type: BlockStatement, body.body: not array} => does not report', () => {
@@ -90,7 +90,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -117,7 +117,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -161,7 +161,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.spyOn()} => does not report', () => {
@@ -203,7 +203,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {childProxy.someMethod()} => does not report', () => {
@@ -245,7 +245,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -389,7 +389,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -418,7 +418,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {ExpressionStatement with no expression} => does not report', () => {
@@ -447,7 +447,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {CallExpression with no callee} => does not report', () => {
@@ -479,7 +479,7 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
 
       validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

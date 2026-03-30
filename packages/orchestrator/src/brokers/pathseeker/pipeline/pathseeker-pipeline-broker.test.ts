@@ -86,7 +86,7 @@ describe('pathseekerPipelineBroker', () => {
       const { onVerifySuccess, onProcessUpdate } = proxy;
 
       expect(onVerifySuccess).toHaveBeenCalledTimes(1);
-      expect(onProcessUpdate).not.toHaveBeenCalled();
+      expect(onProcessUpdate.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -110,8 +110,8 @@ describe('pathseekerPipelineBroker', () => {
 
       const { onVerifySuccess, onProcessUpdate } = proxy;
 
-      expect(onVerifySuccess).not.toHaveBeenCalled();
-      expect(onProcessUpdate).not.toHaveBeenCalled();
+      expect(onVerifySuccess.mock.calls).toStrictEqual([]);
+      expect(onProcessUpdate.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -166,7 +166,7 @@ describe('pathseekerPipelineBroker', () => {
 
       const { onVerifySuccess, onProcessUpdate } = proxy;
 
-      expect(onVerifySuccess).not.toHaveBeenCalled();
+      expect(onVerifySuccess.mock.calls).toStrictEqual([]);
       expect(onProcessUpdate).toHaveBeenCalledTimes(3);
     });
   });

@@ -8,7 +8,9 @@ describe('main', () => {
       // main.ts is a Vite entry point that calls StartApp() on load.
       // It intentionally has no exports - it's a side-effect-only module.
       // The actual mounting behavior is tested in app-mount-flow.integration.test.tsx.
-      expect(true).toBe(true);
+      const resolved = require.resolve('./main');
+
+      expect(resolved).toMatch(/\/main\.ts$/u);
     });
   });
 });

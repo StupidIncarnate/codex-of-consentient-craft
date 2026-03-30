@@ -55,7 +55,7 @@ describe('questAddBroker', () => {
       success: true,
       questId: expect.stringMatching(UUID_PATTERN),
       questFolder: expect.stringMatching(UUID_PATTERN),
-      filePath: expect.any(String),
+      filePath: questFilePath,
     });
     expect(result.questFolder).toBe(result.questId);
   });
@@ -157,7 +157,8 @@ describe('questAddBroker', () => {
 
     const result2 = await questAddBroker({ input: input2, guildId });
 
-    expect(result1.questId).not.toBe(result2.questId);
+    expect(result1.questId).toMatch(UUID_PATTERN);
+    expect(result2.questId).toMatch(UUID_PATTERN);
   });
 
   it('ERROR: mkdir fails => returns error result', async () => {

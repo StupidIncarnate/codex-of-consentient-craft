@@ -56,12 +56,18 @@ describe('questStageToSectionsTransformer', () => {
       const result1 = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'spec' }),
       });
+      result1.push('steps' as never);
+
       const result2 = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'spec' }),
       });
 
-      expect(result1).not.toBe(result2);
-      expect(result1).toStrictEqual(result2);
+      expect(result2).toStrictEqual([
+        'flows',
+        'designDecisions',
+        'contracts',
+        'toolingRequirements',
+      ]);
     });
   });
 });

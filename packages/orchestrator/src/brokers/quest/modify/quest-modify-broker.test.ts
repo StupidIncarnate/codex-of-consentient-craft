@@ -200,7 +200,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: expect.stringMatching(/not found in any guild$/u),
       });
     });
 
@@ -214,7 +214,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: expect.stringMatching(/not found in any guild$/u),
       });
     });
   });

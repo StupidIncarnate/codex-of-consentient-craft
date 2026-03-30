@@ -34,7 +34,7 @@ describe('questOutboxWatchBroker', () => {
       stop();
 
       expect(onQuestChanged).toHaveBeenCalledWith({ questId: 'add-auth' });
-      expect(onError).not.toHaveBeenCalled();
+      expect(onError.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {different questId} => calls onQuestChanged with different questId', async () => {
@@ -64,7 +64,7 @@ describe('questOutboxWatchBroker', () => {
       stop();
 
       expect(onQuestChanged).toHaveBeenCalledWith({ questId: 'remove-feature' });
-      expect(onError).not.toHaveBeenCalled();
+      expect(onError.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -93,7 +93,7 @@ describe('questOutboxWatchBroker', () => {
 
       stop();
 
-      expect(onQuestChanged).not.toHaveBeenCalled();
+      expect(onQuestChanged.mock.calls).toStrictEqual([]);
       expect(onError).toHaveBeenCalledTimes(1);
     });
 
@@ -121,7 +121,7 @@ describe('questOutboxWatchBroker', () => {
 
       stop();
 
-      expect(onQuestChanged).not.toHaveBeenCalled();
+      expect(onQuestChanged.mock.calls).toStrictEqual([]);
       expect(onError).toHaveBeenCalledTimes(1);
     });
   });
@@ -145,7 +145,7 @@ describe('questOutboxWatchBroker', () => {
 
       stop();
 
-      expect(onQuestChanged).not.toHaveBeenCalled();
+      expect(onQuestChanged.mock.calls).toStrictEqual([]);
       expect(onError).toHaveBeenCalledWith({ error: new Error('watcher failed') });
     });
   });

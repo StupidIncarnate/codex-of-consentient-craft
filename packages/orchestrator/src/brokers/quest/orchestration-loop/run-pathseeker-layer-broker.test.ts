@@ -490,7 +490,7 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        expect.any(String),
+        expect.stringMatching(/^You are PathSeeker/u),
         '--output-format',
         'stream-json',
         '--verbose',
@@ -532,7 +532,7 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        expect.any(String),
+        expect.stringMatching(/^You are PathSeeker/u),
         '--output-format',
         'stream-json',
         '--verbose',

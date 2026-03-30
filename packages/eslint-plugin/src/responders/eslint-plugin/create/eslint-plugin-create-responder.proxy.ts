@@ -59,6 +59,10 @@ import { ruleBanUnanchoredToMatchBrokerProxy } from '../../../brokers/rule/ban-u
 import { ruleEnforceTestidQueriesBrokerProxy } from '../../../brokers/rule/enforce-testid-queries/rule-enforce-testid-queries-broker.proxy';
 import { ruleBanPlaywrightEvaluateForStylesBrokerProxy } from '../../../brokers/rule/ban-playwright-evaluate-for-styles/rule-ban-playwright-evaluate-for-styles-broker.proxy';
 import { ruleBanPlaywrightExtractThenAssertBrokerProxy } from '../../../brokers/rule/ban-playwright-extract-then-assert/rule-ban-playwright-extract-then-assert-broker.proxy';
+import { ruleBanNegatedMatchersBrokerProxy } from '../../../brokers/rule/ban-negated-matchers/rule-ban-negated-matchers-broker.proxy';
+import { ruleBanTautologicalAssertionsBrokerProxy } from '../../../brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker.proxy';
+import { ruleBanObjectKeysInExpectBrokerProxy } from '../../../brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.proxy';
+import { ruleBanStringIncludesInExpectBrokerProxy } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -112,6 +116,10 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceTestidQueriesBrokerProxy();
   ruleBanPlaywrightEvaluateForStylesBrokerProxy();
   ruleBanPlaywrightExtractThenAssertBrokerProxy();
+  ruleBanNegatedMatchersBrokerProxy();
+  ruleBanTautologicalAssertionsBrokerProxy();
+  ruleBanObjectKeysInExpectBrokerProxy();
+  ruleBanStringIncludesInExpectBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

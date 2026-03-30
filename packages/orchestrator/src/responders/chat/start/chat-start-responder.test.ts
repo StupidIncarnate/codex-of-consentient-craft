@@ -277,7 +277,7 @@ describe('ChatStartResponder', () => {
         sessionId,
       });
 
-      expect(killMock).not.toHaveBeenCalled();
+      expect(killMock.mock.calls).toStrictEqual([]);
       expect(orchestrationProcessesState.has({ processId: otherProcessId })).toBe(true);
       expect(result.chatProcessId).toMatch(/^chat-/u);
     });

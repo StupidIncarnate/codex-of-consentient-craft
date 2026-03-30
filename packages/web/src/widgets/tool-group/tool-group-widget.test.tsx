@@ -45,7 +45,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toContain('25.5k');
+      expect(header.textContent).toBe('\u25B8 1 Tools (25.5k context)');
     });
 
     it('VALID: {group with null contextTokens} => renders header without context suffix', () => {
@@ -87,7 +87,7 @@ describe('ToolGroupWidget', () => {
       await proxy.clickHeader();
 
       expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_ROW')).not.toBe(null);
+      expect(screen.queryByTestId('TOOL_ROW')).toBeInTheDocument();
     });
 
     it('VALID: {click header twice} => collapses back', async () => {
@@ -157,7 +157,7 @@ describe('ToolGroupWidget', () => {
       });
 
       expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
-      expect(screen.queryByTestId('TOOL_ROW_RESULT')).not.toBe(null);
+      expect(screen.queryByTestId('TOOL_ROW_RESULT')).toBeInTheDocument();
     });
 
     it('VALID: {isLastGroup: false, isStreaming: true} => stays collapsed', () => {
@@ -226,7 +226,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toContain('▸');
+      expect(header.textContent).toBe('\u25B8 1 Tools');
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -247,7 +247,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toContain('▾');
+      expect(header.textContent).toBe('\u25BE 1 Tools');
     });
   });
 

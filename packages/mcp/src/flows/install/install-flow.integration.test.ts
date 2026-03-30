@@ -44,9 +44,47 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
-      expect(configContent).toContain('"dungeonmaster"');
-      expect(configContent).toContain('"type": "stdio"');
-      expect(settingsContent).toContain('mcp__dungeonmaster__get-architecture');
+      expect(configContent).toBe(
+        JSON.stringify(
+          {
+            mcpServers: {
+              dungeonmaster: {
+                type: 'stdio',
+                command: 'npx',
+                args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+      expect(settingsContent).toBe(
+        JSON.stringify(
+          {
+            permissions: {
+              allow: [
+                'mcp__dungeonmaster__discover',
+                'mcp__dungeonmaster__get-architecture',
+                'mcp__dungeonmaster__get-folder-detail',
+                'mcp__dungeonmaster__get-syntax-rules',
+                'mcp__dungeonmaster__get-testing-patterns',
+                'mcp__dungeonmaster__get-quest',
+                'mcp__dungeonmaster__modify-quest',
+                'mcp__dungeonmaster__signal-back',
+                'mcp__dungeonmaster__start-quest',
+                'mcp__dungeonmaster__get-quest-status',
+                'mcp__dungeonmaster__list-quests',
+                'mcp__dungeonmaster__list-guilds',
+                'mcp__dungeonmaster__verify-quest',
+                'mcp__dungeonmaster__ask-user-question',
+              ],
+            },
+          },
+          null,
+          2,
+        ),
+      );
     });
 
     it('VALID: {context: config exists with dungeonmaster} => returns skipped', async () => {

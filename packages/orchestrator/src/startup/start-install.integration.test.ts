@@ -39,9 +39,9 @@ describe('StartInstall', () => {
           'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
       expect(questContent).toMatch(/^# ChaosWhisperer/u);
-      expect(String(questStartContent).includes('monitoring quest execution')).toBe(true);
-      expect(String(questFinalizerContent).includes('Quest Finalizer')).toBe(true);
-      expect(String(questGapReviewerContent).includes('Staff Engineer')).toBe(true);
+      expect(String(questStartContent)).toMatch(/^You are monitoring quest execution/u);
+      expect(String(questFinalizerContent)).toMatch(/^---\nname: finalizer-quest-agent/u);
+      expect(String(questGapReviewerContent)).toMatch(/^---\nname: quest-gap-reviewer/u);
     });
   });
 });

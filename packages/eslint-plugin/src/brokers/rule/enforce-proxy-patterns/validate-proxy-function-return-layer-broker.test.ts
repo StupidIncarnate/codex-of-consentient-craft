@@ -16,7 +16,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -130,7 +130,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -146,7 +146,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -173,7 +173,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('INVALID: {body.type: BlockStatement, body: [] (no return)} => reports proxyMustReturnObject', () => {
@@ -219,7 +219,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -238,7 +238,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -340,7 +340,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {body.type: MemberExpression} => does not report', () => {
@@ -356,7 +356,7 @@ describe('validateProxyFunctionReturnLayerBroker', () => {
 
       validateProxyFunctionReturnLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

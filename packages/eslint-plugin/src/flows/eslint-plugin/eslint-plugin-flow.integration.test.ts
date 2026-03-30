@@ -5,7 +5,9 @@ describe('EslintPluginFlow', () => {
     it('VALID: {} => delegates to responder and returns plugin with rules and configs', () => {
       const plugin = EslintPluginFlow();
 
-      expect(Object.keys(plugin.rules)).toStrictEqual([
+      const ruleNames = Object.keys(plugin.rules);
+
+      expect(ruleNames).toStrictEqual([
         'ban-adhoc-types',
         'ban-primitives',
         'enforce-contract-usage-in-tests',
@@ -53,8 +55,15 @@ describe('EslintPluginFlow', () => {
         'enforce-testid-queries',
         'ban-playwright-evaluate-for-styles',
         'ban-playwright-extract-then-assert',
+        'ban-negated-matchers',
+        'ban-tautological-assertions',
+        'ban-object-keys-in-expect',
+        'ban-string-includes-in-expect',
       ]);
-      expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
+
+      const configNames = Object.keys(plugin.configs);
+
+      expect(configNames).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });
   });
 });

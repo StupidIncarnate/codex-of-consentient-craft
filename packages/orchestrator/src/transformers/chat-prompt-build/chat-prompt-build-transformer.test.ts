@@ -17,9 +17,9 @@ describe('chatPromptBuildTransformer', () => {
         questId,
       });
 
-      expect(result).toContain('ChaosWhisperer');
-      expect(result).toContain('Build auth');
-      expect(result).toContain('abc-123');
+      expect(result).toMatch(/^# ChaosWhisperer/u);
+      expect(result).toMatch(/Build auth$/u);
+      expect(result).toMatch(/^2\. Call `get-quest` with quest ID `abc-123` to review/mu);
     });
 
     it('VALID: {chaoswhisperer + sessionId} => returns raw message as prompt', () => {
@@ -47,8 +47,8 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      expect(result).toContain('ChaosWhisperer');
-      expect(result).toContain('Build auth');
+      expect(result).toMatch(/^# ChaosWhisperer/u);
+      expect(result).toMatch(/Build auth$/u);
       expect(result).toMatch(
         new RegExp(
           chaoswhispererPromptStatics.prompt.placeholders.questId.replace('$', '\\$'),
@@ -70,9 +70,9 @@ describe('chatPromptBuildTransformer', () => {
         questId,
       });
 
-      expect(result).toContain('Glyphsmith');
-      expect(result).toContain('Create login page');
-      expect(result).toContain('design-quest-456');
+      expect(result).toMatch(/^# Glyphsmith/u);
+      expect(result).toMatch(/Create login page$/u);
+      expect(result).toMatch(/^1\. Call `get-quest` with quest ID `design-quest-456` to review/mu);
     });
 
     it('VALID: {glyphsmith + sessionId} => returns raw message as prompt', () => {
@@ -100,8 +100,8 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      expect(result).toContain('Glyphsmith');
-      expect(result).toContain('Create login page');
+      expect(result).toMatch(/^# Glyphsmith/u);
+      expect(result).toMatch(/Create login page$/u);
       expect(result).toMatch(
         new RegExp(glyphsmithPromptStatics.prompt.placeholders.questId.replace('$', '\\$'), 'u'),
       );

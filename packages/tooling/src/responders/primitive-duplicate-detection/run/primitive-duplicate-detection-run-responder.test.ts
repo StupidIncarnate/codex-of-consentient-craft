@@ -12,10 +12,10 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Scanning for duplicate primitives...');
-      expect(output).toContain('Pattern: **/*.ts');
-      expect(output).toContain('Threshold: 3+ occurrences');
-      expect(output).toContain('Min length: 3 characters');
+      expect(output).toMatch(/^Scanning for duplicate primitives\.\.\.$/mu);
+      expect(output).toMatch(/^ {2}Pattern: \*\*\/\*\.ts$/mu);
+      expect(output).toMatch(/^ {2}Threshold: 3\+ occurrences$/mu);
+      expect(output).toMatch(/^ {2}Min length: 3 characters$/mu);
     });
   });
 
@@ -28,7 +28,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Pattern: src/**/*.ts');
+      expect(output).toMatch(/^ {2}Pattern: src\/\*\*\/\*\.ts$/mu);
     });
   });
 
@@ -41,7 +41,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Directory: /some/path');
+      expect(output).toMatch(/^ {2}Directory: \/some\/path$/mu);
     });
   });
 
@@ -54,7 +54,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Threshold: 5+ occurrences');
+      expect(output).toMatch(/^ {2}Threshold: 5\+ occurrences$/mu);
     });
   });
 
@@ -67,7 +67,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Min length: 10 characters');
+      expect(output).toMatch(/^ {2}Min length: 10 characters$/mu);
     });
   });
 
@@ -80,14 +80,13 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('No duplicate primitives found!');
+      expect(output).toMatch(/^\u2705 No duplicate primitives found!$/mu);
     });
   });
 
   describe('multiple string duplicates', () => {
     it('VALID: {source with string literal repeated 3 times} => outputs formatted STRING duplicate report', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
-      // "hello-world" is 11 chars >= minLength(3), repeated 3 times >= threshold(3)
       proxy.setupWithSourceCode({
         sourceCode: SourceCodeStub({
           value: 'const a = "hello-world";\nconst b = "hello-world";\nconst c = "hello-world";',
@@ -98,17 +97,16 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('Found 1 duplicate primitive(s)');
-      expect(output).toContain('STRING: "hello-world"');
-      expect(output).toContain('Occurrences: 3');
-      expect(output).toContain('Suggestion: Extract these literals to statics files');
+      expect(output).toMatch(/^Found 1 duplicate primitive\(s\):$/mu);
+      expect(output).toMatch(/^STRING: "hello-world"$/mu);
+      expect(output).toMatch(/^Occurrences: 3$/mu);
+      expect(output).toMatch(/^Suggestion: Extract these literals to statics files:$/mu);
     });
   });
 
   describe('regex type duplicates', () => {
     it('VALID: {source with regex literal repeated 3 times} => outputs REGEX prefix in report', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
-      // /foo-bar/ regex literal repeated 3 times >= threshold(3)
       proxy.setupWithSourceCode({
         sourceCode: SourceCodeStub({
           value: 'const a = /foo-bar/;\nconst b = /foo-bar/;\nconst c = /foo-bar/;',
@@ -119,8 +117,8 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
 
       const output = proxy.getStdoutOutput().join('');
 
-      expect(output).toContain('REGEX: "/foo-bar/"');
-      expect(output).toContain('Occurrences: 3');
+      expect(output).toMatch(/^REGEX: "\/foo-bar\/"$/mu);
+      expect(output).toMatch(/^Occurrences: 3$/mu);
     });
   });
 });

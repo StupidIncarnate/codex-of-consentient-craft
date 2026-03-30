@@ -14,9 +14,9 @@ describe('folderConstraintsTransformer', () => {
         }),
       });
 
-      expect(constraints).toContain('MUST:');
-      expect(constraints).toContain('kebab-case filenames');
-      expect(constraints).toContain('export const');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation',
+      );
     });
   });
 
@@ -27,9 +27,11 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ requireProxy: true }),
       });
 
-      expect(constraints).toContain('MUST (Testing):');
-      expect(constraints).toContain('.proxy.ts');
-      expect(constraints).toContain('Mock only I/O boundaries');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST (Testing):**\n- Create `.proxy.ts` file for test setup\n- Mock only I/O boundaries (adapters)\n- All business logic runs real in tests\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/',
+      );
     });
 
     it('VALID: {config: {requireProxy: false}} => excludes proxy testing constraints', () => {
@@ -38,8 +40,10 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ requireProxy: false }),
       });
 
-      expect(constraints).not.toContain('MUST (Testing):');
-      expect(constraints).not.toContain('.proxy.ts');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/',
+      );
     });
   });
 
@@ -50,9 +54,10 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ disallowAdhocTypes: true }),
       });
 
-      expect(constraints).toContain('MUST NOT:');
-      expect(constraints).toContain('inline types');
-      expect(constraints).toContain('raw primitives');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/',
+      );
     });
 
     it('VALID: {config: {disallowAdhocTypes: false}} => excludes type constraints', () => {
@@ -61,8 +66,9 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ disallowAdhocTypes: false }),
       });
 
-      expect(constraints).not.toContain('MUST NOT:');
-      expect(constraints).not.toContain('inline types');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation',
+      );
     });
   });
 
@@ -73,9 +79,11 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ allowedImports: ['guards/', 'contracts/'] }),
       });
 
-      expect(constraints).toContain('IMPORT RESTRICTIONS:');
-      expect(constraints).toContain('guards/');
-      expect(constraints).toContain('contracts/');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/\n' +
+          '\n**IMPORT RESTRICTIONS:**\n- Only import from: `guards/`, `contracts/`\n- Importing from other layers violates architecture',
+      );
     });
 
     it('VALID: {config: {allowedImports: []}} => excludes import restrictions', () => {
@@ -84,7 +92,10 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({ allowedImports: [] }),
       });
 
-      expect(constraints).not.toContain('IMPORT RESTRICTIONS:');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/',
+      );
     });
   });
 
@@ -100,8 +111,11 @@ describe('folderConstraintsTransformer', () => {
         supplementalConstraints,
       });
 
-      expect(constraints).toContain('COMPLEXITY:');
-      expect(constraints).toContain('300 lines');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/\n' +
+          '\n**COMPLEXITY:**\n- Keep files under 300 lines',
+      );
     });
 
     it('VALID: {supplementalConstraints: not provided} => excludes supplemental content', () => {
@@ -110,7 +124,10 @@ describe('folderConstraintsTransformer', () => {
         config: FolderConfigStub({}),
       });
 
-      expect(constraints).not.toContain('COMPLEXITY:');
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/',
+      );
     });
 
     it('VALID: {supplementalConstraints: with examples} => includes example code', () => {
@@ -124,9 +141,11 @@ describe('folderConstraintsTransformer', () => {
         supplementalConstraints,
       });
 
-      expect(constraints).toContain('EXAMPLES:');
-      expect(constraints).toMatch(/^```typescript$/mu);
-      expect(constraints).toMatch(/^export const example/mu);
+      expect(constraints).toBe(
+        '**MUST:**\n- Use kebab-case filenames\n- Export with `export const` arrow functions\n- Include PURPOSE and USAGE metadata comments\n- Co-locate test files with implementation\n' +
+          '\n**MUST NOT:**\n- Define inline types or interfaces\n- Use raw primitives (string, number) in signatures\n- All types must come from contracts/\n' +
+          '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```',
+      );
     });
   });
 });

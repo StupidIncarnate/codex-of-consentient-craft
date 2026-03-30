@@ -30,9 +30,9 @@ describe('endpointMockLifecycleContract', () => {
       lifecycle.resetHandlers();
       lifecycle.close();
 
-      expect(mockListen).toHaveBeenCalledTimes(1);
-      expect(mockReset).toHaveBeenCalledTimes(1);
-      expect(mockClose).toHaveBeenCalledTimes(1);
+      expect(mockListen).toHaveBeenNthCalledWith(1);
+      expect(mockReset).toHaveBeenNthCalledWith(1);
+      expect(mockClose).toHaveBeenNthCalledWith(1);
     });
   });
 });

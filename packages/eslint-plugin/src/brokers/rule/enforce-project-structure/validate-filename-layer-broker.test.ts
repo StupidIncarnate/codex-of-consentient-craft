@@ -24,7 +24,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: contract file with -contract.ts suffix => returns true', () => {
@@ -44,7 +44,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: transformer file => returns true', () => {
@@ -64,7 +64,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: guard file => returns true', () => {
@@ -84,7 +84,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: error file => returns true', () => {
@@ -104,7 +104,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: widget file with .tsx => returns true', () => {
@@ -124,7 +124,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: flow file => returns true', () => {
@@ -144,7 +144,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: startup file => returns true', () => {
@@ -164,7 +164,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -186,7 +186,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: proxy file with .proxy.tsx suffix => returns true', () => {
@@ -206,7 +206,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -229,7 +229,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: layer widget file => returns true', () => {
@@ -249,7 +249,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -581,7 +581,7 @@ describe('validateFilenameLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

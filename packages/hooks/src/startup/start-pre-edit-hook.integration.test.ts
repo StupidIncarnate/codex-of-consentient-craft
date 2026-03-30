@@ -86,7 +86,7 @@ describe('pre-edit-lint', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su),
       });
     });
   });
@@ -204,7 +204,7 @@ describe('pre-edit-lint', () => {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
           ),
         });
       });
@@ -256,7 +256,7 @@ console.log('test');`,
           stdout: '',
           stderr: expect.stringMatching(
             new RegExp(
-              `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+              `^[\\s\\S]*🛑 New code quality violations detected[\\s\\S]*${expectedPattern.source}[\\s\\S]*$`,
               'su',
             ),
           ),
@@ -290,7 +290,7 @@ export function dirty({ param }: { param: any }): any {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Error Suppression.*Type Safety Violation.*$/su,
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Error Suppression[\s\S]*Type Safety Violation[\s\S]*$/su,
           ),
         });
       });
@@ -518,7 +518,7 @@ console.log('test');`,
             stdout: '',
             stderr: expect.stringMatching(
               new RegExp(
-                `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+                `^[\\s\\S]*🛑 New code quality violations detected[\\s\\S]*${expectedPattern.source}[\\s\\S]*$`,
                 'su',
               ),
             ),
@@ -559,7 +559,7 @@ export function test({ param }: { param: any }): void {}`,
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
           ),
         });
       });
@@ -748,7 +748,9 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+          stderr: expect.stringMatching(
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su,
+          ),
         });
       });
 
@@ -796,7 +798,9 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+          stderr: expect.stringMatching(
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su,
+          ),
         });
       });
 
@@ -845,7 +849,7 @@ export function processItems({ items }: { items: string[] }): string[] {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
           ),
         });
       });
@@ -933,7 +937,9 @@ export const handler: any = getValue();`,
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Type Error Suppression.*Type Safety Violation.*$/su),
+        stderr: expect.stringMatching(
+          /^[\s\S]*Type Error Suppression[\s\S]*Type Safety Violation[\s\S]*$/su,
+        ),
       });
     });
 
@@ -967,7 +973,7 @@ export const handler: any = processData;`;
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Type Safety Violation.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Type Safety Violation[\s\S]*$/su),
       });
     });
 

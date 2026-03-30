@@ -85,22 +85,22 @@ describe('workTrackerContract', () => {
         await expect(markStarted({ workItemId })).resolves.toBe(undefined);
       });
 
-      it('VALID: {default} => skipAllPending completes without error', () => {
-        const { skipAllPending } = WorkTrackerStub();
+      it('VALID: {default} => skipAllPending is callable and isAllComplete returns false', () => {
+        const { skipAllPending, isAllComplete } = WorkTrackerStub();
 
         skipAllPending();
 
-        expect(true).toBe(true);
+        expect(isAllComplete()).toBe(false);
       });
 
-      it('VALID: {default} => addWorkItem completes without error', () => {
-        const { addWorkItem } = WorkTrackerStub();
+      it('VALID: {default} => addWorkItem is callable and getReadyWorkIds returns default', () => {
+        const { addWorkItem, getReadyWorkIds } = WorkTrackerStub();
         const workItemId = WorkItemIdStub();
         const workUnit = WorkUnitStub();
 
         addWorkItem({ workItemId, workUnit });
 
-        expect(true).toBe(true);
+        expect(getReadyWorkIds()).toStrictEqual([WorkItemIdStub()]);
       });
     });
 

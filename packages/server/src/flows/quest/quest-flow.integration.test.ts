@@ -87,7 +87,9 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
-      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: expect.stringMatching(/^Quest not found: add-auth$/u),
+      });
     });
   });
 });

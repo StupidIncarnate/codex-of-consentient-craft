@@ -18,7 +18,7 @@ describe('DesignStopResponder', () => {
         status: 200,
         data: { stopped: true },
       });
-      expect(kill).toHaveBeenCalledTimes(1);
+      expect(kill.mock.calls).toStrictEqual([[]]);
     });
   });
 

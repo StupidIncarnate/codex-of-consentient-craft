@@ -1,3 +1,4 @@
+import { WorkUnitStub } from '../work-unit/work-unit.stub';
 import { workItemEntryContract } from './work-item-entry-contract';
 import { WorkItemEntryStub } from './work-item-entry.stub';
 
@@ -9,7 +10,7 @@ describe('workItemEntryContract', () => {
       const result = workItemEntryContract.parse(entry);
 
       expect(result).toStrictEqual({
-        workUnit: expect.any(Object),
+        workUnit: WorkUnitStub(),
         status: 'pending',
         retryCount: 0,
       });

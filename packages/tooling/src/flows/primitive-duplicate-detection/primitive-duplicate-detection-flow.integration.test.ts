@@ -38,7 +38,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^.*Scanning for duplicate primitives\.\.\..*Pattern: \*\*\/\*\.ts.*Threshold: 3\+ occurrences.*No duplicate primitives found!.*$/su,
+          /Scanning for duplicate primitives\.\.\.[\s\S]+Pattern: \*\*\/\*\.ts[\s\S]+Threshold: 3\+ occurrences[\s\S]+No duplicate primitives found!$/msu,
         ),
       });
     });
@@ -80,7 +80,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^.*Found 1 duplicate primitive\(s\):.*STRING: "duplicate string".*Occurrences: 3.*file3\.ts:[\s\S]*file2\.ts:[\s\S]*file1\.ts:.*$/su,
+          /Found 1 duplicate primitive\(s\):[\s\S]+STRING: "duplicate string"[\s\S]+Occurrences: 3[\s\S]+file3\.ts:[\s\S]+file2\.ts:[\s\S]+file1\.ts:.+$/su,
         ),
       });
     });
@@ -114,7 +114,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^.*Threshold: 2\+ occurrences.*Found 1 duplicate primitive\(s\):.*STRING: "twice only".*Occurrences: 2.*$/su,
+          /Threshold: 2\+ occurrences[\s\S]+Found 1 duplicate primitive\(s\):[\s\S]+STRING: "twice only"[\s\S]+Occurrences: 2$/msu,
         ),
       });
     });
@@ -138,7 +138,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
         stdout: result.stdout,
       }).toStrictEqual({
         exitCode: 0,
-        stdout: expect.stringMatching(/^.*No duplicate primitives found!.*$/su),
+        stdout: expect.stringMatching(/No duplicate primitives found!$/msu),
       });
     });
 
@@ -174,7 +174,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^.*Found 1 duplicate primitive\(s\):.*STRING: "This is a very long string that appears multiple times in the codebase".*Occurrences: 3.*$/su,
+          /Found 1 duplicate primitive\(s\):[\s\S]+STRING: "This is a very long string that appears multiple times in the codebase"[\s\S]+Occurrences: 3$/msu,
         ),
       });
     });
@@ -212,7 +212,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^.*Found 1 duplicate primitive\(s\):.*REGEX: "\/\^\[a-z\]\+\$\/".*Occurrences: 3.*$/su,
+          /Found 1 duplicate primitive\(s\):[\s\S]+REGEX: "\/\^\[a-z\]\+\$\/"[\s\S]+Occurrences: 3$/msu,
         ),
       });
     });

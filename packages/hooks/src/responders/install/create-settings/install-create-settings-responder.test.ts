@@ -23,12 +23,32 @@ describe('InstallCreateSettingsResponder', () => {
         message: 'Created .claude/settings.json with hooks',
       });
 
-      const written = String(proxy.getWrittenContent());
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
-      expect(written).toContain('dungeonmaster-pre-edit-lint');
-      expect(written).toContain('dungeonmaster-session-start');
-      expect(written).toContain('dungeonmaster-pre-bash');
-      expect(written).toContain('dungeonmaster-worktree-create');
+      expect(written).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+          ],
+          SessionStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
     });
   });
 
@@ -56,11 +76,33 @@ describe('InstallCreateSettingsResponder', () => {
         message: 'Merged hooks into existing settings',
       });
 
-      const written = String(proxy.getWrittenContent());
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
-      expect(written).toContain('Write');
-      expect(written).toContain('enabled');
-      expect(written).toContain('dungeonmaster-pre-edit-lint');
+      expect(written).toStrictEqual({
+        tools: { Write: { enabled: true } },
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+          ],
+          SessionStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
     });
   });
 
@@ -131,11 +173,34 @@ describe('InstallCreateSettingsResponder', () => {
         message: 'Merged hooks into existing settings',
       });
 
-      const written = String(proxy.getWrittenContent());
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
-      expect(written).toContain('existing-hook');
-      expect(written).toContain('existing-session-hook');
-      expect(written).toContain('dungeonmaster-pre-edit-lint');
+      expect(written).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            { hooks: [{ command: 'existing-hook' }] },
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+          ],
+          SessionStart: [
+            { hooks: [{ command: 'existing-session-hook' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
     });
   });
 });

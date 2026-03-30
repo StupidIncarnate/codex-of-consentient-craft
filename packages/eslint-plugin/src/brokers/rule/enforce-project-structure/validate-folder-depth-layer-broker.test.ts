@@ -23,7 +23,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: contracts at depth 1 => returns true', () => {
@@ -42,7 +42,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: startup at depth 0 => returns true', () => {
@@ -61,7 +61,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: responders at depth 2 => returns true', () => {
@@ -80,7 +80,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: adapters at depth 2 => returns true', () => {
@@ -99,7 +99,7 @@ describe('validateFolderDepthLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 

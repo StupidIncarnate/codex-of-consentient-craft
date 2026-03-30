@@ -177,7 +177,8 @@ describe('networkRecordCaptureBroker', () => {
       const entries2 = recorder.getEntries();
       recorder.stop();
 
-      expect(entries1).not.toBe(entries2);
+      expect(entries1).toStrictEqual(entries2);
+      expect(Object.is(entries1, entries2)).toBe(false);
     });
   });
 });

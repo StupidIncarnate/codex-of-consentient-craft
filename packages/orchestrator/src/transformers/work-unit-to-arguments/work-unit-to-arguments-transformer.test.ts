@@ -162,7 +162,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/^Related Observables:$/u);
+      expect(result).toBe(
+        'Step: Step\nFocus File: src/broker.ts\nAssertions:\n  - VALID: returns expected result\nQuest ID: quest-1',
+      );
     });
 
     it('VALID: {codeweaver with uses} => includes uses list', () => {
@@ -250,8 +252,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/^Design Decisions:$/u);
-      expect(result).not.toMatch(/^Flows:$/u);
+      expect(result).toBe(
+        'Step: Step\nFocus File: src/broker.ts\nAssertions:\n  - VALID: returns expected result\nQuest ID: quest-1',
+      );
     });
   });
 
@@ -285,7 +288,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toMatch(/^Quest ID: empty-quest\n/u);
       expect(result).toMatch(/^Observable Type Reference:$/mu);
-      expect(result).not.toMatch(/^Observables:$/u);
+      expect(result).toMatch(
+        /`custom` — Project-specific assertion — read the description for details$/u,
+      );
     });
 
     it('VALID: {siegemaster with design decisions} => includes design decisions', () => {
@@ -347,7 +352,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toContain('Dev Server URL:');
+      expect(result).toMatch(/^Quest ID: quest-1\nObservable Type Reference:/u);
     });
 
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
@@ -360,8 +365,10 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/^Design Decisions:$/u);
-      expect(result).not.toMatch(/^Flows:$/u);
+      expect(result).toMatch(/^Quest ID: quest-1\nObservable Type Reference:/u);
+      expect(result).toMatch(
+        /`custom` — Project-specific assertion — read the description for details$/u,
+      );
     });
   });
 
@@ -513,7 +520,7 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).not.toMatch(/^FAILURE CONTEXT$/u);
+      expect(result).toBe('Quest ID: my-quest');
     });
   });
 });

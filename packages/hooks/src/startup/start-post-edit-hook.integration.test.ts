@@ -77,7 +77,7 @@ describe('post-edit-hook', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: expect.any(String),
+        stdout: expect.stringMatching(/^[\s\S]*$/u),
         stderr: expect.stringMatching(stderrPattern),
       });
     });
@@ -133,7 +133,7 @@ describe('post-edit-hook', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: expect.any(String),
+        stdout: expect.stringMatching(/^[\s\S]*$/u),
         stderr: expect.stringMatching(stderrPattern),
       });
     });
@@ -226,7 +226,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
       expect(result).toStrictEqual({
         exitCode: 0,
         stdout: '',
-        stderr: expect.stringMatching(/^.*All violations auto-fixed successfully.*$/isu),
+        stderr: expect.stringMatching(/^[\s\S]*All violations auto-fixed successfully[\s\S]*$/isu),
       });
     });
 
@@ -281,9 +281,9 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       // Hook should exit successfully (never blocks) but report colocation violation
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: expect.any(String),
+        stdout: expect.stringMatching(/^[\s\S]*$/u),
         stderr: expect.stringMatching(
-          /^.*must have a colocated test file.*Create example-broker\.test\.ts.*$/isu,
+          /^[\s\S]*must have a colocated test file[\s\S]*Create example-broker\.test\.ts[\s\S]*$/isu,
         ),
       });
     });

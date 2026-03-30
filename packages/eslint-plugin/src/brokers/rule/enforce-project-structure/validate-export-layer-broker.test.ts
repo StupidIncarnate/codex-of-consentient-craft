@@ -30,7 +30,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: correct contract export => does not report', () => {
@@ -52,7 +52,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: correct error export (PascalCase) => does not report', () => {
@@ -78,7 +78,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: correct widget export => does not report', () => {
@@ -100,7 +100,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: startup with correct PascalCase export => does not report', () => {
@@ -122,7 +122,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: startup with 0 exports => does not report', () => {
@@ -141,7 +141,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports: [],
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: value export alongside type-only export => does not report', () => {
@@ -167,7 +167,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: correct proxy export => does not report', () => {
@@ -192,7 +192,7 @@ describe('validateExportLayerBroker', () => {
         collectedExports,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 

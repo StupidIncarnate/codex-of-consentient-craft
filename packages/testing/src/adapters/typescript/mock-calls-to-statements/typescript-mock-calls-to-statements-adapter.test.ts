@@ -162,7 +162,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/myFunc/u)]);
+      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*myFunc/u)]);
     });
 
     it('VALID: {factory with parenthesized expression} => clones correctly', () => {
@@ -186,7 +186,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/add.*jest\.fn/u)]);
+      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*add.*jest\.fn/u)]);
     });
 
     it('VALID: {factory with numeric literal} => clones correctly', () => {
@@ -210,7 +210,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/value.*42/u)]);
+      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*value.*42/u)]);
     });
 
     it('VALID: {multiple mock calls} => returns multiple statements', () => {
@@ -239,8 +239,8 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(/jest\.mock\(['"]fs['"]\)/u),
-        expect.stringMatching(/jest\.mock\(['"]path['"]\)/u),
+        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]fs['"]\)/u),
+        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]path['"]\)/u),
       ]);
     });
   });
@@ -270,7 +270,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
 
       expect(outputs).toStrictEqual([
         expect.stringMatching(
-          /jest\.mock\(["']fs\/promises["'],\s*\(\)\s*=>\s*\([\s\S]*\.\.\.jest\.requireActual\(["']fs\/promises["']\)[\s\S]*readFile:\s*jest\.fn\(\)/u,
+          /^[\s\S]*jest\.mock\(["']fs\/promises["'],\s*\(\)\s*=>\s*\([\s\S]*\.\.\.jest\.requireActual\(["']fs\/promises["']\)[\s\S]*readFile:\s*jest\.fn\(\)/u,
         ),
       ]);
     });
@@ -302,7 +302,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
 
       expect(outputs).toStrictEqual([
         expect.stringMatching(
-          /jest\.mock\(["']fs\/promises["'][\s\S]*requireActual[\s\S]*readFile:\s*jest\.fn\(\)[\s\S]*writeFile:\s*jest\.fn\(\)/u,
+          /^[\s\S]*jest\.mock\(["']fs\/promises["'][\s\S]*requireActual[\s\S]*readFile:\s*jest\.fn\(\)[\s\S]*writeFile:\s*jest\.fn\(\)/u,
         ),
       ]);
     });

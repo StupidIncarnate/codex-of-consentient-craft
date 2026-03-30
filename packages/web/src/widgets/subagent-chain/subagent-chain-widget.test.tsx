@@ -31,8 +31,7 @@ describe('SubagentChainWidget', () => {
 
       const headerText = header.textContent;
 
-      expect(headerText).toContain('Run tests');
-      expect(headerText).toContain('2 entries');
+      expect(headerText).toBe('\u25B8 SUB-AGENT"Run tests" (2 entries)');
     });
 
     it('VALID: {collapsed} => shows SUB-AGENT badge in header', () => {
@@ -60,7 +59,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toContain('7 entries, 1.9k');
+      expect(header.textContent).toBe('\u25B8 SUB-AGENT"Read files" (7 entries, 1.9k context)');
     });
 
     it('VALID: {collapsed without contextTokens} => shows only entry count', () => {
@@ -79,8 +78,7 @@ describe('SubagentChainWidget', () => {
 
       const headerText = header.textContent;
 
-      expect(headerText).toContain('3 entries');
-      expect(headerText).not.toContain(',');
+      expect(headerText).toBe('\u25B8 SUB-AGENT"Run tests" (3 entries)');
     });
 
     it('VALID: {collapsed} => shows right-pointing chevron', () => {
@@ -93,7 +91,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toContain('▸');
+      expect(header.textContent).toBe('\u25B8 SUB-AGENT"Run tests" (2 entries)');
     });
   });
 
@@ -137,7 +135,7 @@ describe('SubagentChainWidget', () => {
 
       const header = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
 
-      expect(header.textContent).toContain('▾');
+      expect(header.textContent).toBe('\u25BE SUB-AGENT"Run tests" (2 entries)');
     });
   });
 
@@ -212,7 +210,9 @@ describe('SubagentChainWidget', () => {
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
       expect(messages.length).toBeGreaterThan(0);
-      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toContain('SUB-AGENT');
+      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER').textContent).toBe(
+        '\u25BE SUB-AGENT"Run tests" (2 entries)',
+      );
     });
 
     it('VALID: {expanded without task notification} => does not render extra message at bottom', async () => {

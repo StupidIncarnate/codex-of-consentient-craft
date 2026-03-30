@@ -29,7 +29,7 @@ describe('questFolderFindBroker', () => {
       expect(result).toStrictEqual({
         found: true,
         folderPath: '/project/.dungeonmaster-quests/001-add-auth',
-        quest: expect.any(Object),
+        quest,
       });
     });
 
@@ -67,7 +67,7 @@ describe('questFolderFindBroker', () => {
       expect(result).toStrictEqual({
         found: true,
         folderPath: '/project/.dungeonmaster-quests/002-fix-bug',
-        quest: expect.any(Object),
+        quest: quest2,
       });
     });
   });
@@ -147,7 +147,7 @@ describe('questFolderFindBroker', () => {
       expect(result).toStrictEqual({
         found: true,
         folderPath: '/project/.dungeonmaster-quests/002-add-auth',
-        quest: expect.any(Object),
+        quest,
       });
     });
   });

@@ -19,7 +19,7 @@ describe('questFolderFindResultContract', () => {
       expect(result).toStrictEqual({
         found: true,
         folderPath: '/project/.dungeonmaster-quests/001-add-auth',
-        quest: expect.any(Object),
+        quest,
       });
     });
   });

@@ -23,7 +23,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (33 rules)
+  // @dungeonmaster - PRE-EDIT (37 rules)
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
@@ -67,6 +67,10 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-playwright-evaluate-for-styles': 'pre-edit',
   '@dungeonmaster/ban-playwright-extract-then-assert': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-proxies': 'pre-edit',
+  '@dungeonmaster/ban-negated-matchers': 'pre-edit',
+  '@dungeonmaster/ban-tautological-assertions': 'pre-edit',
+  '@dungeonmaster/ban-object-keys-in-expect': 'pre-edit',
+  '@dungeonmaster/ban-string-includes-in-expect': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

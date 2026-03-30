@@ -2,7 +2,9 @@ describe('orchestrator', () => {
   it('VALID: exports module', async () => {
     const orchestrator = await import('./index');
 
-    expect(Object.keys(orchestrator).sort()).toStrictEqual([
+    const exportedKeys = Object.keys(orchestrator).sort();
+
+    expect(exportedKeys).toStrictEqual([
       'StartOrchestrator',
       'addQuestInputContract',
       'addQuestResultContract',

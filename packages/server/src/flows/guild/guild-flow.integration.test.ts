@@ -50,7 +50,11 @@ describe('GuildFlow', () => {
 
       restore();
 
-      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: expect.stringMatching(
+          /^Guild not found: [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+        ),
+      });
     });
   });
 
@@ -87,7 +91,11 @@ describe('GuildFlow', () => {
 
       restore();
 
-      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: expect.stringMatching(
+          /^Guild not found: [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+        ),
+      });
     });
   });
 });

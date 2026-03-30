@@ -34,7 +34,7 @@ describe('orchestrationEventsState', () => {
       expect(handler2).toHaveBeenCalledWith({ processId, payload: { completedSteps: 3 } });
     });
 
-    it('EMPTY: {no handlers for type} => no error thrown', () => {
+    it('EMPTY: {no handlers for type} => returns undefined', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
       const type = OrchestrationEventTypeStub({ value: 'slot-update' });
@@ -42,7 +42,12 @@ describe('orchestrationEventsState', () => {
 
       orchestrationEventsState.emit({ type, processId, payload: {} });
 
-      expect(true).toBe(true);
+      expect(orchestrationEventsState).toStrictEqual({
+        emit: expect.any(Function),
+        on: expect.any(Function),
+        off: expect.any(Function),
+        removeAllListeners: expect.any(Function),
+      });
     });
 
     it('VALID: {different event types} => only matching handler fires', () => {
@@ -58,8 +63,8 @@ describe('orchestrationEventsState', () => {
       orchestrationEventsState.on({ type: progressType, handler: progressHandler });
       orchestrationEventsState.emit({ type: phaseType, processId, payload: { phase: 'ward' } });
 
-      expect(phaseHandler).toHaveBeenCalledTimes(1);
-      expect(progressHandler).not.toHaveBeenCalled();
+      expect(phaseHandler).toHaveBeenCalledWith({ processId, payload: { phase: 'ward' } });
+      expect(progressHandler.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -75,7 +80,7 @@ describe('orchestrationEventsState', () => {
       orchestrationEventsState.off({ type, handler });
       orchestrationEventsState.emit({ type, processId, payload: {} });
 
-      expect(handler).not.toHaveBeenCalled();
+      expect(handler.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -95,8 +100,8 @@ describe('orchestrationEventsState', () => {
       orchestrationEventsState.emit({ type: type1, processId, payload: {} });
       orchestrationEventsState.emit({ type: type2, processId, payload: {} });
 
-      expect(handler1).not.toHaveBeenCalled();
-      expect(handler2).not.toHaveBeenCalled();
+      expect(handler1.mock.calls).toStrictEqual([]);
+      expect(handler2.mock.calls).toStrictEqual([]);
     });
   });
 });

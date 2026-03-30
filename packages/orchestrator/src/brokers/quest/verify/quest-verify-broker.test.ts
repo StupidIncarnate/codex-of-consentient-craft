@@ -169,7 +169,7 @@ describe('questVerifyBroker', () => {
       expect(result).toStrictEqual({
         success: false,
         checks: [],
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: expect.stringMatching(/not found in any guild$/u),
       });
     });
 
@@ -184,7 +184,7 @@ describe('questVerifyBroker', () => {
       expect(result).toStrictEqual({
         success: false,
         checks: [],
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: expect.stringMatching(/not found in any guild$/u),
       });
     });
   });

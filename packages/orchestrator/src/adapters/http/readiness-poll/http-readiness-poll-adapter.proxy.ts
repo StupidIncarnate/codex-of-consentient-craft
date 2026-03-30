@@ -5,6 +5,14 @@ export const httpReadinessPollAdapterProxy = (): {
   respondsWithStatuses: (params: { statuses: { status: number; ok: boolean }[] }) => void;
   throwsNetworkError: (params: { error: Error }) => void;
 } => {
+  const counter = { value: 0 };
+  const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
+  dateNowHandle.mockImplementation(() => {
+    const current = counter.value;
+    counter.value += 100;
+    return current;
+  });
+
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
   handle.mockResolvedValue({ status: 200, ok: true } as Response);

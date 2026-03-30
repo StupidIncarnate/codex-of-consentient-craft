@@ -83,14 +83,14 @@ describe('slotOperationsContract', () => {
         expect(result).toBe(0);
       });
 
-      it('VALID: {default} => assignSlot completes without error', () => {
-        const { assignSlot } = SlotOperationsStub();
+      it('VALID: {default} => assignSlot completes and getActiveSlots still returns empty', () => {
+        const { assignSlot, getActiveSlots } = SlotOperationsStub();
         const slotIndex = SlotIndexStub({ value: 0 });
         const agentSlot = AgentSlotStub();
 
         assignSlot({ slotIndex, agentSlot });
 
-        expect(true).toBe(true);
+        expect(getActiveSlots()).toStrictEqual([]);
       });
 
       it('VALID: {default} => releaseSlot returns true', () => {
@@ -130,9 +130,9 @@ describe('slotOperationsContract', () => {
         });
         const slotCount = SlotCountStub({ value: 3 });
 
-        getAvailableSlot({ slotCount });
+        const result = getAvailableSlot({ slotCount });
 
-        expect(true).toBe(true);
+        expect(result).toBe(undefined);
       });
 
       it('VALID: {custom releaseSlot} => uses provided function', () => {

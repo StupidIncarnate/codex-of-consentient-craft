@@ -22,7 +22,7 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Require at least one anchor (^ or $) in regex patterns passed to toMatch(), toHaveText(), and toContainText().',
+          'Require at least one anchor (^ or $) in regex patterns passed to toMatch(), toHaveText(), toContainText(), and expect.stringMatching().',
       },
       messages: {
         unanchoredRegex:
@@ -50,6 +50,32 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
 
         const methodName = callee.property?.name;
         if (methodName === undefined) {
+          return;
+        }
+
+        // Check expect.stringMatching(/regex/)
+        if (
+          methodName === 'stringMatching' &&
+          callee.object?.type === 'Identifier' &&
+          callee.object.name === 'expect'
+        ) {
+          const firstArg = node.arguments?.[0];
+          if (firstArg === null || firstArg === undefined) {
+            return;
+          }
+
+          const regexPattern = firstArg.regex?.pattern;
+          if (regexPattern === undefined || typeof regexPattern !== 'string') {
+            return;
+          }
+
+          if (!hasRegexAnchorGuard({ pattern: regexPattern })) {
+            ctx.report({
+              node,
+              messageId: 'unanchoredRegex',
+              data: { method: 'expect.stringMatching' },
+            });
+          }
           return;
         }
 

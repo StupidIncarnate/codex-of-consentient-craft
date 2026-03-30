@@ -2,11 +2,13 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 47 rule names', () => {
+    it('VALID: {} => returns plugin with all 51 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
-      expect(Object.keys(plugin.rules)).toStrictEqual([
+      const ruleNames = Object.keys(plugin.rules);
+
+      expect(ruleNames).toStrictEqual([
         'ban-adhoc-types',
         'ban-primitives',
         'enforce-contract-usage-in-tests',
@@ -54,6 +56,10 @@ describe('EslintPluginCreateResponder', () => {
         'enforce-testid-queries',
         'ban-playwright-evaluate-for-styles',
         'ban-playwright-extract-then-assert',
+        'ban-negated-matchers',
+        'ban-tautological-assertions',
+        'ban-object-keys-in-expect',
+        'ban-string-includes-in-expect',
       ]);
     });
 
@@ -122,14 +128,18 @@ describe('EslintPluginCreateResponder', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
-      expect(Object.keys(plugin.configs)).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
+      const configNames = Object.keys(plugin.configs);
+
+      expect(configNames).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });
 
     it('VALID: {} => returns dungeonmaster config with typescript, test, fileOverrides, and ruleEnforceOn', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
-      expect(Object.keys(plugin.configs.dungeonmaster)).toStrictEqual([
+      const dungeonmasterKeys = Object.keys(plugin.configs.dungeonmaster);
+
+      expect(dungeonmasterKeys).toStrictEqual([
         'typescript',
         'test',
         'fileOverrides',
@@ -142,10 +152,9 @@ describe('EslintPluginCreateResponder', () => {
       const plugin = proxy.callResponder();
       const { typescript } = plugin.configs.dungeonmaster;
 
-      expect(typescript).toStrictEqual({
-        plugins: expect.any(Object),
-        rules: expect.any(Object),
-      });
+      const typescriptKeys = Object.keys(typescript);
+
+      expect(typescriptKeys).toStrictEqual(['plugins', 'rules']);
     });
 
     it('VALID: {} => returns test config with plugins and rules', () => {
@@ -153,10 +162,9 @@ describe('EslintPluginCreateResponder', () => {
       const plugin = proxy.callResponder();
       const { test } = plugin.configs.dungeonmaster;
 
-      expect(test).toStrictEqual({
-        plugins: expect.any(Object),
-        rules: expect.any(Object),
-      });
+      const testKeys = Object.keys(test);
+
+      expect(testKeys).toStrictEqual(['plugins', 'rules']);
     });
 
     it('VALID: {} => returns fileOverrides with 8 override configs', () => {

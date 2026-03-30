@@ -16,7 +16,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -32,7 +32,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -51,7 +51,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {body.type: BlockStatement, body.body: not array} => does not report', () => {
@@ -71,7 +71,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -90,7 +90,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -117,7 +117,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -152,7 +152,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {mock.mockImplementation()} => does not report', () => {
@@ -188,7 +188,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {childHarness.someMethod()} => does not report', () => {
@@ -221,7 +221,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {fs.mkdirSync()} => does not report', () => {
@@ -254,7 +254,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {os.tmpdir()} => does not report', () => {
@@ -287,7 +287,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {path.join()} => does not report', () => {
@@ -320,7 +320,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -351,7 +351,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {afterEach(...)} => does not report', () => {
@@ -380,7 +380,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {beforeAll(...)} => does not report', () => {
@@ -409,7 +409,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {afterAll(...)} => does not report', () => {
@@ -438,7 +438,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {childHarness()} => does not report', () => {
@@ -467,7 +467,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -572,7 +572,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {ExpressionStatement with no expression} => does not report', () => {
@@ -601,7 +601,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {CallExpression with no callee} => does not report', () => {
@@ -633,7 +633,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {Identifier callee with undefined name} => does not report', () => {
@@ -662,7 +662,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {MemberExpression with undefined property name} => reports with fallback method name', () => {
@@ -904,7 +904,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {const dir = path.join(...)} => does not report', () => {
@@ -944,7 +944,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {let x = 0} => does not report', () => {
@@ -980,7 +980,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -1015,7 +1015,7 @@ describe('validateHarnessConstructorSideEffectsLayerBroker', () => {
 
       validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

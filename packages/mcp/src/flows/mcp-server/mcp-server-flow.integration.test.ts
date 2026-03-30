@@ -38,10 +38,8 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      const { error, result } = response;
-
-      expect(error).toBe(undefined);
-      expect(result).not.toBe(undefined);
+      expect(response.error).toBe(undefined);
+      expect(JSON.stringify(response.result)).toMatch(/^\{"protocolVersion":"/u);
     });
   });
 
@@ -101,7 +99,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toContain('# Architecture Overview');
+      expect(result.content[0]?.text).toMatch(/^# Architecture Overview$/mu);
     });
   });
 
@@ -123,7 +121,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toContain('# Testing Patterns & Philosophy');
+      expect(result.content[0]?.text).toMatch(/^# Testing Patterns & Philosophy$/mu);
     });
   });
 
@@ -153,7 +151,7 @@ describe('McpServerFlow', () => {
 
       const { results, count } = data;
 
-      expect(results).toContain('broker');
+      expect(results).toMatch(/^\s+\S+-broker \(broker\) - .+$/mu);
       expect(count).toBeGreaterThan(0);
     });
 
@@ -180,7 +178,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toContain('adapters/');
+      expect(data.results).toMatch(/^adapters\/$/mu);
     });
 
     it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
@@ -206,7 +204,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toContain('fs-access-adapter (adapter)');
+      expect(data.results).toMatch(/^\s+fs-access-adapter \(adapter\) - .+$/mu);
     });
   });
 
@@ -223,7 +221,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error?.message).toContain('Unknown tool');
+      expect(response.error?.message).toMatch(/^Unknown tool: unknown-tool$/u);
     });
   });
 
@@ -377,7 +375,7 @@ describe('McpServerFlow', () => {
       const { success, error } = getResultData;
 
       expect(success).toBe(false);
-      expect(String(error)).toStrictEqual(expect.stringMatching(/(?:not found|ENOENT)/iu));
+      expect(String(error)).toMatch(/^Quest with id .+ not found/u);
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
@@ -460,7 +458,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toContain('brokers');
+      expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type/u);
     });
   });
 
@@ -482,7 +480,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toContain('# Universal Syntax');
+      expect(result.content[0]?.text).toMatch(/^# Universal Syntax Rules$/mu);
     });
   });
 
@@ -546,7 +544,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toContain('Questions sent to user');
+      expect(result.content[0]?.text).toMatch(/^Questions sent to user/mu);
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {
@@ -563,7 +561,7 @@ describe('McpServerFlow', () => {
 
       const response = await client.sendRequest(request);
 
-      expect(response.error).not.toBe(undefined);
+      expect(response.error?.message).toMatch(/^\[$/mu);
     });
   });
 });

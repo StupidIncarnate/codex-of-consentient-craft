@@ -116,7 +116,12 @@ describe('mapContentItemToChatEntryTransformer', () => {
         usage: undefined,
       });
 
-      expect(result).not.toHaveProperty('toolUseId');
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+      });
     });
 
     it('VALID: {type: "tool_use", AskUserQuestion with string questions} => normalizes questions to array', () => {

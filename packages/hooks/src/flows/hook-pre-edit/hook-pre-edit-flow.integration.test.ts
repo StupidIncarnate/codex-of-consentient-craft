@@ -8,7 +8,7 @@ describe('HookPreEditFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
 
@@ -27,7 +27,7 @@ describe('HookPreEditFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Unsupported hook event.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Unsupported hook event[\s\S]*$/su),
       });
     });
   });

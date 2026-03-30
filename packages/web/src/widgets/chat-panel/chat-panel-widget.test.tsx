@@ -74,7 +74,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('TOOL_LOADING')).not.toBe(null);
+      expect(screen.queryByTestId('TOOL_LOADING')).toBeInTheDocument();
     });
 
     it('VALID: {multiple parallel tool_use, no text response, isStreaming true} => shows Running on last entry of last tool group', () => {
@@ -221,7 +221,7 @@ describe('ChatPanelWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('RACCOON_SPRITE')).not.toBe(null);
+      expect(screen.queryByTestId('RACCOON_SPRITE')).toBeInTheDocument();
     });
   });
 
@@ -475,7 +475,7 @@ describe('ChatPanelWidget', () => {
 
       const tokenBadge = screen.queryByTestId('TOKEN_BADGE');
 
-      expect(tokenBadge).not.toBe(null);
+      expect(tokenBadge).toBeInTheDocument();
       expect(tokenBadge?.textContent).toBe('500 context');
     });
 

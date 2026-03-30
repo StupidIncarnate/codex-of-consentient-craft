@@ -4,6 +4,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsWriteFileSyncAdapterProxy = (): {
   succeeds: ({ filePath, contents }: { filePath: FilePath; contents: FileContents }) => void;
+  getWrittenContent: () => unknown;
 } => {
   const mockWriteFileSync = registerMock({ fn: writeFileSync });
 
@@ -19,6 +20,12 @@ export const fsWriteFileSyncAdapterProxy = (): {
       contents: FileContents;
     }): void => {
       mockWriteFileSync.mockReturnValueOnce(undefined);
+    },
+    getWrittenContent: (): unknown => {
+      const { calls } = mockWriteFileSync.mock;
+      const lastCall = calls[calls.length - 1];
+      if (lastCall === undefined) return undefined;
+      return lastCall[1];
     },
   };
 };

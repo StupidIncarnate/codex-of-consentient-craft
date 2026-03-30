@@ -63,7 +63,7 @@ describe('chatSpawnBroker', () => {
       const [[registerArg]] = registerProcess.mock.calls;
 
       expect(registerArg).toStrictEqual({
-        processId: expect.any(String),
+        processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });
@@ -193,7 +193,7 @@ describe('chatSpawnBroker', () => {
 
       expect(questCreatedArg).toStrictEqual({
         chatProcessId: result.chatProcessId,
-        questId: expect.any(String),
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
     });
 
@@ -369,7 +369,7 @@ describe('chatSpawnBroker', () => {
 
       expect(designLinkedArg).toStrictEqual({
         chatProcessId,
-        questId: expect.any(String),
+        questId: 'design-quest',
       });
     });
   });
@@ -649,7 +649,7 @@ describe('chatSpawnBroker', () => {
       const [[registerArg]] = registerProcess.mock.calls;
 
       expect(registerArg).toStrictEqual({
-        processId: expect.any(String),
+        processId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });

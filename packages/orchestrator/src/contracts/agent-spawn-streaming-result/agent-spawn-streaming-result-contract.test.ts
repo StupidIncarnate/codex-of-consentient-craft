@@ -15,7 +15,7 @@ describe('agentSpawnStreamingResultContract', () => {
       });
 
       expect(result).toStrictEqual({
-        sessionId: expect.any(String),
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         exitCode: 0,
         signal: null,
         crashed: false,
@@ -27,7 +27,7 @@ describe('agentSpawnStreamingResultContract', () => {
       const stub = AgentSpawnStreamingResultStub();
 
       expect(stub).toStrictEqual({
-        sessionId: expect.any(String),
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         exitCode: 0,
         signal: null,
         crashed: false,

@@ -9,8 +9,7 @@ describe('sharedPackageResolveAdapter', () => {
 
       const result = sharedPackageResolveAdapter();
 
-      expect(result).not.toBe(null);
-      expect(result).toMatch(/shared$/u);
+      expect(result).toMatch(/^\/[^\s]+\/shared$/u);
     });
   });
 

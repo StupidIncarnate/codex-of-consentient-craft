@@ -204,7 +204,7 @@ describe('QuestClarifyPanelWidget', () => {
 
       await proxy.clickOption({ label: parsed.questions[0]!.options[0]!.label });
 
-      expect(onSubmitAnswers).not.toHaveBeenCalled();
+      expect(onSubmitAnswers.mock.calls).toStrictEqual([]);
       expect(proxy.getCounter()).toBe('Question 2 of 2');
       expect(proxy.getQuestionText()).toBe('Second question?');
     });
@@ -321,7 +321,7 @@ describe('QuestClarifyPanelWidget', () => {
       await proxy.clickOther();
       await proxy.submitFreeform();
 
-      expect(onSubmitAnswers).not.toHaveBeenCalled();
+      expect(onSubmitAnswers.mock.calls).toStrictEqual([]);
     });
   });
 });

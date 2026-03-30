@@ -8,9 +8,9 @@ describe('configDungeonmasterBroker', () => {
 
       const result = configDungeonmasterBroker();
 
-      expect(Object.keys(result).sort()).toStrictEqual(
-        ['fileOverrides', 'ruleEnforceOn', 'test', 'typescript'].sort(),
-      );
+      const keys = Object.keys(result).sort();
+
+      expect(keys).toStrictEqual(['fileOverrides', 'ruleEnforceOn', 'test', 'typescript']);
     });
 
     it('VALID: {} => typescript config contains enforce-contract-usage-in-tests rule', () => {
@@ -221,12 +221,57 @@ describe('configDungeonmasterBroker', () => {
       expect(test.rules?.['@typescript-eslint/no-magic-numbers']).toBe('off');
     });
 
+    it('VALID: {} => typescript config contains ban-negated-matchers rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-negated-matchers']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config contains ban-tautological-assertions rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-tautological-assertions']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config contains ban-object-keys-in-expect rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-object-keys-in-expect']).toBe('error');
+    });
+
+    it('VALID: {} => typescript config contains ban-string-includes-in-expect rule', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-string-includes-in-expect']).toBe('error');
+    });
+
     it('VALID: {forTesting: false} => typescript config keeps magic numbers enabled', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker({ forTesting: false });
 
-      expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).not.toBe('off');
+      expect(typescript.rules?.['@typescript-eslint/no-magic-numbers']).toStrictEqual([
+        'error',
+        {
+          ignore: [-1, 0, 1],
+          ignoreArrayIndexes: true,
+          ignoreDefaultValues: true,
+          ignoreClassFieldInitialValues: true,
+          detectObjects: false,
+          ignoreEnums: true,
+          ignoreNumericLiteralTypes: true,
+          ignoreReadonlyClassProperties: true,
+          ignoreTypeIndexes: true,
+        },
+      ]);
     });
   });
 });

@@ -123,7 +123,7 @@ describe('httpReadinessPollAdapter', () => {
 
       expect(result).toStrictEqual({
         ready: false,
-        elapsedMs: expect.any(Number),
+        elapsedMs: 100,
       });
     });
   });

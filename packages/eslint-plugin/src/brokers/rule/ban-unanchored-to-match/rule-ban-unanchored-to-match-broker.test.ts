@@ -58,6 +58,36 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
       code: `someLib.toMatch(/unanchored/u);`,
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
+
+    // expect.stringMatching with proper full anchors — allowed
+    {
+      code: `expect.stringMatching(/^exact-format$/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
+
+    // expect.stringMatching with UUID pattern — allowed
+    {
+      code: `expect.stringMatching(/^[0-9a-f-]{36}$/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
+
+    // expect.stringMatching with start anchor — allowed
+    {
+      code: `expect.stringMatching(/^Error: /u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
+
+    // expect.stringMatching in non-test file — not checked
+    {
+      code: `expect.stringMatching(/partial/u);`,
+      filename: '/project/src/brokers/user/user-broker.ts',
+    },
+
+    // expect.stringMatching with string argument — not checked
+    {
+      code: `expect.stringMatching('literal');`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
   ],
   invalid: [
     // Unanchored toMatch
@@ -128,6 +158,30 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
         {
           messageId: 'unanchoredRegex',
           data: { method: 'toMatch' },
+        },
+      ],
+    },
+
+    // Unanchored expect.stringMatching
+    {
+      code: `expect.stringMatching(/partial/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'unanchoredRegex',
+          data: { method: 'expect.stringMatching' },
+        },
+      ],
+    },
+
+    // Wildcard-padded expect.stringMatching
+    {
+      code: `expect.stringMatching(/^.*partial.*$/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'unanchoredRegex',
+          data: { method: 'expect.stringMatching' },
         },
       ],
     },

@@ -17,7 +17,7 @@ describe('HookPreBashFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Blocked: direct jest invocation.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Blocked: direct jest invocation[\s\S]*$/su),
       });
     });
 
@@ -139,7 +139,7 @@ describe('HookPreBashFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
   });

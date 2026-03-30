@@ -66,8 +66,8 @@ describe('designProcessState', () => {
 
       designProcessState.stopAll();
 
-      expect(kill1).toHaveBeenCalledTimes(1);
-      expect(kill2).toHaveBeenCalledTimes(1);
+      expect(kill1.mock.calls).toStrictEqual([[]]);
+      expect(kill2.mock.calls).toStrictEqual([[]]);
       expect(designProcessState.get({ questId: questId1 })).toBe(null);
       expect(designProcessState.get({ questId: questId2 })).toBe(null);
     });

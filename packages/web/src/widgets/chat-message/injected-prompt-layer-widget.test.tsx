@@ -32,8 +32,7 @@ describe('InjectedPromptLayerWidget', () => {
 
       const sectionText = agentSection.textContent;
 
-      expect(sectionText).toContain('AGENT PROMPT');
-      expect(sectionText).toContain('You are an agent.');
+      expect(sectionText).toBe('AGENT PROMPTYou are an agent.');
     });
 
     it('VALID: {injected prompt} => renders extracted user request with YOU label', () => {
@@ -57,8 +56,7 @@ describe('InjectedPromptLayerWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toContain('YOU');
-      expect(messageText).toContain('Do the thing');
+      expect(messageText).toBe('AGENT PROMPTSystem prompt hereYOUDo the thing');
     });
 
     it('VALID: {injected prompt without ## User Request separator} => renders full content as user request', () => {
@@ -80,7 +78,9 @@ describe('InjectedPromptLayerWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toContain('Just some prompt without separator');
+      expect(message.textContent).toBe(
+        'AGENT PROMPTJust some prompt without separatorYOUJust some prompt without separator',
+      );
     });
   });
 

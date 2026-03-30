@@ -2,77 +2,71 @@ import { formatTestingAntiPatternsSectionLayerBroker } from './format-testing-an
 import { formatTestingAntiPatternsSectionLayerBrokerProxy } from './format-testing-anti-patterns-section-layer-broker.proxy';
 
 describe('formatTestingAntiPatternsSectionLayerBroker', () => {
-  it('VALID: {} => returns testing anti-patterns section with header', () => {
+  it('VALID: {} => returns complete testing anti-patterns section', () => {
     formatTestingAntiPatternsSectionLayerBrokerProxy();
     const result = formatTestingAntiPatternsSectionLayerBroker();
 
-    expect(result[0]).toBe('## Testing Anti-Patterns');
-  });
-
-  it('VALID: {} => includes all four category headers', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toMatch(/^### Assertion Anti-Patterns/mu);
-    expect(content).toMatch(/^### Mock\/Proxy Anti-Patterns/mu);
-    expect(content).toMatch(/^### Type Safety Anti-Patterns/mu);
-    expect(content).toMatch(/^### Test Organization Anti-Patterns/mu);
-  });
-
-  it('VALID: {} => includes assertion anti-pattern violations', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toContain('toMatchObject');
-    expect(content).toContain('toBeDefined');
-    expect(content).toContain('toHaveLength');
-  });
-
-  it('VALID: {} => includes mocking anti-pattern violations', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toContain('jest.mocked');
-    expect(content).toContain('jest.mock');
-    expect(content).toContain('jest.clearAllMocks');
-  });
-
-  it('VALID: {} => includes type safety anti-pattern violations', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toContain('any');
-    expect(content).toContain('@ts-ignore');
-  });
-
-  it('VALID: {} => includes test organization anti-pattern violations', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toContain('jest.spyOn');
-    expect(content).toContain('beforeEach');
-  });
-
-  it('VALID: {} => includes correct approach guidance for each category', () => {
-    formatTestingAntiPatternsSectionLayerBrokerProxy();
-    const result = formatTestingAntiPatternsSectionLayerBroker();
-
-    const content = result.join('\n');
-
-    expect(content).toContain('Correct Approach');
-    expect(content).toContain('toStrictEqual');
-    expect(content).toContain('semantic methods');
-    expect(content).toContain('ReturnType<typeof Stub>');
-    expect(content).toContain('describe blocks');
+    expect(result).toStrictEqual([
+      '## Testing Anti-Patterns',
+      '',
+      '### Assertion Anti-Patterns',
+      '',
+      '- **Property Bleedthrough**: Using partial matchers (toMatchObject, toContain) that allow extra properties to leak through',
+      '- **Existence-Only Checks**: Using toBeDefined() instead of testing actual values',
+      '- **Count-Only Checks**: Testing array.length without verifying complete content',
+      '- **Weak Matchers**: Using .toEqual(), .toMatchObject(), .toContain(), .toBeTruthy()/.toBeFalsy()',
+      '',
+      '**Violations:**',
+      '- ❌ `expect(result).toMatchObject({id: "123"}); // Extra properties pass!`',
+      '- ❌ `expect(userId).toBeDefined(); // Could be any value!`',
+      '- ❌ `expect(items).toHaveLength(2); // Could be wrong items!`',
+      '- ❌ `expect(config.includes("parser")).toBe(true); // Could be anywhere`',
+      '',
+      '**Correct Approach**: Use .toStrictEqual() for all objects/arrays to catch property bleedthrough',
+      '',
+      '### Mock/Proxy Anti-Patterns',
+      '',
+      '- **Direct Mock Manipulation**: Using jest.mocked()/jest.spyOn()/jest.mock() directly instead of registerMock in proxies',
+      '- **Mocking Application Code**: Using jest.mock() on application code (only mock npm packages via registerMock in proxies)',
+      '- **Manual Mock Cleanup**: Calling mockReset(), mockClear() (@dungeonmaster/testing handles this)',
+      '- **jest.spyOn() for Modules**: Using jest.spyOn() for any mocking (use registerMock for both modules and globals)',
+      '- **Shared Proxy Instances**: Creating proxy once outside tests (always create fresh proxy per test)',
+      '',
+      '**Violations:**',
+      '- ❌ `const mockAxios = jest.mocked(axios.get); mockAxios.mockResolvedValue({data: user}); // Use registerMock in proxy`',
+      '- ❌ `jest.mock("../../brokers/user/fetch/user-fetch-broker"); // Never mock app code`',
+      '- ❌ `beforeEach(() => { jest.clearAllMocks(); }); // @dungeonmaster/testing handles this`',
+      '- ❌ `jest.spyOn(adapter, "fsReadFile"); // Use registerMock, not jest.spyOn`',
+      '- ❌ `const proxy = userFetchBrokerProxy(); it("test 1", () => {}); it("test 2", () => {}); // Stale mocks`',
+      '',
+      '**Correct Approach**: Create fresh proxy per test, use registerMock in proxies with semantic methods, only mock at I/O boundaries',
+      '',
+      '### Type Safety Anti-Patterns',
+      '',
+      '- **Type Escape Hatches**: Using any, as, @ts-ignore in tests to bypass type errors',
+      '',
+      '**Violations:**',
+      '- ❌ `const data: any = response.data; // Loses all type safety`',
+      '- ❌ `const user = {} as User; // Hides missing properties`',
+      '- ❌ `// @ts-ignore - Testing invalid input`',
+      '',
+      '**Correct Approach**: Use ReturnType<typeof Stub> for types, use stubs to create valid instances, use "as never" for testing invalid inputs',
+      '',
+      '### Test Organization Anti-Patterns',
+      '',
+      '- **Testing Implementation**: Spying on internal methods instead of testing outputs',
+      '- **Shared Test State**: Tests depending on each other or shared setup',
+      '- **Unit Testing DSL Logic**: Mocking systems that interpret DSL/queries (ESLint selectors, SQL, GraphQL)',
+      '- **Comment Organization**: Using comments instead of describe blocks for test structure',
+      '',
+      '**Violations:**',
+      '- ❌ `jest.spyOn(myClass, "_internalMethod"); // Test behavior, not implementation`',
+      '- ❌ `let sharedUser; beforeEach(() => { sharedUser = UserStub(); }); // No hooks`',
+      '- ❌ `const mockContext = {report: jest.fn()}; rule.create(mockContext); // ESLint needs real parsing`',
+      '- ❌ `// valid cases it("test 1"); it("test 2"); // Use describe blocks`',
+      '',
+      '**Correct Approach**: Test outputs not internals, inline setup/teardown, integration tests for DSL logic, describe blocks for organization',
+      '',
+    ]);
   });
 });

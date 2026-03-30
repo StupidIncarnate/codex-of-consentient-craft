@@ -17,7 +17,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
 
@@ -32,7 +32,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
 
@@ -47,7 +47,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
 
@@ -62,7 +62,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
 
@@ -77,7 +77,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
 
@@ -92,7 +92,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*npm run ward.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
       });
     });
   });
@@ -230,7 +230,7 @@ describe('pre-bash-hook', () => {
       }).toStrictEqual({
         status: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
 
@@ -244,7 +244,7 @@ describe('pre-bash-hook', () => {
       }).toStrictEqual({
         status: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
       });
     });
   });
