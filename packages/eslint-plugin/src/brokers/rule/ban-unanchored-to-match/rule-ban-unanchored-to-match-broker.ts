@@ -22,11 +22,11 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Require at least one anchor (^ or $) in regex patterns passed to toMatch(), toHaveText(), toContainText(), and expect.stringMatching().',
+          'Require both anchors (^ and $) in regex patterns passed to toMatch(), toHaveText(), toContainText(), and expect.stringMatching().',
       },
       messages: {
         unanchoredRegex:
-          '{{method}}() regex must have at least one anchor (^ or $) to prevent partial matching',
+          '{{method}}() regex must have both anchors (^ and $) to prevent partial matching',
       },
       schema: [],
     },

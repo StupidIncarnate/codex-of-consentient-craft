@@ -86,7 +86,7 @@ describe('pre-edit-lint', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su),
+        stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
       });
     });
   });
@@ -204,7 +204,7 @@ describe('pre-edit-lint', () => {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -256,7 +256,7 @@ console.log('test');`,
           stdout: '',
           stderr: expect.stringMatching(
             new RegExp(
-              `^[\\s\\S]*🛑 New code quality violations detected[\\s\\S]*${expectedPattern.source}[\\s\\S]*$`,
+              `^🛑 New code quality violations detected:\\n.+${expectedPattern.source}.+\\n$`,
               'su',
             ),
           ),
@@ -290,7 +290,7 @@ export function dirty({ param }: { param: any }): any {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Error Suppression[\s\S]*Type Safety Violation[\s\S]*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Error Suppression.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -518,7 +518,7 @@ console.log('test');`,
             stdout: '',
             stderr: expect.stringMatching(
               new RegExp(
-                `^[\\s\\S]*🛑 New code quality violations detected[\\s\\S]*${expectedPattern.source}[\\s\\S]*$`,
+                `^🛑 New code quality violations detected:\\n.+${expectedPattern.source}.+\\n$`,
                 'su',
               ),
             ),
@@ -559,7 +559,7 @@ export function test({ param }: { param: any }): void {}`,
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -748,9 +748,7 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su,
-          ),
+          stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
         });
       });
 
@@ -798,9 +796,7 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*$/su,
-          ),
+          stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
         });
       });
 
@@ -849,7 +845,7 @@ export function processItems({ items }: { items: string[] }): string[] {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^[\s\S]*🛑 New code quality violations detected[\s\S]*Type Safety Violation[\s\S]*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -938,7 +934,7 @@ export const handler: any = getValue();`,
         exitCode: 2,
         stdout: '',
         stderr: expect.stringMatching(
-          /^[\s\S]*Type Error Suppression[\s\S]*Type Safety Violation[\s\S]*$/su,
+          /^🛑 New code quality violations detected:\n.+Type Error Suppression.+Type Safety Violation.+\n$/su,
         ),
       });
     });
@@ -973,7 +969,9 @@ export const handler: any = processData;`;
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*Type Safety Violation[\s\S]*$/su),
+        stderr: expect.stringMatching(
+          /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
+        ),
       });
     });
 

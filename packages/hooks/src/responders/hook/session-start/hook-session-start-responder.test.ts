@@ -15,7 +15,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^[\s\S]*<dungeonmaster-architecture>[\s\S]*\[NEW SESSION\][\s\S]*# Architecture Overview[\s\S]*Use MCP tools[\s\S]*$/su,
+          /^<dungeonmaster-architecture>\n\[NEW SESSION\].+# Architecture Overview\n.+Use MCP tools.+<\/dungeonmaster-architecture>\n$/su,
         ),
       });
     });
@@ -31,7 +31,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^[\s\S]*## Folder Types[\s\S]*\| Folder \| Purpose \| Depth \| When to Use \|[\s\S]*$/su,
+          /^<dungeonmaster-architecture>\n.+## Folder Types\n.+\| Folder \| Purpose \| Depth \| When to Use \|.+<\/dungeonmaster-architecture>\n$/su,
         ),
       });
     });
@@ -65,7 +65,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^[\s\S]*\[RESUMED SESSION\][\s\S]*# Architecture Overview[\s\S]*$/su,
+          /^<dungeonmaster-architecture>\n\[RESUMED SESSION\].+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n$/su,
         ),
       });
     });
@@ -85,7 +85,9 @@ describe('HookSessionStartResponder', () => {
 
       expect(result).toStrictEqual({
         shouldOutput: true,
-        content: expect.stringMatching(/^[\s\S]*# Architecture Overview[\s\S]*$/su),
+        content: expect.stringMatching(
+          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n$/su,
+        ),
       });
     });
 
@@ -118,7 +120,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^[\s\S]*<dungeonmaster-architecture>[\s\S]*# Architecture Overview[\s\S]*Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\)[\s\S]*<\/dungeonmaster-architecture>[\s\S]*$/su,
+          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\).+<\/dungeonmaster-architecture>\n$/su,
         ),
       });
     });
@@ -134,7 +136,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^[\s\S]*## Critical Rules Summary[\s\S]*Never do these things[\s\S]*$/su,
+          /^<dungeonmaster-architecture>\n.+## Critical Rules Summary\n.+Never do these things.+<\/dungeonmaster-architecture>\n$/su,
         ),
       });
     });

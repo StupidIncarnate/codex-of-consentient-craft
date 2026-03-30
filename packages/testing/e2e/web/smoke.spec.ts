@@ -12,7 +12,7 @@ test.describe('Smoke Tests', () => {
 
     expect(body).toStrictEqual({
       status: 'ok',
-      timestamp: expect.stringMatching(/^\d/u),
+      timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
     });
   });
 

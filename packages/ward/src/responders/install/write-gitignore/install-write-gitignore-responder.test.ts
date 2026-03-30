@@ -22,7 +22,7 @@ describe('InstallWriteGitignoreResponder', () => {
         message: 'Created .gitignore with .ward/',
       });
 
-      expect(String(proxy.getWrittenPath())).toMatch(/\.gitignore$/u);
+      expect(String(proxy.getWrittenPath())).toBe('/project/.gitignore');
       expect(proxy.getWrittenContent()).toBe('.ward/\n');
     });
   });
@@ -47,7 +47,7 @@ describe('InstallWriteGitignoreResponder', () => {
         message: 'Added .ward/ to existing .gitignore',
       });
 
-      expect(String(proxy.getWrittenPath())).toMatch(/\.gitignore$/u);
+      expect(String(proxy.getWrittenPath())).toBe('/project/.gitignore');
       expect(proxy.getWrittenContent()).toBe('node_modules/\ndist/\n.ward/\n');
     });
   });

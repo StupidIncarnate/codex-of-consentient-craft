@@ -36,6 +36,11 @@ const sid = (
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
+const WARD_RUN_LINE_PATTERN = /^run: ward-(?:fail-)?\d+$/u;
+const SIGNAL_BACK_COMPLETE_LINE =
+  '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"complete","summary":"Task completed successfully"}}]}}';
+const SIGNAL_BACK_SIEGE_FAILED_LINE =
+  '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"failed","summary":"FAILED OBSERVABLES: login redirect broken"}}]}}';
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -160,7 +165,9 @@ describe('OrchestrationFlow', () => {
 
       testbed.cleanup();
 
-      expect(processId).toMatch(/^proc-/u);
+      expect(processId).toMatch(
+        /^proc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      );
       expect(status.questId).toBe(questId);
       expect(questResult.success).toBe(true);
       expect(questResult.quest!.status).toBe('in_progress');
@@ -1448,8 +1455,12 @@ describe('OrchestrationFlow', () => {
       expect(lbItems[0]!.sessionId).toBe(sid('lb-dc-0'));
       expect(lbItems[1]!.sessionId).toBe(sid('lb-dc-1'));
       // Ward items get synthetic session IDs
-      expect(wardItems[0]!.sessionId).toMatch(/^ward-/u);
-      expect(wardItems[1]!.sessionId).toMatch(/^ward-/u);
+      expect(wardItems[0]!.sessionId).toMatch(
+        /^ward-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      );
+      expect(wardItems[1]!.sessionId).toMatch(
+        /^ward-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      );
 
       // All items have timestamps
       expect(psStartedAt).toMatch(ISO_TIMESTAMP_PATTERN);
@@ -1527,7 +1538,7 @@ describe('OrchestrationFlow', () => {
       for (const shape of cwShapes) {
         expect(shape).toStrictEqual({
           spawnerType: 'agent',
-          firstRelated: expect.stringMatching(/^steps\//u),
+          firstRelated: expect.stringMatching(/^steps\/[a-z][a-z0-9]*(-[a-z0-9]+)*$/u),
         });
       }
 
@@ -1550,7 +1561,7 @@ describe('OrchestrationFlow', () => {
       for (const shape of lbShapes) {
         expect(shape).toStrictEqual({
           spawnerType: 'agent',
-          firstRelated: expect.stringMatching(/^steps\//u),
+          firstRelated: expect.stringMatching(/^steps\/[a-z][a-z0-9]*(-[a-z0-9]+)*$/u),
         });
       }
 
@@ -2953,7 +2964,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(pathseekerEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(pathseekerEvents[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(pathseekerEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(pathseekerEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(pathseekerEvents[0])).toBe(pathseekerItem.sessionId);
 
@@ -2967,7 +2978,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(cw0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(cw0Events[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(cw0Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(cw0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw0Events[0])).toBe(codeweaverItems[0]!.sessionId);
 
@@ -2976,7 +2987,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(cw1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(cw1Events[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(cw1Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(cw1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw1Events[0])).toBe(codeweaverItems[1]!.sessionId);
 
@@ -2985,14 +2996,14 @@ describe('OrchestrationFlow', () => {
       const ward0Events = sub.captured.filter((e) => getSessionId(e) === wardItems[0]!.sessionId);
 
       expect(ward0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(ward0Events[0])).toMatch(/^run: ward-/u);
+      expect(getEntryRaw(ward0Events[0])).toMatch(WARD_RUN_LINE_PATTERN);
       expect(String(getEntryRaw(ward0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(ward0Events[0])).toBe(wardItems[0]!.sessionId);
 
       const ward1Events = sub.captured.filter((e) => getSessionId(e) === wardItems[1]!.sessionId);
 
       expect(ward1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(ward1Events[0])).toMatch(/^run: ward-/u);
+      expect(getEntryRaw(ward1Events[0])).toMatch(WARD_RUN_LINE_PATTERN);
       expect(String(getEntryRaw(ward1Events[0])).length).toBeGreaterThan(0);
 
       // Siegemaster events
@@ -3000,7 +3011,7 @@ describe('OrchestrationFlow', () => {
       const siegeEvents = sub.captured.filter((e) => getSessionId(e) === siegeItem.sessionId);
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(siegeEvents[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(siegeEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(siegeItem.sessionId);
 
@@ -3014,7 +3025,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(lb0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(lb0Events[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(lb0Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(lb0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb0Events[0])).toBe(lawbringerItems[0]!.sessionId);
 
@@ -3023,7 +3034,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(lb1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(lb1Events[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(lb1Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(lb1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb1Events[0])).toBe(lawbringerItems[1]!.sessionId);
 
@@ -3094,7 +3105,7 @@ describe('OrchestrationFlow', () => {
       const failedWardEvents = sub.captured.filter((e) => getSessionId(e) === failedWard.sessionId);
 
       expect(failedWardEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(failedWardEvents[0])).toMatch(/^run: ward-/u);
+      expect(getEntryRaw(failedWardEvents[0])).toMatch(WARD_RUN_LINE_PATTERN);
       expect(String(getEntryRaw(failedWardEvents[0])).length).toBeGreaterThan(0);
 
       // Spiritmender events
@@ -3107,7 +3118,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(smEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(smEvents[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(smEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
       expect(String(getEntryRaw(smEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(smEvents[0])).toBe(spiritmenderItems[0]!.sessionId);
 
@@ -3121,7 +3132,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(retryEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(retryEvents[0])).toMatch(/^run: ward-/u);
+      expect(getEntryRaw(retryEvents[0])).toMatch(WARD_RUN_LINE_PATTERN);
       expect(String(getEntryRaw(retryEvents[0])).length).toBeGreaterThan(0);
     });
 
@@ -3181,7 +3192,7 @@ describe('OrchestrationFlow', () => {
       const siegeEvents = sub.captured.filter((e) => getSessionId(e) === failedSiege.sessionId);
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(siegeEvents[0])).toMatch(/^\{/u);
+      expect(getEntryRaw(siegeEvents[0])).toBe(SIGNAL_BACK_SIEGE_FAILED_LINE);
       expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(failedSiege.sessionId);
 
@@ -3197,7 +3208,7 @@ describe('OrchestrationFlow', () => {
       );
 
       expect(replanEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(replanEvents[0])).toMatch(/^\{/u);
+      expect(JSON.parse(String(getEntryRaw(replanEvents[0]))).type).toBe('system');
       expect(String(getEntryRaw(replanEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(replanEvents[0])).toBe(replanPathseeker.sessionId);
     });

@@ -246,9 +246,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(
-        /^(?=.*TOOL RESULT)(?=.*read_file)(?=.*file data here).*$/u,
-      );
+      expect(message.textContent).toBe('TOOL RESULTread_file: file data here');
     });
 
     it('VALID: {role: assistant, type: tool_result} => renders text-dim borders', () => {
@@ -309,9 +307,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(
-        /^(?=.*SUB-AGENT)(?!.*CHAOSWHISPERER)(?=.*Sub-agent response).*$/u,
-      );
+      expect(message.textContent).toBe('SUB-AGENTSub-agent response');
     });
 
     it('VALID: {role: assistant, type: text, source: subagent} => renders loot-rare borders', () => {
@@ -492,9 +488,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(
-        /^(?=.*TASK REPORT)(?=.*completed)(?=.*Agent finished work).*$/u,
-      );
+      expect(message.textContent).toBe('TASK REPORTcompleted: Agent finished work');
     });
 
     it('VALID: {role: system, type: task_notification} => renders loot-rare borders', () => {
@@ -632,9 +626,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(
-        /^(?=.*ERROR)(?=.*Server failed)(?!.*CHAOSWHISPERER).*$/u,
-      );
+      expect(message.textContent).toBe('ERRORServer failed');
     });
 
     it('VALID: {role: system, type: error} => renders danger borders and centered text', () => {
@@ -882,9 +874,7 @@ describe('ChatMessageWidget', () => {
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toMatch(
-        /^(?=.*CHAOSWHISPERER)(?=.*claude-sonnet-4-20250514).*$/u,
-      );
+      expect(message.textContent).toBe('CHAOSWHISPERER claude-sonnet-4-20250514Hello');
     });
 
     it('VALID: {role: assistant, type: text, no model} => does not render model suffix', () => {

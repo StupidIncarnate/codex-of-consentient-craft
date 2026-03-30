@@ -23,7 +23,9 @@ describe('questDuplicateIdMessageTransformer', () => {
         },
       });
 
-      expect(result).toMatch(/^Duplicate ID "flow-a" in flows/u);
+      expect(result).toBe(
+        'Duplicate ID "flow-a" in flows — this ID already exists. Use a unique ID or omit to leave existing unchanged.',
+      );
     });
   });
 
@@ -37,8 +39,8 @@ describe('questDuplicateIdMessageTransformer', () => {
         },
       });
 
-      expect(result).toMatch(
-        /^Duplicate ID "login-page" in flows\[quest-deletion-from-list\]\.nodes/u,
+      expect(result).toBe(
+        'Duplicate ID "login-page" in flows[quest-deletion-from-list].nodes — this ID already exists. Use a unique ID or omit to leave existing unchanged.',
       );
     });
   });

@@ -74,7 +74,7 @@ describe('StartOrchestrator', () => {
       restore();
 
       expect(thrownError).toBeInstanceOf(Error);
-      expect((thrownError as Error).message).toMatch(/^Quest not found/u);
+      expect((thrownError as Error).message).toBe('Quest not found: nonexistent-quest-id');
     });
   });
 

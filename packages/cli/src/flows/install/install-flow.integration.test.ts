@@ -33,8 +33,8 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Added devDependencies to package.json',
       });
-      expect(packageJsonContent).toMatch(/^\s*"devDependencies"/mu);
-      expect(packageJsonContent).toMatch(/^\s*"typescript"/mu);
+      expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
+      expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
     });
 
     it('VALID: {context: all devDependencies present} => returns skipped', async () => {

@@ -91,7 +91,6 @@ test.describe('Guild Creation Flow', () => {
     // Modal closes, path input populated with selected directory
     await expect(page.getByText('Browse Directory')).not.toBeVisible();
 
-    await expect(page.getByTestId('GUILD_PATH_INPUT')).not.toHaveValue('');
     await expect(page.getByTestId('GUILD_PATH_INPUT')).toHaveValue(
       new RegExp(String(entryName).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'), 'u'),
     );

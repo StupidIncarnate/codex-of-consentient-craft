@@ -169,7 +169,7 @@ describe('questVerifyBroker', () => {
       expect(result).toStrictEqual({
         success: false,
         checks: [],
-        error: expect.stringMatching(/not found in any guild$/u),
+        error: 'Quest with id "nonexistent" not found in any guild',
       });
     });
 
@@ -184,7 +184,7 @@ describe('questVerifyBroker', () => {
       expect(result).toStrictEqual({
         success: false,
         checks: [],
-        error: expect.stringMatching(/not found in any guild$/u),
+        error: 'Quest with id "any-quest" not found in any guild',
       });
     });
   });

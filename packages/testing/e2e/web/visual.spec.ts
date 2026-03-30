@@ -55,8 +55,8 @@ test.describe('Status Badges & Visual', () => {
     // Unselected guild should have different styling
     const unselectedGuild = page.getByTestId(`GUILD_ITEM_${guildBId}`);
 
-    // The selected and unselected guilds should have distinct text color
-    await expect(selectedGuild).not.toHaveCSS('color', 'rgb(0, 0, 0)');
+    // Selected guild should have gold text color (#fbbf24)
+    await expect(selectedGuild).toHaveCSS('color', 'rgb(251, 191, 36)');
     await expect(unselectedGuild).toBeVisible();
   });
 

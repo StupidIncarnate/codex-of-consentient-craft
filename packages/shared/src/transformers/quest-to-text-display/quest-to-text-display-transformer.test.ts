@@ -15,8 +15,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^---\nKEY:/u);
-      expect(result).toMatch(/^---\n\n# Quest:/mu);
+      expect(result).toMatch(/^---$/mu);
+      expect(result).toMatch(/^KEY:$/mu);
+      expect(result).toMatch(/^# Quest: Add Authentication$/mu);
     });
   });
 
@@ -102,7 +103,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(/^#login-creds \u2014 LoginCredentials \(data, new\)$/mu);
-      expect(result).toMatch(/^ {2}email: EmailAddress/mu);
+      expect(result).toMatch(/^ {2}email: EmailAddress \u2014 User email$/mu);
     });
 
     it('VALID: {quest: contract with source} => renders source reference', () => {
@@ -116,7 +117,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/\[\u2192 src\/contracts\/user\.ts\]$/mu);
+      expect(result).toMatch(
+        /^#login-credentials \u2014 LoginCredentials \(data, new\) \[\u2192 src\/contracts\/user\.ts\]$/mu,
+      );
     });
   });
 

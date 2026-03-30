@@ -39,7 +39,9 @@ describe('McpServerFlow', () => {
       const response = await client.sendRequest(request);
 
       expect(response.error).toBe(undefined);
-      expect(JSON.stringify(response.result)).toMatch(/^\{"protocolVersion":"/u);
+      expect(JSON.stringify(response.result)).toMatch(
+        /^\{"protocolVersion":"2024-11-05","capabilities":\{"tools":\{\}\},"serverInfo":\{"name":"@dungeonmaster\/mcp","version":"0\.1\.0"\}\}$/u,
+      );
     });
   });
 
@@ -375,7 +377,9 @@ describe('McpServerFlow', () => {
       const { success, error } = getResultData;
 
       expect(success).toBe(false);
-      expect(String(error)).toMatch(/^Quest with id .+ not found/u);
+      expect(String(error)).toMatch(
+        /^Quest with id "non-existent-quest-id" not found in any guild$/u,
+      );
     });
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
@@ -458,7 +462,7 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type/u);
+      expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type$/mu);
     });
   });
 
@@ -544,7 +548,9 @@ describe('McpServerFlow', () => {
       const result = ToolCallResultStub(response.result as never);
 
       expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toMatch(/^Questions sent to user/mu);
+      expect(result.content[0]?.text).toBe(
+        "Questions sent to user. Their answers will arrive as your next user message. Do NOT continue generating \u2014 wait for the session to resume with the user's response.",
+      );
     });
 
     it('ERROR: {empty questions array} => returns error', async () => {

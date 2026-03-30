@@ -11,9 +11,9 @@ ruleTester.run('ban-object-keys-in-expect', ruleBanObjectKeysInExpectBroker(), {
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
-    // Object.keys outside expect is fine
+    // Object.keys assigned to variable but NOT passed to expect is fine
     {
-      code: "const keys = Object.keys(obj); expect(keys).toStrictEqual(['id', 'name']);",
+      code: 'const keys = Object.keys(obj); console.log(keys);',
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
@@ -49,6 +49,13 @@ ruleTester.run('ban-object-keys-in-expect', ruleBanObjectKeysInExpectBroker(), {
     {
       code: "expect(Object.keys(props)).toStrictEqual(['onClick']);",
       filename: '/project/src/widgets/button/button-widget.test.tsx',
+      errors: [{ messageId: 'noObjectKeysInExpect' }],
+    },
+
+    // Variable extraction evasion — const keys = Object.keys(obj); expect(keys)...
+    {
+      code: "const keys = Object.keys(obj); expect(keys).toStrictEqual(['id', 'name']);",
+      filename: '/project/src/brokers/user/user-broker.test.ts',
       errors: [{ messageId: 'noObjectKeysInExpect' }],
     },
   ],

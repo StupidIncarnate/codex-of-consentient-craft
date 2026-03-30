@@ -133,6 +133,6 @@ test.describe('Quest Pause and Resume', () => {
     const resumedResponse = await request.get(`/api/quests/${questId}`);
     const resumedData = await resumedResponse.json();
 
-    expect(resumedData.quest.status).not.toBe('blocked');
+    expect(resumedData.quest.status).toBe('in_progress');
   });
 });

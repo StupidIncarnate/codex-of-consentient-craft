@@ -224,8 +224,7 @@ test.describe('Quest Approved Modal', () => {
     // Should navigate to the guild session page (no sessionId)
     await page.waitForURL(`**/${urlSlug}/session`, { timeout: REQUEST_TIMEOUT });
 
-    expect(page.url()).toContain(`/${urlSlug}/session`);
-    expect(page.url()).not.toContain(sessionId);
+    expect(page.url()).toMatch(new RegExp(`/${urlSlug}/session$`, 'u'));
   });
 
   test('VALID: modal does not appear for non-approved status transitions', async ({

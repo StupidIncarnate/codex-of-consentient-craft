@@ -23,9 +23,9 @@ ruleTester.run('ban-string-includes-in-expect', ruleBanStringIncludesInExpectBro
       filename: '/project/src/brokers/user/user-broker.ts',
     },
 
-    // includes() outside expect is fine
+    // includes() assigned to variable but NOT passed to expect is fine
     {
-      code: "const has = str.includes('hello'); expect(has).toBe(true);",
+      code: "const has = str.includes('hello'); console.log(has);",
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
   ],
@@ -56,6 +56,13 @@ ruleTester.run('ban-string-includes-in-expect', ruleBanStringIncludesInExpectBro
     {
       code: "expect(text.includes('error')).toBe(true);",
       filename: '/project/src/widgets/button/button-widget.test.tsx',
+      errors: [{ messageId: 'noIncludesInExpect' }],
+    },
+
+    // Variable extraction evasion — const has = str.includes('hello'); expect(has)...
+    {
+      code: "const has = str.includes('hello'); expect(has).toBe(true);",
+      filename: '/project/src/brokers/user/user-broker.test.ts',
       errors: [{ messageId: 'noIncludesInExpect' }],
     },
   ],

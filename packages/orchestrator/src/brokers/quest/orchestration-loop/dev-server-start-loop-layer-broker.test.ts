@@ -79,8 +79,8 @@ describe('devServerStartLoopLayerBroker', () => {
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const promptArg = String(spawnedArgs[1]);
 
-      expect(promptArg).toMatch(/^# Spiritmender/u);
-      expect(promptArg).toMatch(/Verification Command: npm run dev$/u);
+      expect(promptArg).toMatch(/^# Spiritmender - Error Resolution Agent$/mu);
+      expect(promptArg).toMatch(/^Verification Command: npm run dev$/mu);
     });
   });
 

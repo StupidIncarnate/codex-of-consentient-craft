@@ -38,7 +38,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /Scanning for duplicate primitives\.\.\.[\s\S]+Pattern: \*\*\/\*\.ts[\s\S]+Threshold: 3\+ occurrences[\s\S]+No duplicate primitives found!$/msu,
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 3\+ occurrences\n {2}Min length: 3 characters\n\n✅ No duplicate primitives found!\n$/su,
         ),
       });
     });
@@ -80,7 +80,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /Found 1 duplicate primitive\(s\):[\s\S]+STRING: "duplicate string"[\s\S]+Occurrences: 3[\s\S]+file3\.ts:[\s\S]+file2\.ts:[\s\S]+file1\.ts:.+$/su,
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 3\+ occurrences\n {2}Min length: 3 characters\n\nFound 1 duplicate primitive\(s\):\n\n━+\nSTRING: "duplicate string"\nOccurrences: 3\n\n {2}[^\n]+file3\.ts:\d+:\d+\n {2}[^\n]+file2\.ts:\d+:\d+\n {2}[^\n]+file1\.ts:\d+:\d+\n\n\nSuggestion: Extract these literals to statics files:\n {2}packages\/\*\/src\/statics\/\[domain\]\/\[domain\]-statics\.ts\n$/su,
         ),
       });
     });
@@ -114,7 +114,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /Threshold: 2\+ occurrences[\s\S]+Found 1 duplicate primitive\(s\):[\s\S]+STRING: "twice only"[\s\S]+Occurrences: 2$/msu,
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 2\+ occurrences\n {2}Min length: 3 characters\n\nFound 1 duplicate primitive\(s\):\n\n━+\nSTRING: "twice only"\nOccurrences: 2\n\n {2}[^\n]+file2\.ts:\d+:\d+\n {2}[^\n]+file1\.ts:\d+:\d+\n\n\nSuggestion: Extract these literals to statics files:\n {2}packages\/\*\/src\/statics\/\[domain\]\/\[domain\]-statics\.ts\n$/su,
         ),
       });
     });
@@ -138,7 +138,9 @@ describe('StartPrimitiveDuplicateDetection', () => {
         stdout: result.stdout,
       }).toStrictEqual({
         exitCode: 0,
-        stdout: expect.stringMatching(/No duplicate primitives found!$/msu),
+        stdout: expect.stringMatching(
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 3\+ occurrences\n {2}Min length: 3 characters\n\n✅ No duplicate primitives found!\n$/su,
+        ),
       });
     });
 
@@ -174,7 +176,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /Found 1 duplicate primitive\(s\):[\s\S]+STRING: "This is a very long string that appears multiple times in the codebase"[\s\S]+Occurrences: 3$/msu,
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 3\+ occurrences\n {2}Min length: 3 characters\n\nFound 1 duplicate primitive\(s\):\n\n━+\nSTRING: "This is a very long string that appears multiple times in the codebase"\nOccurrences: 3\n\n {2}[^\n]+file3\.ts:\d+:\d+\n {2}[^\n]+file2\.ts:\d+:\d+\n {2}[^\n]+file1\.ts:\d+:\d+\n\n\nSuggestion: Extract these literals to statics files:\n {2}packages\/\*\/src\/statics\/\[domain\]\/\[domain\]-statics\.ts\n$/su,
         ),
       });
     });
@@ -212,7 +214,7 @@ describe('StartPrimitiveDuplicateDetection', () => {
       }).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /Found 1 duplicate primitive\(s\):[\s\S]+REGEX: "\/\^\[a-z\]\+\$\/"[\s\S]+Occurrences: 3$/msu,
+          /^Scanning for duplicate primitives\.\.\.\n {2}Pattern: \*\*\/\*\.ts\n {2}Directory: [^\n]+\n {2}Threshold: 3\+ occurrences\n {2}Min length: 3 characters\n\nFound 1 duplicate primitive\(s\):\n\n━+\nREGEX: "\/\^\[a-z\]\+\$\/"\nOccurrences: 3\n\n {2}[^\n]+file3\.ts:\d+:\d+\n {2}[^\n]+file2\.ts:\d+:\d+\n {2}[^\n]+file1\.ts:\d+:\d+\n\n\nSuggestion: Extract these literals to statics files:\n {2}packages\/\*\/src\/statics\/\[domain\]\/\[domain\]-statics\.ts\n$/su,
         ),
       });
     });

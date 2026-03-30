@@ -17,7 +17,7 @@ describe('HookPreBashFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*Blocked: direct jest invocation[\s\S]*$/su),
+        stderr: 'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test`\n',
       });
     });
 
@@ -139,7 +139,9 @@ describe('HookPreBashFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
+        stderr: expect.stringMatching(
+          'Hook error: Unexpected token \'o\', "not json" is not valid JSON',
+        ),
       });
     });
   });

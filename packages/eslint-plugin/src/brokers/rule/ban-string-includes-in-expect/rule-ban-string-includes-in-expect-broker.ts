@@ -11,7 +11,9 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isAstIncludesCallGuard } from '../../../guards/is-ast-includes-call/is-ast-includes-call-guard';
 
 export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -36,7 +38,19 @@ export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
       return {};
     }
 
+    const includesVariables = new Set<Identifier>();
+
     return {
+      VariableDeclarator: (node: Tsestree): void => {
+        if (node.id?.type !== 'Identifier' || node.id.name === undefined) {
+          return;
+        }
+
+        if (isAstIncludesCallGuard({ node: node.init })) {
+          includesVariables.add(node.id.name);
+        }
+      },
+
       CallExpression: (node: Tsestree): void => {
         const { callee } = node;
 
@@ -50,24 +64,26 @@ export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
           return;
         }
 
-        // Check if the argument is something.includes(...)
-        if (firstArg.type !== 'CallExpression') {
+        // Check if the argument is something.includes(...) directly
+        if (isAstIncludesCallGuard({ node: firstArg })) {
+          ctx.report({
+            node,
+            messageId: 'noIncludesInExpect',
+          });
           return;
         }
 
-        const argCallee = firstArg.callee;
-        if (argCallee?.type !== 'MemberExpression') {
-          return;
+        // Check if the argument is a variable assigned from .includes(...)
+        if (
+          firstArg.type === 'Identifier' &&
+          firstArg.name !== undefined &&
+          includesVariables.has(firstArg.name)
+        ) {
+          ctx.report({
+            node,
+            messageId: 'noIncludesInExpect',
+          });
         }
-
-        if (argCallee.property?.name !== 'includes') {
-          return;
-        }
-
-        ctx.report({
-          node,
-          messageId: 'noIncludesInExpect',
-        });
       },
     };
   },

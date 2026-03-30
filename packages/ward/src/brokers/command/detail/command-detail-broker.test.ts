@@ -49,7 +49,7 @@ describe('commandDetailBroker', () => {
       });
 
       expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringMatching(/^src\/index\.ts\n {2}lint/u),
+        'src/index.ts\n  lint (line 10, col 5)\n    Unexpected any\n',
       );
     });
   });
@@ -90,7 +90,7 @@ describe('commandDetailBroker', () => {
       });
 
       expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringMatching(/^src\/index\.ts\n {2}lint/u),
+        'src/index.ts\n  lint (line 10, col 5)\n    Unexpected any\n',
       );
     });
   });

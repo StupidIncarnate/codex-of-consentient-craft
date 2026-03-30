@@ -38,7 +38,9 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^### DAMP > DRY$/mu);
-      expect(result).toMatch(/^Tests should be \*\*Descriptive And Meaningful\*\*, not DRY\./mu);
+      expect(result).toMatch(
+        /^Tests should be \*\*Descriptive And Meaningful\*\*, not DRY\. Each test must be readable standalone without looking at helpers\.$/mu,
+      );
     });
 
     it('VALID: {} => includes test behavior not implementation', () => {
@@ -67,7 +69,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### 100% Branch Coverage$/mu);
       expect(result).toMatch(
-        /^\*\*You must manually verify test cases against implementation code\.\*\*/mu,
+        /^\*\*You must manually verify test cases against implementation code\.\*\* Jest's `--coverage` can miss logical branches\.$/mu,
       );
     });
 
@@ -117,8 +119,8 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### What Gets Mocked vs What Runs Real$/mu);
       expect(result).toMatch(/^Widget Test:$/mu);
-      expect(result).toMatch(/\(REAL\)\s+│ ← Test renders this$/mu);
-      expect(result).toMatch(/\(MOCKED\)\s+│ ← Mock global function$/mu);
+      expect(result).toMatch(/^│ Widget\s+\(REAL\)\s+│ ← Test renders this$/mu);
+      expect(result).toMatch(/^│\s+├─ Date\.now\(\)\s+\(MOCKED\)\s+│ ← Mock global function$/mu);
     });
 
     it('VALID: {} => includes quick reference table', () => {
@@ -127,9 +129,15 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^### Quick Reference: What Needs Proxies\?$/mu);
-      expect(result).toMatch(/^\| Contracts/mu);
-      expect(result).toMatch(/^\| Adapters/mu);
-      expect(result).toMatch(/^\| Brokers/mu);
+      expect(result).toMatch(
+        /^\| Contracts\s+\| ❌ No\s+\| Use stubs \(\.stub\.ts files\) - includes service objects with methods\s+\|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| Adapters\s+\| ✅ Sometimes\s+\| \*\*Mock npm dependency\*\* \(axios, fs, etc\.\)\. Empty proxy if no mocking needed \(simple re-exports\)\s*\|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| Brokers\s+\| ✅ Sometimes\s+\| Compose adapter proxies, provide semantic setup\. Empty proxy if no dependencies mocked\s+\|$/mu,
+      );
     });
 
     it('VALID: {} => includes detailed proxy patterns reference', () => {
@@ -138,7 +146,9 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^### Detailed Proxy Patterns$/mu);
-      expect(result).toMatch(/^\*\*Detailed proxy patterns for each folder type\*\*/mu);
+      expect(result).toMatch(
+        /^\*\*Detailed proxy patterns for each folder type\*\* - Use `get-folder-detail\(\{ folderType: "\.\.\." \}\)` to see specific examples:$/mu,
+      );
       expect(result).toMatch(/^\*\*Empty Proxy Pattern:\*\*$/mu);
       expect(result).toMatch(
         /^export const pureTransformerProxy = \(\): Record<PropertyKey, never> => \(\{\}\);$/mu,
@@ -182,7 +192,9 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^## Stub Factories$/mu);
-      expect(result).toMatch(/^\*\*Complete stub patterns in contracts\/ folder detail\*\*/mu);
+      expect(result).toMatch(
+        /^\*\*Complete stub patterns in contracts\/ folder detail\*\* - Use `get-folder-detail\(\{ folderType: "contracts" \}\)`\.$/mu,
+      );
     });
 
     it('VALID: {} => includes mocking mechanics section with registerMock', () => {
@@ -191,9 +203,11 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(/^## Mocking Mechanics$/mu);
-      expect(result).toMatch(/^\*\*Use `registerMock` for all mocking in proxy files\.\*\*/mu);
       expect(result).toMatch(
-        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* Stack-based dispatch/mu,
+        /^\*\*Use `registerMock` for all mocking in proxy files\.\*\* It replaces `jest\.mock\(\)`\/`jest\.mocked\(\)`\/`jest\.spyOn\(\)`\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* Stack-based dispatch lets multiple proxies mock the same `jest\.fn\(\)` without collision\. When a broker proxy composes two adapter proxies that both mock the same npm function, `registerMock` routes each call to the correct proxy based on the call stack\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
       );
       expect(result).toMatch(/^\*\*MockHandle API:\*\*$/mu);
     });
@@ -205,7 +219,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## Integration Testing$/mu);
       expect(result).toMatch(
-        /^\*\*CRITICAL:\*\* Integration tests are \*\*ONLY for startup files\*\*\./mu,
+        /^\*\*CRITICAL:\*\* Integration tests are \*\*ONLY for startup files\*\*\. They validate that startup files correctly wire up the entire application\. Use `\.integration\.test\.ts` extension\.$/mu,
       );
     });
 
@@ -216,7 +230,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## No Hooks or Conditionals$/mu);
       expect(result).toMatch(
-        /^\*\*CRITICAL:\*\* `beforeEach`, `afterEach`, `beforeAll`, `afterAll` are forbidden\./mu,
+        /^\*\*CRITICAL:\*\* `beforeEach`, `afterEach`, `beforeAll`, `afterAll` are forbidden\. All setup and teardown must be inline in each test\.$/mu,
       );
     });
 
@@ -227,9 +241,11 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## Common Anti-Patterns$/mu);
       expect(result).toMatch(
-        /^\*\*Common testing anti-patterns are documented in syntax rules\*\*/mu,
+        /^\*\*Common testing anti-patterns are documented in syntax rules\*\* - Use `get-syntax-rules\(\)` for complete list with examples\.$/mu,
       );
-      expect(result).toMatch(/^See `get-syntax-rules\(\)`/mu);
+      expect(result).toMatch(
+        /^See `get-syntax-rules\(\)` testing\.antiPatterns section for detailed violations and correct approaches\.$/mu,
+      );
     });
 
     it('VALID: {} => includes summary checklist', () => {

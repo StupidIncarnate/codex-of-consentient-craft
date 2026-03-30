@@ -10,19 +10,19 @@ describe('architectureSyntaxRulesBroker', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^# Universal Syntax Rules/mu);
-      expect(result).toMatch(/^## File Naming/mu);
-      expect(result).toMatch(/^## Function Exports/mu);
-      expect(result).toMatch(/^## Summary Checklist/mu);
+      expect(result).toMatch(/^# Universal Syntax Rules$/mu);
+      expect(result).toMatch(/^## File Naming$/mu);
+      expect(result).toMatch(/^## Function Exports$/mu);
+      expect(result).toMatch(/^## Summary Checklist$/mu);
     });
 
     it('VALID: {} => includes file naming rules with examples and violations', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^\*\*All filenames must use kebab-case\*\*/mu);
-      expect(result).toMatch(/^- ✅ `user-fetch-broker.ts`/mu);
-      expect(result).toMatch(/^- ❌ `userFetchBroker.ts`/mu);
+      expect(result).toMatch(/^\*\*All filenames must use kebab-case\*\*$/mu);
+      expect(result).toMatch(/^- ✅ `user-fetch-broker\.ts`$/mu);
+      expect(result).toMatch(/^- ❌ `userFetchBroker\.ts`$/mu);
     });
 
     it('VALID: {} => includes function export rules with code examples', () => {
@@ -30,19 +30,21 @@ describe('architectureSyntaxRulesBroker', () => {
       const result = architectureSyntaxRulesBroker();
 
       expect(result).toMatch(
-        /^\*\*All functions must use export const with arrow function syntax\*\*/mu,
+        /^\*\*All functions must use export const with arrow function syntax\*\*$/mu,
       );
       expect(result).toMatch(/^```typescript$/mu);
-      expect(result).toMatch(/^export const userFetchBroker/mu);
+      expect(result).toMatch(
+        /^export const userFetchBroker = async \(\{userId\}: \{userId: UserId\}\): Promise<User> => \{ \/\* implementation \*\/ \};$/mu,
+      );
     });
 
     it('VALID: {} => includes type safety section with subsections', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^### Strict Typing Required/mu);
-      expect(result).toMatch(/^### For Uncertain Data/mu);
-      expect(result).toMatch(/^### Type Assertions vs Satisfies/mu);
+      expect(result).toMatch(/^### Strict Typing Required$/mu);
+      expect(result).toMatch(/^### For Uncertain Data$/mu);
+      expect(result).toMatch(/^### Type Assertions vs Satisfies$/mu);
     });
 
     it('VALID: {} => includes performance section with Reflect methods', () => {
@@ -57,9 +59,9 @@ describe('architectureSyntaxRulesBroker', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^## Summary Checklist/mu);
-      expect(result).toMatch(/^- \[ \] File uses kebab-case naming/mu);
-      expect(result).toMatch(/^- \[ \] No any, @ts-ignore, or type suppressions/mu);
+      expect(result).toMatch(/^## Summary Checklist$/mu);
+      expect(result).toMatch(/^- \[ \] File uses kebab-case naming$/mu);
+      expect(result).toMatch(/^- \[ \] No any, @ts-ignore, or type suppressions$/mu);
     });
 
     it('VALID: {} => formats code blocks correctly', () => {
@@ -74,8 +76,8 @@ describe('architectureSyntaxRulesBroker', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^- ✅ `/mu);
-      expect(result).toMatch(/^- ❌ `/mu);
+      expect(result).toMatch(/^- ✅ `user-fetch-broker\.ts`$/mu);
+      expect(result).toMatch(/^- ❌ `userFetchBroker\.ts`$/mu);
     });
   });
 
@@ -92,17 +94,17 @@ describe('architectureSyntaxRulesBroker', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^# /mu);
-      expect(result).toMatch(/^## /mu);
-      expect(result).toMatch(/^### /mu);
+      expect(result).toMatch(/^# Universal Syntax Rules$/mu);
+      expect(result).toMatch(/^## File Naming$/mu);
+      expect(result).toMatch(/^### Strict Typing Required$/mu);
     });
 
     it('VALID: {} => includes proper markdown list formatting', () => {
       architectureSyntaxRulesBrokerProxy();
       const result = architectureSyntaxRulesBroker();
 
-      expect(result).toMatch(/^- /mu);
-      expect(result).toMatch(/^- \[ \] /mu);
+      expect(result).toMatch(/^- ✅ `user-fetch-broker\.ts`$/mu);
+      expect(result).toMatch(/^- \[ \] File uses kebab-case naming$/mu);
     });
   });
 });

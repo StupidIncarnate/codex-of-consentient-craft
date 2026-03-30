@@ -11,7 +11,9 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isAstObjectKeysCallGuard } from '../../../guards/is-ast-object-keys-call/is-ast-object-keys-call-guard';
 
 export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -36,7 +38,19 @@ export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
       return {};
     }
 
+    const objectKeysVariables = new Set<Identifier>();
+
     return {
+      VariableDeclarator: (node: Tsestree): void => {
+        if (node.id?.type !== 'Identifier' || node.id.name === undefined) {
+          return;
+        }
+
+        if (isAstObjectKeysCallGuard({ node: node.init })) {
+          objectKeysVariables.add(node.id.name);
+        }
+      },
+
       CallExpression: (node: Tsestree): void => {
         const { callee } = node;
 
@@ -50,28 +64,26 @@ export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
           return;
         }
 
-        // Check if the argument is Object.keys(...)
-        if (firstArg.type !== 'CallExpression') {
+        // Check if the argument is Object.keys(...) directly
+        if (isAstObjectKeysCallGuard({ node: firstArg })) {
+          ctx.report({
+            node,
+            messageId: 'noObjectKeysInExpect',
+          });
           return;
         }
 
-        const argCallee = firstArg.callee;
-        if (argCallee?.type !== 'MemberExpression') {
-          return;
+        // Check if the argument is a variable assigned from Object.keys(...)
+        if (
+          firstArg.type === 'Identifier' &&
+          firstArg.name !== undefined &&
+          objectKeysVariables.has(firstArg.name)
+        ) {
+          ctx.report({
+            node,
+            messageId: 'noObjectKeysInExpect',
+          });
         }
-
-        if (argCallee.object?.type !== 'Identifier' || argCallee.object.name !== 'Object') {
-          return;
-        }
-
-        if (argCallee.property?.name !== 'keys') {
-          return;
-        }
-
-        ctx.report({
-          node,
-          messageId: 'noObjectKeysInExpect',
-        });
       },
     };
   },

@@ -35,7 +35,9 @@ describe('questFindDuplicateIdTransformer', () => {
         context: ErrorMessageStub({ value: 'nodes' }),
       });
 
-      expect(result).toMatch(/^Duplicate ID "login-page" in nodes/u);
+      expect(result).toBe(
+        'Duplicate ID "login-page" in nodes — this ID already exists. Use a unique ID or omit to leave existing unchanged.',
+      );
     });
   });
 
@@ -51,7 +53,9 @@ describe('questFindDuplicateIdTransformer', () => {
         context: ErrorMessageStub({ value: 'nodes' }),
       });
 
-      expect(result).toMatch(/^Duplicate ID "obs-dup" in nodes\[n1\]\.observables/u);
+      expect(result).toBe(
+        'Duplicate ID "obs-dup" in nodes[n1].observables — this ID already exists. Use a unique ID or omit to leave existing unchanged.',
+      );
     });
   });
 

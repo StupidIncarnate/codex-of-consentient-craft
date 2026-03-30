@@ -75,11 +75,8 @@ describe('post-edit-hook', () => {
 
       testbed.cleanup();
 
-      expect(result).toStrictEqual({
-        exitCode: 0,
-        stdout: expect.stringMatching(/^[\s\S]*$/u),
-        stderr: expect.stringMatching(stderrPattern),
-      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toMatch(stderrPattern);
     });
   });
 
@@ -131,11 +128,8 @@ describe('post-edit-hook', () => {
 
       testbed.cleanup();
 
-      expect(result).toStrictEqual({
-        exitCode: 0,
-        stdout: expect.stringMatching(/^[\s\S]*$/u),
-        stderr: expect.stringMatching(stderrPattern),
-      });
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toMatch(stderrPattern);
     });
   });
 
@@ -226,7 +220,7 @@ export const subtract = ({ a, b }: { a: boolean; b: boolean }): boolean => a && 
       expect(result).toStrictEqual({
         exitCode: 0,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*All violations auto-fixed successfully[\s\S]*$/isu),
+        stderr: 'All violations auto-fixed successfully\n',
       });
     });
 
@@ -279,12 +273,16 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       expect(fileContentAfterHook).toStrictEqual(fileContent);
 
       // Hook should exit successfully (never blocks) but report colocation violation
+      // stdout contains JSON block with decision/reason; stderr contains the violation message
+      const colocationStdoutPattern =
+        /^\{"decision":"block","reason":"🛑 New code quality violations detected:.+"\}$/su;
+      const colocationStderrPattern =
+        /^🛑 New code quality violations detected:\n.+must have a colocated test file.+Create example-broker\.test\.ts.+\n$/su;
+
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: expect.stringMatching(/^[\s\S]*$/u),
-        stderr: expect.stringMatching(
-          /^[\s\S]*must have a colocated test file[\s\S]*Create example-broker\.test\.ts[\s\S]*$/isu,
-        ),
+        stdout: expect.stringMatching(colocationStdoutPattern),
+        stderr: expect.stringMatching(colocationStderrPattern),
       });
     });
   });

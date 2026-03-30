@@ -23,7 +23,7 @@ describe('ChatStartResponder', () => {
         message: 'Help me build auth',
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -52,7 +52,7 @@ describe('ChatStartResponder', () => {
         sessionId,
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -71,7 +71,7 @@ describe('ChatStartResponder', () => {
         sessionId,
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -140,7 +140,7 @@ describe('ChatStartResponder', () => {
 
       expect(killMock).toHaveBeenCalledTimes(1);
       expect(orchestrationProcessesState.has({ processId: existingProcessId })).toBe(false);
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {message with no running process} => spawns normally', async () => {
@@ -198,7 +198,7 @@ describe('ChatStartResponder', () => {
         sessionId,
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {first message, no quest exists} => creates quest and spawns', async () => {
@@ -211,7 +211,7 @@ describe('ChatStartResponder', () => {
         message: 'Brand new conversation',
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('EDGE: {running process on different quest} => does NOT kill, spawns normally', async () => {
@@ -279,7 +279,7 @@ describe('ChatStartResponder', () => {
 
       expect(killMock.mock.calls).toStrictEqual([]);
       expect(orchestrationProcessesState.has({ processId: otherProcessId })).toBe(true);
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 });

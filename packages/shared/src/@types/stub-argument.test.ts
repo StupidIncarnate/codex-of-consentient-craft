@@ -119,13 +119,10 @@ describe('StubArgument', () => {
         },
       });
 
-      // Verify data using runtime access since output has branded keys
-      const overridesObj = result.overrides as Record<string, unknown>;
-      const keys = Object.keys(overridesObj);
-
-      expect(keys).toStrictEqual(['widgets', 'bindings']);
-      expect(Object.values(overridesObj)[0]).toStrictEqual({ add: ['react'] });
-      expect(Object.values(overridesObj)[1]).toStrictEqual({ add: ['react-query'] });
+      expect(result.overrides).toStrictEqual({
+        widgets: { add: ['react'] },
+        bindings: { add: ['react-query'] },
+      });
     });
 
     it('VALID: {overrides: {}} => accepts empty overrides object', () => {
@@ -295,15 +292,11 @@ describe('StubArgument', () => {
         'b2c3d4e5-f6a7-4b5c-8d9e-1f2a3b4c5d6e': 'viewer',
       });
 
-      const keys = Object.keys(result).sort((a, b) => a.localeCompare(b));
-      const values = (Object.values(result) as string[]).sort((a, b) => a.localeCompare(b));
-
-      expect(keys).toStrictEqual([
-        'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        'b2c3d4e5-f6a7-4b5c-8d9e-1f2a3b4c5d6e',
-        'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      ]);
-      expect(values).toStrictEqual(['admin', 'editor', 'viewer']);
+      expect(result).toStrictEqual({
+        'f47ac10b-58cc-4372-a567-0e02b2c3d479': 'admin',
+        'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d': 'editor',
+        'b2c3d4e5-f6a7-4b5c-8d9e-1f2a3b4c5d6e': 'viewer',
+      });
     });
   });
 

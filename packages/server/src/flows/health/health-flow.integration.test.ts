@@ -20,7 +20,7 @@ describe('HealthFlow', () => {
       const response = await app.request('/', { redirect: 'manual' });
 
       expect(response.status).toBe(302);
-      expect(response.headers.get('location')).toMatch(/:\d+$/u);
+      expect(response.headers.get('location')).toMatch(/^http:\/\/dungeonmaster\.localhost:\d+$/u);
     });
   });
 });

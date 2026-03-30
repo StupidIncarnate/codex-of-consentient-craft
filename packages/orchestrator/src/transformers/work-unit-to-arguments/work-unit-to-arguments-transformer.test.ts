@@ -273,9 +273,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: verify-quest\n/u);
-      expect(result).toMatch(/^Observable Type Reference:$/mu);
-      expect(result).toMatch(/Observables:\n {4}- Shows success message \(ui-state\)$/u);
+      expect(result).toBe(
+        'Quest ID: verify-quest\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nObservables:\n    - Shows success message (ui-state)',
+      );
     });
 
     it('VALID: {siegemaster with empty relatedObservables} => returns quest ID only', () => {
@@ -286,10 +286,8 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: empty-quest\n/u);
-      expect(result).toMatch(/^Observable Type Reference:$/mu);
-      expect(result).toMatch(
-        /`custom` — Project-specific assertion — read the description for details$/u,
+      expect(result).toBe(
+        'Quest ID: empty-quest\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
       );
     });
 
@@ -307,8 +305,8 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(
-        /^Design Decisions:\n {2}- Use JWT for auth: Stateless authentication$/mu,
+      expect(result).toBe(
+        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication',
       );
     });
 
@@ -329,7 +327,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Flows:\n {2}- Login Flow \(nodes: Login Page\)$/mu);
+      expect(result).toBe(
+        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nFlows:\n  - Login Flow (nodes: Login Page)',
+      );
     });
 
     it('VALID: {siegemaster with devServerUrl} => includes dev server URL after quest ID', () => {
@@ -341,7 +341,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: quest-1\nDev Server URL: http:\/\/localhost:3000\n/u);
+      expect(result).toBe(
+        'Quest ID: quest-1\nDev Server URL: http://localhost:3000\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
+      );
     });
 
     it('VALID: {siegemaster without devServerUrl} => omits dev server URL line', () => {
@@ -352,7 +354,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: quest-1\nObservable Type Reference:/u);
+      expect(result).toBe(
+        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
+      );
     });
 
     it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
@@ -365,9 +369,8 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Quest ID: quest-1\nObservable Type Reference:/u);
-      expect(result).toMatch(
-        /`custom` — Project-specific assertion — read the description for details$/u,
+      expect(result).toBe(
+        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
       );
     });
   });
@@ -485,7 +488,9 @@ describe('workUnitToArgumentsTransformer', () => {
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
-      expect(result).toMatch(/^Files:/u);
+      expect(result).toBe(
+        'Files:\n  - /src/broken.ts\nRun npm run ward on the files to verify fixes.',
+      );
     });
   });
 

@@ -29,9 +29,9 @@ ruleTester.run('ban-tautological-assertions', ruleBanTautologicalAssertionsBroke
       filename: '/project/src/brokers/user/user-broker.ts',
     },
 
-    // Different matchers (toStrictEqual with identical literals is odd but not this rule's scope)
+    // Different variables in expect and matcher
     {
-      code: 'expect(true).toStrictEqual(true);',
+      code: 'expect(foo).toBe(bar);',
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
   ],
@@ -70,6 +70,41 @@ ruleTester.run('ban-tautological-assertions', ruleBanTautologicalAssertionsBroke
       code: "expect('foo').toBe('foo');",
       filename: '/project/src/brokers/user/user-broker.test.ts',
       errors: [{ messageId: 'tautologicalAssertion', data: { value: 'foo' } }],
+    },
+
+    // Same variable: expect(foo).toBe(foo)
+    {
+      code: 'expect(foo).toBe(foo);',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [{ messageId: 'tautologicalAssertion', data: { value: 'foo' } }],
+    },
+
+    // Same variable with toEqual: expect(foo).toEqual(foo)
+    {
+      code: 'expect(foo).toEqual(foo);',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [{ messageId: 'tautologicalAssertion', data: { value: 'foo' } }],
+    },
+
+    // Same variable with toStrictEqual: expect(foo).toStrictEqual(foo)
+    {
+      code: 'expect(foo).toStrictEqual(foo);',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [{ messageId: 'tautologicalAssertion', data: { value: 'foo' } }],
+    },
+
+    // Identical literal with toStrictEqual: expect(true).toStrictEqual(true)
+    {
+      code: 'expect(true).toStrictEqual(true);',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [{ messageId: 'tautologicalAssertion', data: { value: 'true' } }],
+    },
+
+    // Identical literal with toEqual: expect(1).toEqual(1)
+    {
+      code: 'expect(1).toEqual(1);',
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [{ messageId: 'tautologicalAssertion', data: { value: '1' } }],
     },
   ],
 });

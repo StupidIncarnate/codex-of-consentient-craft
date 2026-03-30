@@ -18,9 +18,12 @@ describe('ESLint Plugin Module Loading', () => {
   it('VALID: {configDungeonmasterBroker} => returns config with typescript and test keys', () => {
     const config = configDungeonmasterBroker();
 
-    const configKeys = Object.keys(config);
-
-    expect(configKeys).toStrictEqual(['typescript', 'test', 'fileOverrides', 'ruleEnforceOn']);
+    expect(config).toStrictEqual({
+      typescript: expect.any(Object),
+      test: expect.any(Object),
+      fileOverrides: expect.any(Array),
+      ruleEnforceOn: expect.any(Object),
+    });
   });
 
   it('VALID: {require @dungeonmaster/eslint-plugin} => returns module with StartEslintPlugin export', () => {

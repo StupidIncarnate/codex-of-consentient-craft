@@ -354,8 +354,8 @@ describe('ToolRowWidget', () => {
 
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
-      expect(result.textContent).toMatch(
-        /^(?=.*SKIPPED)(?=.*This tool call was skipped because another tool call in the same batch failed).*$/u,
+      expect(result.textContent).toBe(
+        'SKIPPEDThis tool call was skipped because another tool call in the same batch failed.',
       );
     });
 

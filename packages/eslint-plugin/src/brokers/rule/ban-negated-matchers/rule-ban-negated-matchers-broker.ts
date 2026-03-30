@@ -41,9 +41,16 @@ export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
 
     const isPlaywrightFile = isSpecFileGuard({ filename }) || filename.includes('.e2e.test.');
 
-    if (isPlaywrightFile) {
-      return {};
-    }
+    const allowedPlaywrightNegatedMatchers = new Set([
+      'toBeVisible',
+      'toBeInTheDocument',
+      'toBeEnabled',
+      'toBeDisabled',
+      'toBeChecked',
+      'toBeEmpty',
+      'toBeHidden',
+      'toHaveCount',
+    ]);
 
     return {
       CallExpression: (node: Tsestree): void => {
@@ -70,6 +77,11 @@ export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
         // Verify the chain originates from expect()
         const expectCall = astFindExpectCallTransformer({ node });
         if (expectCall === null) {
+          return;
+        }
+
+        // In Playwright files, only allow specific visibility/state matchers with .not
+        if (isPlaywrightFile && allowedPlaywrightNegatedMatchers.has(String(matcherName))) {
           return;
         }
 

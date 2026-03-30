@@ -30,11 +30,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([
-        expect.stringMatching(
-          /^[\s\S]*uto-hoisted from[\s\S]*test\.proxy\.ts[\s\S]*jest\.mock\(['"]fs['"]\)/u,
-        ),
-      ]);
+      expect(outputs).toStrictEqual(['// Auto-hoisted from: test.proxy.ts\njest.mock("fs");']);
     });
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
@@ -59,7 +55,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]axios['"][\s\S]*et[\s\S]*jest\.fn/u),
+        '// Auto-hoisted from: adapter.proxy.ts\njest.mock("axios", () => ({ get: jest.fn() }));',
       ]);
     });
 
@@ -85,9 +81,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(
-          /^[\s\S]*jest\.mock\(['"]fs['"][\s\S]*eadFile[\s\S]*jest\.fn[\s\S]*ockResolvedValue/u,
-        ),
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs", () => ({ readFile: jest.fn().mockResolvedValue("content") }));',
       ]);
     });
 
@@ -113,7 +107,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(/^[\s\S]*\.\.\.actualConfig[\s\S]*verride[\s\S]*true/u),
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("config", () => ({ ...actualConfig, override: true }));',
       ]);
     });
 
@@ -138,7 +132,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*fetch[\s\S]*url[\s\S]*son/u)]);
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("api", () => ({ fetch: url => ({ json: () => ({}) }) }));',
+      ]);
     });
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {
@@ -162,7 +158,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*myFunc/u)]);
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("module", () => ({ myFunc }));',
+      ]);
     });
 
     it('VALID: {factory with parenthesized expression} => clones correctly', () => {
@@ -186,7 +184,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*add.*jest\.fn/u)]);
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("math", () => (({ add: jest.fn() })));',
+      ]);
     });
 
     it('VALID: {factory with numeric literal} => clones correctly', () => {
@@ -210,7 +210,9 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
         printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
       );
 
-      expect(outputs).toStrictEqual([expect.stringMatching(/^[\s\S]*value.*42/u)]);
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("constants", () => ({ value: 42 }));',
+      ]);
     });
 
     it('VALID: {multiple mock calls} => returns multiple statements', () => {
@@ -239,8 +241,8 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]fs['"]\)/u),
-        expect.stringMatching(/^[\s\S]*jest\.mock\(['"]path['"]\)/u),
+        '// Auto-hoisted from: test1.proxy.ts\njest.mock("fs");',
+        '// Auto-hoisted from: test2.proxy.ts\njest.mock("path");',
       ]);
     });
   });
@@ -269,9 +271,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(
-          /^[\s\S]*jest\.mock\(["']fs\/promises["'],\s*\(\)\s*=>\s*\([\s\S]*\.\.\.jest\.requireActual\(["']fs\/promises["']\)[\s\S]*readFile:\s*jest\.fn\(\)/u,
-        ),
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...jest.requireActual("fs/promises"), readFile: jest.fn() }));',
       ]);
     });
 
@@ -301,9 +301,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        expect.stringMatching(
-          /^[\s\S]*jest\.mock\(["']fs\/promises["'][\s\S]*requireActual[\s\S]*readFile:\s*jest\.fn\(\)[\s\S]*writeFile:\s*jest\.fn\(\)/u,
-        ),
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...jest.requireActual("fs/promises"), readFile: jest.fn(), writeFile: jest.fn() }));',
       ]);
     });
   });

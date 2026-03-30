@@ -2,6 +2,8 @@
  * PURPOSE: Tests for main Vite entry point - verifies module structure
  */
 
+import path from 'path';
+
 describe('main', () => {
   describe('module structure', () => {
     it('VALID: {} => side-effect-only entry point exists as a TypeScript file', () => {
@@ -10,7 +12,7 @@ describe('main', () => {
       // The actual mounting behavior is tested in app-mount-flow.integration.test.tsx.
       const resolved = require.resolve('./main');
 
-      expect(resolved).toMatch(/\/main\.ts$/u);
+      expect(resolved).toBe(path.resolve(__dirname, 'main.ts'));
     });
   });
 });

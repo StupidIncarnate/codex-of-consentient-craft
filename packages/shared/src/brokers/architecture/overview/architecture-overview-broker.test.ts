@@ -8,7 +8,7 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result).toMatch(/^# Architecture Overview/mu);
+      expect(result).toMatch(/^# Architecture Overview$/mu);
       expect(result).toMatch(/^## Folder Types$/mu);
       expect(result).toMatch(/^## Architecture Layer Diagram$/mu);
       expect(result).toMatch(/^## Decision Tree: Where Does Code Go\?$/mu);
@@ -28,11 +28,21 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result).toMatch(/^\| statics\/ \|/mu);
-      expect(result).toMatch(/^\| contracts\/ \|/mu);
-      expect(result).toMatch(/^\| guards\/ \|/mu);
-      expect(result).toMatch(/^\| transformers\/ \|/mu);
-      expect(result).toMatch(/^\| brokers\/ \|/mu);
+      expect(result).toMatch(
+        /^\| statics\/ \| Immutable configuration values and constants\. Single source of truth for magic numbers, limits, and unchanging data\. \| 1 \| Need immutable config or constants \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| contracts\/ \| Type definitions and validation schemas using Zod\. All data structures must be defined here with branded types\. \| 1 \| Define data structure with validation \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| guards\/ \| Pure boolean functions that validate conditions\. Return true\/false, no side effects\. \| 1 \| Boolean check or type guard \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| transformers\/ \| Pure data transformation functions\. Map input types to output types without side effects\. \| 1 \| Transform data shape A to B \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| brokers\/ \| Business logic orchestration\. Compose adapters, guards, transformers to implement domain operations\. \| 2 \| Business logic operations \|$/mu,
+      );
     });
 
     it('VALID: {} => orders folders by depth (leaf nodes first)', () => {
@@ -54,7 +64,9 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(/^\| statics\/ \|.+\| 1 \|.+\|$/mu);
-      expect(result).toMatch(/^\| statics\/ \|.+Need immutable config or constants/mu);
+      expect(result).toMatch(
+        /^\| statics\/ \| Immutable configuration values and constants\. Single source of truth for magic numbers, limits, and unchanging data\. \| 1 \| Need immutable config or constants \|$/mu,
+      );
     });
   });
 
@@ -77,9 +89,11 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(/^## Quality Commands$/mu);
-      expect(result).toMatch(/^npm run ward /mu);
-      expect(result).toMatch(/^npm run ward -- --only test/mu);
-      expect(result).toMatch(/^npm run ward -- --only lint/mu);
+      expect(result).toMatch(/^npm run ward {42}# All checks, all packages$/mu);
+      expect(result).toMatch(
+        /^npm run ward -- --only test {27}# All tests \(unit \+ integration \+ e2e\)$/mu,
+      );
+      expect(result).toMatch(/^npm run ward -- --only lint {27}# Lint only$/mu);
       expect(result).toMatch(/^\| `npx tsc --noEmit` \| `npm run ward -- --only typecheck` \|$/mu);
     });
   });
@@ -118,9 +132,9 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result).toMatch(/^\*\*Allowed in:\*\* `widgets\/`/mu);
-      expect(result).toMatch(/^\*\*Allowed in:\*\*.+`brokers\/`/mu);
-      expect(result).toMatch(/^\*\*Allowed in:\*\*.+`responders\/`/mu);
+      expect(result).toMatch(
+        /^\*\*Allowed in:\*\* `widgets\/`, `brokers\/`, `responders\/` only$/mu,
+      );
     });
 
     it('VALID: {} => includes layer file naming pattern', () => {
@@ -151,7 +165,7 @@ describe('architectureOverviewBroker', () => {
 
       expect(result).toMatch(/^\*\*When to create layer:\*\*$/mu);
       expect(result).toMatch(/^- Parent exceeds 300 lines$/mu);
-      expect(result).toMatch(/^- Layer calls different dependencies/mu);
+      expect(result).toMatch(/^- Layer calls different dependencies \(needs own proxy\)$/mu);
     });
 
     it('VALID: {} => includes when NOT to create layer guidelines', () => {

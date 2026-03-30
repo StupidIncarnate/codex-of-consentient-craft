@@ -17,9 +17,11 @@ describe('chatPromptBuildTransformer', () => {
         questId,
       });
 
-      expect(result).toMatch(/^# ChaosWhisperer/u);
-      expect(result).toMatch(/Build auth$/u);
-      expect(result).toMatch(/^2\. Call `get-quest` with quest ID `abc-123` to review/mu);
+      const expected = chaoswhispererPromptStatics.prompt.template
+        .replace(chaoswhispererPromptStatics.prompt.placeholders.arguments, 'Build auth')
+        .replace(chaoswhispererPromptStatics.prompt.placeholders.questId, 'abc-123');
+
+      expect(result).toBe(expected);
     });
 
     it('VALID: {chaoswhisperer + sessionId} => returns raw message as prompt', () => {
@@ -47,14 +49,12 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      expect(result).toMatch(/^# ChaosWhisperer/u);
-      expect(result).toMatch(/Build auth$/u);
-      expect(result).toMatch(
-        new RegExp(
-          chaoswhispererPromptStatics.prompt.placeholders.questId.replace('$', '\\$'),
-          'u',
-        ),
+      const expected = chaoswhispererPromptStatics.prompt.template.replace(
+        chaoswhispererPromptStatics.prompt.placeholders.arguments,
+        'Build auth',
       );
+
+      expect(result).toBe(expected);
     });
   });
 
@@ -70,9 +70,11 @@ describe('chatPromptBuildTransformer', () => {
         questId,
       });
 
-      expect(result).toMatch(/^# Glyphsmith/u);
-      expect(result).toMatch(/Create login page$/u);
-      expect(result).toMatch(/^1\. Call `get-quest` with quest ID `design-quest-456` to review/mu);
+      const expected = glyphsmithPromptStatics.prompt.template
+        .replace(glyphsmithPromptStatics.prompt.placeholders.arguments, 'Create login page')
+        .replace(glyphsmithPromptStatics.prompt.placeholders.questId, 'design-quest-456');
+
+      expect(result).toBe(expected);
     });
 
     it('VALID: {glyphsmith + sessionId} => returns raw message as prompt', () => {
@@ -100,11 +102,12 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      expect(result).toMatch(/^# Glyphsmith/u);
-      expect(result).toMatch(/Create login page$/u);
-      expect(result).toMatch(
-        new RegExp(glyphsmithPromptStatics.prompt.placeholders.questId.replace('$', '\\$'), 'u'),
+      const expected = glyphsmithPromptStatics.prompt.template.replace(
+        glyphsmithPromptStatics.prompt.placeholders.arguments,
+        'Create login page',
       );
+
+      expect(result).toBe(expected);
     });
   });
 });

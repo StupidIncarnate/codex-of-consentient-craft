@@ -17,7 +17,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr: 'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test`\n',
       });
     });
 
@@ -32,7 +32,8 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr:
+          'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test -- --verbose`\n',
       });
     });
 
@@ -47,7 +48,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr: 'Blocked: direct eslint invocation. Use instead: `npm run ward -- --only lint`\n',
       });
     });
 
@@ -62,7 +63,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr: 'Blocked: direct eslint invocation. Use instead: `npm run ward -- --only lint`\n',
       });
     });
 
@@ -77,7 +78,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr: 'Blocked: direct tsc invocation. Use instead: `npm run ward -- --only typecheck`\n',
       });
     });
 
@@ -92,7 +93,7 @@ describe('pre-bash-hook', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*npm run ward[\s\S]*$/su),
+        stderr: 'Blocked: direct tsc invocation. Use instead: `npm run ward -- --only typecheck`\n',
       });
     });
   });
@@ -230,7 +231,7 @@ describe('pre-bash-hook', () => {
       }).toStrictEqual({
         status: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
+        stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
       });
     });
 
@@ -244,7 +245,7 @@ describe('pre-bash-hook', () => {
       }).toStrictEqual({
         status: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^[\s\S]*Hook error[\s\S]*$/su),
+        stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
       });
     });
   });

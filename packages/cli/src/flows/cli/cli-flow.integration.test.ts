@@ -23,7 +23,7 @@ describe('CliFlow', () => {
 
       testbed.cleanup();
 
-      expect(packageJsonContent).toMatch(/^\s*"devDependencies"/mu);
+      expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
     });
   });
 });

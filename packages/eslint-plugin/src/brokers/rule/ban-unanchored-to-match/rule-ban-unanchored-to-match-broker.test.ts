@@ -11,18 +11,6 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
-    // Start anchor only
-    {
-      code: `expect(text).toMatch(/^Error: /u);`,
-      filename: '/project/src/brokers/user/user-broker.test.ts',
-    },
-
-    // End anchor only
-    {
-      code: `expect(text).toMatch(/\\.ts$/u);`,
-      filename: '/project/src/brokers/user/user-broker.test.ts',
-    },
-
     // Not using toMatch at all
     {
       code: `expect(text).toBe('exact');`,
@@ -68,12 +56,6 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // expect.stringMatching with UUID pattern — allowed
     {
       code: `expect.stringMatching(/^[0-9a-f-]{36}$/u);`,
-      filename: '/project/src/brokers/user/user-broker.test.ts',
-    },
-
-    // expect.stringMatching with start anchor — allowed
-    {
-      code: `expect.stringMatching(/^Error: /u);`,
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
@@ -165,6 +147,42 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // Unanchored expect.stringMatching
     {
       code: `expect.stringMatching(/partial/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'unanchoredRegex',
+          data: { method: 'expect.stringMatching' },
+        },
+      ],
+    },
+
+    // Start anchor only — still partial on the right
+    {
+      code: `expect(text).toMatch(/^Error: /u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'unanchoredRegex',
+          data: { method: 'toMatch' },
+        },
+      ],
+    },
+
+    // End anchor only — still partial on the left
+    {
+      code: `expect(text).toMatch(/\\.ts$/u);`,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'unanchoredRegex',
+          data: { method: 'toMatch' },
+        },
+      ],
+    },
+
+    // expect.stringMatching with start anchor only
+    {
+      code: `expect.stringMatching(/^Error: /u);`,
       filename: '/project/src/brokers/user/user-broker.test.ts',
       errors: [
         {

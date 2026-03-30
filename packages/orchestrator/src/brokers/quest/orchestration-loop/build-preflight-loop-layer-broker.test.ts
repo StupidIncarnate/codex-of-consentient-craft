@@ -68,8 +68,8 @@ describe('buildPreflightLoopLayerBroker', () => {
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const promptArg = String(spawnedArgs[1]);
 
-      expect(promptArg).toMatch(/^# Spiritmender/u);
-      expect(promptArg).toMatch(/Verification Command: npm run build$/u);
+      expect(promptArg).toMatch(/^# Spiritmender - Error Resolution Agent$/mu);
+      expect(promptArg).toMatch(/^Verification Command: npm run build$/mu);
     });
   });
 

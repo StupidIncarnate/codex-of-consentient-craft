@@ -38,6 +38,8 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
       return {};
     }
 
+    const tautologyMatchers = new Set(['toBe', 'toEqual', 'toStrictEqual']);
+
     return {
       CallExpression: (node: Tsestree): void => {
         const { callee } = node;
@@ -46,7 +48,8 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
           return;
         }
 
-        if (callee.property?.name !== 'toBe') {
+        const matcherName = callee.property?.name;
+        if (matcherName === undefined || !tautologyMatchers.has(String(matcherName))) {
           return;
         }
 
@@ -62,20 +65,36 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
           return;
         }
 
-        // Get the toBe() argument
-        const toBeArg = node.arguments?.[0];
-        if (toBeArg === null || toBeArg === undefined) {
+        // Get the matcher argument
+        const matcherArg = node.arguments?.[0];
+        if (matcherArg === null || matcherArg === undefined) {
           return;
         }
 
+        // Check for same identifier (variable) tautology: expect(foo).toBe(foo)
+        if (
+          expectArg.type === 'Identifier' &&
+          matcherArg.type === 'Identifier' &&
+          expectArg.name !== undefined &&
+          expectArg.name === matcherArg.name
+        ) {
+          ctx.report({
+            node,
+            messageId: 'tautologicalAssertion',
+            data: { value: String(expectArg.name) },
+          });
+          return;
+        }
+
+        // Check for identical literal tautology: expect(true).toBe(true)
         const expectKey = tautologyLiteralKeyTransformer({ node: expectArg });
-        const toBeKey = tautologyLiteralKeyTransformer({ node: toBeArg });
+        const matcherKey = tautologyLiteralKeyTransformer({ node: matcherArg });
 
-        if (expectKey === null || toBeKey === null) {
+        if (expectKey === null || matcherKey === null) {
           return;
         }
 
-        if (expectKey === toBeKey) {
+        if (expectKey === matcherKey) {
           ctx.report({
             node,
             messageId: 'tautologicalAssertion',

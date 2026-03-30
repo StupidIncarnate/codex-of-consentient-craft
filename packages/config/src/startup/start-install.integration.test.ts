@@ -26,7 +26,7 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
       });
-      expect(configContent).toMatch(/^\s*"framework": "node"/mu);
+      expect(configContent).toBe(JSON.stringify({ framework: 'node', schema: 'zod' }, null, 2));
     });
   });
 });

@@ -1951,7 +1951,7 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
 
-      expect(stepRows[0]?.textContent).toMatch(/^\u25B801\[CHAOSWHISPERER\]Chaoswhisperer(?! #)/u);
+      expect(stepRows[0]?.textContent).toBe('\u25B801[CHAOSWHISPERER]ChaoswhispererDONE');
     });
 
     it('VALID: {multiple work items in same group} => shows #N index on each', () => {

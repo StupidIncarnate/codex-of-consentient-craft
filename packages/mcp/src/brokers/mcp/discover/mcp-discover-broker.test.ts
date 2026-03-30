@@ -155,7 +155,7 @@ describe('mcpDiscoverBroker', () => {
 
       // Should only show implementation file in tree, not .test.ts or .proxy.ts
       expect(result).toStrictEqual({
-        results: expect.stringMatching(/^\s+user-fetch-broker \(broker\)/mu),
+        results: expect.stringMatching(/^\s+user-fetch-broker \(broker\) - Fetches user data$/mu),
         count: 1,
       });
     });
@@ -175,7 +175,7 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: expect.stringMatching(/^\s+standalone-guard \(guard\)/mu),
+        results: expect.stringMatching(/^\s+standalone-guard \(guard\) - standalone guard$/mu),
         count: 1,
       });
     });
@@ -246,7 +246,7 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: expect.stringMatching(/^\s+has-permission-guard \(guard\)/mu),
+        results: expect.stringMatching(/^\s+has-permission-guard \(guard\)$/mu),
         count: 2,
       });
     });
@@ -268,7 +268,7 @@ describe('mcpDiscoverBroker', () => {
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
-        results: expect.stringMatching(/^\s+has-permission-guard \(guard\)/mu),
+        results: expect.stringMatching(/^\s+has-permission-guard \(guard\)$/mu),
         count: 1,
       });
     });

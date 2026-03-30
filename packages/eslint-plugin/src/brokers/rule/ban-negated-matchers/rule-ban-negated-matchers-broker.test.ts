@@ -35,28 +35,52 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
-    // Playwright spec files are exempt — no positive equivalent for .not.toBeVisible() etc.
+    // Playwright spec files — allowed Playwright visibility matchers with .not
     {
       code: 'await expect(locator).not.toBeVisible();',
       filename: '/project/src/e2e/quest.spec.ts',
     },
 
-    // Playwright spec.tsx files are exempt (spec guard checks .spec.ts only, use .e2e.test pattern)
+    // Playwright .not.toBeEnabled() in e2e files
     {
       code: 'await expect(locator).not.toBeEnabled();',
       filename: '/project/src/e2e/form.e2e.test.ts',
     },
 
-    // E2E test files are exempt
+    // Playwright .not.toBeHidden() in e2e files
     {
-      code: 'await expect(locator).not.toBeVisible();',
+      code: 'await expect(locator).not.toBeHidden();',
       filename: '/project/src/e2e/login.e2e.test.ts',
     },
 
-    // E2E test tsx files are exempt
+    // Playwright .not.toBeInTheDocument() in e2e tsx files
     {
-      code: 'await expect(locator).not.toBeVisible();',
+      code: 'await expect(locator).not.toBeInTheDocument();',
       filename: '/project/src/e2e/login.e2e.test.tsx',
+    },
+
+    // Playwright .not.toBeDisabled() in spec files
+    {
+      code: 'await expect(locator).not.toBeDisabled();',
+      filename: '/project/src/e2e/quest.spec.ts',
+    },
+
+    // Playwright .not.toBeChecked() in spec files
+    {
+      code: 'await expect(locator).not.toBeChecked();',
+      filename: '/project/src/e2e/quest.spec.ts',
+    },
+
+    // Playwright .not.toBeEmpty() in spec files
+    {
+      code: 'await expect(locator).not.toBeEmpty();',
+      filename: '/project/src/e2e/quest.spec.ts',
+    },
+
+    // Playwright .not.toHaveCount() in spec files
+    {
+      code: 'await expect(locator).not.toHaveCount(0);',
+      filename: '/project/src/e2e/quest.spec.ts',
     },
   ],
 
@@ -101,6 +125,27 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       code: "expect(value).not.toBe('wrong');",
       filename: '/project/src/brokers/user/user-broker.integration.test.ts',
       errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toBe' } }],
+    },
+
+    // .not.toBe(null) in spec files is NOT allowed (not in Playwright allowlist)
+    {
+      code: 'expect(value).not.toBe(null);',
+      filename: '/project/src/e2e/quest.spec.ts',
+      errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toBe' } }],
+    },
+
+    // .not.toHaveBeenCalled() in e2e files is NOT allowed
+    {
+      code: 'expect(fn).not.toHaveBeenCalled();',
+      filename: '/project/src/e2e/form.e2e.test.ts',
+      errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toHaveBeenCalled' } }],
+    },
+
+    // .not.toStrictEqual() in spec files is NOT allowed
+    {
+      code: 'expect(result).not.toStrictEqual({ id: 1 });',
+      filename: '/project/src/e2e/quest.spec.ts',
+      errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toStrictEqual' } }],
     },
   ],
 });

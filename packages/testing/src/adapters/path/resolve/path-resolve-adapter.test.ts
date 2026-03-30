@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { pathResolveAdapter } from './path-resolve-adapter';
 import { pathResolveAdapterProxy } from './path-resolve-adapter.proxy';
 
@@ -8,7 +9,7 @@ describe('pathResolveAdapter', () => {
 
       const result = pathResolveAdapter({ paths: ['src', 'test.ts'] });
 
-      expect(result).toMatch(/\/src\/test\.ts$/u);
+      expect(result).toBe(resolve('src', 'test.ts'));
     });
 
     it('VALID: {paths: ["/tmp", "dir", "file.txt"]} => returns absolute path', () => {
@@ -24,7 +25,7 @@ describe('pathResolveAdapter', () => {
 
       const result = pathResolveAdapter({ paths: ['.'] });
 
-      expect(result).toMatch(/^\//u);
+      expect(result).toBe(resolve('.'));
     });
   });
 
@@ -34,7 +35,7 @@ describe('pathResolveAdapter', () => {
 
       const result = pathResolveAdapter({ paths: [] });
 
-      expect(result).toMatch(/^\//u);
+      expect(result).toBe(resolve());
     });
 
     it('EDGE: {paths: ["/absolute"]} => returns absolute path unchanged', () => {

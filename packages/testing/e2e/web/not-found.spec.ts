@@ -96,6 +96,6 @@ test.describe('Not Found', () => {
 
     const body = await response.json();
 
-    expect(body.error).toMatch(/^Guild not found/u);
+    expect(body.error).toMatch(/^Guild not found: [0-9a-f-]+$/u);
   });
 });
