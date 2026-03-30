@@ -8,7 +8,7 @@ describe('slotManagerStatics', () => {
         maxFollowupDepth: 5,
       },
       siegemaster: {
-        concurrentLimit: 3,
+        concurrentLimit: 1,
         maxRetries: 2,
         maxDispatchDepth: 3,
         maxFollowupDepth: 3,

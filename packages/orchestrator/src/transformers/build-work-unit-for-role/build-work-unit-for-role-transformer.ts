@@ -43,19 +43,7 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'siegemaster': {
-      const { relatedObservables, relatedDesignDecisions, relatedFlows } =
-        stepToQuestContextTransformer({
-          step,
-          quest,
-        });
-
-      return workUnitContract.parse({
-        role: 'siegemaster',
-        questId: quest.id,
-        relatedDesignDecisions,
-        relatedFlows,
-        relatedObservables,
-      });
+      throw new Error('Role "siegemaster" is not step-based and cannot be built from a step');
     }
 
     case 'lawbringer': {

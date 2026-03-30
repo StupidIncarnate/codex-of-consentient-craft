@@ -6,6 +6,7 @@ import {
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -707,6 +708,136 @@ describe('runCodeweaverLayerBroker', () => {
       const persistedSessionId = proxy.getLastPersistedWorkItemSessionId({ workItemId });
 
       expect(persistedSessionId).toBe(sessionId);
+    });
+  });
+
+  describe('non-steps relatedDataItem', () => {
+    it('ERROR: {work item references wardResults collection} => throws Expected steps reference', async () => {
+      const wardResult = WardResultStub({
+        id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        wardResults: [wardResult],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        runCodeweaverLayerBroker({
+          questId: quest.id,
+          workItems: [workItem],
+          startPath: FilePathStub({ value: '/project' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/Expected steps reference, got wardResults/u);
+    });
+  });
+
+  describe('summary persistence', () => {
+    it('VALID: {1 codeweaver signals complete with summary} => persists summary on complete work item', async () => {
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const summary = proxy.getLastPersistedWorkItemSummary({ workItemId });
+
+      expect(String(summary)).toBe('Done');
+    });
+
+    it('VALID: {1 codeweaver signals complete without summary} => no summary on work item', async () => {
+      const COMPLETE_NO_SUMMARY_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'complete' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_NO_SUMMARY_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const summary = proxy.getLastPersistedWorkItemSummary({ workItemId });
+
+      expect(summary).toBeUndefined();
     });
   });
 });

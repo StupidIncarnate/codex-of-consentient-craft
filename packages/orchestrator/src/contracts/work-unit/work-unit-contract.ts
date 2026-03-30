@@ -47,9 +47,9 @@ const spiritmenderWorkUnitContract = z.object({
 const siegemasterWorkUnitContract = z.object({
   role: z.literal('siegemaster'),
   questId: questIdContract,
-  relatedDesignDecisions: z.array(designDecisionContract).default([]),
-  relatedFlows: z.array(flowContract).default([]),
-  relatedObservables: z.array(flowObservableContract),
+  flow: flowContract,
+  designDecisions: z.array(designDecisionContract).default([]),
+  contracts: z.array(questContractEntryContract).default([]),
   devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
 });
 

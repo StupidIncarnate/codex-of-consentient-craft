@@ -3,6 +3,7 @@ import {
   DependencyStepStub,
   ErrorMessageStub,
   FlowObservableStub,
+  FlowStub,
   QuestContractEntryStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -299,22 +300,22 @@ describe('workUnitContract', () => {
   });
 
   describe('siegemaster work unit', () => {
-    it('VALID: {role: siegemaster, questId, relatedObservables} => parses successfully', () => {
+    it('VALID: {role: siegemaster, questId, flow} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const relatedObservables = [FlowObservableStub()];
+      const flow = FlowStub();
 
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId,
-        relatedObservables,
+        flow,
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId,
-        relatedDesignDecisions: [],
-        relatedFlows: [],
-        relatedObservables,
+        flow,
+        designDecisions: [],
+        contracts: [],
       });
     });
 
@@ -324,28 +325,29 @@ describe('workUnitContract', () => {
       expect(stub).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        relatedDesignDecisions: [],
-        relatedFlows: [],
-        relatedObservables: [FlowObservableStub()],
+        flow: FlowStub(),
+        designDecisions: [],
+        contracts: [],
       });
     });
 
     it('VALID: {siegemaster with devServerUrl} => parses with devServerUrl', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
+      const flow = FlowStub();
 
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId,
-        relatedObservables: [],
+        flow,
         devServerUrl: 'http://localhost:3000',
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId,
-        relatedDesignDecisions: [],
-        relatedFlows: [],
-        relatedObservables: [],
+        flow,
+        designDecisions: [],
+        contracts: [],
         devServerUrl: 'http://localhost:3000',
       });
     });
@@ -355,25 +357,28 @@ describe('workUnitContract', () => {
         workUnitContract.parse({
           role: 'siegemaster',
           questId: QuestIdStub({ value: 'add-auth' }),
-          relatedObservables: [],
+          flow: FlowStub(),
           devServerUrl: 'not-a-url',
         }),
       ).toThrow(/invalid_string/u);
     });
 
-    it('EDGE: {siegemaster with empty relatedObservables} => parses successfully', () => {
+    it('EDGE: {siegemaster with designDecisions and contracts} => parses successfully', () => {
+      const flow = FlowStub();
       const result = workUnitContract.parse({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        relatedObservables: [],
+        flow,
+        designDecisions: [],
+        contracts: [QuestContractEntryStub()],
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: QuestIdStub({ value: 'add-auth' }),
-        relatedDesignDecisions: [],
-        relatedFlows: [],
-        relatedObservables: [],
+        flow,
+        designDecisions: [],
+        contracts: [QuestContractEntryStub()],
       });
     });
   });

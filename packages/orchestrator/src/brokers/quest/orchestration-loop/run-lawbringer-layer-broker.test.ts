@@ -5,6 +5,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -662,6 +663,353 @@ describe('runLawbringerLayerBroker', () => {
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
       expect(status).toBe('complete');
+    });
+  });
+
+  describe('empty relatedDataItems', () => {
+    it('ERROR: {work item has no relatedDataItems} => throws "has no relatedDataItems"', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        runLawbringerLayerBroker({
+          questId: quest.id,
+          workItems: [workItem],
+          startPath: FilePathStub({ value: '/project' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/has no relatedDataItems/u);
+    });
+  });
+
+  describe('non-steps relatedDataItem', () => {
+    it('ERROR: {relatedDataItem references wardResults} => throws "Expected steps reference"', async () => {
+      const wardResult = WardResultStub({ id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`wardResults/${String(wardResult.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        wardResults: [wardResult],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        runLawbringerLayerBroker({
+          questId: quest.id,
+          workItems: [workItem],
+          startPath: FilePathStub({ value: '/project' }),
+          slotCount: SlotCountStub(),
+          slotOperations: SlotOperationsStub(),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/Expected steps reference, got wardResults/u);
+    });
+  });
+
+  describe('summary on complete path', () => {
+    it('VALID: {agent signals complete with summary} => persisted work item includes summary', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
+
+      expect(persistedItem?.summary).toBe('Verified');
+    });
+  });
+
+  describe('no summary on complete path', () => {
+    it('VALID: {agent signals complete without summary} => persisted work item has no summary', async () => {
+      const COMPLETE_NO_SUMMARY_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'complete' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_NO_SUMMARY_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
+
+      expect(persistedItem?.status).toBe('complete');
+      expect(persistedItem?.summary).toBeUndefined();
+    });
+  });
+
+  describe('completedAt on complete path', () => {
+    it('VALID: {agent signals complete} => persisted work item includes completedAt', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
+
+      expect(persistedItem?.completedAt).toBe('2024-01-15T10:00:00.000Z');
+    });
+  });
+
+  describe('no completedAt on failed path', () => {
+    it('VALID: {agent signals failed} => failed work item has no completedAt', async () => {
+      const FAILED_SIGNAL_LINE = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'Errors detected' },
+            },
+          ],
+        },
+      });
+
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [FAILED_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 1 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
+
+      expect(persistedItem?.status).toBe('failed');
+      expect(persistedItem?.completedAt).toBeUndefined();
+    });
+  });
+
+  describe('sessionId on complete path', () => {
+    it('VALID: {agent emits session_id init line, signals complete} => persisted work item includes sessionId', async () => {
+      const sessionIdLine = JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        session_id: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c',
+      });
+
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      // session-id fire-and-forget call may or may not succeed depending on mock ordering
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionIdLine, COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      const persistedItem = proxy.getLastPersistedWorkItem({ workItemId });
+
+      expect(persistedItem?.status).toBe('complete');
+      expect(persistedItem?.sessionId).toBe('e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c');
     });
   });
 

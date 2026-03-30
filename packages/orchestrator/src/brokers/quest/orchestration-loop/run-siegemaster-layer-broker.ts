@@ -25,6 +25,7 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { resolveRelatedDataItemTransformer } from '../../../transformers/resolve-related-data-item/resolve-related-data-item-transformer';
 import type { devServerStartBroker } from '../../dev-server/start/dev-server-start-broker';
 import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
@@ -59,7 +60,14 @@ export const runSiegemasterLayerBroker = async ({
   }
   const { quest } = questResult;
 
-  const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
+  const [flowRef] = workItem.relatedDataItems;
+  if (!flowRef) {
+    throw new Error(`Siegemaster work item ${String(workItem.id)} has no relatedDataItems`);
+  }
+  const resolved = resolveRelatedDataItemTransformer({ ref: flowRef, quest });
+  if (resolved.collection !== 'flows') {
+    throw new Error(`Expected flows collection, got ${resolved.collection}`);
+  }
 
   // Load project config to check for devServer
   // Config resolution may fail if no .dungeonmaster.json exists — treat as "no devServer config"
@@ -201,15 +209,17 @@ export const runSiegemasterLayerBroker = async ({
     devServerUrl = devServerUrlContract.parse(`http://${environmentStatics.hostname}:${port}`);
   }
 
-  const slotIndex = slotIndexContract.parse(0);
-  let trackedSessionId: SessionId | null = null;
-
   const workUnit = workUnitContract.parse({
     role: 'siegemaster',
     questId,
-    relatedObservables: allObservables,
+    flow: resolved.item,
+    designDecisions: quest.designDecisions,
+    contracts: quest.contracts,
     ...(devServerUrl === null ? {} : { devServerUrl }),
   });
+
+  const slotIndex = slotIndexContract.parse(0);
+  let trackedSessionId: SessionId | null = null;
 
   try {
     const spawnResult = await agentSpawnByRoleBroker({

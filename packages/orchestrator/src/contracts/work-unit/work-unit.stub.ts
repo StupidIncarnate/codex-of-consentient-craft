@@ -3,6 +3,7 @@ import {
   AbsoluteFilePathStub,
   DependencyStepStub,
   FlowObservableStub,
+  FlowStub,
   QuestContractEntryStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -47,9 +48,9 @@ export const SiegemasterWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {
   workUnitContract.parse({
     role: 'siegemaster',
     questId: QuestIdStub({ value: 'add-auth' }),
-    relatedDesignDecisions: [],
-    relatedFlows: [],
-    relatedObservables: [FlowObservableStub()],
+    flow: FlowStub(),
+    designDecisions: [],
+    contracts: [],
     ...props,
   });
 

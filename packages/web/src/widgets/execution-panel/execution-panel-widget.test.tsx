@@ -2177,4 +2177,117 @@ describe('ExecutionPanelWidget', () => {
       expect(stepRows.some((row) => row.textContent?.includes('CHAOSWHISPERER'))).toBe(true);
     });
   });
+
+  describe('summary passthrough', () => {
+    it('VALID: {terminal quest with work item summary} => passes summary to execution row', async () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            summary: 'Implemented auth with full test coverage' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const header = screen.getAllByTestId('execution-row-header')[0];
+      await userEvent.click(header as HTMLElement);
+
+      const summaryEl = screen.getByTestId('execution-row-summary');
+
+      expect(summaryEl.textContent).toBe('Summary: Implemented auth with full test coverage');
+    });
+
+    it('EMPTY: {terminal quest with work item without summary} => does not render summary element', async () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const header = screen.getAllByTestId('execution-row-header')[0];
+      await userEvent.click(header as HTMLElement);
+
+      expect(screen.queryByTestId('execution-row-summary')).toBeNull();
+    });
+
+    it('VALID: {stepped work item with summary} => passes summary to step execution row', async () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Build auth module' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            summary: 'Created auth broker and guard' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const header = screen.getAllByTestId('execution-row-header')[0];
+      await userEvent.click(header as HTMLElement);
+
+      const summaryEl = screen.getByTestId('execution-row-summary');
+
+      expect(summaryEl.textContent).toBe('Summary: Created auth broker and guard');
+    });
+
+    it('VALID: {planning quest non-step work item with summary} => passes summary during planning', async () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            summary: 'Completed quest specification' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'pathseeker',
+            status: 'in_progress',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const headers = screen.getAllByTestId('execution-row-header');
+      await userEvent.click(headers[0] as HTMLElement);
+
+      const summaryEl = screen.getByTestId('execution-row-summary');
+
+      expect(summaryEl.textContent).toBe('Summary: Completed quest specification');
+    });
+  });
 });

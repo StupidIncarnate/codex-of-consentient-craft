@@ -16,5 +16,7 @@ export const workUnitsToFailedObservableIdsTransformer = ({
   workUnits: WorkUnit[];
 }): ObservableId[] =>
   workUnits.flatMap((unit) =>
-    unit.role === 'siegemaster' ? unit.relatedObservables.map((o) => o.id) : [],
+    unit.role === 'siegemaster'
+      ? unit.flow.nodes.flatMap((n) => n.observables.map((o) => o.id))
+      : [],
   );

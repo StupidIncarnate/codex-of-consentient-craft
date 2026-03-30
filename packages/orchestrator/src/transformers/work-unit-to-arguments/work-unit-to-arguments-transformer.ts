@@ -103,17 +103,37 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const {
-        questId: siegeQuestId,
-        relatedObservables,
-        relatedDesignDecisions,
-        relatedFlows,
-        devServerUrl,
-      } = workUnit;
+      const { questId: siegeQuestId, flow, designDecisions, contracts, devServerUrl } = workUnit;
       const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
 
       if (devServerUrl !== undefined) {
         siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
+      }
+
+      siegeParts.push(contentTextContract.parse(`Flow: ${flow.name}`));
+      siegeParts.push(contentTextContract.parse(`  Entry Point: ${flow.entryPoint}`));
+      siegeParts.push(contentTextContract.parse(`  Exit Points: ${flow.exitPoints.join(', ')}`));
+
+      if (flow.nodes.length > 0) {
+        siegeParts.push(contentTextContract.parse('  Nodes:'));
+        for (const node of flow.nodes) {
+          siegeParts.push(contentTextContract.parse(`    - ${node.label} (${node.id})`));
+          for (const observable of node.observables) {
+            siegeParts.push(
+              contentTextContract.parse(`      - ${observable.description} (${observable.type})`),
+            );
+          }
+        }
+      }
+
+      if (flow.edges.length > 0) {
+        siegeParts.push(contentTextContract.parse('  Edges:'));
+        for (const edge of flow.edges) {
+          const labelSuffix = edge.label === undefined ? '' : ` [${edge.label}]`;
+          siegeParts.push(
+            contentTextContract.parse(`    - ${edge.from} → ${edge.to}${labelSuffix}`),
+          );
+        }
       }
 
       siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
@@ -121,33 +141,26 @@ export const workUnitToArgumentsTransformer = ({
         siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
       }
 
-      if (relatedDesignDecisions.length > 0) {
+      if (designDecisions.length > 0) {
         siegeParts.push(contentTextContract.parse('Design Decisions:'));
-        for (const decision of relatedDesignDecisions) {
+        for (const decision of designDecisions) {
           siegeParts.push(
             contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`),
           );
         }
       }
 
-      if (relatedFlows.length > 0) {
-        siegeParts.push(contentTextContract.parse('Flows:'));
-        for (const flow of relatedFlows) {
-          const relevantNodes = flow.nodes
-            .filter((node) => node.observables.length > 0)
-            .map((node) => node.label);
-          const nodesSuffix =
-            relevantNodes.length > 0 ? ` (nodes: ${relevantNodes.join(', ')})` : '';
-          siegeParts.push(contentTextContract.parse(`  - ${flow.name}${nodesSuffix}`));
-        }
-      }
-
-      if (relatedObservables.length > 0) {
-        siegeParts.push(contentTextContract.parse('Observables:'));
-        for (const observable of relatedObservables) {
-          siegeParts.push(
-            contentTextContract.parse(`    - ${observable.description} (${observable.type})`),
-          );
+      if (contracts.length > 0) {
+        siegeParts.push(contentTextContract.parse('Contracts:'));
+        for (const contract of contracts) {
+          siegeParts.push(contentTextContract.parse(`  - ${contract.name} (${contract.kind})`));
+          for (const prop of contract.properties) {
+            const typeSuffix = ` (${prop.type})`;
+            const descSuffix = ` - ${prop.description}`;
+            siegeParts.push(
+              contentTextContract.parse(`    - ${prop.name}${typeSuffix}${descSuffix}`),
+            );
+          }
         }
       }
 

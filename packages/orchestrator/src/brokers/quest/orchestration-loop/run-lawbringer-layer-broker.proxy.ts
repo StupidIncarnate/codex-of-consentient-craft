@@ -3,6 +3,7 @@ import {
   type ExitCode,
   type QuestStub,
   type QuestWorkItemId,
+  type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -29,6 +30,7 @@ export const runLawbringerLayerBrokerProxy = (): {
     id: QuestWorkItemId;
     status: WorkItemStatus;
   }[];
+  getLastPersistedWorkItem: (params: { workItemId: QuestWorkItemId }) => WorkItem | undefined;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -105,6 +107,21 @@ export const runLawbringerLayerBrokerProxy = (): {
       const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
       const lastQuest = questContract.parse(parsed);
       return lastQuest.workItems.map((wi) => ({ id: wi.id, status: wi.status }));
+    },
+
+    getLastPersistedWorkItem: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): WorkItem | undefined => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return undefined;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      return lastQuest.workItems.find((wi) => wi.id === workItemId);
     },
   };
 };
