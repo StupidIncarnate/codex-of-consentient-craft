@@ -1,0 +1,370 @@
+import { computeTokenAnnotationsTransformer } from './compute-token-annotations-transformer';
+import {
+  AssistantTextChatEntryStub,
+  AssistantToolUseChatEntryStub,
+  AssistantToolResultChatEntryStub,
+  UserChatEntryStub,
+} from '../../contracts/chat-entry/chat-entry.stub';
+import {
+  MergedEntryItemStub,
+  MergedToolPairItemStub,
+} from '../../contracts/merged-chat-item/merged-chat-item.stub';
+import { TokenAnnotationStub } from '../../contracts/token-annotation/token-annotation.stub';
+import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
+import { ContextTokenCountStub } from '../../contracts/context-token-count/context-token-count.stub';
+import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
+
+describe('computeTokenAnnotationsTransformer', () => {
+  describe('entries without usage', () => {
+    it('VALID: {items: [user entry]} => returns annotation with all nulls', () => {
+      const items = [MergedEntryItemStub({ entry: UserChatEntryStub() })];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([TokenAnnotationStub()]);
+    });
+
+    it('VALID: {items: [assistant text, no usage]} => returns annotation with all nulls', () => {
+      const items = [MergedEntryItemStub({ entry: AssistantTextChatEntryStub() })];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([TokenAnnotationStub()]);
+    });
+  });
+
+  describe('entries with usage', () => {
+    it('VALID: {items: [assistant text with usage]} => returns tokenBadgeLabel with formatted context', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [two assistant texts with usage]} => returns rolling delta on second', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 900,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('EDGE: {items: [assistant with usage, delta is 0]} => returns null tokenBadgeLabel', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: ContextTokenDeltaStub({ value: 0 }),
+          source: 'session',
+        }),
+      ]);
+    });
+  });
+
+  describe('tool pairs', () => {
+    it('VALID: {items: [tool-pair, toolUse has usage]} => returns tokenBadgeLabel on annotation', () => {
+      const items = [
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_1',
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_1',
+            content: '',
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          resultTokenBadgeLabel: null,
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [tool-pair, toolResult has content]} => returns resultTokenBadgeLabel with ~est', () => {
+      const items = [
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_1',
+            content: 'a'.repeat(370),
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+          cumulativeContext: null,
+          contextDelta: null,
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [tool-pair, both usage and result]} => returns both labels', () => {
+      const items = [
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_1',
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_1',
+            content: 'a'.repeat(370),
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [tool-pair, no usage, empty result]} => returns all nulls', () => {
+      const items = [
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_1',
+            content: '',
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([TokenAnnotationStub()]);
+    });
+  });
+
+  describe('tool result entries (not in pairs)', () => {
+    it('VALID: {items: [entry with tool_result content]} => returns tokenBadgeLabel with ~est', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantToolResultChatEntryStub({ content: 'a'.repeat(370) }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
+        }),
+      ]);
+    });
+
+    it('EDGE: {items: [entry with empty tool_result]} => returns null tokenBadgeLabel', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantToolResultChatEntryStub({ content: '' }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([TokenAnnotationStub()]);
+    });
+  });
+
+  describe('source tracking', () => {
+    it('VALID: {items: [session entry, subagent entry]} => tracks separate prev counters', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            source: 'session',
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            source: 'subagent',
+            usage: {
+              inputTokens: 900,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            source: 'session',
+            usage: {
+              inputTokens: 900,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '1.2k context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          contextDelta: null,
+          source: 'subagent',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          source: 'session',
+        }),
+      ]);
+    });
+  });
+
+  describe('output shape', () => {
+    it('VALID: {items: N items} => returns exactly N annotations', () => {
+      const items = [
+        MergedEntryItemStub({ entry: UserChatEntryStub() }),
+        MergedEntryItemStub({ entry: AssistantTextChatEntryStub() }),
+        MergedEntryItemStub({ entry: UserChatEntryStub() }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub(),
+        TokenAnnotationStub(),
+        TokenAnnotationStub(),
+      ]);
+    });
+
+    it('EMPTY: {items: []} => returns empty array', () => {
+      const result = computeTokenAnnotationsTransformer({ items: [] });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+});

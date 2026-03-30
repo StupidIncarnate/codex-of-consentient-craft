@@ -17,12 +17,9 @@ import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimen
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
-import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
-import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
-import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
+import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
+import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ContextDividerWidget } from '../context-divider/context-divider-widget';
@@ -151,8 +148,13 @@ export const ChatPanelWidget = ({
       >
         {(() => {
           const groupedEntries = collectSubagentChainsTransformer({ entries });
-          let prevSessionContext: ContextTokenCount | null = null;
-          let prevSubagentContext: ContextTokenCount | null = null;
+
+          const singleItems = groupedEntries
+            .filter((g) => g.kind === 'single')
+            .map((g) => mergedChatItemContract.parse({ kind: 'entry', entry: g.entry }));
+          const singleAnnotations = computeTokenAnnotationsTransformer({ items: singleItems });
+
+          let singleIndex = 0;
           const elements: React.JSX.Element[] = [];
 
           for (let i = 0; i < groupedEntries.length; i++) {
@@ -172,62 +174,31 @@ export const ChatPanelWidget = ({
               elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
             } else {
               const { entry } = group;
+              const annotation = singleAnnotations[singleIndex];
+              singleIndex += 1;
 
-              const hasUsage =
-                entry.role === 'assistant' &&
-                'type' in entry &&
-                entry.type === 'text' &&
-                'usage' in entry &&
-                entry.usage !== undefined;
-
-              if (hasUsage && entry.usage !== undefined) {
-                const entrySource =
-                  'source' in entry && entry.source === 'subagent' ? 'subagent' : 'session';
-                const totalContext = contextTokenCountContract.parse(
-                  Number(entry.usage.inputTokens) +
-                    Number(entry.usage.cacheCreationInputTokens) +
-                    Number(entry.usage.cacheReadInputTokens),
-                );
-
-                const prevContext =
-                  entrySource === 'subagent' ? prevSubagentContext : prevSessionContext;
-                const deltaCount =
-                  prevContext === null
-                    ? totalContext
-                    : contextTokenCountContract.parse(
-                        Math.max(0, Number(totalContext) - Number(prevContext)),
-                      );
-                const tokenBadgeLabel = formattedTokenLabelContract.parse(
-                  `${formatContextTokensTransformer({ count: deltaCount })} context`,
-                );
-
+              if (
+                annotation?.cumulativeContext !== null &&
+                annotation?.cumulativeContext !== undefined
+              ) {
                 elements.push(
                   <ChatMessageWidget
                     key={`single-${String(i)}`}
                     entry={entry}
-                    tokenBadgeLabel={tokenBadgeLabel}
+                    {...(annotation.tokenBadgeLabel === null
+                      ? {}
+                      : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
                   />,
                 );
-
-                const delta =
-                  prevContext === null
-                    ? null
-                    : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
 
                 elements.push(
                   <ContextDividerWidget
                     key={`divider-${String(i)}`}
-                    contextTokens={totalContext}
-                    delta={delta}
-                    source={entrySource}
+                    contextTokens={annotation.cumulativeContext}
+                    delta={annotation.contextDelta}
+                    source={annotation.source}
                   />,
                 );
-
-                if (entrySource === 'subagent') {
-                  prevSubagentContext = totalContext;
-                } else {
-                  prevSessionContext = totalContext;
-                }
               } else {
                 elements.push(<ChatMessageWidget key={`single-${String(i)}`} entry={entry} />);
               }

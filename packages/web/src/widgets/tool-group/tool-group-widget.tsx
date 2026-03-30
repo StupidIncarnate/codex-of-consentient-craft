@@ -12,10 +12,8 @@ import { useState } from 'react';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
-import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { estimateContentTokensTransformer } from '../../transformers/estimate-content-tokens/estimate-content-tokens-transformer';
+import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
@@ -109,55 +107,13 @@ export const ToolGroupWidget = ({
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
-            let prevContext: ContextTokenCount | null = null;
+            const annotations = computeTokenAnnotationsTransformer({ items: pairs });
 
             return pairs.map((item, index) => {
+              const annotation = annotations[index];
+
               if (item.kind === 'tool-pair') {
                 const toolUseEntry = item.toolUse;
-
-                // Compute context token delta for tool_use with usage
-                const contextDelta = (() => {
-                  if (!('usage' in toolUseEntry) || toolUseEntry.usage === undefined) return null;
-                  const totalContext = contextTokenCountContract.parse(
-                    Number(toolUseEntry.usage.inputTokens) +
-                      Number(toolUseEntry.usage.cacheCreationInputTokens) +
-                      Number(toolUseEntry.usage.cacheReadInputTokens),
-                  );
-                  const delta =
-                    prevContext === null
-                      ? totalContext
-                      : contextTokenCountContract.parse(
-                          Math.max(0, Number(totalContext) - Number(prevContext)),
-                        );
-                  prevContext = totalContext;
-                  return Number(delta) > 0 ? delta : null;
-                })();
-
-                const tokenBadgeLabel =
-                  contextDelta === null
-                    ? undefined
-                    : formattedTokenLabelContract.parse(
-                        `${formatContextTokensTransformer({ count: contextDelta })} context`,
-                      );
-
-                // Compute estimated tokens for tool_result content
-                const estimatedTokens = (() => {
-                  if (item.toolResult === null) return null;
-                  if (!('content' in item.toolResult)) return null;
-                  if (typeof item.toolResult.content !== 'string') return null;
-                  if (item.toolResult.content.length === 0) return null;
-                  const estimated = estimateContentTokensTransformer({
-                    content: item.toolResult.content,
-                  });
-                  return Number(estimated) > 0 ? estimated : null;
-                })();
-
-                const resultTokenBadgeLabel =
-                  estimatedTokens === null
-                    ? undefined
-                    : formattedTokenLabelContract.parse(
-                        `~${formatContextTokensTransformer({ count: estimatedTokens })} est`,
-                      );
 
                 return (
                   <ToolRowWidget
@@ -166,8 +122,14 @@ export const ToolGroupWidget = ({
                     {...(item.toolResult === null
                       ? {}
                       : { toolResult: item.toolResult as ToolResultEntry })}
-                    {...(tokenBadgeLabel === undefined ? {} : { tokenBadgeLabel })}
-                    {...(resultTokenBadgeLabel === undefined ? {} : { resultTokenBadgeLabel })}
+                    {...(annotation?.tokenBadgeLabel === undefined ||
+                    annotation.tokenBadgeLabel === null
+                      ? {}
+                      : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                    {...(annotation?.resultTokenBadgeLabel === undefined ||
+                    annotation.resultTokenBadgeLabel === null
+                      ? {}
+                      : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
                   />
                 );
               }

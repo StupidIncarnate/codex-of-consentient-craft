@@ -11,10 +11,9 @@ import { useState } from 'react';
 
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
-import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
+import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { estimateContentTokensTransformer } from '../../transformers/estimate-content-tokens/estimate-content-tokens-transformer';
+import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 
@@ -81,68 +80,33 @@ export const SubagentChainWidget = ({
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
-            let prevContext: ContextTokenCount | null = null;
+            const singleEntries = group.innerGroups
+              .filter((ig) => ig.kind === 'single')
+              .map((ig) => ig.entry);
+            const mergedItems = singleEntries.map((entry) =>
+              mergedChatItemContract.parse({ kind: 'entry', entry }),
+            );
+            const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
+
+            let annotationIndex = 0;
 
             return group.innerGroups.map((innerGroup, index) => {
               if (innerGroup.kind !== 'single') return null;
 
               const { entry } = innerGroup;
+              const annotation = annotations[annotationIndex];
+              annotationIndex += 1;
 
-              if ('usage' in entry && entry.usage !== undefined) {
-                const totalContext = contextTokenCountContract.parse(
-                  Number(entry.usage.inputTokens) +
-                    Number(entry.usage.cacheCreationInputTokens) +
-                    Number(entry.usage.cacheReadInputTokens),
-                );
-                const delta =
-                  prevContext === null
-                    ? totalContext
-                    : contextTokenCountContract.parse(
-                        Math.max(0, Number(totalContext) - Number(prevContext)),
-                      );
-                prevContext = totalContext;
-
-                if (Number(delta) === 0) {
-                  return <ChatMessageWidget key={`inner-${String(index)}`} entry={entry} />;
-                }
-
-                const tokenBadgeLabel = formattedTokenLabelContract.parse(
-                  `${formatContextTokensTransformer({ count: delta })} context`,
-                );
-
-                return (
-                  <ChatMessageWidget
-                    key={`inner-${String(index)}`}
-                    entry={entry}
-                    tokenBadgeLabel={tokenBadgeLabel}
-                  />
-                );
-              }
-
-              if (
-                'type' in entry &&
-                entry.type === 'tool_result' &&
-                'content' in entry &&
-                typeof entry.content === 'string' &&
-                entry.content.length > 0
-              ) {
-                const estimated = estimateContentTokensTransformer({ content: entry.content });
-                if (Number(estimated) > 0) {
-                  const tokenBadgeLabel = formattedTokenLabelContract.parse(
-                    `~${formatContextTokensTransformer({ count: estimated })} est`,
-                  );
-
-                  return (
-                    <ChatMessageWidget
-                      key={`inner-${String(index)}`}
-                      entry={entry}
-                      tokenBadgeLabel={tokenBadgeLabel}
-                    />
-                  );
-                }
-              }
-
-              return <ChatMessageWidget key={`inner-${String(index)}`} entry={entry} />;
+              return (
+                <ChatMessageWidget
+                  key={`inner-${String(index)}`}
+                  entry={entry}
+                  {...(annotation?.tokenBadgeLabel === undefined ||
+                  annotation.tokenBadgeLabel === null
+                    ? {}
+                    : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                />
+              );
             });
           })()}
           {group.taskNotification === null ? null : (

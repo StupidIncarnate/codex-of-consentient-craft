@@ -26,6 +26,8 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
+import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
+import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
@@ -131,6 +133,7 @@ export const ExecutionRowLayerWidget = ({
   const isExpandable = EXPANDABLE_STATUSES.includes(status);
   const orderDisplay = String(order).padStart(ORDER_PAD_LENGTH, '0');
   const subtitle = executionRowSubtitleTransformer({ status, dependsOn, files });
+  const headerContextLabel = computeRowContextTotalTransformer({ entries: entries ?? [] });
 
   return (
     <Box
@@ -260,6 +263,20 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
+        {headerContextLabel === null ? null : (
+          <Text
+            ff="monospace"
+            data-testid="execution-row-context"
+            style={{
+              fontSize: ADHOC_FONT_SIZE,
+              color: colors['text-dim'],
+              flexShrink: 0,
+            }}
+          >
+            {headerContextLabel} ctx
+          </Text>
+        )}
+
         <Text
           ff="monospace"
           data-testid="execution-row-status-badge"
@@ -340,24 +357,47 @@ export const ExecutionRowLayerWidget = ({
             </Text>
           ) : null}
           {entries && entries.length > 0
-            ? mergeToolEntriesTransformer({ entries }).map((item, i) =>
-                item.kind === 'tool-pair' ? (
-                  <ToolRowWidget
-                    key={i}
-                    toolUse={item.toolUse as Extract<ChatEntry, { type: 'tool_use' }>}
-                    {...(item.toolResult === null
-                      ? {}
-                      : {
-                          toolResult: item.toolResult as Extract<
-                            ChatEntry,
-                            { type: 'tool_result' }
-                          >,
-                        })}
-                  />
-                ) : (
-                  <ChatMessageWidget key={i} entry={item.entry} roleLabel={role} />
-                ),
-              )
+            ? (() => {
+                const merged = mergeToolEntriesTransformer({ entries });
+                const annotations = computeTokenAnnotationsTransformer({ items: merged });
+
+                return merged.map((item, i) => {
+                  const annotation = annotations[i];
+
+                  return item.kind === 'tool-pair' ? (
+                    <ToolRowWidget
+                      key={i}
+                      toolUse={item.toolUse as Extract<ChatEntry, { type: 'tool_use' }>}
+                      {...(item.toolResult === null
+                        ? {}
+                        : {
+                            toolResult: item.toolResult as Extract<
+                              ChatEntry,
+                              { type: 'tool_result' }
+                            >,
+                          })}
+                      {...(annotation?.tokenBadgeLabel === undefined ||
+                      annotation.tokenBadgeLabel === null
+                        ? {}
+                        : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                      {...(annotation?.resultTokenBadgeLabel === undefined ||
+                      annotation.resultTokenBadgeLabel === null
+                        ? {}
+                        : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
+                    />
+                  ) : (
+                    <ChatMessageWidget
+                      key={i}
+                      entry={item.entry}
+                      roleLabel={role}
+                      {...(annotation?.tokenBadgeLabel === undefined ||
+                      annotation.tokenBadgeLabel === null
+                        ? {}
+                        : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                    />
+                  );
+                });
+              })()
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
           <div ref={scrollEndRef} />
