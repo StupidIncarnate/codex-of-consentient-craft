@@ -32,6 +32,25 @@ describe('bashToolInputContract', () => {
         command: 'npx jest --verbose --coverage',
       });
     });
+
+    it('VALID: {command with timeout} => parses successfully', () => {
+      const input = BashToolInputStub({ command: 'npm run ward', timeout: 600000 });
+
+      const result = bashToolInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        command: 'npm run ward',
+        timeout: 600000,
+      });
+    });
+
+    it('VALID: {command without timeout} => parses with undefined timeout', () => {
+      const result = bashToolInputContract.parse({ command: 'echo hello' });
+
+      expect(result).toStrictEqual({
+        command: 'echo hello',
+      });
+    });
   });
 
   describe('invalid inputs', () => {

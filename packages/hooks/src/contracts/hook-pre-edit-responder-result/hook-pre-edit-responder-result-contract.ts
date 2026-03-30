@@ -11,6 +11,7 @@ export const hookPreEditResponderResultContract = z.object({
   shouldBlock: z.boolean(),
   message: z.string().brand<'HookMessage'>().optional(),
   updatedCommand: z.string().brand<'BashCommand'>().optional(),
+  updatedTimeout: z.number().int().positive().brand<'BashTimeout'>().optional(),
 });
 
 export type HookPreEditResponderResult = z.infer<typeof hookPreEditResponderResultContract>;

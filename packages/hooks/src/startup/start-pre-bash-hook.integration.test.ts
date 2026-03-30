@@ -128,7 +128,7 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "dungeonmaster-ward"} => returns exit code 0', () => {
+    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns exit code 0 with updatedInput timeout', () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'dungeonmaster-ward' },
@@ -138,7 +138,12 @@ describe('pre-bash-hook', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: '',
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: { timeout: 600_000 },
+          },
+        }),
         stderr: '',
       });
     });
@@ -162,6 +167,43 @@ describe('pre-bash-hook', () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'git status' },
+      });
+
+      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+    });
+  });
+
+  describe('ward timeout enforcement', () => {
+    it('VALID: {command: "npm run ward", timeout: 120000} => returns updatedInput with timeout 600000', () => {
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 120_000 },
+      });
+
+      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: { timeout: 600_000 },
+          },
+        }),
+        stderr: '',
+      });
+    });
+
+    it('VALID: {command: "npm run ward", timeout: 600000} => no override needed', () => {
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 600_000 },
       });
 
       const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });

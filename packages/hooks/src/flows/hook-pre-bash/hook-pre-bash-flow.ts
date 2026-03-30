@@ -22,15 +22,26 @@ export const HookPreBashFlow = ({ inputData }: { inputData: string }): ExecResul
       input: parsed as Parameters<typeof HookPreBashResponder>[0]['input'],
     });
 
-    if (result.updatedCommand) {
+    if (result.updatedCommand || result.updatedTimeout) {
+      const updatedInput: {
+        command?: typeof result.updatedCommand;
+        timeout?: typeof result.updatedTimeout;
+      } = {};
+
+      if (result.updatedCommand) {
+        updatedInput.command = result.updatedCommand;
+      }
+
+      if (result.updatedTimeout) {
+        updatedInput.timeout = result.updatedTimeout;
+      }
+
       return execResultContract.parse({
         stderr: '',
         stdout: JSON.stringify({
           hookSpecificOutput: {
             hookEventName: 'PreToolUse',
-            updatedInput: {
-              command: result.updatedCommand,
-            },
+            updatedInput,
           },
         }),
         exitCode: 0,
