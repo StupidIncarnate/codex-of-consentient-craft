@@ -3,9 +3,9 @@
  *
  * USAGE:
  * const hooks = dungeonmasterHooksCreatorTransformer();
- * // Returns: { PreToolUse: [...], SessionStart: [...] }
+ * // Returns: { PreToolUse: [...], SessionStart: [...], WorktreeCreate: [...] }
  *
- * CONTRACTS: Output: { PreToolUseHook[], SessionStart: SessionStartHook[] }
+ * CONTRACTS: Output: { PreToolUseHook[], SessionStart: SessionStartHook[], WorktreeCreate: WorktreeCreateHook[] }
  */
 
 import { claudeSettingsContract } from '../../contracts/claude-settings/claude-settings-contract';
@@ -13,12 +13,14 @@ import type {
   PreToolUseHook,
   // PostToolUseHook,
   SessionStartHook,
+  WorktreeCreateHook,
 } from '../../contracts/claude-settings/claude-settings-contract';
 
 export const dungeonmasterHooksCreatorTransformer = (): {
   PreToolUse: PreToolUseHook[];
   // PostToolUse: PostToolUseHook[];
   SessionStart: SessionStartHook[];
+  WorktreeCreate: WorktreeCreateHook[];
 } => {
   // Parse through contract to get branded types
   const parsed = claudeSettingsContract.parse({
@@ -44,6 +46,11 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
         },
       ],
+      WorktreeCreate: [
+        {
+          hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+        },
+      ],
     },
   });
 
@@ -51,5 +58,6 @@ export const dungeonmasterHooksCreatorTransformer = (): {
     PreToolUse: parsed.hooks?.PreToolUse ?? [],
     // PostToolUse: parsed.hooks?.PostToolUse ?? [],
     SessionStart: parsed.hooks?.SessionStart ?? [],
+    WorktreeCreate: parsed.hooks?.WorktreeCreate ?? [],
   };
 };

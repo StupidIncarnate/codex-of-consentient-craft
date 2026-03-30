@@ -21,6 +21,11 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
           },
         ],
+        WorktreeCreate: [
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+          },
+        ],
       });
     });
 
@@ -52,6 +57,12 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.SessionStart[0]?.hooks[0]?.command).toBe('dungeonmaster-session-start-hook');
+    });
+
+    it('VALID: includes dungeonmaster-worktree-create command => returns correct command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.WorktreeCreate[0]?.hooks[0]?.command).toBe('dungeonmaster-worktree-create');
     });
   });
 });
