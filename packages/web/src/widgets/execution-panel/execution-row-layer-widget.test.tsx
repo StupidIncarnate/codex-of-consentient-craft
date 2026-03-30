@@ -9,7 +9,11 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import {
+  AssistantTextChatEntryStub,
+  AssistantToolResultChatEntryStub,
+  AssistantToolUseChatEntryStub,
+} from '../../contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
@@ -717,6 +721,139 @@ describe('ExecutionRowLayerWidget', () => {
       });
 
       expect(screen.queryByTestId('execution-row-duration')).toBe(null);
+    });
+  });
+
+  describe('token display', () => {
+    it('VALID: {entries with usage, expanded} => renders context label in header', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantTextChatEntryStub({
+                content: 'Working on it',
+                usage: {
+                  inputTokens: 500,
+                  outputTokens: 50,
+                  cacheCreationInputTokens: 5000,
+                  cacheReadInputTokens: 0,
+                },
+              }),
+            ]}
+          />
+        ),
+      });
+
+      const contextEl = screen.getByTestId('execution-row-context');
+
+      expect(contextEl.textContent).toBe('5.5k ctx');
+    });
+
+    it('VALID: {entries without usage} => does not render context label in header', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working on it' })]}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-context')).toBe(null);
+    });
+
+    it('VALID: {expanded, tool-pair with usage} => renders TOKEN_BADGE on tool row', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantToolUseChatEntryStub({
+                toolUseId: 'use_1',
+                usage: {
+                  inputTokens: 50,
+                  outputTokens: 20,
+                  cacheCreationInputTokens: 5000,
+                  cacheReadInputTokens: 0,
+                },
+              }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+            ]}
+          />
+        ),
+      });
+
+      const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
+      await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
+    });
+
+    it('VALID: {expanded, tool-pair with result content} => renders RESULT_TOKEN_BADGE', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+              AssistantToolResultChatEntryStub({
+                toolName: 'use_1',
+                content: 'x'.repeat(740),
+              }),
+            ]}
+          />
+        ),
+      });
+
+      const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
+      await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
+
+      const badges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
+
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
+    });
+
+    it('VALID: {expanded, assistant text with usage} => renders TOKEN_BADGE on message', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantTextChatEntryStub({
+                content: 'Building auth module...',
+                usage: {
+                  inputTokens: 500,
+                  outputTokens: 50,
+                  cacheCreationInputTokens: 5000,
+                  cacheReadInputTokens: 0,
+                },
+              }),
+            ]}
+          />
+        ),
+      });
+
+      const badges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.5k context']);
     });
   });
 });
