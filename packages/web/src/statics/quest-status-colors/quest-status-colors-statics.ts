@@ -25,6 +25,7 @@ export const questStatusColorsStatics = {
     in_progress: 'cyan',
     complete: 'green',
     failed: 'red',
+    paused: 'yellow',
     blocked: 'orange',
     partially_complete: 'teal',
     abandoned: 'red',

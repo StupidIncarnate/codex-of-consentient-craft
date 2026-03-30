@@ -21,6 +21,7 @@ export const questStatusContract = z.enum([
   'review_design',
   'design_approved',
   'in_progress',
+  'paused',
   'blocked',
   'complete',
   'abandoned',

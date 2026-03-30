@@ -466,62 +466,66 @@ export const ExecutionPanelWidget = ({
               </>
             )}
           </Box>
-          {(quest.status === 'blocked' || quest.status === 'in_progress') && onStatusChange && (
-            <Box
-              data-testid="execution-panel-action-bar"
-              style={{
-                padding: ACTION_BAR_PADDING,
-                borderTop: `1px solid ${colors.border}`,
-                flexShrink: 0,
-              }}
-            >
-              <Group gap="xs">
-                {quest.status === 'in_progress' && !confirmingAbandon && onPause && (
-                  <PixelBtnWidget
-                    label={PAUSE_LABEL}
-                    onClick={() => {
-                      onPause();
-                    }}
-                  />
-                )}
-                {quest.status === 'blocked' && !confirmingAbandon && (
-                  <PixelBtnWidget
-                    label={RESUME_LABEL}
-                    onClick={() => {
-                      onStatusChange({ status: 'in_progress' as QuestStatus });
-                    }}
-                  />
-                )}
-                {confirmingAbandon ? (
-                  <>
+          {(quest.status === 'paused' ||
+            quest.status === 'blocked' ||
+            quest.status === 'in_progress') &&
+            onStatusChange && (
+              <Box
+                data-testid="execution-panel-action-bar"
+                style={{
+                  padding: ACTION_BAR_PADDING,
+                  borderTop: `1px solid ${colors.border}`,
+                  flexShrink: 0,
+                }}
+              >
+                <Group gap="xs">
+                  {quest.status === 'in_progress' && !confirmingAbandon && onPause && (
                     <PixelBtnWidget
-                      label={CONFIRM_ABANDON_LABEL}
-                      variant={DANGER_VARIANT}
+                      label={PAUSE_LABEL}
                       onClick={() => {
-                        setConfirmingAbandon(false);
-                        onStatusChange({ status: 'abandoned' as QuestStatus });
+                        onPause();
                       }}
                     />
+                  )}
+                  {(quest.status === 'paused' || quest.status === 'blocked') &&
+                    !confirmingAbandon && (
+                      <PixelBtnWidget
+                        label={RESUME_LABEL}
+                        onClick={() => {
+                          onStatusChange({ status: 'in_progress' as QuestStatus });
+                        }}
+                      />
+                    )}
+                  {confirmingAbandon ? (
+                    <>
+                      <PixelBtnWidget
+                        label={CONFIRM_ABANDON_LABEL}
+                        variant={DANGER_VARIANT}
+                        onClick={() => {
+                          setConfirmingAbandon(false);
+                          onStatusChange({ status: 'abandoned' as QuestStatus });
+                        }}
+                      />
+                      <PixelBtnWidget
+                        label={CANCEL_LABEL}
+                        variant={GHOST_VARIANT}
+                        onClick={() => {
+                          setConfirmingAbandon(false);
+                        }}
+                      />
+                    </>
+                  ) : (
                     <PixelBtnWidget
-                      label={CANCEL_LABEL}
+                      label={ABANDON_LABEL}
                       variant={GHOST_VARIANT}
                       onClick={() => {
-                        setConfirmingAbandon(false);
+                        setConfirmingAbandon(true);
                       }}
                     />
-                  </>
-                ) : (
-                  <PixelBtnWidget
-                    label={ABANDON_LABEL}
-                    variant={GHOST_VARIANT}
-                    onClick={() => {
-                      setConfirmingAbandon(true);
-                    }}
-                  />
-                )}
-              </Group>
-            </Box>
-          )}
+                  )}
+                </Group>
+              </Box>
+            )}
         </Box>
       )}
     </Stack>
