@@ -53,6 +53,19 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
+    it('EDGE: {type: "text", text has leading newlines} => trims leading whitespace from content', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'text', text: '\n\n[Phase 5: Observables]\n\nSome content' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: '[Phase 5: Observables]\n\nSome content',
+      });
+    });
+
     it('EDGE: {type: "text", text is non-string} => returns entry with empty content', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: { type: 'text', text: 42 },

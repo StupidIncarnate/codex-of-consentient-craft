@@ -25,7 +25,7 @@ export const mapContentItemToChatEntryTransformer = ({
   const itemType = item.type;
 
   if (itemType === 'text') {
-    const text = typeof item.text === 'string' ? item.text : '';
+    const text = typeof item.text === 'string' ? item.text.trimStart() : '';
 
     return chatEntryContract.parse({
       role: 'assistant',
