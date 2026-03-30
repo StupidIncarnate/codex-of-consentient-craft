@@ -1027,7 +1027,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'middleware',
             importedFolder: 'brokers',
-            allowed: 'adapters/, middleware/, statics/, contracts/, guards/',
+            allowed: 'adapters/, middleware/, statics/, contracts/, guards/, transformers/',
           },
         },
       ],

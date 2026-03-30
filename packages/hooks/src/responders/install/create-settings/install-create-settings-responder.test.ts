@@ -28,6 +28,7 @@ describe('InstallCreateSettingsResponder', () => {
       expect(written).toContain('dungeonmaster-pre-edit-lint');
       expect(written).toContain('dungeonmaster-session-start');
       expect(written).toContain('dungeonmaster-pre-bash');
+      expect(written).toContain('dungeonmaster-worktree-create');
     });
   });
 

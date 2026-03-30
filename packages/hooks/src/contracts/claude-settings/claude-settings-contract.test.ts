@@ -86,6 +86,22 @@ describe('claudeSettingsContract', () => {
       expect(result).toStrictEqual(input);
     });
 
+    it('VALID: settings with WorktreeCreate hooks => parses successfully', () => {
+      const input = ClaudeSettingsStub({
+        hooks: {
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
+
+      const result = claudeSettingsContract.parse(input);
+
+      expect(result).toStrictEqual(input);
+    });
+
     it('VALID: settings with permissions allow => parses successfully', () => {
       const input = ClaudeSettingsStub({
         permissions: {

@@ -129,7 +129,7 @@ describe('HookPreBashResponder', () => {
       });
     });
 
-    it('VALID: {command: "dungeonmaster-ward"} => returns {shouldBlock: false}', () => {
+    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns updatedTimeout', () => {
       HookPreBashResponderProxy();
       const hookData = HookDataStub({
         tool_name: 'Bash',
@@ -140,6 +140,7 @@ describe('HookPreBashResponder', () => {
 
       expect(result).toStrictEqual({
         shouldBlock: false,
+        updatedTimeout: 600_000,
       });
     });
 
@@ -148,6 +149,80 @@ describe('HookPreBashResponder', () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'echo hello' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+      });
+    });
+  });
+
+  describe('ward timeout enforcement', () => {
+    it('VALID: {command: "npm run ward", timeout: 120000} => overrides timeout to 600000', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 120_000 },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+        updatedTimeout: 600_000,
+      });
+    });
+
+    it('VALID: {command: "npm run ward -- --only unit", no timeout} => overrides timeout to 600000', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward -- --only unit' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+        updatedTimeout: 600_000,
+      });
+    });
+
+    it('VALID: {command: "npm run ward", timeout: 600000} => no override needed', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 600_000 },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+      });
+    });
+
+    it('VALID: {command: "npm run ward", timeout: 900000} => no override (already above minimum)', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 900_000 },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+      });
+    });
+
+    it('VALID: {command: "echo hello", timeout: 5000} => no override (not ward)', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'echo hello', timeout: 5000 },
       });
 
       const result = HookPreBashResponder({ input: hookData });

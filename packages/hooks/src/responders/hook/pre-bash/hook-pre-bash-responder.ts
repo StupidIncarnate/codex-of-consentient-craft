@@ -7,11 +7,13 @@
  */
 import { isBlockedQualityCommandGuard } from '../../../guards/is-blocked-quality-command/is-blocked-quality-command-guard';
 import { isWardPipedCommandGuard } from '../../../guards/is-ward-piped-command/is-ward-piped-command-guard';
+import { isWardCommandGuard } from '../../../guards/is-ward-command/is-ward-command-guard';
 import { wardSuggestionMessageTransformer } from '../../../transformers/ward-suggestion-message/ward-suggestion-message-transformer';
 import { stripWardPipeCommandTransformer } from '../../../transformers/strip-ward-pipe-command/strip-ward-pipe-command-transformer';
 import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-tool-input-contract';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
+import { wardTimeoutStatics } from '../../../statics/ward-timeout/ward-timeout-statics';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
 
@@ -37,7 +39,7 @@ export const HookPreBashResponder = ({
     });
   }
 
-  const { command } = parseResult.data;
+  const { command, timeout } = parseResult.data;
 
   const isPiped = isWardPipedCommandGuard({ command });
 
@@ -56,6 +58,15 @@ export const HookPreBashResponder = ({
     return hookPreEditResponderResultContract.parse({
       shouldBlock: true,
       message: wardSuggestionMessageTransformer({ command: parseResult.data.command }),
+    });
+  }
+
+  const isWard = isWardCommandGuard({ command });
+
+  if (isWard && (!timeout || timeout < wardTimeoutStatics.minimumTimeout)) {
+    return hookPreEditResponderResultContract.parse({
+      shouldBlock: false,
+      updatedTimeout: wardTimeoutStatics.minimumTimeout,
     });
   }
 

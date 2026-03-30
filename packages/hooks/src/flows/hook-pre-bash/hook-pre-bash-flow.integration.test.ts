@@ -66,6 +66,73 @@ describe('HookPreBashFlow', () => {
       });
     });
 
+    it('VALID: {inputData: ward command with low timeout} => returns exitCode 0 with updatedInput timeout in stdout', () => {
+      const inputData = JSON.stringify({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 120_000 },
+      });
+
+      const result = HookPreBashFlow({ inputData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: { timeout: 600_000 },
+          },
+        }),
+        stderr: '',
+      });
+    });
+
+    it('VALID: {inputData: ward command with no timeout} => returns exitCode 0 with updatedInput timeout in stdout', () => {
+      const inputData = JSON.stringify({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward -- --only unit -- packages/hooks' },
+      });
+
+      const result = HookPreBashFlow({ inputData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            updatedInput: { timeout: 600_000 },
+          },
+        }),
+        stderr: '',
+      });
+    });
+
+    it('VALID: {inputData: ward command with sufficient timeout} => returns exitCode 0 with no updatedInput', () => {
+      const inputData = JSON.stringify({
+        session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: process.cwd(),
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward', timeout: 600_000 },
+      });
+
+      const result = HookPreBashFlow({ inputData });
+
+      expect(result).toStrictEqual({
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+    });
+
     it('ERROR: {inputData: invalid JSON} => returns exitCode 1 with error in stderr', () => {
       const result = HookPreBashFlow({ inputData: 'not json' });
 
