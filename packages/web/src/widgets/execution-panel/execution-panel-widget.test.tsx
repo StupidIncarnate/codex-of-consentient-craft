@@ -202,6 +202,22 @@ describe('ExecutionPanelWidget', () => {
       expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
     });
 
+    it('VALID: {paused quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'paused' });
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
+      });
+
+      expect(proxy.hasActionBar()).toBe(true);
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+    });
+
     it('VALID: {in_progress quest with onStatusChange and onPause} => shows PAUSE QUEST and ABANDON QUEST buttons', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });

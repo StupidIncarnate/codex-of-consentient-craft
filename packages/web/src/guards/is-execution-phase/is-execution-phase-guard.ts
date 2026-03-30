@@ -15,6 +15,7 @@ export const isExecutionPhaseGuard = ({ status }: { status?: QuestStatus }): boo
 
   return (
     status === 'in_progress' ||
+    status === 'paused' ||
     status === 'blocked' ||
     status === 'complete' ||
     status === 'abandoned'

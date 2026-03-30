@@ -1013,8 +1013,8 @@ describe('QuestChatWidget', () => {
     });
   });
 
-  describe('pipeline restart after blocked', () => {
-    it('VALID: {quest transitions from in_progress to blocked to in_progress} => calls questStartBroker again on resume', async () => {
+  describe('pipeline restart after paused', () => {
+    it('VALID: {quest transitions from in_progress to paused to in_progress} => calls questStartBroker again on resume', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -1055,7 +1055,7 @@ describe('QuestChatWidget', () => {
 
       act(() => {
         proxy.setupQuest({
-          quest: QuestStub({ id: 'chat-resume-1', status: 'blocked' }),
+          quest: QuestStub({ id: 'chat-resume-1', status: 'paused' }),
         });
       });
 

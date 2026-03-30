@@ -99,6 +99,14 @@ describe('questStatusContract', () => {
       expect(result).toBe('in_progress');
     });
 
+    it('VALID: paused => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'paused' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('paused');
+    });
+
     it('VALID: blocked => parses successfully', () => {
       const status = QuestStatusStub({ value: 'blocked' });
 

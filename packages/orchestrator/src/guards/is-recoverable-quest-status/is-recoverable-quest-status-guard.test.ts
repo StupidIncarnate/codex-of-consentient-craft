@@ -43,6 +43,12 @@ describe('isRecoverableQuestStatusGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {status: paused} => returns true', () => {
+      const result = isRecoverableQuestStatusGuard({ status: 'paused' });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-recoverable statuses', () => {
