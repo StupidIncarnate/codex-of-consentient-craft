@@ -21,6 +21,7 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { verifyQuestInputContract } from '../../../contracts/verify-quest-input/verify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { questPathseekerSessionIdTransformer } from '../../../transformers/quest-pathseeker-session-id/quest-pathseeker-session-id-transformer';
 import { stepsToWorkItemsTransformer } from '../../../transformers/steps-to-work-items/steps-to-work-items-transformer';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
@@ -41,6 +42,18 @@ export const runPathseekerLayerBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<void> => {
+  // Fetch quest upfront to resolve PathSeeker sessionId and reuse for post-completion paths
+  const questInput = getQuestInputContract.parse({ questId });
+  const initialQuestResult = await questGetBroker({ input: questInput });
+  if (!initialQuestResult.success || !initialQuestResult.quest) {
+    throw new Error(`Quest not found: ${questId}`);
+  }
+
+  // Resolve sessionId: prefer work item's own, fall back to first pathseeker session in quest
+  const resolvedSessionId =
+    workItem.sessionId ??
+    questPathseekerSessionIdTransformer({ workItems: initialQuestResult.quest.workItems });
+
   const workUnit = workUnitContract.parse({
     role: 'pathseeker',
     questId,
@@ -53,7 +66,7 @@ export const runPathseekerLayerBroker = async ({
     workUnit,
     startPath,
     abortSignal,
-    ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
+    ...(resolvedSessionId === undefined ? {} : { resumeSessionId: resolvedSessionId }),
     onLine: ({ line }: { line: string }) => {
       onAgentEntry({
         slotIndex,
@@ -104,14 +117,14 @@ export const runPathseekerLayerBroker = async ({
     });
 
     // Generate work items for next phases (codeweaver -> ward -> siege -> law)
-    const questInput = getQuestInputContract.parse({ questId });
-    const questResult = await questGetBroker({ input: questInput });
-    if (!questResult.success || !questResult.quest) {
+    // Re-fetch quest to get steps written by PathSeeker agent
+    const postQuestResult = await questGetBroker({ input: questInput });
+    if (!postQuestResult.success || !postQuestResult.quest) {
       throw new Error(`Quest not found after pathseeker completion: ${questId}`);
     }
     const now = isoTimestampContract.parse(new Date().toISOString());
     const newItems = stepsToWorkItemsTransformer({
-      steps: questResult.quest.steps,
+      steps: postQuestResult.quest.steps,
       pathseekerWorkItemId: workItem.id,
       now,
     });
@@ -152,12 +165,11 @@ export const runPathseekerLayerBroker = async ({
       insertedBy: workItem.id,
     });
 
-    const questInput = getQuestInputContract.parse({ questId });
-    const questResult = await questGetBroker({ input: questInput });
-    if (questResult.success && questResult.quest) {
+    const retryQuestResult = await questGetBroker({ input: questInput });
+    if (retryQuestResult.success && retryQuestResult.quest) {
       await questWorkItemInsertBroker({
         questId,
-        quest: questResult.quest,
+        quest: retryQuestResult.quest,
         newWorkItems: [retryItem],
       });
     }

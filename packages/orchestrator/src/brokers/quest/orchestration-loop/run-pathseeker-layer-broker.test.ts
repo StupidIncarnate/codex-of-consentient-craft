@@ -391,7 +391,7 @@ describe('runPathseekerLayerBroker', () => {
   });
 
   describe('EXCEPTION — quest not found', () => {
-    it('VALID: {quest not found in filesystem} => broker completes without persisting', async () => {
+    it('VALID: {quest not found in filesystem} => throws Quest not found', async () => {
       const questId = QuestIdStub({ value: 'nonexistent-quest' });
       const workItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
@@ -402,13 +402,15 @@ describe('runPathseekerLayerBroker', () => {
       const proxy = runPathseekerLayerBrokerProxy();
       proxy.setupQuestNotFound();
 
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-        onAgentEntry: jest.fn(),
-        abortSignal: new AbortController().signal,
-      });
+      await expect(
+        runPathseekerLayerBroker({
+          questId,
+          workItem,
+          startPath: '/project/src' as never,
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow('Quest not found: nonexistent-quest');
 
       expect(proxy.getPersistedQuestJsons()).toStrictEqual([]);
     });
@@ -449,6 +451,54 @@ describe('runPathseekerLayerBroker', () => {
   });
 
   describe('resumeSessionId', () => {
+    it('VALID: {workItem has no sessionId, prior pathseeker has sessionId} => resumes prior session', async () => {
+      const questId = QuestIdStub({ value: 'test-resume-quest' });
+      const priorSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
+      const priorPathseeker = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        role: 'pathseeker',
+        status: 'failed',
+        sessionId: priorSessionId,
+        createdAt: '2024-01-15T08:00:00.000Z',
+      });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        steps: [DependencyStepStub()],
+        workItems: [priorPathseeker, workItem],
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      proxy.setupSuccess({
+        quest,
+        spawnLines: ['{"type":"system","session_id":"9c4d8f1c-3e38-48c9-bdec-22b61883b473"}'],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        expect.any(String),
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--resume',
+        '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+      ]);
+    });
+
     it('VALID: {workItem has sessionId} => passes resumeSessionId through to spawn args', async () => {
       const questId = QuestIdStub({ value: 'test-resume-quest' });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });

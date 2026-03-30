@@ -61,7 +61,8 @@ export const runPathseekerLayerBrokerProxy = (): {
       >[0]['lines'];
       exitCode: ExitCode;
     }): void => {
-      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
+      getProxy.setupQuestFound({ quest }); // post-completion fetch for steps
       modifyProxy.setupQuestFound({ quest });
       verifyProxy.setupQuestFound({ quest });
       insertProxy.setupQuestModify({ quest });
@@ -69,7 +70,8 @@ export const runPathseekerLayerBrokerProxy = (): {
     },
 
     setupSpawnFailure: ({ quest }: { quest: Quest }): void => {
-      // Spawn failure path: spawn crashes, verify still runs, then modify + get + insert
+      // Spawn failure path: initial fetch + spawn crashes + verify + modify + get + insert
+      getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
@@ -90,8 +92,9 @@ export const runPathseekerLayerBrokerProxy = (): {
       >[0]['lines'];
       exitCode: ExitCode;
     }): void => {
-      // Verify fail path needs: verify + modify(failed) + get + modify(insert via insertBroker)
+      // Verify fail path needs: initial fetch + verify + modify(failed) + get + modify(insert via insertBroker)
       // Generous mock setups to ensure values are not exhausted
+      getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
@@ -107,6 +110,7 @@ export const runPathseekerLayerBrokerProxy = (): {
     },
 
     setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
       modifyProxy.setupQuestFound({ quest });
       spawnProxy.setupSpawnFailureOnce();
     },
