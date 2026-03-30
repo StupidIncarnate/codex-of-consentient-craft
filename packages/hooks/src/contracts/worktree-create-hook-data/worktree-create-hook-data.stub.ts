@@ -10,8 +10,6 @@ export const WorktreeCreateHookDataStub = ({
     transcript_path: '/tmp/transcript.jsonl',
     cwd: '/home/user/project',
     hook_event_name: 'WorktreeCreate',
-    worktree_path: '/home/user/project/.claude/worktrees/test-worktree',
-    branch: 'worktree-test-branch',
-    isolation: 'worktree',
+    name: 'test-worktree',
     ...props,
   });

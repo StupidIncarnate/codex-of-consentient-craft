@@ -11,10 +11,9 @@ describe('worktreeCreateHookDataContract', () => {
       expect(result).toStrictEqual(input);
     });
 
-    it('VALID: custom worktree path and branch => parses successfully', () => {
+    it('VALID: custom name => parses successfully', () => {
       const input = WorktreeCreateHookDataStub({
-        worktree_path: '/tmp/my-worktree',
-        branch: 'feature-abc',
+        name: 'feature-abc',
       });
 
       const result = worktreeCreateHookDataContract.parse(input);
@@ -22,15 +21,13 @@ describe('worktreeCreateHookDataContract', () => {
       expect(result).toStrictEqual(input);
     });
 
-    it('INVALID: missing worktree_path => throws ZodError', () => {
+    it('INVALID: missing name => throws ZodError', () => {
       expect(() =>
         worktreeCreateHookDataContract.parse({
           session_id: 'abc',
           transcript_path: '/tmp/t.jsonl',
           cwd: '/home',
           hook_event_name: 'WorktreeCreate',
-          branch: 'test',
-          isolation: 'worktree',
         }),
       ).toThrow(/Required/u);
     });

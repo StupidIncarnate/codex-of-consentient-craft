@@ -4,16 +4,16 @@ import { WorktreeCreateHookDataStub } from '../../../contracts/worktree-create-h
 
 describe('HookWorktreeCreateResponder', () => {
   describe('success', () => {
-    it('VALID: {valid worktree input} => returns worktreePath', () => {
+    it('VALID: {valid worktree input} => returns worktreePath constructed from cwd + name', () => {
       const proxy = HookWorktreeCreateResponderProxy();
-      const input = WorktreeCreateHookDataStub();
+      const input = WorktreeCreateHookDataStub({ cwd: '/repo', name: 'my-wt' });
 
       proxy.setupSuccess();
 
       const result = HookWorktreeCreateResponder({ input });
 
       expect(result).toStrictEqual({
-        worktreePath: input.worktree_path,
+        worktreePath: '/repo/.claude/worktrees/my-wt',
       });
     });
   });

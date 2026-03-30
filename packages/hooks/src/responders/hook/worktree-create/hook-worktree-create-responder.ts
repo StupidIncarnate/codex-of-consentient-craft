@@ -7,22 +7,36 @@
  */
 
 import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
+import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import type { WorktreeCreateHookData } from '../../../contracts/worktree-create-hook-data/worktree-create-hook-data-contract';
+
+const WORKTREE_DIR = '.claude/worktrees';
+const BRANCH_PREFIX = 'worktree-';
 
 export const HookWorktreeCreateResponder = ({
   input,
 }: {
   input: WorktreeCreateHookData;
-}): { worktreePath: WorktreeCreateHookData['worktree_path'] } => {
+}): { worktreePath: ReturnType<typeof pathJoinAdapter> } => {
+  const worktreePath = pathJoinAdapter({
+    paths: [input.cwd, WORKTREE_DIR, input.name],
+  });
+  const branch = `${BRANCH_PREFIX}${input.name}`;
+
   childProcessExecSyncAdapter({
-    command: `git worktree add ${input.worktree_path} -b ${input.branch}`,
+    command: `git worktree add ${worktreePath} -b ${branch}`,
     options: { cwd: input.cwd, encoding: 'utf8' },
   });
 
   childProcessExecSyncAdapter({
-    command: 'npm run build',
-    options: { cwd: input.worktree_path, encoding: 'utf8' },
+    command: 'npm install',
+    options: { cwd: worktreePath, encoding: 'utf8' },
   });
 
-  return { worktreePath: input.worktree_path };
+  childProcessExecSyncAdapter({
+    command: 'npm run build',
+    options: { cwd: worktreePath, encoding: 'utf8' },
+  });
+
+  return { worktreePath };
 };
