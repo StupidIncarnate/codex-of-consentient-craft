@@ -60,7 +60,7 @@ test.describe('Quest Start Pipeline', () => {
     const startData = await startResponse.json();
 
     expect(startData.processId).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      /^proc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
     );
 
     const questResponse = await request.get(`/api/quests/${questId}`);
