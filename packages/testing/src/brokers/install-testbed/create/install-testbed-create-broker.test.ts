@@ -46,8 +46,8 @@ describe('installTestbedCreateBroker', () => {
       testbed.cleanup();
 
       expect(testbed).toStrictEqual({
-        guildPath: expect.any(String),
-        dungeonmasterPath: expect.any(String),
+        guildPath: expect.stringMatching(/^\/tmp\/test-write-[a-f0-9]{8}$/u),
+        dungeonmasterPath: expect.stringMatching(/^\/[a-zA-Z0-9_./-]+$/u),
         cleanup: expect.any(Function),
         writeFile: expect.any(Function),
         readFile: expect.any(Function),

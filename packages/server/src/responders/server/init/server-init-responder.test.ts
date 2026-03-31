@@ -16,7 +16,8 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -32,7 +33,7 @@ describe('ServerInitResponder', () => {
         setTimeout(resolve, 10);
       });
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -50,7 +51,8 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest });
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -65,7 +67,13 @@ describe('ServerInitResponder', () => {
         setTimeout(resolve, 10);
       });
 
-      expect(client.send).toHaveBeenCalledTimes(1);
+      expect(sendMock.mock.calls).toStrictEqual([
+        [
+          expect.stringMatching(
+            /^\{"type":"quest-modified","payload":\{"questId":"matched-quest","quest":\{.*\}\},"timestamp":"2024-01-01T00:00:00\.000Z"\}$/u,
+          ),
+        ],
+      ]);
     });
 
     it('EDGE: {type: quest-by-session-request, no matching session} => does not send ws message', async () => {
@@ -78,7 +86,8 @@ describe('ServerInitResponder', () => {
       });
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -93,7 +102,7 @@ describe('ServerInitResponder', () => {
         setTimeout(resolve, 10);
       });
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -126,11 +135,13 @@ describe('ServerInitResponder', () => {
 
       const spy = proxy.getDevLogOutput();
 
-      const matchingCall = spy.mock.calls.find((call) =>
+      const matchingCalls = spy.mock.calls.filter((call) =>
         /quest-by-session-request failed.*Connection refused/u.test(String(call[0])),
       );
 
-      expect(matchingCall).not.toBe(undefined);
+      const matchCount = matchingCalls.length;
+
+      expect(matchCount).toBe(1);
     });
 
     it('ERROR: {loadQuest rejects with cause} => logs error message and cause', async () => {
@@ -167,11 +178,13 @@ describe('ServerInitResponder', () => {
 
       const spy = proxy.getDevLogOutput();
 
-      const matchingCall = spy.mock.calls.find((call) =>
+      const matchingCalls = spy.mock.calls.filter((call) =>
         /Failed to parse quest file.*cause.*Unexpected token/u.test(String(call[0])),
       );
 
-      expect(matchingCall).not.toBe(undefined);
+      const matchCount = matchingCalls.length;
+
+      expect(matchCount).toBe(1);
     });
   });
 
@@ -180,12 +193,13 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       proxy.simulateMessage({ data: 'not-json{{{', ws: client });
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -194,7 +208,8 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
@@ -203,14 +218,15 @@ describe('ServerInitResponder', () => {
         payload: { slotIndex: 0, text: 'buffered' },
       });
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {chat-output without slotIndex} => broadcasts immediately', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
@@ -220,7 +236,9 @@ describe('ServerInitResponder', () => {
         payload: { text: 'immediate' },
       });
 
-      expect(client.send).toHaveBeenCalledTimes(1);
+      const sendCallCount = sendMock.mock.calls.length;
+
+      expect(sendCallCount).toBe(1);
     });
 
     it('VALID: {buffered chat-output events} => flush interval drains buffer and broadcasts', () => {
@@ -229,7 +247,8 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
@@ -245,7 +264,9 @@ describe('ServerInitResponder', () => {
       jest.advanceTimersByTime(100);
       jest.useRealTimers();
 
-      expect(client.send).toHaveBeenCalledTimes(2);
+      const sendCallCount = sendMock.mock.calls.length;
+
+      expect(sendCallCount).toBe(2);
     });
 
     it('EDGE: {empty buffer at flush interval} => no broadcast occurs', () => {
@@ -254,20 +275,22 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       jest.advanceTimersByTime(100);
       jest.useRealTimers();
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {phase-change event} => broadcasts immediately to connected client', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'phase-change' });
@@ -276,7 +299,9 @@ describe('ServerInitResponder', () => {
         payload: { phase: 'codeweaver' },
       });
 
-      expect(client.send).toHaveBeenCalledTimes(1);
+      const sendCallCount = sendMock.mock.calls.length;
+
+      expect(sendCallCount).toBe(1);
     });
   });
 
@@ -285,11 +310,12 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
-      const client = WsClientStub();
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateDisconnect({ ws: client });
 
-      expect(client.send).not.toHaveBeenCalled();
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
   });
 });

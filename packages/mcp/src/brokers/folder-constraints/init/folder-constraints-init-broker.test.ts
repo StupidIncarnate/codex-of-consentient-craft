@@ -9,7 +9,7 @@ describe('folderConstraintsInitBroker', () => {
     const { folderConstraints, layerConstraints } = await folderConstraintsInitBroker();
 
     expect(folderConstraints.size).toBe(14);
-    expect(layerConstraints).toContain('LAYER FILES - Decomposing Complex Components');
+    expect(layerConstraints).toMatch(/^# LAYER FILES - Decomposing Complex Components$/mu);
   });
 
   it('VALID: adapters constraints include translation boundary guidance', async () => {
@@ -18,7 +18,7 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const adaptersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'adapters' }));
 
-    expect(adaptersConstraints).toContain('TRANSLATION BOUNDARY:');
+    expect(adaptersConstraints).toMatch(/^\*\*TRANSLATION BOUNDARY:\*\*$/mu);
   });
 
   it('VALID: brokers constraints include proxy pattern guidance', async () => {
@@ -27,7 +27,7 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const brokersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'brokers' }));
 
-    expect(brokersConstraints).toContain('PROXY PATTERN:');
+    expect(brokersConstraints).toMatch(/^\*\*PROXY PATTERN:\*\*$/mu);
   });
 
   it('VALID: guards constraints include object argument guidance', async () => {
@@ -36,7 +36,7 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const guardsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'guards' }));
 
-    expect(guardsConstraints).toContain('OBJECT ARGUMENTS FOR STATICS:');
+    expect(guardsConstraints).toMatch(/^\*\*OBJECT ARGUMENTS FOR STATICS:\*\*$/mu);
   });
 
   it('VALID: contracts constraints include test import guidance', async () => {
@@ -47,7 +47,7 @@ describe('folderConstraintsInitBroker', () => {
       FolderTypeStub({ value: 'contracts' }),
     );
 
-    expect(contractsConstraints).toContain('CRITICAL - TEST IMPORTS:');
+    expect(contractsConstraints).toMatch(/^\*\*CRITICAL - TEST IMPORTS:\*\*$/mu);
   });
 
   it('VALID: statics constraints include critical rules guidance', async () => {
@@ -56,6 +56,6 @@ describe('folderConstraintsInitBroker', () => {
     const result = await folderConstraintsInitBroker();
     const staticsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'statics' }));
 
-    expect(staticsConstraints).toContain('CRITICAL RULES:');
+    expect(staticsConstraints).toMatch(/^\*\*CRITICAL RULES:\*\*$/mu);
   });
 });

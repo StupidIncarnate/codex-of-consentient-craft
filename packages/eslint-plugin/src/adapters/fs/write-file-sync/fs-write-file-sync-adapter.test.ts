@@ -12,8 +12,7 @@ describe('fsWriteFileSyncAdapter', () => {
 
     fsWriteFileSyncAdapter({ filePath, contents });
 
-    // Expect no errors thrown
-    expect(true).toBe(true);
+    expect(proxy.getWrittenContent()).toBe('test content');
   });
 
   it('VALID: writes with custom encoding', () => {
@@ -25,7 +24,6 @@ describe('fsWriteFileSyncAdapter', () => {
 
     fsWriteFileSyncAdapter({ filePath, contents, encoding: 'ascii' });
 
-    // Expect no errors thrown
-    expect(true).toBe(true);
+    expect(proxy.getWrittenContent()).toBe('test content');
   });
 });

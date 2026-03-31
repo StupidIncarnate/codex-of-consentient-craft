@@ -3,6 +3,7 @@ import { registerMock } from '../../../register-mock';
 
 export const fsUnlinkAdapterProxy = (): {
   throws: ({ error }: { filePath: string; error: Error }) => void;
+  getCallArgs: () => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: unlinkSync });
 
@@ -14,5 +15,6 @@ export const fsUnlinkAdapterProxy = (): {
         throw error;
       });
     },
+    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
   };
 };

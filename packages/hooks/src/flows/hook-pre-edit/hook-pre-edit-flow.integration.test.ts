@@ -8,7 +8,9 @@ describe('HookPreEditFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(
+          'Hook error: Unexpected token \'o\', "not json" is not valid JSON',
+        ),
       });
     });
 
@@ -27,7 +29,7 @@ describe('HookPreEditFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Unsupported hook event.*$/su),
+        stderr: expect.stringMatching('Hook error: Unsupported hook event: PostToolUse'),
       });
     });
   });

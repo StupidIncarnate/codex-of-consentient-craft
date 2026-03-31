@@ -15,7 +15,7 @@ describe('StreamingBarLayerWidget', () => {
 
       const bar = screen.getByTestId('streaming-bar-layer-widget');
 
-      expect(bar.textContent).toContain('streaming...');
+      expect(bar.textContent).toBe(`${'\u2591'.repeat(20)} streaming...`);
     });
   });
 

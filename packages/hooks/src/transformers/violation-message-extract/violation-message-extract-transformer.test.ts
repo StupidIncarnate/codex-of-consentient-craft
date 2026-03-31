@@ -15,8 +15,9 @@ describe('violationMessageExtractTransformer', () => {
       hookData: testHookData,
     });
 
-    expect(message).toContain('type "any"');
-    expect(message).toContain('type safety');
+    expect(message).toBe(
+      'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
+    );
   });
 
   it('VALID: {displayConfig: {message: "custom"}, ruleId, hookData} => returns custom string', () => {

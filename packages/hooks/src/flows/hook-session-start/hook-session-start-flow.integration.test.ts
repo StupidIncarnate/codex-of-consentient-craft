@@ -8,7 +8,7 @@ describe('HookSessionStartFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 1,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Hook error.*$/su),
+        stderr: expect.stringMatching(/^Hook error: .+\n$/su),
       });
     });
 
@@ -24,7 +24,9 @@ describe('HookSessionStartFlow', () => {
 
       expect(result).toStrictEqual({
         exitCode: 0,
-        stdout: expect.stringMatching(/^.*dungeonmaster-architecture.*$/su),
+        stdout: expect.stringMatching(
+          /^<dungeonmaster-architecture>\n.+<\/dungeonmaster-architecture>\n$/su,
+        ),
         stderr: '',
       });
     });

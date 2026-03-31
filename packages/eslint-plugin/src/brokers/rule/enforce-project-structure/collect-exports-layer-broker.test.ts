@@ -47,7 +47,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         { type: 'VariableDeclaration', name: exportName, isTypeOnly: false },
       ]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: class declaration export => collects export', () => {
@@ -84,7 +84,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         { type: 'ClassDeclaration', name: exportName, isTypeOnly: false },
       ]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: function declaration export => collects export', () => {
@@ -121,7 +121,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         { type: 'FunctionDeclaration', name: exportName, isTypeOnly: false },
       ]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: type-only export => skips and returns empty', () => {
@@ -151,7 +151,7 @@ describe('collectExportsLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EMPTY: no exports => returns empty array', () => {
@@ -176,7 +176,7 @@ describe('collectExportsLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EMPTY: body is undefined => returns empty array', () => {
@@ -197,7 +197,7 @@ describe('collectExportsLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -615,7 +615,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         { type: 'VariableDeclaration', name: exportName, isTypeOnly: false },
       ]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: arrow function proxy => collects without error', () => {
@@ -659,7 +659,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         { type: 'VariableDeclaration', name: exportName, isTypeOnly: false },
       ]);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

@@ -220,7 +220,7 @@ expect(items).toHaveLength(2); // Could be wrong items!
 // ❌ FORBIDDEN MATCHERS
 expect().toEqual()                  // → Use .toStrictEqual()
 expect().toMatchObject()            // → Use .toStrictEqual()
-expect().toContain()                // → Use .toStrictEqual() or exact regex
+expect().toContain()                // → Use .toStrictEqual() for arrays, .toBe() or .toMatch(/^exact$/u) for strings
 expect().toBeTruthy()               // → Use .toBe(true)
 expect().toBeFalsy()                // → Use .toBe(false)
 expect().toMatch('text')            // → Use .toMatch(/^exact text$/u)
@@ -230,11 +230,30 @@ expect().toBeDefined()              // → Test actual value
 expect().toBeUndefined()            // → Use .toBe(undefined)
 expect.objectContaining({...})      // → Test complete object
 expect.arrayContaining([...])       // → Test complete array
-expect.stringContaining('text')     // → Use .toContain('text') or test full value
+expect.stringContaining('text')     // → Use .toBe('exact full string') or .toMatch(/^exact$/u)
 expect.any(String)                  // → Test actual string value
 expect.any(Number)                  // → Test actual number
 expect.any(Object)                  // → Test complete object shape
 // EXCEPTION: expect.any(Function) is OK - can't compare functions
+
+// ❌ FORBIDDEN - Negated matchers (.not.*)
+expect(x).not.toBe(y)              // → Assert the actual expected value: .toBe(correctValue)
+expect(x).not.toHaveBeenCalled()   // → Use .toHaveBeenCalledTimes(0) paired with what WAS called
+expect(x).not.toContain(y)         // → Use .toStrictEqual() on the complete collection
+
+// ❌ FORBIDDEN - Tautological assertions
+expect(true).toBe(true)            // → Assert on actual return value, not a literal
+expect(false).toBe(false)          // → Assert on actual return: expect(result).toBe(false)
+
+// ❌ FORBIDDEN - Object.keys() in expect
+expect(Object.keys(obj)).toStrictEqual([...])  // → expect(obj).toStrictEqual({key: val, ...}) - assert keys AND values
+
+// ❌ FORBIDDEN - String.includes() in expect
+expect(str.includes('x')).toBe(true)           // → expect(str).toBe('exact full string')
+expect(String(x).includes('y')).toBe(true)     // → expect(String(x)).toBe('exact full string')
+
+// ❌ FORBIDDEN - Unpaired toHaveBeenCalledTimes
+expect(fn).toHaveBeenCalledTimes(2)            // → Must be paired with toHaveBeenCalledWith() in same test
 
 // ✅ CORRECT ALTERNATIVES
 expect(result).toStrictEqual({id: '123', name: 'John'});

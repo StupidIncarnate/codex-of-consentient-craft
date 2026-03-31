@@ -47,7 +47,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toContain('01');
+      expect(row.textContent).toBe('\u00B7\u00B7\u00B701[CODEWEAVER]Build auth flowPENDING');
     });
   });
 
@@ -92,7 +92,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.textContent).toContain('Build auth flow');
+      expect(row.textContent).toBe('\u00B7\u00B7\u00B701[CODEWEAVER]Build auth flowPENDING');
     });
   });
 
@@ -193,7 +193,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toContain('dashed');
+      expect(row.style.borderLeft).toBe('2px dashed rgb(245, 158, 11)');
     });
   });
 
@@ -212,7 +212,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toContain('depends on: step-1');
+      expect(subtitle.textContent).toBe('\u2514\u2500 depends on: step-1');
     });
 
     it('VALID: {status: "queued", dependsOn: ["step-1"]} => renders waiting for slot subtitle', () => {
@@ -230,7 +230,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
 
-      expect(subtitle.textContent).toContain('waiting for slot');
+      expect(subtitle.textContent).toBe('\u2514\u2500 waiting for slot (depends on: step-1)');
     });
 
     it('EMPTY: {no deps, no files} => does not render subtitle', () => {
@@ -263,7 +263,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
 
     it('VALID: {status: "pending"} => clicking header does not expand', async () => {
@@ -404,7 +404,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
       expect(
         screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
@@ -424,7 +424,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('streaming-bar-layer-widget')).not.toBe(null);
+      expect(screen.getByTestId('streaming-bar-layer-widget')).toBeInTheDocument();
     });
 
     it('VALID: {ad-hoc with spiritmender entries} => renders with dashed border, AD-HOC tag, and messages', () => {
@@ -446,9 +446,9 @@ describe('ExecutionRowLayerWidget', () => {
 
       const row = screen.getByTestId('execution-row-layer-widget');
 
-      expect(row.style.borderLeft).toContain('dashed');
+      expect(row.style.borderLeft).toBe('2px dashed rgb(245, 158, 11)');
       expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
-      expect(screen.getByTestId('execution-row-expanded')).not.toBe(null);
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
       expect(
         screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);

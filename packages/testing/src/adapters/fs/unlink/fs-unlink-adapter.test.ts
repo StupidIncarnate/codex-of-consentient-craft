@@ -4,12 +4,12 @@ import { fsUnlinkAdapterProxy } from './fs-unlink-adapter.proxy';
 describe('fsUnlinkAdapter', () => {
   describe('successful removal', () => {
     it('VALID: {filePath: "/tmp/test.txt"} => removes file', () => {
-      fsUnlinkAdapterProxy();
+      const proxy = fsUnlinkAdapterProxy();
       const filePath = '/tmp/test.txt';
 
       fsUnlinkAdapter({ filePath });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[filePath]]);
     });
   });
 

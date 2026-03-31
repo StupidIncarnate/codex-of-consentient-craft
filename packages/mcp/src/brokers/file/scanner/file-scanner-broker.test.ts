@@ -841,10 +841,19 @@ export const isKeyOfGuard = <T extends object>({ obj, key }: { obj: T; key: Prop
       // Should find the shared file
       const sharedFiles = results.filter((r) => r.source === 'shared');
 
-      expect(sharedFiles.length).toBeGreaterThan(0);
-
-      // First shared file should have transformed path
-      expect(sharedFiles[0]?.path).toContain('@dungeonmaster/shared/');
+      expect(sharedFiles).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: {},
+          name: 'is-key-of-guard',
+          path: '/node_modules/@dungeonmaster/shared/src/guards/is-key-of/is-key-of-guard.ts',
+          purpose: 'Type guard for key-of check',
+          relatedFiles: [],
+          signature: undefined,
+          source: 'shared',
+          usage: 'isKeyOfGuard({ obj, key })',
+        },
+      ]);
     });
   });
 

@@ -64,7 +64,7 @@ describe('ThinkingRowWidget', () => {
 
       const label = screen.getByTestId('THINKING_ROW_LABEL');
 
-      expect(label.textContent).toContain('claude-opus-4-6');
+      expect(label.textContent).toBe('THINKING claude-opus-4-6');
     });
 
     it('VALID: {no model} => renders only THINKING label', () => {

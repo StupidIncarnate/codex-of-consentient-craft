@@ -1,5 +1,9 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
+import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
+import { finalizerQuestAgentPromptStatics } from '../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
+import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 import { StartInstall } from './start-install';
 
 describe('StartInstall', () => {
@@ -38,10 +42,10 @@ describe('StartInstall', () => {
         message:
           'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
       });
-      expect(questContent).toMatch(/^# ChaosWhisperer/u);
-      expect(String(questStartContent).includes('monitoring quest execution')).toBe(true);
-      expect(String(questFinalizerContent).includes('Quest Finalizer')).toBe(true);
-      expect(String(questGapReviewerContent).includes('Staff Engineer')).toBe(true);
+      expect(questContent).toBe(chaoswhispererPromptStatics.prompt.template);
+      expect(String(questStartContent)).toBe(questStartPromptStatics.prompt.template);
+      expect(String(questFinalizerContent)).toBe(finalizerQuestAgentPromptStatics.prompt.template);
+      expect(String(questGapReviewerContent)).toBe(gapReviewerAgentPromptStatics.prompt.template);
     });
   });
 });

@@ -30,14 +30,15 @@ describe('wsEventRelayBroadcastBroker', () => {
 
       const result = wsEventRelayBroadcastBroker({ clients, message });
 
-      expect(sendMock).toHaveBeenCalledTimes(1);
-      expect(sendMock).toHaveBeenCalledWith(
-        JSON.stringify({
-          type: 'phase-change',
-          payload: { processId: 'proc-123', phase: 'codeweaver' },
-          timestamp: '2025-01-01T00:00:00.000Z',
-        }),
-      );
+      expect(sendMock.mock.calls).toStrictEqual([
+        [
+          JSON.stringify({
+            type: 'phase-change',
+            payload: { processId: 'proc-123', phase: 'codeweaver' },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        ],
+      ]);
       expect(result.size).toBe(0);
     });
 
@@ -54,9 +55,15 @@ describe('wsEventRelayBroadcastBroker', () => {
 
       const result = wsEventRelayBroadcastBroker({ clients, message });
 
-      expect(send1).toHaveBeenCalledTimes(1);
-      expect(send2).toHaveBeenCalledTimes(1);
-      expect(send3).toHaveBeenCalledTimes(1);
+      const expectedMessage = JSON.stringify({
+        type: 'slot-update',
+        payload: { processId: 'proc-12345', phase: 'codeweaver' },
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+
+      expect(send1.mock.calls).toStrictEqual([[expectedMessage]]);
+      expect(send2.mock.calls).toStrictEqual([[expectedMessage]]);
+      expect(send3.mock.calls).toStrictEqual([[expectedMessage]]);
       expect(result.size).toBe(0);
       expect(clients.size).toBe(3);
     });
@@ -92,7 +99,9 @@ describe('wsEventRelayBroadcastBroker', () => {
 
       const result = wsEventRelayBroadcastBroker({ clients, message });
 
-      expect(healthySend).toHaveBeenCalledTimes(1);
+      const healthySendCallCount = healthySend.mock.calls.length;
+
+      expect(healthySendCallCount).toBe(1);
       expect(result.has(healthyClient)).toBe(false);
       expect(clients.has(healthyClient)).toBe(true);
     });

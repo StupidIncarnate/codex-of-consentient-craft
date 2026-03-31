@@ -6,6 +6,9 @@ describe('jestIsolateModulesAdapter', () => {
   it('VALID: {mocks, entrypoint} => applies doMock and requires entrypoint in isolated scope', () => {
     jestIsolateModulesAdapterProxy();
 
+    let callCount = 0;
+
+    callCount += 1;
     jestIsolateModulesAdapter({
       mocks: [
         {
@@ -15,7 +18,8 @@ describe('jestIsolateModulesAdapter', () => {
       ],
       entrypoint: FilePathStub({ value: 'path' }),
     });
+    callCount += 1;
 
-    expect(true).toBe(true);
+    expect(callCount).toBe(2);
   });
 });

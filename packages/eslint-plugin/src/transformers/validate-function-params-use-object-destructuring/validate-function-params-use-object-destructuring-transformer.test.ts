@@ -14,7 +14,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
 
       validateFunctionParamsUseObjectDestructuringTransformer({ node, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {params: []} => does not report', () => {
@@ -27,7 +27,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
 
       validateFunctionParamsUseObjectDestructuringTransformer({ node, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -45,7 +45,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
 
       validateFunctionParamsUseObjectDestructuringTransformer({ node, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {params: [AssignmentPattern with ObjectPattern]} => does not report', () => {
@@ -64,7 +64,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
 
       validateFunctionParamsUseObjectDestructuringTransformer({ node, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -181,7 +181,7 @@ describe('validateFunctionParamsUseObjectDestructuringTransformer', () => {
 
       validateFunctionParamsUseObjectDestructuringTransformer({ node, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('INVALID: {params: [ObjectPattern, Identifier]} => reports for non-destructured param only', () => {

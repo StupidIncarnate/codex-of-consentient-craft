@@ -84,10 +84,9 @@ describe('dungeonmaster binary', () => {
     );
 
     it('VALID: {} => loads module without syntax errors', async () => {
-      // Verify the module can be imported without throwing
-      const modulePromise = import(BIN_PATH);
+      const mod = await import(BIN_PATH);
 
-      await expect(modulePromise).resolves.not.toBe(null);
+      expect(mod.__esModule).toBe(true);
     });
   });
 });

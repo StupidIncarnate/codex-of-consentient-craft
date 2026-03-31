@@ -74,7 +74,7 @@ describe('StartOrchestrator', () => {
       restore();
 
       expect(thrownError).toBeInstanceOf(Error);
-      expect((thrownError as Error).message).toMatch(/^Quest not found/u);
+      expect((thrownError as Error).message).toBe('Quest not found: nonexistent-quest-id');
     });
   });
 
@@ -87,10 +87,12 @@ describe('StartOrchestrator', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {no active chats} => stopAllChats delegates to ChatStopAllFlow without error', () => {
+    it('VALID: {no active chats} => stopAllChats completes and state is empty', () => {
       StartOrchestrator.stopAllChats();
 
-      expect(true).toBe(true);
+      expect(StartOrchestrator.stopChat({ chatProcessId: 'proc-nonexistent' as never })).toBe(
+        false,
+      );
     });
   });
 

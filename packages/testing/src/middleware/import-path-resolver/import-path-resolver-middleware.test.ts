@@ -57,8 +57,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).not.toBe(null);
-      expect(String(result)).toMatch(/packages\/shared\/testing\.ts$/u);
+      expect(String(result)).toMatch(/^\/.*\/packages\/shared\/testing\.ts$/u);
     });
   });
 

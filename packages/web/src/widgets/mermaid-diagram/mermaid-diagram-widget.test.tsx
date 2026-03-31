@@ -19,10 +19,14 @@ describe('MermaidDiagramWidget', () => {
       mantineRenderAdapter({ ui: <MermaidDiagramWidget diagram={diagram} /> });
 
       await waitFor(() => {
-        expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
+        expect(screen.getByTestId('MERMAID_SVG_CONTENT').innerHTML).toMatch(
+          /^<style>.*<\/style><svg><text>rendered<\/text><\/svg>$/u,
+        );
       });
 
-      expect(screen.getByTestId('MERMAID_SVG_CONTENT').textContent).toContain('rendered');
+      expect(screen.getByTestId('MERMAID_SVG_CONTENT').innerHTML).toStrictEqual(
+        '<style>.flowchart-link { stroke-width: 2px !important; } .marker { stroke-width: 1px; } .node foreignObject > div { text-align: left !important; max-width: 600px !important; white-space: normal !important; }</style><svg><text>rendered</text></svg>',
+      );
     });
   });
 

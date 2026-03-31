@@ -28,7 +28,21 @@ describe('start-install integration', () => {
         action: 'created',
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
-      expect(configContent).toContain('"dungeonmaster"');
+      expect(configContent).toBe(
+        JSON.stringify(
+          {
+            mcpServers: {
+              dungeonmaster: {
+                type: 'stdio',
+                command: 'npx',
+                args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 });

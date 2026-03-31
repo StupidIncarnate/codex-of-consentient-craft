@@ -1,3 +1,4 @@
+import { http, HttpResponse } from 'msw';
 import { mswHttpAdapter } from './msw-http-adapter';
 import { mswHttpAdapterProxy } from './msw-http-adapter.proxy';
 
@@ -9,8 +10,8 @@ describe('mswHttpAdapter', () => {
       const result = mswHttpAdapter();
 
       expect(result).toStrictEqual({
-        http: expect.any(Object),
-        HttpResponse: expect.any(Function),
+        http,
+        HttpResponse,
       });
     });
   });

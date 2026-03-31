@@ -15,8 +15,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^---\nKEY:/u);
-      expect(result).toMatch(/^---\n\n# Quest:/mu);
+      expect(result).toMatch(/^---$/mu);
+      expect(result).toMatch(/^KEY:$/mu);
+      expect(result).toMatch(/^# Quest: Add Authentication$/mu);
     });
   });
 
@@ -65,7 +66,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/^ {2}Relates to:/mu);
+      expect(result).toMatch(
+        /^#use-jwt-auth: "Use JWT for authentication tokens"\n {2}Rationale: JWT allows stateless auth with built-in expiration\n\n## Contracts$/mu,
+      );
     });
   });
 
@@ -100,7 +103,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(/^#login-creds \u2014 LoginCredentials \(data, new\)$/mu);
-      expect(result).toMatch(/^ {2}email: EmailAddress/mu);
+      expect(result).toMatch(/^ {2}email: EmailAddress \u2014 User email$/mu);
     });
 
     it('VALID: {quest: contract with source} => renders source reference', () => {
@@ -114,7 +117,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/\[\u2192 src\/contracts\/user\.ts\]$/mu);
+      expect(result).toMatch(
+        /^#login-credentials \u2014 LoginCredentials \(data, new\) \[\u2192 src\/contracts\/user\.ts\]$/mu,
+      );
     });
   });
 
@@ -193,7 +198,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/^Scope:/mu);
+      expect(result).toMatch(
+        /^## Flow: #login-flow \u2014 "Login Flow"\nEntry: \/login \| Exits: \/dashboard$/mu,
+      );
     });
   });
 
@@ -301,10 +308,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/^ {2}Satisfies:/mu);
-      expect(result).not.toMatch(/^ {2}Depends on:/mu);
-      expect(result).not.toMatch(/^ {2}Accompanying:/mu);
-      expect(result).not.toMatch(/^ {2}Uses:/mu);
+      expect(result).toMatch(
+        /^#create-login-api: "Test Step"\n {2}Assertions: VALID: \{valid input\} => returns expected result\n {2}Focus: src\/brokers\/login\/create\/login-create-broker\.ts\n {2}Contracts in: Void \| out: Void$/mu,
+      );
     });
 
     it('VALID: {quest: step without exportName} => omits export line', () => {
@@ -314,7 +320,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).not.toMatch(/^ {2}Export:/mu);
+      expect(result).toMatch(
+        /^ {2}Accompanying: src\/brokers\/login\/create\/login-create-broker\.test\.ts, src\/brokers\/login\/create\/login-create-broker\.proxy\.ts\n {2}Contracts in: Void \| out: Void$/mu,
+      );
     });
   });
 });

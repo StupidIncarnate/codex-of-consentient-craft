@@ -1,7 +1,7 @@
-import {} from './index.js';
+import { StartServer } from './index.js';
 
 describe('server index', () => {
-  it('VALID: {import} => exports the public API', () => {
-    expect(true).toBe(true);
+  it('VALID: {import} => exports StartServer as a function', () => {
+    expect(StartServer).toStrictEqual(expect.any(Function));
   });
 });

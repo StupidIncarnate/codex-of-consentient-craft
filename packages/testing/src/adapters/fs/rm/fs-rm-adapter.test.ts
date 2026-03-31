@@ -4,21 +4,23 @@ import { fsRmAdapterProxy } from './fs-rm-adapter.proxy';
 describe('fsRmAdapter', () => {
   describe('successful removal', () => {
     it('VALID: {filePath: "/tmp/test-dir", recursive: true, force: true} => removes directory', () => {
-      fsRmAdapterProxy();
+      const proxy = fsRmAdapterProxy();
       const filePath = '/tmp/test-dir';
 
       fsRmAdapter({ filePath, recursive: true, force: true });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[filePath, { recursive: true, force: true }]]);
     });
 
     it('VALID: {filePath: "/tmp/file.txt"} => removes file', () => {
-      fsRmAdapterProxy();
+      const proxy = fsRmAdapterProxy();
       const filePath = '/tmp/file.txt';
 
       fsRmAdapter({ filePath });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([
+        [filePath, { recursive: undefined, force: undefined }],
+      ]);
     });
   });
 

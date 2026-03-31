@@ -43,7 +43,13 @@ describe('HookPreEditResponder', () => {
 
     expect(result).toStrictEqual({
       shouldBlock: true,
-      message: expect.stringMatching(/^.*Code Quality Issue.*Unexpected console statement.*$/su),
+      message:
+        '🛑 New code quality violations detected:\n' +
+        '  ❌ Code Quality Issue: 1 violation\n' +
+        '     This rule violation should be fixed to maintain code quality.\n' +
+        '     Line 1:1 - Unexpected console statement\n' +
+        '\n' +
+        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
     });
   });
 
@@ -63,7 +69,13 @@ describe('HookPreEditResponder', () => {
 
     expect(result).toStrictEqual({
       shouldBlock: true,
-      message: expect.stringMatching(/^.*Code Quality Issue.*Unexpected console statement.*$/su),
+      message:
+        '🛑 New code quality violations detected:\n' +
+        '  ❌ Code Quality Issue: 1 violation\n' +
+        '     This rule violation should be fixed to maintain code quality.\n' +
+        '     Line 1:1 - Unexpected console statement\n' +
+        '\n' +
+        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
     });
   });
 

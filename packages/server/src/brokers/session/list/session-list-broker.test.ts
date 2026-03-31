@@ -102,7 +102,7 @@ describe('sessionListBroker', () => {
           summary: 'Cached summary',
         },
       ]);
-      expect(setCacheMock).not.toHaveBeenCalled();
+      expect(setCacheMock.mock.calls).toStrictEqual([]);
     });
 
     it('ERROR: {file read throws} => caches undefined summary and filters out session', async () => {
@@ -132,7 +132,10 @@ describe('sessionListBroker', () => {
       });
 
       expect(result).toStrictEqual([]);
-      expect(setCacheMock).toHaveBeenCalledTimes(1);
+
+      const setCacheCallCount = setCacheMock.mock.calls.length;
+
+      expect(setCacheCallCount).toBe(1);
 
       const setCacheFirstCallArg: unknown = setCacheMock.mock.calls[0]?.[0];
 

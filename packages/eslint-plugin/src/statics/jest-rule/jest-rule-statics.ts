@@ -98,6 +98,7 @@ export const jestRuleStatics = {
       {
         toEqual: 'Use .toStrictEqual() instead',
         toMatchObject: 'Use .toStrictEqual() instead',
+        toContain: 'Use .toStrictEqual() for arrays or .toMatch(/^exact$/u) for strings',
         toContainEqual: 'Use .toStrictEqual() on the full array instead',
         toBeTruthy: 'Use .toBe(true) instead',
         toBeFalsy: 'Use .toBe(false) instead',
@@ -105,7 +106,7 @@ export const jestRuleStatics = {
         objectContaining: 'Test complete object instead',
         arrayContaining: 'Test complete array instead',
         stringContaining:
-          'Use .toContain() for substring checks or anchored regex .toMatch(/^exact$/u) for exact checks',
+          'Test full string value with .toBe() or use anchored .toMatch(/^exact$/u)',
         'any(String)': 'Test actual string value instead',
         'any(Number)': 'Test actual number instead',
         'any(Object)': 'Test complete object shape instead',

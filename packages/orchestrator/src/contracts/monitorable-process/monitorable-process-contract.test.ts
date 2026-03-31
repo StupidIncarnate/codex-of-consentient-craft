@@ -23,7 +23,10 @@ describe('monitorableProcessContract', () => {
 
       process.on('exit', () => undefined);
 
-      expect(process).toStrictEqual(expect.any(Object));
+      expect(process).toStrictEqual({
+        kill: expect.any(Function),
+        on: expect.any(Function),
+      });
     });
   });
 

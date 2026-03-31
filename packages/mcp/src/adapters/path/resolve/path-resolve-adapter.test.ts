@@ -1,3 +1,5 @@
+import { resolve } from 'path';
+
 import { pathResolveAdapter } from './path-resolve-adapter';
 import { pathResolveAdapterProxy } from './path-resolve-adapter.proxy';
 
@@ -23,7 +25,6 @@ describe('pathResolveAdapter', () => {
 
     const result = pathResolveAdapter({ paths: ['relative/path.ts'] });
 
-    expect(result).toMatch(/^\//u);
-    expect(result).toMatch(/relative\/path\.ts$/u);
+    expect(result).toBe(resolve('relative/path.ts'));
   });
 });

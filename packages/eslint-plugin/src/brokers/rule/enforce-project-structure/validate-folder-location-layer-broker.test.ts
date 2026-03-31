@@ -25,7 +25,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: contracts folder => returns true', () => {
@@ -44,7 +44,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: transformers folder => returns true', () => {
@@ -63,7 +63,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -84,7 +84,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: layer file in widgets => returns true', () => {
@@ -103,7 +103,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: layer file in responders => returns true', () => {
@@ -122,7 +122,7 @@ describe('validateFolderLocationLayerBroker', () => {
       });
 
       expect(result).toBe(true);
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 

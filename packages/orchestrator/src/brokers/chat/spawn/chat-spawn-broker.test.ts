@@ -35,7 +35,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {chaoswhisperer new session} => calls registerProcess with kill function', async () => {
@@ -63,7 +63,7 @@ describe('chatSpawnBroker', () => {
       const [[registerArg]] = registerProcess.mock.calls;
 
       expect(registerArg).toStrictEqual({
-        processId: expect.any(String),
+        processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });
@@ -91,7 +91,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^chat-/u);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -193,7 +193,7 @@ describe('chatSpawnBroker', () => {
 
       expect(questCreatedArg).toStrictEqual({
         chatProcessId: result.chatProcessId,
-        questId: expect.any(String),
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
     });
 
@@ -369,7 +369,7 @@ describe('chatSpawnBroker', () => {
 
       expect(designLinkedArg).toStrictEqual({
         chatProcessId,
-        questId: expect.any(String),
+        questId: 'design-quest',
       });
     });
   });
@@ -568,7 +568,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^design-/u);
+      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {glyphsmith + questId in review_design} => returns chatProcessId', async () => {
@@ -593,7 +593,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^design-/u);
+      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {glyphsmith + questId in design_approved} => returns chatProcessId', async () => {
@@ -618,7 +618,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^design-/u);
+      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: {glyphsmith session} => calls registerProcess with kill function', async () => {
@@ -649,7 +649,7 @@ describe('chatSpawnBroker', () => {
       const [[registerArg]] = registerProcess.mock.calls;
 
       expect(registerArg).toStrictEqual({
-        processId: expect.any(String),
+        processId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });
@@ -680,7 +680,7 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
-      expect(result.chatProcessId).toMatch(/^design-/u);
+      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -816,7 +816,7 @@ describe('chatSpawnBroker', () => {
       });
 
       expect(onAgentDetected).toHaveBeenCalledWith({
-        chatProcessId: expect.stringMatching(/^chat-/u),
+        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
         toolUseId: 'toolu_patch_test_01',
         agentId: 'agent-patch-test',
         sessionId,

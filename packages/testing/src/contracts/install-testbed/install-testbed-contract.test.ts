@@ -21,8 +21,8 @@ describe('installTestbedContract', () => {
       const result = InstallTestbedStub();
 
       expect(result).toStrictEqual({
-        guildPath: expect.any(String),
-        dungeonmasterPath: expect.any(String),
+        guildPath: expect.stringMatching(/^\/tmp\/install-testbed-\d+$/u),
+        dungeonmasterPath: '/repo/dungeonmaster',
         cleanup: expect.any(Function),
         writeFile: expect.any(Function),
         readFile: expect.any(Function),

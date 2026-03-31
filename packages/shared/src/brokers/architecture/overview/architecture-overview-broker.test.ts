@@ -8,11 +8,11 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.startsWith('# Architecture Overview')).toBe(true);
-      expect(result.includes('## Folder Types')).toBe(true);
-      expect(result.includes('## Architecture Layer Diagram')).toBe(true);
-      expect(result.includes('## Decision Tree: Where Does Code Go?')).toBe(true);
-      expect(result.includes('## Critical Rules Summary')).toBe(true);
+      expect(result).toMatch(/^# Architecture Overview$/mu);
+      expect(result).toMatch(/^## Folder Types$/mu);
+      expect(result).toMatch(/^## Architecture Layer Diagram$/mu);
+      expect(result).toMatch(/^## Decision Tree: Where Does Code Go\?$/mu);
+      expect(result).toMatch(/^## Critical Rules Summary$/mu);
     });
 
     it('VALID: {} => returns markdown with table header', () => {
@@ -20,7 +20,7 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('| Folder | Purpose | Depth | When to Use |')).toBe(true);
+      expect(result).toMatch(/^\| Folder \| Purpose \| Depth \| When to Use \|$/mu);
     });
 
     it('VALID: {} => returns markdown with all 14 folder types', () => {
@@ -28,11 +28,21 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('| statics/ |')).toBe(true);
-      expect(result.includes('| contracts/ |')).toBe(true);
-      expect(result.includes('| guards/ |')).toBe(true);
-      expect(result.includes('| transformers/ |')).toBe(true);
-      expect(result.includes('| brokers/ |')).toBe(true);
+      expect(result).toMatch(
+        /^\| statics\/ \| Immutable configuration values and constants\. Single source of truth for magic numbers, limits, and unchanging data\. \| 1 \| Need immutable config or constants \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| contracts\/ \| Type definitions and validation schemas using Zod\. All data structures must be defined here with branded types\. \| 1 \| Define data structure with validation \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| guards\/ \| Pure boolean functions that validate conditions\. Return true\/false, no side effects\. \| 1 \| Boolean check or type guard \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| transformers\/ \| Pure data transformation functions\. Map input types to output types without side effects\. \| 1 \| Transform data shape A to B \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| brokers\/ \| Business logic orchestration\. Compose adapters, guards, transformers to implement domain operations\. \| 2 \| Business logic operations \|$/mu,
+      );
     });
 
     it('VALID: {} => orders folders by depth (leaf nodes first)', () => {
@@ -53,9 +63,10 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('| statics/ |')).toBe(true);
-      expect(result.includes('| 1 |')).toBe(true);
-      expect(result.includes('Need immutable config or constants')).toBe(true);
+      expect(result).toMatch(/^\| statics\/ \|.+\| 1 \|.+\|$/mu);
+      expect(result).toMatch(
+        /^\| statics\/ \| Immutable configuration values and constants\. Single source of truth for magic numbers, limits, and unchanging data\. \| 1 \| Need immutable config or constants \|$/mu,
+      );
     });
   });
 
@@ -65,9 +76,9 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('Wrap npm package → adapters/')).toBe(true);
-      expect(result.includes('App initialization → startup/')).toBe(true);
-      expect(result.includes('## Decision Tree: Where Does Code Go?')).toBe(true);
+      expect(result).toMatch(/^\d+\. Wrap npm package → adapters\/$/mu);
+      expect(result).toMatch(/^\d+\. App initialization → startup\/$/mu);
+      expect(result).toMatch(/^## Decision Tree: Where Does Code Go\?$/mu);
     });
   });
 
@@ -77,11 +88,13 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('## Quality Commands')).toBe(true);
-      expect(result.includes('npm run ward')).toBe(true);
-      expect(result.includes('npm run ward -- --only test')).toBe(true);
-      expect(result.includes('npm run ward -- --only lint')).toBe(true);
-      expect(result.includes('npm run ward -- --only typecheck')).toBe(true);
+      expect(result).toMatch(/^## Quality Commands$/mu);
+      expect(result).toMatch(/^npm run ward {42}# All checks, all packages$/mu);
+      expect(result).toMatch(
+        /^npm run ward -- --only test {27}# All tests \(unit \+ integration \+ e2e\)$/mu,
+      );
+      expect(result).toMatch(/^npm run ward -- --only lint {27}# Lint only$/mu);
+      expect(result).toMatch(/^\| `npx tsc --noEmit` \| `npm run ward -- --only typecheck` \|$/mu);
     });
   });
 
@@ -91,8 +104,8 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**Never do these things (❌):**')).toBe(true);
-      expect(result.includes('❌ Use while (true) - use recursion instead')).toBe(true);
+      expect(result).toMatch(/^\*\*Never do these things \(❌\):\*\*$/mu);
+      expect(result).toMatch(/^- ❌ Use while \(true\) - use recursion instead$/mu);
     });
 
     it('VALID: {} => includes always-do rules', () => {
@@ -100,8 +113,8 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**Always do these things (✅):**')).toBe(true);
-      expect(result.includes('✅ Use object destructuring for function parameters')).toBe(true);
+      expect(result).toMatch(/^\*\*Always do these things \(✅\):\*\*$/mu);
+      expect(result).toMatch(/^- ✅ Use object destructuring for function parameters$/mu);
     });
   });
 
@@ -111,7 +124,7 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('## Layer Files - Decomposing Complex Components')).toBe(true);
+      expect(result).toMatch(/^## Layer Files - Decomposing Complex Components$/mu);
     });
 
     it('VALID: {} => includes dynamically generated allowed folders list', () => {
@@ -119,10 +132,9 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**Allowed in:**')).toBe(true);
-      expect(result.includes('`brokers/`')).toBe(true);
-      expect(result.includes('`responders/`')).toBe(true);
-      expect(result.includes('`widgets/`')).toBe(true);
+      expect(result).toMatch(
+        /^\*\*Allowed in:\*\* `widgets\/`, `brokers\/`, `responders\/` only$/mu,
+      );
     });
 
     it('VALID: {} => includes layer file naming pattern', () => {
@@ -130,8 +142,8 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**Naming:** `{descriptive-name}-layer-{folder-suffix}.{ext}`')).toBe(
-        true,
+      expect(result).toMatch(
+        /^\*\*Naming:\*\* `\{descriptive-name\}-layer-\{folder-suffix\}\.\{ext\}`$/mu,
       );
     });
 
@@ -140,10 +152,10 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**Import rules:**')).toBe(true);
-      expect(result.includes('✅ Parent can import layers (same folder)')).toBe(true);
-      expect(result.includes('✅ Layers can import other layers (same folder)')).toBe(true);
-      expect(result.includes('❌ Cannot import layers from different domain folders')).toBe(true);
+      expect(result).toMatch(/^\*\*Import rules:\*\*$/mu);
+      expect(result).toMatch(/^- ✅ Parent can import layers \(same folder\)$/mu);
+      expect(result).toMatch(/^- ✅ Layers can import other layers \(same folder\)$/mu);
+      expect(result).toMatch(/^- ❌ Cannot import layers from different domain folders$/mu);
     });
 
     it('VALID: {} => includes when to create layer guidelines', () => {
@@ -151,9 +163,9 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**When to create layer:**')).toBe(true);
-      expect(result.includes('Parent exceeds 300 lines')).toBe(true);
-      expect(result.includes('Layer calls different dependencies')).toBe(true);
+      expect(result).toMatch(/^\*\*When to create layer:\*\*$/mu);
+      expect(result).toMatch(/^- Parent exceeds 300 lines$/mu);
+      expect(result).toMatch(/^- Layer calls different dependencies \(needs own proxy\)$/mu);
     });
 
     it('VALID: {} => includes when NOT to create layer guidelines', () => {
@@ -161,10 +173,8 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('**When NOT to create layer:**')).toBe(true);
-      expect(result.includes('Logic is reusable → extract to `guards/` or `transformers/`')).toBe(
-        true,
-      );
+      expect(result).toMatch(/^\*\*When NOT to create layer:\*\*$/mu);
+      expect(result).toMatch(/^- Logic is reusable → extract to `guards\/` or `transformers\/`$/mu);
     });
   });
 
@@ -174,9 +184,9 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(result.includes('## Import Rules')).toBe(true);
-      expect(result.includes('Only **entry files** can be imported across domain folders')).toBe(
-        true,
+      expect(result).toMatch(/^## Import Rules$/mu);
+      expect(result).toMatch(
+        /^Only \*\*entry files\*\* can be imported across domain folders\.$/mu,
       );
     });
 
@@ -185,12 +195,10 @@ describe('architectureOverviewBroker', () => {
 
       const result = architectureOverviewBroker();
 
-      expect(
-        result.includes(
-          '**Entry files** = filename exactly matches folder path + suffix (no extra words)',
-        ),
-      ).toBe(true);
-      expect(result.includes('**Pattern:** `[folder-path]-[folder-suffix].ts`')).toBe(true);
+      expect(result).toMatch(
+        /^\*\*Entry files\*\* = filename exactly matches folder path \+ suffix \(no extra words\)$/mu,
+      );
+      expect(result).toMatch(/^\*\*Pattern:\*\* `\[folder-path\]-\[folder-suffix\]\.ts`$/mu);
     });
   });
 });

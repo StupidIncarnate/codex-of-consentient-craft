@@ -16,7 +16,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -32,7 +32,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -51,7 +51,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -70,7 +70,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {body.type: BlockStatement, body.body: not array} => does not report', () => {
@@ -90,7 +90,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -117,7 +117,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -183,7 +183,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.spyOn() + mockResolvedValue()} => does not report', () => {
@@ -247,7 +247,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.spyOn() in ExpressionStatement + mockRejectedValue()} => does not report', () => {
@@ -306,7 +306,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.mocked() + mockReturnValue()} => does not report', () => {
@@ -370,7 +370,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.mocked() + mockReturnValueOnce()} => does not report', () => {
@@ -434,7 +434,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {jest.mocked() + mockResolvedValueOnce()} => does not report', () => {
@@ -498,7 +498,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -641,7 +641,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -690,7 +690,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -719,7 +719,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {ExpressionStatement with no expression} => does not report', () => {
@@ -748,7 +748,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {VariableDeclaration with no declarations} => does not report', () => {
@@ -777,7 +777,7 @@ describe('validateAdapterMockSetupLayerBroker', () => {
 
       validateAdapterMockSetupLayerBroker({ functionNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

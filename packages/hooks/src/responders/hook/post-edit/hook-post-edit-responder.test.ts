@@ -66,7 +66,12 @@ describe('HookPostEditResponder', () => {
             warningCount: 0,
           },
         ],
-        message: expect.stringMatching(/^.*Unexpected console statement.*$/isu),
+        message:
+          '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     Line 1:1 - Unexpected console statement\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. Please fix the violations.',
       });
     });
   });

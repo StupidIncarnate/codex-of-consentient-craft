@@ -5,23 +5,23 @@ import { FileContentStub } from '../../../contracts/file-content/file-content.st
 describe('fsWriteFileAdapter', () => {
   describe('successful writes', () => {
     it('VALID: {filePath: "/tmp/test.txt", content: "hello"} => writes file', () => {
-      fsWriteFileAdapterProxy();
+      const proxy = fsWriteFileAdapterProxy();
       const filePath = '/tmp/test.txt';
       const content = FileContentStub({ value: 'hello' });
 
       fsWriteFileAdapter({ filePath, content });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[filePath, content]]);
     });
 
     it('VALID: {filePath: "/tmp/empty.txt", content: ""} => writes empty file', () => {
-      fsWriteFileAdapterProxy();
+      const proxy = fsWriteFileAdapterProxy();
       const filePath = '/tmp/empty.txt';
       const content = FileContentStub({ value: '' });
 
       fsWriteFileAdapter({ filePath, content });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[filePath, content]]);
     });
   });
 

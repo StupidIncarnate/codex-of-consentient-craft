@@ -65,10 +65,11 @@ describe('buildPreflightLoopLayerBroker', () => {
         maxAttempts: 3,
       });
 
-      const spawnedArgs = String(proxy.getSpawnedArgs());
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const promptArg = String(spawnedArgs[1]);
 
-      expect(spawnedArgs.includes('build command failed')).toBe(true);
-      expect(spawnedArgs.includes('Verification Command: npm run build')).toBe(true);
+      expect(promptArg).toMatch(/^# Spiritmender - Error Resolution Agent$/mu);
+      expect(promptArg).toMatch(/^Verification Command: npm run build$/mu);
     });
   });
 

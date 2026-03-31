@@ -28,8 +28,12 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Created eslint.config.js',
       });
-      expect(configContent).toMatch(/^const.*@dungeonmaster\/eslint-plugin/mu);
-      expect(configContent).toMatch(/^const.*@typescript-eslint\/parser/mu);
+      expect(configContent).toMatch(
+        /^const dungeonmaster = require\('@dungeonmaster\/eslint-plugin'\)\.default;$/mu,
+      );
+      expect(configContent).toMatch(
+        /^const tsparser = require\('@typescript-eslint\/parser'\);$/mu,
+      );
     });
   });
 });

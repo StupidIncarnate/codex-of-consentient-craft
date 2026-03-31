@@ -24,7 +24,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {properties: []} => does not report', () => {
@@ -43,7 +43,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -78,7 +78,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {nonProxyIdentifier} => does not report (identifier not in proxyVariables)', () => {
@@ -108,7 +108,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {child: nonProxyIdentifier} => does not report (explicit identifier not in proxyVariables)', () => {
@@ -142,7 +142,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {count: Literal} => does not report (primitive value)', () => {
@@ -176,7 +176,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -465,7 +465,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {property.key: undefined} => does not report', () => {
@@ -492,7 +492,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {property.key.name: undefined} => does not report', () => {
@@ -522,7 +522,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {empty proxyVariables map} => does not report', () => {
@@ -550,7 +550,7 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
         context: mockContext,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 });

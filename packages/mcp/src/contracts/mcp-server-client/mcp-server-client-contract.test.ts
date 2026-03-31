@@ -27,8 +27,7 @@ describe('mcpServerClientContract', () => {
     const request = JsonRpcRequestStub();
     await result.sendRequest(request);
 
-    expect(mockSendRequest).toHaveBeenCalledTimes(1);
-    expect(mockSendRequest).toHaveBeenCalledWith(request);
+    expect(mockSendRequest.mock.calls).toStrictEqual([[request]]);
   });
 
   it('VALID: {close: custom function} => uses provided function', async () => {
@@ -37,7 +36,7 @@ describe('mcpServerClientContract', () => {
 
     await result.close();
 
-    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(mockClose.mock.calls).toStrictEqual([[]]);
   });
 
   it('VALID: {sendRequest: custom, close: custom} => uses both provided functions', async () => {
@@ -56,11 +55,10 @@ describe('mcpServerClientContract', () => {
     const response = await result.sendRequest(request);
 
     expect(response).toStrictEqual(customResponse);
-    expect(mockSendRequest).toHaveBeenCalledTimes(1);
-    expect(mockSendRequest).toHaveBeenCalledWith(request);
+    expect(mockSendRequest.mock.calls).toStrictEqual([[request]]);
 
     await result.close();
 
-    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(mockClose.mock.calls).toStrictEqual([[]]);
   });
 });

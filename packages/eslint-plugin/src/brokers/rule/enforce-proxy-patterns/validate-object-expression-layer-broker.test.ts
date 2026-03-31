@@ -16,7 +16,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {properties: []} => does not report', () => {
@@ -30,7 +30,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -54,7 +54,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {property.type: Property, key.name: "throws"} => does not report', () => {
@@ -76,7 +76,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {property.type: MethodDefinition, key.name: "setupProxy"} => does not report', () => {
@@ -98,7 +98,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -363,7 +363,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -384,7 +384,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {property.key.name: undefined} => does not report', () => {
@@ -406,7 +406,7 @@ describe('validateObjectExpressionLayerBroker', () => {
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 

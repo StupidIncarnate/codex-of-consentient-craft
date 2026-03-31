@@ -366,7 +366,7 @@ describe('runLawbringerLayerBroker', () => {
 
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
-      expect(status).toStrictEqual(expect.any(String));
+      expect(status).toBe('complete');
     });
   });
 
@@ -448,9 +448,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(statusA).toStrictEqual(expect.any(String));
-      expect(statusB).toStrictEqual(expect.any(String));
-      expect(statusC).toStrictEqual(expect.any(String));
+      expect(statusA).toBe('complete');
+      expect(statusB).toBe('complete');
+      expect(statusC).toBe('complete');
     });
   });
 
@@ -748,9 +748,9 @@ describe('runLawbringerLayerBroker', () => {
       const statusB = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdB });
       const statusC = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemIdC });
 
-      expect(statusA).toStrictEqual(expect.any(String));
-      expect(statusB).toStrictEqual(expect.any(String));
-      expect(statusC).toStrictEqual(expect.any(String));
+      expect(statusA).toBe('complete');
+      expect(statusB).toBe('complete');
+      expect(statusC).toBe('complete');
     });
   });
 });

@@ -28,7 +28,33 @@ describe('InstallFlow', () => {
         action: 'created',
         message: 'Created .claude/settings.json with hooks',
       });
-      expect(settingsContent).toContain('dungeonmaster');
+
+      const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
+
+      expect(parsed).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+          ],
+          SessionStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
     });
   });
 });

@@ -13,7 +13,7 @@ describe('WardRunResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(process.exit).not.toHaveBeenCalled();
+      expect(proxy.getExitCalls()).toStrictEqual([]);
     });
   });
 
@@ -27,7 +27,7 @@ describe('WardRunResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(process.exit).not.toHaveBeenCalled();
+      expect(proxy.getExitCalls()).toStrictEqual([]);
     });
   });
 
@@ -41,7 +41,7 @@ describe('WardRunResponder', () => {
         rootPath: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(process.exit).not.toHaveBeenCalled();
+      expect(proxy.getExitCalls()).toStrictEqual([]);
     });
   });
 });

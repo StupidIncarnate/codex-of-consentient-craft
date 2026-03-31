@@ -37,11 +37,10 @@ describe('networkRecordPlaywrightBroker', () => {
       });
 
       const stderrOutput = proxy.getStderrWrites();
-      const hasNetworkRecordLog = stderrOutput.some((line) =>
-        String(line).includes('[network-record] response body read failed'),
-      );
 
-      expect(hasNetworkRecordLog).toBe(true);
+      expect(String(stderrOutput[0])).toMatch(
+        /^\[network-record\] response body read failed:.*body read failed\n$/u,
+      );
     });
   });
 

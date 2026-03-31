@@ -60,7 +60,10 @@ describe('readlineCreateInterfaceAdapter', () => {
 
       rl.close();
 
-      expect(rl).toStrictEqual(expect.any(Object));
+      expect(rl).toStrictEqual({
+        onLine: expect.any(Function),
+        close: expect.any(Function),
+      });
     });
   });
 });

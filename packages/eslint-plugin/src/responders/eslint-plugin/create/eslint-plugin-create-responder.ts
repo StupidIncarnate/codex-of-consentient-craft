@@ -52,6 +52,10 @@ import { ruleBanUnanchoredToMatchBroker } from '../../../brokers/rule/ban-unanch
 import { ruleEnforceTestidQueriesBroker } from '../../../brokers/rule/enforce-testid-queries/rule-enforce-testid-queries-broker';
 import { ruleBanPlaywrightEvaluateForStylesBroker } from '../../../brokers/rule/ban-playwright-evaluate-for-styles/rule-ban-playwright-evaluate-for-styles-broker';
 import { ruleBanPlaywrightExtractThenAssertBroker } from '../../../brokers/rule/ban-playwright-extract-then-assert/rule-ban-playwright-extract-then-assert-broker';
+import { ruleBanNegatedMatchersBroker } from '../../../brokers/rule/ban-negated-matchers/rule-ban-negated-matchers-broker';
+import { ruleBanTautologicalAssertionsBroker } from '../../../brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker';
+import { ruleBanObjectKeysInExpectBroker } from '../../../brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker';
+import { ruleBanStringIncludesInExpectBroker } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -104,6 +108,10 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-testid-queries': EslintRule;
     readonly 'ban-playwright-evaluate-for-styles': EslintRule;
     readonly 'ban-playwright-extract-then-assert': EslintRule;
+    readonly 'ban-negated-matchers': EslintRule;
+    readonly 'ban-tautological-assertions': EslintRule;
+    readonly 'ban-object-keys-in-expect': EslintRule;
+    readonly 'ban-string-includes-in-expect': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -159,6 +167,10 @@ export const EslintPluginCreateResponder = (): {
       'enforce-testid-queries': ruleEnforceTestidQueriesBroker(),
       'ban-playwright-evaluate-for-styles': ruleBanPlaywrightEvaluateForStylesBroker(),
       'ban-playwright-extract-then-assert': ruleBanPlaywrightExtractThenAssertBroker(),
+      'ban-negated-matchers': ruleBanNegatedMatchersBroker(),
+      'ban-tautological-assertions': ruleBanTautologicalAssertionsBroker(),
+      'ban-object-keys-in-expect': ruleBanObjectKeysInExpectBroker(),
+      'ban-string-includes-in-expect': ruleBanStringIncludesInExpectBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

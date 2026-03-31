@@ -83,7 +83,7 @@ describe('commandRawBroker', () => {
       await commandRawBroker({ rootPath, runId, checkType });
 
       expect(process.stderr.write).toHaveBeenCalledWith(
-        expect.stringMatching(/^No typecheck check found/u),
+        `No typecheck check found in run ${runId}\n`,
       );
     });
   });
@@ -99,9 +99,7 @@ describe('commandRawBroker', () => {
 
       await commandRawBroker({ rootPath, runId, checkType });
 
-      expect(process.stderr.write).toHaveBeenCalledWith(
-        expect.stringMatching(/^No ward result found for run/u),
-      );
+      expect(process.stderr.write).toHaveBeenCalledWith(`No ward result found for run ${runId}\n`);
     });
   });
 });

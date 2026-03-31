@@ -25,7 +25,7 @@ describe('integrationEnvironmentCleanupAllBroker', () => {
 
       integrationEnvironmentCleanupAllBroker();
 
-      expect(cleanupMock).toHaveBeenCalledTimes(1);
+      expect(cleanupMock).toHaveBeenNthCalledWith(1);
 
       const result = integrationEnvironmentTrackingBroker.getAll();
 
@@ -44,8 +44,8 @@ describe('integrationEnvironmentCleanupAllBroker', () => {
 
       integrationEnvironmentCleanupAllBroker();
 
-      expect(cleanup1Mock).toHaveBeenCalledTimes(1);
-      expect(cleanup2Mock).toHaveBeenCalledTimes(1);
+      expect(cleanup1Mock).toHaveBeenNthCalledWith(1);
+      expect(cleanup2Mock).toHaveBeenNthCalledWith(1);
 
       const result = integrationEnvironmentTrackingBroker.getAll();
 

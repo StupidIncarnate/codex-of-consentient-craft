@@ -26,8 +26,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inlineText = inline.textContent;
 
-      expect(inlineText).toContain('RESULT');
-      expect(inlineText).toContain('file contents here');
+      expect(inlineText).toBe('RESULTfile contents here');
     });
   });
 
@@ -48,8 +47,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inlineText = inline.textContent;
 
-      expect(inlineText).toContain('TOOL ERROR');
-      expect(inlineText).toContain('Permission denied');
+      expect(inlineText).toBe('TOOL ERRORPermission denied');
     });
   });
 
@@ -68,7 +66,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toContain('HOOK BLOCKED');
+      expect(inline.textContent).toBe('HOOK BLOCKEDPreToolUse: denied by policy');
     });
   });
 
@@ -86,7 +84,9 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toContain('SKIPPED');
+      expect(inline.textContent).toBe(
+        'SKIPPEDThis tool call was skipped because another tool call in the same batch failed.',
+      );
     });
   });
 
@@ -104,7 +104,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toContain('Show full result');
+      expect(inline.textContent).toBe(`RESULT${'x'.repeat(200)}Show full result`);
     });
 
     it('VALID: {click "Show full result"} => expands and shows "Collapse"', async () => {
@@ -123,7 +123,7 @@ describe('ToolResultInlineLayerWidget', () => {
 
       const inline = screen.getByTestId('TOOL_RESULT_INLINE');
 
-      expect(inline.textContent).toContain('Collapse');
+      expect(inline.textContent).toBe(`RESULT${'x'.repeat(2000)}Collapse`);
     });
   });
 });

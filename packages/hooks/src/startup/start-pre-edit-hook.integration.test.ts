@@ -86,7 +86,7 @@ describe('pre-edit-lint', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+        stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
       });
     });
   });
@@ -204,7 +204,7 @@ describe('pre-edit-lint', () => {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -256,7 +256,7 @@ console.log('test');`,
           stdout: '',
           stderr: expect.stringMatching(
             new RegExp(
-              `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+              `^🛑 New code quality violations detected:\\n.+${expectedPattern.source}.+\\n$`,
               'su',
             ),
           ),
@@ -290,7 +290,7 @@ export function dirty({ param }: { param: any }): any {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Error Suppression.*Type Safety Violation.*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Error Suppression.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -518,7 +518,7 @@ console.log('test');`,
             stdout: '',
             stderr: expect.stringMatching(
               new RegExp(
-                `^.*🛑 New code quality violations detected.*${expectedPattern.source}.*$`,
+                `^🛑 New code quality violations detected:\\n.+${expectedPattern.source}.+\\n$`,
                 'su',
               ),
             ),
@@ -559,7 +559,7 @@ export function test({ param }: { param: any }): void {}`,
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -748,7 +748,7 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+          stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
         });
       });
 
@@ -796,7 +796,7 @@ export class Calculator {
         expect(result).toStrictEqual({
           exitCode: 2,
           stdout: '',
-          stderr: expect.stringMatching(/^.*🛑 New code quality violations detected.*$/su),
+          stderr: expect.stringMatching(/^🛑 New code quality violations detected:\n.+\n$/su),
         });
       });
 
@@ -845,7 +845,7 @@ export function processItems({ items }: { items: string[] }): string[] {
           exitCode: 2,
           stdout: '',
           stderr: expect.stringMatching(
-            /^.*🛑 New code quality violations detected.*Type Safety Violation.*$/su,
+            /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
           ),
         });
       });
@@ -933,7 +933,9 @@ export const handler: any = getValue();`,
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Type Error Suppression.*Type Safety Violation.*$/su),
+        stderr: expect.stringMatching(
+          /^🛑 New code quality violations detected:\n.+Type Error Suppression.+Type Safety Violation.+\n$/su,
+        ),
       });
     });
 
@@ -967,7 +969,9 @@ export const handler: any = processData;`;
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^.*Type Safety Violation.*$/su),
+        stderr: expect.stringMatching(
+          /^🛑 New code quality violations detected:\n.+Type Safety Violation.+\n$/su,
+        ),
       });
     });
 

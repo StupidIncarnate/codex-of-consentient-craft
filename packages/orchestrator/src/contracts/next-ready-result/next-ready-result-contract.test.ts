@@ -27,7 +27,7 @@ describe('nextReadyResultContract', () => {
       });
 
       expect(result).toStrictEqual({
-        ready: [expect.any(Object)],
+        ready: [item],
         questTerminal: false,
         questBlocked: false,
       });

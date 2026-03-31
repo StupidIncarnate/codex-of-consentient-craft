@@ -106,8 +106,12 @@ describe('chatEntryContract', () => {
 
       const result = chatEntryContract.parse(entry);
 
-      expect(result.role).toBe('assistant');
-      expect(result).not.toHaveProperty('toolUseId');
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+      });
     });
   });
 

@@ -37,9 +37,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
       const printer = ts.createPrinter();
       const output = printer.printFile(result as unknown as ts.SourceFile);
 
-      expect(output).toMatch(/^jest\.mock\(['"]fs['"]\)/mu);
-      expect(output).toMatch(/^describe/mu);
-      expect(output.indexOf('jest.mock')).toBeLessThan(output.indexOf('describe'));
+      expect(output).toBe('jest.mock("fs");\ndescribe(\'test\', () => { });\n');
     });
 
     it('VALID: {multiple statements} => prepends all in order', () => {
@@ -84,9 +82,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
       const printer = ts.createPrinter();
       const output = printer.printFile(result as unknown as ts.SourceFile);
 
-      expect(output).toMatch(/^jest\.mock\(['"]fs['"]\)/mu);
-      expect(output).toMatch(/^jest\.mock\(['"]path['"]\)/mu);
-      expect(output.indexOf('fs')).toBeLessThan(output.indexOf('path'));
+      expect(output).toBe('jest.mock("fs");\njest.mock("path");\nconst x = 1;\n');
     });
   });
 
@@ -108,8 +104,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
       const printer = ts.createPrinter();
       const output = printer.printFile(result as unknown as ts.SourceFile);
 
-      expect(output).toMatch(/^const x = 1/mu);
-      expect(output).not.toMatch(/^jest\.mock/mu);
+      expect(output).toBe('const x = 1;\n');
     });
   });
 });

@@ -23,7 +23,9 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toContain('FLOOR 1: CARTOGRAPHY');
+      expect(header.textContent).toBe(
+        '──FLOOR 1: CARTOGRAPHY──────────────────────────────────────────',
+      );
     });
 
     it('VALID: {floorNumber: 3, name: "GAUNTLET"} => renders different floor', () => {
@@ -40,7 +42,9 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toContain('FLOOR 3: GAUNTLET');
+      expect(header.textContent).toBe(
+        '──FLOOR 3: GAUNTLET──────────────────────────────────────────',
+      );
     });
   });
 
@@ -54,7 +58,9 @@ describe('FloorHeaderLayerWidget', () => {
 
       const header = screen.getByTestId('floor-header-layer-widget');
 
-      expect(header.textContent).toContain('──');
+      expect(header.textContent).toBe(
+        '──FLOOR 1: CARTOGRAPHY──────────────────────────────────────────',
+      );
     });
   });
 
@@ -105,8 +111,7 @@ describe('FloorHeaderLayerWidget', () => {
 
       const headerText = header.textContent;
 
-      expect(headerText).toContain('HOMEBASE');
-      expect(headerText).not.toContain('FLOOR');
+      expect(headerText).toBe('──HOMEBASE──────────────────────────────────────────');
     });
 
     it('VALID: {floorNumber: null, name: "ENTRANCE: CARTOGRAPHY"} => renders entrance name', () => {
@@ -124,8 +129,7 @@ describe('FloorHeaderLayerWidget', () => {
       const header = screen.getByTestId('floor-header-layer-widget');
       const headerText = header.textContent;
 
-      expect(headerText).toContain('ENTRANCE: CARTOGRAPHY');
-      expect(headerText).not.toContain('FLOOR');
+      expect(headerText).toBe('──ENTRANCE: CARTOGRAPHY──────────────────────────────────────────');
     });
   });
 });

@@ -67,9 +67,9 @@ describe('orchestrationProcessesState', () => {
       proxy.setupEmpty();
       const processId = ProcessIdStub({ value: 'nonexistent' });
 
-      orchestrationProcessesState.get({ processId });
+      const result = orchestrationProcessesState.get({ processId });
 
-      expect(true).toBe(true);
+      expect(result).toBe(undefined);
     });
   });
 
@@ -125,13 +125,13 @@ describe('orchestrationProcessesState', () => {
       expect(orchestrationProcessesState.has({ processId: processId2 })).toBe(false);
     });
 
-    it('EMPTY: {no processes} => completes without error', () => {
+    it('EMPTY: {no processes} => getAll returns empty array after killAll', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
 
       orchestrationProcessesState.killAll();
 
-      expect(true).toBe(true);
+      expect(orchestrationProcessesState.getAll()).toStrictEqual([]);
     });
   });
 
@@ -181,9 +181,9 @@ describe('orchestrationProcessesState', () => {
       proxy.setupEmpty();
       const questId = QuestIdStub({ value: 'nonexistent' });
 
-      orchestrationProcessesState.findByQuestId({ questId });
+      const result = orchestrationProcessesState.findByQuestId({ questId });
 
-      expect(true).toBe(true);
+      expect(result).toBe(undefined);
     });
   });
 

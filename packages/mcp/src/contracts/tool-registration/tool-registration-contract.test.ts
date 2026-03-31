@@ -45,8 +45,7 @@ describe('toolRegistrationContract', () => {
 
       await registration.handler({ args: { key: 'value' } });
 
-      expect(customHandler).toHaveBeenCalledTimes(1);
-      expect(customHandler).toHaveBeenCalledWith({ args: { key: 'value' } });
+      expect(customHandler.mock.calls).toStrictEqual([[{ args: { key: 'value' } }]]);
     });
 
     it('VALID: custom name and description => overrides defaults', () => {

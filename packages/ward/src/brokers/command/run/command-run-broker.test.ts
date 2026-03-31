@@ -20,7 +20,19 @@ describe('commandRunBroker', () => {
         stdoutFirstArg: proxy.getStdoutCalls()[0]?.[0],
         exitCalls: proxy.getExitCalls(),
       }).toStrictEqual({
-        stdoutFirstArg: expect.stringMatching(/^run: 1739625600000-a38e\n/u),
+        stdoutFirstArg: [
+          'run: 1739625600000-a38e',
+          'lint:      WARN  0 files run',
+          'typecheck: WARN  0 files run, 2 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          'unit:      WARN  0 files run, 1 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          'integration: WARN  0 files run, 1 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          'e2e:       WARN  0 files run, 2 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          '',
+        ].join('\n'),
         exitCalls: [],
       });
     });

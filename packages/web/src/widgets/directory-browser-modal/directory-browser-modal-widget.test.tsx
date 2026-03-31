@@ -116,7 +116,7 @@ describe('DirectoryBrowserModalWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.getCurrentPath()).not.toBe('/');
+        expect(proxy.getCurrentPath()).toBe('/home/user');
       });
 
       await proxy.clickSelect();

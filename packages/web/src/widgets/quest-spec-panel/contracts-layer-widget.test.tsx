@@ -120,7 +120,7 @@ describe('ContractsLayerWidget', () => {
         ),
       });
 
-      expect(screen.queryByTestId('CONTRACT_SOURCE')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('CONTRACT_SOURCE')).toBe(null);
     });
 
     it('VALID: {contracts: [entry with property description]} => renders em-dash and description', () => {

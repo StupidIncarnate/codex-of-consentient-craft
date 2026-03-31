@@ -12,6 +12,7 @@ import { registerMock } from '../../../register-mock';
 
 export const fsRmAdapterProxy = (): {
   throws: ({ error }: { filePath: string; error: Error }) => void;
+  getCallArgs: () => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: rmSync });
 
@@ -23,5 +24,6 @@ export const fsRmAdapterProxy = (): {
         throw error;
       });
     },
+    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
   };
 };

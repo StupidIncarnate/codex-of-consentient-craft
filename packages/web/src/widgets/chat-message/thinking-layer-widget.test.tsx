@@ -22,8 +22,7 @@ describe('ThinkingLayerWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toContain('THINKING');
-      expect(messageText).toContain('Let me think about this');
+      expect(messageText).toBe('THINKINGLet me think about this');
     });
 
     it('VALID: {type: thinking} => renders text-dim borders', () => {
@@ -70,8 +69,7 @@ describe('ThinkingLayerWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toContain('THINKING');
-      expect(messageText).toContain('claude-opus-4-6');
+      expect(messageText).toBe('THINKING claude-opus-4-6This is internal thinking');
     });
 
     it('VALID: {no model} => does not render model suffix', () => {
@@ -86,8 +84,7 @@ describe('ThinkingLayerWidget', () => {
 
       const messageText = message.textContent;
 
-      expect(messageText).toContain('THINKING');
-      expect(messageText).not.toContain('claude');
+      expect(messageText).toBe('THINKINGThis is internal thinking');
     });
   });
 

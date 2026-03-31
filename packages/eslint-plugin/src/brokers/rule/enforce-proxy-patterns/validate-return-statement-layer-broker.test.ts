@@ -22,7 +22,7 @@ describe('validateReturnStatementLayerBroker', () => {
         functionNode: mockFunctionNode,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 
@@ -48,7 +48,7 @@ describe('validateReturnStatementLayerBroker', () => {
         functionNode: mockFunctionNode,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {argument.type: CallExpression} => does not report', () => {
@@ -71,7 +71,7 @@ describe('validateReturnStatementLayerBroker', () => {
         functionNode: mockFunctionNode,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
     it('VALID: {argument.type: MemberExpression} => does not report', () => {
@@ -94,7 +94,7 @@ describe('validateReturnStatementLayerBroker', () => {
         functionNode: mockFunctionNode,
       });
 
-      expect(mockReport).not.toHaveBeenCalled();
+      expect(mockReport.mock.calls).toStrictEqual([]);
     });
   });
 

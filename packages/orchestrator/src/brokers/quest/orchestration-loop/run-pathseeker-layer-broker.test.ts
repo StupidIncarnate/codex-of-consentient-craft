@@ -17,6 +17,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
 
@@ -490,7 +491,10 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        expect.any(String),
+        pathseekerPromptStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          'Quest ID: test-resume-quest',
+        ),
         '--output-format',
         'stream-json',
         '--verbose',
@@ -532,7 +536,10 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        expect.any(String),
+        pathseekerPromptStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          'Quest ID: test-resume-quest',
+        ),
         '--output-format',
         'stream-json',
         '--verbose',

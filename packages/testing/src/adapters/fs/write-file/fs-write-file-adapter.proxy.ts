@@ -12,6 +12,7 @@ import { registerMock } from '../../../register-mock';
 
 export const fsWriteFileAdapterProxy = (): {
   throws: ({ filePath, error }: { filePath: string; error: Error }) => void;
+  getCallArgs: () => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: writeFileSync });
 
@@ -23,5 +24,6 @@ export const fsWriteFileAdapterProxy = (): {
         throw error;
       });
     },
+    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
   };
 };

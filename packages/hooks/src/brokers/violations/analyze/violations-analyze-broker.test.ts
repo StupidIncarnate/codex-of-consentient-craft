@@ -86,9 +86,12 @@ describe('violationsAnalyzeBroker', () => {
       newViolations: [
         ViolationCountStub({ ruleId: '@typescript-eslint/no-explicit-any', count: 1 }),
       ],
-      message: expect.stringMatching(
-        /^.*🛑 New code quality violations detected:.*Code Quality Issue: 1 violation.*$/su,
-      ),
+      message:
+        '🛑 New code quality violations detected:\n' +
+        '  ❌ Code Quality Issue: 1 violation\n' +
+        '     Line 1:15 - Unexpected any. Specify a different type.\n' +
+        '\n' +
+        'These rules help maintain code quality and safety. Please fix the violations.',
     });
   });
 
@@ -188,9 +191,15 @@ describe('violationsAnalyzeBroker', () => {
           ],
         }),
       ],
-      message: expect.stringMatching(
-        /^.*🛑 New code quality violations detected:.*Code Quality Issue: 2 violations.*Code Quality Issue: 1 violation.*$/su,
-      ),
+      message:
+        '🛑 New code quality violations detected:\n' +
+        '  ❌ Code Quality Issue: 2 violations\n' +
+        '     Line 2:20 - Unexpected any. Specify a different type.\n' +
+        '     Line 3:25 - Unexpected any. Specify a different type.\n' +
+        '  ❌ Code Quality Issue: 1 violation\n' +
+        '     Line 4:1 - Do not use "@ts-ignore" because it alters compilation errors.\n' +
+        '\n' +
+        'These rules help maintain code quality and safety. Please fix the violations.',
     });
   });
 });

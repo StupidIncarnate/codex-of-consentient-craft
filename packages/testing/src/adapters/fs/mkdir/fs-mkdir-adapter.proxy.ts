@@ -12,6 +12,7 @@ import { registerMock } from '../../../register-mock';
 
 export const fsMkdirAdapterProxy = (): {
   throws: ({ error }: { dirPath: string; error: Error }) => void;
+  getCallArgs: () => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: mkdirSync });
 
@@ -23,5 +24,6 @@ export const fsMkdirAdapterProxy = (): {
         throw error;
       });
     },
+    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
   };
 };

@@ -19,13 +19,13 @@ import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder
 
 describe('RecoverGuildLayerResponder', () => {
   describe('invalid guild', () => {
-    it('VALID: {guildItem.valid: false} => returns without launching any loops', async () => {
+    it('VALID: {guildItem.valid: false} => returns empty array', async () => {
       RecoverGuildLayerResponderProxy();
       const guildItem = GuildListItemStub({ valid: false });
 
-      await RecoverGuildLayerResponder({ guildItem });
+      const result = await RecoverGuildLayerResponder({ guildItem });
 
-      expect(true).toBe(true);
+      expect(result).toStrictEqual([]);
     });
   });
 

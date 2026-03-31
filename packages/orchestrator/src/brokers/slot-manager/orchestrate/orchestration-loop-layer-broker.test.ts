@@ -1280,7 +1280,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       // Second: spiritmender -> pathseeker, failedWorkItemId === first followup's id
       expect(mockOnFollowupCreated).toHaveBeenNthCalledWith(2, {
-        followupWorkItemId: expect.any(String),
+        followupWorkItemId: 'followup-followup-lawbringer-chain-1-1700000000000-1700000000000',
         role: 'pathseeker',
         failedWorkItemId: 'followup-lawbringer-chain-1-1700000000000',
       });

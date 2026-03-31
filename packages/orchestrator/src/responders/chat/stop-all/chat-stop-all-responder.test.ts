@@ -28,13 +28,13 @@ describe('ChatStopAllResponder', () => {
   });
 
   describe('with no active processes', () => {
-    it('EMPTY: {no processes} => completes without error', () => {
+    it('EMPTY: {no processes} => getAll returns empty after call', () => {
       const proxy = ChatStopAllResponderProxy();
       proxy.setupEmpty();
 
       proxy.callResponder();
 
-      expect(true).toBe(true);
+      expect(orchestrationProcessesState.getAll()).toStrictEqual([]);
     });
   });
 });

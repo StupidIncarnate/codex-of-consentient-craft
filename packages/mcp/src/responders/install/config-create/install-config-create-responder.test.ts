@@ -31,9 +31,21 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toContain('"dungeonmaster"');
-      expect(writtenConfig).toContain('"type": "stdio"');
-      expect(writtenConfig).toContain('@dungeonmaster/mcp');
+      expect(writtenConfig).toBe(
+        JSON.stringify(
+          {
+            mcpServers: {
+              dungeonmaster: {
+                type: 'stdio',
+                command: 'npx',
+                args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 
@@ -105,8 +117,26 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toContain('"other"');
-      expect(writtenConfig).toContain('"dungeonmaster"');
+      expect(writtenConfig).toBe(
+        JSON.stringify(
+          {
+            mcpServers: {
+              other: {
+                type: 'http',
+                command: 'node',
+                args: ['server.js'],
+              },
+              dungeonmaster: {
+                type: 'stdio',
+                command: 'npx',
+                args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 
@@ -134,7 +164,21 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig();
 
-      expect(writtenConfig).toContain('"dungeonmaster"');
+      expect(writtenConfig).toBe(
+        JSON.stringify(
+          {
+            mcpServers: {
+              dungeonmaster: {
+                type: 'stdio',
+                command: 'npx',
+                args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 });

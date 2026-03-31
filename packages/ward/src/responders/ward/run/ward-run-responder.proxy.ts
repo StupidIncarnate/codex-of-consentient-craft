@@ -5,6 +5,7 @@ export const WardRunResponderProxy = (): {
   callResponder: typeof WardRunResponder;
   setupSinglePackagePass: () => void;
   setupSinglePackageLintOnly: () => void;
+  getExitCalls: () => unknown[][];
 } => {
   const runProxy = commandRunBrokerProxy();
 
@@ -18,5 +19,7 @@ export const WardRunResponderProxy = (): {
     setupSinglePackageLintOnly: (): void => {
       runProxy.setupSinglePackagePass();
     },
+
+    getExitCalls: (): unknown[][] => runProxy.getExitCalls(),
   };
 };

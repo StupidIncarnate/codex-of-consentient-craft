@@ -200,7 +200,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: 'Quest with id "nonexistent" not found in any guild',
       });
     });
 
@@ -214,7 +214,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^.*not found.*$/u),
+        error: 'Quest with id "any-quest" not found in any guild',
       });
     });
   });
@@ -235,7 +235,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^Invalid status transition.*$/u),
+        error: 'Invalid status transition: created -> approved',
       });
     });
 
@@ -254,7 +254,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^Invalid status transition.*$/u),
+        error: 'Invalid status transition: created -> in_progress',
       });
     });
   });

@@ -31,14 +31,13 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('🛑 New code quality violations detected:');
-      expect(result).toContain('❌ Type Safety Violation: 1 violation');
-      expect(result).toContain(
-        'Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.',
-      );
-      expect(result).toContain('Line 5:10 - Unexpected any');
-      expect(result).toContain(
-        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked',
+      expect(result).toBe(
+        '🛑 New code quality violations detected:\n' +
+          '  ❌ Type Safety Violation: 1 violation\n' +
+          '     Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.\n' +
+          '     Line 5:10 - Unexpected any\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
 
@@ -89,7 +88,14 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('❌ Custom Rule Name: 1 violation');
+      expect(result).toBe(
+        '🛑 New code quality violations detected:\n' +
+          '  ❌ Custom Rule Name: 1 violation\n' +
+          '     This rule violation should be fixed to maintain code quality.\n' +
+          '     Line 5:10 - Custom violation\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      );
     });
   });
 
@@ -124,7 +130,14 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('This is a custom message explaining the rule.');
+      expect(result).toBe(
+        '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     This is a custom message explaining the rule.\n' +
+          '     Line 5:10 - Custom violation\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      );
     });
 
     it('VALID: {violations: rule with custom function message} => calls function and uses result', () => {
@@ -161,7 +174,14 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: { test: 'data' },
       });
 
-      expect(result).toContain('Dynamic message for {"test":"data"}');
+      expect(result).toBe(
+        '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     Dynamic message for {"test":"data"}\n' +
+          '     Line 5:10 - Custom violation\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      );
     });
 
     it('ERROR: {violations: rule with function message that throws} => returns error message', () => {
@@ -196,7 +216,14 @@ describe('violationMessageFormatFullTransformer()', () => {
         hookData: {},
       });
 
-      expect(result).toContain('Custom message function failed: Function failed');
+      expect(result).toBe(
+        '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     Custom message function failed: Function failed\n' +
+          '     Line 5:10 - Custom violation\n' +
+          '\n' +
+          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      );
     });
   });
 });

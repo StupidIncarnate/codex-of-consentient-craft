@@ -21,18 +21,20 @@ describe('ESLint Plugin Module Loading', () => {
     expect(config).toStrictEqual({
       typescript: expect.any(Object),
       test: expect.any(Object),
-      ruleEnforceOn: expect.any(Object),
       fileOverrides: expect.any(Array),
+      ruleEnforceOn: expect.any(Object),
     });
   });
 
-  it('VALID: {require @dungeonmaster/eslint-plugin} => returns module object', () => {
+  it('VALID: {require @dungeonmaster/eslint-plugin} => returns module with StartEslintPlugin export', () => {
     const importPlugin = (): unknown => {
       return require('@dungeonmaster/eslint-plugin');
     };
 
-    const module = importPlugin();
+    const module = importPlugin() as {
+      configDungeonmasterBroker: typeof configDungeonmasterBroker;
+    };
 
-    expect(module).toStrictEqual(expect.any(Object));
+    expect(module.configDungeonmasterBroker).toBe(configDungeonmasterBroker);
   });
 });

@@ -32,7 +32,9 @@ describe('SessionFlow', () => {
       const response = await app.request(`/api/guilds/${guildId}/sessions`);
       const body: unknown = await response.json();
 
-      expect(harness.toPlain(body)).toStrictEqual({ error: expect.any(String) });
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: expect.stringMatching(/^(?:Guild not found: .+|Failed to read file at .+)$/u),
+      });
     });
   });
 

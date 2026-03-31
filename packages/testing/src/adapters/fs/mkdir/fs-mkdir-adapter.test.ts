@@ -4,21 +4,21 @@ import { fsMkdirAdapterProxy } from './fs-mkdir-adapter.proxy';
 describe('fsMkdirAdapter', () => {
   describe('successful creation', () => {
     it('VALID: {dirPath: "/tmp/test-dir", recursive: true} => creates directory', () => {
-      fsMkdirAdapterProxy();
+      const proxy = fsMkdirAdapterProxy();
       const dirPath = '/tmp/test-dir';
 
       fsMkdirAdapter({ dirPath, recursive: true });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[dirPath, { recursive: true }]]);
     });
 
     it('VALID: {dirPath: "/tmp/simple"} => creates directory without recursive', () => {
-      fsMkdirAdapterProxy();
+      const proxy = fsMkdirAdapterProxy();
       const dirPath = '/tmp/simple';
 
       fsMkdirAdapter({ dirPath });
 
-      expect(true).toBe(true);
+      expect(proxy.getCallArgs()).toStrictEqual([[dirPath, { recursive: undefined }]]);
     });
   });
 
