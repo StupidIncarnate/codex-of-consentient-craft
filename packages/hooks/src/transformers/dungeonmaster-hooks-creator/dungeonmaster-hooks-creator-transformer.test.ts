@@ -25,6 +25,11 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
           },
         ],
+        SubagentStart: [
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
+          },
+        ],
         WorktreeCreate: [
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
@@ -73,6 +78,12 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.SessionStart[0]?.hooks[0]?.command).toBe('dungeonmaster-session-start-hook');
+    });
+
+    it('VALID: includes dungeonmaster-subagent-start-hook command => returns correct command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.SubagentStart[0]?.hooks[0]?.command).toBe('dungeonmaster-subagent-start-hook');
     });
 
     it('VALID: includes dungeonmaster-worktree-create command => returns correct command', () => {

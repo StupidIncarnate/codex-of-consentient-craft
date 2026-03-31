@@ -61,6 +61,7 @@ export const InstallCreateSettingsResponder = async ({
   if (existingSettings) {
     const existingPreToolUse = existingSettings.hooks?.PreToolUse ?? [];
     const existingSessionStart = existingSettings.hooks?.SessionStart ?? [];
+    const existingSubagentStart = existingSettings.hooks?.SubagentStart ?? [];
     const existingWorktreeCreate = existingSettings.hooks?.WorktreeCreate ?? [];
 
     const mergedSettings: ClaudeSettings = {
@@ -69,6 +70,7 @@ export const InstallCreateSettingsResponder = async ({
         ...existingSettings.hooks,
         PreToolUse: [...existingPreToolUse, ...dungeonmasterHooks.PreToolUse],
         SessionStart: [...existingSessionStart, ...dungeonmasterHooks.SessionStart],
+        SubagentStart: [...existingSubagentStart, ...dungeonmasterHooks.SubagentStart],
         WorktreeCreate: [...existingWorktreeCreate, ...dungeonmasterHooks.WorktreeCreate],
       },
     };

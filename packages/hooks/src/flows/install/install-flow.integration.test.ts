@@ -42,10 +42,19 @@ describe('InstallFlow', () => {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
           ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [

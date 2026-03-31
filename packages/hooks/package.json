@@ -7,6 +7,7 @@
     "dungeonmaster-pre-edit-lint": "./dist/src/startup/start-pre-edit-hook.js",
     "dungeonmaster-pre-bash": "./dist/src/startup/start-pre-bash-hook.js",
     "dungeonmaster-post-edit-lint": "./dist/src/startup/start-post-edit-hook.js",
+    "dungeonmaster-subagent-start-hook": "./dist/src/startup/start-subagent-start-hook.js",
     "dungeonmaster-worktree-create": "./dist/src/startup/start-worktree-create-hook.js"
   },
   "scripts": {

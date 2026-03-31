@@ -47,10 +47,19 @@ describe('start-install integration', () => {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
           ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [
@@ -108,10 +117,19 @@ describe('start-install integration', () => {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
           ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [
@@ -215,11 +233,20 @@ describe('start-install integration', () => {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
           ],
           SessionStart: [
             { hooks: [{ command: 'existing-session-hook' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [

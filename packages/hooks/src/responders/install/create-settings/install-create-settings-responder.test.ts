@@ -46,6 +46,11 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
             },
           ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
+            },
+          ],
           WorktreeCreate: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
@@ -102,6 +107,11 @@ describe('InstallCreateSettingsResponder', () => {
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [
@@ -204,6 +214,11 @@ describe('InstallCreateSettingsResponder', () => {
             { hooks: [{ command: 'existing-session-hook' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
             },
           ],
           WorktreeCreate: [
