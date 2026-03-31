@@ -18,7 +18,7 @@ test.describe('Quest Pause and Resume', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: POST /api/quests/:questId/pause transitions quest to blocked and resets in_progress work items', async ({
+  test('VALID: POST /api/quests/:questId/pause transitions quest to paused and resets in_progress work items', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -73,7 +73,7 @@ test.describe('Quest Pause and Resume', () => {
 
     const questData = await questResponse.json();
 
-    expect(questData.quest.status).toBe('blocked');
+    expect(questData.quest.status).toBe('paused');
 
     const codeweaverItem = questData.quest.workItems.find(
       (wi: { id: string }) => wi.id === 'e2e00000-0000-4000-8000-000000000002',
@@ -119,10 +119,10 @@ test.describe('Quest Pause and Resume', () => {
 
     expect(pauseResponse.status()).toBe(HTTP_OK);
 
-    const blockedResponse = await request.get(`/api/quests/${questId}`);
-    const blockedData = await blockedResponse.json();
+    const pausedResponse = await request.get(`/api/quests/${questId}`);
+    const pausedData = await pausedResponse.json();
 
-    expect(blockedData.quest.status).toBe('blocked');
+    expect(pausedData.quest.status).toBe('paused');
 
     const resumeResponse = await request.patch(`/api/quests/${questId}`, {
       data: { status: 'in_progress' },

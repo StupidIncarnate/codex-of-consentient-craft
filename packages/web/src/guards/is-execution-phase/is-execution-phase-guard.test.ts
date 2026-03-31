@@ -14,6 +14,14 @@ describe('isExecutionPhaseGuard', () => {
       expect(result).toBe(true);
     });
 
+    it('VALID: {status: paused} => returns true', () => {
+      const status: QuestStatus = QuestStatusStub({ value: 'paused' });
+
+      const result = isExecutionPhaseGuard({ status });
+
+      expect(result).toBe(true);
+    });
+
     it('VALID: {status: blocked} => returns true', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'blocked' });
 

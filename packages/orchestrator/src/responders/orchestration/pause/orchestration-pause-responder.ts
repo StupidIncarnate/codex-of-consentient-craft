@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Pauses a running quest by killing its orchestration process, resetting in_progress work items to pending, and setting quest status to blocked
+ * PURPOSE: Pauses a running quest by killing its orchestration process, resetting in_progress work items to pending, and setting quest status to paused
  *
  * USAGE:
  * const result = await OrchestrationPauseResponder({ questId });
@@ -41,7 +41,7 @@ export const OrchestrationPauseResponder = async ({
   await questModifyBroker({
     input: {
       questId,
-      status: 'blocked',
+      status: 'paused',
       ...(orphanedItems.length > 0 ? { workItems: orphanedItems } : {}),
     } as ModifyQuestInput,
   });

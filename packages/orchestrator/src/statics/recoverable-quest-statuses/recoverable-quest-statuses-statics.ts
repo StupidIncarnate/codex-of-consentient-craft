@@ -14,4 +14,5 @@ export const recoverableQuestStatusesStatics = [
   'explore_observables',
   'explore_design',
   'in_progress',
+  'paused',
 ] as const;
