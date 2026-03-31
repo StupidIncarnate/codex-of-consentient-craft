@@ -36,6 +36,10 @@ describe('InstallCreateSettingsResponder', () => {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
           ],
           SessionStart: [
             {
@@ -89,6 +93,10 @@ describe('InstallCreateSettingsResponder', () => {
             {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
           SessionStart: [
@@ -186,6 +194,10 @@ describe('InstallCreateSettingsResponder', () => {
             {
               matcher: 'Bash',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
           SessionStart: [

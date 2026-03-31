@@ -14,7 +14,11 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { ExecResultStub } from '../../../src/contracts/exec-result/exec-result.stub';
 
-type HookName = 'start-pre-bash-hook' | 'start-post-edit-hook' | 'start-pre-edit-hook';
+type HookName =
+  | 'start-pre-bash-hook'
+  | 'start-post-edit-hook'
+  | 'start-pre-edit-hook'
+  | 'start-pre-search-hook';
 
 export const hookRunnerHarness = (): {
   runHook: (params: { hookName: HookName; hookData: unknown }) => ReturnType<typeof ExecResultStub>;

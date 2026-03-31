@@ -34,6 +34,10 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           matcher: 'Bash',
           hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
         },
+        {
+          matcher: 'Grep|Glob',
+          hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+        },
       ],
       // PostToolUse: [
       //   {

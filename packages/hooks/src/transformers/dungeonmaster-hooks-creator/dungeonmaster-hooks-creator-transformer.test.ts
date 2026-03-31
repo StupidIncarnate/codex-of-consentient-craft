@@ -15,6 +15,10 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             matcher: 'Bash',
             hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
           },
+          {
+            matcher: 'Grep|Glob',
+            hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+          },
         ],
         SessionStart: [
           {
@@ -51,6 +55,18 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.PreToolUse[1]?.hooks[0]?.command).toBe('dungeonmaster-pre-bash');
+    });
+
+    it('VALID: includes PreToolUse with Grep|Glob matcher => returns correct matcher', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PreToolUse[2]?.matcher).toBe('Grep|Glob');
+    });
+
+    it('VALID: includes dungeonmaster-pre-search command => returns correct command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PreToolUse[2]?.hooks[0]?.command).toBe('dungeonmaster-pre-search');
     });
 
     it('VALID: includes dungeonmaster-session-start-hook command => returns correct command', () => {
