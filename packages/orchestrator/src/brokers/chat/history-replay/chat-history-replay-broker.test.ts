@@ -110,7 +110,7 @@ describe('chatHistoryReplayBroker', () => {
         content:
           '{"type":"user","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}',
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-1.jsonl' })] });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-a1b2c3d4.jsonl' })] });
       proxy.setupSubagentFile({
         content:
           '{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"sub-reply"}]}}',
@@ -142,13 +142,13 @@ describe('chatHistoryReplayBroker', () => {
           timestamp: '2025-01-01T00:00:01Z',
           message: { content: [{ type: 'text', text: 'sub-reply' }] },
           source: 'subagent',
-          agentId: 'agent-1',
+          agentId: 'a1b2c3d4',
         },
       ]);
       expect(patches).toStrictEqual([]);
     });
 
-    it('VALID: {subagent file named agent-1.jsonl} => emits entries with agentId derived from filename', async () => {
+    it('VALID: {subagent file named agent-a1b2c3d4.jsonl} => emits entries with agentId stripped of agent- prefix', async () => {
       const proxy = chatHistoryReplayBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const sessionId = SessionIdStub({ value: 'test-session-agentid' });
@@ -163,7 +163,7 @@ describe('chatHistoryReplayBroker', () => {
         content:
           '{"type":"user","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}',
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-1.jsonl' })] });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-a1b2c3d4.jsonl' })] });
       proxy.setupSubagentFile({
         content:
           '{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"sub-reply"}]}}',
@@ -185,7 +185,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:01Z',
         message: { content: [{ type: 'text', text: 'sub-reply' }] },
         source: 'subagent',
-        agentId: 'agent-1',
+        agentId: 'a1b2c3d4',
       });
     });
 
@@ -312,7 +312,7 @@ describe('chatHistoryReplayBroker', () => {
           JSON.stringify({ ...assistantAfter, timestamp: '2025-01-01T00:00:10Z' }),
         ].join('\n'),
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-mid.jsonl' })] });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: 'agent-amid1234.jsonl' })] });
       proxy.setupSubagentFile({
         content: JSON.stringify({ ...assistantMiddle, timestamp: '2025-01-01T00:00:05Z' }),
       });
@@ -338,7 +338,7 @@ describe('chatHistoryReplayBroker', () => {
           ...assistantMiddle,
           timestamp: '2025-01-01T00:00:05Z',
           source: 'subagent',
-          agentId: 'agent-mid',
+          agentId: 'amid1234',
         },
         {
           ...assistantAfter,

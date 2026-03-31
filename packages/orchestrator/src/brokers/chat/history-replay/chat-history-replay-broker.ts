@@ -24,7 +24,8 @@ import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
-import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
+import type { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
+import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
 import type {
   ChatLineEntry,
   ChatLinePatch,
@@ -34,6 +35,7 @@ import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-li
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
+import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 
 export const chatHistoryReplayBroker = async ({
@@ -75,7 +77,7 @@ export const chatHistoryReplayBroker = async ({
 
     const results = await Promise.all(
       jsonlFiles.map(async (file) => ({
-        agentId: agentIdContract.parse(file.replace('.jsonl', '')),
+        agentId: stripAgentFilenamePrefixTransformer({ fileName: fileNameContract.parse(file) }),
         lines: await fsReadJsonlAdapter({
           filePath: absoluteFilePathContract.parse(`${subagentsDir}/${file}`),
         }),

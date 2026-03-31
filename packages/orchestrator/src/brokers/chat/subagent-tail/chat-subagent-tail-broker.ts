@@ -65,7 +65,7 @@ export const chatSubagentTailBroker = async ({
   });
 
   const subagentJsonlPath = absoluteFilePathContract.parse(
-    `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents/${agentId}.jsonl`,
+    `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents/agent-${agentId}.jsonl`,
   );
 
   const subagentSource = chatLineSourceContract.parse('subagent');
