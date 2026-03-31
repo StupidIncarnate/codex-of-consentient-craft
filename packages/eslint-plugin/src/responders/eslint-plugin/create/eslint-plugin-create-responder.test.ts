@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 51 rule names', () => {
+    it('VALID: {} => returns plugin with all 52 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -58,6 +58,23 @@ describe('EslintPluginCreateResponder', () => {
         'ban-tautological-assertions': expect.any(Object),
         'ban-object-keys-in-expect': expect.any(Object),
         'ban-string-includes-in-expect': expect.any(Object),
+        'ban-weak-asymmetric-matchers': {
+          meta: {
+            type: 'problem',
+            docs: {
+              description:
+                'Ban weak asymmetric matchers (expect.any(X), expect.objectContaining(), etc.) nested inside toStrictEqual() or toBe() arguments.',
+            },
+            messages: {
+              bannedNestedAny:
+                'expect.any({{type}}) nested in assertion proves nothing about shape. Assert the exact value instead.',
+              bannedNestedAsymmetric:
+                'expect.{{method}}() nested in assertion is a partial match that hides missing/extra keys. Assert the complete value instead.',
+            },
+            schema: [],
+          },
+          create: expect.any(Function),
+        },
       });
     });
 
