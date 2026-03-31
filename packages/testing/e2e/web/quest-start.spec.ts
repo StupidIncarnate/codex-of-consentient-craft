@@ -59,7 +59,9 @@ test.describe('Quest Start Pipeline', () => {
 
     const startData = await startResponse.json();
 
-    expect(startData.processId).toStrictEqual(expect.any(String));
+    expect(startData.processId).toMatch(
+      /^proc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+    );
 
     const questResponse = await request.get(`/api/quests/${questId}`);
 
@@ -117,11 +119,9 @@ test.describe('Quest Start Pipeline', () => {
 
     const status = await statusResponse.json();
 
-    expect(status).toStrictEqual(
-      expect.objectContaining({
-        processId,
-        questId,
-      }),
-    );
+    expect({ processId: status.processId, questId: status.questId }).toStrictEqual({
+      processId,
+      questId,
+    });
   });
 });

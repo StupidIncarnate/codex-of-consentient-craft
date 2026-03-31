@@ -1062,7 +1062,7 @@ describe('useSessionChatBinding', () => {
           {
             role: 'system',
             type: 'error',
-            content: expect.any(String),
+            content: 'Failed to fetch',
           },
         ],
         isStreaming: false,

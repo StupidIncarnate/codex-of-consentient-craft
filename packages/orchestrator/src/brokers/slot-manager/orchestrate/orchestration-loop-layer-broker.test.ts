@@ -339,18 +339,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'followup-siege-work-1-1700000000000',
-            sessionId: null,
-            followupDepth: 1,
-            crashRetries: 0,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'followup-siege-work-1-1700000000000',
+        sessionId: null,
+        followupDepth: 1,
+        crashRetries: 0,
       });
       expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
@@ -412,18 +414,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'followup-codeweaver-work-1-1700000000000',
-            sessionId: null,
-            followupDepth: 1,
-            crashRetries: 0,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'followup-codeweaver-work-1-1700000000000',
+        sessionId: null,
+        followupDepth: 1,
+        crashRetries: 0,
       });
       expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
@@ -485,18 +489,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'followup-lawbringer-work-1-1700000000000',
-            sessionId: null,
-            followupDepth: 1,
-            crashRetries: 0,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'followup-lawbringer-work-1-1700000000000',
+        sessionId: null,
+        followupDepth: 1,
+        crashRetries: 0,
       });
       expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
@@ -558,18 +564,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'followup-spiritmender-work-1-1700000000000',
-            sessionId: null,
-            followupDepth: 1,
-            crashRetries: 0,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'followup-spiritmender-work-1-1700000000000',
+        sessionId: null,
+        followupDepth: 1,
+        crashRetries: 0,
       });
       expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
       expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
@@ -739,18 +747,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'work-item-crashed',
-            sessionId: crashSessionId,
-            followupDepth: 0,
-            crashRetries: 1,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'work-item-crashed',
+        sessionId: crashSessionId,
+        followupDepth: 0,
+        crashRetries: 1,
       });
       expect(mockMarkFailed).toHaveBeenCalledTimes(0);
     });
@@ -1389,18 +1399,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds: {},
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'work-item-crash-retry',
-            sessionId: crashSessionId,
-            followupDepth: 0,
-            crashRetries: 3,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'work-item-crash-retry',
+        sessionId: crashSessionId,
+        followupDepth: 0,
+        crashRetries: 3,
       });
       expect(mockMarkFailed).toHaveBeenCalledTimes(0);
     });
@@ -1695,18 +1707,20 @@ describe('orchestrationLoopLayerBroker', () => {
         sessionIds,
       });
 
-      expect(result).toStrictEqual({
-        done: false,
-        activeAgents: [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            workItemId: 'work-item-crash-session',
-            sessionId: crashSessionId,
-            followupDepth: 0,
-            crashRetries: 1,
-            promise: expect.any(Promise),
-          },
-        ],
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'work-item-crash-session',
+        sessionId: crashSessionId,
+        followupDepth: 0,
+        crashRetries: 1,
       });
       expect(mockMarkFailed).toHaveBeenCalledTimes(0);
       expect(sessionIds).toStrictEqual({ 'work-item-crash-session': 'crash-session-789' });
