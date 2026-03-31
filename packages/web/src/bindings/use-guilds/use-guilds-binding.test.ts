@@ -100,10 +100,14 @@ describe('useGuildsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         guilds: [],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -180,10 +184,14 @@ describe('useGuildsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         guilds: [],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -204,11 +212,17 @@ describe('useGuildsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(getErrorCalls()).toStrictEqual([['[use-guilds]', expect.any(Error)]]);
+          const loggedError = getErrorCalls()[0]?.[1];
+
+          expect(loggedError).toBeInstanceOf(Error);
+          expect(getErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
         },
       });
 
-      expect(consoleErrorCalls).toStrictEqual([['[use-guilds]', expect.any(Error)]]);
+      const loggedError = consoleErrorCalls[0]?.[1];
+
+      expect(loggedError).toBeInstanceOf(Error);
+      expect(consoleErrorCalls).toStrictEqual([['[use-guilds]', loggedError]]);
     });
   });
 });

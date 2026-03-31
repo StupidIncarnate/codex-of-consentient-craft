@@ -120,9 +120,8 @@ describe('childProcessMockerAdapter', () => {
 
         expect(result).toStrictEqual({
           shouldThrow: true,
-          throwError: expect.any(Error),
+          throwError: new Error('spawn ENOENT'),
         });
-        expect(result.throwError?.message).toBe('spawn ENOENT');
       });
     });
 

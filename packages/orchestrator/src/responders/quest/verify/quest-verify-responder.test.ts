@@ -14,7 +14,22 @@ describe('QuestVerifyResponder', () => {
       const { success, checks } = result;
 
       expect(success).toBe(true);
-      expect(checks).toStrictEqual(expect.any(Array));
+      expect(checks.map((c) => c.name)).toStrictEqual([
+        'Observable Coverage',
+        'Dependency Integrity',
+        'No Circular Dependencies',
+        'File Companion Completeness',
+        'No Raw Primitives in Contracts',
+        'Step Contract Declarations',
+        'Valid Contract References',
+        'Step Export Names',
+        'Valid Flow References',
+        'No Orphan Flow Nodes',
+        'Node Observable Coverage',
+        'No Duplicate Focus Files',
+        'Valid Focus Files',
+      ]);
+      expect(checks.every((c) => c.passed)).toBe(true);
     });
   });
 

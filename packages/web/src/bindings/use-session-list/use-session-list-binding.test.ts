@@ -102,10 +102,14 @@ describe('useSessionListBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -197,7 +201,7 @@ describe('useSessionListBinding', () => {
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
+      expect(consoleErrorCalls[0]?.[1]).toBeInstanceOf(Error);
     });
   });
 });

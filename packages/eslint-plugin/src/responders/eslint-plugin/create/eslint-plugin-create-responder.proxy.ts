@@ -63,6 +63,7 @@ import { ruleBanNegatedMatchersBrokerProxy } from '../../../brokers/rule/ban-neg
 import { ruleBanTautologicalAssertionsBrokerProxy } from '../../../brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker.proxy';
 import { ruleBanObjectKeysInExpectBrokerProxy } from '../../../brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.proxy';
 import { ruleBanStringIncludesInExpectBrokerProxy } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.proxy';
+import { ruleBanWeakAsymmetricMatchersBrokerProxy } from '../../../brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -120,6 +121,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanTautologicalAssertionsBrokerProxy();
   ruleBanObjectKeysInExpectBrokerProxy();
   ruleBanStringIncludesInExpectBrokerProxy();
+  ruleBanWeakAsymmetricMatchersBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {
