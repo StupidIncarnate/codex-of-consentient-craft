@@ -102,10 +102,14 @@ describe('useQuestsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -242,10 +246,14 @@ describe('useQuestsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         data: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -287,10 +295,14 @@ describe('useQuestsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(SyntaxError);
+
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: expect.any(SyntaxError),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -313,10 +325,14 @@ describe('useQuestsBinding', () => {
         },
       });
 
+      const { error } = result.current;
+
+      expect(error).toBeInstanceOf(Error);
+
       expect(result.current).toStrictEqual({
         data: [],
         loading: false,
-        error: expect.any(Error),
+        error,
         refresh: expect.any(Function),
       });
     });
@@ -339,7 +355,7 @@ describe('useQuestsBinding', () => {
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toStrictEqual(expect.any(Error));
+      expect(consoleErrorCalls[0]?.[1]).toBeInstanceOf(Error);
     });
   });
 });
