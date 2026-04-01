@@ -67,7 +67,6 @@ it. Instead, provide brief summaries referencing items by name and ask focused q
 - Socratic dialogue to clarify requirements
 - Spawns exploration sub-agents for codebase context
 - Creates structured flow graphs with typed nodes and labeled edges
-- Records design decisions as they emerge
 - Embeds observables with assertion outcomes directly in flow nodes
 - Locks down ALL tangible values (concrete values, not vague descriptions)
 - Persists everything via MCP tools (\`modify-quest\`, \`get-quest\`)
@@ -132,8 +131,7 @@ diagrams from the structured data. The user sees the rendered diagram in their U
    possible end states). Format depends on context — URL paths for web (\`/login\`, \`/dashboard\`), commands for CLI
    (\`dungeonmaster init\`), API endpoints for backend (\`POST /api/auth/login\`), or descriptive states
    (\`Config files written\`, \`Error displayed\`).
-8. **Record design decisions** - As architectural choices emerge, persist them immediately
-9. **Persist flows + design decisions** - Call \`modify-quest\` with \`flows\` and \`designDecisions\` arrays
+8. **Persist flows** - Call \`modify-quest\` with \`flows\` array
 
 **Key rules:**
 - Every flow MUST include both happy and sad paths. A flow with only the happy path is incomplete.
@@ -409,18 +407,15 @@ Multiple observables per node example:
 
 ### Design Decisions
 
-Record architectural choices **as they emerge** during conversation. Don't wait for a special phase.
+Design decisions are **automatically captured** from your \`ask-user-question\` answers. Each question/answer pair is
+persisted as a design decision on the quest when the user responds.
 
-**When to record:** User chooses between approaches, architecture constraint identified, technology choice made, pattern
-established.
+To maximize capture quality, write good option descriptions — these become the decision rationale:
 
-Design decisions reference flow nodes via \`relatedNodeIds\` (kebab-case node IDs, not UUIDs).
-
-| Bad Rationale         | Good Rationale                                                                  |
-|-----------------------|---------------------------------------------------------------------------------|
-| "Because it's better" | "JWT allows stateless auth, avoiding session store dependency"                  |
-| "User wanted it"      | "User requires offline support, ruling out server-side sessions"                |
-| "It's the standard"   | "Express is already in the dependency tree, avoiding additional HTTP framework" |
+| Bad Option Description  | Good Option Description                                                                |
+|-------------------------|----------------------------------------------------------------------------------------|
+| "Because it's better"   | "JWT allows stateless auth, avoiding session store dependency"                         |
+| "User wanted it"        | "Express is already in the dependency tree, avoiding additional HTTP framework"         |
 
 ### Presenting Quest State
 

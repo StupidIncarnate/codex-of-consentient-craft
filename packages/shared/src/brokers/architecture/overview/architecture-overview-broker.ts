@@ -139,6 +139,43 @@ This structure forces deterministic organization by:
 - **Widgets**: Extend with props (showCompany, showRoles)
 - **Brokers**: Create orchestration brokers, extend bindings with option`;
 
+  // Build code discovery section
+  const codeDiscovery = `**Use the \`discover\` MCP tool to find source files.** It returns file purposes, signatures, and related files — far more useful than raw Grep/Glob for locating code.
+
+**discover vs Grep vs Glob — when to use each:**
+
+| Task | Tool | Why |
+|------|------|-----|
+| Find source files by keyword | \`discover\` | Returns purpose, signature, related files |
+| Browse a source directory | \`discover\` | Structured listing with metadata |
+| Read file contents or match patterns | \`Grep\` with \`output_mode: "content"\` | discover doesn't show file contents |
+| Regex pattern matching | \`Grep\` | discover only does keyword search |
+| Search non-TS files (json, md, yaml) | \`Grep\` or \`Glob\` | discover only indexes source files |
+| Search outside src (dist, scripts, .claude) | \`Grep\` or \`Glob\` | discover only indexes src/ |
+| Find files by extension pattern | \`Glob\` | discover doesn't support glob patterns |
+
+**Parallel discovery:** When you need multiple searches, batch them into a single message with multiple tool calls:
+
+\`\`\`
+// ✅ CORRECT — 3 searches in ONE message (parallel execution)
+discover({ type: "files", fileType: "broker", search: "user" })
+discover({ type: "files", fileType: "contract", search: "user" })
+discover({ type: "files", path: "packages/web/src/widgets" })
+
+// ❌ WRONG — 3 sequential messages (3x slower)
+// Message 1: discover({ type: "files", fileType: "broker", search: "user" })
+// Message 2: discover({ type: "files", fileType: "contract", search: "user" })
+// Message 3: discover({ type: "files", path: "packages/web/src/widgets" })
+\`\`\`
+
+**discover search strategies:**
+- Browse a directory: \`{ type: "files", path: "packages/hooks/src/brokers" }\`
+- Find by type + keyword: \`{ type: "files", fileType: "broker", search: "quest" }\`
+- Get full file details: \`{ type: "files", name: "quest-modify-broker" }\`
+- Search standards: \`{ type: "standards", section: "testing" }\`
+
+**Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.`;
+
   // Build frontend data flow rules
   const frontendDataFlow = `**Critical Rules:**
 
@@ -466,6 +503,17 @@ npm run ward -- --only lint,test --changed
 
 **Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.`;
 
+  // Build MCP tools reference
+  const mcpToolsReference = `These MCP tools provide detailed guidance beyond this overview. Use them before writing code.
+
+| Tool | Params | Returns | When to Use |
+|------|--------|---------|-------------|
+| \`get-architecture\` | *(none)* | This document — folder types, import rules, decision tree | First thing on any task |
+| \`discover\` | \`{ type, path?, fileType?, search?, name?, section? }\` | File purposes, signatures, related files, or standards docs | Finding existing code before creating new |
+| \`get-folder-detail\` | \`{ folderType }\` | Naming, imports, constraints, code examples, proxy requirements | Before creating/modifying files in a folder type |
+| \`get-syntax-rules\` | *(none)* | File naming, exports, types, destructuring conventions | Ensuring code passes ESLint |
+| \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |`;
+
   // Combine all sections
   const markdown = `# Architecture Overview
 
@@ -503,6 +551,10 @@ ${layerFiles}
 
 ${extensionRules}
 
+## Code Discovery
+
+${codeDiscovery}
+
 ## Frontend Data Flow (React)
 
 ${frontendDataFlow}
@@ -522,6 +574,12 @@ ${criticalRules}
 ### Testing Architecture
 
 ${testingArchitecture}
+
+## MCP Tools Reference
+
+${mcpToolsReference}
+
+Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
 `;
 
   return contentTextContract.parse(markdown);

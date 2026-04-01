@@ -69,6 +69,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     pendingClarification,
     sessionNotFound,
     sendMessage,
+    submitClarifyAnswers,
     stopChat,
   } = useSessionChatBinding({
     guildId: resolvedGuildId,
@@ -452,10 +453,15 @@ export const QuestChatWidget = (): React.JSX.Element => {
                 '') as unknown as (typeof pendingQuestion.questions)[0]['question']
             }
             onSubmitAnswers={({ answers }): void => {
-              const message = answers
-                .map((a) => `${String(a.header)}: ${String(a.label)}`)
-                .join('\n');
-              sendMessage({ message: message as UserInput });
+              if (!questData?.id) return;
+              submitClarifyAnswers({
+                questId: questData.id,
+                answers: answers.map((a) => ({
+                  header: String(a.header),
+                  label: String(a.label),
+                })),
+                questions: pendingQuestion.questions,
+              });
             }}
           />
         )}

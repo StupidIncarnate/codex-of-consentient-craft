@@ -14,6 +14,7 @@ import { SessionNewResponder } from '../../responders/session/new/session-new-re
 import { SessionListResponder } from '../../responders/session/list/session-list-responder';
 import { SessionChatResponder } from '../../responders/session/chat/session-chat-responder';
 import { SessionChatStopResponder } from '../../responders/session/chat-stop/session-chat-stop-responder';
+import { SessionClarifyResponder } from '../../responders/session/clarify/session-clarify-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
 export const SessionFlow = (): Hono => {
@@ -35,6 +36,14 @@ export const SessionFlow = (): Hono => {
 
   app.post(apiRoutesStatics.sessions.chat, async (c) => {
     const result = await SessionChatResponder({
+      params: { sessionId: c.req.param('sessionId') },
+      body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.sessions.clarify, async (c) => {
+    const result = await SessionClarifyResponder({
       params: { sessionId: c.req.param('sessionId') },
       body: await c.req.json(),
     });

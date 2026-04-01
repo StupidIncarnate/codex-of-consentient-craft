@@ -3,6 +3,7 @@ import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
 import { sessionChatBrokerProxy } from '../../brokers/session/chat/session-chat-broker.proxy';
 import { sessionChatStopBrokerProxy } from '../../brokers/session/chat-stop/session-chat-stop-broker.proxy';
+import { sessionClarifyBrokerProxy } from '../../brokers/session/clarify/session-clarify-broker.proxy';
 
 export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
@@ -16,6 +17,7 @@ export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: 
   triggerWsOpen: () => void;
 } => {
   const chatProxy = sessionChatBrokerProxy();
+  sessionClarifyBrokerProxy();
   const stopProxy = sessionChatStopBrokerProxy();
   const wsProxy = websocketConnectAdapterProxy({ deferOpen });
 

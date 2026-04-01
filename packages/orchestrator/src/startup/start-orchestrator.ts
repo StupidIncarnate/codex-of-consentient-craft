@@ -28,12 +28,14 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import type { AddQuestResult } from '../contracts/add-quest-result/add-quest-result-contract';
+import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import type { GetQuestResult } from '../contracts/get-quest-result/get-quest-result-contract';
 import type { ModifyQuestInput } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestResult } from '../contracts/modify-quest-result/modify-quest-result-contract';
 import type { VerifyQuestResult } from '../contracts/verify-quest-result/verify-quest-result-contract';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
 import { ChatStartFlow } from '../flows/chat-start/chat-start-flow';
+import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
 import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
 import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
@@ -129,6 +131,21 @@ export const StartOrchestrator = {
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId }> =>
     ChatStartFlow({ guildId, message, ...(sessionId && { sessionId }) }),
+
+  clarifyAnswer: async ({
+    guildId,
+    sessionId,
+    questId,
+    answers,
+    questions,
+  }: {
+    guildId: GuildId;
+    sessionId: SessionId;
+    questId: QuestId;
+    answers: { header: string; label: string }[];
+    questions: ClarificationQuestion[];
+  }): Promise<{ chatProcessId: ProcessId }> =>
+    ClarifyAnswerFlow({ guildId, sessionId, questId, answers, questions }),
 
   stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
     ChatStopFlow({ chatProcessId }),

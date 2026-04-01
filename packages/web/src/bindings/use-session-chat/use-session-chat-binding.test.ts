@@ -30,6 +30,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -65,6 +66,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -99,6 +101,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -128,6 +131,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -181,6 +185,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -325,6 +330,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -640,6 +646,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -688,6 +695,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -736,6 +744,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -1071,6 +1080,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -1101,6 +1111,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });
@@ -1203,6 +1214,7 @@ describe('useSessionChatBinding', () => {
         pendingClarification: null,
         sessionNotFound: false,
         sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
     });

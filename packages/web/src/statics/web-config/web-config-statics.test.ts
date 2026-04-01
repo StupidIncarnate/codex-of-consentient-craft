@@ -14,6 +14,7 @@ describe('webConfigStatics', () => {
           guildSessions: '/api/guilds/:guildId/sessions',
           sessionChat: '/api/sessions/:sessionId/chat',
           sessionChatStop: '/api/sessions/:sessionId/chat/:chatProcessId/stop',
+          sessionClarify: '/api/sessions/:sessionId/clarify',
           sessionChatHistory: '/api/sessions/:sessionId/chat/history',
           processStatus: '/api/process/:processId',
           questStart: '/api/quests/:questId/start',

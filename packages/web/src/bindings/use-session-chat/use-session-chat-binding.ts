@@ -7,12 +7,19 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { GuildId, ProcessId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  ProcessId,
+  QuestId,
+  SessionId,
+  UserInput,
+} from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { sessionChatBroker } from '../../brokers/session/chat/session-chat-broker';
 import { sessionChatStopBroker } from '../../brokers/session/chat-stop/session-chat-stop-broker';
+import { sessionClarifyBroker } from '../../brokers/session/clarify/session-clarify-broker';
 import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
 import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-user-question-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
@@ -33,6 +40,11 @@ export const useSessionChatBinding = ({
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   sessionNotFound: boolean;
   sendMessage: (params: { message: UserInput }) => void;
+  submitClarifyAnswers: (params: {
+    questId: QuestId;
+    answers: { header: string; label: string }[];
+    questions: AskUserQuestionItem[];
+  }) => void;
   stopChat: () => void;
 } => {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
@@ -267,6 +279,66 @@ export const useSessionChatBinding = ({
     [guildId, processWebSocketMessage],
   );
 
+  const submitClarifyAnswers = useCallback(
+    ({
+      questId,
+      answers,
+      questions,
+    }: {
+      questId: QuestId;
+      answers: { header: string; label: string }[];
+      questions: AskUserQuestionItem[];
+    }): void => {
+      if (!guildId) return;
+
+      const activeSessionId = sessionIdRef.current;
+      if (!activeSessionId) return;
+
+      historyLoadedRef.current = true;
+
+      const userMessage = answers.map((a) => `${a.header}: ${a.label}`).join('\n');
+      const userEntry = chatEntryContract.parse({ role: 'user', content: userMessage });
+      setEntries((prev) => [...prev, userEntry]);
+      setIsStreaming(true);
+      setPendingClarification(null);
+
+      chatProcessIdRef.current = null;
+      pendingChatProcessIdRef.current = true;
+      wsBufferRef.current = [];
+
+      sessionClarifyBroker({
+        sessionId: activeSessionId,
+        guildId,
+        questId,
+        answers,
+        questions,
+      })
+        .then(({ chatProcessId }) => {
+          chatProcessIdRef.current = chatProcessId;
+          pendingChatProcessIdRef.current = false;
+
+          const buffered = wsBufferRef.current;
+          wsBufferRef.current = [];
+          for (const bufferedMessage of buffered) {
+            processWebSocketMessage(bufferedMessage);
+          }
+        })
+        .catch((err: unknown) => {
+          pendingChatProcessIdRef.current = false;
+          wsBufferRef.current = [];
+          setIsStreaming(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+          });
+          setEntries((prev) => [...prev, errorEntry]);
+        });
+    },
+    [guildId, processWebSocketMessage],
+  );
+
   const stopChat = useCallback((): void => {
     const currentProcessId = chatProcessIdRef.current;
     if (!currentProcessId) return;
@@ -288,6 +360,7 @@ export const useSessionChatBinding = ({
     pendingClarification,
     sessionNotFound,
     sendMessage,
+    submitClarifyAnswers,
     stopChat,
   };
 };

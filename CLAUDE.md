@@ -16,63 +16,6 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
 discovery/execution).
 
-## Architecture Tools (MCP) - MANDATORY WORKFLOW
-
-**CRITICAL: Use architecture MCP tools FIRST for EVERY task. No exceptions.**
-
-Architecture documentation and code discovery are available as MCP tools.
-
-### Available MCP Tools
-
-- **`get-architecture`** (no params) - ALWAYS RUN FIRST
-    - Returns: Folder types, import hierarchy, decision tree (~1K tokens)
-    - Purpose: Understand where code goes and architectural constraints
-
-- **`discover`** (params: `{ type, path?, fileType?, search?, name?, section? }`) - Find existing code rather than using
-  tools like grep or find.
-    - Browse: `{ type: "files", path: "packages/X/src/guards" }` - Tree list of files with purposes
-    - Details: `{ type: "files", name: "has-file-suffix-guard" }` - Full metadata (signature, usage, related files)
-    - Purpose: Check if similar code exists before creating new
-
-- **`get-folder-detail`** (params: `{ folderType }`) - Get folder-specific rules
-    - Returns: Purpose, naming, imports, constraints, code examples, proxy requirements (~500-1K tokens)
-    - Purpose: Complete patterns for the specific folder you're working in
-
-- **`get-syntax-rules`** (no params) - Universal syntax conventions
-    - Returns: File naming, exports, types, destructuring, all conventions with examples (~5K tokens)
-    - Purpose: Ensure code passes ESLint
-
-- **`get-testing-patterns`** (no params) - Testing architecture
-    - Returns: Testing philosophy, proxy patterns, assertions, test structure (~5K tokens)
-    - Purpose: Understand how to write tests and proxy files
-
-### Standard Workflow
-
-```
-1. Use `discover` tool with { type: "files", search: "..." }       // Check if code exists
-2. Use `get-folder-detail` tool with { folderType: "FOLDER_TYPE" } // Get folder patterns
-3. Use `get-syntax-rules` tool                                     // Get syntax conventions
-4. Use `get-testing-patterns` tool                                 // Get testing patterns (if writing tests)
-5. Write code following tool-provided examples                     // All patterns provided by tools
-6. Run tests to verify                                             // npm run ward -- --only test -- path/to/file.test.ts
-```
-
-### Refactor Scenario
-
-When existing code violates architecture:
-
-```
-1. Use `discover` tool to find files needing refactor              // Find all affected files
-2. Use `get-folder-detail` tool for target folder                  // Get correct patterns
-3. Use `get-syntax-rules` tool                                     // Get syntax requirements
-4. Use `get-testing-patterns` tool                                 // Get test/proxy patterns
-5. Read files you're modifying                                     // Only now read
-6. Create new files following tool-provided patterns               // Write with correct structure
-7. Update imports in dependent files                               // Fix references
-8. Delete old non-conforming files                                 // Clean up
-9. Run tests to verify                                             // Ensure nothing breaks
-```
-
 ## Worktree Isolation
 
 When the repo is cloned into a `worktrees/` directory alongside sibling worktrees, `npm install` auto-generates a

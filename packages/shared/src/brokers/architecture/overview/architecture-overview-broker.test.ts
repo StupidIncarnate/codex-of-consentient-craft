@@ -178,6 +178,48 @@ describe('architectureOverviewBroker', () => {
     });
   });
 
+  describe('code discovery documentation', () => {
+    it('VALID: {} => includes code discovery section with tool comparison and parallel guidance', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^## Code Discovery$/mu);
+      expect(result).toMatch(/^\*\*discover vs Grep vs Glob — when to use each:\*\*$/mu);
+      expect(result).toMatch(
+        /^\*\*Parallel discovery:\*\* When you need multiple searches, batch them into a single message with multiple tool calls:$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*Always discover before creating\.\*\* Check if similar code exists\. If it does, extend it — don't duplicate\.$/mu,
+      );
+    });
+  });
+
+  describe('MCP tools reference', () => {
+    it('VALID: {} => includes MCP tools reference section with all five tools', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^## MCP Tools Reference$/mu);
+      expect(result).toMatch(
+        /^\| `get-architecture` \| \*\(none\)\* \| This document — folder types, import rules, decision tree \| First thing on any task \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `discover` \| `\{ type, path\?, fileType\?, search\?, name\?, section\? \}` \| File purposes, signatures, related files, or standards docs \| Finding existing code before creating new \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `get-folder-detail` \| `\{ folderType \}` \| Naming, imports, constraints, code examples, proxy requirements \| Before creating\/modifying files in a folder type \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `get-syntax-rules` \| \*\(none\)\* \| File naming, exports, types, destructuring conventions \| Ensuring code passes ESLint \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `get-testing-patterns` \| \*\(none\)\* \| Testing philosophy, proxy patterns, assertion rules, test structure \| Before writing tests or proxy files \|$/mu,
+      );
+    });
+  });
+
   describe('import rules documentation', () => {
     it('VALID: {} => includes entry file import rules', () => {
       architectureOverviewBrokerProxy();
