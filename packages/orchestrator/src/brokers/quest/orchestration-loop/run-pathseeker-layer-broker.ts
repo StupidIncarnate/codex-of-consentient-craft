@@ -7,6 +7,7 @@
  */
 
 import {
+  absoluteFilePathContract,
   type FilePath,
   type QuestId,
   type SessionId,
@@ -23,6 +24,7 @@ import { workUnitContract } from '../../../contracts/work-unit/work-unit-contrac
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questPathseekerSessionIdTransformer } from '../../../transformers/quest-pathseeker-session-id/quest-pathseeker-session-id-transformer';
 import { stepsToWorkItemsTransformer } from '../../../transformers/steps-to-work-items/steps-to-work-items-transformer';
+import { agentFilesEnsureBroker } from '../../agent/files-ensure/agent-files-ensure-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -61,6 +63,10 @@ export const runPathseekerLayerBroker = async ({
 
   const slotIndex = slotIndexContract.parse(0);
   let trackedSessionId: SessionId | null = null;
+
+  await agentFilesEnsureBroker({
+    targetPath: absoluteFilePathContract.parse(startPath),
+  });
 
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,

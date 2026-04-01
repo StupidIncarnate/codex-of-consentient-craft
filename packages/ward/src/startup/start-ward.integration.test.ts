@@ -42,16 +42,17 @@ describe('StartWard', () => {
       const originalCwd = process.cwd();
       process.chdir(testbed.guildPath);
 
+      let result: unknown;
       try {
-        await expect(
-          StartWard({
-            args: ['node', 'ward', 'detail', VALID_RUN_ID, 'src/index.ts'],
-          }),
-        ).resolves.toBe(undefined);
+        result = await StartWard({
+          args: ['node', 'ward', 'detail', VALID_RUN_ID, 'src/index.ts'],
+        });
       } finally {
         process.chdir(originalCwd);
         testbed.cleanup();
       }
+
+      expect(result).toBe(undefined);
     });
 
     it('VALID: {args: ["node", "ward", "detail"]} with missing runId => prints usage and completes', async () => {

@@ -196,7 +196,7 @@ describe('architectureOverviewBroker', () => {
   });
 
   describe('MCP tools reference', () => {
-    it('VALID: {} => includes MCP tools reference section with all five tools', () => {
+    it('VALID: {} => includes MCP tools reference header and architecture tools', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
@@ -208,6 +208,13 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(
         /^\| `discover` \| `\{ type, path\?, fileType\?, search\?, name\?, section\? \}` \| File purposes, signatures, related files, or standards docs \| Finding existing code before creating new \|$/mu,
       );
+    });
+
+    it('VALID: {} => includes folder detail, syntax rules, and testing patterns tools', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
       expect(result).toMatch(
         /^\| `get-folder-detail` \| `\{ folderType \}` \| Naming, imports, constraints, code examples, proxy requirements \| Before creating\/modifying files in a folder type \|$/mu,
       );

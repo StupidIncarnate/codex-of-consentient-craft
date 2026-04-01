@@ -11,5 +11,5 @@ import { InstallWriteFilesResponder } from '../../responders/install/write-files
 type ResponderParams = Parameters<typeof InstallWriteFilesResponder>[0];
 type ResponderResult = Awaited<ReturnType<typeof InstallWriteFilesResponder>>;
 
-export const InstallFlow = async ({ context }: ResponderParams): Promise<ResponderResult> =>
+export const InstallFlow = ({ context }: ResponderParams): ResponderResult =>
   InstallWriteFilesResponder({ context });

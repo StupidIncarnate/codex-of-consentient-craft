@@ -5,6 +5,7 @@ import {
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 
+import { agentFilesEnsureBrokerProxy } from '../../agent/files-ensure/agent-files-ensure-broker.proxy';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 
@@ -21,6 +22,7 @@ export const runChatLayerBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
 } => {
+  agentFilesEnsureBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const spawnProxy = agentSpawnUnifiedBrokerProxy();
 

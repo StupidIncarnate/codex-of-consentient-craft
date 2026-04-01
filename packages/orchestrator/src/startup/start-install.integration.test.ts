@@ -1,51 +1,22 @@
-import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { chaoswhispererPromptStatics } from '../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
-import { questStartPromptStatics } from '../statics/quest-start-prompt/quest-start-prompt-statics';
-import { finalizerQuestAgentPromptStatics } from '../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
-import { gapReviewerAgentPromptStatics } from '../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 import { StartInstall } from './start-install';
 
 describe('StartInstall', () => {
   describe('wiring to install flow', () => {
-    it('VALID: {context} => delegates to flow and returns install result with all files created', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'startup-wiring' }),
-      });
-
-      const result = await StartInstall({
+    it('VALID: {context} => delegates to flow and returns install result', () => {
+      const result = StartInstall({
         context: {
-          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
         },
       });
-
-      const questContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest.md' }),
-      });
-      const questStartContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/quest:start.md' }),
-      });
-      const questFinalizerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/finalizer-quest-agent.md' }),
-      });
-      const questGapReviewerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/agents/quest-gap-reviewer.md' }),
-      });
-
-      testbed.cleanup();
 
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/orchestrator',
         success: true,
         action: 'created',
-        message:
-          'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+        message: 'Agent prompt files are written just-in-time before agent spawn',
       });
-      expect(questContent).toBe(chaoswhispererPromptStatics.prompt.template);
-      expect(String(questStartContent)).toBe(questStartPromptStatics.prompt.template);
-      expect(String(questFinalizerContent)).toBe(finalizerQuestAgentPromptStatics.prompt.template);
-      expect(String(questGapReviewerContent)).toBe(gapReviewerAgentPromptStatics.prompt.template);
     });
   });
 });

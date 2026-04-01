@@ -82,7 +82,9 @@ test.describe('Clarification Design Decisions', () => {
 
     // Dismiss the quest approved modal
     const keepChattingBtn = page.getByText('Keep Chatting');
+
     await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+
     await keepChattingBtn.click();
 
     // Send initial message to trigger the clarification
@@ -94,8 +96,10 @@ test.describe('Clarification Design Decisions', () => {
 
     // Click PostgreSQL option
     const options = page.getByTestId('CLARIFY_OPTION');
+
     await expect(options.first()).toBeVisible();
     await expect(options.first()).toContainText('PostgreSQL');
+
     await options.first().click();
 
     // Clarify panel should disappear after answering
@@ -180,7 +184,9 @@ test.describe('Clarification Design Decisions', () => {
 
     // Dismiss the quest approved modal
     const keepChattingBtn = page.getByText('Keep Chatting');
+
     await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
+
     await keepChattingBtn.click();
 
     // Send message to trigger the simple text response
