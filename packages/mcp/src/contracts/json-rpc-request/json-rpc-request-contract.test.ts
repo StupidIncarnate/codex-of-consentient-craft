@@ -27,18 +27,18 @@ describe('jsonRpcRequestContract', () => {
     });
   });
 
-  it('VALID: {id: 3, method: "tools/call", params: {name: "discover", arguments: {type: "files"}}} => parses successfully', () => {
+  it('VALID: {id: 3, method: "tools/call", params: {name: "discover", arguments: {glob: "**/*-broker.*"}}} => parses successfully', () => {
     const result = JsonRpcRequestStub({
       id: 3,
       method: 'tools/call',
-      params: { name: 'discover', arguments: { type: 'files' } },
+      params: { name: 'discover', arguments: { glob: '**/*-broker.*' } },
     });
 
     expect(result).toStrictEqual({
       jsonrpc: '2.0',
       id: 3,
       method: 'tools/call',
-      params: { name: 'discover', arguments: { type: 'files' } },
+      params: { name: 'discover', arguments: { glob: '**/*-broker.*' } },
     });
   });
 

@@ -128,15 +128,14 @@ describe('McpServerFlow', () => {
   });
 
   describe('tools/call with discover', () => {
-    it('VALID: {type: files, path: src/brokers} => returns tree format', async () => {
+    it('VALID: {glob: src/brokers/**} => returns tree format with zero count (temp dir has no source)', async () => {
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4 }),
         method: RpcMethodStub({ value: 'tools/call' }),
         params: {
           name: 'discover',
           arguments: {
-            type: 'files',
-            path: 'src/brokers',
+            glob: 'src/brokers/**',
           },
         },
       });
@@ -153,19 +152,18 @@ describe('McpServerFlow', () => {
 
       const { results, count } = data;
 
-      expect(results).toMatch(/^\s+\S+-broker \(broker\) - .+$/mu);
-      expect(count).toBeGreaterThan(0);
+      expect(results).toBe('');
+      expect(count).toBe(0);
     });
 
-    it('VALID: {type: files, fileType: adapter} => returns adapters from @dungeonmaster/shared', async () => {
+    it('VALID: {glob: **/*-adapter.*} => returns adapters from @dungeonmaster/shared', async () => {
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5 }),
         method: RpcMethodStub({ value: 'tools/call' }),
         params: {
           name: 'discover',
           arguments: {
-            type: 'files',
-            fileType: 'adapter',
+            glob: '**/*-adapter.*',
           },
         },
       });
@@ -183,15 +181,14 @@ describe('McpServerFlow', () => {
       expect(data.results).toMatch(/^adapters\/$/mu);
     });
 
-    it('VALID: {type: files, fileType: adapter} => shared package includes fs-access-adapter', async () => {
+    it('VALID: {glob: **/*-adapter.*} => shared package includes fs-access-adapter', async () => {
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 6 }),
         method: RpcMethodStub({ value: 'tools/call' }),
         params: {
           name: 'discover',
           arguments: {
-            type: 'files',
-            fileType: 'adapter',
+            glob: '**/*-adapter.*',
           },
         },
       });
@@ -485,36 +482,6 @@ describe('McpServerFlow', () => {
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^# Universal Syntax Rules$/mu);
-    });
-  });
-
-  describe('tools/call with discover standards', () => {
-    it('VALID: {type: standards} => returns JSON response with results array', async () => {
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 7001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'discover',
-          arguments: {
-            type: 'standards',
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      expect(response.error).toBe(undefined);
-
-      const result = ToolCallResultStub(response.result as never);
-
-      expect(result.content[0]?.type).toBe('text');
-
-      const parsedData: unknown = JSON.parse(String(result.content[0]?.text));
-
-      expect(parsedData).toStrictEqual({
-        results: [],
-        count: 0,
-      });
     });
   });
 

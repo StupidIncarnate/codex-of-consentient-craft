@@ -32,6 +32,11 @@ export const UserCardWidget = ({userId}: Props): JSX.Element => {
 };
 ```
 
+**ERROR HANDLING:**
+
+- **Widgets consume the `error` field from bindings** and render error states — no try/catch in widgets
+- **Event handlers** (onClick, onChange, onSubmit): Log or show user feedback — never silently swallow errors
+
 **PROP TYPES:**
 
 Must export prop types as `[WidgetName]Props`:

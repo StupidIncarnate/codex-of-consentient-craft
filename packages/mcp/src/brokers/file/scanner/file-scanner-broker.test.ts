@@ -3,15 +3,14 @@ import { fileScannerBrokerProxy } from './file-scanner-broker.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
-import { FileTypeStub } from '../../../contracts/file-type/file-type.stub';
-import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
+import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
 describe('fileScannerBroker', () => {
-  describe('with valid metadata', () => {
-    it('VALID: {} => returns guards with metadata', async () => {
+  describe('no filters', () => {
+    it('VALID: {} => returns all matched files with metadata', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Validates that user has permission to edit resource
@@ -26,7 +25,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 };`,
       });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
       const results = await fileScannerBroker({});
 
@@ -48,69 +47,20 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
             raw: 'export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean =>',
             returnType: 'boolean',
           },
-          source: 'project',
           usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
         },
       ]);
     });
 
-    it('VALID: {name: "has-permission-guard"} => returns single specific file', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Validates that user has permission to edit resource
- *
- * USAGE:
- * if (hasPermissionGuard({ user, resource })) {
- *   // User can edit
- * }
- */
-export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean => {
-  return user?.permissions.includes(resource?.requiredPermission);
-};`,
-      });
-
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({ name: 'has-permission-guard' });
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'guard',
-          metadata: {},
-          name: 'has-permission-guard',
-          path: '/project/src/guards/has-permission-guard.ts',
-          purpose: 'Validates that user has permission to edit resource',
-          relatedFiles: [],
-          signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { 'resource?': 'Resource', 'user?': 'User' },
-              },
-            ],
-            raw: 'export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?: Resource }): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
-        },
-      ]);
-    });
-  });
-
-  describe('without metadata', () => {
-    it('VALID: files without PURPOSE/USAGE but with exported function => returns file with undefined metadata', async () => {
+    it('VALID: files without PURPOSE/USAGE => still returned with undefined metadata', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/transformers/plain-transformer.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `export const plainTransformer = () => true;`,
       });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
       const results = await fileScannerBroker({});
 
@@ -123,18 +73,15 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
           purpose: undefined,
           relatedFiles: [],
           signature: undefined,
-          source: 'project',
           usage: undefined,
         },
       ]);
     });
-  });
 
-  describe('without signature', () => {
-    it('EMPTY: files without exported function => returns empty array', async () => {
+    it('VALID: files without exported function => still returned (no gate)', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/guards/no-export-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Validates something
@@ -143,63 +90,30 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 const privateFunction = () => true;`,
       });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
       const results = await fileScannerBroker({});
 
-      expect(results).toStrictEqual([]);
-    });
-  });
-
-  describe('with path filter', () => {
-    it('VALID: {path: "src/guards"} => returns files from that path only', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: 'src/guards/has-permission-guard.ts' });
-      const path = FilePathStub({ value: 'src/guards' });
-      const pattern = GlobPatternStub({ value: 'src/guards/**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Validates permission
- * USAGE: hasPermissionGuard({ user })
- */
-export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
-      });
-
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({ path });
-
       expect(results).toStrictEqual([
         {
           fileType: 'guard',
           metadata: {},
-          name: 'has-permission-guard',
-          path: 'src/guards/has-permission-guard.ts',
-          purpose: 'Validates permission',
+          name: 'no-export-guard',
+          path: '/project/src/guards/no-export-guard.ts',
+          purpose: 'Validates something',
           relatedFiles: [],
-          signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { 'user?': 'User' },
-              },
-            ],
-            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'hasPermissionGuard({ user })',
+          signature: undefined,
+          usage: 'example',
         },
       ]);
     });
   });
 
-  describe('with fileType filter', () => {
-    it('VALID: {fileType: "guard"} => returns only guard files', async () => {
+  describe('glob filter', () => {
+    it('VALID: {glob: "**/*.ts"} => glob with extension used as-is', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const fileType = FileTypeStub({ value: 'guard' });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
       const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Validates permission
@@ -207,10 +121,11 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
+      const { glob } = DiscoverInputStub({ glob: '**/*.ts' });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ fileType });
+      const results = await fileScannerBroker({ glob: glob! });
 
       expect(results).toStrictEqual([
         {
@@ -230,98 +145,17 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
             raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
             returnType: 'boolean',
           },
-          source: 'project',
           usage: 'hasPermissionGuard({ user })',
         },
       ]);
     });
   });
 
-  describe('with search filter', () => {
-    it('VALID: {search: "permission"} => returns files matching search in purpose or name', async () => {
+  describe('grep filter', () => {
+    it('VALID: {grep: "permission"} => returns files with matching content and hits', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Validates that user has permission to edit resource
- * USAGE: hasPermissionGuard({ user })
- */
-export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
-      });
-
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({ search: 'permission' });
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'guard',
-          metadata: {},
-          name: 'has-permission-guard',
-          path: '/project/src/guards/has-permission-guard.ts',
-          purpose: 'Validates that user has permission to edit resource',
-          relatedFiles: [],
-          signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { 'user?': 'User' },
-              },
-            ],
-            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'hasPermissionGuard({ user })',
-        },
-      ]);
-    });
-
-    it('VALID: {search: "PERMISSION"} => matches case-insensitively', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Validates that user has permission to edit resource
- * USAGE: hasPermissionGuard({ user })
- */
-export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
-      });
-
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({ search: 'PERMISSION' });
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'guard',
-          metadata: {},
-          name: 'has-permission-guard',
-          path: '/project/src/guards/has-permission-guard.ts',
-          purpose: 'Validates that user has permission to edit resource',
-          relatedFiles: [],
-          signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { 'user?': 'User' },
-              },
-            ],
-            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'hasPermissionGuard({ user })',
-        },
-      ]);
-    });
-
-    it('EMPTY: {search: "nonexistent"} => returns empty array', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Validates permission
@@ -329,46 +163,93 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
  */
 export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
       });
+      const { grep } = DiscoverInputStub({ grep: 'permission' });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ search: 'nonexistent' });
+      const results = await fileScannerBroker({ grep: grep! });
+
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          hits: [{ line: 2, text: ' * PURPOSE: Validates permission' }],
+          metadata: {},
+          name: 'has-permission-guard',
+          path: '/project/src/guards/has-permission-guard.ts',
+          purpose: 'Validates permission',
+          relatedFiles: [],
+          signature: {
+            parameters: [
+              {
+                name: 'destructured object',
+                type: { 'user?': 'User' },
+              },
+            ],
+            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: 'hasPermissionGuard({ user })',
+        },
+      ]);
+    });
+
+    it('EMPTY: {grep: "nonexistent"} => returns empty array', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
+      const pattern = GlobPatternStub({ value: '**/*' });
+      const contents = FileContentsStub({
+        value: `export const hasPermissionGuard = (): boolean => true;`,
+      });
+      const { grep } = DiscoverInputStub({ grep: 'nonexistent' });
+
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
+
+      const results = await fileScannerBroker({ grep: grep! });
 
       expect(results).toStrictEqual([]);
     });
 
-    it('VALID: {search: "plain"} => finds files without metadata by name', async () => {
+    it('VALID: {grep: "ERROR", context: 1} => returns hits with context lines', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/transformers/plain-transformer.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const filepath = FilePathStub({ value: '/project/src/adapters/fs-access-adapter.ts' });
+      const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
-        value: `export const plainTransformer = () => true;`,
+        value: `line1
+line2
+ERROR here
+line4
+line5`,
       });
+      const { grep, context } = DiscoverInputStub({ grep: 'ERROR', context: 1 });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
-      const results = await fileScannerBroker({ search: 'plain' });
+      const results = await fileScannerBroker({ grep: grep!, context: context! });
 
       expect(results).toStrictEqual([
         {
-          fileType: 'transformer',
+          fileType: 'adapter',
+          hits: [
+            { line: 2, text: 'line2' },
+            { line: 3, text: 'ERROR here' },
+            { line: 4, text: 'line4' },
+          ],
           metadata: undefined,
-          name: 'plain-transformer',
-          path: '/project/src/transformers/plain-transformer.ts',
+          name: 'fs-access-adapter',
+          path: '/project/src/adapters/fs-access-adapter.ts',
           purpose: undefined,
           relatedFiles: [],
           signature: undefined,
-          source: 'project',
           usage: undefined,
         },
       ]);
     });
   });
 
-  describe('relatedFiles', () => {
-    it('VALID: implementation file with test and proxy => includes both in relatedFiles', async () => {
+  describe('multi-dot files as regular results', () => {
+    it('VALID: test and proxy files => appear as standalone results with companion linking', async () => {
       const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       const implPath = FilePathStub({
         value: '/project/src/brokers/user-broker.ts',
@@ -396,7 +277,7 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
         value: `export const userBrokerProxy = () => ({ mock: jest.fn() });`,
       });
 
-      proxy.setupMultipleFiles({
+      proxy.setupFiles({
         pattern,
         files: [
           { filepath: implPath, contents: implContents },
@@ -407,7 +288,9 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
 
       const results = await fileScannerBroker({});
 
-      expect(results).toStrictEqual([
+      const implResult = results.filter((r) => r.path === '/project/src/brokers/user-broker.ts');
+
+      expect(implResult).toStrictEqual([
         {
           fileType: 'broker',
           metadata: {},
@@ -425,78 +308,72 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
             raw: 'export const userBroker = ({ userId }: { userId: string }): boolean =>',
             returnType: 'boolean',
           },
-          source: 'project',
           usage: 'userBroker({ userId })',
         },
       ]);
     });
+  });
 
-    it('VALID: implementation file with only test => includes test in relatedFiles', async () => {
+  describe('relatedFiles enrichment', () => {
+    it('VALID: implementation with multiple multi-dot companions => all appear in relatedFiles sorted', async () => {
       const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({
-        value: '/project/src/guards/has-permission-guard.ts',
-      });
-      const testPath = FilePathStub({
-        value: '/project/src/guards/has-permission-guard.test.ts',
-      });
+      const implPath = FilePathStub({ value: '/project/src/brokers/data-broker.ts' });
+      const testPath = FilePathStub({ value: '/project/src/brokers/data-broker.test.ts' });
+      const proxyPath = FilePathStub({ value: '/project/src/brokers/data-broker.proxy.ts' });
+      const stubPath = FilePathStub({ value: '/project/src/brokers/data-broker.stub.ts' });
 
       const implContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Checks permissions
- * USAGE: hasPermissionGuard({ user })
- */
-export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`,
+        value: `export const dataBroker = (): boolean => true;`,
       });
-
       const testContents = FileContentsStub({
-        value: `export const hasPermissionGuardTest = () => { it('works', () => {}); };`,
+        value: `export const dataBrokerTest = () => {};`,
+      });
+      const proxyContents = FileContentsStub({
+        value: `export const dataBrokerProxy = () => {};`,
+      });
+      const stubContents = FileContentsStub({
+        value: `export const dataBrokerStub = () => {};`,
       });
 
-      proxy.setupMultipleFiles({
+      proxy.setupFiles({
         pattern,
         files: [
           { filepath: implPath, contents: implContents },
           { filepath: testPath, contents: testContents },
+          { filepath: proxyPath, contents: proxyContents },
+          { filepath: stubPath, contents: stubContents },
         ],
       });
 
       const results = await fileScannerBroker({});
 
-      expect(results).toStrictEqual([
+      const implResult = results.filter((r) => r.path === '/project/src/brokers/data-broker.ts');
+
+      expect(implResult).toStrictEqual([
         {
-          fileType: 'guard',
-          metadata: {},
-          name: 'has-permission-guard',
-          path: '/project/src/guards/has-permission-guard.ts',
-          purpose: 'Checks permissions',
-          relatedFiles: ['has-permission-guard.test.ts'],
+          fileType: 'broker',
+          metadata: undefined,
+          name: 'data-broker',
+          path: '/project/src/brokers/data-broker.ts',
+          purpose: undefined,
+          relatedFiles: ['data-broker.proxy.ts', 'data-broker.stub.ts', 'data-broker.test.ts'],
           signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { 'user?': 'User' },
-              },
-            ],
-            raw: 'export const hasPermissionGuard = ({ user }: { user?: User }): boolean =>',
+            parameters: [],
+            raw: 'export const dataBroker = (): boolean =>',
             returnType: 'boolean',
           },
-          source: 'project',
-          usage: 'hasPermissionGuard({ user })',
+          usage: undefined,
         },
       ]);
     });
 
-    it('VALID: implementation file with no related files => relatedFiles is empty', async () => {
+    it('VALID: implementation with no related files => relatedFiles is empty', async () => {
       const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-
-      const implPath = FilePathStub({
-        value: '/project/src/guards/orphan-guard.ts',
-      });
-
-      const implContents = FileContentsStub({
+      const pattern = GlobPatternStub({ value: '**/*' });
+      const filepath = FilePathStub({ value: '/project/src/guards/orphan-guard.ts' });
+      const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Orphaned guard
  * USAGE: orphanGuard()
@@ -504,10 +381,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 export const orphanGuard = (): boolean => true;`,
       });
 
-      proxy.setupMultipleFiles({
-        pattern,
-        files: [{ filepath: implPath, contents: implContents }],
-      });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
 
       const results = await fileScannerBroker({});
 
@@ -524,213 +398,18 @@ export const orphanGuard = (): boolean => true;`,
             raw: 'export const orphanGuard = (): boolean =>',
             returnType: 'boolean',
           },
-          source: 'project',
           usage: 'orphanGuard()',
         },
       ]);
     });
+  });
 
-    it('VALID: relatedFiles are sorted alphabetically', async () => {
+  describe('empty results', () => {
+    it('EMPTY: no files matched => returns empty array', async () => {
       const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({
-        value: '/project/src/brokers/user-broker.ts',
-      });
-      const testPath = FilePathStub({
-        value: '/project/src/brokers/user-broker.test.ts',
-      });
-      const proxyPath = FilePathStub({
-        value: '/project/src/brokers/user-broker.proxy.ts',
-      });
-      const stubPath = FilePathStub({
-        value: '/project/src/brokers/user-broker.stub.ts',
-      });
-
-      const implContents = FileContentsStub({
-        value: `/**
- * PURPOSE: User broker
- * USAGE: userBroker()
- */
-export const userBroker = (): boolean => true;`,
-      });
-
-      const relatedContents = FileContentsStub({
-        value: `export const placeholder = () => true;`,
-      });
-
-      proxy.setupMultipleFiles({
-        pattern,
-        files: [
-          { filepath: implPath, contents: implContents },
-          { filepath: testPath, contents: relatedContents },
-          { filepath: proxyPath, contents: relatedContents },
-          { filepath: stubPath, contents: relatedContents },
-        ],
-      });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'broker',
-          metadata: {},
-          name: 'user-broker',
-          path: '/project/src/brokers/user-broker.ts',
-          purpose: 'User broker',
-          relatedFiles: ['user-broker.proxy.ts', 'user-broker.stub.ts', 'user-broker.test.ts'],
-          signature: {
-            parameters: [],
-            raw: 'export const userBroker = (): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'userBroker()',
-        },
-      ]);
-    });
-
-    it('VALID: test file without exported function => included in relatedFiles', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-
-      const implPath = FilePathStub({
-        value: '/project/src/brokers/rule/my-rule-broker.ts',
-      });
-      const testPath = FilePathStub({
-        value: '/project/src/brokers/rule/my-rule-broker.test.ts',
-      });
-
-      const implContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Custom ESLint rule
- * USAGE: myRuleBroker()
- */
-export const myRuleBroker = (): RuleModule => ({ create: () => ({}) });`,
-      });
-
-      const testContents = FileContentsStub({
-        value: `import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
-import { myRuleBroker } from './my-rule-broker';
-
-const ruleTester = eslintRuleTesterAdapter();
-
-ruleTester.run('my-rule', myRuleBroker(), {
-  valid: [],
-  invalid: [],
-});`,
-      });
-
-      proxy.setupMultipleFiles({
-        pattern,
-        files: [
-          { filepath: implPath, contents: implContents },
-          { filepath: testPath, contents: testContents },
-        ],
-      });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'broker',
-          metadata: {},
-          name: 'my-rule-broker',
-          path: '/project/src/brokers/rule/my-rule-broker.ts',
-          purpose: 'Custom ESLint rule',
-          relatedFiles: ['my-rule-broker.test.ts'],
-          signature: {
-            parameters: [],
-            raw: 'export const myRuleBroker = (): RuleModule =>',
-            returnType: 'RuleModule',
-          },
-          source: 'project',
-          usage: 'myRuleBroker()',
-        },
-      ]);
-    });
-
-    it('VALID: proxy file without exported function => included in relatedFiles', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-
-      const implPath = FilePathStub({
-        value: '/project/src/adapters/http/http-adapter.ts',
-      });
-      const proxyPath = FilePathStub({
-        value: '/project/src/adapters/http/http-adapter.proxy.ts',
-      });
-
-      const implContents = FileContentsStub({
-        value: `/**
- * PURPOSE: HTTP adapter
- * USAGE: httpAdapter({ url })
- */
-export const httpAdapter = async ({ url }: { url: string }): Promise<Response> => fetch(url);`,
-      });
-
-      const proxyContents = FileContentsStub({
-        value: `import axios from 'axios';
-jest.mock('axios');
-
-const mockAxios = jest.mocked(axios);
-mockAxios.mockResolvedValue({ data: {} });`,
-      });
-
-      proxy.setupMultipleFiles({
-        pattern,
-        files: [
-          { filepath: implPath, contents: implContents },
-          { filepath: proxyPath, contents: proxyContents },
-        ],
-      });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'adapter',
-          metadata: {},
-          name: 'http-adapter',
-          path: '/project/src/adapters/http/http-adapter.ts',
-          purpose: 'HTTP adapter',
-          relatedFiles: ['http-adapter.proxy.ts'],
-          signature: {
-            parameters: [
-              {
-                name: 'destructured object',
-                type: { url: 'string' },
-              },
-            ],
-            raw: 'export const httpAdapter = async ({ url }: { url: string }): Promise<Response> =>',
-            returnType: 'Promise<Response>',
-          },
-          source: 'project',
-          usage: 'httpAdapter({ url })',
-        },
-      ]);
-    });
-
-    it('VALID: implementation file without exported function => not returned in results', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-
-      const implPath = FilePathStub({
-        value: '/project/src/utils/helper.ts',
-      });
-
-      const implContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Helper utilities
- * USAGE: Not applicable
- */
-const privateHelper = (): boolean => true;`,
-      });
-
-      proxy.setupMultipleFiles({
-        pattern,
-        files: [{ filepath: implPath, contents: implContents }],
-      });
+      proxy.setupFiles({ files: [], pattern });
 
       const results = await fileScannerBroker({});
 
@@ -738,194 +417,126 @@ const privateHelper = (): boolean => true;`,
     });
   });
 
-  describe('source field', () => {
-    it('VALID: project files => source is "project"', async () => {
+  describe('sorting', () => {
+    it('VALID: multiple files => sorted alphabetically by name', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/my-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: My guard
- * USAGE: myGuard()
- */
-export const myGuard = (): boolean => true;`,
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const fileZ = FilePathStub({ value: '/project/src/guards/zebra-guard.ts' });
+      const fileA = FilePathStub({ value: '/project/src/guards/alpha-guard.ts' });
+      const fileM = FilePathStub({ value: '/project/src/guards/middle-guard.ts' });
+
+      const contentsZ = FileContentsStub({
+        value: `export const zebraGuard = (): boolean => true;`,
+      });
+      const contentsA = FileContentsStub({
+        value: `export const alphaGuard = (): boolean => true;`,
+      });
+      const contentsM = FileContentsStub({
+        value: `export const middleGuard = (): boolean => true;`,
       });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'guard',
-          metadata: {},
-          name: 'my-guard',
-          path: '/project/src/guards/my-guard.ts',
-          purpose: 'My guard',
-          relatedFiles: [],
-          signature: {
-            parameters: [],
-            raw: 'export const myGuard = (): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'myGuard()',
-        },
-      ]);
-    });
-
-    it('VALID: shared package not found => only project files returned', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/my-guard.ts' });
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: My guard
- * USAGE: myGuard()
- */
-export const myGuard = (): boolean => true;`,
-      });
-
-      proxy.setupSharedPackageNotFound();
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'guard',
-          metadata: {},
-          name: 'my-guard',
-          path: '/project/src/guards/my-guard.ts',
-          purpose: 'My guard',
-          relatedFiles: [],
-          signature: {
-            parameters: [],
-            raw: 'export const myGuard = (): boolean =>',
-            returnType: 'boolean',
-          },
-          source: 'project',
-          usage: 'myGuard()',
-        },
-      ]);
-    });
-  });
-
-  describe('shared package scanning', () => {
-    it('VALID: shared package files with mocked glob => source is "shared" and path transformed', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const pattern = GlobPatternStub({ value: '**/*.{ts,tsx}' });
-
-      // Shared package file - note the path format after transformation
-      const sharedFilepath = FilePathStub({
-        value: '/node_modules/@dungeonmaster/shared/src/guards/is-key-of/is-key-of-guard.ts',
-      });
-      const sharedContents = FileContentsStub({
-        value: `/**
- * PURPOSE: Type guard for key-of check
- * USAGE: isKeyOfGuard({ obj, key })
- */
-export const isKeyOfGuard = <T extends object>({ obj, key }: { obj: T; key: PropertyKey }): key is keyof T => key in obj;`,
-      });
-
-      // When shared package is available, two glob calls happen (project + shared)
-      // First call returns empty (project), second returns shared files
-      proxy.setupSharedPackageAvailable();
-      proxy.setupSharedPackageFiles({
+      proxy.setupFiles({
+        files: [
+          { filepath: fileZ, contents: contentsZ },
+          { filepath: fileA, contents: contentsA },
+          { filepath: fileM, contents: contentsM },
+        ],
         pattern,
-        files: [{ filepath: sharedFilepath, contents: sharedContents }],
       });
 
       const results = await fileScannerBroker({});
 
-      // Should find the shared file
-      const sharedFiles = results.filter((r) => r.source === 'shared');
-
-      expect(sharedFiles).toStrictEqual([
+      expect(results).toStrictEqual([
         {
           fileType: 'guard',
-          metadata: {},
-          name: 'is-key-of-guard',
-          path: '/node_modules/@dungeonmaster/shared/src/guards/is-key-of/is-key-of-guard.ts',
-          purpose: 'Type guard for key-of check',
+          metadata: undefined,
+          name: 'alpha-guard',
+          path: '/project/src/guards/alpha-guard.ts',
+          purpose: undefined,
           relatedFiles: [],
-          signature: undefined,
-          source: 'shared',
-          usage: 'isKeyOfGuard({ obj, key })',
+          signature: {
+            parameters: [],
+            raw: 'export const alphaGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
+        },
+        {
+          fileType: 'guard',
+          metadata: undefined,
+          name: 'middle-guard',
+          path: '/project/src/guards/middle-guard.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const middleGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
+        },
+        {
+          fileType: 'guard',
+          metadata: undefined,
+          name: 'zebra-guard',
+          path: '/project/src/guards/zebra-guard.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const zebraGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
         },
       ]);
     });
   });
 
-  describe('javascript file scanning', () => {
-    it('VALID: scans .js files => returns js files with metadata', async () => {
+  describe('glob + grep combined', () => {
+    it('VALID: {glob, grep} => glob filters files, grep filters contents', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.js' });
-      const pattern = GlobPatternStub({ value: `**/${fileExtensionsStatics.globs.all}` });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Validates that user has permission to edit resource
- *
- * USAGE:
- * if (hasPermissionGuard({ user, resource })) {
- *   // User can edit
- * }
- */
-export const hasPermissionGuard = ({ user, resource }) => {
-  return user?.permissions.includes(resource?.requiredPermission);
-};`,
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
+      const matchingFile = FilePathStub({ value: '/project/src/guards/permission-guard.ts' });
+      const nonMatchingFile = FilePathStub({ value: '/project/src/guards/other-guard.ts' });
+
+      const matchingContents = FileContentsStub({
+        value: `export const permissionGuard = (): boolean => checkPermission();`,
+      });
+      const nonMatchingContents = FileContentsStub({
+        value: `export const otherGuard = (): boolean => true;`,
       });
 
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
+      const { glob, grep } = DiscoverInputStub({ glob: '**/*.ts', grep: 'checkPermission' });
 
-      const results = await fileScannerBroker({});
+      proxy.setupFiles({
+        files: [
+          { filepath: matchingFile, contents: matchingContents },
+          { filepath: nonMatchingFile, contents: nonMatchingContents },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({ glob: glob!, grep: grep! });
 
       expect(results).toStrictEqual([
         {
           fileType: 'guard',
-          metadata: {},
-          name: 'has-permission-guard',
-          path: '/project/src/guards/has-permission-guard.js',
-          purpose: 'Validates that user has permission to edit resource',
+          hits: [
+            { line: 1, text: 'export const permissionGuard = (): boolean => checkPermission();' },
+          ],
+          metadata: undefined,
+          name: 'permission-guard',
+          path: '/project/src/guards/permission-guard.ts',
+          purpose: undefined,
           relatedFiles: [],
-          signature: undefined,
-          source: 'project',
-          usage: 'if (hasPermissionGuard({ user, resource })) {\n// User can edit\n}',
-        },
-      ]);
-    });
-
-    it('VALID: scans .jsx files => returns jsx files with metadata', async () => {
-      const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/widgets/user-widget.jsx' });
-      const pattern = GlobPatternStub({ value: `**/${fileExtensionsStatics.globs.all}` });
-      const contents = FileContentsStub({
-        value: `/**
- * PURPOSE: Displays user profile information
- *
- * USAGE:
- * <UserWidget user={user} />
- */
-export const UserWidget = ({ user }) => {
-  return <div>{user.name}</div>;
-};`,
-      });
-
-      proxy.setupFileWithMetadata({ filepath, contents, pattern });
-
-      const results = await fileScannerBroker({});
-
-      expect(results).toStrictEqual([
-        {
-          fileType: 'widget',
-          metadata: {},
-          name: 'user-widget',
-          path: '/project/src/widgets/user-widget.jsx',
-          purpose: 'Displays user profile information',
-          relatedFiles: [],
-          signature: undefined,
-          source: 'project',
-          usage: '<UserWidget user={user} />',
+          signature: {
+            parameters: [],
+            raw: 'export const permissionGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
         },
       ]);
     });

@@ -124,7 +124,7 @@ not mocking; it's using the real server to produce real WS events that the front
 
 A test that only checks a request fired is incomplete — the UI might silently fail to update.
 
-See `packages/standards/define/testing-standards.md` § "E2E Testing" for full patterns and anti-patterns.
+See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patterns.
 
 ### Gotchas
 

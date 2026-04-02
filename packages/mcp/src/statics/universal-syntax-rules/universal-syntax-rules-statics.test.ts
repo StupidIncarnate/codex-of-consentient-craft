@@ -281,6 +281,16 @@ describe('universalSyntaxRulesStatics', () => {
             'const activeUsers = users.filter(user => { return otherUsers.find(other => other.id === user.id)?.isActive; }); // O(n²) nested loops',
           ],
         },
+        arrayIndexMaps: {
+          rule: 'When building Map<K, number> for index lookups, use ArrayIndex from shared contracts',
+          examples: [
+            "import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';\nconst indexMap = new Map<ChatEntry, ArrayIndex>();\nentries.forEach((e, i) => { indexMap.set(e, arrayIndexContract.parse(i)); });",
+          ],
+          violations: [
+            'const indexMap = new Map<ChatEntry, number>(); // Raw number triggers ban-primitives',
+          ],
+          note: 'ArrayIndex represents a nonnegative integer position in an array. Use it for entry-to-index lookup maps, position tracking, and similar mechanical indexing patterns.',
+        },
         removeDeadCode: {
           rule: 'Delete unused variables/parameters, unreachable code, orphaned files, commented-out code, console.log statements',
         },

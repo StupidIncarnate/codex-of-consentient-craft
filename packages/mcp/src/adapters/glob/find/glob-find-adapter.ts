@@ -11,6 +11,7 @@ import { glob } from 'glob';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 
 export const globFindAdapter = async ({
   pattern,
@@ -19,10 +20,13 @@ export const globFindAdapter = async ({
   pattern: GlobPattern;
   cwd?: FilePath;
 }): Promise<readonly FilePath[]> => {
+  const ignore = globIgnoreFilterTransformer({ pattern });
+
   const files = await glob(pattern, {
     cwd: cwd ? String(cwd) : process.cwd(),
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
+    nodir: true,
+    ignore: [...ignore],
   });
 
   return files.map((file) => filePathContract.parse(file));

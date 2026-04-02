@@ -1,35 +1,30 @@
 /**
- * PURPOSE: Defines the input schema for the MCP discover tool that searches files or standards in the codebase
+ * PURPOSE: Defines the input schema for the MCP discover tool that searches files in the codebase
  *
  * USAGE:
- * const input: DiscoverInput = discoverInputContract.parse({ type: 'files', fileType: 'broker' });
- * // Returns validated DiscoverInput with optional filters (path, fileType, search, name)
- * const standardsInput: DiscoverInput = discoverInputContract.parse({ type: 'standards', section: 'testing/proxy-architecture' });
- * // Returns validated DiscoverInput for standards with optional section filter
+ * const input: DiscoverInput = discoverInputContract.parse({ glob: 'src/brokers/**' });
+ * // Returns validated DiscoverInput with optional filters (glob, grep, verbose, context)
  */
 import { z } from 'zod';
 
-// NOTE: MCP requires inputSchema to have type: "object" at root level.
-// z.discriminatedUnion produces "anyOf" which breaks MCP tool loading.
-// Using single object with optional fields for MCP compatibility.
 export const discoverInputContract = z.object({
-  type: z
-    .enum(['files', 'standards'])
-    .describe('Type of discovery - "files" to search code, "standards" to search documentation'),
-  // Fields for 'files' type
-  path: z.string().brand<'FilePath'>().describe('Path to search (for files type)').optional(),
-  fileType: z
+  glob: z.string().brand<'GlobPattern'>().describe('File path pattern (glob syntax)').optional(),
+  grep: z
     .string()
-    .brand<'FileType'>()
-    .describe('File type to filter: broker, widget, guard, transformer, adapter, contract, etc.')
+    .brand<'GrepPattern'>()
+    .describe('Content regex pattern. (?i) case-insensitive, (?s) multiline')
     .optional(),
-  search: z.string().brand<'SearchQuery'>().describe('Search query to filter results').optional(),
-  name: z.string().brand<'FileName'>().describe('Specific file name to find').optional(),
-  // Fields for 'standards' type
-  section: z
-    .string()
-    .brand<'SectionPath'>()
-    .describe('Section path to filter (for standards type)')
+  verbose: z
+    .boolean()
+    .brand<'Verbose'>()
+    .describe('Full details: signature, companions, usage')
+    .optional(),
+  context: z
+    .number()
+    .int()
+    .nonnegative()
+    .brand<'ContextLines'>()
+    .describe('Lines of context around grep hits')
     .optional(),
 });
 

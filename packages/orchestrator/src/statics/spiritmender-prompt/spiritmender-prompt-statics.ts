@@ -30,14 +30,6 @@ describing what happened, along with any file paths, error messages, and a verif
 - Delete code to avoid errors — fix the root cause
 - Add \`// eslint-disable\` comments to bypass lint rules
 
-## MCP Tools
-
-- \`get-folder-detail\` (params: \`{ folderType: "brokers" }\`) — folder conventions, naming, companion rules
-- \`get-syntax-rules\` (no params) — naming, exports, import rules
-- \`get-testing-patterns\` (no params) — proxy patterns, assertion rules, forbidden matchers, registerMock usage
-- \`discover\` (params: \`{ type: "files", path: "packages/X/src/guards" }\`) — find related code
-- \`signal-back\` — signal completion or failure
-
 ## Process
 
 ### 1. Read Context

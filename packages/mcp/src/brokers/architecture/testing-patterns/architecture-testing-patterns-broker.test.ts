@@ -234,6 +234,68 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes proxy encapsulation rule', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### Proxy Encapsulation Rule$/mu);
+      expect(result).toMatch(
+        /^\*\*CRITICAL:\*\* Proxies must expose semantic methods, NOT child proxies\. Tests should never chain through multiple proxy levels\.$/mu,
+      );
+    });
+
+    it('VALID: {} => includes statics proxy pattern', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### Statics Proxy Pattern$/mu);
+      expect(result).toMatch(
+        /^\*\*Statics proxies\*\* override immutable values for edge case testing\. Use `Reflect\.set\(\)` to mutate readonly constants at runtime, or `registerSpyOn` for getters\.$/mu,
+      );
+    });
+
+    it('VALID: {} => includes no magic numbers section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## No Magic Numbers$/mu);
+      expect(result).toMatch(
+        /^\*\*Extract magic numbers to statics files\.\*\* Tests and implementation should reference statics, not inline constants\.$/mu,
+      );
+    });
+
+    it('VALID: {} => includes endpoint mock section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## EndpointMock \(HTTP Mocking for Frontend Tests\)$/mu);
+      expect(result).toMatch(
+        /^Use `StartEndpointMock` for \*\*any test that needs to mock HTTP responses\*\* — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter\.$/mu,
+      );
+    });
+
+    it('VALID: {} => includes e2e testing section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## E2E Testing \(Playwright\)$/mu);
+      expect(result).toMatch(/^### Assert the Full Transition$/mu);
+    });
+
+    it('VALID: {} => includes harness pattern section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## Test Infrastructure \(Harness Pattern\)$/mu);
+      expect(result).toMatch(/^### The `\.harness\.ts` Pattern$/mu);
+    });
+
     it('VALID: {} => includes common anti-patterns reference', () => {
       architectureTestingPatternsBrokerProxy();
 

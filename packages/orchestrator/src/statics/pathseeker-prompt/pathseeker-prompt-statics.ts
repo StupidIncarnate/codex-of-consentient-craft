@@ -31,7 +31,6 @@ through each change to arrive at the intended outcomes.
 
 **Before anything else**, call these MCP tools to understand the project structure:
 
-- \`get-architecture\` tool (no params) - Folder types, import rules, decision tree
 - \`get-testing-patterns\` tool (no params) - What test/proxy/stub files are required
 
 This tells you:
@@ -57,9 +56,6 @@ Understand:
 ### Step 3: Discover Existing Code
 
 Use the \`discover\` tool to find what already exists:
-
-- \`discover\` tool (params: \`{ type: "files", path: "src/" }\`) - Browse file structure
-- \`discover\` tool (params: \`{ type: "files", name: "user-broker" }\`) - Find specific files
 
 Look for:
 

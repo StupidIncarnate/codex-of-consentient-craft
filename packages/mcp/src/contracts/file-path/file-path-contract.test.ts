@@ -23,9 +23,11 @@ describe('filePathContract', () => {
   });
 
   it('VALID: {value: path with file extension} => parses successfully', () => {
-    const result = FilePathStub({ value: 'packages/standards/testing-standards.md' });
+    const result = FilePathStub({
+      value: 'packages/mcp/src/contracts/file-path/file-path-contract.ts',
+    });
 
-    expect(result).toBe('packages/standards/testing-standards.md');
+    expect(result).toBe('packages/mcp/src/contracts/file-path/file-path-contract.ts');
   });
 
   it('VALID: {value: path with spaces} => parses successfully', () => {

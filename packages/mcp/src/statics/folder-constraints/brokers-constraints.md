@@ -24,6 +24,13 @@ Brokers contain business-specific knowledge:
 - Business workflows and orchestration logic
 - Domain-specific validation rules
 
+**ERROR HANDLING:**
+
+- **Let errors propagate upward** — don't catch unless wrapping with additional context
+- Responders (not brokers) are the error boundary — brokers throw, responders catch and translate to HTTP status
+- **Fire-and-forget:** Non-critical background operations use
+  `.catch((error) => { process.stderr.write('[context] failed: ' + String(error) + '\n'); })` — log but don't block
+
 **NESTING RULES:**
 
 - **Max 2 levels:** brokers/[domain]/[action]/ (no deeper nesting)

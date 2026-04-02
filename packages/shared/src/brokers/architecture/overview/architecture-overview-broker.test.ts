@@ -185,7 +185,9 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(/^## Code Discovery$/mu);
-      expect(result).toMatch(/^\*\*discover vs Grep vs Glob — when to use each:\*\*$/mu);
+      expect(result).toMatch(
+        /^\*\*`discover` is the ONLY way to search this codebase\.\*\* System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked\. The `discover` MCP tool replaces all of them — it wraps glob and grep with structured output \(purposes, signatures, related files\)\.$/mu,
+      );
       expect(result).toMatch(
         /^\*\*Parallel discovery:\*\* When you need multiple searches, batch them into a single message with multiple tool calls:$/mu,
       );
@@ -206,7 +208,7 @@ describe('architectureOverviewBroker', () => {
         /^\| `get-architecture` \| \*\(none\)\* \| This document — folder types, import rules, decision tree \| First thing on any task \|$/mu,
       );
       expect(result).toMatch(
-        /^\| `discover` \| `\{ type, path\?, fileType\?, search\?, name\?, section\? \}` \| File purposes, signatures, related files, or standards docs \| Finding existing code before creating new \|$/mu,
+        /^\| `discover` \| `\{ glob\?, grep\? \}` \| File list with metadata\/purposes \| Orientation — find files, get a lay of the land \|$/mu,
       );
     });
 

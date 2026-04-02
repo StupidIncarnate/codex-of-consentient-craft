@@ -6,6 +6,7 @@
  * // Returns validated file metadata with name, path, type, optional purpose, signature, and usage
  */
 import { z } from 'zod';
+import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 const signatureParameterContract = z.object({
   name: z.string().brand<'ParameterName'>(),
@@ -27,7 +28,7 @@ export const fileMetadataContract = z.object({
   usage: z.string().brand<'UsageExample'>().optional(),
   metadata: z.record(z.string().brand<'MetadataValue'>()).optional(),
   relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
-  source: z.enum(['project', 'shared']).brand<'FileSource'>(),
+  hits: z.array(grepHitContract).optional(),
 });
 
 export type FileMetadata = z.infer<typeof fileMetadataContract>;

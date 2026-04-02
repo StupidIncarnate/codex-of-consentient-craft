@@ -36,8 +36,16 @@ export const formatTreeNodeTransformer = ({
 
   // Render items (files)
   for (const item of sortedItems) {
+    const typePart = item.type && String(item.type) !== 'unknown' ? ` (${item.type})` : '';
     const purposePart = item.purpose ? ` - ${item.purpose}` : '';
-    lines.push(treeOutputContract.parse(`${indentStr}${item.name} (${item.type})${purposePart}`));
+    lines.push(treeOutputContract.parse(`${indentStr}${item.name}${typePart}${purposePart}`));
+
+    // Render grep hits indented below the item
+    if (item.hits?.length) {
+      for (const hit of item.hits) {
+        lines.push(treeOutputContract.parse(`${indentStr}  :${hit.line}  ${hit.text}`));
+      }
+    }
   }
 
   return treeOutputContract.parse(lines.join('\n'));

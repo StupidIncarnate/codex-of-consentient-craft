@@ -3,12 +3,11 @@
  *
  * USAGE:
  * const brokerProxy = mcpDiscoverBrokerProxy();
- * brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+ * brokerProxy.setupFiles({ files: [{ filepath, contents }], pattern });
  * // Sets up file scanner broker to return metadata
  */
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
-import { standardsParserParseBrokerProxy } from '../../standards-parser/parse/standards-parser-parse-broker.proxy';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
@@ -25,7 +24,6 @@ export const mcpDiscoverBrokerProxy = (): {
   }) => void;
 } => {
   const fileScannerProxy = fileScannerBrokerProxy();
-  standardsParserParseBrokerProxy();
 
   return {
     setupFileDiscovery: ({
@@ -37,7 +35,7 @@ export const mcpDiscoverBrokerProxy = (): {
       contents: FileContents;
       pattern: GlobPattern;
     }): void => {
-      fileScannerProxy.setupFileWithMetadata({ filepath, contents, pattern });
+      fileScannerProxy.setupFiles({ files: [{ filepath, contents }], pattern });
     },
 
     setupMultipleFileDiscovery: ({
@@ -47,7 +45,7 @@ export const mcpDiscoverBrokerProxy = (): {
       files: readonly { filepath: FilePath; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
-      fileScannerProxy.setupMultipleFiles({ files, pattern });
+      fileScannerProxy.setupFiles({ files, pattern });
     },
   };
 };

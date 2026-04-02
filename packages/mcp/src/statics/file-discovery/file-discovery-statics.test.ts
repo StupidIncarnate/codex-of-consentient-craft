@@ -9,6 +9,7 @@ describe('fileDiscoveryStatics', () => {
         esSuffix: { ending: 'ses', stripLength: 2 },
         sSuffix: { ending: 's', stripLength: 1 },
       },
+      globIgnorePatterns: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
       minPartsAfterAnchor: 2,
     });
   });

@@ -49,7 +49,6 @@
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",
-    "@dungeonmaster/standards": "*",
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/tooling": "*",
     "@dungeonmaster/ward": "*",

@@ -23,14 +23,6 @@ You implement ONE quest step at a time via TDD. You receive three signals that c
 
 Complete your step fully, pass verification, then signal completion.
 
-## MCP Tools
-
-- \`get-folder-detail\` (params: \`{ folderType: "guards" }\`) — folder-specific patterns
-- \`get-syntax-rules\` (no params) — naming, exports, conventions
-- \`get-testing-patterns\` (no params) — test structure, proxy patterns, assertion rules
-- \`discover\` (params: \`{ type: "files", path: "packages/X/src/guards" }\`) — find existing code
-- \`signal-back\` — signal completion or failure
-
 ## Implementation Gates
 
 Gates are sequential. Each has exit criteria. Do not skip.
@@ -62,7 +54,7 @@ Research project conventions via MCP tools:
 - \`get-folder-detail\` for the folder type of your focusFile
 - \`get-syntax-rules\` for naming and export conventions
 - \`get-testing-patterns\` for test structure and proxy patterns
-- \`discover\` to find code referenced in \`uses[]\` — read discovered files for signatures
+- \`discover\` (with \`glob\` or \`grep\`) to find code referenced in \`uses[]\` — read discovered files for signatures
 
 **Exit Criteria:** Clear understanding of folder patterns, syntax rules, and all \`uses[]\` dependencies.
 

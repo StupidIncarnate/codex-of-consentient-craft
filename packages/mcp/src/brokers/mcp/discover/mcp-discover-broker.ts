@@ -2,7 +2,7 @@
  * PURPOSE: Main orchestration broker that discovers files in the codebase with metadata
  *
  * USAGE:
- * const result = await mcpDiscoverBroker({ input: DiscoverInputStub({ type: 'files', fileType: FileTypeStub({ value: 'broker' }) }) });
+ * const result = await mcpDiscoverBroker({ input: DiscoverInputStub({ glob: '**\/*.ts' }) });
  * // Returns { results: DiscoverResultItem[] | TreeOutput, count: ResultCount }
  */
 
@@ -15,9 +15,6 @@ import type { ResultCount } from '../../../contracts/result-count/result-count-c
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
-import { standardsParserParseBroker } from '../../standards-parser/parse/standards-parser-parse-broker';
-
-const STANDARDS_USAGE_PREVIEW_LENGTH = 200;
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -30,37 +27,11 @@ export const mcpDiscoverBroker = async ({
   // Validate input
   const validated = discoverInputContract.parse(input);
 
-  // Handle standards type - return standards sections as DiscoverResultItems
-  if (validated.type === 'standards') {
-    const sections = await standardsParserParseBroker({
-      ...(validated.section && { section: validated.section }),
-    });
-
-    // Map StandardsSection to DiscoverResultItem format
-    const resultItems = sections.map((standardsSection) =>
-      discoverResultItemContract.parse({
-        name: standardsSection.section,
-        path: standardsSection.path,
-        type: 'standard',
-        purpose: `Standard section: ${standardsSection.section}`,
-        usage: standardsSection.content.slice(0, STANDARDS_USAGE_PREVIEW_LENGTH),
-        signature: undefined,
-        relatedFiles: [],
-      }),
-    );
-
-    return {
-      results: resultItems,
-      count: resultCountContract.parse(resultItems.length),
-    };
-  }
-
-  // Handle files type
+  // Scan files with glob/grep/context
   const fileResults = await fileScannerBroker({
-    ...(validated.path && { path: validated.path }),
-    ...(validated.fileType && { fileType: validated.fileType }),
-    ...(validated.search && { search: validated.search }),
-    ...(validated.name && { name: validated.name }),
+    ...(validated.glob && { glob: validated.glob }),
+    ...(validated.grep && { grep: validated.grep }),
+    ...(validated.context !== undefined && { context: validated.context }),
   });
 
   // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)
@@ -73,23 +44,25 @@ export const mcpDiscoverBroker = async ({
       usage: file.usage,
       signature: file.signature?.raw,
       relatedFiles: file.relatedFiles,
+      ...(file.hits && { hits: file.hits }),
     }),
   );
 
-  // Auto-detect format: if name is provided, return full format; otherwise return tree format
-  if (validated.name) {
+  // verbose === true → return full DiscoverResultItem[]
+  if (validated.verbose === true) {
     return {
       results: resultItems,
       count: resultCountContract.parse(resultItems.length),
     };
   }
 
-  // Tree format for path/search queries
+  // Tree format for non-verbose queries
   const treeItems = fileResults.map((file) => ({
     name: file.name,
     type: file.fileType,
     purpose: file.purpose,
     path: file.path,
+    ...(file.hits && { hits: file.hits }),
   }));
 
   const treeOutput = treeFormatterTransformer({ items: treeItems });

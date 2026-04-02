@@ -489,6 +489,327 @@ export const userCreateBrokerProxy = () => {
 
 **Critical:** Let the function generate values using mocked globals, don't manually construct them.`;
 
+  // Proxy Encapsulation Rule
+  const proxyEncapsulation = `**CRITICAL:** Proxies must expose semantic methods, NOT child proxies. Tests should never chain through multiple proxy levels.
+
+\`\`\`typescript
+// ❌ WRONG - Exposing child proxies forces tests to know internal structure
+export const questExecuteBrokerProxy = () => {
+  const pathseekerProxy = pathseekerPhaseBrokerProxy();
+  const codeweaverProxy = codeweaverPhaseBrokerProxy();
+
+  return {
+    pathseekerProxy,  // ❌ Exposes child
+    codeweaverProxy,  // ❌ Exposes child
+  };
+};
+
+// Test must navigate internal structure:
+pathseekerProxy.slotManagerProxy.runOrchestrationProxy.loopProxy.questLoadProxy.fsReadFileProxy.resolves({...});
+// ↑ This is BAD - test knows 5+ levels of internal proxy structure
+
+// ✅ CORRECT - Expose semantic methods that delegate internally
+export const questExecuteBrokerProxy = () => {
+  const pathseekerProxy = pathseekerPhaseBrokerProxy();
+  const codeweaverProxy = codeweaverPhaseBrokerProxy();
+
+  return {
+    setupQuestFile: ({questJson}: {questJson: string}): void => {
+      pathseekerProxy.setupQuestFile({questJson});
+      codeweaverProxy.setupQuestFile({questJson});
+    },
+  };
+};
+
+// Test uses semantic method - no knowledge of internal structure:
+proxy.setupQuestFile({questJson});  // ✅ Clean, semantic
+\`\`\`
+
+**Why:**
+1. **Encapsulation**: Each test only knows its direct proxy
+2. **Maintainability**: Internal restructuring doesn't break tests
+3. **Readability**: Tests describe WHAT scenario, not HOW to navigate proxy internals`;
+
+  // Statics Proxy Pattern
+  const staticsProxy = `**Statics proxies** override immutable values for edge case testing. Use \`Reflect.set()\` to mutate readonly constants at runtime, or \`registerSpyOn\` for getters.
+
+\`\`\`typescript
+// Use Reflect.set for direct properties
+export const userStaticsProxy = () => ({
+  setupUnlimitedAttempts: (): void => {
+    Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity);
+  }
+});
+
+// Use registerSpyOn for getters
+import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
+
+export const apiStaticsProxy = () => {
+  const handle = registerSpyOn({object: apiStatics, method: 'timeout'});
+  handle.mockReturnValue(0);
+  return {};
+};
+\`\`\``;
+
+  // No Magic Numbers
+  const noMagicNumbers = `**Extract magic numbers to statics files.** Tests and implementation should reference statics, not inline constants.
+
+\`\`\`typescript
+// ❌ WRONG - Magic number in contract
+export const exitCodeContract = z.number().int().min(0).max(255).brand<'ExitCode'>();
+
+// ✅ CORRECT - Extract to statics
+// statics/exit-code/exit-code-statics.ts
+export const exitCodeStatics = {
+  limits: {
+    max: 255,
+  },
+} as const;
+
+// contracts/exit-code/exit-code-contract.ts
+import {exitCodeStatics} from '../../statics/exit-code/exit-code-statics';
+
+export const exitCodeContract = z
+  .number()
+  .int()
+  .min(0)
+  .max(exitCodeStatics.limits.max)
+  .brand<'ExitCode'>();
+\`\`\``;
+
+  // EndpointMock (StartEndpointMock)
+  const endpointMock = `### When to Use \`StartEndpointMock\`
+
+Use \`StartEndpointMock\` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter.
+
+**Always use via the broker proxy layer** — never call \`StartEndpointMock\` directly in test files.
+
+### When NOT to Use \`StartEndpointMock\`
+
+- **Server-side tests** — The server package tests mock Hono's \`serve()\`, not fetch.
+- **Non-HTTP I/O** — Filesystem, child process, etc. use adapter proxies (\`registerMock\`).
+
+### JSON vs Non-JSON Responses
+
+- \`resolves({ data })\` — 200 OK with JSON body
+- \`responds({ status, body })\` — JSON response with explicit status code (4xx, 5xx, 201, 204)
+- \`respondRaw({ status, body, headers })\` — Non-JSON payloads (binary, text, HTML)
+- \`networkError()\` — Simulates connection refused / DNS failure
+
+\`\`\`typescript
+// Broker proxy using JSON helpers
+export const projectFetchBrokerProxy = () => {
+  const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/projects'});
+
+  return {
+    setupProjects: ({projects}: { projects: readonly Project[] }): void => {
+      endpoint.resolves({data: projects});
+    },
+    setupNotFound: (): void => {
+      endpoint.responds({status: 404, body: {error: 'Not found'}});
+    },
+  };
+};
+\`\`\`
+
+### The Full Proxy Chain
+
+\`\`\`
+Test → Widget Proxy → Binding Proxy → Broker Proxy → StartEndpointMock.listen() → MSW
+\`\`\`
+
+Each layer delegates setup to the layer below. The broker proxy is the only layer that knows about \`StartEndpointMock\`.
+
+### MSW Lifecycle
+
+\`StartEndpointMockSetup\` manages the MSW server lifecycle automatically via \`jest.config.js\`:
+
+- \`beforeAll\` — Starts the MSW server
+- \`afterEach\` — Resets all handlers between tests
+- \`afterAll\` — Closes the server
+
+To enable EndpointMock in a package, add the setup file to \`jest.config.js\`:
+
+\`\`\`javascript
+module.exports = {
+  ...baseConfig,
+  setupFilesAfterEnv: [
+    '<rootDir>/../../packages/testing/src/jest.setup.js',
+    '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts',
+  ],
+};
+\`\`\``;
+
+  // E2E Testing (Playwright)
+  const e2eTesting = `E2E tests run the full stack (real server, real browser, real WebSocket). Only external dependencies (LLMs, third-party APIs) are mocked.
+
+### Assert the Full Transition
+
+Every user action that changes the UI must assert **three things**:
+
+1. **Request correctness** — the right HTTP method, URL, and body were sent
+2. **Old UI disappeared** — previous state elements are gone
+3. **New UI appeared** — expected elements are visible
+
+\`\`\`typescript
+// ✅ CORRECT — checks request, disappearance, AND appearance
+await page.getByText('Submit').click();
+
+const req = await patchPromise;
+expect(req.postDataJSON()).toHaveProperty('status', 'active');
+
+await expect(page.getByText('Are you sure?')).not.toBeVisible({timeout: 5000});
+await expect(page.getByTestId('dashboard-panel')).toBeVisible({timeout: 10_000});
+\`\`\`
+
+**Note:** \`.not.toBeVisible()\` is a Playwright-specific matcher and is allowed in e2e tests. The \`.not.*\` ban applies to Jest matchers only.
+
+### Never Sleep, Always Wait for Elements
+
+\`\`\`typescript
+// ❌ WRONG — arbitrary sleep
+await page.waitForTimeout(3000);
+
+// ✅ CORRECT — wait for the specific element
+await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000});
+\`\`\`
+
+### Drive State via the Real API
+
+\`\`\`typescript
+// ❌ WRONG — intercepting server responses
+await page.route('/api/items/*', (route) => route.fulfill({body: '{}'}));
+
+// ✅ CORRECT — use the real server
+await request.patch(\`/api/items/\${itemId}\`, {data: {status: 'approved'}});
+\`\`\`
+
+### Observe Requests, Don't Intercept
+
+\`\`\`typescript
+// ✅ Watching (allowed) — page.waitForRequest just observes
+const patchPromise = page.waitForRequest(
+  (req) => req.method() === 'PATCH' && req.url().includes(\`/api/items/\${itemId}\`),
+);
+await page.getByText('Save').click();
+const patchReq = await patchPromise;
+expect(patchReq.postDataJSON()).toHaveProperty('status', 'active');
+
+// ❌ Intercepting (forbidden)
+await page.route('/api/items/*', (route) => route.fulfill({status: 200, body: '{}'}));
+\`\`\`
+
+### Each Test Owns Its State
+
+Tests must not depend on ordering or state from previous tests. Create all fixtures fresh in each test.
+
+### Timeout Increases Are a Last Resort
+
+When an E2E test fails with a timeout, diagnose state before touching timeouts:
+
+1. Log at each stage — confirm each stage produced expected state
+2. Inspect actual system state when the failure occurs
+3. Check that preconditions actually hold
+4. If it passes in isolation but fails under load — shared mutable state, not timing
+5. Only after confirming state is correct at every stage, increase timeout with a comment explaining why`;
+
+  // Test Infrastructure (Harness Pattern)
+  const harnessPattern = `### The \`test/\` Directory
+
+Just as \`src/\` is for application code, \`test/\` is for test infrastructure. Every package with integration/e2e tests MUST have a \`test/\` directory.
+
+### The \`.harness.ts\` Pattern
+
+Harness files are the e2e/integration equivalent of \`.proxy.ts\` files:
+
+\`\`\`typescript
+// test/harnesses/quest/quest.harness.ts
+export const questHarness = () => {
+  return {
+    create: async ({request, guildId}) => {
+      const response = await request.post('/api/quests', {
+        data: {guildId, title: 'Test Quest', userRequest: 'Build feature'},
+      });
+      return response.json();
+    },
+    approve: async ({request, questId}) => {
+      await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
+    },
+    clean: async ({request}) => { /* ... */ },
+  };
+};
+\`\`\`
+
+**Key properties:** Factory function, created at describe scope, semantic methods, owns its own lifecycle.
+
+### Directory Structure
+
+\`\`\`
+my-project/
+├── src/
+├── test/
+│   └── harnesses/
+│       ├── claude-mock/
+│       │   ├── claude-mock.harness.ts
+│       │   └── bin-claude.js             # fake binary (non-TS artifact)
+│       ├── quest/
+│       │   └── quest.harness.ts
+│       └── environment/
+│           └── environment.harness.ts
+└── e2e/
+    └── *.spec.ts
+\`\`\`
+
+### Import Boundaries
+
+- \`*.harness.ts\` → node:fs/path/os, contracts/stubs, other harnesses, test framework APIs
+- \`*.spec.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
+- **Scenario files CANNOT import:** node:fs, node:path, node:os, node:child_process, .proxy.ts files
+- **Harness files CANNOT import:** .proxy.ts files, contract value imports (use .stub.ts)
+- **Unit test files CANNOT import:** .harness.ts files
+
+### Mock Boundary Rules
+
+Only mock external services that are: not under your control, have no test mode, and are non-deterministic or costly.
+
+**Valid mocks:** LLM CLI → fake binary, payment processor without sandbox → stub HTTP server
+**Invalid mocks:** Your own HTTP endpoints, your own WebSocket messages, your own brokers/adapters
+
+### Harness Lifecycle
+
+Tests never write \`beforeEach\`/\`afterEach\`. Harnesses own their lifecycle by declaring optional \`beforeEach\` and \`afterEach\` properties. A ts-jest AST transformer auto-wires these hooks.
+
+\`\`\`typescript
+export const guildHarness = () => {
+  const createdGuildIds: string[] = [];
+
+  return {
+    beforeEach: (): void => { createdGuildIds.length = 0; },
+    afterEach: async (): Promise<void> => {
+      for (const id of createdGuildIds) {
+        await GuildRemoveResponder({guildId: id});
+      }
+      createdGuildIds.length = 0;
+    },
+    create: async ({name, path}) => {
+      const guild = await GuildAddResponder({name, path});
+      createdGuildIds.push(guild.id);
+      return guild;
+    },
+  };
+};
+\`\`\`
+
+**For Playwright:** Spec files use \`wireHarnessLifecycle()\` from test fixtures. Spec files MUST import \`{ test, expect }\` from \`@dungeonmaster/testing/e2e\`, NOT from \`@playwright/test\`.
+
+### Scenario File Rules
+
+Scenario files are **scenario descriptions only** — test blocks and assertions, no infrastructure.
+
+**Banned:** \`import {writeFileSync} from 'fs'\`, \`import * as path from 'path'\`, top-level helper functions, \`page.waitForTimeout(N)\`, \`page.route(...)\`
+
+**Allowed:** imports from \`test/harnesses/\`, test framework APIs, \`expect()\`, \`await page.*\`, constants, inline test data`;
+
   // Stub Factories
   const stubFactories = `**Complete stub patterns in contracts/ folder detail** - Use \`get-folder-detail({ folderType: "contracts" })\`.
 
@@ -850,6 +1171,14 @@ ${quickReference}
 
 ${proxyPatterns}
 
+### Proxy Encapsulation Rule
+
+${proxyEncapsulation}
+
+### Statics Proxy Pattern
+
+${staticsProxy}
+
 ### Create-Per-Test Pattern
 
 ${createPerTest}
@@ -862,6 +1191,10 @@ ${childProxies}
 
 ${globalMocking}
 
+## No Magic Numbers
+
+${noMagicNumbers}
+
 ## Stub Factories
 
 ${stubFactories}
@@ -870,6 +1203,10 @@ ${stubFactories}
 
 ${mockingMechanics}
 
+## EndpointMock (HTTP Mocking for Frontend Tests)
+
+${endpointMock}
+
 ## Integration Testing
 
 ${integrationTesting}
@@ -877,6 +1214,14 @@ ${integrationTesting}
 ## No Hooks or Conditionals
 
 ${noHooksConditionals}
+
+## E2E Testing (Playwright)
+
+${e2eTesting}
+
+## Test Infrastructure (Harness Pattern)
+
+${harnessPattern}
 
 ## Common Anti-Patterns
 

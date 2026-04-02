@@ -21,11 +21,10 @@ Solves the problem of LLMs reinventing the wheel and lacking architectural conte
 
 ```typescript
 discover({
-    type: "files",       // Required (only value)
-    path? : string,       // "packages/eslint-plugin/src/guards"
-    fileType? : string,   // "broker" | "widget" | "guard" | ...
-    search? : string,     // "user authentication"
-    name? : string,       // "userFetchBroker"
+    glob? : string,       // "packages/eslint-plugin/src/guards/**"
+    grep? : string,       // "user authentication"
+    verbose? : boolean,   // Include full file contents
+    context? : number,    // Lines of context around grep matches
 })
 ```
 
@@ -209,9 +208,8 @@ get - syntax - rules()
 
 ```typescript
 discover({
-    type: "files",
-    fileType: "broker",
-    search: "user"
+    glob: "packages/*/src/brokers/**",
+    grep: "user"
 })
 ```
 
@@ -219,8 +217,8 @@ discover({
 
 ```typescript
 discover({
-    type: "files",
-    name: "is-test-file"  // kebab-case, no suffix
+    glob: "packages/*/src/guards/**",
+    grep: "is-test-file"
 })
 ```
 
@@ -228,9 +226,7 @@ discover({
 
 ```typescript
 discover({
-    type: "files",
-    fileType: "guard",
-    path: "packages/eslint-plugin/src/guards"
+    glob: "packages/eslint-plugin/src/guards/**"
 })
 ```
 
@@ -243,7 +239,7 @@ The MCP server is configured in Claude Code settings and provides all 4 tools au
 1. `get-architecture` → Understand where code goes
 2. `get-folder-detail` → Get folder-specific rules with examples
 3. `get-syntax-rules` → Get universal syntax conventions
-4. `discover({ type: "files" })` → Find existing code to reuse
+4. `discover({ glob: "packages/*/src/**" })` → Find existing code to reuse
 5. Write code following MCP-provided patterns (no need to read examples!)
 
 **Key Philosophy:** MCP tools provide COMPLETE guidance with examples. Never read files just to discover patterns - only

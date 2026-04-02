@@ -2,107 +2,39 @@ import { discoverInputContract as _discoverInputContract } from './discover-inpu
 import { DiscoverInputStub } from './discover-input.stub';
 
 describe('discoverInputContract', () => {
-  it('VALID: {type: "files"} => parses successfully', () => {
-    const result = DiscoverInputStub({ type: 'files' });
+  it('VALID: {} => parses empty object', () => {
+    const result = DiscoverInputStub();
 
-    expect(result).toStrictEqual({ type: 'files' });
+    expect(result).toStrictEqual({});
   });
 
-  it('VALID: {type: "standards"} => parses successfully', () => {
-    const result = DiscoverInputStub({ type: 'standards' });
+  it('VALID: {glob: "**/*.ts"} => parses glob only', () => {
+    const result = DiscoverInputStub({ glob: '**/*.ts' });
 
-    expect(result).toStrictEqual({ type: 'standards' });
+    expect(result).toStrictEqual({ glob: '**/*.ts' });
   });
 
-  it('VALID: {type: "standards", section: "testing/proxy-architecture"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'standards',
-      section: 'testing/proxy-architecture',
-    });
+  it('VALID: {grep: "ENOENT"} => parses grep only', () => {
+    const result = DiscoverInputStub({ grep: 'ENOENT' });
 
-    expect(result).toStrictEqual({
-      type: 'standards',
-      section: 'testing/proxy-architecture',
-    });
+    expect(result).toStrictEqual({ grep: 'ENOENT' });
   });
 
-  it('VALID: {type: "files", path: "packages/eslint-plugin"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      path: 'packages/eslint-plugin',
-    });
+  it('VALID: {verbose: true} => parses verbose', () => {
+    const result = DiscoverInputStub({ verbose: true });
 
-    expect(result).toStrictEqual({
-      type: 'files',
-      path: 'packages/eslint-plugin',
-    });
+    expect(result).toStrictEqual({ verbose: true });
   });
 
-  it('VALID: {type: "files", fileType: "broker"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      fileType: 'broker',
-    });
+  it('VALID: {context: 3} => parses context', () => {
+    const result = DiscoverInputStub({ context: 3 });
 
-    expect(result).toStrictEqual({
-      type: 'files',
-      fileType: 'broker',
-    });
+    expect(result).toStrictEqual({ context: 3 });
   });
 
-  it('VALID: {type: "files", search: "user fetch"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      search: 'user fetch',
-    });
+  it('VALID: {glob, grep, verbose, context} => parses all params', () => {
+    const result = DiscoverInputStub({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
 
-    expect(result).toStrictEqual({
-      type: 'files',
-      search: 'user fetch',
-    });
-  });
-
-  it('VALID: {type: "files", name: "userFetchBroker"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      name: 'userFetchBroker',
-    });
-
-    expect(result).toStrictEqual({
-      type: 'files',
-      name: 'userFetchBroker',
-    });
-  });
-
-  it('VALID: {type: "files", path: "packages/eslint-plugin", fileType: "broker"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      path: 'packages/eslint-plugin',
-      fileType: 'broker',
-    });
-
-    expect(result).toStrictEqual({
-      type: 'files',
-      path: 'packages/eslint-plugin',
-      fileType: 'broker',
-    });
-  });
-
-  it('VALID: {type: "files", path: "src", fileType: "broker", search: "user", name: "userBroker"} => parses successfully', () => {
-    const result = DiscoverInputStub({
-      type: 'files',
-      path: 'src',
-      fileType: 'broker',
-      search: 'user',
-      name: 'userBroker',
-    });
-
-    expect(result).toStrictEqual({
-      type: 'files',
-      path: 'src',
-      fileType: 'broker',
-      search: 'user',
-      name: 'userBroker',
-    });
+    expect(result).toStrictEqual({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
   });
 });

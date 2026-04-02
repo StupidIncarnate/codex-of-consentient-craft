@@ -41,8 +41,8 @@ describe('HookPreSearchFlow', () => {
     });
   });
 
-  describe('allowed: content searches', () => {
-    it('VALID: {Grep, output_mode: "content"} => returns exitCode 0 with empty stderr', () => {
+  describe('blocked: content searches (Phase 9A — all searches blocked)', () => {
+    it('VALID: {Grep, output_mode: "content"} => returns exitCode 2 with discover guide', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
@@ -55,13 +55,13 @@ describe('HookPreSearchFlow', () => {
       const result = HookPreSearchFlow({ inputData });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
+        exitCode: 2,
         stdout: '',
-        stderr: '',
+        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
 
-    it('VALID: {Grep, pattern with regex metachar} => returns exitCode 0', () => {
+    it('VALID: {Grep, pattern with regex metachar} => returns exitCode 2 with discover guide', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
@@ -74,13 +74,13 @@ describe('HookPreSearchFlow', () => {
       const result = HookPreSearchFlow({ inputData });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
+        exitCode: 2,
         stdout: '',
-        stderr: '',
+        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
 
-    it('VALID: {Glob, pattern: "**/*.json"} => returns exitCode 0', () => {
+    it('VALID: {Glob, pattern: "**/*.json"} => returns exitCode 2 with discover guide', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
@@ -93,9 +93,9 @@ describe('HookPreSearchFlow', () => {
       const result = HookPreSearchFlow({ inputData });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
+        exitCode: 2,
         stdout: '',
-        stderr: '',
+        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
   });

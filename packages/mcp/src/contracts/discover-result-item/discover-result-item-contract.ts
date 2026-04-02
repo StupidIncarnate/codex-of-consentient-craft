@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 export const discoverResultItemContract = z.object({
   name: z.string().brand<'FunctionName'>(),
@@ -16,6 +17,7 @@ export const discoverResultItemContract = z.object({
   usage: z.string().brand<'UsageExample'>().optional(),
   signature: z.string().brand<'FunctionSignature'>().optional(),
   relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
+  hits: z.array(grepHitContract).optional(),
 });
 
 export type DiscoverResultItem = z.infer<typeof discoverResultItemContract>;

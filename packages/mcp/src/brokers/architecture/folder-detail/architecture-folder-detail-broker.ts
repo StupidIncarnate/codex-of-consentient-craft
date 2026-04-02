@@ -155,7 +155,7 @@ export const architectureFolderDetailBroker = ({
   sections.push(contentTextContract.parse(`## Learn More\n`));
   sections.push(
     contentTextContract.parse(
-      `See \`packages/standards/define/project-standards.md\` for detailed examples and patterns.\n`,
+      `Use \`get-architecture\` and \`get-folder-detail\` tools for detailed examples and patterns.\n`,
     ),
   );
 

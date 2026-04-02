@@ -7,7 +7,6 @@
  */
 import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
 import { hookSessionStartResponderResultContract } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
-import { discoverProactiveMessageStatics } from '../../../statics/discover-proactive-message/discover-proactive-message-statics';
 import type { HookSessionStartResponderResult } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
 
 export const HookSubagentStartResponder = (): HookSessionStartResponderResult => {
@@ -17,12 +16,6 @@ export const HookSubagentStartResponder = (): HookSessionStartResponderResult =>
 [SUBAGENT SPAWNED] Architecture overview for this codebase:
 
 ${architectureContent}
-
-## Code Discovery
-
-${discoverProactiveMessageStatics.guidance}
-
-Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
 </dungeonmaster-architecture>\n`;
 
   return hookSessionStartResponderResultContract.parse({

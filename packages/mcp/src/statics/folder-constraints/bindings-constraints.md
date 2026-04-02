@@ -45,6 +45,13 @@ export const useUserProfileBinding = ({userId}) => {
 };
 ```
 
+**ERROR HANDLING:**
+
+- **Errors are captured in `{error}` state** via try/catch — do not double-catch with `.catch(() => undefined)`
+- If an outer catch is needed for `useEffect`, use
+  `.catch((error) => { globalThis.console.error('[binding-name]', error); })`
+- Widgets consume the `error` field — bindings own the error state, widgets just display it
+
 **RETURN PATTERN:**
 
 Must return `{data, loading, error}` for async operations:

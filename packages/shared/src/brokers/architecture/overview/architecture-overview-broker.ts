@@ -117,8 +117,8 @@ This structure forces deterministic organization by:
   const extensionRules = `**Golden Rule:** If a domain file exists, EXTEND it with options - never create variant files.
 
 **Search first using the \`discover\` MCP tool:**
-- \`{ type: "files", fileType: "broker", search: "user" }\`
-- \`{ type: "files", path: "packages/*/src/bindings" }\`
+- \`{ glob: "packages/*/src/brokers/**", grep: "user" }\`
+- \`{ glob: "packages/*/src/bindings/**" }\`
 
 **If domain exists → MUST extend, not create new**
 
@@ -140,39 +140,138 @@ This structure forces deterministic organization by:
 - **Brokers**: Create orchestration brokers, extend bindings with option`;
 
   // Build code discovery section
-  const codeDiscovery = `**Use the \`discover\` MCP tool to find source files.** It returns file purposes, signatures, and related files — far more useful than raw Grep/Glob for locating code.
+  const codeDiscovery = `**\`discover\` is the ONLY way to search this codebase.** System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked. The \`discover\` MCP tool replaces all of them — it wraps glob and grep with structured output (purposes, signatures, related files).
 
-**discover vs Grep vs Glob — when to use each:**
+**discover params:**
 
-| Task | Tool | Why |
-|------|------|-----|
-| Find source files by keyword | \`discover\` | Returns purpose, signature, related files |
-| Browse a source directory | \`discover\` | Structured listing with metadata |
-| Read file contents or match patterns | \`Grep\` with \`output_mode: "content"\` | discover doesn't show file contents |
-| Regex pattern matching | \`Grep\` | discover only does keyword search |
-| Search non-TS files (json, md, yaml) | \`Grep\` or \`Glob\` | discover only indexes source files |
-| Search outside src (dist, scripts, .claude) | \`Grep\` or \`Glob\` | discover only indexes src/ |
-| Find files by extension pattern | \`Glob\` | discover doesn't support glob patterns |
+| Param | Type | Description |
+|-------|------|-------------|
+| \`glob\` | string? | File path pattern (glob syntax). Example: \`"packages/hooks/src/guards/**"\`, \`"**/*.sql"\` |
+| \`grep\` | string? | Content regex pattern. Example: \`"ENOENT"\`, \`"(?i)error"\` |
+| \`verbose\` | boolean? | Show full details (signature, usage). Default: false |
+| \`context\` | number? | Lines around grep hits. Default: 0 |
+
+**discover finds ANY file type** (TS, JSON, SQL, YAML, MD, etc.) — not just source files.
+
+### When to Use discover vs Read
+
+Pick the right tool for the granularity you need. Here is exactly what each returns:
+
+**1. \`discover({ glob })\` or \`discover({ grep })\` — Orientation / lay of the land**
+
+Use when: finding files, browsing a directory, checking what exists before creating.
+
+Output is a folder tree. Each line is: \`file-name (folder-type) - purpose\`. Reading the output:
+- \`(broker)\`, \`(guard)\`, \`(transformer)\` etc. = the folder type the file lives in (see Folder Types table)
+- \`.proxy\` = test mock file, \`.test\` = test file
+- \`- purpose text\` = extracted from the \`PURPOSE:\` metadata comment at the top of the file
+
+\`\`\`
+// discover({ glob: "packages/orchestrator/src/brokers/quest/orchestration-loop/**" })
+
+brokers/
+  quest/
+    orchestration-loop/
+      quest-orchestration-loop-broker (broker) - Drives quest execution by processing work item queue — find ready items, dispatch to role-specific layer brokers
+      quest-orchestration-loop-broker.proxy (broker)
+      quest-orchestration-loop-broker.test (broker)
+      run-chat-layer-broker (broker) - Spawns chaos/glyph agents with streaming, writes sessionId to work item
+      run-chat-layer-broker.proxy (broker)
+      run-chat-layer-broker.test (broker)
+      run-codeweaver-layer-broker (broker) - Executes codeweaver work items via slot manager, maps QuestWorkItemId to SlotManager WorkItemId
+      run-codeweaver-layer-broker.proxy (broker)
+      run-codeweaver-layer-broker.test (broker)
+\`\`\`
+
+With grep, matching lines appear inline under each file:
+
+\`\`\`
+// discover({ grep: "questModifyBroker" })
+
+quest/
+  modify/
+    quest-modify-broker (broker) - Modifies an existing quest by sending a PATCH request
+      :14  export const questModifyBroker = async ({
+    quest-modify-broker.proxy (broker)
+      :9  export const questModifyBrokerProxy = (): {
+      :26  import { questModifyBroker } from './quest-modify-broker';
+\`\`\`
+
+**2. \`discover({ ..., verbose: true })\` — Signatures, companions, structure**
+
+Use when: you need to see a function signature, check parameter types, verify naming, or see what test/proxy files exist — without reading the full file.
+
+\`\`\`json
+// discover({ glob: "packages/orchestrator/src/brokers/quest/orchestration-loop/**", verbose: true })
+// Returns structured JSON per file:
+
+[
+  {
+    "name": "quest-orchestration-loop-broker",
+    "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts",
+    "type": "broker",
+    "purpose": "Drives quest execution by processing work item queue — find ready items, dispatch to role-specific layer brokers",
+    "signature": "export const questOrchestrationLoopBroker = async ({\\n  processId,\\n  questId,\\n  startPath,\\n  onAgentEntry,\\n  abortSignal,\\n  userMessage,\\n}: {\\n  processId: ProcessId;\\n  questId: QuestId;\\n  startPath: FilePath;\\n  onAgentEntry: OnAgentEntryCallback;\\n  abortSignal: AbortSignal;\\n  userMessage?: UserInput;\\n}): Promise<void> =>",
+    "relatedFiles": [
+      "quest-orchestration-loop-broker.proxy.ts",
+      "quest-orchestration-loop-broker.test.ts"
+    ]
+  },
+  {
+    "name": "run-ward-layer-broker",
+    "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/run-ward-layer-broker.ts",
+    "type": "broker",
+    "purpose": "Executes ward phase — streams output to web, persists trimmed detail, creates batched spiritmenders on failure",
+    "signature": "export const runWardLayerBroker = async ({\\n  questId,\\n  workItem,\\n  startPath,\\n  onAgentEntry,\\n  abortSignal,\\n}: {\\n  questId: QuestId;\\n  workItem: WorkItem;\\n  startPath: FilePath;\\n  onAgentEntry: OnAgentEntryCallback;\\n  abortSignal: AbortSignal;\\n}): Promise<void> =>",
+    "relatedFiles": [
+      "run-ward-layer-broker.proxy.ts",
+      "run-ward-layer-broker.test.ts"
+    ]
+  }
+]
+\`\`\`
+
+With grep, adds a \`hits\` array showing matching lines:
+
+\`\`\`json
+// discover({ grep: "questModifyBroker", verbose: true })
+
+{
+  "name": "run-chat-layer-broker",
+  "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/run-chat-layer-broker.ts",
+  "type": "broker",
+  "purpose": "Spawns chaos/glyph agents with streaming, writes sessionId to work item",
+  "hits": [
+    { "line": 28, "text": "import { questModifyBroker } from '../modify/quest-modify-broker';" },
+    { "line": 94, "text": "await questModifyBroker({" }
+  ]
+}
+\`\`\`
+
+**3. \`Read\` tool — Full file contents**
+
+Use when: you are about to edit a file, need to understand implementation logic, or need the actual code line-by-line. Do NOT use Read to search — use discover first, then Read the specific file you need.
 
 **Parallel discovery:** When you need multiple searches, batch them into a single message with multiple tool calls:
 
 \`\`\`
 // ✅ CORRECT — 3 searches in ONE message (parallel execution)
-discover({ type: "files", fileType: "broker", search: "user" })
-discover({ type: "files", fileType: "contract", search: "user" })
-discover({ type: "files", path: "packages/web/src/widgets" })
+discover({ glob: "packages/*/src/brokers/**", grep: "user" })
+discover({ glob: "packages/*/src/contracts/**", grep: "user" })
+discover({ glob: "packages/web/src/widgets/**" })
 
 // ❌ WRONG — 3 sequential messages (3x slower)
-// Message 1: discover({ type: "files", fileType: "broker", search: "user" })
-// Message 2: discover({ type: "files", fileType: "contract", search: "user" })
-// Message 3: discover({ type: "files", path: "packages/web/src/widgets" })
+// Message 1: discover({ glob: "packages/*/src/brokers/**", grep: "user" })
+// Message 2: discover({ glob: "packages/*/src/contracts/**", grep: "user" })
+// Message 3: discover({ glob: "packages/web/src/widgets/**" })
 \`\`\`
 
 **discover search strategies:**
-- Browse a directory: \`{ type: "files", path: "packages/hooks/src/brokers" }\`
-- Find by type + keyword: \`{ type: "files", fileType: "broker", search: "quest" }\`
-- Get full file details: \`{ type: "files", name: "quest-modify-broker" }\`
-- Search standards: \`{ type: "standards", section: "testing" }\`
+- Browse a directory: \`{ glob: "packages/hooks/src/brokers/**" }\`
+- Find by content: \`{ grep: "questModifyBroker" }\`
+- Combined glob + grep: \`{ glob: "packages/hooks/src/**", grep: "permission" }\`
+- Full details: \`{ glob: "packages/hooks/src/brokers/**", verbose: true }\`
+- Search with context: \`{ grep: "ENOENT", context: 3 }\`
 
 **Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.`;
 
@@ -508,8 +607,10 @@ npm run ward -- --only lint,test --changed
 
 | Tool | Params | Returns | When to Use |
 |------|--------|---------|-------------|
+| \`discover\` | \`{ glob?, grep? }\` | File list with metadata/purposes | Orientation — find files, get a lay of the land |
+| \`discover\` | \`{ ..., verbose: true }\` | Signatures, companions, usage sites | Need detail (signature, typo check) without reading the full file |
+| \`Read\` | file path | Full file contents | Need actual code — implementing, editing, understanding logic |
 | \`get-architecture\` | *(none)* | This document — folder types, import rules, decision tree | First thing on any task |
-| \`discover\` | \`{ type, path?, fileType?, search?, name?, section? }\` | File purposes, signatures, related files, or standards docs | Finding existing code before creating new |
 | \`get-folder-detail\` | \`{ folderType }\` | Naming, imports, constraints, code examples, proxy requirements | Before creating/modifying files in a folder type |
 | \`get-syntax-rules\` | *(none)* | File naming, exports, types, destructuring conventions | Ensuring code passes ESLint |
 | \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |`;
@@ -520,6 +621,10 @@ npm run ward -- --only lint,test --changed
 ## Critical Context: Why This Architecture
 
 ${whyThisStructure}
+
+## Code Discovery
+
+${codeDiscovery}
 
 ## Folder Types
 
@@ -550,10 +655,6 @@ ${layerFiles}
 ## Extension Over Creation Philosophy
 
 ${extensionRules}
-
-## Code Discovery
-
-${codeDiscovery}
 
 ## Frontend Data Flow (React)
 

@@ -97,8 +97,6 @@ For each step, evaluate its structured assertions:
 
 Use the \`discover\` MCP tool to verify assumptions in the quest:
 
-- \`discover\` tool (params: \`{ type: "files", path: "packages/X/src/guards" }\`)
-
 - **File existence**: Do files listed in \`accompanyingFiles\` that already exist on disk match expected paths?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
 - **Pattern consistency**: Do new files follow the naming and structure patterns of existing similar files?

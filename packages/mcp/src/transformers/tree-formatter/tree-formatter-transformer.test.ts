@@ -1,5 +1,6 @@
 import { treeFormatterTransformer } from './tree-formatter-transformer';
 import { TreeItemStub } from '../../contracts/tree-item/tree-item.stub';
+import { GrepHitStub } from '../../contracts/grep-hit/grep-hit.stub';
 
 describe('treeFormatterTransformer', () => {
   it('VALID: single folder with files => formats as tree', () => {
@@ -94,5 +95,52 @@ guards/
     const result = treeFormatterTransformer({ items: [] });
 
     expect(result).toBe('');
+  });
+
+  it('VALID: items with grep hits => renders hits below items', () => {
+    const item = TreeItemStub({
+      name: 'fs-access-adapter',
+      type: 'adapter',
+      purpose: 'Checks if a file is accessible',
+      path: 'packages/mcp/src/adapters/fs-access-adapter.ts',
+      hits: [
+        GrepHitStub({ line: 14, text: "if (error.code === 'ENOENT') {" }),
+        GrepHitStub({ line: 18, text: "throw new FileNotFoundError('ENOENT');" }),
+      ],
+    });
+
+    const result = treeFormatterTransformer({ items: [item] });
+
+    expect(result).toBe(
+      `adapters/
+  fs-access-adapter (adapter) - Checks if a file is accessible
+    :14  if (error.code === 'ENOENT') {
+    :18  throw new FileNotFoundError('ENOENT');`,
+    );
+  });
+
+  it('VALID: mix of items with and without hits => only hit items show hits', () => {
+    const itemWithHits = TreeItemStub({
+      name: 'fs-access-adapter',
+      type: 'adapter',
+      purpose: 'Checks access',
+      path: 'packages/mcp/src/adapters/fs-access-adapter.ts',
+      hits: [GrepHitStub({ line: 14, text: "if (error.code === 'ENOENT') {" })],
+    });
+    const itemWithoutHits = TreeItemStub({
+      name: 'fs-read-adapter',
+      type: 'adapter',
+      purpose: 'Reads files',
+      path: 'packages/mcp/src/adapters/fs-read-adapter.ts',
+    });
+
+    const result = treeFormatterTransformer({ items: [itemWithHits, itemWithoutHits] });
+
+    expect(result).toBe(
+      `adapters/
+  fs-access-adapter (adapter) - Checks access
+    :14  if (error.code === 'ENOENT') {
+  fs-read-adapter (adapter) - Reads files`,
+    );
   });
 });

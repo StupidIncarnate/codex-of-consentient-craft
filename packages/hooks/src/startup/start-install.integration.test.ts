@@ -48,7 +48,7 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
             {
-              matcher: 'Grep|Glob',
+              matcher: 'Grep|Glob|Search|Find',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
@@ -118,7 +118,7 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
             {
-              matcher: 'Grep|Glob',
+              matcher: 'Grep|Glob|Search|Find',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
@@ -234,7 +234,7 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
             },
             {
-              matcher: 'Grep|Glob',
+              matcher: 'Grep|Glob|Search|Find',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],

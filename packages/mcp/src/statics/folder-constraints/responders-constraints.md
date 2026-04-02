@@ -52,6 +52,12 @@ Responders handle **ONLY** these four things:
 
 **NO business logic in responders!** All business logic goes in brokers/.
 
+**ERROR BOUNDARY:**
+
+Responders are the **only valid catch-and-transform site** in the architecture. Catch errors at this boundary and return
+appropriate HTTP status codes or error responses. All other layers (brokers, adapters) should let errors propagate up to
+responders.
+
 ```typescript
 // ✅ CORRECT - Responder with proper responsibilities
 export const UserCreateResponder = async ({req, res}: {

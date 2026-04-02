@@ -1,5 +1,6 @@
 import { fileMetadataContract as _fileMetadataContract } from './file-metadata-contract';
 import { FileMetadataStub } from './file-metadata.stub';
+import { GrepHitStub } from '../grep-hit/grep-hit.stub';
 
 describe('fileMetadataContract', () => {
   it('VALID: {complete metadata with empty arrays} => parses successfully', () => {
@@ -28,7 +29,6 @@ describe('fileMetadataContract', () => {
       },
       usage: 'testBroker();',
       relatedFiles: [],
-      source: 'project',
     });
   });
 
@@ -68,7 +68,6 @@ describe('fileMetadataContract', () => {
       },
       usage: 'await userFetchBroker({userId});',
       relatedFiles: [],
-      source: 'project',
     });
   });
 
@@ -116,7 +115,6 @@ describe('fileMetadataContract', () => {
       },
       usage: 'await userSearchBroker({query, limit: 10});',
       relatedFiles: [],
-      source: 'project',
     });
   });
 
@@ -162,7 +160,6 @@ describe('fileMetadataContract', () => {
       },
       usage: 'configBroker({options: {debug: "true"}});',
       relatedFiles: [],
-      source: 'project',
     });
   });
 
@@ -192,7 +189,37 @@ describe('fileMetadataContract', () => {
       },
       usage: 'if (simpleGuard()) { ... }',
       relatedFiles: [],
-      source: 'project',
+    });
+  });
+
+  it('VALID: {with hits array} => parses successfully', () => {
+    const result = FileMetadataStub({
+      name: 'errorHandler',
+      path: '/src/brokers/error/error-handler.ts',
+      fileType: 'broker',
+      purpose: 'Handles errors',
+      signature: {
+        raw: '(): void',
+        parameters: [],
+        returnType: 'void',
+      },
+      usage: 'errorHandler();',
+      hits: [GrepHitStub({ line: 14, text: 'if (error.code === "ENOENT") {' })],
+    });
+
+    expect(result).toStrictEqual({
+      name: 'errorHandler',
+      path: '/src/brokers/error/error-handler.ts',
+      fileType: 'broker',
+      purpose: 'Handles errors',
+      signature: {
+        raw: '(): void',
+        parameters: [],
+        returnType: 'void',
+      },
+      usage: 'errorHandler();',
+      hits: [{ line: 14, text: 'if (error.code === "ENOENT") {' }],
+      relatedFiles: [],
     });
   });
 
@@ -230,7 +257,6 @@ describe('fileMetadataContract', () => {
         whenNotToUse: 'Do not use when Y',
       },
       relatedFiles: [],
-      source: 'project',
     });
   });
 });

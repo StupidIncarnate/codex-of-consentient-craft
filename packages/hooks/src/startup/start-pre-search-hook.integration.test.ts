@@ -5,7 +5,7 @@ import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.
 describe('pre-search-hook', () => {
   const runner = hookRunnerHarness();
 
-  describe('blocked: exploratory searches', () => {
+  describe('blocked: all grep and glob calls', () => {
     it('VALID: {Grep, pattern: "permission"} => returns exit code 2 with discover guide', () => {
       const hookData = PreSearchHookDataStub({
         tool_name: 'Grep',
@@ -35,10 +35,8 @@ describe('pre-search-hook', () => {
         stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
-  });
 
-  describe('allowed: content searches', () => {
-    it('VALID: {Grep, output_mode: "content"} => returns exit code 0', () => {
+    it('VALID: {Grep, output_mode: "content"} => returns exit code 2 (previously allowed, now blocked)', () => {
       const hookData = PreSearchHookDataStub({
         tool_name: 'Grep',
         tool_input: { pattern: 'import', output_mode: 'content' },
@@ -47,28 +45,13 @@ describe('pre-search-hook', () => {
       const result = runner.runHook({ hookName: 'start-pre-search-hook', hookData });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
+        exitCode: 2,
         stdout: '',
-        stderr: '',
+        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
 
-    it('VALID: {Grep, pattern with regex} => returns exit code 0', () => {
-      const hookData = PreSearchHookDataStub({
-        tool_name: 'Grep',
-        tool_input: { pattern: 'import.*from' },
-      });
-
-      const result = runner.runHook({ hookName: 'start-pre-search-hook', hookData });
-
-      expect(result).toStrictEqual({
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
-    });
-
-    it('VALID: {Glob, pattern: "**/*.json"} => returns exit code 0', () => {
+    it('VALID: {Glob, pattern: "**/*.json"} => returns exit code 2 (previously allowed, now blocked)', () => {
       const hookData = PreSearchHookDataStub({
         tool_name: 'Glob',
         tool_input: { pattern: '**/*.json' },
@@ -77,9 +60,9 @@ describe('pre-search-hook', () => {
       const result = runner.runHook({ hookName: 'start-pre-search-hook', hookData });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
+        exitCode: 2,
         stdout: '',
-        stderr: '',
+        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
       });
     });
   });

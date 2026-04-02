@@ -16,7 +16,7 @@
 
 ```json
 {
-  "type": "files"
+  "glob": "packages/*/src/**"
 }
 ```
 
@@ -30,46 +30,40 @@
 - Results sorted alphabetically by name
 - Count matches number of results (implementation files only)
 
-### Test 1.2: Discover by File Type
+### Test 1.2: Discover by File Type (via glob)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "fileType": "broker"
+  "glob": "packages/*/src/brokers/**"
 }
 {
-  "type": "files",
-  "fileType": "guard"
+  "glob": "packages/*/src/guards/**"
 }
 {
-  "type": "files",
-  "fileType": "transformer"
+  "glob": "packages/*/src/transformers/**"
 }
 {
-  "type": "files",
-  "fileType": "contract"
+  "glob": "packages/*/src/contracts/**"
 }
 ```
 
 **Expected:**
 
-- Only returns files matching the specified type (detected from file suffix)
+- Only returns files matching the specified type (detected from glob path)
 - Brokers end in `-broker.ts`, guards in `-guard.ts`, etc.
 
-### Test 1.3: Discover by Path
+### Test 1.3: Discover by Path (via glob)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "path": "packages/eslint-plugin/src/guards"
+  "glob": "packages/eslint-plugin/src/guards/**"
 }
 {
-  "type": "files",
-  "path": "packages/mcp/src/transformers"
+  "glob": "packages/mcp/src/transformers/**"
 }
 ```
 
@@ -78,15 +72,13 @@
 - Only returns files within the specified directory
 - Searches recursively within that path
 
-### Test 1.4: Discover by Path + File Type
+### Test 1.4: Discover by Path + File Type (via glob)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "path": "packages/eslint-plugin/src/brokers",
-  "fileType": "broker"
+  "glob": "packages/eslint-plugin/src/brokers/**/*-broker.ts"
 }
 ```
 
@@ -94,62 +86,56 @@
 
 - Combined filtering: only brokers within the specified path
 
-### Test 1.5: Discover by Search Query
+### Test 1.5: Discover by Search Query (via grep)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "search": "metadata"
+  "grep": "metadata"
 }
 {
-  "type": "files",
-  "search": "extract"
+  "grep": "extract"
 }
 ```
 
 **Expected:**
 
-- Returns files where purpose OR name contains the search term (case-insensitive)
+- Returns files where content matches the search term (case-insensitive)
 - e.g., "metadata" should match metadata-extractor-transformer
 
-### Test 1.6: Discover by Exact Name
+### Test 1.6: Discover by Exact Name (via grep)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "name": "metadataExtractorTransformer"
+  "grep": "metadataExtractorTransformer"
 }
 {
-  "type": "files",
-  "name": "fileScannerBroker"
+  "grep": "fileScannerBroker"
 }
 ```
 
 **Expected:**
 
-- Returns exactly one file matching the function name
-- Name must match exactly (camelCase)
+- Returns files containing the function name
+- Use grep for exact name matching
 
-### Test 1.7: Combined Filters
+### Test 1.7: Combined Filters (glob + grep)
 
 **Input:**
 
 ```json
 {
-  "type": "files",
-  "path": "packages/mcp/src",
-  "fileType": "transformer",
-  "search": "file"
+  "glob": "packages/mcp/src/transformers/**",
+  "grep": "file"
 }
 ```
 
 **Expected:**
 
-- All filters applied: path contains "packages/mcp/src" AND type is transformer AND (name or purpose contains "file")
+- All filters applied: glob restricts to path AND grep matches content containing "file"
 
 ### Test 1.8: Files Without Metadata
 
@@ -157,8 +143,7 @@
 
 ```json
 {
-  "type": "files",
-  "path": "packages/mcp/src/statics"
+  "glob": "packages/mcp/src/statics/**"
 }
 ```
 
@@ -182,8 +167,7 @@
 
 ```json
 {
-  "type": "files",
-  "path": "packages/mcp/src/transformers"
+  "glob": "packages/mcp/src/transformers/**"
 }
 ```
 
@@ -219,61 +203,7 @@
 
 ---
 
-## 2. Tool: `discover` (Standards Discovery)
-
-### Test 2.1: Discover All Standards
-
-**Input:**
-
-```json
-{
-  "type": "standards"
-}
-```
-
-**Expected:**
-
-- Returns all sections from project-standards.md
-- Each section includes: title, content, level
-
-### Test 2.2: Discover Specific Section
-
-**Input:**
-
-```json
-{
-  "type": "standards",
-  "section": "Error Handling"
-}
-{
-  "type": "standards",
-  "section": "Type Safety"
-}
-```
-
-**Expected:**
-
-- Returns only the specified section
-- Section name should match markdown heading
-
-### Test 2.3: Nested Section Discovery
-
-**Input:**
-
-```json
-{
-  "type": "standards",
-  "section": "Naming Conventions"
-}
-```
-
-**Expected:**
-
-- If standards have subsections, should handle nested structure properly
-
----
-
-## 3. Tool: `get-architecture`
+## 2. Tool: `get-architecture`
 
 ### Test 3.1: Get Full Architecture Overview
 
@@ -324,7 +254,7 @@
 
 ---
 
-## 4. Tool: `get-folder-detail`
+## 3. Tool: `get-folder-detail`
 
 ### Test 4.1: Get Details for Each Folder Type
 
@@ -481,7 +411,7 @@ No configuration found for this folder type.
 
 ---
 
-## 5. Tool: `get-syntax-rules`
+## 4. Tool: `get-syntax-rules`
 
 ### Test 5.1: Get Universal Syntax Rules
 
@@ -514,17 +444,17 @@ No configuration found for this folder type.
 
 ---
 
-## 6. Error Handling & Edge Cases
+## 5. Error Handling & Edge Cases
 
 ### Test 6.1: Missing Required Parameters
 
 **Input:**
 
 ```json
-{
-  "type": "discover"
-}  // Missing 'type' field entirely
+{}
 ```
+
+(Call with no glob or grep params)
 
 **Expected:**
 
@@ -543,8 +473,8 @@ No configuration found for this folder type.
 
 ```json
 {
-  "type": "files"
-}  // Across entire monorepo
+  "glob": "packages/*/src/**"
+}
 ```
 
 **Expected:**
@@ -559,8 +489,7 @@ No configuration found for this folder type.
 
 ```json
 {
-  "type": "files",
-  "search": "nonexistent-pattern-xyz123"
+  "grep": "nonexistent-pattern-xyz123"
 }
 ```
 
@@ -580,7 +509,7 @@ No configuration found for this folder type.
 
 ---
 
-## 7. MCP Protocol Tests
+## 6. MCP Protocol Tests
 
 ### Test 7.1: List Tools
 
@@ -642,7 +571,7 @@ No configuration found for this folder type.
 
 ---
 
-## 8. Performance Tests
+## 7. Performance Tests
 
 ### Test 8.1: Startup Time
 
@@ -670,13 +599,12 @@ No configuration found for this folder type.
 
 Use this checklist when manually testing:
 
-- [ ] All 4 tools are listed via ListTools
-- [ ] `discover` returns results for type="files"
-- [ ] `discover` returns results for type="standards"
-- [ ] `discover` filters by fileType correctly
-- [ ] `discover` filters by path correctly
-- [ ] `discover` filters by search correctly
-- [ ] `discover` filters by name correctly
+- [ ] All 5 tools are listed via ListTools
+- [ ] `discover` returns results with glob pattern
+- [ ] `discover` filters by glob correctly
+- [ ] `discover` filters by grep correctly
+- [ ] `discover` supports verbose mode
+- [ ] `discover` supports context parameter
 - [ ] **Multi-dot files (.test.ts, .proxy.ts) are excluded from main results**
 - [ ] **relatedFiles array contains associated multi-dot files**
 - [ ] **relatedFiles are sorted alphabetically**

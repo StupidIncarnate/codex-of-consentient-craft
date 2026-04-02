@@ -30,6 +30,14 @@ export const fileDiscoveryStatics = {
   },
 
   /**
+   * Default glob ignore patterns for file scanning.
+   * Each entry is a glob pattern that excludes a directory tree.
+   * When the user's glob explicitly targets one of these directories,
+   * that ignore rule is removed to allow access.
+   */
+  globIgnorePatterns: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
+
+  /**
    * Minimum number of path parts required after a path anchor for folder-based type detection.
    * Must be >= 2 so that the part immediately after the anchor is a folder name, not a filename.
    * e.g. test/harnesses/foo.ts → harnesses is a folder (2 parts after 'test')

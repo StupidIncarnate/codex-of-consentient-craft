@@ -1,7 +1,34 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import { ArchitectureHandleResponderProxy } from './architecture-handle-responder.proxy';
 
 describe('ArchitectureHandleResponder', () => {
+  describe('discover', () => {
+    it('VALID: {tool: discover, glob pattern} => returns JSON-stringified discover result', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupFileDiscovery({
+        filepath: FilePathStub({
+          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        }),
+        contents: FileContentsStub({
+          value: 'export const ArchitectureHandleResponder = () => {};',
+        }),
+        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'discover' }),
+        args: { glob: 'packages/mcp/src/responders/**' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+  });
+
   describe('get-architecture', () => {
     it('VALID: {tool: get-architecture} => returns architecture overview text', async () => {
       const proxy = ArchitectureHandleResponderProxy();
@@ -50,6 +77,23 @@ describe('ArchitectureHandleResponder', () => {
   describe('get-folder-detail', () => {
     it('VALID: {tool: get-folder-detail, folderType: brokers} => returns folder detail text', async () => {
       const proxy = ArchitectureHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-folder-detail' }),
+        args: { folderType: 'brokers' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+
+    it('VALID: {tool: get-folder-detail, folderType with supplemental constraints} => includes constraints in result', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupFolderConstraint({
+        folderType: 'brokers',
+        content: 'Supplemental constraint content',
+      });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-folder-detail' }),
