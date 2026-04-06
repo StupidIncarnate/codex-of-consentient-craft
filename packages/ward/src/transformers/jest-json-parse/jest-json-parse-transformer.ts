@@ -80,13 +80,18 @@ export const jestJsonParseTransformer = ({
       const firstMessage: unknown = failureMessages.length > 0 ? failureMessages[0] : null;
       const hasStack = typeof firstMessage === 'string' && firstMessage.includes('\n    at ');
 
+      const stackOnly =
+        hasStack && typeof firstMessage === 'string'
+          ? firstMessage.slice(firstMessage.indexOf('\n    at '))
+          : undefined;
+
       return [
         ...failures,
         testFailureContract.parse({
           suitePath: testFilePath,
           testName: fullName,
           message,
-          ...(hasStack && !timeoutAnnotation ? { stackTrace: firstMessage } : {}),
+          ...(stackOnly && !timeoutAnnotation ? { stackTrace: stackOnly } : {}),
         }),
       ];
     }, []);

@@ -9,6 +9,8 @@
  */
 
 import { spawn, type ChildProcess } from 'child_process';
+import { readFileSync } from 'fs';
+import path from 'path';
 import type { Readable } from 'stream';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
@@ -22,12 +24,27 @@ export const childProcessSpawnStreamJsonAdapter = ({
   prompt,
   resumeSessionId,
   cwd,
+  stdinMode = 'inherit',
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
   cwd?: string;
+  stdinMode?: 'inherit' | 'ignore';
 }): SpawnStreamJsonResult => {
+  const effectiveCwd = cwd ?? process.cwd();
+  const settingsFile = path.join(effectiveCwd, '.claude', 'settings.json');
+  let settingsJson = '';
+  try {
+    settingsJson = readFileSync(settingsFile, 'utf8');
+  } catch {
+    // settings file may not exist
+  }
+
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose'];
+
+  if (settingsJson.length > 0) {
+    args.push('--settings', settingsJson);
+  }
 
   if (resumeSessionId) {
     args.push('--resume', resumeSessionId);
@@ -36,8 +53,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
   const childProcess = spawn(cliPath, args, {
-    stdio: ['inherit', 'pipe', 'inherit'],
-    env: { ...process.env },
+    stdio: [stdinMode, 'pipe', 'inherit'],
     ...(cwd && { cwd }),
   });
 

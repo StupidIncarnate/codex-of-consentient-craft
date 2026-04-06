@@ -252,26 +252,57 @@ With grep, adds a \`hits\` array showing matching lines:
 
 Use when: you are about to edit a file, need to understand implementation logic, or need the actual code line-by-line. Do NOT use Read to search — use discover first, then Read the specific file you need.
 
-**Parallel discovery:** When you need multiple searches, batch them into a single message with multiple tool calls:
+**Parallel discovery:** When you need multiple areas, batch glob calls into a single message:
 
 \`\`\`
-// ✅ CORRECT — 3 searches in ONE message (parallel execution)
-discover({ glob: "packages/*/src/brokers/**", grep: "user" })
-discover({ glob: "packages/*/src/contracts/**", grep: "user" })
+// ✅ CORRECT — 3 glob calls in ONE message (parallel execution)
+discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
+discover({ glob: "packages/shared/src/contracts/**" })
 discover({ glob: "packages/web/src/widgets/**" })
 
 // ❌ WRONG — 3 sequential messages (3x slower)
-// Message 1: discover({ glob: "packages/*/src/brokers/**", grep: "user" })
-// Message 2: discover({ glob: "packages/*/src/contracts/**", grep: "user" })
+// Message 1: discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
+// Message 2: discover({ glob: "packages/shared/src/contracts/**" })
 // Message 3: discover({ glob: "packages/web/src/widgets/**" })
 \`\`\`
 
-**discover search strategies:**
-- Browse a directory: \`{ glob: "packages/hooks/src/brokers/**" }\`
-- Find by content: \`{ grep: "questModifyBroker" }\`
-- Combined glob + grep: \`{ glob: "packages/hooks/src/**", grep: "permission" }\`
-- Full details: \`{ glob: "packages/hooks/src/brokers/**", verbose: true }\`
-- Search with context: \`{ grep: "ENOENT", context: 3 }\`
+**How to search — glob the architecture, don't guess with grep:**
+
+This codebase has known folder types: brokers, guards, transformers, contracts, adapters, widgets, responders, statics. The tree output shows every file with its purpose — that IS your search index. Glob into folder types to see what exists.
+
+\`\`\`
+// ✅ Glob a folder type — one call, see the full tree with purposes
+discover({ glob: "packages/shared/src/brokers/architecture/**" })
+// → tree shows every file + purpose. Pick the one you need, then Read it.
+
+// ✅ Glob to explore a package area you're working in
+discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
+
+// ✅ Grep for a specific identifier you already know the name of
+discover({ grep: "questModifyBroker" })
+
+// ✅ Narrow a large tree — glob first, grep refines
+discover({ glob: "packages/hooks/src/guards/**", grep: "permission" })
+\`\`\`
+
+\`\`\`
+// ❌ WRONG — grep with long phrases hoping to match file content
+discover({ grep: "Code Discovery", glob: "packages/mcp/src/**/*" })
+discover({ grep: "discover is the ONLY way", glob: "**/*statics*" })
+discover({ grep: "discover is the ONLY way", glob: "**/*.ts" })
+// 3 failed calls. The fix: discover({ glob: "packages/shared/src/brokers/architecture/**" })
+// One glob → see the tree → find the file → done.
+
+// ❌ WRONG — grep with OR patterns or regex guesses
+discover({ glob: "packages/config", grep: "monorepo|root|setup" })
+// You don't know what terms exist. Just glob the folder and read the tree.
+
+// ❌ WRONG — combining glob + grep on first search
+discover({ glob: "packages/*/src/**", grep: "someFeature" })
+// The glob is too wide and the grep is a guess. Glob a specific folder type first.
+\`\`\`
+
+**The rule:** If you don't already know the exact function/variable name, use glob alone. The tree output has file purposes — that IS your search. Only add grep when you have a specific identifier to locate across the codebase.
 
 **Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.`;
 

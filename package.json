@@ -39,8 +39,15 @@
   "engines": {
     "node": ">=14.0.0"
   },
+  "peerDependencies": {
+    "@anthropic-ai/claude-code": "latest"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/claude-code": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "@anthropic-ai/claude-code": "latest",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/eslint-plugin": "*",
@@ -79,7 +86,7 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "tsx": "^4.0.0"
+    "tsx": "^4.0.0",
+    "typescript": "^5.8.3"
   }
 }

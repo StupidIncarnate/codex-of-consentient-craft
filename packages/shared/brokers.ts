@@ -10,6 +10,9 @@
 // Architecture Overview
 export * from './src/brokers/architecture/overview/architecture-overview-broker';
 
+// Config Root
+export * from './src/brokers/config-root/find/config-root-find-broker';
+
 // Project Root
 export * from './src/brokers/project-root/find/project-root-find-broker';
 

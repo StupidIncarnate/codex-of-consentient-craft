@@ -6,7 +6,7 @@
  * // Returns { exitCode: ExitCode | null, output: ErrorMessage }
  */
 
-import { execFile } from 'child_process';
+import { spawn } from 'child_process';
 import {
   errorMessageContract,
   exitCodeContract,
@@ -14,8 +14,6 @@ import {
   type ErrorMessage,
   type ExitCode,
 } from '@dungeonmaster/shared/contracts';
-
-const FIFTY_MB = 52_428_800;
 
 export const childProcessSpawnCaptureAdapter = async ({
   command,
@@ -31,31 +29,44 @@ export const childProcessSpawnCaptureAdapter = async ({
   env?: Record<string, string>;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
-    execFile(
-      command,
-      args,
-      {
-        cwd,
-        maxBuffer: FIFTY_MB,
-        env: { ...process.env, ...env },
-        ...(timeout !== undefined && { timeout }),
-      },
-      (error, stdout, stderr) => {
-        const combinedOutput = errorMessageContract.parse(stdout + stderr);
+    const child = spawn(command, args, {
+      cwd,
+      stdio: ['inherit', 'pipe', 'pipe'],
+      env: { ...process.env, ...env },
+    });
 
-        if (error && 'code' in error && typeof error.code === 'number') {
-          const normalizedCode = Math.max(0, error.code);
-          const exitCode = exitCodeContract.parse(normalizedCode);
-          resolve({ exitCode, output: combinedOutput });
-          return;
-        }
+    let stdout = '';
+    let stderr = '';
 
-        if (error) {
-          resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
-          return;
-        }
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
 
-        resolve({ exitCode: exitCodeContract.parse(0), output: combinedOutput });
-      },
-    );
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
+
+    if (timeout !== undefined) {
+      setTimeout(() => {
+        child.kill();
+      }, timeout);
+    }
+
+    child.on('exit', (code) => {
+      const combinedOutput = errorMessageContract.parse(stdout + stderr);
+
+      if (code !== null && code !== 0) {
+        const normalizedCode = Math.max(0, code);
+        const exitCode = exitCodeContract.parse(normalizedCode);
+        resolve({ exitCode, output: combinedOutput });
+        return;
+      }
+
+      resolve({ exitCode: exitCodeContract.parse(code ?? 0), output: combinedOutput });
+    });
+
+    child.on('error', () => {
+      const combinedOutput = errorMessageContract.parse(stdout + stderr);
+      resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
+    });
   });

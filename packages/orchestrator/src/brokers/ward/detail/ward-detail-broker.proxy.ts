@@ -1,5 +1,5 @@
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 export const wardDetailBrokerProxy = (): {
   setupSuccess: (params: { output: string }) => void;
@@ -13,11 +13,19 @@ export const wardDetailBrokerProxy = (): {
 
   return {
     setupSuccess: ({ output }: { output: string }): void => {
-      captureProxy.setupSuccess({ exitCode: successCode, stdout: output, stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: ErrorMessageStub({ value: output }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
     },
 
     setupFailure: (): void => {
-      captureProxy.setupSuccess({ exitCode: failCode, stdout: '', stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),

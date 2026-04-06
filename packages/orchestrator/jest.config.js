@@ -8,7 +8,11 @@ module.exports = {
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s', '**/test/**/*.test.[jt]s'],
   // Override setupFilesAfterEnv to use correct relative path from this package
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
-  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transformIgnorePatterns: [
+    '/dist/',
+    '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)',
+    '/packages/testing/src/jest\\.setup\\.js$',
+  ],
   transform: {
     '^.+\\.[jt]s$': [
       'ts-jest',

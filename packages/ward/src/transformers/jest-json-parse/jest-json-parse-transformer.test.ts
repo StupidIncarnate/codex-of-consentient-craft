@@ -29,7 +29,7 @@ describe('jestJsonParseTransformer', () => {
           suitePath: '/path/file.test.ts',
           testName: 'should work',
           message: 'Error: expected true\n    at Object.<anonymous> (/path:10:5)',
-          stackTrace: 'Error: expected true\n    at Object.<anonymous> (/path:10:5)',
+          stackTrace: '\n    at Object.<anonymous> (/path:10:5)',
         }),
       ]);
     });

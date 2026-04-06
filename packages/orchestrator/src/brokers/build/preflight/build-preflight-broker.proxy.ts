@@ -1,4 +1,4 @@
-import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub, ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 
@@ -15,16 +15,16 @@ export const buildPreflightBrokerProxy = (): {
     setupBuildSuccess: (): void => {
       captureProxy.setupSuccess({
         exitCode: ExitCodeStub({ value: 0 }),
-        stdout: 'Build succeeded',
-        stderr: '',
+        stdout: ErrorMessageStub({ value: 'Build succeeded' }),
+        stderr: ErrorMessageStub({ value: '' }),
       });
     },
 
     setupBuildFailure: ({ exitCode, output }: { exitCode: ExitCode; output: string }): void => {
       captureProxy.setupSuccess({
         exitCode,
-        stdout: output,
-        stderr: '',
+        stdout: ErrorMessageStub({ value: output }),
+        stderr: ErrorMessageStub({ value: '' }),
       });
     },
 

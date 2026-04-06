@@ -1,24 +1,78 @@
-import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
-import { execFile } from 'child_process';
+import { ExitCodeStub, type ErrorMessage, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { spawn, type ChildProcess } from 'child_process';
+import { EventEmitter, Readable, Writable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-type ExecFileCallback = (error: Error | null, stdout: string, stderr: string) => void;
+interface ProxyConfig {
+  exitCode: ExitCode;
+  stdout: ErrorMessage;
+  stderr: ErrorMessage;
+  error: Error | null;
+}
 
 export const childProcessSpawnCaptureAdapterProxy = (): {
-  setupSuccess: (params: { exitCode: ExitCode; stdout: string; stderr: string }) => void;
+  setupSuccess: (params: {
+    exitCode: ExitCode;
+    stdout: ErrorMessage;
+    stderr: ErrorMessage;
+  }) => void;
   setupError: (params: { error: Error }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
   getSpawnedOptions: () => unknown;
 } => {
-  const handle = registerMock({ fn: execFile });
+  const handle = registerMock({ fn: spawn });
 
-  handle.mockImplementation(
-    (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
-      callback(null, '', '');
-    },
-  );
+  const config: ProxyConfig = {
+    exitCode: ExitCodeStub({ value: 0 }),
+    stdout: '' as ErrorMessage,
+    stderr: '' as ErrorMessage,
+    error: null,
+  };
+
+  const createMockChild = (): ChildProcess => {
+    const child = new EventEmitter() as ChildProcess;
+    child.stdout = new Readable({
+      read(): void {
+        /* noop */
+      },
+    });
+    child.stderr = new Readable({
+      read(): void {
+        /* noop */
+      },
+    });
+    child.stdin = new Writable({
+      write(_c, _e, cb): void {
+        cb();
+      },
+    });
+    child.kill = jest.fn().mockReturnValue(true);
+
+    // Non-null assertion safe: stdout/stderr assigned as Readable above
+    const mockStdout = child.stdout;
+    const mockStderr = child.stderr;
+    setImmediate(() => {
+      if (config.error) {
+        child.emit('error', config.error);
+      } else {
+        if (String(config.stdout).length > 0) {
+          mockStdout.push(Buffer.from(String(config.stdout)));
+        }
+        mockStdout.push(null);
+        if (String(config.stderr).length > 0) {
+          mockStderr.push(Buffer.from(String(config.stderr)));
+        }
+        mockStderr.push(null);
+        child.emit('exit', config.exitCode);
+      }
+    });
+
+    return child;
+  };
+
+  handle.mockImplementation(() => createMockChild());
 
   return {
     setupSuccess: ({
@@ -27,29 +81,17 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       stderr,
     }: {
       exitCode: ExitCode;
-      stdout: string;
-      stderr: string;
+      stdout: ErrorMessage;
+      stderr: ErrorMessage;
     }): void => {
-      const successCode = ExitCodeStub({ value: 0 });
-      handle.mockImplementationOnce(
-        (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
-          if (exitCode === successCode) {
-            callback(null, stdout, stderr);
-          } else {
-            const error = new Error('Command failed') as Error & { code: ExitCode };
-            error.code = exitCode;
-            callback(error, stdout, stderr);
-          }
-        },
-      );
+      config.exitCode = exitCode;
+      config.stdout = stdout;
+      config.stderr = stderr;
+      config.error = null;
     },
 
     setupError: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(
-        (_cmd: string, _args: string[], _opts: unknown, callback: ExecFileCallback) => {
-          callback(error, '', '');
-        },
-      );
+      config.error = error;
     },
 
     getSpawnedCommand: (): unknown => {
@@ -70,7 +112,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
-      const [, , opts] = lastCall as unknown[];
+      const opts: unknown = lastCall[2];
       if (typeof opts !== 'object' || opts === null) return undefined;
       return Reflect.get(opts, 'cwd');
     },
@@ -79,8 +121,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
-      const [, , opts] = lastCall as unknown[];
-      return opts;
+      return lastCall[2];
     },
   };
 };

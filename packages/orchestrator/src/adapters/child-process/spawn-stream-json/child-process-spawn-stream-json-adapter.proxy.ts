@@ -1,5 +1,6 @@
 import type { ExitCode, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import { spawn, type ChildProcess } from 'child_process';
+import { readFileSync } from 'fs';
 import { EventEmitter, Readable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -20,9 +21,14 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   setupError: (params: { error: Error }) => void;
   setupSpawnThrow: (params: { error: Error }) => void;
   setupSpawnThrowOnce: (params: { error: Error }) => void;
+  setupSettingsNotFound: () => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
+  getSpawnedOptions: () => unknown;
 } => {
+  const readFileMock: MockHandle = registerMock({ fn: readFileSync });
+  readFileMock.mockReturnValue('{"hooks":{}}');
+
   const mock: MockHandle = registerMock({ fn: spawn });
   const config: ProxyConfig = {
     exitCode: null,
@@ -111,6 +117,12 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
       });
     },
 
+    setupSettingsNotFound: (): void => {
+      readFileMock.mockImplementation(() => {
+        throw new Error('ENOENT: no such file or directory');
+      });
+    },
+
     getSpawnedCommand: (): unknown => {
       const { calls } = mock.mock;
       const lastCall = calls[calls.length - 1];
@@ -123,6 +135,13 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
       const lastCall = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return lastCall[1];
+    },
+
+    getSpawnedOptions: (): unknown => {
+      const { calls } = mock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      return lastCall[2];
     },
   };
 };

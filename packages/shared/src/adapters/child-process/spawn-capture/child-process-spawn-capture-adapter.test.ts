@@ -1,4 +1,8 @@
-import { AbsoluteFilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ErrorMessageStub,
+  ExitCodeStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnCaptureAdapter } from './child-process-spawn-capture-adapter';
 import { childProcessSpawnCaptureAdapterProxy } from './child-process-spawn-capture-adapter.proxy';
@@ -8,7 +12,11 @@ describe('childProcessSpawnCaptureAdapter', () => {
     it('VALID: {command exits with 0} => returns exit code 0 and empty output', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      proxy.setupSuccess({
+        exitCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
 
       const result = await childProcessSpawnCaptureAdapter({
         command: 'npm',
@@ -17,15 +25,19 @@ describe('childProcessSpawnCaptureAdapter', () => {
       });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
-        output: '',
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: '' }),
       });
     });
 
     it('VALID: {command exits with 0 and stdout} => returns exit code 0 and stdout content', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: 'All tests passed', stderr: '' });
+      proxy.setupSuccess({
+        exitCode,
+        stdout: ErrorMessageStub({ value: 'All tests passed' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
 
       const result = await childProcessSpawnCaptureAdapter({
         command: 'npm',
@@ -34,8 +46,8 @@ describe('childProcessSpawnCaptureAdapter', () => {
       });
 
       expect(result).toStrictEqual({
-        exitCode: 0,
-        output: 'All tests passed',
+        exitCode: ExitCodeStub({ value: 0 }),
+        output: ErrorMessageStub({ value: 'All tests passed' }),
       });
     });
   });
@@ -44,7 +56,11 @@ describe('childProcessSpawnCaptureAdapter', () => {
     it('VALID: {command exits with non-zero} => returns exit code and stderr content', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 1 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: 'Error in /src/file.ts' });
+      proxy.setupSuccess({
+        exitCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: 'Error in /src/file.ts' }),
+      });
 
       const result = await childProcessSpawnCaptureAdapter({
         command: 'npm',
@@ -53,8 +69,8 @@ describe('childProcessSpawnCaptureAdapter', () => {
       });
 
       expect(result).toStrictEqual({
-        exitCode: 1,
-        output: 'Error in /src/file.ts',
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: 'Error in /src/file.ts' }),
       });
     });
 
@@ -63,8 +79,8 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const exitCode = ExitCodeStub({ value: 1 });
       proxy.setupSuccess({
         exitCode,
-        stdout: 'stdout content',
-        stderr: 'stderr content',
+        stdout: ErrorMessageStub({ value: 'stdout content' }),
+        stderr: ErrorMessageStub({ value: 'stderr content' }),
       });
 
       const result = await childProcessSpawnCaptureAdapter({
@@ -74,14 +90,14 @@ describe('childProcessSpawnCaptureAdapter', () => {
       });
 
       expect(result).toStrictEqual({
-        exitCode: 1,
-        output: 'stdout contentstderr content',
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: 'stdout contentstderr content' }),
       });
     });
   });
 
   describe('error cases', () => {
-    it('ERROR: {execFile error without code} => returns exit code 1 and empty output', async () => {
+    it('ERROR: {spawn error} => returns exit code 1 and empty output', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       proxy.setupError({ error: new Error('ENOENT: command not found') });
 
@@ -92,8 +108,8 @@ describe('childProcessSpawnCaptureAdapter', () => {
       });
 
       expect(result).toStrictEqual({
-        exitCode: 1,
-        output: '',
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: '' }),
       });
     });
   });
@@ -102,7 +118,11 @@ describe('childProcessSpawnCaptureAdapter', () => {
     it('VALID: {command, args, cwd} => passes correct arguments to spawn', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      proxy.setupSuccess({
+        exitCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
 
       await childProcessSpawnCaptureAdapter({
         command: 'npm',
@@ -112,12 +132,17 @@ describe('childProcessSpawnCaptureAdapter', () => {
 
       expect(proxy.getSpawnedCommand()).toBe('npm');
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'ward:all']);
+      expect(proxy.getSpawnedCwd()).toBe('/home/user/project');
     });
 
-    it('VALID: {any command} => passes maxBuffer option to execFile', async () => {
+    it('VALID: {any command} => spawns with inherited stdin and piped stdout/stderr', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      proxy.setupSuccess({
+        exitCode,
+        stdout: ErrorMessageStub({ value: '' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
 
       await childProcessSpawnCaptureAdapter({
         command: 'npm',
@@ -125,44 +150,9 @@ describe('childProcessSpawnCaptureAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      const options: unknown = proxy.getSpawnedOptions();
-      const FIFTY_MB = 52_428_800;
+      const options = proxy.getSpawnedOptions();
 
-      expect(Reflect.get(options as object, 'maxBuffer')).toBe(FIFTY_MB);
-    });
-
-    it('VALID: {timeout provided} => passes timeout option to execFile', async () => {
-      const proxy = childProcessSpawnCaptureAdapterProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
-      const FIVE_MINUTES = 300_000;
-
-      await childProcessSpawnCaptureAdapter({
-        command: 'npx',
-        args: ['playwright', 'test'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
-        timeout: FIVE_MINUTES,
-      });
-
-      const options: unknown = proxy.getSpawnedOptions();
-
-      expect(Reflect.get(options as object, 'timeout')).toBe(FIVE_MINUTES);
-    });
-
-    it('VALID: {no timeout} => does not set timeout option on execFile', async () => {
-      const proxy = childProcessSpawnCaptureAdapterProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
-
-      await childProcessSpawnCaptureAdapter({
-        command: 'npm',
-        args: ['run', 'test'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
-      });
-
-      const options: unknown = proxy.getSpawnedOptions();
-
-      expect(Object.hasOwn(options as object, 'timeout')).toBe(false);
+      expect(Reflect.get(options as object, 'stdio')).toStrictEqual(['inherit', 'pipe', 'pipe']);
     });
   });
 });

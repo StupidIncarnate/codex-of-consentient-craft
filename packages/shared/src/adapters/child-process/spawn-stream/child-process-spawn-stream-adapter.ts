@@ -27,7 +27,7 @@ export const childProcessSpawnStreamAdapter = async ({
   onStderr?: (line: string) => void;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
-    const child = spawn(command, args, { cwd });
+    const child = spawn(command, args, { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
 
     const stdoutChunks: ErrorMessage[] = [];
 
