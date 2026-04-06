@@ -6,6 +6,7 @@
  * // Returns { shouldBlock: boolean, message?: string } indicating whether to block the bash command
  */
 import { isBlockedQualityCommandGuard } from '../../../guards/is-blocked-quality-command/is-blocked-quality-command-guard';
+import { isBlockedSearchCommandGuard } from '../../../guards/is-blocked-search-command/is-blocked-search-command-guard';
 import { isWardPipedCommandGuard } from '../../../guards/is-ward-piped-command/is-ward-piped-command-guard';
 import { isWardCommandGuard } from '../../../guards/is-ward-command/is-ward-command-guard';
 import { wardSuggestionMessageTransformer } from '../../../transformers/ward-suggestion-message/ward-suggestion-message-transformer';
@@ -13,6 +14,7 @@ import { stripWardPipeCommandTransformer } from '../../../transformers/strip-war
 import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-tool-input-contract';
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
+import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
 import { wardTimeoutStatics } from '../../../statics/ward-timeout/ward-timeout-statics';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -58,6 +60,15 @@ export const HookPreBashResponder = ({
     return hookPreEditResponderResultContract.parse({
       shouldBlock: true,
       message: wardSuggestionMessageTransformer({ command: parseResult.data.command }),
+    });
+  }
+
+  const isSearchBlocked = isBlockedSearchCommandGuard({ command });
+
+  if (isSearchBlocked) {
+    return hookPreEditResponderResultContract.parse({
+      shouldBlock: true,
+      message: discoverSuggestionMessageStatics.blockMessage,
     });
   }
 

@@ -1,6 +1,7 @@
 import { HookPreBashResponder } from './hook-pre-bash-responder';
 import { HookPreBashResponderProxy } from './hook-pre-bash-responder.proxy';
 import { HookDataStub } from '../../../contracts/hook-data/hook-data.stub';
+import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
 
 describe('HookPreBashResponder', () => {
   describe('piped ward commands', () => {
@@ -110,6 +111,68 @@ describe('HookPreBashResponder', () => {
         shouldBlock: true,
         message:
           'Blocked: npx dungeonmaster-ward is banned. Use instead: `npm run ward -- run --only test`',
+      });
+    });
+  });
+
+  describe('blocked search commands', () => {
+    it('VALID: {command: "grep -rn pattern ."} => returns discover suggestion', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'grep -rn pattern .' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message: discoverSuggestionMessageStatics.blockMessage,
+      });
+    });
+
+    it('VALID: {command: "rg pattern src/"} => returns discover suggestion', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'rg pattern src/' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message: discoverSuggestionMessageStatics.blockMessage,
+      });
+    });
+
+    it('VALID: {command: "find . -name *.ts"} => returns discover suggestion', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'find . -name *.ts' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: true,
+        message: discoverSuggestionMessageStatics.blockMessage,
+      });
+    });
+
+    it('VALID: {command: "npm run ward | grep error"} => allowed (piped grep is legitimate)', () => {
+      HookPreBashResponderProxy();
+      const hookData = HookDataStub({
+        tool_name: 'Bash',
+        tool_input: { command: 'npm run ward | grep error' },
+      });
+
+      const result = HookPreBashResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldBlock: false,
+        updatedCommand: 'npm run ward',
       });
     });
   });

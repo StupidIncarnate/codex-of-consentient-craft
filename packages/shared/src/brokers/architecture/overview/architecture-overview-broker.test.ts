@@ -189,7 +189,7 @@ describe('architectureOverviewBroker', () => {
         /^\*\*`discover` is the ONLY way to search this codebase\.\*\* System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked\. The `discover` MCP tool replaces all of them — it wraps glob and grep with structured output \(purposes, signatures, related files\)\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*Parallel discovery:\*\* When you need multiple searches, batch them into a single message with multiple tool calls:$/mu,
+        /^\*\*Parallel discovery:\*\* When you need multiple areas, batch glob calls into a single message:$/mu,
       );
       expect(result).toMatch(
         /^\*\*Always discover before creating\.\*\* Check if similar code exists\. If it does, extend it — don't duplicate\.$/mu,
