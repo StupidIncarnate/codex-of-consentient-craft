@@ -51,20 +51,40 @@ describe('isBlockedSearchCommandGuard', () => {
     });
   });
 
-  describe('allowed commands — piped uses are legitimate', () => {
-    it('VALID: {command: "npm run ward | grep error"} => returns false (piped)', () => {
+  describe('blocked commands — search piped to other tools', () => {
+    it('VALID: {command: "grep pattern src/ | head -5"} => returns true', () => {
+      const result = isBlockedSearchCommandGuard({ command: 'grep pattern src/ | head -5' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {command: "rg pattern | wc -l"} => returns true', () => {
+      const result = isBlockedSearchCommandGuard({ command: 'rg pattern | wc -l' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {command: "find . -name *.ts 2>&1 | head -5"} => returns true', () => {
+      const result = isBlockedSearchCommandGuard({ command: 'find . -name *.ts 2>&1 | head -5' });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('allowed commands — search on receiving end of pipe', () => {
+    it('VALID: {command: "npm run ward | grep error"} => returns false', () => {
       const result = isBlockedSearchCommandGuard({ command: 'npm run ward | grep error' });
 
       expect(result).toBe(false);
     });
 
-    it('VALID: {command: "git log | grep fix"} => returns false (piped)', () => {
+    it('VALID: {command: "git log | grep fix"} => returns false', () => {
       const result = isBlockedSearchCommandGuard({ command: 'git log | grep fix' });
 
       expect(result).toBe(false);
     });
 
-    it('VALID: {command: "ls -la | grep test"} => returns false (piped)', () => {
+    it('VALID: {command: "ls -la | grep test"} => returns false', () => {
       const result = isBlockedSearchCommandGuard({ command: 'ls -la | grep test' });
 
       expect(result).toBe(false);

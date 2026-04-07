@@ -13,9 +13,8 @@ export const isBlockedSearchCommandGuard = ({ command }: { command?: string }): 
     return false;
   }
 
-  if (command.includes('|')) {
-    return false;
-  }
+  const firstPipeSegment = command.split('|')[0] ?? command;
+  const trimmed = firstPipeSegment.trim();
 
-  return BLOCKED_SEARCH_PATTERN.test(command);
+  return BLOCKED_SEARCH_PATTERN.test(trimmed);
 };

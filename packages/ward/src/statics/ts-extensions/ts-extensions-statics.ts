@@ -8,4 +8,7 @@
 export const tsExtensionsStatics = {
   extensions: ['ts', 'tsx'],
   declarationExtensions: ['ts', 'd.ts'],
+  // All source extensions that eslint and jest can process in user projects.
+  // Ward runs in external codebases that may use JS/JSX alongside TS.
+  allExtensions: ['ts', 'tsx', 'js', 'jsx'],
 } as const;
