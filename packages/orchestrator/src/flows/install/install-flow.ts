@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await InstallFlow({ context });
- * // Installs .claude/commands/ and .claude/agents/ files for the orchestrator package
+ * // Returns install result for the orchestrator package
  */
 
 import { InstallWriteFilesResponder } from '../../responders/install/write-files/install-write-files-responder';

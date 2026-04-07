@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await StartInstall({ context });
- * // Creates .claude/commands/ with quest.md and quest:start.md, and .claude/agents/ with agent files
+ * // Returns install result — agent prompts are served via MCP get-agent-prompt tool
  */
 
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';

@@ -60,6 +60,21 @@ describe('InteractionHandleResponder', () => {
     });
   });
 
+  describe('get-agent-prompt', () => {
+    it('VALID: {agent: "quest-gap-reviewer"} => returns JSON with name, model, prompt', () => {
+      const proxy = InteractionHandleResponderProxy();
+
+      const result = proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        args: { agent: 'quest-gap-reviewer' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+  });
+
   describe('unknown tool', () => {
     it('ERROR: {tool: unknown-tool} => throws unknown tool error', () => {
       const proxy = InteractionHandleResponderProxy();

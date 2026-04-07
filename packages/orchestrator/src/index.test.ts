@@ -8,6 +8,7 @@ describe('orchestrator', () => {
       'StartOrchestrator',
       'addQuestInputContract',
       'addQuestResultContract',
+      'agentPromptResultContract',
       'agentRoleContract',
       'agentSlotContract',
       'chaoswhispererPromptStatics',

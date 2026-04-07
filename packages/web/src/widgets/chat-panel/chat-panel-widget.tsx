@@ -82,8 +82,11 @@ export const ChatPanelWidget = ({
   }, [interval, shouldBounce]);
 
   useEffect(() => {
-    if (!userScrolledUp.current && messagesEndRef.current?.scrollIntoView !== undefined) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!userScrolledUp.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
   }, [entries]);
 

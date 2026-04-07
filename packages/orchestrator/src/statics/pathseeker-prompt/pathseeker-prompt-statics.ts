@@ -280,9 +280,8 @@ Do NOT proceed to Step 10 until verify returns \`success: true\`.
 
 ### Step 10: Spawn Finalizer for Semantic Review
 
-Use the Task tool to spawn the finalizer-quest-agent:
-- subagent_type: "finalizer-quest-agent"
-- prompt: "Finalize and review quest [questId]"
+Launch an agent using the Agent/Task tool with exactly this prompt:
+"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'finalizer-quest-agent' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"
 
 The finalizer performs semantic review beyond structural checks: narrative traceability,
 assertion completeness and coherence, codebase assumption verification, and ambiguity detection.

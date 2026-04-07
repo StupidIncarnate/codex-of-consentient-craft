@@ -6,7 +6,7 @@
  * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs, floor-based step layout
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
@@ -68,6 +68,7 @@ const ACTION_BAR_PADDING = 12;
 const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
 const STEPS_PREFIX = 'steps/';
 const STEPS_PREFIX_LENGTH = STEPS_PREFIX.length;
+const SCROLL_THRESHOLD_PX = 10;
 
 export const ExecutionPanelWidget = ({
   quest,

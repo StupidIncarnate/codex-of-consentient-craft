@@ -23,7 +23,6 @@ import type { OnAgentEntryCallback } from '../../../contracts/orchestration-call
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
-import { agentFilesEnsureBroker } from '../../agent/files-ensure/agent-files-ensure-broker';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
@@ -48,8 +47,6 @@ export const runChatLayerBroker = async ({
     questId,
     ...(workItem.sessionId === undefined ? {} : { sessionId: workItem.sessionId }),
   });
-
-  await agentFilesEnsureBroker({ targetPath: absoluteFilePathContract.parse(startPath) });
 
   try {
     const { sessionId, exitCode } = await new Promise<{

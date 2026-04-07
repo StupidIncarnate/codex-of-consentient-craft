@@ -15,7 +15,7 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/orchestrator',
         success: true,
         action: 'created',
-        message: 'Agent prompt files are written just-in-time before agent spawn',
+        message: 'Agent prompts served via MCP get-agent-prompt tool',
       });
     });
   });

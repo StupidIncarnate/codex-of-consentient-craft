@@ -29,6 +29,7 @@ export const mcpToolsStatics = {
       'list-guilds',
       'verify-quest',
       'ask-user-question',
+      'get-agent-prompt',
     ] as const,
   },
 } as const;

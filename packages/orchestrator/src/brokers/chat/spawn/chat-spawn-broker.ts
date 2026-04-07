@@ -36,7 +36,6 @@ import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contr
 import { questStatics } from '../../../statics/quest/quest-statics';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../../../transformers/task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
-import { agentFilesEnsureBroker } from '../../agent/files-ensure/agent-files-ensure-broker';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questAddBroker } from '../../quest/add/quest-add-broker';
@@ -127,7 +126,6 @@ export const chatSpawnBroker = async ({
   });
 
   const guildAbsolutePath = absoluteFilePathContract.parse(guild.path);
-  await agentFilesEnsureBroker({ targetPath: guildAbsolutePath });
 
   const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,

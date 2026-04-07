@@ -8,7 +8,6 @@ import {
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
-import { agentFilesEnsureBrokerProxy } from '../../agent/files-ensure/agent-files-ensure-broker.proxy';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { questAddBrokerProxy } from '../../quest/add/quest-add-broker.proxy';
@@ -34,7 +33,6 @@ export const chatSpawnBrokerProxy = (): {
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
 } => {
-  agentFilesEnsureBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const addProxy = questAddBrokerProxy();

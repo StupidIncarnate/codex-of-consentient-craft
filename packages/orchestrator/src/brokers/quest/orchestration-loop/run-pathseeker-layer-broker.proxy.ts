@@ -3,7 +3,6 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
-import { agentFilesEnsureBrokerProxy } from '../../agent/files-ensure/agent-files-ensure-broker.proxy';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -38,7 +37,6 @@ export const runPathseekerLayerBrokerProxy = (): {
   getPersistedQuestJsons: () => readonly unknown[];
   getSpawnedArgs: () => unknown;
 } => {
-  agentFilesEnsureBrokerProxy();
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const verifyProxy = questVerifyBrokerProxy();

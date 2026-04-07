@@ -449,7 +449,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
             Awaiting quest activity...
           </Text>
         ) : (
-          <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {isDesignTabVisibleGuard({ status: questWithContent.status }) && (
               <Box
                 data-testid="DESIGN_TAB_BAR"

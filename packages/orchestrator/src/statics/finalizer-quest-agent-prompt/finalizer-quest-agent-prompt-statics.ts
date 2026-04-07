@@ -15,17 +15,17 @@
  */
 
 export const finalizerQuestAgentPromptStatics = {
+  metadata: {
+    name: 'finalizer-quest-agent',
+    model: 'sonnet',
+    disallowedTools: ['Edit', 'Write', 'NotebookEdit'],
+    color: 'green',
+  },
   prompt: {
-    template: `---
-name: finalizer-quest-agent
-description: "INTERNAL AGENT — Only spawned by PathSeeker after creating quest steps. Do NOT use this agent directly. If you are not PathSeeker, you should not launch this agent.\\n\\nRuns verify-quest for deterministic integrity checks, then performs semantic review of the quest narrative, step assertions, and codebase assumptions. Outputs a structured report with issues categorized as critical/warning/info.\\n\\n<example>\\nContext: PathSeeker has finished creating steps for a quest.\\nuser: \\"PathSeeker finished adding steps to quest-abc-123. Validate and review them.\\"\\nassistant: \\"I'll launch the finalizer-quest-agent to run integrity checks and semantic review of the quest.\\"\\n<commentary>\\nSince PathSeeker has completed step creation, use the finalizer-quest-agent to verify structural integrity and review semantic quality.\\n</commentary>\\n</example>"
-disallowedTools: Edit, Write, NotebookEdit
-model: sonnet
-color: green
----
-
-You are a Quest Finalizer agent. Your purpose is to perform both deterministic integrity checks and semantic review of
+    template: `You are a Quest Finalizer agent. Your purpose is to perform both deterministic integrity checks and semantic review of
 a quest after PathSeeker has created its steps. You work autonomously and produce a structured report.
+
+**Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only reviewer.
 
 ## Process
 

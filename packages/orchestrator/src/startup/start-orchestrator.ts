@@ -33,6 +33,8 @@ import type { GetQuestResult } from '../contracts/get-quest-result/get-quest-res
 import type { ModifyQuestInput } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestResult } from '../contracts/modify-quest-result/modify-quest-result-contract';
 import type { VerifyQuestResult } from '../contracts/verify-quest-result/verify-quest-result-contract';
+import type { AgentPromptResult } from '../contracts/agent-prompt-result/agent-prompt-result-contract';
+import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
 import { ChatStartFlow } from '../flows/chat-start/chat-start-flow';
 import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
@@ -175,6 +177,10 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
+
+  // Agent prompt methods
+  getAgentPrompt: ({ agent }: { agent: string }): AgentPromptResult =>
+    AgentPromptFlow.get({ agent }),
 
   // Recovery methods
   recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),

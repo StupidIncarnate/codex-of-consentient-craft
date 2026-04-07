@@ -36,6 +36,10 @@ export type { VerifyQuestCheck } from './contracts/verify-quest-check/verify-que
 export { verifyQuestResultContract } from './contracts/verify-quest-result/verify-quest-result-contract';
 export type { VerifyQuestResult } from './contracts/verify-quest-result/verify-quest-result-contract';
 
+// Agent prompt contracts - exported for MCP package
+export { agentPromptResultContract } from './contracts/agent-prompt-result/agent-prompt-result-contract';
+export type { AgentPromptResult } from './contracts/agent-prompt-result/agent-prompt-result-contract';
+
 // Prompt statics - re-exported for CLI package
 export { chaoswhispererPromptStatics } from './statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
 export { pathseekerPromptStatics } from './statics/pathseeker-prompt/pathseeker-prompt-statics';

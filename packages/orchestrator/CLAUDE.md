@@ -1,7 +1,11 @@
 # @dungeonmaster/orchestrator
 
 ## Callouts
-- **NEVER modify `.claude/agents/*.md` or `.claude/commands/*.md` directly.** These are generated copies. The source of truth is in `packages/orchestrator/src/statics/` (e.g., `pathseeker-prompt-statics.ts`, `codeweaver-prompt-statics.ts`, `gap-reviewer-agent-prompt-statics.ts`, `finalizer-quest-agent-prompt-statics.ts`). Always edit the statics files, then the install script copies them to `.claude/`.
+
+- **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
+  `packages/orchestrator/src/statics/` (e.g., `gap-reviewer-agent-prompt-statics.ts`,
+  `finalizer-quest-agent-prompt-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
+  tell spawned agents to call the MCP tool to get their instructions.
 
 ## Quest Pipeline
 
@@ -211,7 +215,10 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 | `/tegrity`     | Fix lint + type errors iteratively                                 |
 | `/document`    | Update project standards docs                                      |
 
-## Sub-Agents
+## Agents (MCP-Delivered)
+
+Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. Parent roles spawn an agent and instruct it to
+call `get-agent-prompt` as its first action.
 
 | Agent                 | Spawned By          | Purpose                                      |
 |-----------------------|---------------------|----------------------------------------------|

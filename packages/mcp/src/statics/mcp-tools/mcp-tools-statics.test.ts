@@ -22,6 +22,7 @@ describe('mcpToolsStatics', () => {
           'list-guilds',
           'verify-quest',
           'ask-user-question',
+          'get-agent-prompt',
         ],
       },
     });

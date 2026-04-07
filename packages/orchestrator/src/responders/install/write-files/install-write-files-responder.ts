@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns install result for the orchestrator package (file writing moved to just-in-time agent spawn)
+ * PURPOSE: Returns install result for the orchestrator package (agent prompts served via MCP get-agent-prompt tool)
  *
  * USAGE:
  * const result = await InstallWriteFilesResponder({ context });
- * // Returns success result — agent prompt files are now written just-in-time before spawn, not at install time
+ * // Returns success result — agent prompts are delivered dynamically via the get-agent-prompt MCP tool
  */
 
 import {
@@ -23,7 +23,5 @@ export const InstallWriteFilesResponder = ({
   packageName: packageNameContract.parse(PACKAGE_NAME),
   success: true,
   action: 'created',
-  message: installMessageContract.parse(
-    'Agent prompt files are written just-in-time before agent spawn',
-  ),
+  message: installMessageContract.parse('Agent prompts served via MCP get-agent-prompt tool'),
 });
