@@ -29,15 +29,12 @@ the check name and details. These are structural problems that MUST be fixed bef
 Fetch the quest in stages via MCP tools to manage context size:
 
 **Fetch 1:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "spec-flows" }`)
-
 - Returns: flows (nodes, edges, entry/exit points), design decisions, contracts, tooling requirements
 
 **Fetch 2:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "spec-obs" }`)
-
 - Returns: flows with observables embedded in nodes, contracts (for cross-referencing)
 
 **Fetch 3:** `get-quest` tool (params: `{ questId: "QUEST_ID", stage: "implementation" }`)
-
 - Returns: steps (assertions, focusFile, accompanyingFiles, dependencies), contracts (for reference validation)
 
 ### Step 3: Trace the Narrative
@@ -116,7 +113,6 @@ Use the `discover` MCP tool to verify assumptions in the quest:
 ### Step 6: Flag Ambiguities
 
 Identify anything an implementer would have to guess at:
-
 - Missing error messages or validation rules
 - Unclear data flow between steps
 - Steps that depend on undocumented behavior
@@ -139,26 +135,26 @@ Identify anything an implementer would have to guess at:
 Issues that will block or break implementation.
 
 1. **[Issue Title]**
-    - Location: [step/flow/node/observable ID]
-    - Problem: [What's wrong]
-    - Impact: [What will go wrong]
-    - Suggestion: [How to fix]
+   - Location: [step/flow/node/observable ID]
+   - Problem: [What's wrong]
+   - Impact: [What will go wrong]
+   - Suggestion: [How to fix]
 
 ### Warnings (Should Fix)
 
 Issues that may cause confusion or rework.
 
 1. **[Issue Title]**
-    - Location: [step/flow/node/observable ID]
-    - Problem: [What's concerning]
-    - Suggestion: [How to address]
+   - Location: [step/flow/node/observable ID]
+   - Problem: [What's concerning]
+   - Suggestion: [How to address]
 
 ### Info (Notes)
 
 Observations that are worth noting but not blocking.
 
 1. **[Observation]**
-    - Note: [What you noticed]
+   - Note: [What you noticed]
 
 ### Summary
 

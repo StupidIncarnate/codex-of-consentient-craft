@@ -13,7 +13,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
-import { devServerStartBrokerProxy } from '../../dev-server/start/dev-server-start-broker.proxy';
 import { devServerStopBrokerProxy } from '../../dev-server/stop/dev-server-stop-broker.proxy';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -53,7 +52,6 @@ const TEST_BUILD_COMMAND = 'npm run build' as never;
 const TEST_READINESS_PATH = '/' as never;
 const TEST_DEV_SERVER_PORT = parseInt('3000', 10) as never;
 const TEST_READINESS_TIMEOUT_MS = parseInt('30000', 10) as never;
-const FAST_READINESS_TIMEOUT_MS = parseInt('1000', 10) as never;
 
 const makeSigtermResponsive = (proc: ChildProcess): ChildProcess => {
   proc.kill = jest.fn((sig) => {
@@ -75,17 +73,6 @@ const makeDevServerConfig = (): DungeonmasterConfig =>
       buildCommand: TEST_BUILD_COMMAND,
       readinessPath: TEST_READINESS_PATH,
       readinessTimeoutMs: TEST_READINESS_TIMEOUT_MS,
-    },
-  } as never);
-
-const makeDevServerConfigFastTimeout = (): DungeonmasterConfig =>
-  DungeonmasterConfigStub({
-    devServer: {
-      devCommand: TEST_DEV_COMMAND,
-      port: TEST_DEV_SERVER_PORT,
-      buildCommand: TEST_BUILD_COMMAND,
-      readinessPath: TEST_READINESS_PATH,
-      readinessTimeoutMs: FAST_READINESS_TIMEOUT_MS,
     },
   } as never);
 
@@ -152,12 +139,11 @@ export const runSiegemasterLayerBrokerProxy = (): {
   // where the siege spawn uses the fallback mockImplementation and must receive a stream-json process.
   const buildProxy = buildPreflightLoopLayerBrokerProxy();
   devServerStopBrokerProxy();
-  // The loop broker calls devServerStartBroker + agentSpawnByRoleBroker internally,
-  // so we create the child proxies directly (serverStartProxy + spawnProxy below).
-  // devServerStartLoopLayerBrokerProxy is created to satisfy enforce-proxy-child-creation
-  // but its setup methods are not used — the underlying adapter proxies handle mocking.
-  devServerStartLoopLayerBrokerProxy();
-  const serverStartProxy = devServerStartBrokerProxy();
+  // The loop broker calls devServerStartBroker internally, so we use the loop layer
+  // broker's proxy which creates the child devServerStartBrokerProxy. Creating a second
+  // devServerStartBrokerProxy here would register a duplicate spawn mock that conflicts
+  // with the one the actual code path uses.
+  const serverStartProxy = devServerStartLoopLayerBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const toIsoHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
   toIsoHandle.mockReturnValue('2024-01-15T10:00:00.000Z');
@@ -246,7 +232,11 @@ export const runSiegemasterLayerBrokerProxy = (): {
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
-      spawnProxy.setupSpawnOnce({
+      // Must use setupSpawnAutoLines (not setupSpawnOnce) so siege signal lines are emitted
+      // AFTER the siege readline callback is registered. setupSpawnOnce schedules lines via
+      // setImmediate at setup time, but the build + server start awaits consume those
+      // macrotask slots before the siege agent even spawns.
+      spawnProxy.setupSpawnAutoLines({
         lines: buildSignalLine({ signal }),
         exitCode,
       });
@@ -284,23 +274,28 @@ export const runSiegemasterLayerBrokerProxy = (): {
     setupBuildExhausted: ({ quest }: { quest: Quest }): void => {
       configProxy.setupConfigResolved({ config: makeDevServerConfig() });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 1' });
-      spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 2' });
-      spawnProxy.setupSpawnOnce({ lines: [], exitCode: 0 as never });
       buildProxy.setupBuildFailure({ exitCode: 1 as never, output: 'Build error line 3' });
+      // Spiritmender spawns use auto-lines fallback (exit code 0, no lines) so the exit
+      // event fires when readline is created, not via a stale setImmediate from setup time.
+      // Both spiritmenders (after build 1 and build 2) share the same fallback config.
+      spawnProxy.setupSpawnAutoLines({ lines: [], exitCode: 0 as never });
       // quest fetched twice: once at start, once for replan
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
     setupServerStartFails: ({ quest }: { quest: Quest }): void => {
-      // Use fast readiness timeout (1ms) so the poll times out immediately on every attempt.
-      // The readiness mock returns 503 (default from setupServerReadinessTimeout), which is
-      // ≥ 500 and treated as not ready. With 1ms timeout, each attempt times out instantly.
-      configProxy.setupConfigResolved({ config: makeDevServerConfigFastTimeout() });
+      // Server exits before ready on all 3 attempts (maxAttempts = 3).
+      // Using setupServerExitsBeforeReady instead of setupServerReadinessTimeout avoids
+      // real setTimeout waits in the readiness poll loop.
+      configProxy.setupConfigResolved({ config: makeDevServerConfig() });
       buildProxy.setupBuildSuccess();
-      serverStartProxy.setupServerReadinessTimeout();
-      // Spiritmender spawns use the auto-lines fallback (exit code 0, no lines)
+      serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      serverStartProxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      // Spiritmender spawns (after attempt 0 and 1, not after attempt 2) use auto-lines
+      // fallback so exit fires when readline is created, not from stale setImmediate.
       spawnProxy.setupSpawnAutoLines({ lines: [], exitCode: 0 as never });
       // quest fetched twice: once at start, once for replan
       getProxy.setupQuestFound({ quest });

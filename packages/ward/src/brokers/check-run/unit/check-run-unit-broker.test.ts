@@ -24,7 +24,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -69,7 +69,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -102,7 +102,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -167,7 +167,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -215,7 +215,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -258,7 +258,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--findRelatedTests',
         'src/index.ts',
@@ -289,7 +289,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest/orchestration-loop',
@@ -324,7 +324,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest|src/transformers',
@@ -350,7 +350,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -390,7 +390,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--findRelatedTests',
         'src/brokers/quest/spawn-ward-layer-broker.test.ts',
@@ -412,7 +412,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -450,7 +450,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--testNamePattern',
         'my specific test',
@@ -480,7 +480,7 @@ describe('checkRunUnitBroker', () => {
         '--forceExit',
         '--detectOpenHandles',
         '--testPathIgnorePatterns',
-        '\\.integration\\.test\\.ts$|\\.e2e\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--testPathPatterns',
         'src/brokers/quest',
@@ -511,7 +511,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [
@@ -553,7 +553,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -585,7 +585,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -660,7 +660,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],

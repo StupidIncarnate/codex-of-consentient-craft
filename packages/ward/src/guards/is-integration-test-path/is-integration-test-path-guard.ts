@@ -10,5 +10,5 @@ export const isIntegrationTestPathGuard = ({ filePath }: { filePath?: string }):
   if (filePath === undefined) {
     return false;
   }
-  return filePath.endsWith('.integration.test.ts');
+  return /\.integration\.test\.[jt]sx?$/u.test(filePath);
 };

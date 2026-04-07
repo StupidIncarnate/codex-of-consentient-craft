@@ -10,6 +10,47 @@ interface ProxyConfig {
   error: Error | null;
 }
 
+const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): ChildProcess => {
+  const child = new EventEmitter() as ChildProcess;
+  child.stdout = new Readable({
+    read(): void {
+      /* noop */
+    },
+  });
+  child.stderr = new Readable({
+    read(): void {
+      /* noop */
+    },
+  });
+  child.stdin = new Writable({
+    write(_c, _e, cb): void {
+      cb();
+    },
+  });
+  child.kill = jest.fn().mockReturnValue(true);
+
+  // Non-null assertion safe: stdout/stderr assigned as Readable above
+  const mockStdout = child.stdout;
+  const mockStderr = child.stderr;
+  setImmediate(() => {
+    if (snapshot.error) {
+      child.emit('error', snapshot.error);
+    } else {
+      if (String(snapshot.stdout).length > 0) {
+        mockStdout.push(Buffer.from(String(snapshot.stdout)));
+      }
+      mockStdout.push(null);
+      if (String(snapshot.stderr).length > 0) {
+        mockStderr.push(Buffer.from(String(snapshot.stderr)));
+      }
+      mockStderr.push(null);
+      child.emit('exit', snapshot.exitCode);
+    }
+  });
+
+  return child;
+};
+
 export const childProcessSpawnCaptureAdapterProxy = (): {
   setupSuccess: (params: {
     exitCode: ExitCode;
@@ -24,55 +65,14 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: spawn });
 
-  const config: ProxyConfig = {
+  const defaultConfig: ProxyConfig = {
     exitCode: ExitCodeStub({ value: 0 }),
     stdout: '' as ErrorMessage,
     stderr: '' as ErrorMessage,
     error: null,
   };
 
-  const createMockChild = (): ChildProcess => {
-    const child = new EventEmitter() as ChildProcess;
-    child.stdout = new Readable({
-      read(): void {
-        /* noop */
-      },
-    });
-    child.stderr = new Readable({
-      read(): void {
-        /* noop */
-      },
-    });
-    child.stdin = new Writable({
-      write(_c, _e, cb): void {
-        cb();
-      },
-    });
-    child.kill = jest.fn().mockReturnValue(true);
-
-    // Non-null assertion safe: stdout/stderr assigned as Readable above
-    const mockStdout = child.stdout;
-    const mockStderr = child.stderr;
-    setImmediate(() => {
-      if (config.error) {
-        child.emit('error', config.error);
-      } else {
-        if (String(config.stdout).length > 0) {
-          mockStdout.push(Buffer.from(String(config.stdout)));
-        }
-        mockStdout.push(null);
-        if (String(config.stderr).length > 0) {
-          mockStderr.push(Buffer.from(String(config.stderr)));
-        }
-        mockStderr.push(null);
-        child.emit('exit', config.exitCode);
-      }
-    });
-
-    return child;
-  };
-
-  handle.mockImplementation(() => createMockChild());
+  handle.mockImplementation(() => createMockChildFromConfig({ snapshot: defaultConfig }));
 
   return {
     setupSuccess: ({
@@ -84,14 +84,13 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       stdout: ErrorMessage;
       stderr: ErrorMessage;
     }): void => {
-      config.exitCode = exitCode;
-      config.stdout = stdout;
-      config.stderr = stderr;
-      config.error = null;
+      const snapshot: ProxyConfig = { exitCode, stdout, stderr, error: null };
+      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
     },
 
     setupError: ({ error }: { error: Error }): void => {
-      config.error = error;
+      const snapshot: ProxyConfig = { ...defaultConfig, error };
+      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
     },
 
     getSpawnedCommand: (): unknown => {

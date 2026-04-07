@@ -8,6 +8,7 @@ import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spa
 export const devServerStartLoopLayerBrokerProxy = (): {
   setupServerBecomesReady: () => ChildProcess;
   setupServerExitsBeforeReady: (params: { exitCode: number }) => void;
+  setupServerReadinessTimeout: () => ChildProcess;
   setupSpawnOnce: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   setupSpawnAutoLines: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
   getSpawnedArgs: () => unknown;
@@ -21,6 +22,8 @@ export const devServerStartLoopLayerBrokerProxy = (): {
     setupServerExitsBeforeReady: ({ exitCode }: { exitCode: number }): void => {
       serverProxy.setupServerExitsBeforeReady({ exitCode });
     },
+
+    setupServerReadinessTimeout: (): ChildProcess => serverProxy.setupServerReadinessTimeout(),
 
     setupSpawnOnce: ({
       lines,

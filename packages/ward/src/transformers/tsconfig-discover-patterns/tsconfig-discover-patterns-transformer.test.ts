@@ -89,7 +89,7 @@ describe('tsconfigDiscoverPatternsTransformer', () => {
       const result = tsconfigDiscoverPatternsTransformer({ tsconfigData: null });
 
       expect(result).toStrictEqual({
-        patterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts'],
+        patterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
         exclude: ['node_modules', 'dist'],
       });
     });
@@ -102,7 +102,7 @@ describe('tsconfigDiscoverPatternsTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        patterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts'],
+        patterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
         exclude: ['node_modules', 'dist'],
       });
     });
@@ -113,7 +113,7 @@ describe('tsconfigDiscoverPatternsTransformer', () => {
       const result = tsconfigDiscoverPatternsTransformer({ tsconfigData: {} });
 
       expect(result).toStrictEqual({
-        patterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts'],
+        patterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
         exclude: ['node_modules', 'dist'],
       });
     });
@@ -126,7 +126,7 @@ describe('tsconfigDiscoverPatternsTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        patterns: ['src/**/*.ts', 'src/**/*.tsx', 'bin/**/*.ts'],
+        patterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
         exclude: ['node_modules', 'dist'],
       });
     });

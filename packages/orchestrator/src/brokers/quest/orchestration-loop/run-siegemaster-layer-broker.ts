@@ -25,7 +25,6 @@ import { slotIndexContract } from '../../../contracts/slot-index/slot-index-cont
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
-import type { devServerStartBroker } from '../../dev-server/start/dev-server-start-broker';
 import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
@@ -37,7 +36,8 @@ const FAILURE_MARKER = 'FAILED OBSERVABLES:';
 const MAX_BUILD_ATTEMPTS = 3;
 const MAX_DEV_SERVER_START_ATTEMPTS = 3;
 
-type DevServerProcess = Awaited<ReturnType<typeof devServerStartBroker>>['process'];
+type DevServerStartLoopResult = Awaited<ReturnType<typeof devServerStartLoopLayerBroker>>;
+type DevServerProcess = Extract<DevServerStartLoopResult, { success: true }>['process'];
 
 export const runSiegemasterLayerBroker = async ({
   questId,

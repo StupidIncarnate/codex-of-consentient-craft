@@ -35,7 +35,7 @@ describe('buildPreflightLoopLayerBroker', () => {
     it('VALID: {build fails once, spiritmender runs, retry succeeds} => returns { success: true }', async () => {
       const proxy = buildPreflightLoopLayerBrokerProxy();
       proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'type error' });
-      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSpawnAutoLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
       proxy.setupBuildSuccess();
 
       const result = await buildPreflightLoopLayerBroker({
@@ -53,7 +53,7 @@ describe('buildPreflightLoopLayerBroker', () => {
     it('VALID: {build fails once, spiritmender launched} => spiritmender receives buildFailure context', async () => {
       const proxy = buildPreflightLoopLayerBrokerProxy();
       proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'type error' });
-      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSpawnAutoLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
       proxy.setupBuildSuccess();
 
       await buildPreflightLoopLayerBroker({
@@ -77,9 +77,9 @@ describe('buildPreflightLoopLayerBroker', () => {
     it('VALID: {build fails maxAttempts times} => returns { success: false }', async () => {
       const proxy = buildPreflightLoopLayerBrokerProxy();
       proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'error 1' });
-      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSpawnAutoLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
       proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'error 2' });
-      proxy.setupSpawnOnce({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSpawnAutoLines({ lines: [], exitCode: ExitCodeStub({ value: 0 }) });
       proxy.setupBuildFailure({ exitCode: ExitCodeStub({ value: 1 }), output: 'error 3' });
 
       const result = await buildPreflightLoopLayerBroker({

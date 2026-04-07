@@ -498,6 +498,8 @@ describe('runPathseekerLayerBroker', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--settings',
+        '{"hooks":{}}',
         '--resume',
         '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
       ]);
@@ -543,6 +545,8 @@ describe('runPathseekerLayerBroker', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--settings',
+        '{"hooks":{}}',
         '--resume',
         '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
       ]);

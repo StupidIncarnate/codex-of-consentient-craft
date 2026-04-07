@@ -1,35 +1,41 @@
-import { StartWorktreeCreateHook } from './start-worktree-create-hook';
-
-const TestStateStub = ({ exitCalled = false }: { exitCalled?: boolean } = {}): {
-  exitCalled: boolean;
-} => ({
-  exitCalled,
-});
+import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 
 describe('start-worktree-create-hook', () => {
+  const runner = hookRunnerHarness();
+
   describe('StartWorktreeCreateHook', () => {
-    it('VALID: {inputData: invalid JSON} => calls process.exit with error code', () => {
-      const originalExit = process.exit;
-      const originalStdoutWrite = process.stdout.write;
-      const originalStderrWrite = process.stderr.write;
-      const state = TestStateStub();
+    it('ERROR: {invalid JSON input} => returns exit code 1 with error message', () => {
+      const rawResult = runner.runHookRaw({
+        hookName: 'start-worktree-create-hook',
+        input: 'not json' as never,
+      });
 
-      process.exit = jest.fn((): never => {
-        state.exitCalled = true;
-        throw new Error('exit called');
-      }) as typeof process.exit;
-      process.stdout.write = jest.fn() as typeof process.stdout.write;
-      process.stderr.write = jest.fn() as typeof process.stderr.write;
+      expect({
+        status: rawResult.status,
+        stdout: rawResult.stdout,
+        stderr: rawResult.stderr,
+      }).toStrictEqual({
+        status: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
+      });
+    });
 
-      expect(() => {
-        StartWorktreeCreateHook({ inputData: 'not json' });
-      }).toThrow('exit called');
+    it('ERROR: {empty input} => returns exit code 1 with error message', () => {
+      const rawResult = runner.runHookRaw({
+        hookName: 'start-worktree-create-hook',
+        input: '' as never,
+      });
 
-      process.exit = originalExit;
-      process.stdout.write = originalStdoutWrite;
-      process.stderr.write = originalStderrWrite;
-
-      expect(state.exitCalled).toBe(true);
+      expect({
+        status: rawResult.status,
+        stdout: rawResult.stdout,
+        stderr: rawResult.stderr,
+      }).toStrictEqual({
+        status: 1,
+        stdout: '',
+        stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
+      });
     });
   });
 });

@@ -54,6 +54,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   const childProcess = spawn(cliPath, args, {
     stdio: [stdinMode, 'pipe', 'inherit'],
+    env: { ...process.env },
     ...(cwd && { cwd }),
   });
 

@@ -2,7 +2,7 @@ import {
   childProcessSpawnCaptureAdapterProxy,
   fsExistsSyncAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { fsReadJsonSyncAdapterProxy } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter.proxy';
@@ -20,6 +20,7 @@ export const checkRunTypecheckBrokerProxy = (): {
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
+  const emptyMessage = ErrorMessageStub({ value: '' });
 
   return {
     setupPass: (params?: { stdout?: string }): void => {
@@ -28,8 +29,8 @@ export const checkRunTypecheckBrokerProxy = (): {
       binProxy.setupFound();
       captureProxy.setupSuccess({
         exitCode: successCode,
-        stdout: params?.stdout ?? '',
-        stderr: '',
+        stdout: ErrorMessageStub({ value: params?.stdout ?? '' }),
+        stderr: emptyMessage,
       });
     },
 
@@ -37,7 +38,11 @@ export const checkRunTypecheckBrokerProxy = (): {
       existsProxy.returns({ result: true });
       jsonProxy.returns({ content: '{"include":["src/**/*"]}' });
       binProxy.setupFound();
-      captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: ErrorMessageStub({ value: stdout }),
+        stderr: emptyMessage,
+      });
     },
 
     setupNoTsconfig: (): void => {

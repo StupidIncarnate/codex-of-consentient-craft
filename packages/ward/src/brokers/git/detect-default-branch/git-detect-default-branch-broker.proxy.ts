@@ -1,5 +1,5 @@
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 export const gitDetectDefaultBranchBrokerProxy = (): {
   setupMainExists: () => void;
@@ -9,31 +9,41 @@ export const gitDetectDefaultBranchBrokerProxy = (): {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
+  const emptyMessage = ErrorMessageStub({ value: '' });
+  const fatalMessage = ErrorMessageStub({ value: 'fatal: not a valid ref' });
 
   return {
     setupMainExists: (): void => {
-      captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: emptyMessage,
+        stderr: emptyMessage,
+      });
     },
 
     setupMasterExists: (): void => {
       captureProxy.setupSuccess({
         exitCode: failCode,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
+        stdout: emptyMessage,
+        stderr: fatalMessage,
       });
-      captureProxy.setupSuccess({ exitCode: successCode, stdout: '', stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: emptyMessage,
+        stderr: emptyMessage,
+      });
     },
 
     setupNeitherExists: (): void => {
       captureProxy.setupSuccess({
         exitCode: failCode,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
+        stdout: emptyMessage,
+        stderr: fatalMessage,
       });
       captureProxy.setupSuccess({
         exitCode: failCode,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
+        stdout: emptyMessage,
+        stderr: fatalMessage,
       });
     },
   };

@@ -11,6 +11,9 @@ import {
   type GlobPattern,
 } from '../../contracts/glob-pattern/glob-pattern-contract';
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
+import { tsExtensionsStatics } from '../../statics/ts-extensions/ts-extensions-statics';
+
+const exts = tsExtensionsStatics.allExtensions;
 
 export const jestDiscoverPatternsTransformer = ({
   checkType,
@@ -32,16 +35,16 @@ export const jestDiscoverPatternsTransformer = ({
 
   if (checkType === 'unit') {
     return {
-      patterns: [globPatternContract.parse('src/**/*.test.ts')],
-      excludePatterns: [
-        globPatternContract.parse('**/*.integration.test.ts'),
-        globPatternContract.parse('**/*.e2e.test.ts'),
-      ],
+      patterns: exts.map((ext) => globPatternContract.parse(`src/**/*.test.${ext}`)),
+      excludePatterns: exts.flatMap((ext) => [
+        globPatternContract.parse(`**/*.integration.test.${ext}`),
+        globPatternContract.parse(`**/*.e2e.test.${ext}`),
+      ]),
     };
   }
 
   return {
-    patterns: [globPatternContract.parse('src/**/*.integration.test.ts')],
+    patterns: exts.map((ext) => globPatternContract.parse(`src/**/*.integration.test.${ext}`)),
     excludePatterns: [],
   };
 };

@@ -18,7 +18,10 @@ type HookName =
   | 'start-pre-bash-hook'
   | 'start-post-edit-hook'
   | 'start-pre-edit-hook'
-  | 'start-pre-search-hook';
+  | 'start-pre-search-hook'
+  | 'start-session-start-hook'
+  | 'start-subagent-start-hook'
+  | 'start-worktree-create-hook';
 
 export const hookRunnerHarness = (): {
   runHook: (params: { hookName: HookName; hookData: unknown }) => ReturnType<typeof ExecResultStub>;

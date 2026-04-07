@@ -143,6 +143,8 @@ describe('runChatLayerBroker', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--settings',
+        '{"hooks":{}}',
         '--resume',
         existingSessionId,
       ]);

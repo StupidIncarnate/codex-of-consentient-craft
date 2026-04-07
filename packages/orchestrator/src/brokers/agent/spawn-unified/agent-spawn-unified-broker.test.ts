@@ -308,6 +308,8 @@ describe('agentSpawnUnifiedBroker', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--settings',
+        '{"hooks":{}}',
         '--resume',
         SESSION_ID,
       ]);

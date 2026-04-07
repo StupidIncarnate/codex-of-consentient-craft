@@ -107,6 +107,21 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
     });
   });
 
+  describe('env passthrough', () => {
+    it('VALID: {prompt: "Hello"} => passes a copy of process.env to spawn options', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+      });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'env')).toStrictEqual({ ...process.env });
+    });
+  });
+
   describe('stdinMode parameter', () => {
     it('VALID: {stdinMode: "ignore"} => passes ignore as stdio[0]', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();

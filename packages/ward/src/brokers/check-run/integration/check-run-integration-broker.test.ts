@@ -24,7 +24,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -69,7 +69,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -102,7 +102,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -139,7 +139,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '\\.integration\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--findRelatedTests',
         'src/index.ts',
@@ -171,7 +171,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '(?:src/flows/chat-replay).*\\.integration\\.test\\.ts$',
+        '(?:src/flows/chat-replay).*\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
       ]);
     });
@@ -205,7 +205,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '(?:src/flows/quest|src/flows/install).*\\.integration\\.test\\.ts$',
+        '(?:src/flows/quest|src/flows/install).*\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
       ]);
     });
@@ -234,7 +234,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '\\.integration\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
@@ -258,7 +258,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -301,7 +301,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '\\.integration\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--findRelatedTests',
         'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
@@ -323,7 +323,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -362,7 +362,7 @@ describe('checkRunIntegrationBroker', () => {
         '--detectOpenHandles',
         '--testTimeout=30000',
         '--testPathPatterns',
-        '\\.integration\\.test\\.ts$',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         '--runInBand',
         '--testNamePattern',
         'should connect',
@@ -391,7 +391,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'fail',
           errors: [
@@ -433,7 +433,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -465,7 +465,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -540,7 +540,7 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 4,
           projectFolder,
           status: 'pass',
           errors: [],

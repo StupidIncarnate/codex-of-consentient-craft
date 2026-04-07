@@ -10,5 +10,5 @@ export const isUnitTestPathGuard = ({ filePath }: { filePath?: string }): boolea
   if (filePath === undefined) {
     return false;
   }
-  return !/\.integration\.test\.ts$|\.e2e\.test\.ts$/u.test(filePath);
+  return !/\.integration\.test\.[jt]sx?$|\.e2e\.test\.[jt]sx?$/u.test(filePath);
 };

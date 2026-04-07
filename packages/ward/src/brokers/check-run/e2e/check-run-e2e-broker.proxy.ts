@@ -3,7 +3,7 @@ import {
   fsExistsSyncAdapterProxy,
   netFreePortAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
@@ -26,6 +26,7 @@ export const checkRunE2eBrokerProxy = (): {
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
+  const emptyMessage = ErrorMessageStub({ value: '' });
 
   const queueFreePorts = (): void => {
     freePortProxy.setupPort({ port: 40_000 });
@@ -42,8 +43,8 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: successCode,
-        stdout: '',
-        stderr: '',
+        stdout: emptyMessage,
+        stderr: emptyMessage,
       });
     },
 
@@ -51,14 +52,22 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
-      captureProxy.setupSuccess({ exitCode: successCode, stdout, stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: ErrorMessageStub({ value: stdout }),
+        stderr: emptyMessage,
+      });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {
       setupPlaywrightConfigExists();
       binProxy.setupFound();
       queueFreePorts();
-      captureProxy.setupSuccess({ exitCode: failCode, stdout, stderr: '' });
+      captureProxy.setupSuccess({
+        exitCode: failCode,
+        stdout: ErrorMessageStub({ value: stdout }),
+        stderr: emptyMessage,
+      });
     },
 
     setupFailWithEmptyOutput: (): void => {
@@ -67,8 +76,8 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       captureProxy.setupSuccess({
         exitCode: failCode,
-        stdout: '',
-        stderr: '',
+        stdout: emptyMessage,
+        stderr: emptyMessage,
       });
     },
 

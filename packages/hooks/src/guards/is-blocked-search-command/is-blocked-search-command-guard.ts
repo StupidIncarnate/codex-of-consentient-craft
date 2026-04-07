@@ -6,17 +6,14 @@
  * // Returns true because direct grep invocation should use discover MCP tool instead
  */
 
-const BLOCKED_SEARCH_PATTERN =
-  /(?:^|\s*&&\s*|\s*;\s*|\s*\|\|\s*)(?:grep|rg|find)(?:\s|$)/u;
-
-const PIPED_PATTERN = /\|/u;
+const BLOCKED_SEARCH_PATTERN = /(?:^|\s*&&\s*|\s*;\s*|\s*\|\|\s*)(?:grep|rg|find)(?:\s|$)/u;
 
 export const isBlockedSearchCommandGuard = ({ command }: { command?: string }): boolean => {
   if (command === undefined) {
     return false;
   }
 
-  if (PIPED_PATTERN.test(command)) {
+  if (command.includes('|')) {
     return false;
   }
 
