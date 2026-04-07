@@ -9,6 +9,7 @@
 import { Box } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 
+import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
@@ -55,10 +56,7 @@ export const ChatPanelWidget = ({
   const [raccoonFlip, setRaccoonFlip] = useState(false);
   const bounceOffsetRef = useRef<BounceOffsetPx>(BOUNCE_REST);
   const [bounceOffset, setBounceOffset] = useState<BounceOffsetPx>(BOUNCE_REST);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const userScrolledUp = useRef(false);
-  const isUserScrollEvent = useRef(false);
+  const { scrollContainerProps, scrollEndRef } = useAutoScrollBinding({ trigger: entries });
 
   const interval = raccoonAnimationIntervalTransformer({ isStreaming, entries });
   const shouldBounce = isStreaming && entries.length > 0 && entries.at(-1)?.role === 'user';
@@ -80,15 +78,6 @@ export const ChatPanelWidget = ({
       clearInterval(timer);
     };
   }, [interval, shouldBounce]);
-
-  useEffect(() => {
-    if (!userScrolledUp.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
-    }
-  }, [entries]);
 
   return (
     <Box
@@ -121,7 +110,7 @@ export const ChatPanelWidget = ({
       </Box>
 
       <Box
-        ref={scrollContainerRef}
+        ref={scrollContainerProps.ref}
         data-testid="CHAT_MESSAGES_AREA"
         style={{
           flex: 1,
@@ -131,23 +120,7 @@ export const ChatPanelWidget = ({
           flexDirection: 'column',
           gap: 8,
         }}
-        onPointerDown={() => {
-          isUserScrollEvent.current = true;
-        }}
-        onWheel={() => {
-          isUserScrollEvent.current = true;
-        }}
-        onKeyDown={() => {
-          isUserScrollEvent.current = true;
-        }}
-        onScroll={(event) => {
-          if (!isUserScrollEvent.current) return;
-          isUserScrollEvent.current = false;
-          const target = event.currentTarget;
-          const { scrollThresholdPx } = raccoonAnimationConfigStatics;
-          userScrolledUp.current =
-            target.scrollTop + target.clientHeight < target.scrollHeight - scrollThresholdPx;
-        }}
+        onScroll={scrollContainerProps.onScroll}
       >
         {(() => {
           const groupedEntries = collectSubagentChainsTransformer({ entries });
@@ -211,7 +184,7 @@ export const ChatPanelWidget = ({
           return elements;
         })()}
 
-        <div ref={messagesEndRef} />
+        <div ref={scrollEndRef} />
       </Box>
 
       <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />

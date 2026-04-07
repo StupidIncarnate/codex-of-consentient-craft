@@ -6,7 +6,7 @@
  * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs, floor-based step layout
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
@@ -32,6 +32,7 @@ import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
+import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -68,8 +69,6 @@ const ACTION_BAR_PADDING = 12;
 const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
 const STEPS_PREFIX = 'steps/';
 const STEPS_PREFIX_LENGTH = STEPS_PREFIX.length;
-const SCROLL_THRESHOLD_PX = 10;
-
 export const ExecutionPanelWidget = ({
   quest,
   slotEntries = new Map(),
@@ -80,6 +79,9 @@ export const ExecutionPanelWidget = ({
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
+  const { scrollContainerProps, scrollEndRef } = useAutoScrollBinding({
+    trigger: quest.steps.length + quest.workItems.length,
+  });
 
   const { steps } = quest;
   const isTerminalQuest = quest.status === 'complete' || quest.status === 'abandoned';
@@ -199,8 +201,10 @@ export const ExecutionPanelWidget = ({
             isPlanning={isPlanning}
           />
           <Box
+            ref={scrollContainerProps.ref}
             data-testid="execution-panel-floor-content"
             style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}
+            onScroll={scrollContainerProps.onScroll}
           >
             {isPlanning ? (
               <>
@@ -466,6 +470,7 @@ export const ExecutionPanelWidget = ({
                 })}
               </>
             )}
+            <div ref={scrollEndRef} />
           </Box>
           {(quest.status === 'paused' ||
             quest.status === 'blocked' ||
