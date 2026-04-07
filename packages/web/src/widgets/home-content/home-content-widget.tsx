@@ -6,7 +6,7 @@
  * // Renders guild list sidebar + session list, used as the "/" route content
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Box, Center, Group, Text } from '@mantine/core';
@@ -25,10 +25,19 @@ import { GuildSessionListWidget } from '../guild-session-list/guild-session-list
 
 type InternalView = 'main' | 'new-guild';
 
+const GUILD_STORAGE_KEY = 'dungeonmaster-last-guild';
+
 export const HomeContentWidget = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [internalView, setInternalView] = useState<InternalView>('main');
-  const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(null);
+  const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(() => {
+    try {
+      const stored = localStorage.getItem(GUILD_STORAGE_KEY);
+      return stored ? (stored as GuildId) : null;
+    } catch {
+      return null;
+    }
+  });
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
 
@@ -36,6 +45,25 @@ export const HomeContentWidget = (): React.JSX.Element => {
   const { data: sessions, loading: sessionsLoading } = useSessionListBinding({
     guildId: selectedGuildId,
   });
+
+  useEffect(() => {
+    try {
+      if (selectedGuildId) {
+        localStorage.setItem(GUILD_STORAGE_KEY, selectedGuildId);
+      } else {
+        localStorage.removeItem(GUILD_STORAGE_KEY);
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, [selectedGuildId]);
+
+  useEffect(() => {
+    if (guildsLoading) return;
+    if (selectedGuildId && !guilds.some((g) => g.id === selectedGuildId)) {
+      setSelectedGuildId(null);
+    }
+  }, [guilds, guildsLoading, selectedGuildId]);
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;

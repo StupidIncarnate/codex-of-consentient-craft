@@ -138,6 +138,7 @@ export const QuestClarifyPanelWidget = ({
                   setFreeformValue(value);
                 }}
                 placeholder={'Type your answer...' as FormPlaceholder}
+                autoFocus={true}
               />
               <PixelBtnWidget
                 label={'Send' as ButtonLabel}

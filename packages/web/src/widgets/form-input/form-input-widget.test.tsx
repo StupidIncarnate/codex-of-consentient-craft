@@ -108,6 +108,34 @@ describe('FormInputWidget', () => {
     });
   });
 
+  describe('autoFocus', () => {
+    it('VALID: {autoFocus: true} => input is the active focused element', () => {
+      FormInputWidgetProxy();
+      const value = FormInputValueStub({ value: '' });
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FormInputWidget value={value} onChange={onChange} autoFocus={true} />,
+      });
+
+      const input = screen.getByTestId('FORM_INPUT');
+
+      expect(document.activeElement).toBe(input);
+    });
+
+    it('VALID: {no autoFocus} => body is the active focused element', () => {
+      FormInputWidgetProxy();
+      const value = FormInputValueStub({ value: '' });
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FormInputWidget value={value} onChange={onChange} />,
+      });
+
+      expect(document.activeElement).toBe(document.body);
+    });
+  });
+
   describe('default values', () => {
     it('VALID: {no width} => defaults to 100% width', () => {
       FormInputWidgetProxy();

@@ -11,6 +11,8 @@ import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/ac
 import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
+const GUILD_STORAGE_KEY = 'dungeonmaster-last-guild';
+
 describe('HomeContentWidget', () => {
   describe('empty state', () => {
     it('VALID: {no guilds} => shows NEW GUILD form', async () => {
@@ -146,6 +148,137 @@ describe('HomeContentWidget', () => {
       });
 
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guildId}` })).toBe(true);
+    });
+  });
+
+  describe('localStorage guild persistence', () => {
+    it('VALID: {click guild} => saves guild ID to localStorage', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({ name: 'Persist Guild' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      proxy.setupSessions({ sessions: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(guild.id);
+      });
+
+      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(guild.id);
+    });
+
+    it('VALID: {stored guild in localStorage, guild exists} => auto-selects guild on mount', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({ name: 'Stored Guild' });
+
+      localStorage.setItem(GUILD_STORAGE_KEY, guild.id);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemSelected({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      expect(proxy.isGuildItemSelected({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+    });
+
+    it('VALID: {stored guild in localStorage, guild not in list} => clears localStorage', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const staleGuildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const realGuild = GuildListItemStub({ name: 'Real Guild' });
+
+      localStorage.setItem(GUILD_STORAGE_KEY, staleGuildId);
+
+      proxy.setupGuilds({ guilds: [realGuild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+      });
+
+      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+      expect(proxy.isSelectGuildMessageVisible()).toBe(true);
+    });
+
+    it('EMPTY: {no stored guild} => shows select a guild message', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guilds = [GuildListItemStub({ name: 'Some Guild' })];
+
+      proxy.setupGuilds({ guilds });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isSelectGuildMessageVisible()).toBe(true);
+      });
+
+      expect(proxy.isSelectGuildMessageVisible()).toBe(true);
+      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
     });
   });
 

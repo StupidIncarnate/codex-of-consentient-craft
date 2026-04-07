@@ -260,6 +260,40 @@ describe('QuestClarifyPanelWidget', () => {
     });
   });
 
+  describe('freeform auto-focus', () => {
+    it('VALID: {click Other} => freeform input is the active focused element', async () => {
+      const proxy = QuestClarifyPanelWidgetProxy();
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Any preference?',
+            header: 'Pref',
+            options: [{ label: 'Default', description: 'Standard option' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const firstQuestion = parsed.questions[0]!;
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestClarifyPanelWidget
+            questions={parsed.questions}
+            questTitle={firstQuestion.question}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      await proxy.clickOther();
+
+      const input = screen.getByTestId('FORM_INPUT');
+
+      expect(document.activeElement).toBe(input);
+    });
+  });
+
   describe('freeform input', () => {
     it('VALID: {click Other then type and submit} => calls onSubmitAnswers with freeform text', async () => {
       const proxy = QuestClarifyPanelWidgetProxy();

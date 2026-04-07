@@ -13,6 +13,7 @@ import { Box, Group, Stack, Text } from '@mantine/core';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 
+import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
@@ -25,6 +26,7 @@ import { questGateSectionsStatics } from '../../statics/quest-gate-sections/ques
 
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
+import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 import { ContractsLayerWidget } from './contracts-layer-widget';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
@@ -53,6 +55,16 @@ export interface QuestSpecPanelWidgetProps {
   externalUpdatePending?: boolean;
   onDismissUpdate?: () => void;
   readOnly?: boolean;
+  pendingQuestion?: {
+    questions: AskUserQuestionItem[];
+  } | null;
+  onSubmitAnswers?: (params: {
+    answers: {
+      header: AskUserQuestionItem['header'];
+      question: AskUserQuestionItem['question'];
+      label: string;
+    }[];
+  }) => void;
 }
 
 export const QuestSpecPanelWidget = ({
@@ -61,6 +73,8 @@ export const QuestSpecPanelWidget = ({
   externalUpdatePending,
   onDismissUpdate,
   readOnly,
+  pendingQuestion,
+  onSubmitAnswers,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const [editing, setEditing] = useState(false);
   const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
@@ -220,61 +234,69 @@ export const QuestSpecPanelWidget = ({
           }}
           data-testid="ACTION_BAR"
         >
-          <Group gap="xs">
-            {editing ? (
-              <>
-                <PixelBtnWidget
-                  label={SUBMIT_LABEL}
-                  onClick={() => {
-                    setEditing(false);
-                    if (onModify) {
-                      onModify({ modifications: draftModifications, action: 'submit' });
+          {pendingQuestion && onSubmitAnswers ? (
+            <QuestClarifyPanelWidget
+              questions={pendingQuestion.questions}
+              questTitle={quest.title as unknown as AskUserQuestionItem['question']}
+              onSubmitAnswers={onSubmitAnswers}
+            />
+          ) : (
+            <Group gap="xs">
+              {editing ? (
+                <>
+                  <PixelBtnWidget
+                    label={SUBMIT_LABEL}
+                    onClick={() => {
+                      setEditing(false);
+                      if (onModify) {
+                        onModify({ modifications: draftModifications, action: 'submit' });
+                      }
+                    }}
+                  />
+                  <PixelBtnWidget
+                    label={CANCEL_LABEL}
+                    variant={GHOST_VARIANT}
+                    onClick={() => {
+                      setEditing(false);
+                      setDraftModifications({});
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  {(() => {
+                    const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
+                    if (!nextApproval) {
+                      return null;
                     }
-                  }}
-                />
-                <PixelBtnWidget
-                  label={CANCEL_LABEL}
-                  variant={GHOST_VARIANT}
-                  onClick={() => {
-                    setEditing(false);
-                    setDraftModifications({});
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                {(() => {
-                  const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
-                  if (!nextApproval) {
-                    return null;
-                  }
-                  return (
-                    <PixelBtnWidget
-                      label={APPROVE_LABEL}
-                      disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
-                      onClick={() => {
-                        if (onModify) {
-                          onModify({
-                            modifications: { status: nextApproval },
-                            action: 'approve',
-                            nextStatus: nextApproval,
-                          });
-                        }
-                      }}
-                    />
-                  );
-                })()}
-                <PixelBtnWidget
-                  label={MODIFY_LABEL}
-                  variant={GHOST_VARIANT}
-                  onClick={() => {
-                    setDraftModifications({});
-                    setEditing(true);
-                  }}
-                />
-              </>
-            )}
-          </Group>
+                    return (
+                      <PixelBtnWidget
+                        label={APPROVE_LABEL}
+                        disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
+                        onClick={() => {
+                          if (onModify) {
+                            onModify({
+                              modifications: { status: nextApproval },
+                              action: 'approve',
+                              nextStatus: nextApproval,
+                            });
+                          }
+                        }}
+                      />
+                    );
+                  })()}
+                  <PixelBtnWidget
+                    label={MODIFY_LABEL}
+                    variant={GHOST_VARIANT}
+                    onClick={() => {
+                      setDraftModifications({});
+                      setEditing(true);
+                    }}
+                  />
+                </>
+              )}
+            </Group>
+          )}
         </Box>
       )}
     </Stack>

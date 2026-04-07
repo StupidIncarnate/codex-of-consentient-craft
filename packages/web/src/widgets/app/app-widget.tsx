@@ -6,7 +6,7 @@
  * // Renders the full Dungeonmaster web UI with routes for guild selection (/), guild chat (/:guildSlug/quest), and quest chat (/:guildSlug/quest/:questSlug)
  */
 
-import { Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { Box, Center } from '@mantine/core';
 
@@ -51,10 +51,12 @@ export const AppWidget = (): React.JSX.Element => {
         }}
       />
 
-      {/* Logo: always horizontally centered */}
+      {/* Logo: always horizontally centered, links to home */}
       <Box py="sm">
         <Center>
-          <LogoWidget />
+          <Link to="/" style={{ textDecoration: 'none' }} data-testid="LOGO_LINK">
+            <LogoWidget />
+          </Link>
         </Center>
       </Box>
 

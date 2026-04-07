@@ -37,7 +37,6 @@ import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
-import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
@@ -95,7 +94,6 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   useQuestEventsBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
   ChatPanelWidgetProxy();
-  QuestClarifyPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();

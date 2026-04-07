@@ -49,6 +49,7 @@ export const HomeContentWidgetProxy = (): {
   clickSessionItem: (params: { testId: string }) => Promise<void>;
   setupConsoleErrorCapture: () => SpyOnHandle;
   setupCreateGuildError: () => void;
+  clearStorage: () => void;
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
@@ -109,6 +110,9 @@ export const HomeContentWidgetProxy = (): {
     },
     setupCreateGuildError: (): void => {
       createGuildProxy.setupError();
+    },
+    clearStorage: (): void => {
+      localStorage.clear();
     },
   };
 };

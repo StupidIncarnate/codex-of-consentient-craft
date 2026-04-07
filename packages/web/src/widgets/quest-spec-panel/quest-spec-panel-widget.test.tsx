@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import { QuestStub, DesignDecisionStub, FlowStub } from '@dungeonmaster/shared/contracts';
 
+import { AskUserQuestionStub } from '../../contracts/ask-user-question/ask-user-question.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';
@@ -647,6 +648,97 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Read Only Quest');
       expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
+    });
+  });
+
+  describe('pending question in action bar', () => {
+    it('VALID: {pendingQuestion provided} => renders clarify panel in action bar', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which approach?',
+            header: 'Approach',
+            options: [{ label: 'Option A', description: 'First approach' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            pendingQuestion={parsed}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      expect(proxy.hasClarifyPanel()).toBe(true);
+    });
+
+    it('VALID: {pendingQuestion provided} => hides action buttons', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
+      const parsed = AskUserQuestionStub({
+        questions: [
+          {
+            question: 'Which approach?',
+            header: 'Approach',
+            options: [{ label: 'Option A', description: 'First approach' }],
+            multiSelect: false,
+          },
+        ],
+      });
+      const onSubmitAnswers = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            pendingQuestion={parsed}
+            onSubmitAnswers={onSubmitAnswers}
+          />
+        ),
+      });
+
+      expect(proxy.hasActionButtons()).toBe(false);
+    });
+
+    it('VALID: {no pendingQuestion} => shows action buttons, no clarify panel', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(proxy.hasActionButtons()).toBe(true);
+      expect(proxy.hasClarifyPanel()).toBe(false);
+    });
+
+    it('VALID: {pendingQuestion: null} => shows action buttons, no clarify panel', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            pendingQuestion={null}
+            onSubmitAnswers={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.hasActionButtons()).toBe(true);
+      expect(proxy.hasClarifyPanel()).toBe(false);
     });
   });
 

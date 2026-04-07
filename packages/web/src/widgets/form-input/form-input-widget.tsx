@@ -24,6 +24,7 @@ export interface FormInputWidgetProps {
   width?: CssDimension;
   mt?: CssSpacing;
   color?: CssColorOverride;
+  autoFocus?: boolean;
 }
 
 export const FormInputWidget = ({
@@ -33,6 +34,7 @@ export const FormInputWidget = ({
   width = '100%' as CssDimension,
   mt = 0 as CssSpacing,
   color,
+  autoFocus,
 }: FormInputWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
@@ -44,6 +46,7 @@ export const FormInputWidget = ({
         onChange(event.target.value as FormInputValue);
       }}
       placeholder={placeholder}
+      autoFocus={autoFocus}
       style={{
         fontFamily: 'monospace',
         fontSize: FONT_SIZE,

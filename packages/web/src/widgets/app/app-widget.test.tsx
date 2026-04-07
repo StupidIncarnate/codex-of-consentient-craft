@@ -669,6 +669,85 @@ describe('AppWidget', () => {
     });
   });
 
+  describe('logo link navigation', () => {
+    it('VALID: {} => logo link is visible', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isLogoLinkVisible()).toBe(true);
+      });
+
+      expect(proxy.isLogoLinkVisible()).toBe(true);
+    });
+
+    it('VALID: {on quest chat route, click logo} => navigates back to home', async () => {
+      const proxy = AppWidgetProxy();
+      const guild = GuildListItemStub({
+        id: 'b0c1d2e3-f4a5-6789-bcde-f01234567890',
+        name: 'Logo Nav Guild',
+      });
+      const sessions = [SessionListItemStub({ sessionId: 'logo-s1', questId: 'quest-logo' })];
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      proxy.setupSessions({ sessions });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_logo-s1' });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isQuestChatVisible()).toBe(true);
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickLogoLink();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      expect(proxy.isQuestChatVisible()).toBe(false);
+    });
+  });
+
   describe('error and edge cases', () => {
     it('VALID: {guilds API error} => empty state form shown (graceful degradation)', async () => {
       const proxy = AppWidgetProxy();

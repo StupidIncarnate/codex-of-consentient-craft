@@ -7,6 +7,7 @@
  */
 
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {
   GuildIdStub,
@@ -48,6 +49,9 @@ export const AppWidgetProxy = (): {
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
   isQuestChatVisible: () => boolean;
+  clickLogoLink: () => Promise<void>;
+  isLogoLinkVisible: () => boolean;
+  clearStorage: () => void;
 } => {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
@@ -101,5 +105,12 @@ export const AppWidgetProxy = (): {
     isQuestChatVisible: (): boolean =>
       screen.queryByTestId('QUEST_CHAT') !== null ||
       screen.queryByTestId('QUEST_CHAT_LOADING') !== null,
+    clickLogoLink: async (): Promise<void> => {
+      await userEvent.click(screen.getByTestId('LOGO_LINK'));
+    },
+    isLogoLinkVisible: (): boolean => screen.queryByTestId('LOGO_LINK') !== null,
+    clearStorage: (): void => {
+      homeProxy.clearStorage();
+    },
   };
 };

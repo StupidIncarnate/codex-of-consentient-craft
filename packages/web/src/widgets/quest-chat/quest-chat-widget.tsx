@@ -40,7 +40,6 @@ import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
-import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
@@ -440,32 +439,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
         data-testid="QUEST_CHAT_ACTIVITY"
         style={{
           flex: 1,
-          overflow: 'auto',
+          overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
         }}
       >
-        {pendingQuestion && (
-          <QuestClarifyPanelWidget
-            questions={pendingQuestion.questions}
-            questTitle={
-              (questData?.title ??
-                '') as unknown as (typeof pendingQuestion.questions)[0]['question']
-            }
-            onSubmitAnswers={({ answers }): void => {
-              if (!questData?.id) return;
-              submitClarifyAnswers({
-                questId: questData.id,
-                answers: answers.map((a) => ({
-                  header: String(a.header),
-                  label: String(a.label),
-                })),
-                questions: pendingQuestion.questions,
-              });
-            }}
-          />
-        )}
-
         {questWithContent === null ? (
           <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
             Awaiting quest activity...
@@ -600,6 +578,18 @@ export const QuestChatWidget = (): React.JSX.Element => {
                 externalUpdatePending={externalUpdatePending}
                 onDismissUpdate={() => {
                   setExternalUpdatePending(false);
+                }}
+                pendingQuestion={pendingQuestion}
+                onSubmitAnswers={({ answers }): void => {
+                  if (!questData?.id) return;
+                  submitClarifyAnswers({
+                    questId: questData.id,
+                    answers: answers.map((a) => ({
+                      header: a.header,
+                      label: a.label,
+                    })),
+                    questions: pendingQuestion?.questions ?? [],
+                  });
                 }}
               />
             )}

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
+import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
@@ -15,9 +16,12 @@ export const QuestSpecPanelWidgetProxy = (): {
   clickReload: () => Promise<void>;
   clickKeepEditing: () => Promise<void>;
   hasBanner: () => boolean;
+  hasClarifyPanel: () => boolean;
+  hasActionButtons: () => boolean;
 } => {
   FormInputWidgetProxy();
   PixelBtnWidgetProxy();
+  QuestClarifyPanelWidgetProxy();
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   FlowsLayerWidgetProxy();
@@ -74,5 +78,11 @@ export const QuestSpecPanelWidgetProxy = (): {
       }
     },
     hasBanner: (): boolean => screen.queryByTestId('EXTERNAL_UPDATE_BANNER') !== null,
+    hasClarifyPanel: (): boolean => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
+    hasActionButtons: (): boolean => {
+      const actionBar = screen.queryByTestId('ACTION_BAR');
+      if (!actionBar) return false;
+      return actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]').length > 0;
+    },
   };
 };
