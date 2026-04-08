@@ -17,7 +17,7 @@ describe('AgentPromptFlow', () => {
 
       expect(result).toStrictEqual({
         name: 'quest-gap-reviewer',
-        model: gapReviewerAgentPromptStatics.metadata.model,
+        model: 'sonnet',
         prompt: gapReviewerAgentPromptStatics.prompt.template,
       });
     });
@@ -27,7 +27,7 @@ describe('AgentPromptFlow', () => {
 
       expect(result).toStrictEqual({
         name: 'finalizer-quest-agent',
-        model: finalizerQuestAgentPromptStatics.metadata.model,
+        model: 'sonnet',
         prompt: finalizerQuestAgentPromptStatics.prompt.template,
       });
     });

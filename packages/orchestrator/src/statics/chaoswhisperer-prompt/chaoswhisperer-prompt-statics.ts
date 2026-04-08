@@ -189,7 +189,7 @@ Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables Approval Gate
 
-17. **Spawn quest-gap-reviewer** - Launch an agent using the Agent/Task tool with exactly this prompt:
+17. **Spawn quest-gap-reviewer** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt:
     \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'quest-gap-reviewer' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
 18. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
 19. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
@@ -441,9 +441,9 @@ Use Task tool with \`subagent_type: "Explore"\` to understand codebase without b
 
 ### quest-gap-reviewer Agent
 
-Launch an agent using the Agent/Task tool after Phase 4 (Observables + Contracts), before user approval. The agent's
-prompt MUST instruct it to call the \`get-agent-prompt\` MCP tool with \`{ agent: "quest-gap-reviewer" }\` as its first
-action, and follow the returned instructions to the letter.
+Launch an agent using the Agent/Task tool with \`model: "sonnet"\` after Phase 4 (Observables + Contracts),
+before user approval. The agent's prompt MUST instruct it to call the \`get-agent-prompt\` MCP tool with
+\`{ agent: "quest-gap-reviewer" }\` as its first action, and follow the returned instructions to the letter.
 
 ### Observable Quality Guidelines
 

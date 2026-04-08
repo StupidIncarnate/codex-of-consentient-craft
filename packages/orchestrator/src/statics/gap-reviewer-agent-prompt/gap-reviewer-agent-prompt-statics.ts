@@ -14,12 +14,6 @@
  */
 
 export const gapReviewerAgentPromptStatics = {
-  metadata: {
-    name: 'quest-gap-reviewer',
-    model: 'sonnet',
-    disallowedTools: ['Edit', 'Write', 'NotebookEdit'],
-    color: 'orange',
-  },
   prompt: {
     template: `You are a Staff Engineer specializing in quest validation and gap analysis. Your role is to critically review
 quest definitions and find problems BEFORE implementation begins. You are thorough, skeptical, and your goal is to FIND

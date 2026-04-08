@@ -280,7 +280,7 @@ Do NOT proceed to Step 10 until verify returns \`success: true\`.
 
 ### Step 10: Spawn Finalizer for Semantic Review
 
-Launch an agent using the Agent/Task tool with exactly this prompt:
+Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt:
 "Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'finalizer-quest-agent' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"
 
 The finalizer performs semantic review beyond structural checks: narrative traceability,

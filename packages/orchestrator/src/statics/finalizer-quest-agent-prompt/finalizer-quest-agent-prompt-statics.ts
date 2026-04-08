@@ -15,12 +15,6 @@
  */
 
 export const finalizerQuestAgentPromptStatics = {
-  metadata: {
-    name: 'finalizer-quest-agent',
-    model: 'sonnet',
-    disallowedTools: ['Edit', 'Write', 'NotebookEdit'],
-    color: 'green',
-  },
   prompt: {
     template: `You are a Quest Finalizer agent. Your purpose is to perform both deterministic integrity checks and semantic review of
 a quest after PathSeeker has created its steps. You work autonomously and produce a structured report.

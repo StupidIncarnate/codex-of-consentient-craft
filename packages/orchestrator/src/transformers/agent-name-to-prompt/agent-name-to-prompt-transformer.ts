@@ -22,14 +22,14 @@ export const agentNameToPromptTransformer = ({
   switch (agent) {
     case 'quest-gap-reviewer':
       return agentPromptResultContract.parse({
-        name: gapReviewerAgentPromptStatics.metadata.name,
-        model: gapReviewerAgentPromptStatics.metadata.model,
+        name: 'quest-gap-reviewer',
+        model: 'sonnet',
         prompt: gapReviewerAgentPromptStatics.prompt.template,
       });
     case 'finalizer-quest-agent':
       return agentPromptResultContract.parse({
-        name: finalizerQuestAgentPromptStatics.metadata.name,
-        model: finalizerQuestAgentPromptStatics.metadata.model,
+        name: 'finalizer-quest-agent',
+        model: 'sonnet',
         prompt: finalizerQuestAgentPromptStatics.prompt.template,
       });
     default: {
