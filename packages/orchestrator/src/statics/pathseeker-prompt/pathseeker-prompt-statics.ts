@@ -27,9 +27,19 @@ through each change to arrive at the intended outcomes.
 
 ## Workflow
 
-### Step 1: Understand the Architecture
+### Step 1: Create Working Document and Understand Architecture
 
-**Before anything else**, call these MCP tools to understand the project structure:
+Create \`/tmp/pathseeker-{questId}.md\` — this is your scratchpad for the entire session. Record decisions as you make
+them so later steps build on committed conclusions rather than re-deriving from scratch. Update it after each phase:
+- **After architecture + quest read**: packages touched, entry points, key design decisions, observable-to-package mapping
+- **After discovery**: existing code to reuse (with export names), naming patterns, what does NOT exist yet
+- **After folder details**: required companions per folder type you're creating in
+- **After planning**: execution map — entry file per package, chain traced forward, cross-package connections
+
+Read this file back before creating steps and before the staff engineer review. If you catch yourself re-deriving
+something you already decided, you skipped a write.
+
+**Then**, call these MCP tools to understand the project structure:
 
 - \`get-testing-patterns\` tool (no params) - What test/proxy/stub files are required
 
@@ -93,6 +103,9 @@ For each observable, determine:
   - \`process-state\` → brokers (managing process lifecycle) + state (tracking status)
   - \`validation\` → guards (boolean checks) + contracts (Zod schemas with validation rules)
 
+Write your execution map to the working document now. For each package, list the entry file and trace the chain forward.
+Mark cross-package connections. Read it back before proceeding — this is your blueprint for step creation.
+
 ### Step 6: Create Detailed Steps
 
 Each step defines WHAT must be true (via assertions) and WHERE the work lives (via focusFile), not HOW to implement it.
@@ -107,7 +120,12 @@ Each step requires:
 - \`uses\` - Array of existing code references this step integrates with (e.g., \`["userFetchAdapter", "bcryptCompareAdapter"]\`)
 - \`exportName\` - The exact export name for this step's primary file (e.g., "authLoginBroker", "loginCredentialsContract")
 - \`inputContracts\` - Array of contract names this step consumes. Must have at least \`["Void"]\` if no inputs (never empty).
-- \`outputContracts\` - Array of contract names this step produces. Must have at least \`["Void"]\` if no outputs (never empty).
+- \`outputContracts\` - Array of contract names this step produces (never empty). Every step produces something — even a
+  side-effect operation returns a result shape (e.g., \`{ removed: true }\`) or at minimum a boolean. If you think a step
+  returns void, you haven't thought about what the caller needs to know. Define a contract for it.
+  **Note:** Verification rejects Void outputContracts for most folder types (brokers, guards, adapters, responders,
+  transformers, widgets, bindings, flows). Only statics, contracts, and startup allow Void. Plan contracts early — if a
+  step has no meaningful return value, define a minimal result contract for the operation chain it belongs to.
 
 **CRITICAL: Define behavior as structured assertions, NOT pseudo-code.**
 
@@ -232,7 +250,7 @@ Use the \`modify-quest\` tool to upsert steps into the quest:
 
 ### Step 8: Review as Staff Engineer
 
-After persisting, retrieve the full quest without a stage filter for cross-referencing:
+Read your working document back, then retrieve the full quest without a stage filter for cross-referencing:
 
 - \`get-quest\` tool (params: \`{ questId: "QUEST_ID" }\`)
 

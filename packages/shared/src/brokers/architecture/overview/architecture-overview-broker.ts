@@ -252,19 +252,23 @@ With grep, adds a \`hits\` array showing matching lines:
 
 Use when: you are about to edit a file, need to understand implementation logic, or need the actual code line-by-line. Do NOT use Read to search — use discover first, then Read the specific file you need.
 
-**Parallel discovery:** When you need multiple areas, batch glob calls into a single message:
+**Parallel tool calls:** When multiple tool calls are independent (no call depends on another's result), batch them
+into a single message. This applies to discover, Read, get-folder-detail, and any other tool — not just discover.
 
 \`\`\`
-// ✅ CORRECT — 3 glob calls in ONE message (parallel execution)
+// ✅ CORRECT — 3 independent calls in ONE message (parallel execution)
 discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
 discover({ glob: "packages/shared/src/contracts/**" })
-discover({ glob: "packages/web/src/widgets/**" })
+Read("packages/web/src/widgets/home-content/home-content-widget.tsx")
 
-// ❌ WRONG — 3 sequential messages (3x slower)
+// ❌ WRONG — 3 sequential messages (3x slower, wastes time)
 // Message 1: discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
 // Message 2: discover({ glob: "packages/shared/src/contracts/**" })
-// Message 3: discover({ glob: "packages/web/src/widgets/**" })
+// Message 3: Read("packages/web/src/widgets/home-content/home-content-widget.tsx")
 \`\`\`
+
+**Rule of thumb:** If you're about to make a tool call and the result won't change what other calls you need to make,
+batch them together. Only go sequential when call B depends on the result of call A.
 
 **How to search — glob the architecture, don't guess with grep:**
 
