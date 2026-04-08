@@ -733,28 +733,5 @@ describe('flowToMermaidTransformer', () => {
         ].join('\n'),
       );
     });
-
-    it('VALID: {contract without nodeId} => not linked, node renders plain', () => {
-      const flow = FlowStub({
-        nodes: [FlowNodeStub({ id: 'idle', label: 'Idle', type: 'state' })],
-        edges: [],
-      });
-      const contracts = [
-        QuestContractEntryStub({
-          name: 'OrphanContract',
-          properties: [
-            QuestContractPropertyStub({
-              name: 'field',
-              type: 'FieldType',
-              description: 'A field',
-            }),
-          ],
-        }),
-      ];
-
-      const result = flowToMermaidTransformer({ flow, contracts });
-
-      expect(result).toBe(['flowchart TD', '  idle[Idle]'].join('\n'));
-    });
   });
 });

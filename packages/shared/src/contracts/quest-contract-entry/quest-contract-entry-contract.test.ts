@@ -5,7 +5,7 @@ import { QuestContractEntryStub } from './quest-contract-entry.stub';
 
 describe('questContractEntryContract', () => {
   describe('valid entries', () => {
-    it('VALID: {id, name, kind, status, properties with one property} => parses minimal entry', () => {
+    it('VALID: {id, name, kind, status, nodeId, properties with one property} => parses minimal entry', () => {
       const entry = QuestContractEntryStub();
 
       expect(entry).toStrictEqual({
@@ -13,6 +13,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',
@@ -56,6 +57,7 @@ describe('questContractEntryContract', () => {
         name: 'UserProfile',
         kind: 'data',
         status: 'modified',
+        nodeId: 'default-node',
         source: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
         properties: [
           {
@@ -120,6 +122,7 @@ describe('questContractEntryContract', () => {
         name: 'ShippingAddress',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'recipient',
@@ -188,6 +191,7 @@ describe('questContractEntryContract', () => {
         name: 'AuthLoginEndpoint',
         kind: 'endpoint',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'method',
@@ -215,7 +219,7 @@ describe('questContractEntryContract', () => {
       });
     });
 
-    it('VALID: {with nodeId} => parses entry with flow node link', () => {
+    it('VALID: {with custom nodeId} => parses entry with flow node link', () => {
       const nodeId = FlowNodeIdStub({ value: 'submit-form' });
       const entry = QuestContractEntryStub({ nodeId });
 
@@ -245,6 +249,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',
@@ -264,6 +269,7 @@ describe('questContractEntryContract', () => {
           name: 'ValidName',
           kind: 'data',
           status: 'new',
+          nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
       }).toThrow(/invalid_string/u);
@@ -276,9 +282,22 @@ describe('questContractEntryContract', () => {
           name: '',
           kind: 'data',
           status: 'new',
+          nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
       }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {without nodeId} => throws validation error', () => {
+      expect(() => {
+        return questContractEntryContract.parse({
+          id: 'valid-id',
+          name: 'ValidName',
+          kind: 'data',
+          status: 'new',
+          properties: [{ name: 'field' }],
+        });
+      }).toThrow(/invalid_type/u);
     });
   });
 
@@ -293,27 +312,9 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [],
       });
-    });
-
-    it('EDGE: {without nodeId} => parses entry without optional nodeId field', () => {
-      const entry = QuestContractEntryStub();
-
-      expect(entry).toStrictEqual({
-        id: 'login-credentials',
-        name: 'LoginCredentials',
-        kind: 'data',
-        status: 'new',
-        properties: [
-          {
-            name: 'email',
-            type: 'EmailAddress',
-            description: 'User email for authentication',
-          },
-        ],
-      });
-      expect('nodeId' in entry).toBe(false);
     });
 
     it('EDGE: {without source} => parses entry without optional source field', () => {
@@ -324,6 +325,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',

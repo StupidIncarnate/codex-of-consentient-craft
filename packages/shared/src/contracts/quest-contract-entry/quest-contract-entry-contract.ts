@@ -31,11 +31,9 @@ export const questContractEntryContract = z.object({
     .brand<'FilePath'>()
     .optional()
     .describe('File path where this contract lives or will be created'),
-  nodeId: flowNodeIdContract
-    .optional()
-    .describe(
-      'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
-    ),
+  nodeId: flowNodeIdContract.describe(
+    'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
+  ),
   properties: z
     .array(questContractPropertyContract)
     .describe(

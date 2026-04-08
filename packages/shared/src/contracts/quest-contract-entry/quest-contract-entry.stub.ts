@@ -1,5 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
+import { FlowNodeIdStub } from '../flow-node-id/flow-node-id.stub';
+
 import { questContractEntryContract } from './quest-contract-entry-contract';
 import type { QuestContractEntry } from './quest-contract-entry-contract';
 
@@ -11,6 +13,7 @@ export const QuestContractEntryStub = ({
     name: 'LoginCredentials',
     kind: 'data',
     status: 'new',
+    nodeId: FlowNodeIdStub({ value: 'default-node' }),
     properties: [
       {
         name: 'email',

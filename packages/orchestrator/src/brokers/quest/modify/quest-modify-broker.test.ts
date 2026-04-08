@@ -53,6 +53,7 @@ describe('questModifyBroker', () => {
             name: 'LoginCredentials',
             kind: 'data',
             status: 'new',
+            nodeId: 'submit-form',
             properties: [
               {
                 name: 'email',

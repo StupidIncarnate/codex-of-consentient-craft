@@ -49,9 +49,6 @@ export * from './src/transformers/stream-line-to-json-line/stream-line-to-json-l
 // Collect Node Contracts
 export * from './src/transformers/collect-node-contracts/collect-node-contracts-transformer';
 
-// Collect Unlinked Contracts
-export * from './src/transformers/collect-unlinked-contracts/collect-unlinked-contracts-transformer';
-
 // Render Mermaid Contract Property
 export * from './src/transformers/render-mermaid-contract-property/render-mermaid-contract-property-transformer';
 
