@@ -12,6 +12,8 @@ describe('projectMapStatics', () => {
       rootPackageName: 'root',
       packagesDirName: 'packages',
       srcDirName: 'src',
+      packageJsonName: 'package.json',
+      descriptionSeparator: '—',
     });
   });
 });

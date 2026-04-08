@@ -2,6 +2,9 @@ import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import { formatFolderContentLayerBrokerProxy } from './format-folder-content-layer-broker.proxy';
+import { readPackageDescriptionLayerBrokerProxy } from './read-package-description-layer-broker.proxy';
+import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -23,6 +26,7 @@ export const architectureProjectMapBrokerProxy = (): {
   }: {
     packages: {
       name: string;
+      description?: ContentText;
       folders: {
         name: string;
         entries: { name: string; isDir: boolean }[];
@@ -38,6 +42,7 @@ export const architectureProjectMapBrokerProxy = (): {
       entries: { name: string; isDir: boolean }[];
       subEntries?: Record<string, { name: string; isDir: boolean }[]>;
     }[];
+    description?: ContentText;
   }) => void;
   setupEmptySrc: () => void;
 } => {
@@ -45,6 +50,7 @@ export const architectureProjectMapBrokerProxy = (): {
   const safeProxy = safeReaddirLayerBrokerProxy();
   countFilesRecursiveLayerBrokerProxy();
   formatFolderContentLayerBrokerProxy();
+  const descriptionProxy = readPackageDescriptionLayerBrokerProxy();
 
   return {
     setupMonorepo: ({
@@ -52,6 +58,7 @@ export const architectureProjectMapBrokerProxy = (): {
     }: {
       packages: {
         name: string;
+        description?: ContentText;
         folders: {
           name: string;
           entries: { name: string; isDir: boolean }[];
@@ -61,6 +68,17 @@ export const architectureProjectMapBrokerProxy = (): {
     }): void => {
       const pathMap = new Map([['__init__', [] as Dirent[]]]);
       pathMap.delete('__init__');
+
+      // Build description map for package.json reads
+      const descriptionMap = new Map<ContentText, ContentText>();
+      for (const pkg of packages) {
+        if (pkg.description !== undefined) {
+          descriptionMap.set(
+            ContentTextStub({ value: `packages/${pkg.name}/package.json` }),
+            pkg.description,
+          );
+        }
+      }
 
       // packages/ directory listing
       pathMap.set(
@@ -101,16 +119,29 @@ export const architectureProjectMapBrokerProxy = (): {
           return [];
         },
       });
+
+      descriptionProxy.setupImplementation({
+        fn: (filePath: ContentText): ContentText => {
+          for (const [suffix, desc] of descriptionMap) {
+            if (String(filePath).endsWith(String(suffix))) {
+              return ContentTextStub({ value: JSON.stringify({ description: desc }) });
+            }
+          }
+          throw new Error('ENOENT');
+        },
+      });
     },
 
     setupSingleRepo: ({
       folders,
+      description,
     }: {
       folders: {
         name: string;
         entries: { name: string; isDir: boolean }[];
         subEntries?: Record<string, { name: string; isDir: boolean }[]>;
       }[];
+      description?: ContentText;
     }): void => {
       const pathMap = new Map([['__init__', [] as Dirent[]]]);
       pathMap.delete('__init__');
@@ -150,6 +181,15 @@ export const architectureProjectMapBrokerProxy = (): {
           return [];
         },
       });
+
+      descriptionProxy.setupImplementation({
+        fn: (filePath: ContentText): ContentText => {
+          if (description !== undefined && String(filePath).endsWith('package.json')) {
+            return ContentTextStub({ value: JSON.stringify({ description }) });
+          }
+          throw new Error('ENOENT');
+        },
+      });
     },
 
     setupEmptySrc: (): void => {
@@ -159,6 +199,12 @@ export const architectureProjectMapBrokerProxy = (): {
             throw new Error('ENOENT');
           }
           return [];
+        },
+      });
+
+      descriptionProxy.setupImplementation({
+        fn: (): ContentText => {
+          throw new Error('ENOENT');
         },
       });
     },

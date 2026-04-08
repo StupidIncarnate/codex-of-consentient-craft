@@ -11,6 +11,7 @@
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
 import { formatFolderContentLayerBroker } from './format-folder-content-layer-broker';
+import { readPackageDescriptionLayerBroker } from './read-package-description-layer-broker';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -34,7 +35,11 @@ export const architectureProjectMapBroker = ({
   const sections: ContentText[] = [contentTextContract.parse(projectMapStatics.header)];
 
   // Build scan targets: monorepo packages or single root
-  const scanTargets: { packageName: ContentText; srcPath: AbsoluteFilePath }[] = [];
+  const scanTargets: {
+    packageName: ContentText;
+    srcPath: AbsoluteFilePath;
+    packageJsonPath: AbsoluteFilePath;
+  }[] = [];
 
   if (packageDirs.length > 0) {
     const sortedPackages = [...packageDirs].sort((a, b) => a.name.localeCompare(b.name));
@@ -45,18 +50,27 @@ export const architectureProjectMapBroker = ({
         srcPath: absoluteFilePathContract.parse(
           `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}/${projectMapStatics.srcDirName}`,
         ),
+        packageJsonPath: absoluteFilePathContract.parse(
+          `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}/${projectMapStatics.packageJsonName}`,
+        ),
       });
     }
   } else {
     scanTargets.push({
       packageName: contentTextContract.parse(projectMapStatics.rootPackageName),
       srcPath: absoluteFilePathContract.parse(`${projectRoot}/${projectMapStatics.srcDirName}`),
+      packageJsonPath: absoluteFilePathContract.parse(
+        `${projectRoot}/${projectMapStatics.packageJsonName}`,
+      ),
     });
   }
 
   // Build section for each scan target
-  for (const { packageName, srcPath } of scanTargets) {
+  for (const { packageName, srcPath, packageJsonPath } of scanTargets) {
     const totalFiles = countFilesRecursiveLayerBroker({ dirPath: srcPath });
+    const description = readPackageDescriptionLayerBroker({ packageJsonPath });
+    const descriptionSuffix =
+      description.length > 0 ? ` ${projectMapStatics.descriptionSeparator} ${description}` : '';
     const folderEntries = safeReaddirLayerBroker({ dirPath: srcPath })
       .filter((entry) => entry.isDirectory())
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -64,14 +78,16 @@ export const architectureProjectMapBroker = ({
     if (folderEntries.length === 0) {
       sections.push(
         contentTextContract.parse(
-          `## ${packageName} (${String(totalFiles)} files)\n  ${projectMapStatics.emptyLabel}`,
+          `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}\n  ${projectMapStatics.emptyLabel}`,
         ),
       );
       continue;
     }
 
     const lines: ContentText[] = [
-      contentTextContract.parse(`## ${packageName} (${String(totalFiles)} files)`),
+      contentTextContract.parse(
+        `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`,
+      ),
     ];
 
     for (const folder of folderEntries) {

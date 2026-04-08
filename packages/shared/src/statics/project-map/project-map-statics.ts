@@ -18,4 +18,6 @@ export const projectMapStatics = {
   rootPackageName: 'root',
   packagesDirName: 'packages',
   srcDirName: 'src',
+  packageJsonName: 'package.json',
+  descriptionSeparator: '—',
 } as const;

@@ -1,10 +1,11 @@
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { architectureProjectMapBrokerProxy } from './architecture-project-map-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureProjectMapBroker', () => {
   describe('monorepo with multiple packages', () => {
-    it('VALID: monorepo with two packages => returns map with both package sections', () => {
+    it('VALID: monorepo with two packages and descriptions => returns map with both package sections and descriptions', () => {
       const proxy = architectureProjectMapBrokerProxy();
       const projectRoot = AbsoluteFilePathStub({ value: '/project' });
 
@@ -12,6 +13,7 @@ describe('architectureProjectMapBroker', () => {
         packages: [
           {
             name: 'web',
+            description: ContentTextStub({ value: 'Web UI' }),
             folders: [
               {
                 name: 'contracts',
@@ -34,6 +36,7 @@ describe('architectureProjectMapBroker', () => {
           },
           {
             name: 'shared',
+            description: ContentTextStub({ value: 'Shared utilities' }),
             folders: [
               {
                 name: 'statics',
@@ -46,9 +49,20 @@ describe('architectureProjectMapBroker', () => {
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(/^# Codebase Map$/mu);
-      expect(result).toMatch(/^## shared \(\d+ files\)$/mu);
-      expect(result).toMatch(/^## web \(\d+ files\)$/mu);
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## shared (0 files) \u2014 Shared utilities',
+            '  statics/ (0) \u2014 folder-config',
+            '',
+            '## web (0 files) \u2014 Web UI',
+            '  brokers/ (0) \u2014 guild (create, list)',
+            '  contracts/ (0) \u2014 chat-entry, quest-id',
+          ].join('\n'),
+        }),
+      );
     });
   });
 
@@ -77,7 +91,16 @@ describe('architectureProjectMapBroker', () => {
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(/^ {2}contracts\/ \(\d+\) — chat-entry, quest-id, user-input$/mu);
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (0 files)',
+            '  contracts/ (0) \u2014 chat-entry, quest-id, user-input',
+          ].join('\n'),
+        }),
+      );
     });
   });
 
@@ -115,8 +138,15 @@ describe('architectureProjectMapBroker', () => {
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(
-        /^ {2}brokers\/ \(\d+\) — guild \(create, list\), quest \(modify, start\)$/mu,
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (0 files)',
+            '  brokers/ (0) \u2014 guild (create, list), quest (modify, start)',
+          ].join('\n'),
+        }),
       );
     });
   });
@@ -145,12 +175,21 @@ describe('architectureProjectMapBroker', () => {
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(/^ {2}startup\/ \(\d+\) — start-app, start-server$/mu);
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (2 files)',
+            '  startup/ (2) \u2014 start-app, start-server',
+          ].join('\n'),
+        }),
+      );
     });
   });
 
   describe('non-monorepo', () => {
-    it('VALID: no packages/ dir => scans root src/ as single package', () => {
+    it('VALID: no packages/ dir with description => scans root src/ as single package with description', () => {
       const proxy = architectureProjectMapBrokerProxy();
       const projectRoot = AbsoluteFilePathStub({ value: '/single-project' });
 
@@ -161,13 +200,21 @@ describe('architectureProjectMapBroker', () => {
             entries: [{ name: 'user', isDir: true }],
           },
         ],
+        description: ContentTextStub({ value: 'A single repo app' }),
       });
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(/^# Codebase Map$/mu);
-      expect(result).toMatch(/^## root \(\d+ files\)$/mu);
-      expect(result).toMatch(/^ {2}contracts\/ \(\d+\) — user$/mu);
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## root (0 files) \u2014 A single repo app',
+            '  contracts/ (0) \u2014 user',
+          ].join('\n'),
+        }),
+      );
     });
   });
 
@@ -180,9 +227,11 @@ describe('architectureProjectMapBroker', () => {
 
       const result = architectureProjectMapBroker({ projectRoot });
 
-      expect(result).toMatch(/^# Codebase Map$/mu);
-      expect(result).toMatch(/^## root \(0 files\)$/mu);
-      expect(result).toMatch(/^ {2}\(empty\)$/mu);
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: ['# Codebase Map', '', '## root (0 files)', '  (empty)'].join('\n'),
+        }),
+      );
     });
   });
 });
