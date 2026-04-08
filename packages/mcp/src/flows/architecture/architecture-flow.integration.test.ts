@@ -2,7 +2,7 @@ import { ArchitectureFlow } from './architecture-flow';
 
 describe('ArchitectureFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 5 registrations with correct tool names', () => {
+    it('VALID: returns 6 registrations with correct tool names', () => {
       const registrations = ArchitectureFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -13,6 +13,7 @@ describe('ArchitectureFlow', () => {
         'get-folder-detail',
         'get-syntax-rules',
         'get-testing-patterns',
+        'get-project-map',
       ]);
     });
 
@@ -22,6 +23,7 @@ describe('ArchitectureFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
+        'function',
         'function',
         'function',
         'function',
@@ -41,6 +43,7 @@ describe('ArchitectureFlow', () => {
         'Returns detailed information about a specific folder type',
         'Returns universal syntax rules',
         'Returns testing patterns and philosophy for writing tests and proxies',
+        'Returns compact codebase map with packages, folder types, file counts, and domains',
       ]);
     });
 
@@ -49,7 +52,14 @@ describe('ArchitectureFlow', () => {
 
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
-      expect(schemaTypes).toStrictEqual(['object', 'object', 'object', 'object', 'object']);
+      expect(schemaTypes).toStrictEqual([
+        'object',
+        'object',
+        'object',
+        'object',
+        'object',
+        'object',
+      ]);
     });
   });
 });

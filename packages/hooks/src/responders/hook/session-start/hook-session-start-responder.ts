@@ -5,7 +5,11 @@
  * const result = await HookSessionStartResponder({ input: sessionStartData });
  * // Returns { shouldOutput: boolean, content?: string } with architecture overview to inject
  */
-import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
+import {
+  architectureOverviewBroker,
+  architectureProjectMapBroker,
+} from '@dungeonmaster/shared/brokers';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { sessionIsNewBroker } from '../../../brokers/session/is-new/session-is-new-broker';
 import { hookSessionStartResponderResultContract } from '../../../contracts/hook-session-start-responder-result/hook-session-start-responder-result-contract';
 import type { SessionStartHookData } from '../../../contracts/session-start-hook-data/session-start-hook-data-contract';
@@ -34,6 +38,9 @@ export const HookSessionStartResponder = async ({
 
   if (shouldLoadArchitecture) {
     const architectureContent = architectureOverviewBroker();
+    const projectMapContent = architectureProjectMapBroker({
+      projectRoot: absoluteFilePathContract.parse(process.cwd()),
+    });
 
     const sessionType = isNew ? 'NEW SESSION' : 'RESUMED SESSION';
     const content = `<dungeonmaster-architecture>
@@ -42,7 +49,11 @@ export const HookSessionStartResponder = async ({
 ${architectureContent}
 
 Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
-</dungeonmaster-architecture>\n`;
+</dungeonmaster-architecture>
+
+<dungeonmaster-project-map>
+${projectMapContent}
+</dungeonmaster-project-map>\n`;
 
     return hookSessionStartResponderResultContract.parse({
       shouldOutput: true,

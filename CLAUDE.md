@@ -60,6 +60,8 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 - **Build**: `npm run build`
 - **Start dev server**: `npm run dev`
+- **Codebase orientation**: Use `get-project-map` MCP tool for a compact map of all packages, folder types, file counts,
+  and domains (~6k tokens). Start here before using `discover` for targeted exploration.
 - **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
   invocation patterns.
 

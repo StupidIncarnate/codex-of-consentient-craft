@@ -23,6 +23,7 @@ describe('mcpToolsStatics', () => {
           'verify-quest',
           'ask-user-question',
           'get-agent-prompt',
+          'get-project-map',
         ],
       },
     });

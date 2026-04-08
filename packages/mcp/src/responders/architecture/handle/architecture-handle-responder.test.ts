@@ -106,6 +106,34 @@ describe('ArchitectureHandleResponder', () => {
     });
   });
 
+  describe('get-project-map', () => {
+    it('VALID: {tool: get-project-map} => returns project map text', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'shared',
+            folders: [
+              {
+                name: 'contracts',
+                entries: [{ name: 'some-contract', isDir: true }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-map' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+  });
+
   describe('unknown tool', () => {
     it('ERROR: {tool: unknown-tool} => throws unknown tool error', async () => {
       const proxy = ArchitectureHandleResponderProxy();

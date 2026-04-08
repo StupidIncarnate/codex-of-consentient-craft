@@ -11,6 +11,7 @@
 export * from './src/adapters/fs/access/fs-access-adapter';
 export * from './src/adapters/fs/exists-sync/fs-exists-sync-adapter';
 export * from './src/adapters/fs/mkdir/fs-mkdir-adapter';
+export * from './src/adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
 
 // Path Adapters

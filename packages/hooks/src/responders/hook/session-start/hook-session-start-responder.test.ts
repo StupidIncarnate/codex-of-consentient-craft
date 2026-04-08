@@ -15,7 +15,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n\[NEW SESSION\].+# Architecture Overview\n.+Use MCP tools.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n\[NEW SESSION\].+# Architecture Overview\n.+Use MCP tools.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });
@@ -31,7 +31,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n.+## Folder Types\n.+\| Folder \| Purpose \| Depth \| When to Use \|.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n.+## Folder Types\n.+\| Folder \| Purpose \| Depth \| When to Use \|.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });
@@ -65,7 +65,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n\[RESUMED SESSION\].+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n\[RESUMED SESSION\].+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });
@@ -86,7 +86,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });
@@ -120,7 +120,7 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\).+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n.+# Architecture Overview\n.+Use MCP tools \(get-folder-detail, get-syntax-rules, get-testing-patterns\).+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });
@@ -136,7 +136,23 @@ describe('HookSessionStartResponder', () => {
       expect(result).toStrictEqual({
         shouldOutput: true,
         content: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n.+## Critical Rules Summary\n.+Never do these things.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n.+## Critical Rules Summary\n.+Never do these things.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
+        ),
+      });
+    });
+
+    it('VALID: output includes project map XML section with header', async () => {
+      const proxy = HookSessionStartResponderProxy();
+      const hookData = SessionStartHookStub();
+
+      proxy.setupIsNewSession({ isNew: true });
+
+      const result = await HookSessionStartResponder({ input: hookData });
+
+      expect(result).toStrictEqual({
+        shouldOutput: true,
+        content: expect.stringMatching(
+          /^<dungeonmaster-architecture>\n.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n# Codebase Map\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
       });
     });

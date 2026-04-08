@@ -1,4 +1,7 @@
-import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  architectureOverviewBrokerProxy,
+  architectureProjectMapBrokerProxy,
+} from '@dungeonmaster/shared/testing';
 import { sessionIsNewBrokerProxy } from '../../../brokers/session/is-new/session-is-new-broker.proxy';
 
 export const HookSessionStartResponderProxy = (): {
@@ -7,6 +10,8 @@ export const HookSessionStartResponderProxy = (): {
   const sessionProxy = sessionIsNewBrokerProxy();
   // architectureOverviewBroker has no dependencies, so proxy returns empty object
   architectureOverviewBrokerProxy();
+  // architectureProjectMapBroker reads filesystem — proxy mocks the layer brokers
+  architectureProjectMapBrokerProxy();
 
   return {
     setupIsNewSession: ({ isNew }: { isNew: boolean }): void => {
