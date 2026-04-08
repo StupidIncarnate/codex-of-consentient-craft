@@ -1,3 +1,5 @@
+import { FlowNodeIdStub } from '../flow-node-id/flow-node-id.stub';
+
 import { questContractEntryContract } from './quest-contract-entry-contract';
 import { QuestContractEntryStub } from './quest-contract-entry.stub';
 
@@ -213,6 +215,26 @@ describe('questContractEntryContract', () => {
       });
     });
 
+    it('VALID: {with nodeId} => parses entry with flow node link', () => {
+      const nodeId = FlowNodeIdStub({ value: 'submit-form' });
+      const entry = QuestContractEntryStub({ nodeId });
+
+      expect(entry).toStrictEqual({
+        id: 'login-credentials',
+        name: 'LoginCredentials',
+        kind: 'data',
+        status: 'new',
+        nodeId: 'submit-form',
+        properties: [
+          {
+            name: 'email',
+            type: 'EmailAddress',
+            description: 'User email for authentication',
+          },
+        ],
+      });
+    });
+
     it('VALID: {default stub} => creates valid entry', () => {
       const entry = QuestContractEntryStub();
 
@@ -273,6 +295,25 @@ describe('questContractEntryContract', () => {
         status: 'new',
         properties: [],
       });
+    });
+
+    it('EDGE: {without nodeId} => parses entry without optional nodeId field', () => {
+      const entry = QuestContractEntryStub();
+
+      expect(entry).toStrictEqual({
+        id: 'login-credentials',
+        name: 'LoginCredentials',
+        kind: 'data',
+        status: 'new',
+        properties: [
+          {
+            name: 'email',
+            type: 'EmailAddress',
+            description: 'User email for authentication',
+          },
+        ],
+      });
+      expect('nodeId' in entry).toBe(false);
     });
 
     it('EDGE: {without source} => parses entry without optional source field', () => {

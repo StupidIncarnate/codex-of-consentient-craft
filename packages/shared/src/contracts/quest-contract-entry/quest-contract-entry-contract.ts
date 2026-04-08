@@ -9,6 +9,7 @@
 import { z } from 'zod';
 
 import { contractNameContract } from '../contract-name/contract-name-contract';
+import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questContractKindContract } from '../quest-contract-kind/quest-contract-kind-contract';
 import { questContractPropertyContract } from '../quest-contract-property/quest-contract-property-contract';
@@ -30,6 +31,11 @@ export const questContractEntryContract = z.object({
     .brand<'FilePath'>()
     .optional()
     .describe('File path where this contract lives or will be created'),
+  nodeId: flowNodeIdContract
+    .optional()
+    .describe(
+      'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
+    ),
   properties: z
     .array(questContractPropertyContract)
     .describe(

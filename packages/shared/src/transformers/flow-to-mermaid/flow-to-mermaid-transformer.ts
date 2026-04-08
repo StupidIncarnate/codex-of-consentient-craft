@@ -10,7 +10,9 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Flow } from '../../contracts/flow/flow-contract';
 import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
+import type { QuestContractEntry } from '../../contracts/quest-contract-entry/quest-contract-entry-contract';
 import { collectNodeAssertionsTransformer } from '../collect-node-assertions/collect-node-assertions-transformer';
+import { collectNodeContractsTransformer } from '../collect-node-contracts/collect-node-contracts-transformer';
 import { escapeMermaidLabelTransformer } from '../escape-mermaid-label/escape-mermaid-label-transformer';
 import { renderMermaidNodeWithAssertionsTransformer } from '../render-mermaid-node-with-assertions/render-mermaid-node-with-assertions-transformer';
 import { sanitizeMermaidIdTransformer } from '../sanitize-mermaid-id/sanitize-mermaid-id-transformer';
@@ -28,16 +30,27 @@ const NODE_SHAPE_MAP = {
     `${sanitizeMermaidIdTransformer({ id: contentTextContract.parse(String(id)) })}((${escapeMermaidLabelTransformer({ label })}))`,
 } as const;
 
-export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText => {
+export const flowToMermaidTransformer = ({
+  flow,
+  contracts,
+}: {
+  flow: Flow;
+  contracts?: readonly QuestContractEntry[];
+}): ContentText => {
   const lines: ContentText[] = [contentTextContract.parse('flowchart TD')];
 
   for (const node of flow.nodes) {
     const assertions = collectNodeAssertionsTransformer({ node });
+    const nodeContracts =
+      contracts === undefined
+        ? []
+        : collectNodeContractsTransformer({ nodeId: node.id, contracts });
+    const hasContent = assertions.length > 0 || nodeContracts.length > 0;
 
-    if (assertions.length > 0) {
+    if (hasContent) {
       lines.push(
         contentTextContract.parse(
-          `  ${renderMermaidNodeWithAssertionsTransformer({ node, assertions })}`,
+          `  ${renderMermaidNodeWithAssertionsTransformer({ node, assertions, contracts: nodeContracts })}`,
         ),
       );
     } else {
@@ -71,11 +84,14 @@ export const flowToMermaidTransformer = ({ flow }: { flow: Flow }): ContentText 
 
   for (const node of flow.nodes) {
     const hasObservables = node.observables.length > 0;
+    const hasNodeContracts =
+      contracts !== undefined &&
+      collectNodeContractsTransformer({ nodeId: node.id, contracts }).length > 0;
     const safeId = sanitizeMermaidIdTransformer({
       id: contentTextContract.parse(String(node.id)),
     });
 
-    if (hasObservables) {
+    if (hasObservables || hasNodeContracts) {
       lines.push(contentTextContract.parse(`  style ${safeId} fill:#2d6a4f,color:#fff`));
     } else if (node.type === 'action') {
       lines.push(contentTextContract.parse(`  style ${safeId} fill:#1971c2,color:#fff`));

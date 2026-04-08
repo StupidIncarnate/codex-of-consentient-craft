@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { FlowStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub, FlowNodeStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { FlowsLayerWidget } from './flows-layer-widget';
@@ -68,6 +68,49 @@ describe('FlowsLayerWidget', () => {
     });
 
     it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
+      FlowsLayerWidgetProxy();
+      const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
+      const flow = FlowStub({
+        nodes: [node],
+        edges: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+    });
+
+    it('VALID: {flows: [flow with nodes], contracts: [linked]} => renders mermaid diagram with contracts', () => {
+      FlowsLayerWidgetProxy();
+      const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
+      const flow = FlowStub({
+        nodes: [node],
+        edges: [],
+      });
+      const contract = QuestContractEntryStub({
+        name: 'LoginCredentials',
+        nodeId: 'login-page' as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <FlowsLayerWidget
+            flows={[flow]}
+            contracts={[contract]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+    });
+
+    it('VALID: {flows: [flow with nodes], contracts: undefined} => renders mermaid diagram without contracts', () => {
       FlowsLayerWidgetProxy();
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
       const flow = FlowStub({

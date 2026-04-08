@@ -145,6 +145,83 @@ describe('ContractsLayerWidget', () => {
       expect(propertyElement.textContent).toBe('email: EmailAddress \u2014 User email for auth');
     });
 
+    it('VALID: {contracts: [linked, unlinked]} => renders only unlinked contract', () => {
+      ContractsLayerWidgetProxy();
+      const linkedContract = QuestContractEntryStub({
+        id: 'linked-one',
+        name: 'LinkedContract',
+        nodeId: 'some-node' as never,
+      });
+      const unlinkedContract = QuestContractEntryStub({
+        id: 'unlinked-one',
+        name: 'UnlinkedContract',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[linkedContract, unlinkedContract]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      const names = screen.getAllByTestId('CONTRACT_NAME').map((el) => el.textContent);
+
+      expect(names).toStrictEqual(['UnlinkedContract']);
+    });
+
+    it('VALID: {contracts: [all linked]} => renders no contracts in section', () => {
+      ContractsLayerWidgetProxy();
+      const linkedContract = QuestContractEntryStub({
+        id: 'linked-one',
+        name: 'LinkedContract',
+        nodeId: 'some-node' as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[linkedContract]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('CONTRACT_NAME')).toBe(null);
+    });
+
+    it('VALID: {contracts: [all unlinked]} => renders all contracts (backward compat)', () => {
+      ContractsLayerWidgetProxy();
+      const contract1 = QuestContractEntryStub({
+        id: 'unlinked-one',
+        name: 'FirstContract',
+      });
+      const contract2 = QuestContractEntryStub({
+        id: 'unlinked-two',
+        name: 'SecondContract',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ContractsLayerWidget
+            contracts={[contract1, contract2]}
+            tooling={[]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      const names = screen.getAllByTestId('CONTRACT_NAME').map((el) => el.textContent);
+
+      expect(names).toStrictEqual(['FirstContract', 'SecondContract']);
+    });
+
     it('EMPTY: {contracts: []} => renders section with zero count', () => {
       ContractsLayerWidgetProxy();
       const contracts: QuestContractEntry[] = [];

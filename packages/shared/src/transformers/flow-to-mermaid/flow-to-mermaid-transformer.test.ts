@@ -2,6 +2,8 @@ import { FlowStub } from '../../contracts/flow/flow.stub';
 import { FlowEdgeStub } from '../../contracts/flow-edge/flow-edge.stub';
 import { FlowNodeStub } from '../../contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '../../contracts/flow-observable/flow-observable.stub';
+import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestContractPropertyStub } from '../../contracts/quest-contract-property/quest-contract-property.stub';
 
 import { flowToMermaidTransformer } from './flow-to-mermaid-transformer';
 
@@ -583,6 +585,176 @@ describe('flowToMermaidTransformer', () => {
           '  click check-auth href "https://docs.example.com/auth" _blank',
         ].join('\n'),
       );
+    });
+  });
+
+  describe('contract rendering', () => {
+    it('VALID: {node with linked contract} => renders contract details on node', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'submit-form', label: 'Submit Form', type: 'action' })],
+        edges: [],
+      });
+      const contracts = [
+        QuestContractEntryStub({
+          name: 'LoginCredentials',
+          nodeId: 'submit-form',
+          properties: [
+            QuestContractPropertyStub({
+              name: 'email',
+              type: 'EmailAddress',
+              description: 'User email',
+            }),
+          ],
+        }),
+      ];
+
+      const result = flowToMermaidTransformer({ flow, contracts });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  submit-form["<b>Submit Form</b><br/><small>#91;LoginCredentials#93;</small><br/><small>&nbsp;&nbsp;email: EmailAddress</small>"]',
+          '  style submit-form fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {node with observables AND contracts} => renders both', () => {
+      const flow = FlowStub({
+        nodes: [
+          FlowNodeStub({
+            id: 'submit-form',
+            label: 'Submit Form',
+            type: 'action',
+            observables: [
+              FlowObservableStub({
+                id: 'sends-post',
+                type: 'ui-state',
+                description: 'sends POST request',
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const contracts = [
+        QuestContractEntryStub({
+          name: 'LoginCredentials',
+          nodeId: 'submit-form',
+          properties: [
+            QuestContractPropertyStub({
+              name: 'email',
+              type: 'EmailAddress',
+              description: 'User email',
+            }),
+          ],
+        }),
+      ];
+
+      const result = flowToMermaidTransformer({ flow, contracts });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  submit-form["<b>Submit Form</b><br/><small>· sends POST request</small><br/><small>#91;LoginCredentials#93;</small><br/><small>&nbsp;&nbsp;email: EmailAddress</small>"]',
+          '  style submit-form fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('EDGE: {contracts omitted} => backward compatible, no contract lines', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'idle', label: 'Idle', type: 'state' })],
+        edges: [],
+      });
+
+      const result = flowToMermaidTransformer({ flow });
+
+      expect(result).toBe(['flowchart TD', '  idle[Idle]'].join('\n'));
+    });
+
+    it('EDGE: {contract with no matching nodeId} => node renders without contract', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'idle', label: 'Idle', type: 'state' })],
+        edges: [],
+      });
+      const contracts = [
+        QuestContractEntryStub({
+          name: 'Unlinked',
+          nodeId: 'other-node',
+          properties: [
+            QuestContractPropertyStub({
+              name: 'field',
+              type: 'FieldType',
+              description: 'A field',
+            }),
+          ],
+        }),
+      ];
+
+      const result = flowToMermaidTransformer({ flow, contracts });
+
+      expect(result).toBe(['flowchart TD', '  idle[Idle]'].join('\n'));
+    });
+
+    it('VALID: {contract with value property} => renders = value', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'api-call', label: 'Call API', type: 'action' })],
+        edges: [],
+      });
+      const contracts = [
+        QuestContractEntryStub({
+          name: 'DeleteEndpoint',
+          nodeId: 'api-call',
+          properties: [
+            QuestContractPropertyStub({
+              name: 'method',
+              type: 'HttpMethod',
+              value: 'DELETE',
+              description: 'HTTP method',
+            }),
+            QuestContractPropertyStub({
+              name: 'path',
+              type: 'UrlPath',
+              value: '/api/quests/:questId',
+              description: 'Endpoint path',
+            }),
+          ],
+        }),
+      ];
+
+      const result = flowToMermaidTransformer({ flow, contracts });
+
+      expect(result).toBe(
+        [
+          'flowchart TD',
+          '  api-call["<b>Call API</b><br/><small>#91;DeleteEndpoint#93;</small><br/><small>&nbsp;&nbsp;method: HttpMethod = DELETE</small><br/><small>&nbsp;&nbsp;path: UrlPath = /api/quests/:questId</small>"]',
+          '  style api-call fill:#2d6a4f,color:#fff',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {contract without nodeId} => not linked, node renders plain', () => {
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ id: 'idle', label: 'Idle', type: 'state' })],
+        edges: [],
+      });
+      const contracts = [
+        QuestContractEntryStub({
+          name: 'OrphanContract',
+          properties: [
+            QuestContractPropertyStub({
+              name: 'field',
+              type: 'FieldType',
+              description: 'A field',
+            }),
+          ],
+        }),
+      ];
+
+      const result = flowToMermaidTransformer({ flow, contracts });
+
+      expect(result).toBe(['flowchart TD', '  idle[Idle]'].join('\n'));
     });
   });
 });
