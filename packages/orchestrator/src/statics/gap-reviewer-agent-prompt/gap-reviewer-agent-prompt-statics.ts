@@ -167,6 +167,10 @@ is handled by \`verify-quest\`):
 - **Cross-references**: If contract A references contract B in its properties (e.g., a request body type references
   LoginCredentials), does contract B exist in the quest? Flag any dangling type references that point to contracts not
   declared in the quest.
+- **nodeId linking**: Every contract must have a \`nodeId\` pointing to a valid flow node ID. Flag contracts with missing
+  \`nodeId\` as **incomplete** — every contract must be anchored to the flow node where it is consumed or produced. Flag
+  contracts whose \`nodeId\` does not match any node in any flow as **orphaned** — the linked node may have been renamed
+  or deleted.
 
 ### Step 8: Check for Logic Gaps
 

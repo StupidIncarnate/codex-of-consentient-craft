@@ -404,6 +404,25 @@ Multiple observables per node example:
 - For \`existing\` contracts, use exploration agents to find the actual shape in the codebase
 - Properties support nesting for complex objects
 - Every data type that appears in observable outcomes should have a corresponding contract
+- Every contract MUST include a \`nodeId\` field linking it to the flow node where the contract is consumed or produced
+
+**\`nodeId\` linking guidance — which node type a contract links to:**
+- **Endpoint contracts** → \`action\` nodes (the node representing the API call)
+- **Data contracts** (request payloads, input shapes) → \`action\` or \`state\` nodes (wherever the data is sent or held)
+- **Response/result contracts** → \`state\` nodes that receive the response, or \`decision\` nodes that branch on the result
+
+**Example contract with \`nodeId\`:**
+\`\`\`json
+{
+  "name": "LoginEndpoint",
+  "kind": "endpoint",
+  "nodeId": "submit-creds",
+  "properties": [
+    { "name": "method", "value": "POST" },
+    { "name": "path", "value": "/api/auth/login" }
+  ]
+}
+\`\`\`
 
 ### Design Decisions
 

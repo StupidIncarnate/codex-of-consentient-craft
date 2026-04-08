@@ -1,9 +1,11 @@
+import { FlowNodeIdStub } from '../flow-node-id/flow-node-id.stub';
+
 import { questContractEntryContract } from './quest-contract-entry-contract';
 import { QuestContractEntryStub } from './quest-contract-entry.stub';
 
 describe('questContractEntryContract', () => {
   describe('valid entries', () => {
-    it('VALID: {id, name, kind, status, properties with one property} => parses minimal entry', () => {
+    it('VALID: {id, name, kind, status, nodeId, properties with one property} => parses minimal entry', () => {
       const entry = QuestContractEntryStub();
 
       expect(entry).toStrictEqual({
@@ -11,6 +13,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',
@@ -54,6 +57,7 @@ describe('questContractEntryContract', () => {
         name: 'UserProfile',
         kind: 'data',
         status: 'modified',
+        nodeId: 'default-node',
         source: 'packages/shared/src/contracts/user-profile/user-profile-contract.ts',
         properties: [
           {
@@ -118,6 +122,7 @@ describe('questContractEntryContract', () => {
         name: 'ShippingAddress',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'recipient',
@@ -186,6 +191,7 @@ describe('questContractEntryContract', () => {
         name: 'AuthLoginEndpoint',
         kind: 'endpoint',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'method',
@@ -213,6 +219,26 @@ describe('questContractEntryContract', () => {
       });
     });
 
+    it('VALID: {with custom nodeId} => parses entry with flow node link', () => {
+      const nodeId = FlowNodeIdStub({ value: 'submit-form' });
+      const entry = QuestContractEntryStub({ nodeId });
+
+      expect(entry).toStrictEqual({
+        id: 'login-credentials',
+        name: 'LoginCredentials',
+        kind: 'data',
+        status: 'new',
+        nodeId: 'submit-form',
+        properties: [
+          {
+            name: 'email',
+            type: 'EmailAddress',
+            description: 'User email for authentication',
+          },
+        ],
+      });
+    });
+
     it('VALID: {default stub} => creates valid entry', () => {
       const entry = QuestContractEntryStub();
 
@@ -223,6 +249,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',
@@ -242,6 +269,7 @@ describe('questContractEntryContract', () => {
           name: 'ValidName',
           kind: 'data',
           status: 'new',
+          nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
       }).toThrow(/invalid_string/u);
@@ -254,9 +282,22 @@ describe('questContractEntryContract', () => {
           name: '',
           kind: 'data',
           status: 'new',
+          nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
       }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {without nodeId} => throws validation error', () => {
+      expect(() => {
+        return questContractEntryContract.parse({
+          id: 'valid-id',
+          name: 'ValidName',
+          kind: 'data',
+          status: 'new',
+          properties: [{ name: 'field' }],
+        });
+      }).toThrow(/invalid_type/u);
     });
   });
 
@@ -271,6 +312,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [],
       });
     });
@@ -283,6 +325,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        nodeId: 'default-node',
         properties: [
           {
             name: 'email',

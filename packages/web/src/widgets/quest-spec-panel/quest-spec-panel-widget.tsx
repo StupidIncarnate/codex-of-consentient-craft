@@ -191,6 +191,7 @@ export const QuestSpecPanelWidget = ({
 
         <FlowsLayerWidget
           flows={draftFlows}
+          contracts={draftContracts}
           editing={editing}
           onChange={(flows) => {
             setDraftModifications((prev) => ({

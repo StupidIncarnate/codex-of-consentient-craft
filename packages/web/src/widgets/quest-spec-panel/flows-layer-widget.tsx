@@ -8,7 +8,7 @@
 
 import { Box, Text } from '@mantine/core';
 
-import type { Flow } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { flowToMermaidTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
@@ -36,12 +36,14 @@ const GOLD_COLOR = colors['loot-gold'] as CssColorOverride;
 
 export interface FlowsLayerWidgetProps {
   flows: Flow[];
+  contracts?: readonly QuestContractEntry[];
   editing: boolean;
   onChange: (flows: Flow[]) => void;
 }
 
 export const FlowsLayerWidget = ({
   flows,
+  contracts,
   editing,
   onChange,
 }: FlowsLayerWidgetProps): React.JSX.Element => (
@@ -134,7 +136,11 @@ export const FlowsLayerWidget = ({
               {flow.nodes.length > 0 ? (
                 <Box mt={FIELD_MARGIN_TOP} data-testid="FLOW_DIAGRAM">
                   <MermaidDiagramWidget
-                    diagram={flowToMermaidTransformer({ flow }) as unknown as MermaidDefinition}
+                    diagram={
+                      flowToMermaidTransformer(
+                        contracts === undefined ? { flow } : { flow, contracts },
+                      ) as unknown as MermaidDefinition
+                    }
                   />
                 </Box>
               ) : null}
