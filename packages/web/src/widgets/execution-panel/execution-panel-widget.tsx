@@ -108,9 +108,12 @@ export const ExecutionPanelWidget = ({
       : [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete').length
   ) as CompletedCount;
 
-  const workItemIdToRole = new Map<WorkItem['id'], WorkItem['role']>();
+  const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
   for (const wi of quest.workItems) {
-    workItemIdToRole.set(wi.id, wi.role);
+    const stepRef = wi.relatedDataItems.find((ref) => ref.startsWith(STEPS_PREFIX));
+    const stepId = stepRef ? (stepRef.slice(STEPS_PREFIX_LENGTH) as StepId) : undefined;
+    const step = stepId ? stepsById.get(stepId) : undefined;
+    workItemIdToLabel.set(wi.id, step ? (step.name as unknown as WorkItem['role']) : wi.role);
   }
 
   const wardResultsById = new Map<
@@ -235,7 +238,7 @@ export const ExecutionPanelWidget = ({
                           ? (sessionEntries.get(wi.sessionId) ?? [])
                           : [];
                         const wiDepLabels = wi.dependsOn
-                          .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                          .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                           .filter((label) => label.length > 0);
                         return (
                           <ExecutionRowLayerWidget
@@ -306,7 +309,7 @@ export const ExecutionPanelWidget = ({
                         ? (sessionEntries.get(wi.sessionId) ?? [])
                         : [];
                       const wiDepLabels = wi.dependsOn
-                        .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                        .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                         .filter((label) => label.length > 0);
                       return (
                         <ExecutionRowLayerWidget
@@ -371,7 +374,7 @@ export const ExecutionPanelWidget = ({
                           ? (sessionEntries.get(wi.sessionId) ?? [])
                           : [];
                         const wiDepLabels = wi.dependsOn
-                          .map((depId) => workItemIdToRole.get(depId) ?? depId)
+                          .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                           .filter((label) => label.length > 0);
                         return (
                           <ExecutionRowLayerWidget

@@ -1944,6 +1944,82 @@ describe('ExecutionPanelWidget', () => {
 
       expect(depSubtitle?.textContent).toBe('\u2514\u2500 depends on: chaoswhisperer');
     });
+
+    it('VALID: {ward depends on step-linked work items} => shows step names in subtitle', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [
+          DependencyStepStub({ id: 'step-1', name: 'Build login form' }),
+          DependencyStepStub({ id: 'step-2', name: 'Add validation logic' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-2'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'spiritmender',
+            status: 'pending',
+            dependsOn: [
+              'a0000000-0000-0000-0000-000000000001',
+              'a0000000-0000-0000-0000-000000000002',
+            ],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
+      const depSubtitle = subtitles.find((el) => el.textContent?.includes('depends on'));
+
+      expect(depSubtitle?.textContent).toBe(
+        '\u2514\u2500 depends on: Build login form, Add validation logic',
+      );
+    });
+
+    it('EDGE: {work item with step ref but step not found} => falls back to role name in dependency label', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/nonexistent-step'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'spiritmender',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
+      const depSubtitle = subtitles.find((el) => el.textContent?.includes('depends on'));
+
+      expect(depSubtitle?.textContent).toBe('\u2514\u2500 depends on: codeweaver');
+    });
   });
 
   describe('work items only naming', () => {

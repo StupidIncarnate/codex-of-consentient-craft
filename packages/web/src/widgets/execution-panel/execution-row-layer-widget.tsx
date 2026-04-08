@@ -26,13 +26,15 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
+import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
+import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
-import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
-import { ToolRowWidget } from '../tool-row/tool-row-widget';
+import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
+import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
@@ -115,12 +117,26 @@ export const ExecutionRowLayerWidget = ({
     status === ('in_progress' as ExecutionStepStatus) && hasEntries,
   );
   const scrollEndRef = useRef<HTMLDivElement>(null);
+  const prevStatusRef = useRef<ExecutionStepStatus>(status);
+  const userClickedRef = useRef(false);
 
   useEffect(() => {
     if (status === ('in_progress' as ExecutionStepStatus) && hasEntries && !expanded) {
       setExpanded(true);
     }
   }, [status, hasEntries, expanded]);
+
+  useEffect(() => {
+    if (
+      prevStatusRef.current === ('in_progress' as ExecutionStepStatus) &&
+      status !== ('in_progress' as ExecutionStepStatus) &&
+      !userClickedRef.current
+    ) {
+      setExpanded(false);
+    }
+    prevStatusRef.current = status;
+    userClickedRef.current = false;
+  }, [status]);
 
   useEffect(() => {
     if (expanded && hasEntries && scrollEndRef.current?.scrollIntoView !== undefined) {
@@ -150,6 +166,7 @@ export const ExecutionRowLayerWidget = ({
         data-testid="execution-row-header"
         onClick={() => {
           if (isExpandable) {
+            userClickedRef.current = true;
             setExpanded(!expanded);
           }
         }}
@@ -358,45 +375,53 @@ export const ExecutionRowLayerWidget = ({
           ) : null}
           {entries && entries.length > 0
             ? (() => {
-                const merged = mergeToolEntriesTransformer({ entries });
-                const annotations = computeTokenAnnotationsTransformer({ items: merged });
+                const groupedEntries = collectSubagentChainsTransformer({ entries });
 
-                return merged.map((item, i) => {
-                  const annotation = annotations[i];
-
-                  return item.kind === 'tool-pair' ? (
-                    <ToolRowWidget
-                      key={i}
-                      toolUse={item.toolUse as Extract<ChatEntry, { type: 'tool_use' }>}
-                      {...(item.toolResult === null
-                        ? {}
-                        : {
-                            toolResult: item.toolResult as Extract<
-                              ChatEntry,
-                              { type: 'tool_result' }
-                            >,
-                          })}
-                      {...(annotation?.tokenBadgeLabel === undefined ||
-                      annotation.tokenBadgeLabel === null
-                        ? {}
-                        : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
-                      {...(annotation?.resultTokenBadgeLabel === undefined ||
-                      annotation.resultTokenBadgeLabel === null
-                        ? {}
-                        : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
-                    />
-                  ) : (
-                    <ChatMessageWidget
-                      key={i}
-                      entry={item.entry}
-                      roleLabel={role}
-                      {...(annotation?.tokenBadgeLabel === undefined ||
-                      annotation.tokenBadgeLabel === null
-                        ? {}
-                        : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
-                    />
-                  );
+                const singleItems = groupedEntries
+                  .filter((g) => g.kind === 'single')
+                  .map((g) => mergedChatItemContract.parse({ kind: 'entry', entry: g.entry }));
+                const singleAnnotations = computeTokenAnnotationsTransformer({
+                  items: singleItems,
                 });
+
+                let singleIndex = 0;
+                const elements: React.JSX.Element[] = [];
+
+                for (let i = 0; i < groupedEntries.length; i++) {
+                  const group = groupedEntries[i];
+                  if (group === undefined) continue;
+
+                  if (group.kind === 'tool-group') {
+                    elements.push(
+                      <ToolGroupWidget
+                        key={`group-${String(i)}`}
+                        group={group}
+                        isLastGroup={i === groupedEntries.length - 1}
+                        isStreaming={isStreaming ?? false}
+                      />,
+                    );
+                  } else if (group.kind === 'subagent-chain') {
+                    elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
+                  } else {
+                    const { entry } = group;
+                    const annotation = singleAnnotations[singleIndex];
+                    singleIndex += 1;
+
+                    elements.push(
+                      <ChatMessageWidget
+                        key={`single-${String(i)}`}
+                        entry={entry}
+                        roleLabel={role}
+                        {...(annotation?.tokenBadgeLabel === undefined ||
+                        annotation.tokenBadgeLabel === null
+                          ? {}
+                          : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                      />,
+                    );
+                  }
+                }
+
+                return elements;
               })()
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
