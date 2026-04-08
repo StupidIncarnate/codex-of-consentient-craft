@@ -31,7 +31,7 @@ describe('formatFolderContentLayerBroker', () => {
       expect(result).toBe('chat-entry, quest-id, user-input');
     });
 
-    it('VALID: folder with more than 10 subdirs => truncates with ellipsis', () => {
+    it('VALID: folder with many subdirs => lists all without truncation', () => {
       const proxy = formatFolderContentLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/contracts' });
       const { folderDepth } = FolderConfigStub({ folderDepth: 1 });
@@ -55,7 +55,7 @@ describe('formatFolderContentLayerBroker', () => {
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
       expect(result).toBe(
-        'alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, ...',
+        'alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, kilo',
       );
     });
   });

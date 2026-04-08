@@ -25,7 +25,7 @@ describe('HookSessionStartFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 0,
         stdout: expect.stringMatching(
-          /^<dungeonmaster-architecture>\n.+<\/dungeonmaster-architecture>\n$/su,
+          /^<dungeonmaster-architecture>\n.+<\/dungeonmaster-architecture>\n\n<dungeonmaster-project-map>\n.+<\/dungeonmaster-project-map>\n$/su,
         ),
         stderr: '',
       });

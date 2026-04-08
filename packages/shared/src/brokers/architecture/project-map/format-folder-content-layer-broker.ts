@@ -73,10 +73,5 @@ export const formatFolderContentLayerBroker = ({
     .map((entry) => entry.name)
     .sort();
 
-  if (subdirNames.length > projectMapStatics.maxDepth1Items) {
-    const shown = subdirNames.slice(0, projectMapStatics.maxDepth1Items);
-    return contentTextContract.parse(`${shown.join(', ')}, ...`);
-  }
-
   return contentTextContract.parse(subdirNames.join(', '));
 };

@@ -9,7 +9,6 @@
  */
 
 export const projectMapStatics = {
-  maxDepth1Items: 10,
   defaultFolderDepth: 1,
   depth0: 0,
   depth2: 2,
