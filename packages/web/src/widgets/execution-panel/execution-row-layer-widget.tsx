@@ -118,6 +118,7 @@ export const ExecutionRowLayerWidget = ({
   );
   const scrollEndRef = useRef<HTMLDivElement>(null);
   const prevStatusRef = useRef<ExecutionStepStatus>(status);
+  const userClickedRef = useRef(false);
 
   useEffect(() => {
     if (status === ('in_progress' as ExecutionStepStatus) && hasEntries && !expanded) {
@@ -129,12 +130,13 @@ export const ExecutionRowLayerWidget = ({
     if (
       prevStatusRef.current === ('in_progress' as ExecutionStepStatus) &&
       status !== ('in_progress' as ExecutionStepStatus) &&
-      expanded
+      !userClickedRef.current
     ) {
       setExpanded(false);
     }
     prevStatusRef.current = status;
-  }, [status, expanded]);
+    userClickedRef.current = false;
+  }, [status]);
 
   useEffect(() => {
     if (expanded && hasEntries && scrollEndRef.current?.scrollIntoView !== undefined) {
@@ -164,6 +166,7 @@ export const ExecutionRowLayerWidget = ({
         data-testid="execution-row-header"
         onClick={() => {
           if (isExpandable) {
+            userClickedRef.current = true;
             setExpanded(!expanded);
           }
         }}
@@ -398,9 +401,7 @@ export const ExecutionRowLayerWidget = ({
                       />,
                     );
                   } else if (group.kind === 'subagent-chain') {
-                    elements.push(
-                      <SubagentChainWidget key={`chain-${String(i)}`} group={group} />,
-                    );
+                    elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
                   } else {
                     const { entry } = group;
                     const annotation = singleAnnotations[singleIndex];
