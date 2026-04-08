@@ -6,6 +6,8 @@ import { readPackageDescriptionLayerBrokerProxy } from './read-package-descripti
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
+const DEFAULT_LEAF_FILE_COUNT = 3;
+
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
     name,
@@ -19,6 +21,32 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
     isSocket: () => false,
     isSymbolicLink: () => false,
   }) as Dirent;
+
+const fillLeafDirectories = <K extends PropertyKey>(pathMap: Map<K, Dirent[]>): void => {
+  const registeredPaths = new Set(pathMap.keys());
+
+  const leafEntries: [K, Dirent[]][] = [];
+
+  for (const [parentPath, entries] of pathMap) {
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const childPath = `${String(parentPath)}/${entry.name}` as K;
+        if (!registeredPaths.has(childPath)) {
+          leafEntries.push([
+            childPath,
+            Array.from({ length: DEFAULT_LEAF_FILE_COUNT }, (_, i) =>
+              makeDirent({ name: `file-${String(i + 1)}.ts`, isDir: false }),
+            ),
+          ]);
+        }
+      }
+    }
+  }
+
+  for (const [leafPath, files] of leafEntries) {
+    pathMap.set(leafPath, files);
+  }
+};
 
 export const architectureProjectMapBrokerProxy = (): {
   setupMonorepo: ({
@@ -109,6 +137,8 @@ export const architectureProjectMapBrokerProxy = (): {
         }
       }
 
+      fillLeafDirectories(pathMap);
+
       safeProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
           for (const [suffix, entries] of pathMap) {
@@ -166,6 +196,8 @@ export const architectureProjectMapBrokerProxy = (): {
           }
         }
       }
+
+      fillLeafDirectories(pathMap);
 
       safeProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
