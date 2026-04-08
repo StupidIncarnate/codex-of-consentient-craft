@@ -6,7 +6,10 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
  */
 
-import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  architectureOverviewBrokerProxy,
+  architectureProjectMapBrokerProxy,
+} from '@dungeonmaster/shared/testing';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
@@ -28,8 +31,12 @@ export const ArchitectureHandleResponderProxy = (): {
     pattern: GlobPattern;
   }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
+  setupMonorepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupMonorepo'];
+  setupSingleRepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupSingleRepo'];
+  setupEmptySrc: ReturnType<typeof architectureProjectMapBrokerProxy>['setupEmptySrc'];
 } => {
   architectureOverviewBrokerProxy();
+  const projectMapProxy = architectureProjectMapBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();
   architectureFolderDetailBrokerProxy();
   architectureSyntaxRulesBrokerProxy();
@@ -61,6 +68,21 @@ export const ArchitectureHandleResponderProxy = (): {
         folderType: folderType as FolderType,
         content: ContentTextStub({ value: content }),
       });
+    },
+    setupMonorepo: (
+      params: Parameters<ReturnType<typeof architectureProjectMapBrokerProxy>['setupMonorepo']>[0],
+    ): void => {
+      projectMapProxy.setupMonorepo(params);
+    },
+    setupSingleRepo: (
+      params: Parameters<
+        ReturnType<typeof architectureProjectMapBrokerProxy>['setupSingleRepo']
+      >[0],
+    ): void => {
+      projectMapProxy.setupSingleRepo(params);
+    },
+    setupEmptySrc: (): void => {
+      projectMapProxy.setupEmptySrc();
     },
   };
 };

@@ -245,6 +245,10 @@ export * from './src/contracts/css-pixels/css-pixels.stub';
 export * from './src/contracts/line-count/line-count-contract';
 export * from './src/contracts/line-count/line-count.stub';
 
+// File Count Contracts
+export * from './src/contracts/file-count/file-count-contract';
+export * from './src/contracts/file-count/file-count.stub';
+
 // Array Index Contracts
 export * from './src/contracts/array-index/array-index-contract';
 export * from './src/contracts/array-index/array-index.stub';

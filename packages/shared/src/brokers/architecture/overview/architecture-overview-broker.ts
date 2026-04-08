@@ -642,6 +642,7 @@ npm run ward -- --only lint,test --changed
 | \`discover\` | \`{ ..., verbose: true }\` | Signatures, companions, usage sites | Need detail (signature, typo check) without reading the full file |
 | \`Read\` | file path | Full file contents | Need actual code — implementing, editing, understanding logic |
 | \`get-architecture\` | *(none)* | This document — folder types, import rules, decision tree | First thing on any task |
+| \`get-project-map\` | *(none)* | Compact codebase map — packages, folder types, file counts, domains | Quick orientation before targeted discover calls |
 | \`get-folder-detail\` | \`{ folderType }\` | Naming, imports, constraints, code examples, proxy requirements | Before creating/modifying files in a folder type |
 | \`get-syntax-rules\` | *(none)* | File naming, exports, types, destructuring conventions | Ensuring code passes ESLint |
 | \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |`;

@@ -24,6 +24,7 @@ export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
 
 // Broker Proxies
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
+export * from './src/brokers/architecture/project-map/architecture-project-map-broker.proxy';
 export * from './src/brokers/install/check/install-check-broker.proxy';
 export * from './src/brokers/config-root/find/config-root-find-broker.proxy';
 export * from './src/brokers/project-root/find/project-root-find-broker.proxy';

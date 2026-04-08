@@ -30,6 +30,7 @@ export const mcpToolsStatics = {
       'verify-quest',
       'ask-user-question',
       'get-agent-prompt',
+      'get-project-map',
     ] as const,
   },
 } as const;

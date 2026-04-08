@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns)
+ * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map)
  *
  * USAGE:
  * const result = await ArchitectureHandleResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
@@ -7,7 +7,11 @@
  */
 
 import type { FolderType } from '@dungeonmaster/shared/contracts';
-import { architectureOverviewBroker } from '@dungeonmaster/shared/brokers';
+import {
+  architectureOverviewBroker,
+  architectureProjectMapBroker,
+} from '@dungeonmaster/shared/brokers';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -96,6 +100,16 @@ export const ArchitectureHandleResponder = async ({
           text: contentTextContract.parse(result),
         },
       ],
+    };
+  }
+
+  if (tool === 'get-project-map') {
+    const result = architectureProjectMapBroker({
+      projectRoot: absoluteFilePathContract.parse(process.cwd()),
+    });
+
+    return {
+      content: [{ type: 'text', text: contentTextContract.parse(result) }],
     };
   }
 
