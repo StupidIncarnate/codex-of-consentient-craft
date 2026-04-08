@@ -13,6 +13,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
+  TaskToolUseChatEntryStub,
 } from '../../contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
@@ -280,6 +281,97 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('auto-collapse on completion', () => {
+    it('VALID: {in_progress → complete} => collapses expanded row', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={entries}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+
+      rerender(
+        <ExecutionRowLayerWidget
+          {...defaultProps()}
+          status={ExecutionStepStatusStub({ value: 'complete' })}
+          entries={entries}
+        />,
+      );
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
+
+    it('VALID: {in_progress → failed} => collapses expanded row', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={entries}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+
+      rerender(
+        <ExecutionRowLayerWidget
+          {...defaultProps()}
+          status={ExecutionStepStatusStub({ value: 'failed' })}
+          entries={entries}
+        />,
+      );
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
+
+    it('EDGE: {complete, manually expanded} => stays expanded on re-render', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      const entries = [AssistantTextChatEntryStub({ content: 'Done.' })];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            entries={entries}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+
+      rerender(
+        <ExecutionRowLayerWidget
+          {...defaultProps()}
+          status={ExecutionStepStatusStub({ value: 'complete' })}
+          entries={entries}
+        />,
+      );
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+    });
+  });
+
   describe('expanded content', () => {
     it('VALID: {expanded, files} => shows files in expanded view', async () => {
       ExecutionRowLayerWidgetProxy();
@@ -452,6 +544,30 @@ describe('ExecutionRowLayerWidget', () => {
       expect(
         screen.getAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
+    });
+
+    it('VALID: {in_progress with subagent entries} => renders subagent chain header', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
+              AssistantTextChatEntryStub({
+                content: 'Sub-agent working...',
+                source: 'subagent',
+                agentId: 'agent-001',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+      expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeInTheDocument();
     });
   });
 
@@ -793,6 +909,8 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
+      await userEvent.click(screen.getByTestId('TOOL_GROUP_HEADER'));
+
       const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
       await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
 
@@ -819,6 +937,8 @@ describe('ExecutionRowLayerWidget', () => {
           />
         ),
       });
+
+      await userEvent.click(screen.getByTestId('TOOL_GROUP_HEADER'));
 
       const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
       await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
