@@ -81,66 +81,29 @@ ${hierarchy}
 
   const decisionTree = contentTextContract.parse(`\`\`\`\n${decisionTreeLines.join('\n')}\n\`\`\``);
 
-  // Build why section
-  const whyThisStructure = `LLMs instinctively "squirrel away" code based on training data patterns. This creates chaos with folders like \`utils/\`, \`lib/\`, \`helpers/\`.
+  // Build allowed layer folders list from config
+  const allowsLayerFolders = folderEntries
+    .filter(({ config }) => config.allowsLayerFiles)
+    .map(({ key }) => `\`${key}/\``)
+    .join(', ');
+
+  // Combine all sections
+  const markdown = `# Architecture Overview
+
+## Critical Context: Why This Architecture
+
+LLMs instinctively "squirrel away" code based on training data patterns. This creates chaos with folders like \`utils/\`, \`lib/\`, \`helpers/\`.
 
 This structure forces deterministic organization by:
 1. **Eliminating ambiguous folders** (utils, lib, helpers, common)
 2. **Using unconventional terms** (brokers, transformers, guards) to bypass LLM training patterns
 3. **Explicit import rules** mechanically enforced by ESLint
 
-**If you think "this should go in utils/" → refer to Forbidden Folders table below.**`;
+**If you think "this should go in utils/" → refer to Forbidden Folders table below.**
 
-  // Build forbidden folders table
-  const forbiddenFolders = `| ❌ FORBIDDEN | ✅ USE INSTEAD | WHY |
-|-------------|----------------|-----|
-| utils/ | adapters/ or transformers/ | Based on whether it wraps external packages or transforms data |
-| lib/ | adapters/ | External package wrappers only |
-| helpers/ | guards/ or transformers/ | Boolean functions → guards/, others → transformers/ |
-| common/ | Distribute by function | No catch-all folders allowed |
-| shared/ | Distribute by function | No catch-all folders allowed |
-| core/ | brokers/ | Business logic operations |
-| services/ | brokers/ | Business operations |
-| repositories/ | brokers/ | Data access operations |
-| models/ | contracts/ | Data definitions and validation |
-| types/ | contracts/ | All types and interfaces |
-| interfaces/ | contracts/ | Type definitions |
-| validators/ | contracts/ | Validation schemas only |
-| constants/ | statics/ | Immutable values, enums, config objects |
-| config/ | statics/ | Static configuration values |
-| enums/ | statics/ | Enumerations |
-| formatters/ | transformers/ | Data formatting |
-| mappers/ | transformers/ | Data mapping |
-| converters/ | transformers/ | Data conversion |`;
+## Code Discovery
 
-  // Build extension over creation rules
-  const extensionRules = `**Golden Rule:** If a domain file exists, EXTEND it with options - never create variant files.
-
-**Search first using the \`discover\` MCP tool:**
-- \`{ glob: "packages/*/src/brokers/**", grep: "user" }\`
-- \`{ glob: "packages/*/src/bindings/**" }\`
-
-**If domain exists → MUST extend, not create new**
-
-**When to EXTEND (add options):**
-- Adding optional behavior (includeCompany, includeRoles)
-- Adding filters (status?: 'active' | 'inactive')
-- Adding joins/relations (includeCompany?: boolean)
-
-**When to CREATE NEW:**
-- New domain (first payment broker)
-- New action (user-delete when only user-fetch exists)
-- Different folder type (user-contract, user-broker, use-user-binding)
-- Single responsibility violation
-
-**Examples by folder:**
-- **Bindings**: Extend with options (includeCompany, includeRoles)
-- **Transformers**: Create variants (each output shape = separate file)
-- **Widgets**: Extend with props (showCompany, showRoles)
-- **Brokers**: Create orchestration brokers, extend bindings with option`;
-
-  // Build code discovery section
-  const codeDiscovery = `**\`discover\` is the ONLY way to search this codebase.** System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked. The \`discover\` MCP tool replaces all of them — it wraps glob and grep with structured output (purposes, signatures, related files).
+**\`discover\` is the ONLY way to search this codebase.** System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked. The \`discover\` MCP tool replaces all of them — it wraps glob and grep with structured output (purposes, signatures, related files).
 
 **discover params:**
 
@@ -308,86 +271,62 @@ discover({ glob: "packages/*/src/**", grep: "someFeature" })
 
 **The rule:** If you don't already know the exact function/variable name, use glob alone. The tree output has file purposes — that IS your search. Only add grep when you have a specific identifier to locate across the codebase.
 
-**Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.`;
+**Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.
 
-  // Build frontend data flow rules
-  const frontendDataFlow = `**Critical Rules:**
+## Folder Types
 
-1. **Widgets get data through bindings, never brokers**
-   - ✅ Render: Call bindings only
-   - ✅ Events: Call brokers only
-   - ❌ Never call brokers in render
-   - ❌ Never call bindings in events (React error)
+${folderTypesTable}
 
-2. **Bindings wrap single broker only (no orchestration)**
-   - If you \`await\` twice → move to brokers/
-   - Bindings return {data, loading, error}
+## Architecture Layer Diagram
 
-3. **Extend bindings with options, don't create variants**
-   - ✅ useUserDataBinding({userId, includeCompany})
-   - ❌ useUserWithCompanyBinding
+${layerDiagram}
 
-**Example:**
-\`\`\`typescript
-// ✅ CORRECT - Widget uses binding in render
-export const UserCardWidget = ({userId}) => {
-  const {data: user, loading, error} = useUserDataBinding({userId});
+## Decision Tree: Where Does Code Go?
 
-  // ✅ CORRECT - Broker in event handler
-  const handleUpdate = async () => {
-    await userUpdateBroker({userId, data: user});
-  };
+${decisionTree}
 
-  if (loading) return <div>Loading...</div>;
-  return <div>{user?.name}</div>;
-};
+## Forbidden Folders - Where Code Actually Goes
 
-// ❌ WRONG - Binding in event handler
-const handleClick = () => {
-  const {data} = useUserDataBinding({userId});  // React error!
-};
-\`\`\``;
+| ❌ FORBIDDEN | ✅ USE INSTEAD | WHY |
+|-------------|----------------|-----|
+| utils/ | adapters/ or transformers/ | Based on whether it wraps external packages or transforms data |
+| lib/ | adapters/ | External package wrappers only |
+| helpers/ | guards/ or transformers/ | Boolean functions → guards/, others → transformers/ |
+| common/ | Distribute by function | No catch-all folders allowed |
+| shared/ | Distribute by function | No catch-all folders allowed |
+| core/ | brokers/ | Business logic operations |
+| services/ | brokers/ | Business operations |
+| repositories/ | brokers/ | Data access operations |
+| models/ | contracts/ | Data definitions and validation |
+| types/ | contracts/ | All types and interfaces |
+| interfaces/ | contracts/ | Type definitions |
+| validators/ | contracts/ | Validation schemas only |
+| constants/ | statics/ | Immutable values, enums, config objects |
+| config/ | statics/ | Static configuration values |
+| enums/ | statics/ | Enumerations |
+| formatters/ | transformers/ | Data formatting |
+| mappers/ | transformers/ | Data mapping |
+| converters/ | transformers/ | Data conversion |
 
-  // Build backend validation rules
-  const backendValidation = `**Boundary Validation Rule:**
+**Special Case: @types/ Folder**
 
-ALL responder inputs from external sources MUST be validated through contracts:
+The \`@types/\` folder is allowed **at package root only** (not in \`src/\`) for global TypeScript type augmentations.
 
-**External sources:**
-- HTTP: req.body, req.params, req.query
-- Queues: job.data
-- Files: JSON.parse results
-- CLI: stdin
-- Browser: useParams(), localStorage
-
-**Pattern:**
-\`\`\`typescript
-export const UserCreateResponder = async ({req, res}: {
-  req: Request;
-  res: Response;
-}): Promise<void> => {
-  const body: unknown = req.body;  // Explicit unknown
-  const validated = userCreateContract.safeParse(body);
-  if (!validated.success) {
-    return res.status(400).json({error: validated.error});
-  }
-  // Use validated.data with type safety
-  const user = await userCreateBroker({userData: validated.data});
-  res.json(user);
-};
+\`\`\`
+package-root/
+├── @types/
+│   └── error-cause.d.ts     # Global type augmentations (extending Error, Window, etc.)
+├── src/
+│   └── contracts/           # Application contracts (NOT @types or types/)
+└── package.json
 \`\`\`
 
-**Responders handle ONLY:**
-- Input validation/parsing (contracts)
-- Calling brokers
-- Output formatting (transformers)
-- HTTP status codes
+**Use for:** Extending built-in JavaScript/TypeScript types (\`Error\`, \`Window\`, etc.)
+**Do NOT use for:** Application types (those go in \`src/contracts/\`)
 
-**NO business logic in responders!**`;
+## Import Rules
 
-  // Build import rules section
-  const importRules =
-    `**Cross-Folder Import Rules:**
+**Cross-Folder Import Rules:**
 
 Only **entry files** can be imported across domain folders.
 
@@ -405,32 +344,22 @@ Only **entry files** can be imported across domain folders.
 
 \`\`\`typescript
 // ✅ CORRECT - Importing entry file (name matches folders)
-import {userFetchBroker} ` +
-    `from '../../brokers/user/fetch/user-fetch-broker';
-import {axiosGetAdapter} ` +
-    `from '../../../adapters/axios/get/axios-get-adapter';
+import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
+import {axiosGetAdapter} from '../../../adapters/axios/get/axios-get-adapter';
 
 // ❌ WRONG - Importing non-entry files (names have extra parts)
-import {validateHelper} ` +
-    `from '../../brokers/user/fetch/validate-helper';
-import {validateLayerBroker} ` +
-    `from '../../brokers/user/fetch/validate-layer-broker';
-import {avatarLayerWidget} ` +
-    `from '../user-card/avatar-layer-widget';
+import {validateHelper} from '../../brokers/user/fetch/validate-helper';
+import {validateLayerBroker} from '../../brokers/user/fetch/validate-layer-broker';
+import {avatarLayerWidget} from '../user-card/avatar-layer-widget';
 \`\`\`
 
 **Same-folder imports:** Files within same domain folder can import each other freely (including helpers and layers).
 
-**Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.`;
+**Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.
 
-  // Build layer files section - dynamically generate allowed folders
-  const allowsLayerFolders = folderEntries
-    .filter(({ config }) => config.allowsLayerFiles)
-    .map(({ key }) => `\`${key}/\``)
-    .join(', ');
+## Layer Files - Decomposing Complex Components
 
-  const layerFiles =
-    `**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
+**Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.
 
 **Naming:** \`{descriptive-name}-layer-{folder-suffix}.{ext}\`
 
@@ -475,25 +404,20 @@ brokers/user/fetch/
 \`\`\`typescript
 // ✅ CORRECT - Same folder imports
 // In: brokers/user/fetch/user-fetch-broker.ts
-import {validateInputLayerBroker} ` +
-    `from './validate-input-layer-broker';
-import {formatResponseLayerBroker} ` +
-    `from './format-response-layer-broker';
+import {validateInputLayerBroker} from './validate-input-layer-broker';
+import {formatResponseLayerBroker} from './format-response-layer-broker';
 
 // ✅ CORRECT - Layer importing layer (same folder)
 // In: brokers/user/fetch/validate-input-layer-broker.ts
-import {formatResponseLayerBroker} ` +
-    `from './format-response-layer-broker';
+import {formatResponseLayerBroker} from './format-response-layer-broker';
 
 // ❌ WRONG - Cross-domain layer import
 // In: brokers/auth/login/auth-login-broker.ts
-import {validateInputLayerBroker} ` +
-    `from '../../user/fetch/validate-input-layer-broker';
+import {validateInputLayerBroker} from '../../user/fetch/validate-input-layer-broker';
 
 // ❌ WRONG - Different action layer import (same domain)
 // In: brokers/user/update/user-update-broker.ts
-import {validateInputLayerBroker} ` +
-    `from '../fetch/validate-input-layer-broker';
+import {validateInputLayerBroker} from '../fetch/validate-input-layer-broker';
 \`\`\`
 
 **When to create layer:**
@@ -515,27 +439,115 @@ import {validateInputLayerBroker} ` +
 **Lint Enforcement:**
 - \`@dungeonmaster/enforce-project-structure\` - validates folder allows layers
 - \`@dungeonmaster/enforce-implementation-colocation\` - validates layer has parent in same directory
-- File suffix rules - validates \`-layer-\` appears before folder suffix`;
+- File suffix rules - validates \`-layer-\` appears before folder suffix
 
-  // Build @types folder section
-  const typesFolder = `**Special Case: @types/ Folder**
+## Extension Over Creation Philosophy
 
-The \`@types/\` folder is allowed **at package root only** (not in \`src/\`) for global TypeScript type augmentations.
+**Golden Rule:** If a domain file exists, EXTEND it with options - never create variant files.
 
+**Search first using the \`discover\` MCP tool:**
+- \`{ glob: "packages/*/src/brokers/**", grep: "user" }\`
+- \`{ glob: "packages/*/src/bindings/**" }\`
+
+**If domain exists → MUST extend, not create new**
+
+**When to EXTEND (add options):**
+- Adding optional behavior (includeCompany, includeRoles)
+- Adding filters (status?: 'active' | 'inactive')
+- Adding joins/relations (includeCompany?: boolean)
+
+**When to CREATE NEW:**
+- New domain (first payment broker)
+- New action (user-delete when only user-fetch exists)
+- Different folder type (user-contract, user-broker, use-user-binding)
+- Single responsibility violation
+
+**Examples by folder:**
+- **Bindings**: Extend with options (includeCompany, includeRoles)
+- **Transformers**: Create variants (each output shape = separate file)
+- **Widgets**: Extend with props (showCompany, showRoles)
+- **Brokers**: Create orchestration brokers, extend bindings with option
+
+## Frontend Data Flow (React)
+
+**Critical Rules:**
+
+1. **Widgets get data through bindings, never brokers**
+   - ✅ Render: Call bindings only
+   - ✅ Events: Call brokers only
+   - ❌ Never call brokers in render
+   - ❌ Never call bindings in events (React error)
+
+2. **Bindings wrap single broker only (no orchestration)**
+   - If you \`await\` twice → move to brokers/
+   - Bindings return {data, loading, error}
+
+3. **Extend bindings with options, don't create variants**
+   - ✅ useUserDataBinding({userId, includeCompany})
+   - ❌ useUserWithCompanyBinding
+
+**Example:**
+\`\`\`typescript
+// ✅ CORRECT - Widget uses binding in render
+export const UserCardWidget = ({userId}) => {
+  const {data: user, loading, error} = useUserDataBinding({userId});
+
+  // ✅ CORRECT - Broker in event handler
+  const handleUpdate = async () => {
+    await userUpdateBroker({userId, data: user});
+  };
+
+  if (loading) return <div>Loading...</div>;
+  return <div>{user?.name}</div>;
+};
+
+// ❌ WRONG - Binding in event handler
+const handleClick = () => {
+  const {data} = useUserDataBinding({userId});  // React error!
+};
 \`\`\`
-package-root/
-├── @types/
-│   └── error-cause.d.ts     # Global type augmentations (extending Error, Window, etc.)
-├── src/
-│   └── contracts/           # Application contracts (NOT @types or types/)
-└── package.json
+
+## Backend Validation (Express/HTTP)
+
+**Boundary Validation Rule:**
+
+ALL responder inputs from external sources MUST be validated through contracts:
+
+**External sources:**
+- HTTP: req.body, req.params, req.query
+- Queues: job.data
+- Files: JSON.parse results
+- CLI: stdin
+- Browser: useParams(), localStorage
+
+**Pattern:**
+\`\`\`typescript
+export const UserCreateResponder = async ({req, res}: {
+  req: Request;
+  res: Response;
+}): Promise<void> => {
+  const body: unknown = req.body;  // Explicit unknown
+  const validated = userCreateContract.safeParse(body);
+  if (!validated.success) {
+    return res.status(400).json({error: validated.error});
+  }
+  // Use validated.data with type safety
+  const user = await userCreateBroker({userData: validated.data});
+  res.json(user);
+};
 \`\`\`
 
-**Use for:** Extending built-in JavaScript/TypeScript types (\`Error\`, \`Window\`, etc.)
-**Do NOT use for:** Application types (those go in \`src/contracts/\`)`;
+**Responders handle ONLY:**
+- Input validation/parsing (contracts)
+- Calling brokers
+- Output formatting (transformers)
+- HTTP status codes
 
-  // Build quality commands section
-  const qualityCommands = `**ALWAYS use \`npm run ward\` instead of raw tool invocations:**
+**NO business logic in responders!**
+
+## Quality Commands
+
+**ALWAYS use \`npm run ward\` instead of raw tool invocations:**
 
 | ❌ Don't Use | ✅ Use Instead |
 |-------------|---------------|
@@ -605,10 +617,11 @@ npm run ward -- --only lint,typecheck,unit -- packages/hooks
 
 # Combo: lint + test (all test types) on changed files only
 npm run ward -- --only lint,test --changed
-\`\`\``;
+\`\`\`
 
-  // Build critical rules
-  const criticalRules = `**Never do these things (❌):**
+## Critical Rules Summary
+
+**Never do these things (❌):**
 - ❌ Use while (true) - use recursion instead
 - ❌ Import from implementation files across folders - only import entry files
 - ❌ Use raw primitives (string, number) - use branded Zod types
@@ -622,10 +635,11 @@ npm run ward -- --only lint,test --changed
 - ✅ Co-locate test files with implementation
 - ✅ Use async/await over .then() chains
 - ✅ File names in kebab-case
-- ✅ Metadata comments (PURPOSE/USAGE) at top of implementation files`;
+- ✅ Metadata comments (PURPOSE/USAGE) at top of implementation files
 
-  // Build testing architecture summary
-  const testingArchitecture = `**Mock only at I/O boundaries:**
+### Testing Architecture
+
+**Mock only at I/O boundaries:**
 - Adapters mock npm packages (axios, fs)
 - Globals mock non-deterministic functions (Date.now)
 - Everything else runs REAL (brokers, guards, transformers, widgets)
@@ -635,10 +649,11 @@ npm run ward -- --only lint,test --changed
 - Create fresh proxy per test
 - Proxies provide semantic methods, not raw mocks
 
-**Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.`;
+**Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.
 
-  // Build MCP tools reference
-  const mcpToolsReference = `These MCP tools provide detailed guidance beyond this overview. Use them before writing code.
+## MCP Tools Reference
+
+These MCP tools provide detailed guidance beyond this overview. Use them before writing code.
 
 | Tool | Params | Returns | When to Use |
 |------|--------|---------|-------------|
@@ -649,72 +664,7 @@ npm run ward -- --only lint,test --changed
 | \`get-project-map\` | *(none)* | Compact codebase map — packages, folder types, file counts, domains | Quick orientation before targeted discover calls |
 | \`get-folder-detail\` | \`{ folderType }\` | Naming, imports, constraints, code examples, proxy requirements | Before creating/modifying files in a folder type |
 | \`get-syntax-rules\` | *(none)* | File naming, exports, types, destructuring conventions | Ensuring code passes ESLint |
-| \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |`;
-
-  // Combine all sections
-  const markdown = `# Architecture Overview
-
-## Critical Context: Why This Architecture
-
-${whyThisStructure}
-
-## Code Discovery
-
-${codeDiscovery}
-
-## Folder Types
-
-${folderTypesTable}
-
-## Architecture Layer Diagram
-
-${layerDiagram}
-
-## Decision Tree: Where Does Code Go?
-
-${decisionTree}
-
-## Forbidden Folders - Where Code Actually Goes
-
-${forbiddenFolders}
-
-${typesFolder}
-
-## Import Rules
-
-${importRules}
-
-## Layer Files - Decomposing Complex Components
-
-${layerFiles}
-
-## Extension Over Creation Philosophy
-
-${extensionRules}
-
-## Frontend Data Flow (React)
-
-${frontendDataFlow}
-
-## Backend Validation (Express/HTTP)
-
-${backendValidation}
-
-## Quality Commands
-
-${qualityCommands}
-
-## Critical Rules Summary
-
-${criticalRules}
-
-### Testing Architecture
-
-${testingArchitecture}
-
-## MCP Tools Reference
-
-${mcpToolsReference}
+| \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |
 
 Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
 `;
