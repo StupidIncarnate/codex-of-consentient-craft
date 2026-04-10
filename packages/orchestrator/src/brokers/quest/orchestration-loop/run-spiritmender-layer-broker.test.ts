@@ -480,4 +480,44 @@ describe('runSpiritmenderLayerBroker', () => {
       expect(status).toBe('complete');
     });
   });
+
+  describe('abort signal', () => {
+    it('VALID: {abortSignal already aborted, 1 spiritmender in_progress} => work item remains in_progress (not marked complete)', async () => {
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      const controller = new AbortController();
+      controller.abort();
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: controller.signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+      const completedAt = proxy.getLastPersistedWorkItemCompletedAt({ workItemId });
+
+      expect(status).toBe('in_progress');
+      expect(completedAt).toBe(undefined);
+    });
+  });
 });

@@ -709,4 +709,115 @@ describe('runCodeweaverLayerBroker', () => {
       expect(persistedSessionId).toBe(sessionId);
     });
   });
+
+  describe('abort signal', () => {
+    it('VALID: {abortSignal already aborted, 1 codeweaver in_progress} => work item remains in_progress (not marked complete)', async () => {
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      const controller = new AbortController();
+      controller.abort();
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: controller.signal,
+      });
+
+      const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
+      const completedAt = proxy.getLastPersistedWorkItemCompletedAt({ workItemId });
+
+      expect(status).toBe('in_progress');
+      expect(completedAt).toBe(undefined);
+    });
+
+    it('VALID: {abortSignal already aborted, 3 codeweavers in_progress} => all remain in_progress (not marked complete)', async () => {
+      const step1 = DependencyStepStub({ id: 'step-1' });
+      const step2 = DependencyStepStub({ id: 'step-2' });
+      const step3 = DependencyStepStub({ id: 'step-3' });
+
+      const workItemId1 = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItemId2 = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+      const workItemId3 = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+
+      const workItem1 = WorkItemStub({
+        id: workItemId1,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step1.id)}`],
+      });
+      const workItem2 = WorkItemStub({
+        id: workItemId2,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step2.id)}`],
+      });
+      const workItem3 = WorkItemStub({
+        id: workItemId3,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step3.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step1, step2, step3],
+        workItems: [workItem1, workItem2, workItem3],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+
+      const controller = new AbortController();
+      controller.abort();
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem1, workItem2, workItem3],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry: jest.fn(),
+        abortSignal: controller.signal,
+      });
+
+      const persistedStates = [workItemId1, workItemId2, workItemId3].map((id) => ({
+        status: proxy.getLastPersistedWorkItemStatus({ workItemId: id }),
+        completedAt: proxy.getLastPersistedWorkItemCompletedAt({ workItemId: id }),
+      }));
+
+      expect(persistedStates).toStrictEqual([
+        { status: 'in_progress', completedAt: undefined },
+        { status: 'in_progress', completedAt: undefined },
+        { status: 'in_progress', completedAt: undefined },
+      ]);
+    });
+  });
 });

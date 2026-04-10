@@ -7,6 +7,7 @@ import {
   type ExitCode,
   type QuestStub,
   type QuestWorkItemId,
+  type WorkItemStub,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -20,6 +21,7 @@ import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type WorkItemCompletedAt = ReturnType<typeof WorkItemStub>['completedAt'];
 
 export const runSpiritmenderLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest; batchContents?: readonly string[] }) => void;
@@ -34,6 +36,9 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
+  getLastPersistedWorkItemCompletedAt: (params: {
+    workItemId: QuestWorkItemId;
+  }) => WorkItemCompletedAt;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -41,6 +46,7 @@ export const runSpiritmenderLayerBrokerProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const slotProxy = slotManagerOrchestrateBrokerProxy();
   const stderrSpy: { current: SpyOnHandle | null } = { current: null };
+  const originalQuestRef: { current: Quest | null } = { current: null };
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
     '2024-01-15T10:00:00.000Z',
@@ -91,6 +97,7 @@ export const runSpiritmenderLayerBrokerProxy = (): {
       quest: Quest;
       batchContents?: readonly string[];
     }): void => {
+      originalQuestRef.current = quest;
       // Step 1: findQuestPath (direct call for batch dir)
       setupFindQuestPath({ quest });
 
@@ -176,13 +183,30 @@ export const runSpiritmenderLayerBrokerProxy = (): {
     }): WorkItemStatus | undefined => {
       const persisted = modifyProxy.getAllPersistedContents();
       if (persisted.length === 0) {
-        return undefined;
+        const origItem = originalQuestRef.current?.workItems.find((wi) => wi.id === workItemId);
+        return origItem?.status;
       }
       const raw = persisted[persisted.length - 1];
       const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
+    },
+    getLastPersistedWorkItemCompletedAt: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): WorkItemCompletedAt => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        const origItem = originalQuestRef.current?.workItems.find((wi) => wi.id === workItemId);
+        return origItem?.completedAt;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
+      return item?.completedAt;
     },
   };
 };

@@ -128,6 +128,11 @@ export const runSpiritmenderLayerBroker = async ({
     },
   });
 
+  // If aborted (paused), bail out without writing status — pause responder resets items to pending
+  if (abortSignal.aborted) {
+    return;
+  }
+
   // Map results back to quest work items
   const completedAt = new Date().toISOString();
 

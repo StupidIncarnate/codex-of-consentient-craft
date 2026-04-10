@@ -4,6 +4,7 @@ import {
   type QuestStub,
   type QuestWorkItemId,
   type SessionId,
+  type WorkItemStub,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -14,6 +15,7 @@ import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { slotManagerOrchestrateBrokerProxy } from '../../slot-manager/orchestrate/slot-manager-orchestrate-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type WorkItemCompletedAt = ReturnType<typeof WorkItemStub>['completedAt'];
 
 export const runCodeweaverLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
@@ -29,11 +31,15 @@ export const runCodeweaverLayerBrokerProxy = (): {
   getLastPersistedWorkItemSessionId: (params: {
     workItemId: QuestWorkItemId;
   }) => SessionId | undefined;
+  getLastPersistedWorkItemCompletedAt: (params: {
+    workItemId: QuestWorkItemId;
+  }) => WorkItemCompletedAt;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const slotProxy = slotManagerOrchestrateBrokerProxy();
   const stderrSpy: { current: SpyOnHandle | null } = { current: null };
+  const originalQuestRef: { current: Quest | null } = { current: null };
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
     '2024-01-15T10:00:00.000Z',
@@ -41,6 +47,7 @@ export const runCodeweaverLayerBrokerProxy = (): {
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      originalQuestRef.current = quest;
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
@@ -72,7 +79,8 @@ export const runCodeweaverLayerBrokerProxy = (): {
     }): WorkItemStatus | undefined => {
       const persisted = modifyProxy.getAllPersistedContents();
       if (persisted.length === 0) {
-        return undefined;
+        const origItem = originalQuestRef.current?.workItems.find((wi) => wi.id === workItemId);
+        return origItem?.status;
       }
       const raw = persisted[persisted.length - 1];
       const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
@@ -107,6 +115,22 @@ export const runCodeweaverLayerBrokerProxy = (): {
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.sessionId;
+    },
+    getLastPersistedWorkItemCompletedAt: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): WorkItemCompletedAt => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        const origItem = originalQuestRef.current?.workItems.find((wi) => wi.id === workItemId);
+        return origItem?.completedAt;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
+      return item?.completedAt;
     },
   };
 };
