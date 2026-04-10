@@ -14,15 +14,15 @@ jest.setTimeout(65_000);
 describe('childProcessSpawnStreamJsonAdapter integration', () => {
   const harness = sessionSpawnHarness();
 
-  it('VALID: {prompt with --settings hooks} => SessionStart hook fires and injects architecture', async () => {
+  it('VALID: {prompt with --settings hooks} => SessionStart snippet hooks fire and inject content', async () => {
     const { assistantText, exitCode } = await harness.spawnAndCollect({
       prompt: PromptTextStub({
         value:
-          'If you see a dungeonmaster-architecture tag in your system prompt, respond with exactly: ARCH_INCLUDED. If you do not see one, respond with exactly: ARCH_MISSING. Do not include any other text.',
+          'If you see a dungeonmaster-discover tag in your system prompt, respond with exactly: SNIPPET_INCLUDED. If you do not see one, respond with exactly: SNIPPET_MISSING. Do not include any other text.',
       }),
     });
 
-    expect(String(assistantText).trim()).toBe('ARCH_INCLUDED');
+    expect(String(assistantText).trim()).toBe('SNIPPET_INCLUDED');
     expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
   });
 });

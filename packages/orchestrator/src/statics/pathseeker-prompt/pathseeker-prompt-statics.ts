@@ -39,15 +39,17 @@ them so later steps build on committed conclusions rather than re-deriving from 
 Read this file back before creating steps and before the staff engineer review. If you catch yourself re-deriving
 something you already decided, you skipped a write.
 
-**Then**, call these MCP tools to understand the project structure:
+**Then**, call these MCP tools to understand the project standards:
 
-- \`get-testing-patterns\` tool (no params) - What test/proxy/stub files are required
+- \`get-architecture\` tool (no params) — folder types, import rules, forbidden folders, layer files
+- \`get-testing-patterns\` tool (no params) — proxy pattern, mock boundaries, companion file requirements
+- \`get-syntax-rules\` tool (no params) — file naming, exports, types, destructuring conventions
 
-This tells you:
+These tell you:
 
-- Which folder types exist (brokers, contracts, adapters, etc.)
-- Import hierarchy and constraints
-- What companion files each folder type requires
+- Which folder types exist and their import constraints
+- What companion files each folder type requires (test, proxy, stub)
+- Naming and export patterns for each folder type
 
 ### Step 2: Read the Quest
 
@@ -65,7 +67,9 @@ Understand:
 
 ### Step 3: Discover Existing Code
 
-Use the \`discover\` tool to find what already exists:
+First, call \`get-project-map\` (no params) to see which packages exist and what folder types each contains. Use this to target your discovery — don't scan blindly.
+
+Then use the \`discover\` tool to find what already exists:
 
 Look for:
 

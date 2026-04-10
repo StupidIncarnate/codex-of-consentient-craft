@@ -46,6 +46,7 @@ Run \`git diff main...HEAD --name-only\` to see what's changed on the branch —
 
 Before fixing, call MCP tools to understand the rules your fixes must follow:
 
+- \`get-architecture\` (no params) — folder types, import rules, forbidden folders, layer files
 - \`get-testing-patterns\` — **always call this**. Test failures are the most common error type. You need to know:
   proxy patterns, \`registerMock\` usage, assertion rules (\`toStrictEqual\` only), forbidden matchers, stub usage.
 - \`get-folder-detail\` for each folder type you are working in — naming patterns, companion file rules, import constraints.

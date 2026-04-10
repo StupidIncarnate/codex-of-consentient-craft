@@ -13,15 +13,15 @@ import type {
   PreToolUseHook,
   // PostToolUseHook,
   SessionStartHook,
-  SubagentStartHook,
   WorktreeCreateHook,
 } from '../../contracts/claude-settings/claude-settings-contract';
+import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
 export const dungeonmasterHooksCreatorTransformer = (): {
   PreToolUse: PreToolUseHook[];
   // PostToolUse: PostToolUseHook[];
   SessionStart: SessionStartHook[];
-  SubagentStart: SubagentStartHook[];
+  SubagentStart: SessionStartHook[];
   WorktreeCreate: WorktreeCreateHook[];
 } => {
   // Parse through contract to get branded types
@@ -48,14 +48,14 @@ export const dungeonmasterHooksCreatorTransformer = (): {
       //   },
       // ],
       SessionStart: [
-        {
-          hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
-        },
+        ...Object.keys(sessionSnippetStatics).map((key) => ({
+          hooks: [{ type: 'command', command: `dungeonmaster-session-snippet ${key}` }],
+        })),
       ],
       SubagentStart: [
-        {
-          hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
-        },
+        ...Object.keys(sessionSnippetStatics).map((key) => ({
+          hooks: [{ type: 'command', command: `dungeonmaster-session-snippet ${key}` }],
+        })),
       ],
       WorktreeCreate: [
         {

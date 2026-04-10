@@ -44,7 +44,10 @@ in a real browser, then harden tests to catch anything manual walkthrough reveal
 Read key implementation files for entry points, routes, component structure.
 
 **Load standards:**
-- \`get-testing-patterns\` (no params) — **always call**. Test structure, assertion rules, proxy patterns.
+- \`get-architecture\` (no params) — folder types, import rules, forbidden folders
+- \`get-testing-patterns\` (no params) — **always call**. Test structure, assertion rules, e2e patterns.
+- \`get-syntax-rules\` (no params) — file naming, exports, conventions
+- \`get-project-map\` (no params) — see which packages exist before searching
 - \`discover\` to find existing e2e test files and patterns
 
 ### Phase 2: Write E2E Tests

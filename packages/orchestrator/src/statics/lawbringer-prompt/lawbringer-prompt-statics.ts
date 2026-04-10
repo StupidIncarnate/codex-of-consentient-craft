@@ -35,6 +35,7 @@ You are read-only — signal pass or fail, do NOT modify any files. On failure, 
 
 Call these MCP tools first — they are the source of truth for what you review against:
 
+- \`get-architecture\` (no params) — folder types, import rules, forbidden folders, layer files
 - \`get-folder-detail\` (params: \`{ folderType: "..." }\`) — call for the folder type of your implementation file (e.g., brokers, guards, contracts). Returns naming rules, companion file requirements, import constraints.
 - \`get-testing-patterns\` (no params) — returns proxy patterns, assertion rules, forbidden matchers, registerMock usage, stub conventions.
 - \`get-syntax-rules\` (no params) — returns export conventions, file naming, destructuring rules, anti-patterns.

@@ -49,12 +49,52 @@ describe('InstallFlow', () => {
           ],
           SessionStart: [
             {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
           ],
           SubagentStart: [
             {
-              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
           ],
           WorktreeCreate: [

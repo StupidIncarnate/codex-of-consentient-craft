@@ -17,7 +17,7 @@ describe('HookPreSearchFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
+        stderr: expect.stringMatching(/^BLOCKED: Native search tools are disabled\..*\n$/su),
       });
     });
 
@@ -36,7 +36,7 @@ describe('HookPreSearchFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
+        stderr: expect.stringMatching(/^BLOCKED: Native search tools are disabled\..*\n$/su),
       });
     });
   });
@@ -57,7 +57,7 @@ describe('HookPreSearchFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
+        stderr: expect.stringMatching(/^BLOCKED: Native search tools are disabled\..*\n$/su),
       });
     });
 
@@ -76,7 +76,7 @@ describe('HookPreSearchFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
+        stderr: expect.stringMatching(/^BLOCKED: Native search tools are disabled\..*\n$/su),
       });
     });
 
@@ -95,7 +95,7 @@ describe('HookPreSearchFlow', () => {
       expect(result).toStrictEqual({
         exitCode: 2,
         stdout: '',
-        stderr: expect.stringMatching(/^BLOCKED: Use the `discover` MCP tool.*\n$/su),
+        stderr: expect.stringMatching(/^BLOCKED: Native search tools are disabled\..*\n$/su),
       });
     });
   });

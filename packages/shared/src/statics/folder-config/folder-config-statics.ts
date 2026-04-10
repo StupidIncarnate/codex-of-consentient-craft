@@ -15,7 +15,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'statics/[domain]/[domain]-statics.ts',
-    allowedImports: [],
+    allowedImports: ['statics/'],
     disallowAdhocTypes: true,
     requireProxy: false,
     allowsLayerFiles: false,

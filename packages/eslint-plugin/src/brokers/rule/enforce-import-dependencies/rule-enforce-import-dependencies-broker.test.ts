@@ -644,7 +644,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
 
-    // Statics cannot import anything
+    // Statics cannot import from contracts
     {
       code: 'import { userContract } from "../../contracts/user/user-contract";',
       filename: '/project/src/statics/user/user-statics.ts',
@@ -654,7 +654,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'statics',
             importedFolder: 'contracts',
-            allowed: '',
+            allowed: 'statics/',
           },
         },
       ],
@@ -1104,7 +1104,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'statics',
             importedFolder: 'contracts',
-            allowed: '',
+            allowed: 'statics/',
           },
         },
       ],

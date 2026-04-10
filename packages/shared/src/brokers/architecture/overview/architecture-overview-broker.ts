@@ -43,21 +43,6 @@ export const architectureOverviewBroker = (): ContentText => {
     return a.key.localeCompare(b.key);
   });
 
-  const tableHeader = contentTextContract.parse(
-    '| Folder | Purpose | Depth | When to Use |\n|--------|---------|-------|-------------|',
-  );
-  const tableRows: ContentText[] = [tableHeader];
-
-  for (const { key: folderName, config } of folderEntries) {
-    tableRows.push(
-      contentTextContract.parse(
-        `| ${folderName}/ | ${config.meta.purpose} | ${config.folderDepth} | ${config.meta.whenToUse} |`,
-      ),
-    );
-  }
-
-  const folderTypesTable = tableRows.join('\n');
-
   // Build architecture layer diagram (using hierarchy from transformer)
   const layerDiagram = `\`\`\`
 ${hierarchy}
@@ -88,7 +73,8 @@ ${hierarchy}
     .join(', ');
 
   // Combine all sections
-  const markdown = `# Architecture Overview
+  const markdown =
+    `# Architecture Overview
 
 ## Critical Context: Why This Architecture
 
@@ -100,182 +86,6 @@ This structure forces deterministic organization by:
 3. **Explicit import rules** mechanically enforced by ESLint
 
 **If you think "this should go in utils/" → refer to Forbidden Folders table below.**
-
-## Code Discovery
-
-**\`discover\` is the ONLY way to search this codebase.** System-level Glob, Grep, Search, and Find are ALL locked by hooks and will be blocked. The \`discover\` MCP tool replaces all of them — it wraps glob and grep with structured output (purposes, signatures, related files).
-
-**discover params:**
-
-| Param | Type | Description |
-|-------|------|-------------|
-| \`glob\` | string? | File path pattern (glob syntax). Example: \`"packages/hooks/src/guards/**"\`, \`"**/*.sql"\` |
-| \`grep\` | string? | Content regex pattern. Example: \`"ENOENT"\`, \`"(?i)error"\` |
-| \`verbose\` | boolean? | Show full details (signature, usage). Default: false |
-| \`context\` | number? | Lines around grep hits. Default: 0 |
-
-**discover finds ANY file type** (TS, JSON, SQL, YAML, MD, etc.) — not just source files.
-
-### When to Use discover vs Read
-
-Pick the right tool for the granularity you need. Here is exactly what each returns:
-
-**1. \`discover({ glob })\` or \`discover({ grep })\` — Orientation / lay of the land**
-
-Use when: finding files, browsing a directory, checking what exists before creating.
-
-Output is a folder tree. Each line is: \`file-name (folder-type) - purpose\`. Reading the output:
-- \`(broker)\`, \`(guard)\`, \`(transformer)\` etc. = the folder type the file lives in (see Folder Types table)
-- \`.proxy\` = test mock file, \`.test\` = test file
-- \`- purpose text\` = extracted from the \`PURPOSE:\` metadata comment at the top of the file
-
-\`\`\`
-// discover({ glob: "packages/orchestrator/src/brokers/quest/orchestration-loop/**" })
-
-brokers/
-  quest/
-    orchestration-loop/
-      quest-orchestration-loop-broker (broker) - Drives quest execution by processing work item queue — find ready items, dispatch to role-specific layer brokers
-      quest-orchestration-loop-broker.proxy (broker)
-      quest-orchestration-loop-broker.test (broker)
-      run-chat-layer-broker (broker) - Spawns chaos/glyph agents with streaming, writes sessionId to work item
-      run-chat-layer-broker.proxy (broker)
-      run-chat-layer-broker.test (broker)
-      run-codeweaver-layer-broker (broker) - Executes codeweaver work items via slot manager, maps QuestWorkItemId to SlotManager WorkItemId
-      run-codeweaver-layer-broker.proxy (broker)
-      run-codeweaver-layer-broker.test (broker)
-\`\`\`
-
-With grep, matching lines appear inline under each file:
-
-\`\`\`
-// discover({ grep: "questModifyBroker" })
-
-quest/
-  modify/
-    quest-modify-broker (broker) - Modifies an existing quest by sending a PATCH request
-      :14  export const questModifyBroker = async ({
-    quest-modify-broker.proxy (broker)
-      :9  export const questModifyBrokerProxy = (): {
-      :26  import { questModifyBroker } from './quest-modify-broker';
-\`\`\`
-
-**2. \`discover({ ..., verbose: true })\` — Signatures, companions, structure**
-
-Use when: you need to see a function signature, check parameter types, verify naming, or see what test/proxy files exist — without reading the full file.
-
-\`\`\`json
-// discover({ glob: "packages/orchestrator/src/brokers/quest/orchestration-loop/**", verbose: true })
-// Returns structured JSON per file:
-
-[
-  {
-    "name": "quest-orchestration-loop-broker",
-    "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts",
-    "type": "broker",
-    "purpose": "Drives quest execution by processing work item queue — find ready items, dispatch to role-specific layer brokers",
-    "signature": "export const questOrchestrationLoopBroker = async ({\\n  processId,\\n  questId,\\n  startPath,\\n  onAgentEntry,\\n  abortSignal,\\n  userMessage,\\n}: {\\n  processId: ProcessId;\\n  questId: QuestId;\\n  startPath: FilePath;\\n  onAgentEntry: OnAgentEntryCallback;\\n  abortSignal: AbortSignal;\\n  userMessage?: UserInput;\\n}): Promise<void> =>",
-    "relatedFiles": [
-      "quest-orchestration-loop-broker.proxy.ts",
-      "quest-orchestration-loop-broker.test.ts"
-    ]
-  },
-  {
-    "name": "run-ward-layer-broker",
-    "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/run-ward-layer-broker.ts",
-    "type": "broker",
-    "purpose": "Executes ward phase — streams output to web, persists trimmed detail, creates batched spiritmenders on failure",
-    "signature": "export const runWardLayerBroker = async ({\\n  questId,\\n  workItem,\\n  startPath,\\n  onAgentEntry,\\n  abortSignal,\\n}: {\\n  questId: QuestId;\\n  workItem: WorkItem;\\n  startPath: FilePath;\\n  onAgentEntry: OnAgentEntryCallback;\\n  abortSignal: AbortSignal;\\n}): Promise<void> =>",
-    "relatedFiles": [
-      "run-ward-layer-broker.proxy.ts",
-      "run-ward-layer-broker.test.ts"
-    ]
-  }
-]
-\`\`\`
-
-With grep, adds a \`hits\` array showing matching lines:
-
-\`\`\`json
-// discover({ grep: "questModifyBroker", verbose: true })
-
-{
-  "name": "run-chat-layer-broker",
-  "path": "packages/orchestrator/src/brokers/quest/orchestration-loop/run-chat-layer-broker.ts",
-  "type": "broker",
-  "purpose": "Spawns chaos/glyph agents with streaming, writes sessionId to work item",
-  "hits": [
-    { "line": 28, "text": "import { questModifyBroker } from '../modify/quest-modify-broker';" },
-    { "line": 94, "text": "await questModifyBroker({" }
-  ]
-}
-\`\`\`
-
-**3. \`Read\` tool — Full file contents**
-
-Use when: you are about to edit a file, need to understand implementation logic, or need the actual code line-by-line. Do NOT use Read to search — use discover first, then Read the specific file you need.
-
-**Parallel tool calls:** When multiple tool calls are independent (no call depends on another's result), batch them
-into a single message. This applies to discover, Read, get-folder-detail, and any other tool — not just discover.
-
-\`\`\`
-// ✅ CORRECT — 3 independent calls in ONE message (parallel execution)
-discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
-discover({ glob: "packages/shared/src/contracts/**" })
-Read("packages/web/src/widgets/home-content/home-content-widget.tsx")
-
-// ❌ WRONG — 3 sequential messages (3x slower, wastes time)
-// Message 1: discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
-// Message 2: discover({ glob: "packages/shared/src/contracts/**" })
-// Message 3: Read("packages/web/src/widgets/home-content/home-content-widget.tsx")
-\`\`\`
-
-**Rule of thumb:** If you're about to make a tool call and the result won't change what other calls you need to make,
-batch them together. Only go sequential when call B depends on the result of call A.
-
-**How to search — glob the architecture, don't guess with grep:**
-
-This codebase has known folder types: brokers, guards, transformers, contracts, adapters, widgets, responders, statics. The tree output shows every file with its purpose — that IS your search index. Glob into folder types to see what exists.
-
-\`\`\`
-// ✅ Glob a folder type — one call, see the full tree with purposes
-discover({ glob: "packages/shared/src/brokers/architecture/**" })
-// → tree shows every file + purpose. Pick the one you need, then Read it.
-
-// ✅ Glob to explore a package area you're working in
-discover({ glob: "packages/orchestrator/src/brokers/quest/**" })
-
-// ✅ Grep for a specific identifier you already know the name of
-discover({ grep: "questModifyBroker" })
-
-// ✅ Narrow a large tree — glob first, grep refines
-discover({ glob: "packages/hooks/src/guards/**", grep: "permission" })
-\`\`\`
-
-\`\`\`
-// ❌ WRONG — grep with long phrases hoping to match file content
-discover({ grep: "Code Discovery", glob: "packages/mcp/src/**/*" })
-discover({ grep: "discover is the ONLY way", glob: "**/*statics*" })
-discover({ grep: "discover is the ONLY way", glob: "**/*.ts" })
-// 3 failed calls. The fix: discover({ glob: "packages/shared/src/brokers/architecture/**" })
-// One glob → see the tree → find the file → done.
-
-// ❌ WRONG — grep with OR patterns or regex guesses
-discover({ glob: "packages/config", grep: "monorepo|root|setup" })
-// You don't know what terms exist. Just glob the folder and read the tree.
-
-// ❌ WRONG — combining glob + grep on first search
-discover({ glob: "packages/*/src/**", grep: "someFeature" })
-// The glob is too wide and the grep is a guess. Glob a specific folder type first.
-\`\`\`
-
-**The rule:** If you don't already know the exact function/variable name, use glob alone. The tree output has file purposes — that IS your search. Only add grep when you have a specific identifier to locate across the codebase.
-
-**Always discover before creating.** Check if similar code exists. If it does, extend it — don't duplicate.
-
-## Folder Types
-
-${folderTypesTable}
 
 ## Architecture Layer Diagram
 
@@ -344,13 +154,23 @@ Only **entry files** can be imported across domain folders.
 
 \`\`\`typescript
 // ✅ CORRECT - Importing entry file (name matches folders)
-import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
-import {axiosGetAdapter} from '../../../adapters/axios/get/axios-get-adapter';
+` +
+    `import {userFetchBroker} ` +
+    `from '../../brokers/user/fetch/user-fetch-broker';
+` +
+    `import {axiosGetAdapter} ` +
+    `from '../../../adapters/axios/get/axios-get-adapter';
 
 // ❌ WRONG - Importing non-entry files (names have extra parts)
-import {validateHelper} from '../../brokers/user/fetch/validate-helper';
-import {validateLayerBroker} from '../../brokers/user/fetch/validate-layer-broker';
-import {avatarLayerWidget} from '../user-card/avatar-layer-widget';
+` +
+    `import {validateHelper} ` +
+    `from '../../brokers/user/fetch/validate-helper';
+` +
+    `import {validateLayerBroker} ` +
+    `from '../../brokers/user/fetch/validate-layer-broker';
+` +
+    `import {avatarLayerWidget} ` +
+    `from '../user-card/avatar-layer-widget';
 \`\`\`
 
 **Same-folder imports:** Files within same domain folder can import each other freely (including helpers and layers).
@@ -404,20 +224,30 @@ brokers/user/fetch/
 \`\`\`typescript
 // ✅ CORRECT - Same folder imports
 // In: brokers/user/fetch/user-fetch-broker.ts
-import {validateInputLayerBroker} from './validate-input-layer-broker';
-import {formatResponseLayerBroker} from './format-response-layer-broker';
+` +
+    `import {validateInputLayerBroker} ` +
+    `from './validate-input-layer-broker';
+` +
+    `import {formatResponseLayerBroker} ` +
+    `from './format-response-layer-broker';
 
 // ✅ CORRECT - Layer importing layer (same folder)
 // In: brokers/user/fetch/validate-input-layer-broker.ts
-import {formatResponseLayerBroker} from './format-response-layer-broker';
+` +
+    `import {formatResponseLayerBroker} ` +
+    `from './format-response-layer-broker';
 
 // ❌ WRONG - Cross-domain layer import
 // In: brokers/auth/login/auth-login-broker.ts
-import {validateInputLayerBroker} from '../../user/fetch/validate-input-layer-broker';
+` +
+    `import {validateInputLayerBroker} ` +
+    `from '../../user/fetch/validate-input-layer-broker';
 
 // ❌ WRONG - Different action layer import (same domain)
 // In: brokers/user/update/user-update-broker.ts
-import {validateInputLayerBroker} from '../fetch/validate-input-layer-broker';
+` +
+    `import {validateInputLayerBroker} ` +
+    `from '../fetch/validate-input-layer-broker';
 \`\`\`
 
 **When to create layer:**
@@ -545,80 +375,6 @@ export const UserCreateResponder = async ({req, res}: {
 
 **NO business logic in responders!**
 
-## Quality Commands
-
-**ALWAYS use \`npm run ward\` instead of raw tool invocations:**
-
-| ❌ Don't Use | ✅ Use Instead |
-|-------------|---------------|
-| \`npx jest ...\` | \`npm run ward -- --only test -- <path>\` |
-| \`npx jest -t "name"\` | \`npm run ward -- --only unit --onlyTests "name"\` |
-| \`npx eslint ...\` | \`npm run ward -- --only lint\` |
-| \`npx tsc --noEmit\` | \`npm run ward -- --only typecheck\` |
-| \`npm test\` | \`npm run ward -- --only test\` |
-| Running all checks | \`npm run ward\` |
-
-### Check Types
-
-| Check Type | Tool | Description |
-|------------|------|-------------|
-| \`lint\` | ESLint | Linting with \`--fix\` |
-| \`typecheck\` | tsc | TypeScript type checking |
-| \`unit\` | Jest | Unit tests (\`*.test.ts\`, excludes \`*.integration.test.ts\`) |
-| \`integration\` | Jest | Integration tests (\`*.integration.test.ts\` only) |
-| \`e2e\` | Playwright | End-to-end browser tests |
-| \`test\` | *(alias)* | Expands to \`unit,integration,e2e\` (runs all three) |
-
-**\`test\` is a virtual alias**, not a real check type. \`--only test\` expands to \`--only unit,integration,e2e\` during CLI parsing. Deduplication is automatic: \`--only test,e2e\` becomes \`--only unit,integration,e2e\`.
-
-### Flags
-
-| Flag | Description |
-|------|-------------|
-| \`--only lint,typecheck,unit,integration,e2e\` | Comma-separated list of check types to run. Omit to run all five. |
-| \`--onlyTests <regex>\` | Filter tests by name pattern. Maps to Jest \`--testNamePattern\` and Playwright \`--grep\`. |
-| \`--changed\` | Scope checks to files changed in git (uses \`git diff\`). |
-| \`-- file1 file2\` | Passthrough file list. Everything after \`--\` is treated as file paths. |
-| \`--verbose\` | Enable verbose output. |
-
-**\`--onlyTests\` accepts a regex pattern.** Use \`|\` for alternation: \`--onlyTests "foo|bar"\` runs tests matching either name. Ignored by lint and typecheck check types.
-
-### Common Invocations
-
-\`\`\`bash
-npm run ward                                          # All checks, all packages
-npm run ward -- --only lint                           # Lint only
-npm run ward -- --only test                           # All tests (unit + integration + e2e)
-npm run ward -- --only unit                           # Unit tests only
-npm run ward -- --only unit -- path/to/file.test.ts   # Single test file
-npm run ward -- --only unit --onlyTests "my test"     # Tests by name pattern
-npm run ward -- --only unit --onlyTests "foo|bar"     # Tests matching multiple patterns
-npm run ward -- -- packages/hooks                     # Scope to single package
-npm run ward -- --only lint --changed                 # Lint only changed files
-\`\`\`
-
-### Inspecting Failures
-
-When ward finds failures, the run output shows a summary with truncated errors. Use the ward detail subcommand for full details:
-
-1. Run checks: \`npm run ward -- --only lint,test\`
-2. Run \`npm run ward -- detail <runId> <filePath>\` to see full error messages and jest diffs
-
-**Zero tolerance for ward failures:** NEVER assume a failure is "pre-existing" or "unrelated" to your changes. Every ward failure must be investigated and fixed before a task is complete. Ward must be fully green. Failures that look unrelated are often caused by transitive effects (stale dist builds, proxy chain breakage, cache invalidation, or side-effect imports exposed by type changes). Always trace the full dependency chain.
-
-### Examples
-
-\`\`\`bash
-# File + test name pattern together
-npm run ward -- --only unit --onlyTests "validates input" -- packages/hooks/src/brokers/quest/quest-broker.test.ts
-
-# Combo: lint + typecheck + unit on one package
-npm run ward -- --only lint,typecheck,unit -- packages/hooks
-
-# Combo: lint + test (all test types) on changed files only
-npm run ward -- --only lint,test --changed
-\`\`\`
-
 ## Critical Rules Summary
 
 **Never do these things (❌):**
@@ -651,22 +407,6 @@ npm run ward -- --only lint,test --changed
 
 **Get full testing guidance:** Use \`get-testing-patterns\` tool for complete philosophy, proxy patterns, and assertion rules.
 
-## MCP Tools Reference
-
-These MCP tools provide detailed guidance beyond this overview. Use them before writing code.
-
-| Tool | Params | Returns | When to Use |
-|------|--------|---------|-------------|
-| \`discover\` | \`{ glob?, grep? }\` | File list with metadata/purposes | Orientation — find files, get a lay of the land |
-| \`discover\` | \`{ ..., verbose: true }\` | Signatures, companions, usage sites | Need detail (signature, typo check) without reading the full file |
-| \`Read\` | file path | Full file contents | Need actual code — implementing, editing, understanding logic |
-| \`get-architecture\` | *(none)* | This document — folder types, import rules, decision tree | First thing on any task |
-| \`get-project-map\` | *(none)* | Compact codebase map — packages, folder types, file counts, domains | Quick orientation before targeted discover calls |
-| \`get-folder-detail\` | \`{ folderType }\` | Naming, imports, constraints, code examples, proxy requirements | Before creating/modifying files in a folder type |
-| \`get-syntax-rules\` | *(none)* | File naming, exports, types, destructuring conventions | Ensuring code passes ESLint |
-| \`get-testing-patterns\` | *(none)* | Testing philosophy, proxy patterns, assertion rules, test structure | Before writing tests or proxy files |
-
-Use MCP tools (get-folder-detail, get-syntax-rules, get-testing-patterns) for detailed patterns.
 `;
 
   return contentTextContract.parse(markdown);

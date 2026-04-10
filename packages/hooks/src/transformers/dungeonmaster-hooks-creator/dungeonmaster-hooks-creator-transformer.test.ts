@@ -22,12 +22,52 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
         ],
         SessionStart: [
           {
-            hooks: [{ type: 'command', command: 'dungeonmaster-session-start-hook' }],
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+              },
+            ],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
           },
         ],
         SubagentStart: [
           {
-            hooks: [{ type: 'command', command: 'dungeonmaster-subagent-start-hook' }],
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+              },
+            ],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+          },
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
           },
         ],
         WorktreeCreate: [
@@ -74,16 +114,22 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       expect(result.PreToolUse[2]?.hooks[0]?.command).toBe('dungeonmaster-pre-search');
     });
 
-    it('VALID: includes dungeonmaster-session-start-hook command => returns correct command', () => {
+    it('VALID: includes dungeonmaster-session-snippet commands => returns correct commands', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
-      expect(result.SessionStart[0]?.hooks[0]?.command).toBe('dungeonmaster-session-start-hook');
+      expect(result.SessionStart[0]?.hooks[0]?.command).toBe(
+        'dungeonmaster-session-snippet discover',
+      );
+      expect(result.SessionStart[4]?.hooks[0]?.command).toBe('dungeonmaster-session-snippet ward');
+      expect(result.SessionStart[5]?.hooks[0]?.command).toBe(
+        'dungeonmaster-session-snippet packages',
+      );
     });
 
-    it('VALID: includes dungeonmaster-subagent-start-hook command => returns correct command', () => {
+    it('VALID: SubagentStart matches SessionStart snippet entries => same snippet hooks', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
-      expect(result.SubagentStart[0]?.hooks[0]?.command).toBe('dungeonmaster-subagent-start-hook');
+      expect(result.SubagentStart).toStrictEqual(result.SessionStart);
     });
 
     it('VALID: includes dungeonmaster-worktree-create command => returns correct command', () => {

@@ -36,6 +36,16 @@ Do NOT assume a fixed list of check names — the checks are dynamic and may cha
 If any checks have \`passed: false\`, report them immediately in the Critical Issues section with
 the check name and details. These are structural problems that MUST be fixed before implementation.
 
+### Step 1.5: Load Project Standards
+
+Call these MCP tools to understand conventions before reviewing:
+
+- \`get-architecture\` (no params) — folder types, import rules, forbidden folders, layer files
+- \`get-testing-patterns\` (no params) — proxy pattern, mock boundaries, companion file requirements
+- \`get-syntax-rules\` (no params) — file naming, exports, types, destructuring conventions
+
+You need these to validate that steps follow folder structure, naming, companion file, and import conventions.
+
 ### Step 2: Fetch Quest Sections Incrementally
 
 Fetch the quest in stages via MCP tools to manage context size:
@@ -91,7 +101,7 @@ For each step, evaluate its structured assertions:
 
 ### Step 5: Search Codebase for Assumption Verification
 
-Use the \`discover\` MCP tool to verify assumptions in the quest:
+First, call \`get-project-map\` (no params) to see which packages exist and their folder types. Then use the \`discover\` MCP tool to verify assumptions in the quest:
 
 - **File existence**: Do files listed in \`accompanyingFiles\` that already exist on disk match expected paths?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?

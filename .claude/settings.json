@@ -9,7 +9,47 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-start-hook.ts"
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts discover"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts searchStrategy"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts folderTypes"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts modifyingCodeGuidance"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts ward"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts packages"
           }
         ]
       }
@@ -48,7 +88,47 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-subagent-start-hook.ts"
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts discover"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts searchStrategy"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts folderTypes"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts modifyingCodeGuidance"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts ward"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts packages"
           }
         ]
       }

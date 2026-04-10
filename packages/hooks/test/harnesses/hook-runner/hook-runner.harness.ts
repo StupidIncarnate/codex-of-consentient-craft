@@ -19,15 +19,19 @@ type HookName =
   | 'start-post-edit-hook'
   | 'start-pre-edit-hook'
   | 'start-pre-search-hook'
-  | 'start-session-start-hook'
-  | 'start-subagent-start-hook'
+  | 'start-session-snippet-hook'
   | 'start-worktree-create-hook';
 
 export const hookRunnerHarness = (): {
-  runHook: (params: { hookName: HookName; hookData: unknown }) => ReturnType<typeof ExecResultStub>;
+  runHook: (params: {
+    hookName: HookName;
+    hookData: unknown;
+    args?: readonly string[];
+  }) => ReturnType<typeof ExecResultStub>;
   runHookRaw: (params: {
     hookName: HookName;
     input: ReturnType<typeof ExecResultStub>['stdout'];
+    args?: readonly string[];
   }) => ReturnType<typeof spawnSync>;
   resolveHookPath: (params: { hookName: HookName }) => FilePath;
 } => {
@@ -37,14 +41,16 @@ export const hookRunnerHarness = (): {
   const runHook = ({
     hookName,
     hookData,
+    args,
   }: {
     hookName: HookName;
     hookData: unknown;
+    args?: readonly string[];
   }): ReturnType<typeof ExecResultStub> => {
     const hookPath = resolveHookPath({ hookName });
     const input = JSON.stringify(hookData);
 
-    const result = spawnSync('npx', ['tsx', String(hookPath)], {
+    const result = spawnSync('npx', ['tsx', String(hookPath), ...(args ?? [])], {
       input,
       encoding: 'utf8',
       cwd: process.cwd(),
@@ -60,13 +66,15 @@ export const hookRunnerHarness = (): {
   const runHookRaw = ({
     hookName,
     input,
+    args,
   }: {
     hookName: HookName;
     input: ReturnType<typeof ExecResultStub>['stdout'];
+    args?: readonly string[];
   }): ReturnType<typeof spawnSync> => {
     const hookPath = resolveHookPath({ hookName });
 
-    return spawnSync('npx', ['tsx', String(hookPath)], {
+    return spawnSync('npx', ['tsx', String(hookPath), ...(args ?? [])], {
       input: String(input),
       encoding: 'utf8',
       cwd: process.cwd(),

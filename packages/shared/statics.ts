@@ -16,3 +16,5 @@ export * from './src/statics/environment/environment-statics';
 export * from './src/statics/quest-gate-content-requirements/quest-gate-content-requirements-statics';
 export * from './src/statics/text-display-symbols/text-display-symbols-statics';
 export * from './src/statics/outcome-type-descriptions/outcome-type-descriptions-statics';
+export * from './src/statics/project-map/project-map-statics';
+export * from './src/statics/session-snippet/session-snippet-statics';

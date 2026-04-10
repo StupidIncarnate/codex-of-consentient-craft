@@ -27,7 +27,7 @@ Complete your step fully, pass verification, then signal completion.
 
 Gates are sequential. Each has exit criteria. Do not skip.
 
-### Gate 0: Read Step Context & Branch
+### Gate 1: Read Step Context & Branch
 
 **Step context first.** Read your Step Context below to understand:
 - **focusFile** — the one file you are responsible for
@@ -48,17 +48,19 @@ Gates are sequential. Each has exit criteria. Do not skip.
 
 **Exit Criteria:** You know your step's full spec, what exists on the branch, what patterns to follow, and what design decisions constrain you.
 
-### Gate 1: Discovery & Planning
+### Gate 2: Discovery & Planning (MCP Required)
 
 Research project conventions via MCP tools:
+- \`get-architecture\` — folder types, import rules, forbidden folders, layer files
 - \`get-folder-detail\` for the folder type of your focusFile
 - \`get-syntax-rules\` for naming and export conventions
 - \`get-testing-patterns\` for test structure and proxy patterns
+- \`get-project-map\` — see which packages exist and their folder types before searching
 - \`discover\` (with \`glob\` or \`grep\`) to find code referenced in \`uses[]\` — read discovered files for signatures
 
-**Exit Criteria:** Clear understanding of folder patterns, syntax rules, and all \`uses[]\` dependencies.
+**Exit Criteria:** Clear understanding of architecture, folder patterns, syntax rules, and all \`uses[]\` dependencies.
 
-### Gate 2: Write Tests & Companions
+### Gate 3: Write Tests & Companions
 
 Create ALL accompanying files before writing implementation:
 
@@ -90,7 +92,7 @@ Write complete test implementations with real assertions, not stubs. Use \`relat
 
 **Exit Criteria:** All accompanying files written with real test logic.
 
-### Gate 3: Verify Expected Failures
+### Gate 4: Verify Expected Failures
 
 Check if your focusFile already exists on disk:
 
@@ -106,16 +108,16 @@ Check if your focusFile already exists on disk:
 
 **Exit Criteria:** All tests fail with behavioral errors, not structural ones.
 
-### Gate 4: Write Implementation
+### Gate 5: Write Implementation
 
 Make tests pass:
-- Implement the focusFile following patterns from Gate 0 and Gate 1
+- Implement the focusFile following patterns from Gate 1 and Gate 2
 - Run tests incrementally — work assertion by assertion
 - Import and call \`uses[]\` references as integration points
 
 **Exit Criteria:** All assertion-derived tests pass.
 
-### Gate 5: Verify & Gap Discovery
+### Gate 6: Verify & Gap Discovery
 
 Run ward on your focusFile, test file, proxy file, and any other files you touched (including upstream fixes).
 Ward runs lint, typecheck, and tests against those files:
