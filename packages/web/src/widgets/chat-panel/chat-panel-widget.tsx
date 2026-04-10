@@ -9,12 +9,12 @@
 import { Box } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 
-import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
@@ -22,6 +22,7 @@ import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
+import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ContextDividerWidget } from '../context-divider/context-divider-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
@@ -46,6 +47,8 @@ const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
   pixelCoordinateContract.parse(p),
 );
 
+const CHAT_MESSAGES_AREA_TEST_ID = testIdContract.parse('CHAT_MESSAGES_AREA');
+
 export const ChatPanelWidget = ({
   entries,
   isStreaming,
@@ -56,7 +59,6 @@ export const ChatPanelWidget = ({
   const [raccoonFlip, setRaccoonFlip] = useState(false);
   const bounceOffsetRef = useRef<BounceOffsetPx>(BOUNCE_REST);
   const [bounceOffset, setBounceOffset] = useState<BounceOffsetPx>(BOUNCE_REST);
-  const { scrollContainerProps, scrollEndRef } = useAutoScrollBinding({ trigger: entries });
 
   const interval = raccoonAnimationIntervalTransformer({ isStreaming, entries });
   const shouldBounce = isStreaming && entries.length > 0 && entries.at(-1)?.role === 'user';
@@ -109,18 +111,10 @@ export const ChatPanelWidget = ({
         />
       </Box>
 
-      <Box
-        ref={scrollContainerProps.ref}
-        data-testid="CHAT_MESSAGES_AREA"
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-        onScroll={scrollContainerProps.onScroll}
+      <AutoScrollContainerWidget
+        testId={CHAT_MESSAGES_AREA_TEST_ID}
+        style={{ flex: 1, padding: 16 }}
+        contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
       >
         {(() => {
           const groupedEntries = collectSubagentChainsTransformer({ entries });
@@ -183,9 +177,7 @@ export const ChatPanelWidget = ({
 
           return elements;
         })()}
-
-        <div ref={scrollEndRef} />
-      </Box>
+      </AutoScrollContainerWidget>
 
       <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />
 

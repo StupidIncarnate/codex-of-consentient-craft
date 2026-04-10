@@ -71,6 +71,12 @@ export const questOrchestrationLoopBroker = async ({
 
   const { quest } = result;
 
+  // Paused quests must not spawn agents. User explicitly stopped execution;
+  // resume happens via a status flip to 'in_progress' (auto-resume in quest-modify-responder).
+  if (quest.status === 'paused') {
+    return;
+  }
+
   // 2. Find ready work items
   const { ready, questTerminal, questBlocked } = nextReadyWorkItemsTransformer({
     workItems: quest.workItems,

@@ -378,6 +378,41 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
+  describe('paused quest', () => {
+    // READS: quest with status=paused and a ready pending work item
+    // WRITES: nothing — loop exits immediately on paused status before finding ready items
+    it('VALID: {quest status paused with ready pending items} => returns without dispatching any layer', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'pathseeker',
+            status: 'pending',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNoReadyItems({ quest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-paused-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toBe(undefined);
+
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'pathseeker' })).toBe(false);
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+  });
+
   describe('failure handling', () => {
     // These tests verify the catch path: layer broker throws, loop marks items failed.
     // No terminalQuest needed — the layer throws before recursion.

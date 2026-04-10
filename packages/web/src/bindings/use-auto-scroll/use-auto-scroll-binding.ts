@@ -1,9 +1,9 @@
 /**
- * PURPOSE: React hook that manages auto-scroll-to-bottom behavior with user scroll capture detection
+ * PURPOSE: React hook that auto-scrolls a container to the bottom when its content grows, while letting the user pause it by scrolling up
  *
  * USAGE:
- * const { scrollContainerProps, scrollEndRef } = useAutoScrollBinding({ trigger: entries.length });
- * // Spread scrollContainerProps onto the scroll container, attach scrollEndRef to a sentinel div at the end
+ * const { scrollContainerProps, contentRef } = useAutoScrollBinding();
+ * // Spread scrollContainerProps onto the scrollable element, attach contentRef to the inner content wrapper that grows
  */
 
 import { useCallback, useEffect, useRef } from 'react';
@@ -15,30 +15,37 @@ import { computeScrollCaptureTransformer } from '../../transformers/compute-scro
 
 const threshold = scrollThresholdPxContract.parse(raccoonAnimationConfigStatics.scrollThresholdPx);
 
-export const useAutoScrollBinding = ({
-  trigger,
-}: {
-  trigger: unknown;
-}): {
+export const useAutoScrollBinding = (): {
   scrollContainerProps: {
     ref: React.RefObject<HTMLDivElement | null>;
     onScroll: (event: React.UIEvent<HTMLDivElement>) => void;
   };
-  scrollEndRef: React.RefObject<HTMLDivElement | null>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
 } => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const scrollEndRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const isUserCapturingScroll = useRef(false);
   const lastScrollTopRef = useRef(0 as ScrollPositionPx);
 
   useEffect(() => {
-    if (!isUserCapturingScroll.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
+    const container = scrollContainerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) {
+      return (): void => {
+        // No-op cleanup — refs not attached yet
+      };
     }
-  }, [trigger]);
+
+    const observer = new ResizeObserver(() => {
+      if (!isUserCapturingScroll.current) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+    observer.observe(content);
+    return (): void => {
+      observer.disconnect();
+    };
+  }, []);
 
   const onScroll = useCallback((event: React.UIEvent<HTMLDivElement>): void => {
     const target = event.currentTarget;
@@ -59,6 +66,6 @@ export const useAutoScrollBinding = ({
       ref: scrollContainerRef,
       onScroll,
     },
-    scrollEndRef,
+    contentRef,
   };
 };

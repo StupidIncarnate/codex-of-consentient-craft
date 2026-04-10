@@ -116,7 +116,6 @@ export const ExecutionRowLayerWidget = ({
   const [expanded, setExpanded] = useState(
     status === ('in_progress' as ExecutionStepStatus) && hasEntries,
   );
-  const scrollEndRef = useRef<HTMLDivElement>(null);
   const prevStatusRef = useRef<ExecutionStepStatus>(status);
   const userClickedRef = useRef(false);
 
@@ -137,12 +136,6 @@ export const ExecutionRowLayerWidget = ({
     prevStatusRef.current = status;
     userClickedRef.current = false;
   }, [status]);
-
-  useEffect(() => {
-    if (expanded && hasEntries && scrollEndRef.current?.scrollIntoView !== undefined) {
-      scrollEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [expanded, hasEntries, entries?.length]);
 
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
@@ -425,7 +418,6 @@ export const ExecutionRowLayerWidget = ({
               })()
             : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}
-          <div ref={scrollEndRef} />
           {files.length > 0 ? (
             <Text
               ff="monospace"

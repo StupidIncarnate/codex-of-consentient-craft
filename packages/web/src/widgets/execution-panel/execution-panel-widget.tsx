@@ -31,10 +31,11 @@ import { slotCountContract } from '../../contracts/slot-count/slot-count-contrac
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
-import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
+import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
@@ -69,6 +70,7 @@ const ACTION_BAR_PADDING = 12;
 const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
 const STEPS_PREFIX = 'steps/';
 const STEPS_PREFIX_LENGTH = STEPS_PREFIX.length;
+const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
 export const ExecutionPanelWidget = ({
   quest,
   slotEntries = new Map(),
@@ -79,9 +81,6 @@ export const ExecutionPanelWidget = ({
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
-  const { scrollContainerProps, scrollEndRef } = useAutoScrollBinding({
-    trigger: quest.steps.length + quest.workItems.length,
-  });
 
   const { steps } = quest;
   const isTerminalQuest = quest.status === 'complete' || quest.status === 'abandoned';
@@ -203,11 +202,9 @@ export const ExecutionPanelWidget = ({
             totalCount={totalCount}
             isPlanning={isPlanning}
           />
-          <Box
-            ref={scrollContainerProps.ref}
-            data-testid="execution-panel-floor-content"
-            style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}
-            onScroll={scrollContainerProps.onScroll}
+          <AutoScrollContainerWidget
+            testId={FLOOR_CONTENT_TEST_ID}
+            style={{ flex: 1, padding: '0 12px 12px' }}
           >
             {isPlanning ? (
               <>
@@ -473,8 +470,7 @@ export const ExecutionPanelWidget = ({
                 })}
               </>
             )}
-            <div ref={scrollEndRef} />
-          </Box>
+          </AutoScrollContainerWidget>
           {(quest.status === 'paused' ||
             quest.status === 'blocked' ||
             quest.status === 'in_progress') &&

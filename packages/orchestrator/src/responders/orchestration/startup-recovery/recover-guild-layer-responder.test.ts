@@ -338,6 +338,27 @@ describe('RecoverGuildLayerResponder', () => {
 
       expect(processIds).toStrictEqual([]);
     });
+
+    it('VALID: {quest status: paused} => does not register process', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-paused' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-paused-quest',
+        status: 'paused',
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      await RecoverGuildLayerResponder({ guildItem });
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual([]);
+    });
   });
 
   describe('directory read errors', () => {

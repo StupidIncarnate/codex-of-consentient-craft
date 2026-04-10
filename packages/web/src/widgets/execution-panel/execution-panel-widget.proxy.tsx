@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useAutoScrollBindingProxy } from '../../bindings/use-auto-scroll/use-auto-scroll-binding.proxy';
+import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
@@ -23,7 +23,7 @@ export const ExecutionPanelWidgetProxy = (): {
   hasStreamingBar: () => boolean;
   getExecutionMessages: () => HTMLElement[];
 } => {
-  useAutoScrollBindingProxy();
+  AutoScrollContainerWidgetProxy();
   ExecutionRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   FloorHeaderLayerWidgetProxy();

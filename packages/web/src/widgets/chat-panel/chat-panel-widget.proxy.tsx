@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useAutoScrollBindingProxy } from '../../bindings/use-auto-scroll/use-auto-scroll-binding.proxy';
+import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
@@ -22,7 +22,7 @@ export const ChatPanelWidgetProxy = (): {
   hasDividerCount: (params: { count: number }) => boolean;
   hasSubagentChainCount: (params: { count: number }) => boolean;
 } => {
-  useAutoScrollBindingProxy();
+  AutoScrollContainerWidgetProxy();
   const inputProxy = ChatInputWidgetProxy();
   inputProxy.clearStorage();
   ChatMessageWidgetProxy();
