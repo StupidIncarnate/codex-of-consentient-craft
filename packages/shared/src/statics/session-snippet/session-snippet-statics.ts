@@ -65,52 +65,43 @@ Use \`discover\` to locate files. Use \`Read\` only once you need full file cont
 
 **Always discover before creating.** Check if similar code exists. Extend, don't duplicate.`,
 
-  searchStrategy: `## Search Strategy
+  searchStrategy: `## Search Strategy — MANDATORY ORDER
 
-Any time you need to find, understand, or modify code, use this workflow. \`get-project-map\` and \`discover\` are MCP tools — they replace the native search tools which are blocked.
+Before searching, exploring, or modifying ANY code in this repo, follow this order. This applies to every task — bug fixes, new features, refactors, test writing, code review.
 
-**Follow these steps in order.** Each step depends on the previous one. Skipping steps means guessing at paths and names instead of knowing them.
+**DO NOT call \`discover\` before calling \`get-project-map\`.** This is the #1 search mistake. Without the project map, you are blindly guessing package names and folder paths. Every wasted discover call burns context and time.
 
-### Step 1: Get the Map (ALWAYS start here)
-Call \`get-project-map\` to see which package owns the domain you need and which folder types it has. Without this, you're guessing which of 13 packages to look in. Output:
+### Step 1: \`get-project-map\` FIRST — no exceptions
+Call \`get-project-map\` BEFORE any discover or grep calls. It shows every package, its description, and which folder types it contains:
 
 \`\`\`
 ## cli (69 files) — CLI for quest management
   brokers/ (12) — install (execute, orchestrate)
-  contracts/ (12) — dependency-map, uuid
 ## web (589 files) — Web UI for quest management
-  widgets/ (132) — app, chat-panel, quest-chat, execution-panel
+  widgets/ (132) — app, chat-panel, quest-chat
   bindings/ (30) — use-quests, use-session-chat
 ## orchestrator (713 files) — Agent orchestration
   brokers/ (156) — quest (add, get, list, modify)
 \`\`\`
 
-Scan this to find the right package + folder, then go to Step 2.
+Read this output. Identify which package and folder type owns what you need. THEN proceed to Step 2.
 
-### Step 2: Narrow with discover
-Now that you know the package and folder, use discover's \`glob\` param to browse into that area:
+### Step 2: \`discover\` with a targeted glob
+Now that you know the package and folder from Step 1, glob into that specific area:
 
 \`\`\`
 discover({ glob: "packages/shared/src/brokers/**" })
-// tree with file names + purposes:
-//   quest/modify/
-//     quest-modify-broker (broker) - Modifies quest via PATCH
+// tree with file names + purposes
 \`\`\`
 
-Need signatures? Add verbose:
+Add \`verbose: true\` if you need signatures. Add \`grep\` only for known identifiers.
 
-\`\`\`
-discover({ glob: "...", verbose: true })
-// JSON with signature, companions, usage sites
-\`\`\`
-
-### Step 3: Read the file
-Once you've identified the specific file, \`Read\` it for full contents.
+### Step 3: \`Read\` the specific file
+Once discover found the file, Read it for full contents.
 
 **Rules:**
-- Do not skip to Step 2 without doing Step 1
-- Start with \`glob\` to browse structure, not \`grep\` to guess names
-- Only use \`grep\` when searching for a known identifier or string
+- NEVER skip Step 1. If you call discover without calling get-project-map first, you are doing it wrong.
+- Start with glob, not grep — grep guesses names, glob browses structure
 - Always discover before creating new files`,
 
   folderTypes: null,

@@ -58,6 +58,41 @@ describe('formatFolderContentLayerBroker', () => {
         'alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, kilo',
       );
     });
+
+    it('EDGE: depth 1 with mix of empty and non-empty subdirs => only non-empty subdirs listed', () => {
+      const proxy = formatFolderContentLayerBrokerProxy();
+      const dirPath = AbsoluteFilePathStub({ value: '/project/src/contracts' });
+      const { folderDepth } = FolderConfigStub({ folderDepth: 1 });
+
+      proxy.setupDepth1WithEmpty({
+        subdirs: [
+          { name: 'chat-entry', hasFiles: true },
+          { name: 'empty-contract', hasFiles: false },
+          { name: 'quest-id', hasFiles: true },
+        ],
+      });
+
+      const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
+
+      expect(result).toBe('chat-entry, quest-id');
+    });
+
+    it('EDGE: depth 1 with all subdirs empty => returns empty string', () => {
+      const proxy = formatFolderContentLayerBrokerProxy();
+      const dirPath = AbsoluteFilePathStub({ value: '/project/src/contracts' });
+      const { folderDepth } = FolderConfigStub({ folderDepth: 1 });
+
+      proxy.setupDepth1WithEmpty({
+        subdirs: [
+          { name: 'alpha', hasFiles: false },
+          { name: 'beta', hasFiles: false },
+        ],
+      });
+
+      const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
+
+      expect(result).toBe('');
+    });
   });
 
   describe('depth 2 — domain/action pairs', () => {
@@ -78,18 +113,93 @@ describe('formatFolderContentLayerBroker', () => {
       expect(result).toBe('guild (create, detail, list), quest (modify, start)');
     });
 
-    it('VALID: domain with no actions => lists domain name only', () => {
+    it('VALID: domain with files but no action subdirs => lists domain name only', () => {
       const proxy = formatFolderContentLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
       const { folderDepth } = FolderConfigStub({ folderDepth: 2 });
 
-      proxy.setupDepth2Domains({
-        domains: [{ name: 'empty-domain', actions: [] }],
+      proxy.setupDepth2WithEmpty({
+        domains: [
+          {
+            name: 'guild',
+            directFiles: ['guild-broker.ts'],
+            actions: [],
+          },
+        ],
       });
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('empty-domain');
+      expect(result).toBe('guild');
+    });
+
+    it('EDGE: depth 2 with empty domain => empty domain excluded from list', () => {
+      const proxy = formatFolderContentLayerBrokerProxy();
+      const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
+      const { folderDepth } = FolderConfigStub({ folderDepth: 2 });
+
+      proxy.setupDepth2WithEmpty({
+        domains: [
+          {
+            name: 'guild',
+            actions: [
+              { name: 'create', hasFiles: true },
+              { name: 'list', hasFiles: true },
+            ],
+          },
+          {
+            name: 'quest',
+            actions: [
+              { name: 'start', hasFiles: false },
+              { name: 'stop', hasFiles: false },
+            ],
+          },
+        ],
+      });
+
+      const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
+
+      expect(result).toBe('guild (create, list)');
+    });
+
+    it('EDGE: depth 2 domain with mix of empty and non-empty actions => only non-empty actions listed', () => {
+      const proxy = formatFolderContentLayerBrokerProxy();
+      const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
+      const { folderDepth } = FolderConfigStub({ folderDepth: 2 });
+
+      proxy.setupDepth2WithEmpty({
+        domains: [
+          {
+            name: 'guild',
+            actions: [
+              { name: 'create', hasFiles: true },
+              { name: 'delete', hasFiles: false },
+              { name: 'list', hasFiles: true },
+            ],
+          },
+        ],
+      });
+
+      const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
+
+      expect(result).toBe('guild (create, list)');
+    });
+
+    it('EDGE: depth 2 with all domains empty => returns empty string', () => {
+      const proxy = formatFolderContentLayerBrokerProxy();
+      const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
+      const { folderDepth } = FolderConfigStub({ folderDepth: 2 });
+
+      proxy.setupDepth2WithEmpty({
+        domains: [
+          { name: 'guild', actions: [{ name: 'create', hasFiles: false }] },
+          { name: 'quest', actions: [{ name: 'start', hasFiles: false }] },
+        ],
+      });
+
+      const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
+
+      expect(result).toBe('');
     });
   });
 

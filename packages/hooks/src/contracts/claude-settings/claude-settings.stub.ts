@@ -2,7 +2,9 @@ import type { ClaudeSettings } from './claude-settings-contract';
 import { claudeSettingsContract } from './claude-settings-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-export const ClaudeSettingsStub = ({ ...props }: StubArgument<ClaudeSettings> = {}): ClaudeSettings =>
+export const ClaudeSettingsStub = ({
+  ...props
+}: StubArgument<ClaudeSettings> = {}): ClaudeSettings =>
   claudeSettingsContract.parse({
     hooks: {
       PreToolUse: [

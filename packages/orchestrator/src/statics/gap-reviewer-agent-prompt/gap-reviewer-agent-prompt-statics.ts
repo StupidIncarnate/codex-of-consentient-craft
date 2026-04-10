@@ -63,7 +63,11 @@ This fetches flows (with structured nodes, edges, and inline observables), desig
 toolingRequirements - excluding \`steps\` which are not relevant for gap analysis. If no quest ID
 is provided, ask the user for it.
 
-### Step 2: Review Flows (Node and Edge Structure)
+### Step 2: Get Project Map
+
+Call \`get-project-map\` (no params) to see which packages exist and their folder types. You'll need this when verifying spec claims against the codebase in later steps.
+
+### Step 3: Review Flows (Node and Edge Structure)
 
 For each flow, verify the **graph structure**:
 
@@ -91,7 +95,7 @@ For each flow, verify the **graph structure**:
 - Is the entry point concrete (URL, command, event)?
 - Do exit points cover all terminal states (success, error, redirect)?
 
-### Step 3: Review Design Decisions
+### Step 4: Review Design Decisions
 
 For each design decision, verify:
 
@@ -100,7 +104,7 @@ For each design decision, verify:
 - **Missing decisions**: Are there observables that imply architectural choices not recorded as decisions? (e.g., an observable mentions WebSocket but no decision records choosing WebSocket over polling)
 - **Scope alignment**: Do decisions match the quest's scope? Flag decisions about systems the quest doesn't touch.
 
-### Step 4: Review Observables (Embedded in Flow Nodes)
+### Step 5: Review Observables (Embedded in Flow Nodes)
 
 Observables live inside flow nodes at \`flows[].nodes[].observables[]\`. Each contains a \`then\` array of assertion
 outcomes.
@@ -123,7 +127,7 @@ For each observable, scrutinize:
 - Are decision branch outcomes covered (both the true and false paths)?
 - Are error/terminal nodes covered with observables?
 
-### Step 5: Review Tangible Values
+### Step 6: Review Tangible Values
 
 Verify ALL concrete values are specified. Flag anything an implementer would have to guess:
 
@@ -136,7 +140,7 @@ Verify ALL concrete values are specified. Flag anything an implementer would hav
 - **Limits**: Bad: "rate limited". Good: "max 5 requests per minute per IP"
 - **Ports**: Bad: "non-standard port". Good: \`4700\`
 
-### Step 6: Review Tooling Requirements
+### Step 7: Review Tooling Requirements
 
 - Do observables reference specific packages or APIs (e.g., "Mantine confirmation modal", "notifications.show()")
   that would require packages NOT already installed? If so, the tooling requirements should list them.
@@ -145,7 +149,7 @@ Verify ALL concrete values are specified. Flag anything an implementer would hav
 - Are links to observables correct in \`requiredByObservables\`?
 - You MAY check \`package.json\` to verify whether a referenced package is already installed — this validates a spec claim.
 
-### Step 7: Review Contracts
+### Step 8: Review Contracts
 
 For each contract, scrutinize from a semantic perspective (structural validation like valid UUIDs and non-empty fields
 is handled by \`verify-quest\`):
@@ -172,7 +176,7 @@ is handled by \`verify-quest\`):
   contracts whose \`nodeId\` does not match any node in any flow as **orphaned** — the linked node may have been renamed
   or deleted.
 
-### Step 8: Check for Logic Gaps
+### Step 9: Check for Logic Gaps
 
 - **Happy path**: Is the success flow fully specified with concrete nodes and edges?
 - **Error paths**: Do decision nodes have failure edges leading to error handling?
@@ -181,7 +185,7 @@ is handled by \`verify-quest\`):
 - **Concurrent access**: What if multiple users/requests happen at once?
 - **Recovery**: Do error nodes loop back to retry points or terminate explicitly?
 
-### Step 9: Spot Bad Assumptions
+### Step 10: Spot Bad Assumptions
 
 Look for assumptions **within the spec** that might not hold:
 

@@ -234,4 +234,486 @@ describe('architectureProjectMapBroker', () => {
       );
     });
   });
+
+  describe('level 1 — empty packages', () => {
+    it('EDGE: monorepo package with no folder types => shows empty label', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'mock-rails',
+            folders: [],
+          },
+          {
+            name: 'web',
+            folders: [
+              {
+                name: 'contracts',
+                entries: [{ name: 'user', isDir: true }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## mock-rails (0 files)',
+            '  (empty)',
+            '',
+            '## web (3 files)',
+            '  contracts/ (3) — user',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: single repo with empty src => shows empty label', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/empty-project' });
+
+      proxy.setupEmptySrc();
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: ['# Codebase Map', '', '## root (0 files)', '  (empty)'].join('\n'),
+        }),
+      );
+    });
+  });
+
+  describe('level 2 — empty folder types', () => {
+    it('EDGE: monorepo folder type with 0 files => folder type still shown with (0) count', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'cli',
+            folders: [
+              {
+                name: 'bin',
+                entries: [],
+              },
+              {
+                name: 'brokers',
+                entries: [{ name: 'guild', isDir: true }],
+                subEntries: {
+                  guild: [
+                    { name: 'create', isDir: true },
+                    { name: 'list', isDir: true },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## cli (6 files)',
+            '  bin/ (0)',
+            '  brokers/ (6) — guild (create, list)',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: single repo folder type with 0 files => folder type still shown with (0) count', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/single-project' });
+
+      proxy.setupSingleRepo({
+        folders: [
+          {
+            name: 'bin',
+            entries: [],
+          },
+          {
+            name: 'contracts',
+            entries: [{ name: 'user', isDir: true }],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## root (3 files)',
+            '  bin/ (0)',
+            '  contracts/ (3) — user',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: monorepo with all folder types empty => folder types shown with (0) counts', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'empty-pkg',
+            folders: [
+              {
+                name: 'bin',
+                entries: [],
+              },
+              {
+                name: 'assets',
+                entries: [],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## empty-pkg (0 files)',
+            '  assets/ (0)',
+            '  bin/ (0)',
+          ].join('\n'),
+        }),
+      );
+    });
+  });
+
+  describe('level 3 — empty content within folder types', () => {
+    it('EDGE: depth 1 folder with mix of empty and non-empty subdirs => only non-empty subdirs in content', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'app',
+            folders: [
+              {
+                name: 'contracts',
+                entries: [
+                  { name: 'chat-entry', isDir: true },
+                  { name: 'empty-contract', isDir: true },
+                  { name: 'quest-id', isDir: true },
+                ],
+                subEntries: {
+                  'empty-contract': [],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (6 files)',
+            '  contracts/ (6) — chat-entry, quest-id',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: depth 2 folder with empty domain => empty domain excluded from content', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'app',
+            folders: [
+              {
+                name: 'brokers',
+                entries: [
+                  { name: 'guild', isDir: true },
+                  { name: 'quest', isDir: true },
+                ],
+                subEntries: {
+                  guild: [
+                    { name: 'create', isDir: true },
+                    { name: 'list', isDir: true },
+                  ],
+                  quest: [],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (6 files)',
+            '  brokers/ (6) — guild (create, list)',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: depth 2 domain with mix of empty and non-empty actions => only non-empty actions listed', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'app',
+            folders: [
+              {
+                name: 'brokers',
+                entries: [{ name: 'guild', isDir: true }],
+                subEntries: {
+                  guild: [
+                    { name: 'create', isDir: true },
+                    { name: 'delete', isDir: true },
+                    { name: 'list', isDir: true },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (9 files)',
+            '  brokers/ (9) — guild (create, delete, list)',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('EDGE: single repo depth 1 with empty subdirs => only non-empty subdirs in content', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/single-project' });
+
+      proxy.setupSingleRepo({
+        folders: [
+          {
+            name: 'contracts',
+            entries: [
+              { name: 'user', isDir: true },
+              { name: 'empty-type', isDir: true },
+              { name: 'quest', isDir: true },
+            ],
+            subEntries: {
+              'empty-type': [],
+            },
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: ['# Codebase Map', '', '## root (6 files)', '  contracts/ (6) — quest, user'].join(
+            '\n',
+          ),
+        }),
+      );
+    });
+  });
+
+  describe('description handling', () => {
+    it('VALID: package with no description => no description separator shown', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'tools',
+            folders: [
+              {
+                name: 'contracts',
+                entries: [{ name: 'config', isDir: true }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: ['# Codebase Map', '', '## tools (3 files)', '  contracts/ (3) — config'].join(
+            '\n',
+          ),
+        }),
+      );
+    });
+  });
+
+  describe('folder content formatting', () => {
+    it('VALID: folder type with files but no subdirectories => shows file count without content summary', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'app',
+            folders: [
+              {
+                name: 'guards',
+                entries: [
+                  { name: 'is-active-guard.ts', isDir: false },
+                  { name: 'is-valid-guard.ts', isDir: false },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: ['# Codebase Map', '', '## app (2 files)', '  guards/ (2)'].join('\n'),
+        }),
+      );
+    });
+
+    it('VALID: depth 2 folder with domain that has only files => shows domain name without parentheses', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'app',
+            folders: [
+              {
+                name: 'brokers',
+                entries: [
+                  { name: 'quest', isDir: true },
+                  { name: 'guild', isDir: true },
+                ],
+                subEntries: {
+                  quest: [
+                    { name: 'start', isDir: true },
+                    { name: 'stop', isDir: true },
+                  ],
+                  guild: [
+                    { name: 'config.ts', isDir: false },
+                    { name: 'readme.md', isDir: false },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## app (8 files)',
+            '  brokers/ (8) — guild, quest (start, stop)',
+          ].join('\n'),
+        }),
+      );
+    });
+  });
+
+  describe('alphabetical sorting', () => {
+    it('VALID: packages and folders sorted alphabetically regardless of input order', () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+
+      proxy.setupMonorepo({
+        packages: [
+          {
+            name: 'zeta',
+            folders: [
+              {
+                name: 'widgets',
+                entries: [{ name: 'app', isDir: true }],
+              },
+              {
+                name: 'contracts',
+                entries: [{ name: 'user', isDir: true }],
+              },
+            ],
+          },
+          {
+            name: 'alpha',
+            folders: [
+              {
+                name: 'statics',
+                entries: [{ name: 'config', isDir: true }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = architectureProjectMapBroker({ projectRoot });
+
+      expect(result).toStrictEqual(
+        ContentTextStub({
+          value: [
+            '# Codebase Map',
+            '',
+            '## alpha (3 files)',
+            '  statics/ (3) — config',
+            '',
+            '## zeta (6 files)',
+            '  contracts/ (3) — user',
+            '  widgets/ (3) — app',
+          ].join('\n'),
+        }),
+      );
+    });
+  });
 });

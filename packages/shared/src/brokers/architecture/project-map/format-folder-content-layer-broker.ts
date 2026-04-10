@@ -17,6 +17,7 @@ import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
+import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
 import type { FolderConfig } from '../../../contracts/folder-config/folder-config-contract';
 
 type FolderDepth = FolderConfig['folderDepth'];
@@ -45,6 +46,10 @@ export const formatFolderContentLayerBroker = ({
   if (folderDepth === projectMapStatics.depth2) {
     const domains = safeReaddirLayerBroker({ dirPath })
       .filter((entry) => entry.isDirectory())
+      .filter((entry) => {
+        const domainPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
+        return countFilesRecursiveLayerBroker({ dirPath: domainPath }) > 0;
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const domainParts: ContentText[] = [];
@@ -53,6 +58,10 @@ export const formatFolderContentLayerBroker = ({
       const domainPath = absoluteFilePathContract.parse(`${dirPath}/${domain.name}`);
       const actions = safeReaddirLayerBroker({ dirPath: domainPath })
         .filter((entry) => entry.isDirectory())
+        .filter((entry) => {
+          const actionPath = absoluteFilePathContract.parse(`${domainPath}/${entry.name}`);
+          return countFilesRecursiveLayerBroker({ dirPath: actionPath }) > 0;
+        })
         .map((entry) => entry.name)
         .sort();
 
@@ -70,6 +79,10 @@ export const formatFolderContentLayerBroker = ({
   const entries = safeReaddirLayerBroker({ dirPath });
   const subdirNames = entries
     .filter((entry) => entry.isDirectory())
+    .filter((entry) => {
+      const subdirPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
+      return countFilesRecursiveLayerBroker({ dirPath: subdirPath }) > 0;
+    })
     .map((entry) => entry.name)
     .sort();
 
