@@ -14,7 +14,14 @@ import { resultCountContract } from '../../../contracts/result-count/result-coun
 import type { ResultCount } from '../../../contracts/result-count/result-count-contract';
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
+import { treeOutputContract } from '../../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
+import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
+import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
+import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
+import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -66,6 +73,41 @@ export const mcpDiscoverBroker = async ({
   }));
 
   const treeOutput = treeFormatterTransformer({ items: treeItems });
+
+  // Empty-result hint: if a glob was provided and no files matched, probe for directories
+  // that DO match with includeDirectories=true. If any are found, tell the caller to append `/**`.
+  if (fileResults.length === 0 && validated.glob) {
+    const cwdPath = filePathContract.parse(process.cwd());
+    const globSuffix = globResolveTransformer({ glob: validated.glob });
+    const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
+    const directoryHits = await globFindAdapter({
+      pattern,
+      cwd: cwdPath,
+      includeDirectories: true,
+    });
+
+    // Keep only directory entries — glob still returns both when includeDirectories is true.
+    const matchedDirs = directoryHits.filter(
+      (p) => !p.endsWith('.ts') && !p.endsWith('.tsx') && !p.endsWith('.js') && !p.endsWith('.jsx'),
+    );
+
+    if (matchedDirs.length > 0) {
+      const dirRelatives = matchedDirs
+        .slice(0, discoverHintStatics.maxDirectoriesShown)
+        .map((p) => pathToTreeRelativeTransformer({ filepath: p }));
+      const hintLines = [
+        discoverHintStatics.header,
+        '',
+        discoverHintStatics.explanation,
+        discoverHintStatics.suggestion,
+        ...dirRelatives.map((d) => `  ${d}/`),
+      ];
+      return {
+        results: treeOutputContract.parse(hintLines.join('\n')),
+        count: resultCountContract.parse(0),
+      };
+    }
+  }
 
   return {
     results: treeOutput,

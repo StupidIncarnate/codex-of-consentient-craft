@@ -19,6 +19,14 @@ export const fileScannerBrokerProxy = (): {
     files: readonly { filepath: FilePath; contents: FileContents }[];
     pattern: GlobPattern;
   }) => void;
+  setupFilesWithFailingReads: (params: {
+    files: readonly {
+      filepath: FilePath;
+      contents?: FileContents;
+      error?: Error;
+    }[];
+    pattern: GlobPattern;
+  }) => void;
 } => {
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -35,6 +43,26 @@ export const fileScannerBrokerProxy = (): {
       globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
       for (const { filepath, contents } of files) {
         readFileProxy.returns({ filepath, contents });
+      }
+    },
+    setupFilesWithFailingReads: ({
+      files,
+      pattern,
+    }: {
+      files: readonly {
+        filepath: FilePath;
+        contents?: FileContents;
+        error?: Error;
+      }[];
+      pattern: GlobPattern;
+    }): void => {
+      globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
+      for (const entry of files) {
+        if (entry.error) {
+          readFileProxy.throws({ filepath: entry.filepath, error: entry.error });
+        } else if (entry.contents) {
+          readFileProxy.returns({ filepath: entry.filepath, contents: entry.contents });
+        }
       }
     },
   };

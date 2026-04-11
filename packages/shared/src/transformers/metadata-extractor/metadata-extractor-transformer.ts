@@ -19,12 +19,15 @@ export const metadataExtractorTransformer = ({
   // ESLint's AST gives comment.value without /** and */ markers
   const normalizedComment = commentText.startsWith('/**') ? commentText : `/**${commentText}*/`;
 
-  // Extract PURPOSE (single line, order-independent)
-  const purposeMatch = /PURPOSE:\s*([^\n*]+?)(?:\s*\*?\s*\n|\s*\*\/|$)/u.exec(normalizedComment);
+  // Extract PURPOSE (single line, order-independent).
+  // Match to end of line or `*/`; allows `*` inside the purpose text (e.g. `n*log(n)`).
+  // `[ \t]*` (not `\s*`) after `PURPOSE:` so an empty `PURPOSE:` line cannot swallow the next line.
+  const purposeMatch = /PURPOSE:[ \t]*([^\n]+?)\s*(?:\n|\*\/|$)/u.exec(normalizedComment);
   if (!purposeMatch?.[1]) {
     return null;
   }
-  const purpose = purposeMatch[1].trim();
+  // Strip a trailing comment-continuation ` *` if present (from `* body *\n`).
+  const purpose = purposeMatch[1].replace(/\s*\*\s*$/u, '').trim();
 
   // Check if purpose is non-empty
   if (purpose.length === 0 || purpose === '*') {

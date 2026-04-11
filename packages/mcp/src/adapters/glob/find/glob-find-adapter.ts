@@ -16,16 +16,18 @@ import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-f
 export const globFindAdapter = async ({
   pattern,
   cwd,
+  includeDirectories,
 }: {
   pattern: GlobPattern;
   cwd?: FilePath;
+  includeDirectories?: boolean;
 }): Promise<readonly FilePath[]> => {
   const ignore = globIgnoreFilterTransformer({ pattern });
 
   const files = await glob(pattern, {
     cwd: cwd ? String(cwd) : process.cwd(),
     absolute: true,
-    nodir: true,
+    nodir: includeDirectories !== true,
     ignore: [...ignore],
   });
 

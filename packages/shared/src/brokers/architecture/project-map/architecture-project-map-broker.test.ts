@@ -55,11 +55,11 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## shared (3 files) \u2014 Shared utilities',
-            '  statics/ (3) \u2014 folder-config',
+            '  statics/ (3) \u2014 folder-config/',
             '',
             '## web (12 files) \u2014 Web UI',
-            '  brokers/ (6) \u2014 guild (create, list)',
-            '  contracts/ (6) \u2014 chat-entry, quest-id',
+            '  brokers/ (6) \u2014 guild/ (create/, list/)',
+            '  contracts/ (6) \u2014 chat-entry/, quest-id/',
           ].join('\n'),
         }),
       );
@@ -97,7 +97,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (9 files)',
-            '  contracts/ (9) \u2014 chat-entry, quest-id, user-input',
+            '  contracts/ (9) \u2014 chat-entry/, quest-id/, user-input/',
           ].join('\n'),
         }),
       );
@@ -144,7 +144,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (12 files)',
-            '  brokers/ (12) \u2014 guild (create, list), quest (modify, start)',
+            '  brokers/ (12) \u2014 guild/ (create/, list/), quest/ (modify/, start/)',
           ].join('\n'),
         }),
       );
@@ -211,7 +211,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## root (3 files) \u2014 A single repo app',
-            '  contracts/ (3) \u2014 user',
+            '  contracts/ (3) \u2014 user/',
           ].join('\n'),
         }),
       );
@@ -269,7 +269,7 @@ describe('architectureProjectMapBroker', () => {
             '  (empty)',
             '',
             '## web (3 files)',
-            '  contracts/ (3) — user',
+            '  contracts/ (3) — user/',
           ].join('\n'),
         }),
       );
@@ -329,7 +329,7 @@ describe('architectureProjectMapBroker', () => {
             '',
             '## cli (6 files)',
             '  bin/ (0)',
-            '  brokers/ (6) — guild (create, list)',
+            '  brokers/ (6) — guild/ (create/, list/)',
           ].join('\n'),
         }),
       );
@@ -361,7 +361,7 @@ describe('architectureProjectMapBroker', () => {
             '',
             '## root (3 files)',
             '  bin/ (0)',
-            '  contracts/ (3) — user',
+            '  contracts/ (3) — user/',
           ].join('\n'),
         }),
       );
@@ -439,7 +439,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (6 files)',
-            '  contracts/ (6) — chat-entry, quest-id',
+            '  contracts/ (6) — chat-entry/, quest-id/',
           ].join('\n'),
         }),
       );
@@ -481,7 +481,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (6 files)',
-            '  brokers/ (6) — guild (create, list)',
+            '  brokers/ (6) — guild/ (create/, list/)',
           ].join('\n'),
         }),
       );
@@ -520,7 +520,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (9 files)',
-            '  brokers/ (9) — guild (create, delete, list)',
+            '  brokers/ (9) — guild/ (create/, delete/, list/)',
           ].join('\n'),
         }),
       );
@@ -550,9 +550,12 @@ describe('architectureProjectMapBroker', () => {
 
       expect(result).toStrictEqual(
         ContentTextStub({
-          value: ['# Codebase Map', '', '## root (6 files)', '  contracts/ (6) — quest, user'].join(
-            '\n',
-          ),
+          value: [
+            '# Codebase Map',
+            '',
+            '## root (6 files)',
+            '  contracts/ (6) — quest/, user/',
+          ].join('\n'),
         }),
       );
     });
@@ -581,7 +584,7 @@ describe('architectureProjectMapBroker', () => {
 
       expect(result).toStrictEqual(
         ContentTextStub({
-          value: ['# Codebase Map', '', '## tools (3 files)', '  contracts/ (3) — config'].join(
+          value: ['# Codebase Map', '', '## tools (3 files)', '  contracts/ (3) — config/'].join(
             '\n',
           ),
         }),
@@ -659,7 +662,7 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## app (8 files)',
-            '  brokers/ (8) — guild, quest (start, stop)',
+            '  brokers/ (8) — guild/, quest/ (start/, stop/)',
           ].join('\n'),
         }),
       );
@@ -706,11 +709,11 @@ describe('architectureProjectMapBroker', () => {
             '# Codebase Map',
             '',
             '## alpha (3 files)',
-            '  statics/ (3) — config',
+            '  statics/ (3) — config/',
             '',
             '## zeta (6 files)',
-            '  contracts/ (3) — user',
-            '  widgets/ (3) — app',
+            '  contracts/ (3) — user/',
+            '  widgets/ (3) — app/',
           ].join('\n'),
         }),
       );

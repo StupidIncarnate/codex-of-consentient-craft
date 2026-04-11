@@ -214,6 +214,63 @@ describe('mcpDiscoverBroker', () => {
     });
   });
 
+  describe('empty-result directory hint', () => {
+    it('VALID: {glob matches directories only} => returns hint with directory suggestions', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+
+      // Simulate a glob like `packages/eslint-plugin/src/brokers/rule/explicit-return-types*`
+      // that matches a directory but no files (classic nodir:true miss).
+      const pattern = GlobPatternStub({
+        value: `${process.cwd()}/packages/eslint-plugin/src/brokers/rule/explicit-return-types*/**/*`,
+      });
+      const directoryPath = FilePathStub({
+        value: `${process.cwd()}/packages/eslint-plugin/src/brokers/rule/explicit-return-types`,
+      });
+
+      brokerProxy.setupEmptyWithDirectoryHits({
+        directoryPaths: [directoryPath],
+        pattern,
+      });
+
+      const input = DiscoverInputStub({
+        glob: 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*' as never,
+      });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [
+          '(no files matched)',
+          '',
+          'Hint: your glob matched these directories but discover returns files only.',
+          'Try appending "/**" to descend into them:',
+          '  eslint-plugin/brokers/rule/explicit-return-types/',
+        ].join('\n'),
+        count: 0,
+      });
+    });
+
+    it('VALID: {glob matches nothing at all} => returns empty tree without hint', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+
+      const pattern = GlobPatternStub({
+        value: `${process.cwd()}/totally-fake-folder/**/*`,
+      });
+
+      brokerProxy.setupEmptyWithDirectoryHits({
+        directoryPaths: [],
+        pattern,
+      });
+
+      const input = DiscoverInputStub({ glob: 'totally-fake-folder' as never });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: '',
+        count: 0,
+      });
+    });
+  });
+
   describe('multi-dot files', () => {
     it('VALID: multi-dot files (.test.ts, .proxy.ts) appear as regular results', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();

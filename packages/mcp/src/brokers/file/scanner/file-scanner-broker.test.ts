@@ -209,6 +209,140 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
       expect(results).toStrictEqual([]);
     });
 
+    it('VALID: {grep matches proxy/test only} => implementation sibling still included without hits', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const implPath = FilePathStub({
+        value:
+          '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.ts',
+      });
+      const proxyPath = FilePathStub({
+        value:
+          '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy.ts',
+      });
+      const testPath = FilePathStub({
+        value:
+          '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.test.ts',
+      });
+
+      // Impl file uses camelCase name only — the kebab "explicit-return-types" never appears
+      const implContents = FileContentsStub({
+        value: `/**
+ * PURPOSE: Rule that enforces explicit return types on exported functions
+ * USAGE: ruleExplicitReturnTypesBroker()
+ */
+export const ruleExplicitReturnTypesBroker = (): boolean => true;`,
+      });
+
+      // Proxy comment mentions the kebab rule name
+      const proxyContents = FileContentsStub({
+        value: `/** Proxy for explicit-return-types rule broker. */
+export const ruleExplicitReturnTypesBrokerProxy = () => ({});`,
+      });
+
+      // Test uses the kebab rule name inside ruleTester.run
+      const testContents = FileContentsStub({
+        value: `import { ruleExplicitReturnTypesBroker } from './rule-explicit-return-types-broker';
+describe('rule', () => {
+  ruleTester.run('explicit-return-types', ruleExplicitReturnTypesBroker(), {});
+});`,
+      });
+
+      const { grep } = DiscoverInputStub({ grep: 'explicit-return-types' });
+
+      proxy.setupFiles({
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: proxyPath, contents: proxyContents },
+          { filepath: testPath, contents: testContents },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({ grep: grep! });
+
+      expect(results).toStrictEqual([
+        {
+          fileType: 'broker',
+          metadata: {},
+          name: 'rule-explicit-return-types-broker',
+          path: '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.ts',
+          purpose: 'Rule that enforces explicit return types on exported functions',
+          relatedFiles: [
+            'rule-explicit-return-types-broker.proxy.ts',
+            'rule-explicit-return-types-broker.test.ts',
+          ],
+          signature: {
+            parameters: [],
+            raw: 'export const ruleExplicitReturnTypesBroker = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: 'ruleExplicitReturnTypesBroker()',
+        },
+        {
+          fileType: 'broker',
+          hits: [{ line: 1, text: '/** Proxy for explicit-return-types rule broker. */' }],
+          metadata: undefined,
+          name: 'rule-explicit-return-types-broker.proxy',
+          path: '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: undefined,
+          usage: undefined,
+        },
+        {
+          fileType: 'broker',
+          hits: [
+            {
+              line: 1,
+              text: "import { ruleExplicitReturnTypesBroker } from './rule-explicit-return-types-broker';",
+            },
+            {
+              line: 3,
+              text: "  ruleTester.run('explicit-return-types', ruleExplicitReturnTypesBroker(), {});",
+            },
+          ],
+          metadata: undefined,
+          name: 'rule-explicit-return-types-broker.test',
+          path: '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.test.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: undefined,
+          usage: undefined,
+        },
+      ]);
+    });
+
+    it('EMPTY: {grep matches nothing} => implementation file NOT re-included', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const implPath = FilePathStub({ value: '/project/src/brokers/lonely-broker.ts' });
+      const testPath = FilePathStub({ value: '/project/src/brokers/lonely-broker.test.ts' });
+
+      const implContents = FileContentsStub({
+        value: `export const lonelyBroker = (): boolean => true;`,
+      });
+      const testContents = FileContentsStub({
+        value: `export const lonelyBrokerTest = () => {};`,
+      });
+
+      const { grep } = DiscoverInputStub({ grep: 'nonexistent' });
+
+      proxy.setupFiles({
+        files: [
+          { filepath: implPath, contents: implContents },
+          { filepath: testPath, contents: testContents },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({ grep: grep! });
+
+      expect(results).toStrictEqual([]);
+    });
+
     it('VALID: {grep: "ERROR", context: 1} => returns hits with context lines', async () => {
       const proxy = fileScannerBrokerProxy();
       const filepath = FilePathStub({ value: '/project/src/adapters/fs-access-adapter.ts' });
@@ -486,6 +620,107 @@ export const orphanGuard = (): boolean => true;`,
           signature: {
             parameters: [],
             raw: 'export const zebraGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
+        },
+      ]);
+    });
+  });
+
+  describe('resilience to file read failures', () => {
+    it('VALID: {one unreadable file, one readable} => readable file still returned', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const goodPath = FilePathStub({ value: '/project/src/guards/good-guard.ts' });
+      const badPath = FilePathStub({ value: '/project/src/guards/bad-guard.ts' });
+
+      const goodContents = FileContentsStub({
+        value: `export const goodGuard = (): boolean => true;`,
+      });
+
+      proxy.setupFilesWithFailingReads({
+        files: [
+          { filepath: goodPath, contents: goodContents },
+          { filepath: badPath, error: new Error('EACCES: permission denied') },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: undefined,
+          name: 'good-guard',
+          path: '/project/src/guards/good-guard.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const goodGuard = (): boolean =>',
+            returnType: 'boolean',
+          },
+          usage: undefined,
+        },
+      ]);
+    });
+
+    it('VALID: {all files unreadable} => returns empty array without throwing', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const path1 = FilePathStub({ value: '/project/src/guards/one-guard.ts' });
+      const path2 = FilePathStub({ value: '/project/src/guards/two-guard.ts' });
+
+      proxy.setupFilesWithFailingReads({
+        files: [
+          { filepath: path1, error: new Error('ENOENT') },
+          { filepath: path2, error: new Error('EISDIR') },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toStrictEqual([]);
+    });
+  });
+
+  describe('scan dedup', () => {
+    it('VALID: {same file appears from two glob paths} => returned once only', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      const samePath = FilePathStub({ value: '/project/src/guards/unique-guard.ts' });
+      const contents = FileContentsStub({
+        value: `export const uniqueGuard = (): boolean => true;`,
+      });
+
+      // Two entries for the same file — simulates cwd scan and shared scan overlap.
+      proxy.setupFiles({
+        files: [
+          { filepath: samePath, contents },
+          { filepath: samePath, contents },
+        ],
+        pattern,
+      });
+
+      const results = await fileScannerBroker({});
+
+      expect(results).toStrictEqual([
+        {
+          fileType: 'guard',
+          metadata: undefined,
+          name: 'unique-guard',
+          path: '/project/src/guards/unique-guard.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: {
+            parameters: [],
+            raw: 'export const uniqueGuard = (): boolean =>',
             returnType: 'boolean',
           },
           usage: undefined,

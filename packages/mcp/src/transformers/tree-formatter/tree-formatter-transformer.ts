@@ -11,10 +11,12 @@
  */
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import { folderNameContract } from '../../contracts/folder-name/folder-name-contract';
 import { treeOutputContract } from '../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../contracts/tree-output/tree-output-contract';
 import { formatTreeNodeTransformer } from '../format-tree-node/format-tree-node-transformer';
+import { pathToTreeRelativeTransformer } from '../path-to-tree-relative/path-to-tree-relative-transformer';
 
 export const treeFormatterTransformer = ({ items }: { items: readonly TreeItem[] }): TreeOutput => {
   if (items.length === 0) {
@@ -29,10 +31,9 @@ export const treeFormatterTransformer = ({ items }: { items: readonly TreeItem[]
   };
 
   for (const item of items) {
-    // Extract path segments after the last "src/" or use the whole path
-    const srcIndex = String(item.path).lastIndexOf('/src/');
-    const relevantPath =
-      srcIndex >= 0 ? String(item.path).slice(srcIndex + '/src/'.length) : String(item.path);
+    const relevantPath = pathToTreeRelativeTransformer({
+      filepath: filePathContract.parse(String(item.path)),
+    });
 
     // Split into segments
     const segments = relevantPath.split('/').filter(Boolean);

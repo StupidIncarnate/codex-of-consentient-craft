@@ -1,20 +1,20 @@
 /**
- * PURPOSE: Matches regex pattern against file contents and returns line-level hits with optional context
+ * PURPOSE: Searches file contents for matches and returns line-level hits with optional context
  *
  * USAGE:
  * const hits = contentGrepTransformer({ contents: FileContentsStub({ value: 'line1\nERROR here\nline3' }), pattern: GrepPatternStub({ value: 'ERROR' }) });
  * // Returns [{ line: 2, text: 'ERROR here' }]
+ *
+ * WHEN-TO-USE: Default is literal substring match. Opt into regex via `re:<pattern>` prefix or leading inline flags like `(?i)foo`.
  */
 import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
 import type { GrepHit } from '../../contracts/grep-hit/grep-hit-contract';
 import { grepHitContract } from '../../contracts/grep-hit/grep-hit-contract';
 import type { DiscoverInput } from '../../contracts/discover-input/discover-input-contract';
+import { compileGrepRegexTransformer } from '../compile-grep-regex/compile-grep-regex-transformer';
 
 type GrepPattern = NonNullable<DiscoverInput['grep']>;
 type ContextLines = NonNullable<DiscoverInput['context']>;
-
-const INLINE_FLAGS_PATTERN = /^\(\?([gimsuy]+)\)/u;
-const REGEX_METACHAR_PATTERN = /[.*+?^${}()|[\]\\]/gu;
 
 export const contentGrepTransformer = ({
   contents,
@@ -25,49 +25,39 @@ export const contentGrepTransformer = ({
   pattern: GrepPattern;
   context?: ContextLines;
 }): GrepHit[] => {
-  const regex = ((): RegExp => {
-    try {
-      const flagMatch = INLINE_FLAGS_PATTERN.exec(String(pattern));
-      const extractedFlags = flagMatch ? flagMatch[1] : '';
-      const cleanPattern = flagMatch ? String(pattern).slice(flagMatch[0].length) : String(pattern);
-      const flags = `u${extractedFlags ?? ''}`;
-      return new RegExp(cleanPattern, flags);
-    } catch {
-      // Invalid regex — fall back to literal string match by escaping all metacharacters
-      const escaped = String(pattern).replace(REGEX_METACHAR_PATTERN, '\\$&');
-      return new RegExp(escaped, 'u');
-    }
-  })();
+  const regex = compileGrepRegexTransformer({ pattern });
+  const contentsStr = String(contents);
+  const lines = contentsStr.split('\n');
 
-  const lines = String(contents).split('\n');
-  const matchIndices: GrepHit['line'][] = [];
-
-  for (const [index, line] of lines.entries()) {
-    if (regex.test(line)) {
-      matchIndices.push(index as GrepHit['line']);
+  // Scan full file contents so multi-line regex patterns work, then project each
+  // match offset onto the 1-based line number it begins on.
+  const matchedLines = new Set<GrepHit['line']>();
+  for (const match of contentsStr.matchAll(regex)) {
+    // Count newlines up to the match offset to derive the line number.
+    let lineNumber: GrepHit['line'] = 1 as GrepHit['line'];
+    for (const ch of contentsStr.slice(0, match.index)) {
+      if (ch === '\n') {
+        lineNumber = (lineNumber + 1) as GrepHit['line'];
+      }
     }
+    matchedLines.add(lineNumber);
   }
 
-  if (matchIndices.length === 0) {
+  if (matchedLines.size === 0) {
     return [];
   }
 
-  if (context === undefined || context === 0) {
-    return matchIndices.map((i) => grepHitContract.parse({ line: i + 1, text: lines[i] }));
-  }
-
-  // Expand ranges with context and dedup overlapping
-  const resultIndices = new Set<GrepHit['line']>();
-
-  for (const matchIndex of matchIndices) {
-    const start = Math.max(0, matchIndex - context);
-    const end = Math.min(lines.length - 1, matchIndex + context);
+  // Expand each matched line by `context` in both directions, deduping via Set.
+  const ctx = context ?? 0;
+  const resultLines = new Set<GrepHit['line']>();
+  for (const line of matchedLines) {
+    const start = Math.max(1, line - ctx);
+    const end = Math.min(lines.length, line + ctx);
     for (let i = start; i <= end; i++) {
-      resultIndices.add(i as GrepHit['line']);
+      resultLines.add(i as GrepHit['line']);
     }
   }
 
-  const sortedIndices = Array.from(resultIndices).sort((a, b) => a - b);
-
-  return sortedIndices.map((i) => grepHitContract.parse({ line: i + 1, text: lines[i] }));
+  const sorted = Array.from(resultLines).sort((a, b) => a - b);
+  return sorted.map((line) => grepHitContract.parse({ line, text: lines[line - 1] ?? '' }));
 };

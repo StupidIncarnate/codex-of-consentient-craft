@@ -42,7 +42,7 @@ export const formatFolderContentLayerBroker = ({
     return contentTextContract.parse(fileNames.join(', '));
   }
 
-  // Depth 2: list domain (action1, action2) pairs
+  // Depth 2: list domain/ (action1/, action2/) pairs
   if (folderDepth === projectMapStatics.depth2) {
     const domains = safeReaddirLayerBroker({ dirPath })
       .filter((entry) => entry.isDirectory())
@@ -62,13 +62,13 @@ export const formatFolderContentLayerBroker = ({
           const actionPath = absoluteFilePathContract.parse(`${domainPath}/${entry.name}`);
           return countFilesRecursiveLayerBroker({ dirPath: actionPath }) > 0;
         })
-        .map((entry) => entry.name)
+        .map((entry) => `${entry.name}/`)
         .sort();
 
       if (actions.length > 0) {
-        domainParts.push(contentTextContract.parse(`${domain.name} (${actions.join(', ')})`));
+        domainParts.push(contentTextContract.parse(`${domain.name}/ (${actions.join(', ')})`));
       } else {
-        domainParts.push(contentTextContract.parse(domain.name));
+        domainParts.push(contentTextContract.parse(`${domain.name}/`));
       }
     }
 
@@ -83,7 +83,7 @@ export const formatFolderContentLayerBroker = ({
       const subdirPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
       return countFilesRecursiveLayerBroker({ dirPath: subdirPath }) > 0;
     })
-    .map((entry) => entry.name)
+    .map((entry) => `${entry.name}/`)
     .sort();
 
   return contentTextContract.parse(subdirNames.join(', '));

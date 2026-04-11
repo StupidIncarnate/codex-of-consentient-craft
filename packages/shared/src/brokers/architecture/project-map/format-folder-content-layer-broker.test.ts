@@ -28,7 +28,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('chat-entry, quest-id, user-input');
+      expect(result).toBe('chat-entry/, quest-id/, user-input/');
     });
 
     it('VALID: folder with many subdirs => lists all without truncation', () => {
@@ -55,7 +55,7 @@ describe('formatFolderContentLayerBroker', () => {
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
       expect(result).toBe(
-        'alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, kilo',
+        'alpha/, bravo/, charlie/, delta/, echo/, foxtrot/, golf/, hotel/, india/, juliet/, kilo/',
       );
     });
 
@@ -74,7 +74,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('chat-entry, quest-id');
+      expect(result).toBe('chat-entry/, quest-id/');
     });
 
     it('EDGE: depth 1 with all subdirs empty => returns empty string', () => {
@@ -110,7 +110,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('guild (create, detail, list), quest (modify, start)');
+      expect(result).toBe('guild/ (create/, detail/, list/), quest/ (modify/, start/)');
     });
 
     it('VALID: domain with files but no action subdirs => lists domain name only', () => {
@@ -130,7 +130,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('guild');
+      expect(result).toBe('guild/');
     });
 
     it('EDGE: depth 2 with empty domain => empty domain excluded from list', () => {
@@ -159,7 +159,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('guild (create, list)');
+      expect(result).toBe('guild/ (create/, list/)');
     });
 
     it('EDGE: depth 2 domain with mix of empty and non-empty actions => only non-empty actions listed', () => {
@@ -182,7 +182,7 @@ describe('formatFolderContentLayerBroker', () => {
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
-      expect(result).toBe('guild (create, list)');
+      expect(result).toBe('guild/ (create/, list/)');
     });
 
     it('EDGE: depth 2 with all domains empty => returns empty string', () => {

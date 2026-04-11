@@ -308,6 +308,28 @@ describe('metadataExtractorTransformer', () => {
       expect(result?.purpose).toBe('Formats date/time using ISO-8601 format (YYYY-MM-DD)');
     });
 
+    it('VALID: {PURPOSE contains asterisk} => asterisk preserved, not truncated', () => {
+      const commentText = `/**
+ * PURPOSE: Computes n*log(n) merge-sort complexity for a list
+ * USAGE: compute({ list })
+ */`;
+
+      const result = metadataExtractorTransformer({ commentText });
+
+      expect(result?.purpose).toBe('Computes n*log(n) merge-sort complexity for a list');
+    });
+
+    it('VALID: {PURPOSE contains multiple asterisks mid-text} => all preserved', () => {
+      const commentText = `/**
+ * PURPOSE: Handles **bold** emphasis in markdown rendering
+ * USAGE: render({ text })
+ */`;
+
+      const result = metadataExtractorTransformer({ commentText });
+
+      expect(result?.purpose).toBe('Handles **bold** emphasis in markdown rendering');
+    });
+
     it('VALID: {extra whitespace} => trims correctly', () => {
       const commentText = `/**
  * PURPOSE:    Validates input

@@ -65,14 +65,22 @@ export const fileScannerBroker = async ({
     sharedFilePaths.map((fp) => absoluteFilePathContract.parse(fp)),
   );
 
-  // Combine project files and shared files
-  const allFilePaths: FilePath[] = [...projectFiles, ...sharedFilePaths];
+  // Combine project files and shared files, deduped by absolute path.
+  // A broad glob run from the monorepo root can hit the same shared source both
+  // via the cwd scan and the secondary shared-path scan — dedup prevents doubled results.
+  const seenPaths = new Set<FilePath>();
+  const allFilePaths: FilePath[] = [];
+  for (const fp of [...projectFiles, ...sharedFilePaths]) {
+    if (seenPaths.has(fp)) continue;
+    seenPaths.add(fp);
+    allFilePaths.push(fp);
+  }
 
   // 2. Extract metadata from each file (parallel for performance)
   const metadataPromises = allFilePaths.map(async (filepath) => {
     const contents = await fsReadFileAdapter({ filepath });
 
-    // Grep integration: if grep provided, filter by content match
+    // Grep integration: if grep provided, record whether content matches
     const hits: FileMetadata['hits'] = grep
       ? contentGrepTransformer({
           contents,
@@ -81,9 +89,7 @@ export const fileScannerBroker = async ({
         })
       : undefined;
 
-    if (grep && (!hits || hits.length === 0)) {
-      return null;
-    }
+    const matchesGrep = !grep || (hits !== undefined && hits.length > 0);
 
     // Extract function name
     const functionName = functionNameExtractorTransformer({ filepath });
@@ -114,7 +120,7 @@ export const fileScannerBroker = async ({
     // Detect file type
     const detectedFileType = fileTypeDetectorTransformer({ filepath });
 
-    return fileMetadataContract.parse({
+    const fileMetadata = fileMetadataContract.parse({
       name: functionName,
       path: filepath,
       fileType: detectedFileType,
@@ -123,12 +129,43 @@ export const fileScannerBroker = async ({
       usage: metadata?.usage,
       metadata: metadata?.metadata,
       relatedFiles: [],
-      ...(hits && { hits }),
+      ...(matchesGrep && hits && { hits }),
     });
+
+    return { fileMetadata, matchesGrep };
   });
 
-  const allResults = await Promise.all(metadataPromises);
-  const filesWithMetadata = allResults.filter((r): r is FileMetadata => r !== null);
+  // Use allSettled so that one unreadable file (e.g. broken symlink, permission error)
+  // doesn't abort the entire scan. Rejected reads are silently dropped; callers still
+  // get partial results for the files that were readable.
+  const settled = await Promise.allSettled(metadataPromises);
+  const allResults = settled
+    .filter(
+      (r): r is PromiseFulfilledResult<{ fileMetadata: FileMetadata; matchesGrep: boolean }> =>
+        r.status === 'fulfilled',
+    )
+    .map((r) => r.value);
+
+  // 2a. Filter by grep, but also keep implementation files whose multi-dot siblings matched.
+  // This ensures the LLM always sees the real entry file alongside proxy/test hits.
+  const matchedBasePaths = new Set<FileMetadata['path']>();
+  for (const { fileMetadata, matchesGrep } of allResults) {
+    if (matchesGrep && isMultiDotFileGuard({ filepath: fileMetadata.path })) {
+      matchedBasePaths.add(fileBasePathTransformer({ filepath: fileMetadata.path }));
+    }
+  }
+
+  const filesWithMetadata = allResults
+    .filter(({ fileMetadata, matchesGrep }) => {
+      if (matchesGrep) {
+        return true;
+      }
+      if (isMultiDotFileGuard({ filepath: fileMetadata.path })) {
+        return false;
+      }
+      return matchedBasePaths.has(fileBasePathTransformer({ filepath: fileMetadata.path }));
+    })
+    .map(({ fileMetadata }) => fileMetadata);
 
   // 3. Separate implementation files from multi-dot files for companion linking
   const implementationFiles = filesWithMetadata.filter(
