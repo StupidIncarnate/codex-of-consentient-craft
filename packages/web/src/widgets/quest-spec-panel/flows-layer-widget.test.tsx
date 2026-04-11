@@ -67,6 +67,56 @@ describe('FlowsLayerWidget', () => {
       expect(screen.queryByTestId('FLOW_SCOPE')).toBe(null);
     });
 
+    it('VALID: {flows: [runtime flow]} => renders FLOW_TYPE_BADGE with "runtime" text', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'runtime' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
+    });
+
+    it('VALID: {flows: [operational flow]} => renders FLOW_TYPE_BADGE with "operational" text', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'operational' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
+    });
+
+    it('VALID: {flows: [runtime, operational]} => renders both FLOW_TYPE_BADGE labels', () => {
+      FlowsLayerWidgetProxy();
+      const runtimeFlow = FlowStub({
+        id: 'runtime-flow' as never,
+        name: 'Runtime Flow',
+        flowType: 'runtime',
+      });
+      const operationalFlow = FlowStub({
+        id: 'operational-flow' as never,
+        name: 'Operational Flow',
+        flowType: 'operational',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <FlowsLayerWidget
+            flows={[runtimeFlow, operationalFlow]}
+            editing={false}
+            onChange={jest.fn()}
+          />
+        ),
+      });
+
+      const badges = screen.getAllByTestId('FLOW_TYPE_BADGE');
+
+      expect(badges.map((badge) => badge.textContent)).toStrictEqual(['runtime', 'operational']);
+    });
+
     it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
       FlowsLayerWidgetProxy();
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
@@ -162,6 +212,17 @@ describe('FlowsLayerWidget', () => {
       const nameInput = inputs.find((input) => input.getAttribute('value') === 'Login Flow');
 
       expect(nameInput).toBeInTheDocument();
+    });
+
+    it('VALID: {editing: true, flows: [operational flow]} => renders FLOW_TYPE_BADGE with "operational" text', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'operational' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
     });
 
     it('VALID: {editing: true, flows: [], click add} => calls onChange with new flow carrying flowType "runtime"', async () => {
