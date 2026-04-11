@@ -22,6 +22,9 @@ export const questStepHasValidFocusFileGuard = ({
   }
 
   for (const step of steps) {
+    if (step.focusFile === undefined) {
+      continue;
+    }
     const folderType = pathToFolderTypeTransformer({
       filePath: step.focusFile.path,
       folderConfigs: folderConfigStatics,

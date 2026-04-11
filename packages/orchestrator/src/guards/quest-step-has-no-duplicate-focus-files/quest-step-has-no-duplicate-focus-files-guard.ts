@@ -18,7 +18,9 @@ export const questStepHasNoDuplicateFocusFilesGuard = ({
     return false;
   }
 
-  const paths = steps.map((step) => String(step.focusFile.path));
+  const paths = steps
+    .filter((step) => step.focusFile !== undefined)
+    .map((step) => String(step.focusFile?.path ?? ''));
   const uniquePaths = new Set(paths);
 
   return uniquePaths.size === paths.length;

@@ -33,6 +33,9 @@ export const questStepHasContractRefsGuard = ({
   }
 
   for (const step of steps) {
+    if (step.focusFile === undefined) {
+      continue;
+    }
     const focusPath = step.focusFile.path;
 
     const folderType = pathToFolderTypeTransformer({

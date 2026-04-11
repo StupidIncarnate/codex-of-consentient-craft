@@ -83,6 +83,7 @@ test.describe('Quest WS Update', () => {
           {
             id: 'ws-live-flow',
             name: 'WS Live Flow',
+            flowType: 'runtime',
             entryPoint: 'Start',
             exitPoints: ['End'],
             nodes: [],
@@ -154,6 +155,7 @@ test.describe('Quest WS Update', () => {
           {
             id: 'live-ws-flow',
             name: 'Live WS Flow',
+            flowType: 'runtime',
             entryPoint: 'Begin',
             exitPoints: ['Finish'],
             nodes: [],
@@ -232,6 +234,7 @@ test.describe('Quest WS Update', () => {
           {
             id: 'race-condition-flow',
             name: 'Race Condition Flow',
+            flowType: 'runtime',
             entryPoint: 'Start',
             exitPoints: ['End'],
             nodes: [],

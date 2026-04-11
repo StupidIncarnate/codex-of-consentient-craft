@@ -22,7 +22,9 @@ export const stepToFilePairsTransformer = ({
 }): StepFilePath[][] => {
   const allFiles = new Set<StepFilePath>();
   for (const step of steps) {
-    allFiles.add(step.focusFile.path);
+    if (step.focusFile !== undefined) {
+      allFiles.add(step.focusFile.path);
+    }
     for (const file of step.accompanyingFiles) {
       allFiles.add(file.path);
     }

@@ -226,6 +226,51 @@ describe('dependencyStepContract', () => {
       expect('exportName' in step).toBe(false);
     });
 
+    it('VALID: {operational step with focusAction instead of focusFile} => parses successfully', () => {
+      const step = dependencyStepContract.parse({
+        id: 'run-ward-verification',
+        name: 'Run ward and verify green',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{ward invocation}',
+            expected: 'exits 0 with zero failures across lint, typecheck, unit',
+          },
+        ],
+        observablesSatisfied: ['ward-green'],
+        dependsOn: ['sweep-complete'],
+        focusAction: {
+          kind: 'verification',
+          description: 'npm run ward and assert zero failures',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['WardResult'],
+      });
+
+      expect(step).toStrictEqual({
+        id: 'run-ward-verification',
+        name: 'Run ward and verify green',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{ward invocation}',
+            expected: 'exits 0 with zero failures across lint, typecheck, unit',
+          },
+        ],
+        observablesSatisfied: ['ward-green'],
+        dependsOn: ['sweep-complete'],
+        focusAction: {
+          kind: 'verification',
+          description: 'npm run ward and assert zero failures',
+        },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['WardResult'],
+        uses: [],
+      });
+    });
+
     it('VALID: {multiple dependsOn} => parses step dependencies', () => {
       const step = DependencyStepStub({
         dependsOn: ['setup-database', 'create-schema'],
@@ -279,26 +324,82 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyAssertions).toThrow(/Array must contain at least 1 element/u);
     });
 
-    it('INVALID: {missing focusFile} => throws validation error', () => {
-      const parseMissingFocusFile = (): unknown =>
-        dependencyStepContract.parse({
-          id: 'valid-step',
-          name: 'Test',
-          assertions: [
-            {
-              prefix: 'VALID',
-              input: '{input}',
-              expected: 'result',
-            },
-          ],
-          observablesSatisfied: [],
-          dependsOn: [],
-          accompanyingFiles: [],
-          inputContracts: ['Void'],
-          outputContracts: ['Void'],
-        });
+    it('VALID: {neither focusFile nor focusAction} => parses successfully (XOR enforced at verify-quest layer)', () => {
+      const step = dependencyStepContract.parse({
+        id: 'valid-step',
+        name: 'Test',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{input}',
+            expected: 'result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+      });
 
-      expect(parseMissingFocusFile).toThrow(/Required/u);
+      expect(step).toStrictEqual({
+        id: 'valid-step',
+        name: 'Test',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{input}',
+            expected: 'result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
+    });
+
+    it('VALID: {both focusFile and focusAction} => parses successfully (XOR enforced at verify-quest layer)', () => {
+      const step = dependencyStepContract.parse({
+        id: 'valid-step',
+        name: 'Test',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{input}',
+            expected: 'result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        focusFile: { path: 'src/file.ts' },
+        focusAction: { kind: 'verification', description: 'Run ward' },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+      });
+
+      expect(step).toStrictEqual({
+        id: 'valid-step',
+        name: 'Test',
+        assertions: [
+          {
+            prefix: 'VALID',
+            input: '{input}',
+            expected: 'result',
+          },
+        ],
+        observablesSatisfied: [],
+        dependsOn: [],
+        focusFile: { path: 'src/file.ts' },
+        focusAction: { kind: 'verification', description: 'Run ward' },
+        accompanyingFiles: [],
+        inputContracts: ['Void'],
+        outputContracts: ['Void'],
+        uses: [],
+      });
     });
 
     it('INVALID: {inputContracts: []} => throws validation error for empty array', () => {

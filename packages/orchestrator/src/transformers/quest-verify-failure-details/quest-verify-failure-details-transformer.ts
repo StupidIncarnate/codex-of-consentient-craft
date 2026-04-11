@@ -59,9 +59,12 @@ export const questVerifyFailureDetailsTransformer = ({
     const issues: VerifyQuestCheck['details'][] = [];
 
     for (const step of quest.steps) {
+      if (step.focusFile === undefined) {
+        continue;
+      }
       const focusPath = step.focusFile.path;
       const folderType = pathToFolderTypeTransformer({
-        filePath: step.focusFile.path,
+        filePath: focusPath,
         folderConfigs: folderConfigStatics,
       });
 
@@ -74,7 +77,7 @@ export const questVerifyFailureDetailsTransformer = ({
       const requiredPaths: typeof accompanyingPaths = new Set();
 
       const expectedTestPath = focusFileToTestPathTransformer({
-        focusPath: step.focusFile.path,
+        focusPath,
         testType: config.testType,
       });
       if (expectedTestPath) {
@@ -150,6 +153,9 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Step Contract Declarations') {
     const issues = quest.steps
       .filter((step) => {
+        if (step.focusFile === undefined) {
+          return false;
+        }
         const folderType = pathToFolderTypeTransformer({
           filePath: step.focusFile.path,
           folderConfigs: folderConfigStatics,
@@ -165,10 +171,13 @@ export const questVerifyFailureDetailsTransformer = ({
         return needsContracts && isVoidOnly;
       })
       .map((step) => {
-        const folderType = pathToFolderTypeTransformer({
-          filePath: step.focusFile.path,
-          folderConfigs: folderConfigStatics,
-        });
+        const folderType =
+          step.focusFile === undefined
+            ? null
+            : pathToFolderTypeTransformer({
+                filePath: step.focusFile.path,
+                folderConfigs: folderConfigStatics,
+              });
         return `step "${String(step.name)}" in folder [${String(folderType)}] has outputContracts ["Void"] but folder requires real contract declarations`;
       });
     return checkDetailsSchema.parse(issues.join('; '));
@@ -196,6 +205,9 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Step Export Names') {
     const issues = quest.steps
       .filter((step) => {
+        if (step.focusFile === undefined) {
+          return false;
+        }
         const hasEntryFile = isEntryFileGuard({
           filePath: step.focusFile.path,
           folderConfigs: folderConfigStatics,
@@ -204,7 +216,7 @@ export const questVerifyFailureDetailsTransformer = ({
       })
       .map(
         (step) =>
-          `step "${String(step.name)}" creates entry file "${String(step.focusFile.path)}" but has no exportName`,
+          `step "${String(step.name)}" creates entry file "${String(step.focusFile?.path ?? '')}" but has no exportName`,
       );
     return checkDetailsSchema.parse(issues.join('; '));
   }
@@ -264,6 +276,9 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'No Duplicate Focus Files') {
     const pathMap = new Map<VerifyQuestCheck['details'], VerifyQuestCheck['details'][]>();
     for (const step of quest.steps) {
+      if (step.focusFile === undefined) {
+        continue;
+      }
       const path = checkDetailsSchema.parse(String(step.focusFile.path));
       const existing = pathMap.get(path) ?? [];
       existing.push(checkDetailsSchema.parse(String(step.name)));
@@ -281,6 +296,9 @@ export const questVerifyFailureDetailsTransformer = ({
   if (checkName === 'Valid Focus Files') {
     const issues: VerifyQuestCheck['details'][] = [];
     for (const step of quest.steps) {
+      if (step.focusFile === undefined) {
+        continue;
+      }
       const folderType = pathToFolderTypeTransformer({
         filePath: step.focusFile.path,
         folderConfigs: folderConfigStatics,

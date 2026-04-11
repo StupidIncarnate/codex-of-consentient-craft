@@ -58,6 +58,7 @@ export const FlowsLayerWidget = ({
           {
             id: crypto.randomUUID(),
             name: '',
+            flowType: 'runtime',
             entryPoint: '',
             exitPoints: [],
             nodes: [],

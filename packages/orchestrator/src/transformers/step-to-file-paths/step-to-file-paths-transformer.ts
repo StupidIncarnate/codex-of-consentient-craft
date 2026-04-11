@@ -14,7 +14,10 @@ export const stepToFilePathsTransformer = ({ step }: { step: DependencyStep }): 
   const seen = new Set<StepFilePath>();
   const result: StepFilePath[] = [];
 
-  const allPaths = [step.focusFile.path, ...step.accompanyingFiles.map((f) => f.path)];
+  const allPaths =
+    step.focusFile === undefined
+      ? step.accompanyingFiles.map((f) => f.path)
+      : [step.focusFile.path, ...step.accompanyingFiles.map((f) => f.path)];
 
   for (const filePath of allPaths) {
     if (!seen.has(filePath)) {

@@ -163,5 +163,31 @@ describe('FlowsLayerWidget', () => {
 
       expect(nameInput).toBeInTheDocument();
     });
+
+    it('VALID: {editing: true, flows: [], click add} => calls onChange with new flow carrying flowType "runtime"', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      const flows: Flow[] = [];
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={flows} editing={true} onChange={onChange} />,
+      });
+
+      await proxy.clickAdd();
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      const nextFlows = onChange.mock.calls[0]![0] as Flow[];
+      const { id: _createdId, ...createdWithoutId } = nextFlows[0]!;
+
+      expect(createdWithoutId).toStrictEqual({
+        name: '',
+        flowType: 'runtime',
+        entryPoint: '',
+        exitPoints: [],
+        nodes: [],
+        edges: [],
+      });
+    });
   });
 });

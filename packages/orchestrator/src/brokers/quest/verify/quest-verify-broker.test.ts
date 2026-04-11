@@ -36,6 +36,7 @@ describe('questVerifyBroker', () => {
           {
             id: 'login-flow',
             name: 'Login Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [
@@ -97,6 +98,7 @@ describe('questVerifyBroker', () => {
           {
             id: 'bug-flow',
             name: 'Bug Flow',
+            flowType: 'runtime',
             entryPoint: '/bug',
             exitPoints: ['/fixed'],
             nodes: [

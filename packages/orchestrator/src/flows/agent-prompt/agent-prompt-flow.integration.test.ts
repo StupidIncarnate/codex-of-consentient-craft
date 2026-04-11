@@ -7,6 +7,7 @@
 
 import { gapReviewerAgentPromptStatics } from '../../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
 import { finalizerQuestAgentPromptStatics } from '../../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
+import { plannerMinionQuestAgentPromptStatics } from '../../statics/planner-minion-quest-agent-prompt/planner-minion-quest-agent-prompt-statics';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
 
@@ -29,6 +30,16 @@ describe('AgentPromptFlow', () => {
         name: 'finalizer-quest-agent',
         model: 'sonnet',
         prompt: finalizerQuestAgentPromptStatics.prompt.template,
+      });
+    });
+
+    it('VALID: {agent: planner-minion-quest-agent} => returns prompt result with name, model, and prompt', () => {
+      const result = AgentPromptFlow.get({ agent: 'planner-minion-quest-agent' });
+
+      expect(result).toStrictEqual({
+        name: 'planner-minion-quest-agent',
+        model: 'sonnet',
+        prompt: plannerMinionQuestAgentPromptStatics.prompt.template,
       });
     });
   });
