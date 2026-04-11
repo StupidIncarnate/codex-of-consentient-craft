@@ -254,6 +254,10 @@ Mark Phase 4 task completed, mark Phase 5 task in_progress.
 
 ### Phase 5: Observables Approval Gate
 
+16a. **Run validate-spec first.** Call the \`validate-spec\` MCP tool with \`{questId: "QUEST_ID"}\`. It returns
+    \`{success, checks}\` with deterministic structural checks on the spec. If any check has \`passed: false\`, fix
+    the issue via \`modify-quest\` and re-run until success is true. THEN spawn the gap reviewer for semantic review.
+
 17. **Spawn quest-gap-reviewer** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt:
     \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'quest-gap-reviewer' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
 18. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.

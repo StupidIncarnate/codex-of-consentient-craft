@@ -13,5 +13,11 @@ describe('QuestFlow', () => {
 
       expect(result.success).toBe(false);
     });
+
+    it('VALID: {questId: nonexistent} => validateSpec delegates to QuestValidateSpecResponder and returns error', async () => {
+      const result = await QuestFlow.validateSpec({ questId: 'nonexistent-quest' });
+
+      expect(result.success).toBe(false);
+    });
   });
 });

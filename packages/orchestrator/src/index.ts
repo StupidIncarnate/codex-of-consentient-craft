@@ -10,6 +10,7 @@ export { questListBroker } from './brokers/quest/list/quest-list-broker';
 export { questLoadBroker } from './brokers/quest/load/quest-load-broker';
 export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
 export { questVerifyBroker } from './brokers/quest/verify/quest-verify-broker';
+export { questValidateSpecBroker } from './brokers/quest/validate-spec/quest-validate-spec-broker';
 export { questOutboxWatchBroker } from './brokers/quest/outbox-watch/quest-outbox-watch-broker';
 
 // Quest contracts - exported for use by other packages
@@ -35,6 +36,8 @@ export { verifyQuestCheckContract } from './contracts/verify-quest-check/verify-
 export type { VerifyQuestCheck } from './contracts/verify-quest-check/verify-quest-check-contract';
 export { verifyQuestResultContract } from './contracts/verify-quest-result/verify-quest-result-contract';
 export type { VerifyQuestResult } from './contracts/verify-quest-result/verify-quest-result-contract';
+export { validateSpecInputContract } from './contracts/validate-spec-input/validate-spec-input-contract';
+export type { ValidateSpecInput } from './contracts/validate-spec-input/validate-spec-input-contract';
 
 // Agent prompt contracts - exported for MCP package
 export { agentPromptResultContract } from './contracts/agent-prompt-result/agent-prompt-result-contract';
