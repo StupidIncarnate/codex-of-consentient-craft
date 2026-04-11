@@ -178,7 +178,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^adapters\/$/mu);
+      expect(data.results).toMatch(/^@dungeonmaster\/\n {2}shared\/\n {4}adapters\/\n[\s\S]+$/u);
     });
 
     it('VALID: {glob: **/*-adapter.*} => shared package includes fs-access-adapter', async () => {
@@ -203,7 +203,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^\s+fs-access-adapter \(adapter\) - .+$/mu);
+      expect(data.results).toMatch(/^ {10}fs-access-adapter \(adapter\) - .+$/mu);
     });
   });
 
