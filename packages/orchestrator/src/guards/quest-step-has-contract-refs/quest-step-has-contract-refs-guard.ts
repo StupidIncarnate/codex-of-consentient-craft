@@ -5,13 +5,11 @@
  * questStepHasContractRefsGuard({steps, contracts});
  * // Returns true if all applicable steps have non-Void outputContracts, false if any use Void in contract-requiring folders
  */
-import type { DependencyStepStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep, QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
+import { fileAnchoredStepsTransformer } from '../../transformers/file-anchored-steps/file-anchored-steps-transformer';
 import { pathToFolderTypeTransformer } from '../../transformers/path-to-folder-type/path-to-folder-type-transformer';
-
-type DependencyStep = ReturnType<typeof DependencyStepStub>;
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 
 export const questStepHasContractRefsGuard = ({
   steps,
@@ -32,10 +30,9 @@ export const questStepHasContractRefsGuard = ({
     return true;
   }
 
-  for (const step of steps) {
-    if (step.focusFile === undefined) {
-      continue;
-    }
+  const fileSteps = fileAnchoredStepsTransformer({ steps });
+
+  for (const step of fileSteps) {
     const focusPath = step.focusFile.path;
 
     const folderType = pathToFolderTypeTransformer({

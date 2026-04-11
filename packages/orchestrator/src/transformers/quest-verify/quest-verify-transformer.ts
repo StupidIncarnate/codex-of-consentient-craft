@@ -21,6 +21,7 @@ import { questStepHasContractRefsGuard } from '../../guards/quest-step-has-contr
 import { questHasNoOrphanFlowNodesGuard } from '../../guards/quest-has-no-orphan-flow-nodes/quest-has-no-orphan-flow-nodes-guard';
 import { questHasValidFlowRefsGuard } from '../../guards/quest-has-valid-flow-refs/quest-has-valid-flow-refs-guard';
 import { questStepHasExportNameGuard } from '../../guards/quest-step-has-export-name/quest-step-has-export-name-guard';
+import { questStepHasFocusTargetGuard } from '../../guards/quest-step-has-focus-target/quest-step-has-focus-target-guard';
 import { questStepHasValidContractRefsGuard } from '../../guards/quest-step-has-valid-contract-refs/quest-step-has-valid-contract-refs-guard';
 import { questStepHasNoDuplicateFocusFilesGuard } from '../../guards/quest-step-has-no-duplicate-focus-files/quest-step-has-no-duplicate-focus-files-guard';
 import { questStepHasValidFocusFileGuard } from '../../guards/quest-step-has-valid-focus-file/quest-step-has-valid-focus-file-guard';
@@ -214,6 +215,20 @@ export const questVerifyTransformer = ({ quest }: { quest: Quest }): VerifyQuest
       details: validFocusFile
         ? 'All steps have focusFile paths matching known folder types'
         : questVerifyFailureDetailsTransformer({ quest, checkName: validFocusFileName }),
+    }),
+  );
+
+  const focusTargetName = checkNameSchema.parse('Step Focus Target');
+  const focusTarget = questStepHasFocusTargetGuard({
+    steps: quest.steps,
+  });
+  checks.push(
+    verifyQuestCheckContract.parse({
+      name: focusTargetName,
+      passed: focusTarget,
+      details: focusTarget
+        ? 'All steps have exactly one of focusFile or focusAction'
+        : questVerifyFailureDetailsTransformer({ quest, checkName: focusTargetName }),
     }),
   );
 

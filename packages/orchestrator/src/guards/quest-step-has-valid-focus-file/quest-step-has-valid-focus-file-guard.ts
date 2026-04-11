@@ -5,12 +5,11 @@
  * questStepHasValidFocusFileGuard({steps});
  * // Returns true if all focusFile paths match known folder types, false otherwise
  */
-import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
+import { fileAnchoredStepsTransformer } from '../../transformers/file-anchored-steps/file-anchored-steps-transformer';
 import { pathToFolderTypeTransformer } from '../../transformers/path-to-folder-type/path-to-folder-type-transformer';
-
-type DependencyStep = ReturnType<typeof DependencyStepStub>;
 
 export const questStepHasValidFocusFileGuard = ({
   steps,
@@ -21,10 +20,9 @@ export const questStepHasValidFocusFileGuard = ({
     return false;
   }
 
-  for (const step of steps) {
-    if (step.focusFile === undefined) {
-      continue;
-    }
+  const fileSteps = fileAnchoredStepsTransformer({ steps });
+
+  for (const step of fileSteps) {
     const folderType = pathToFolderTypeTransformer({
       filePath: step.focusFile.path,
       folderConfigs: folderConfigStatics,

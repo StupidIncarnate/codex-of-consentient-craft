@@ -5,12 +5,11 @@
  * questStepHasExportNameGuard({steps, folderConfigs: folderConfigStatics});
  * // Returns true if all steps with entry files have exportName, false otherwise
  */
-import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
+import { fileAnchoredStepsTransformer } from '../../transformers/file-anchored-steps/file-anchored-steps-transformer';
 import { isEntryFileGuard } from '../is-entry-file/is-entry-file-guard';
-
-type DependencyStep = ReturnType<typeof DependencyStepStub>;
 
 export const questStepHasExportNameGuard = ({
   steps,
@@ -27,10 +26,9 @@ export const questStepHasExportNameGuard = ({
     return true;
   }
 
-  for (const step of steps) {
-    if (step.focusFile === undefined) {
-      continue;
-    }
+  const fileSteps = fileAnchoredStepsTransformer({ steps });
+
+  for (const step of fileSteps) {
     const isEntry = isEntryFileGuard({ filePath: String(step.focusFile.path), folderConfigs });
 
     if (!isEntry) {

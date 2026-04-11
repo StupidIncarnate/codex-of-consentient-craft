@@ -5,9 +5,9 @@
  * questStepHasNoDuplicateFocusFilesGuard({steps});
  * // Returns true if all focusFile.path values are unique, false if any are duplicated
  */
-import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep } from '@dungeonmaster/shared/contracts';
 
-type DependencyStep = ReturnType<typeof DependencyStepStub>;
+import { fileAnchoredStepsTransformer } from '../../transformers/file-anchored-steps/file-anchored-steps-transformer';
 
 export const questStepHasNoDuplicateFocusFilesGuard = ({
   steps,
@@ -18,9 +18,8 @@ export const questStepHasNoDuplicateFocusFilesGuard = ({
     return false;
   }
 
-  const paths = steps
-    .filter((step) => step.focusFile !== undefined)
-    .map((step) => String(step.focusFile?.path ?? ''));
+  const fileSteps = fileAnchoredStepsTransformer({ steps });
+  const paths = fileSteps.map((step) => String(step.focusFile.path));
   const uniquePaths = new Set(paths);
 
   return uniquePaths.size === paths.length;

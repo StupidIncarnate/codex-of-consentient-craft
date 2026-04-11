@@ -84,6 +84,7 @@ describe('questVerifyBroker', () => {
         'Node Observable Coverage',
         'No Duplicate Focus Files',
         'Valid Focus Files',
+        'Step Focus Target',
       ]);
       expect(result.checks.every((check) => check.passed)).toBe(true);
     });
@@ -153,6 +154,7 @@ describe('questVerifyBroker', () => {
         'Node Observable Coverage',
         'No Duplicate Focus Files',
         'Valid Focus Files',
+        'Step Focus Target',
       ]);
       expect(result.checks.some((check) => !check.passed)).toBe(true);
     });

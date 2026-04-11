@@ -187,6 +187,11 @@ describe('questVerifyTransformer', () => {
           passed: true,
           details: 'All steps have focusFile paths matching known folder types',
         },
+        {
+          name: 'Step Focus Target',
+          passed: true,
+          details: 'All steps have exactly one of focusFile or focusAction',
+        },
       ]);
     });
   });
