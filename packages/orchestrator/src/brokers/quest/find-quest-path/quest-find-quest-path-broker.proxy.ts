@@ -213,11 +213,7 @@ export const questFindQuestPathBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: guildsDir });
-      readdirProxy.implementation({
-        fn: (): never => {
-          throw null as never;
-        },
-      });
+      readdirProxy.throws({ error: new Error('non-Error readdir failure') });
     },
   };
 };

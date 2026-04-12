@@ -101,9 +101,11 @@ describe('StartOrchestrator', () => {
       testbed.cleanup();
       restore();
 
-      expect(result.success).toBe(true);
-      expect(result.checks.length > 0).toBe(true);
-      expect(result.checks.every((check) => check.passed === true)).toBe(true);
+      const { success, checks } = result;
+
+      expect(success).toBe(true);
+      expect(checks.length).toBeGreaterThan(0);
+      expect(checks.every((check) => check.passed)).toBe(true);
     });
 
     it('ERROR: {nonexistent questId} => validateSpec returns failure with error and empty checks', async () => {
