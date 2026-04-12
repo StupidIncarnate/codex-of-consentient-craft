@@ -1,4 +1,4 @@
-import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import { DependencyStepStub, StepFocusActionStub } from '@dungeonmaster/shared/contracts';
 
 import { stepToFilePairsTransformer } from './step-to-file-pairs-transformer';
 
@@ -143,6 +143,54 @@ describe('stepToFilePairsTransformer', () => {
       const result = stepToFilePairsTransformer({ steps });
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('focusAction-only steps', () => {
+    it('VALID: {focusAction-only step with accompanyingFiles} => includes accompanying files with no focus pair', () => {
+      const steps = [
+        DependencyStepStub({
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'verification',
+            description: 'Run ward and assert zero failures',
+          }),
+          accompanyingFiles: [{ path: 'src/existing.ts' }],
+        }),
+      ];
+
+      const result = stepToFilePairsTransformer({ steps });
+
+      expect(result).toStrictEqual([['src/existing.ts']]);
+    });
+
+    it('VALID: {mixed file-anchored step and focusAction step each with accompanying} => produces union correctly', () => {
+      const steps = [
+        DependencyStepStub({
+          id: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b',
+          focusFile: { path: 'src/brokers/user/fetch/user-fetch-broker.ts' },
+          accompanyingFiles: [{ path: 'src/brokers/user/fetch/user-fetch-broker.test.ts' }],
+        }),
+        DependencyStepStub({
+          id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'command',
+            description: 'Run npm run build',
+          }),
+          accompanyingFiles: [{ path: 'src/guards/is-valid/is-valid-guard.ts' }],
+        }),
+      ];
+
+      const result = stepToFilePairsTransformer({ steps });
+
+      expect(result).toStrictEqual([
+        [
+          'src/brokers/user/fetch/user-fetch-broker.ts',
+          'src/brokers/user/fetch/user-fetch-broker.test.ts',
+        ],
+        ['src/guards/is-valid/is-valid-guard.ts'],
+      ]);
     });
   });
 

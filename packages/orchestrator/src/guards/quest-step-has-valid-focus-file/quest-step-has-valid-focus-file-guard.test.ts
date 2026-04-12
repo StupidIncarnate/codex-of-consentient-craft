@@ -1,4 +1,8 @@
-import { DependencyStepStub, StepFileReferenceStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  StepFileReferenceStub,
+  StepFocusActionStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questStepHasValidFocusFileGuard } from './quest-step-has-valid-focus-file-guard';
 
@@ -56,6 +60,23 @@ describe('questStepHasValidFocusFileGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/shared/src/statics/config/config-statics.ts',
+          }),
+          accompanyingFiles: [],
+        }),
+      ];
+
+      const result = questStepHasValidFocusFileGuard({ steps });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {single focusAction-only step} => returns true', () => {
+      const steps = [
+        DependencyStepStub({
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'verification',
+            description: 'Run ward and assert zero failures',
           }),
           accompanyingFiles: [],
         }),

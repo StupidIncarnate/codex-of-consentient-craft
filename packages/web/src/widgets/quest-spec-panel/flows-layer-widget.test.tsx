@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { FlowStub, FlowNodeStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowsLayerWidget } from './flows-layer-widget';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
@@ -117,6 +118,48 @@ describe('FlowsLayerWidget', () => {
       expect(badges.map((badge) => badge.textContent)).toStrictEqual(['runtime', 'operational']);
     });
 
+    it('VALID: {runtime flow in read mode} => badge text color matches primary theme color', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'runtime' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
+
+      expect(badgeTextColor).toBe('rgb(255, 107, 53)');
+      expect(emberDepthsThemeStatics.colors.primary).toBe('#ff6b35');
+    });
+
+    it('VALID: {operational flow in read mode} => badge text color matches loot-rare theme color', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'operational' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
+
+      expect(badgeTextColor).toBe('rgb(232, 121, 249)');
+      expect(emberDepthsThemeStatics.colors['loot-rare']).toBe('#e879f9');
+    });
+
+    it('VALID: {read mode badge placement} => badge is rendered inside same Group as flow name', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ name: 'Login Flow', flowType: 'runtime' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      const nameParent = screen.getByTestId('FLOW_NAME').parentElement;
+      const badgeParent = screen.getByTestId('FLOW_TYPE_BADGE').parentElement;
+
+      expect(nameParent).toBe(badgeParent);
+    });
+
     it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
       FlowsLayerWidgetProxy();
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
@@ -212,6 +255,17 @@ describe('FlowsLayerWidget', () => {
       const nameInput = inputs.find((input) => input.getAttribute('value') === 'Login Flow');
 
       expect(nameInput).toBeInTheDocument();
+    });
+
+    it('VALID: {editing: true, flows: [runtime flow]} => renders FLOW_TYPE_BADGE with "runtime" text', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'runtime' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
     });
 
     it('VALID: {editing: true, flows: [operational flow]} => renders FLOW_TYPE_BADGE with "operational" text', () => {

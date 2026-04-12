@@ -21,7 +21,7 @@ export const questDesignDecisionHasRationaleGuard = ({
   }
 
   return designDecisions.every((decision) => {
-    const rationale = String(decision.rationale);
-    return rationale.length > 0;
+    const { rationale } = decision;
+    return typeof rationale === 'string' && rationale.length > 0;
   });
 };

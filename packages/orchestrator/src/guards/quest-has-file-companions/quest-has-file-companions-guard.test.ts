@@ -2,6 +2,7 @@ import {
   DependencyStepStub,
   ObservableIdStub,
   StepFileReferenceStub,
+  StepFocusActionStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questHasFileCompanionsGuard } from './quest-has-file-companions-guard';
@@ -386,6 +387,41 @@ describe('questHasFileCompanionsGuard', () => {
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
+          }),
+          accompanyingFiles: [],
+        }),
+      ];
+
+      const result = questHasFileCompanionsGuard({ steps });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {mixed steps with focusAction-only step} => focusAction step filtered, file-anchored step drives outcome', () => {
+      const obsId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+      const steps = [
+        DependencyStepStub({
+          id: 'file-anchored-broker',
+          observablesSatisfied: [obsId],
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+          }),
+          accompanyingFiles: [
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+            }),
+            StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+            }),
+          ],
+        }),
+        DependencyStepStub({
+          id: 'focus-action-verification',
+          observablesSatisfied: [obsId],
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'verification',
+            description: 'Run ward and assert zero failures',
           }),
           accompanyingFiles: [],
         }),

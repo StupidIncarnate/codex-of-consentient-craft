@@ -1,4 +1,8 @@
-import { DependencyStepStub, StepFileReferenceStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  StepFileReferenceStub,
+  StepFocusActionStub,
+} from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import { questStepHasExportNameGuard } from './quest-step-has-export-name-guard';
@@ -71,6 +75,30 @@ describe('questStepHasExportNameGuard', () => {
           id: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c',
           focusFile: StepFileReferenceStub({
             path: 'src/brokers/auth/login/some-utility.ts',
+          }),
+        }),
+      ];
+
+      const result = questStepHasExportNameGuard({ steps, folderConfigs: folderConfigStatics });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {mixed steps with focusAction-only step} => focusAction step filtered, file-anchored step drives outcome', () => {
+      const steps = [
+        DependencyStepStub({
+          id: 'file-anchored-broker',
+          focusFile: StepFileReferenceStub({
+            path: 'src/brokers/auth/login/auth-login-broker.ts',
+          }),
+          exportName: 'authLoginBroker',
+        }),
+        DependencyStepStub({
+          id: 'focus-action-verification',
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'verification',
+            description: 'Run ward and assert zero failures',
           }),
         }),
       ];

@@ -19,8 +19,8 @@ export const questObservableHasDescriptionGuard = ({ flows }: { flows?: Flow[] }
   return flows.every((flow) =>
     flow.nodes.every((node) =>
       node.observables.every((observable) => {
-        const description = String(observable.description);
-        return description.length > 0;
+        const { description } = observable;
+        return typeof description === 'string' && description.length > 0;
       }),
     ),
   );

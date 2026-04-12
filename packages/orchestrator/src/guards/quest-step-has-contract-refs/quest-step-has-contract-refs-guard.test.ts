@@ -3,6 +3,7 @@ import {
   DependencyStepStub,
   QuestContractEntryStub,
   StepFileReferenceStub,
+  StepFocusActionStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questStepHasContractRefsGuard } from './quest-step-has-contract-refs-guard';
@@ -167,6 +168,33 @@ describe('questStepHasContractRefsGuard', () => {
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
             path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
+          }),
+          outputContracts: [ContractNameStub({ value: 'Void' })],
+        }),
+      ];
+
+      const result = questStepHasContractRefsGuard({ steps, contracts });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {mixed steps with focusAction-only step} => focusAction step filtered, file-anchored step drives outcome', () => {
+      const contractName = ContractNameStub({ value: 'UserProfile' });
+      const contracts = [QuestContractEntryStub({ name: contractName })];
+      const steps = [
+        DependencyStepStub({
+          id: 'file-anchored-broker',
+          focusFile: StepFileReferenceStub({
+            path: 'packages/orchestrator/src/brokers/user/fetch/user-fetch-broker.ts',
+          }),
+          outputContracts: [contractName],
+        }),
+        DependencyStepStub({
+          id: 'focus-action-verification',
+          focusFile: undefined,
+          focusAction: StepFocusActionStub({
+            kind: 'verification',
+            description: 'Run ward and assert zero failures',
           }),
           outputContracts: [ContractNameStub({ value: 'Void' })],
         }),

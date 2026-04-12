@@ -13,6 +13,15 @@ const createDecisionWithEmptyRationale = (): DesignDecision => {
   return { ...base, rationale: '' } as DesignDecision;
 };
 
+/**
+ * Creates a DesignDecision with rationale replaced by undefined, bypassing Zod. Used to
+ * simulate malformed data reaching the guard so we can assert the defensive branch.
+ */
+const createDecisionWithUndefinedRationale = (): DesignDecision => {
+  const base = DesignDecisionStub();
+  return { ...base, rationale: undefined } as unknown as DesignDecision;
+};
+
 describe('questDesignDecisionHasRationaleGuard', () => {
   describe('valid rationales', () => {
     it('VALID: {decision with non-empty rationale} => returns true', () => {
@@ -35,6 +44,27 @@ describe('questDesignDecisionHasRationaleGuard', () => {
   describe('empty rationales', () => {
     it('INVALID: {decision with empty rationale} => returns false', () => {
       const designDecisions = [createDecisionWithEmptyRationale()];
+
+      const result = questDesignDecisionHasRationaleGuard({ designDecisions });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('undefined rationales', () => {
+    it('INVALID: {decision with undefined rationale} => returns false', () => {
+      const designDecisions = [createDecisionWithUndefinedRationale()];
+
+      const result = questDesignDecisionHasRationaleGuard({ designDecisions });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {mixed decisions with one undefined rationale} => returns false', () => {
+      const designDecisions = [
+        DesignDecisionStub({ rationale: 'JWT allows stateless auth with built-in expiration' }),
+        createDecisionWithUndefinedRationale(),
+      ];
 
       const result = questDesignDecisionHasRationaleGuard({ designDecisions });
 
