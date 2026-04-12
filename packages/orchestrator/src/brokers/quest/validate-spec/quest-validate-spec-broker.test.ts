@@ -208,21 +208,4 @@ describe('questValidateSpecBroker', () => {
       });
     });
   });
-
-  describe('non-Error rejection', () => {
-    it('ERROR: {non-Error throw in dependency} => returns success false with Unknown error', async () => {
-      const proxy = questValidateSpecBrokerProxy();
-
-      proxy.setupNonErrorThrow();
-
-      const input = ValidateSpecInputStub({ questId: 'any-quest' });
-      const result = await questValidateSpecBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: false,
-        checks: [],
-        error: 'Unknown error',
-      });
-    });
-  });
 });

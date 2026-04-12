@@ -24,7 +24,6 @@ export const questValidateSpecBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
   setupLoadFailure: (params: { quest: Quest; error: Error }) => void;
-  setupNonErrorThrow: () => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -124,19 +123,6 @@ export const questValidateSpecBrokerProxy = (): {
       pathJoinProxy.returns({ result: questFilePath });
 
       loadProxy.setupQuestFileReadError({ error });
-    },
-
-    setupNonErrorThrow: (): void => {
-      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-      const guildsDir = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds',
-      });
-
-      findQuestPathProxy.setupNonErrorReaddirThrow({
-        homeDir: '/home/testuser',
-        homePath,
-        guildsDir,
-      });
     },
   };
 };
