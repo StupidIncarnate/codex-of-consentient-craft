@@ -433,7 +433,7 @@ export const ExecutionPanelWidget = ({
                             files={
                               step
                                 ? ([
-                                    step.focusFile.path,
+                                    ...(step.focusFile ? [step.focusFile.path] : []),
                                     ...step.accompanyingFiles.map((af) => af.path),
                                   ] as unknown as DisplayFilePath[])
                                 : ([] as DisplayFilePath[])

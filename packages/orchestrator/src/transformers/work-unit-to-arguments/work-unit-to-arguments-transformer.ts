@@ -27,9 +27,15 @@ export const workUnitToArgumentsTransformer = ({
         relatedDesignDecisions,
         relatedFlows,
       } = workUnit;
+      const focusLine =
+        step.focusFile === undefined
+          ? step.focusAction === undefined
+            ? 'Focus: (none)'
+            : `Focus Action: [${step.focusAction.kind}] ${String(step.focusAction.description)}`
+          : `Focus File: ${String(step.focusFile.path)}`;
       const parts: ContentText[] = [
         contentTextContract.parse(`Step: ${step.name}`),
-        contentTextContract.parse(`Focus File: ${step.focusFile.path}`),
+        contentTextContract.parse(focusLine),
       ];
 
       if (step.exportName !== undefined) {

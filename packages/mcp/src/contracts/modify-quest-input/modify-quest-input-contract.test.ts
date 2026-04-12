@@ -188,6 +188,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [{ id: 'n1', label: 'Login', type: 'state', observables: [] }],
@@ -200,6 +201,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [{ id: 'n1', label: 'Login', type: 'state', observables: [] }],
@@ -213,6 +215,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             edges: [{ id: 'e1', from: 'n1', to: 'n2' }],
@@ -225,6 +228,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         edges: [{ id: 'e1', from: 'n1', to: 'n2' }],
@@ -238,6 +242,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [{ id: 'n1', label: 'Login', type: 'state' }],
@@ -250,6 +255,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [{ id: 'n1', label: 'Login', type: 'state' }],
@@ -263,6 +269,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [
@@ -289,6 +296,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [
@@ -311,6 +319,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             edges: [{ id: 'e1', from: 'n1', to: 'n2', _delete: true }],
@@ -323,6 +332,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         edges: [{ id: 'e1', from: 'n1', to: 'n2', _delete: true }],
@@ -338,6 +348,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [
@@ -357,6 +368,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [
@@ -377,6 +389,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [{ id: 'n1', _delete: true }],
@@ -389,6 +402,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [{ id: 'n1', _delete: true }],
@@ -402,6 +416,7 @@ describe('modifyQuestInputContract', () => {
           {
             id: 'flow-a',
             name: 'Auth Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             edges: [{ id: 'e1', _delete: true }],
@@ -414,6 +429,7 @@ describe('modifyQuestInputContract', () => {
       expect(result.flows![0]).toStrictEqual({
         id: 'flow-a',
         name: 'Auth Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         edges: [{ id: 'e1', _delete: true }],

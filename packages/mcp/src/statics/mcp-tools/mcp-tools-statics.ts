@@ -28,6 +28,7 @@ export const mcpToolsStatics = {
       'list-quests',
       'list-guilds',
       'verify-quest',
+      'validate-spec',
       'ask-user-question',
       'get-agent-prompt',
       'get-project-map',

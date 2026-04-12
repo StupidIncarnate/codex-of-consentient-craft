@@ -168,6 +168,7 @@ export const questHarness = ({
         {
           id: 'harness-flow',
           name: 'Harness Flow',
+          flowType: 'runtime',
           entryPoint: 'start',
           exitPoints: ['end'],
           nodes: [
@@ -235,6 +236,7 @@ export const questHarness = ({
       {
         id: 'harness-flow',
         name: 'Harness Flow',
+        flowType: 'runtime',
         entryPoint: 'start',
         exitPoints: ['end'],
         nodes: [

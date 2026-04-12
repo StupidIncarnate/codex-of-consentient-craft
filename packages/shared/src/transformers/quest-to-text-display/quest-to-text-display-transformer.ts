@@ -122,7 +122,13 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
           `${SYM.indent}Assertions: ${step.assertions.map((a) => `${a.prefix}: ${a.input} => ${a.expected}`).join('; ')}`,
         ),
       );
-      parts.push(contentTextContract.parse(`${SYM.indent}Focus: ${step.focusFile.path}`));
+      const focusDescription =
+        step.focusFile === undefined
+          ? step.focusAction === undefined
+            ? '(none)'
+            : `[${step.focusAction.kind}] ${step.focusAction.description}`
+          : step.focusFile.path;
+      parts.push(contentTextContract.parse(`${SYM.indent}Focus: ${focusDescription}`));
       if (step.accompanyingFiles.length > 0) {
         parts.push(
           contentTextContract.parse(

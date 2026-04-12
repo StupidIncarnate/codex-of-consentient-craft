@@ -191,6 +191,7 @@ describe('questItemDeepMergeTransformer', () => {
       expect(result).toStrictEqual({
         id: 'flow-a',
         name: 'New Name',
+        flowType: 'runtime',
         entryPoint: '/old',
         exitPoints: ['/exit'],
         nodes: [existingNode],

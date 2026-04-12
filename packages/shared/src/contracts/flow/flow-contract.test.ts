@@ -11,11 +11,18 @@ describe('flowContract', () => {
       expect(flow).toStrictEqual({
         id: 'login-flow',
         name: 'Login Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [],
         edges: [],
       });
+    });
+
+    it('VALID: {flowType: "operational"} => parses with operational flow type', () => {
+      const flow = FlowStub({ flowType: 'operational' });
+
+      expect(flow.flowType).toBe('operational');
     });
 
     it('VALID: {with scope} => parses with scope', () => {
@@ -46,10 +53,11 @@ describe('flowContract', () => {
       expect(flow.exitPoints).toStrictEqual(['/dashboard', '/error', '/logout']);
     });
 
-    it('VALID: {without nodes field} => backward compat defaults to empty array', () => {
+    it('VALID: {without nodes field} => defaults to empty array', () => {
       const result = flowContract.parse({
         id: 'login-flow',
         name: 'Login Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
       });
@@ -57,6 +65,7 @@ describe('flowContract', () => {
       expect(result).toStrictEqual({
         id: 'login-flow',
         name: 'Login Flow',
+        flowType: 'runtime',
         entryPoint: '/login',
         exitPoints: ['/dashboard'],
         nodes: [],
@@ -66,11 +75,23 @@ describe('flowContract', () => {
   });
 
   describe('invalid flows', () => {
+    it('INVALID: {without flowType field} => throws validation error', () => {
+      expect(() => {
+        flowContract.parse({
+          id: 'login-flow',
+          name: 'Login Flow',
+          entryPoint: '/login',
+          exitPoints: ['/dashboard'],
+        });
+      }).toThrow(/Required/u);
+    });
+
     it('INVALID: {id: "Bad"} => throws validation error', () => {
       expect(() => {
         flowContract.parse({
           id: 'Bad',
           name: 'Login Flow',
+          flowType: 'runtime',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
@@ -82,6 +103,7 @@ describe('flowContract', () => {
         flowContract.parse({
           id: 'login-flow',
           name: '',
+          flowType: 'runtime',
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
@@ -93,6 +115,7 @@ describe('flowContract', () => {
         flowContract.parse({
           id: 'login-flow',
           name: 'Login Flow',
+          flowType: 'runtime',
           entryPoint: '',
           exitPoints: ['/dashboard'],
         });

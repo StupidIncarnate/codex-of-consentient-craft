@@ -1,12 +1,24 @@
-import { GuildPathStub, ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowEdgeStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
+  GuildPathStub,
+  ObservableIdStub,
+  ProcessIdStub,
+  QuestIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { orchestrationEnvironmentHarness } from '../../test/harnesses/orchestration-environment/orchestration-environment.harness';
+import { questSeedHarness } from '../../test/harnesses/quest-seed/quest-seed.harness';
 
 import { StartOrchestrator } from './start-orchestrator';
 
 describe('StartOrchestrator', () => {
   const envHarness = orchestrationEnvironmentHarness();
+  const seeder = questSeedHarness();
 
   describe('guild wiring', () => {
     it('VALID: {listGuilds} => delegates to GuildFlow.list and returns array', async () => {
@@ -48,6 +60,70 @@ describe('StartOrchestrator', () => {
       restore();
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('validate-spec wiring', () => {
+    it('VALID: {existing quest with valid spec} => validateSpec returns success true with checks', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-valspec-ok' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const obs = FlowObservableStub({
+        id: ObservableIdStub({ value: 'obs-valspec' }),
+      });
+      const nodeA = FlowNodeStub({
+        id: 'node-a' as ReturnType<typeof FlowNodeStub>['id'],
+        label: 'Node A',
+        type: 'state',
+        observables: [],
+      });
+      const nodeB = FlowNodeStub({
+        id: 'node-b' as ReturnType<typeof FlowNodeStub>['id'],
+        label: 'Node B',
+        type: 'terminal',
+        observables: [obs],
+      });
+      const edge = FlowEdgeStub({ from: nodeA.id, to: nodeB.id });
+      const flows = [FlowStub({ nodes: [nodeA, nodeB], edges: [edge] })];
+
+      const quest = QuestStub({
+        id: 'valspec-quest',
+        folder: '001-valspec-quest',
+        flows,
+      });
+
+      seeder.seed({ tempDir: testbed.guildPath, quest });
+
+      const result = await StartOrchestrator.validateSpec({ questId: 'valspec-quest' });
+
+      testbed.cleanup();
+      restore();
+
+      const { success, checks } = result;
+
+      expect(success).toBe(true);
+      expect(checks.length).toBeGreaterThan(0);
+      expect(checks.every((check) => check.passed)).toBe(true);
+    });
+
+    it('ERROR: {nonexistent questId} => validateSpec returns failure with error and empty checks', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-valspec-err' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const result = await StartOrchestrator.validateSpec({ questId: 'nonexistent-quest-id' });
+
+      testbed.cleanup();
+      restore();
+
+      expect(result).toStrictEqual({
+        success: false,
+        checks: [],
+        error: 'Unknown error',
+      });
     });
   });
 

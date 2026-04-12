@@ -7,6 +7,7 @@ export const FlowStub = ({ ...props }: StubArgument<Flow> = {}): Flow =>
   flowContract.parse({
     id: 'login-flow',
     name: 'Login Flow',
+    flowType: 'runtime',
     entryPoint: '/login',
     exitPoints: ['/dashboard'],
     nodes: [],

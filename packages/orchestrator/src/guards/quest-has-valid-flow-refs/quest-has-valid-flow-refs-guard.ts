@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Validates that all flow edge from/to references point to existing node IDs within the same flow
+ * PURPOSE: Validates that all flow edge from/to references point to existing node IDs within the same flow, and that any cross-flow references (flowId:nodeId) resolve to an existing flow and node
  *
  * USAGE:
  * questHasValidFlowRefsGuard({flows});
- * // Returns true if all edge refs are valid node IDs or cross-flow refs, false otherwise
+ * // Returns true if all edge refs are valid node IDs or resolvable cross-flow refs, false otherwise
  */
 import type { FlowStub } from '@dungeonmaster/shared/contracts';
 
@@ -18,17 +18,43 @@ export const questHasValidFlowRefsGuard = ({ flows }: { flows?: Flow[] }): boole
     return true;
   }
 
+  const nodeIdsByFlowId = new Map<unknown, Set<unknown>>();
+  for (const flow of flows) {
+    const nodeIds = new Set<unknown>();
+    for (const node of flow.nodes) {
+      nodeIds.add(String(node.id));
+    }
+    nodeIdsByFlowId.set(String(flow.id), nodeIds);
+  }
+
   return flows.every((flow) => {
-    const nodeIds = new Set(flow.nodes.map((node) => String(node.id)));
+    const currentFlowNodeIds = nodeIdsByFlowId.get(String(flow.id)) ?? new Set<unknown>();
 
     return flow.edges.every((edge) => {
       const fromRef = String(edge.from);
       const toRef = String(edge.to);
 
-      const fromValid = fromRef.includes(':') || nodeIds.has(fromRef);
-      const toValid = toRef.includes(':') || nodeIds.has(toRef);
+      const refs = [fromRef, toRef];
 
-      return fromValid && toValid;
+      return refs.every((ref) => {
+        if (ref.includes(':')) {
+          const [flowIdPart, nodeIdPart] = ref.split(':');
+          if (
+            flowIdPart === undefined ||
+            nodeIdPart === undefined ||
+            flowIdPart.length === 0 ||
+            nodeIdPart.length === 0
+          ) {
+            return false;
+          }
+          const targetNodeIds = nodeIdsByFlowId.get(flowIdPart);
+          if (!targetNodeIds) {
+            return false;
+          }
+          return targetNodeIds.has(nodeIdPart);
+        }
+        return currentFlowNodeIds.has(ref);
+      });
     });
   });
 };

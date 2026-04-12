@@ -13,6 +13,7 @@ import {
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { finalizerQuestAgentPromptStatics } from '../../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
 import { gapReviewerAgentPromptStatics } from '../../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
+import { plannerMinionQuestAgentPromptStatics } from '../../statics/planner-minion-quest-agent-prompt/planner-minion-quest-agent-prompt-statics';
 
 export const agentNameToPromptTransformer = ({
   agent,
@@ -31,6 +32,12 @@ export const agentNameToPromptTransformer = ({
         name: 'finalizer-quest-agent',
         model: 'sonnet',
         prompt: finalizerQuestAgentPromptStatics.prompt.template,
+      });
+    case 'planner-minion-quest-agent':
+      return agentPromptResultContract.parse({
+        name: 'planner-minion-quest-agent',
+        model: 'sonnet',
+        prompt: plannerMinionQuestAgentPromptStatics.prompt.template,
       });
     default: {
       const exhaustiveCheck: never = agent;

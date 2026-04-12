@@ -124,6 +124,9 @@ export * from './src/contracts/flow-id/flow-id.stub';
 export * from './src/contracts/flow/flow-contract';
 export * from './src/contracts/flow/flow.stub';
 
+export * from './src/contracts/flow-type/flow-type-contract';
+export * from './src/contracts/flow-type/flow-type.stub';
+
 // Outcome Type Contracts
 export * from './src/contracts/outcome-type/outcome-type-contract';
 export * from './src/contracts/outcome-type/outcome-type.stub';
@@ -161,6 +164,12 @@ export * from './src/contracts/step-assertion/step-assertion.stub';
 
 export * from './src/contracts/step-file-reference/step-file-reference-contract';
 export * from './src/contracts/step-file-reference/step-file-reference.stub';
+
+export * from './src/contracts/step-focus-action-kind/step-focus-action-kind-contract';
+export * from './src/contracts/step-focus-action-kind/step-focus-action-kind.stub';
+
+export * from './src/contracts/step-focus-action/step-focus-action-contract';
+export * from './src/contracts/step-focus-action/step-focus-action.stub';
 
 export * from './src/contracts/dependency-step/dependency-step-contract';
 export * from './src/contracts/dependency-step/dependency-step.stub';
