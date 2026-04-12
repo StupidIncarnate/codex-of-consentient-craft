@@ -37,13 +37,28 @@ describe('QuestValidateSpecResponder', () => {
   });
 
   describe('quest not found', () => {
-    it('ERROR: {questId: nonexistent} => returns error result', async () => {
+    it('ERROR: {questId: nonexistent} => returns error result with message and empty checks', async () => {
       const proxy = QuestValidateSpecResponderProxy();
       proxy.setupEmptyFolder();
 
       const result = await proxy.callResponder({ questId: 'nonexistent-quest' });
 
-      expect(result.success).toBe(false);
+      expect(result).toStrictEqual({
+        success: false,
+        checks: [],
+        error: 'Quest with id "nonexistent-quest" not found in any guild',
+      });
+    });
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {empty questId} => throws ZodError for min length', async () => {
+      const proxy = QuestValidateSpecResponderProxy();
+      proxy.setupEmptyFolder();
+
+      await expect(proxy.callResponder({ questId: '' })).rejects.toThrow(
+        /String must contain at least 1 character/u,
+      );
     });
   });
 });

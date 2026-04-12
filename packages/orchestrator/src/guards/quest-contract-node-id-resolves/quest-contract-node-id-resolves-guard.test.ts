@@ -60,6 +60,16 @@ describe('questContractNodeIdResolvesGuard', () => {
 
       expect(result).toBe(false);
     });
+
+    it('INVALID: {empty flows with non-empty contracts} => returns false', () => {
+      const contracts = [
+        QuestContractEntryStub({ nodeId: FlowNodeIdStub({ value: 'login-page' }) }),
+      ];
+
+      const result = questContractNodeIdResolvesGuard({ contracts, flows: [] });
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('empty inputs', () => {

@@ -98,6 +98,15 @@ describe('questFlowHasRequiredFieldsGuard', () => {
 
       expect(result).toBe(false);
     });
+
+    it('INVALID: {flow with flowType explicitly undefined} => returns false', () => {
+      const flow = createFlowWithOverride({ flowType: undefined });
+      const flows = [flow];
+
+      const result = questFlowHasRequiredFieldsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('empty inputs', () => {

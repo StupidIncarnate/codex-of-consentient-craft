@@ -23,6 +23,8 @@ type Quest = ReturnType<typeof QuestStub>;
 export const questValidateSpecBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  setupLoadFailure: (params: { quest: Quest; error: Error }) => void;
+  setupNonErrorThrow: () => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -77,6 +79,60 @@ export const questValidateSpecBrokerProxy = (): {
       });
 
       findQuestPathProxy.setupNoGuilds({
+        homeDir: '/home/testuser',
+        homePath,
+        guildsDir,
+      });
+    },
+
+    setupLoadFailure: ({ quest, error }: { quest: Quest; error: Error }): void => {
+      const guildId = GuildIdStub();
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const guildsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds',
+      });
+      const questsDirPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      const questFolderPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
+      });
+      const questFilePath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
+      });
+
+      findQuestPathProxy.setupQuestFound({
+        homeDir: '/home/testuser',
+        homePath,
+        guildsDir,
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId }),
+            questsDirPath,
+            questFolders: [
+              {
+                folderName: FileNameStub({ value: quest.folder }),
+                questFilePath,
+                questFolderPath,
+                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+              },
+            ],
+          },
+        ],
+      });
+
+      pathJoinProxy.returns({ result: questFilePath });
+
+      loadProxy.setupQuestFileReadError({ error });
+    },
+
+    setupNonErrorThrow: (): void => {
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const guildsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds',
+      });
+
+      findQuestPathProxy.setupNonErrorReaddirThrow({
         homeDir: '/home/testuser',
         homePath,
         guildsDir,

@@ -739,7 +739,9 @@ describe('questVerifyFailureDetailsTransformer', () => {
   describe('Step Focus Target check', () => {
     it('VALID: {quest with step missing both focusFile and focusAction} => returns neither-message', () => {
       const quest = QuestStub({
-        steps: [createNoFocusStep({ id: 'f0a1b2c3-d4e5-4a6b-8c7d-0e9f8a7b6c5d', name: 'orphan-step' })],
+        steps: [
+          createNoFocusStep({ id: 'f0a1b2c3-d4e5-4a6b-8c7d-0e9f8a7b6c5d', name: 'orphan-step' }),
+        ],
       });
 
       const result = questVerifyFailureDetailsTransformer({

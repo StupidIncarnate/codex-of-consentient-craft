@@ -77,6 +77,19 @@ describe('questFlowNoDeadEndsGuard', () => {
 
       expect(result).toBe(false);
     });
+
+    it('INVALID: {decision node with no outgoing edges} => returns false', () => {
+      const flows = [
+        FlowStub({
+          nodes: [FlowNodeStub({ id: FlowNodeIdStub({ value: 'decide' }), type: 'decision' })],
+          edges: [],
+        }),
+      ];
+
+      const result = questFlowNoDeadEndsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('empty inputs', () => {

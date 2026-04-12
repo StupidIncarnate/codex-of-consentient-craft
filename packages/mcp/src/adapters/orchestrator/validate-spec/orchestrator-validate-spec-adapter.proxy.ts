@@ -15,6 +15,7 @@ import { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/ve
 export const orchestratorValidateSpecAdapterProxy = (): {
   returns: (params: { result: VerifyQuestResult }) => void;
   throws: (params: { error: Error }) => void;
+  getCalledArgs: () => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: StartOrchestrator.validateSpec });
 
@@ -27,5 +28,6 @@ export const orchestratorValidateSpecAdapterProxy = (): {
     throws: ({ error }: { error: Error }): void => {
       handle.mockRejectedValueOnce(error);
     },
+    getCalledArgs: (): readonly unknown[][] => handle.mock.calls,
   };
 };

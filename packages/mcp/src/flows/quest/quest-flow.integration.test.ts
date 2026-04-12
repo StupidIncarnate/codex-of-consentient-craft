@@ -70,4 +70,19 @@ describe('QuestFlow', () => {
       ]);
     });
   });
+
+  describe('validate-spec handler delegation', () => {
+    it('VALID: {invoking validate-spec handler} => delegates to QuestHandleResponder with tool "validate-spec"', async () => {
+      const registrations = QuestFlow();
+      const validateSpecRegistration = registrations.find(({ name }) => name === 'validate-spec');
+
+      const result = await validateSpecRegistration!.handler({
+        args: { questId: 'non-existent-quest-for-delegation-test' },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]!.type).toBe('text');
+      expect(String(result.content[0]!.text)).toMatch(/^\{[\s\S]*"success":\s*false[\s\S]*\}$/u);
+    });
+  });
 });

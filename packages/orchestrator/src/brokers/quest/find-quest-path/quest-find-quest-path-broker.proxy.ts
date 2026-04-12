@@ -105,6 +105,11 @@ export const questFindQuestPathBrokerProxy = (): {
     guildsDir: FilePath;
     guildDirName: FileName;
   }) => void;
+  setupNonErrorReaddirThrow: (params: {
+    homeDir: string;
+    homePath: FilePath;
+    guildsDir: FilePath;
+  }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
@@ -195,6 +200,24 @@ export const questFindQuestPathBrokerProxy = (): {
 
       pathJoinProxy.returns({ result: guildsDir });
       readdirProxy.throws({ error: new Error('ENOENT: no such file or directory') });
+    },
+
+    setupNonErrorReaddirThrow: ({
+      homeDir,
+      homePath,
+      guildsDir,
+    }: {
+      homeDir: string;
+      homePath: FilePath;
+      guildsDir: FilePath;
+    }): void => {
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+      pathJoinProxy.returns({ result: guildsDir });
+      readdirProxy.implementation({
+        fn: (): never => {
+          throw null as never;
+        },
+      });
     },
   };
 };
