@@ -77,7 +77,7 @@ describe('agentSpawnByRoleBroker', () => {
 
       expect(String(prompt)).toMatch(/^Quest ID: add-auth$/mu);
       expect(String(prompt)).toMatch(
-        /^You are PathSeeker, a specialized implementation planning agent\. Your purpose is to translate quest observables into a$/mu,
+        /^You are PathSeeker, a specialized implementation planning agent\. Your purpose is to translate a quest$/mu,
       );
     });
 

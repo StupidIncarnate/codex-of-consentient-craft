@@ -8,6 +8,10 @@
 
 import { z } from 'zod';
 
-export const agentPromptNameContract = z.enum(['quest-gap-reviewer', 'finalizer-quest-agent']);
+export const agentPromptNameContract = z.enum([
+  'quest-gap-reviewer',
+  'finalizer-quest-agent',
+  'planner-minion-quest-agent',
+]);
 
 export type AgentPromptName = z.infer<typeof agentPromptNameContract>;

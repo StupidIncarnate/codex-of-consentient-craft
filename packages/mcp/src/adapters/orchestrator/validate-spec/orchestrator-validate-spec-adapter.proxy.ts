@@ -1,0 +1,33 @@
+/**
+ * PURPOSE: Proxy for orchestrator-validate-spec-adapter that mocks the orchestrator package
+ *
+ * USAGE:
+ * const proxy = orchestratorValidateSpecAdapterProxy();
+ * proxy.returns({ result: VerifyQuestResultStub() });
+ */
+
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import type { VerifyQuestResult } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+import { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
+
+export const orchestratorValidateSpecAdapterProxy = (): {
+  returns: (params: { result: VerifyQuestResult }) => void;
+  throws: (params: { error: Error }) => void;
+  getCalledArgs: () => readonly unknown[][];
+} => {
+  const handle = registerMock({ fn: StartOrchestrator.validateSpec });
+
+  handle.mockResolvedValue(VerifyQuestResultStub());
+
+  return {
+    returns: ({ result }: { result: VerifyQuestResult }): void => {
+      handle.mockResolvedValueOnce(result);
+    },
+    throws: ({ error }: { error: Error }): void => {
+      handle.mockRejectedValueOnce(error);
+    },
+    getCalledArgs: (): readonly unknown[][] => handle.mock.calls,
+  };
+};

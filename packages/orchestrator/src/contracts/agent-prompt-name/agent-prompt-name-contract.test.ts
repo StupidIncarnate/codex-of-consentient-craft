@@ -18,6 +18,14 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('finalizer-quest-agent');
   });
 
+  it('VALID: {value: "planner-minion-quest-agent"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'planner-minion-quest-agent' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('planner-minion-quest-agent');
+  });
+
   it('VALID: {default stub} => parses with default value', () => {
     const name = AgentPromptNameStub();
 

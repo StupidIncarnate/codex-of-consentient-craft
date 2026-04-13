@@ -67,33 +67,60 @@ is provided, ask the user for it.
 
 Call \`get-project-map\` (no params) to see which packages exist and their folder types. You'll need this when verifying spec claims against the codebase in later steps.
 
-### Step 3: Review Flows (Node and Edge Structure)
+### Step 3: Review Flows (Semantic)
 
-For each flow, verify the **graph structure**:
+You are a semantic reviewer. Structural graph checks (orphan nodes, dead-end non-terminal nodes, missing edge labels,
+edges pointing to non-existent nodes, ID uniqueness, node type validity) are handled by deterministic validation
+elsewhere. Do NOT duplicate those checks — focus on judgment calls.
 
-**Nodes:**
-- Does every node have the correct \`type\` (\`state\`, \`decision\`, \`action\`, \`terminal\`)?
-- Do decision nodes have multiple outgoing edges (at least success and failure)?
-- Do terminal nodes have no outgoing edges?
-- Are node labels concrete and descriptive? ("Validate credentials" not "Process input")
-- Is every node reachable from the entry point?
+**flowType coherence (semantic — judgment call).**
 
-**Edges:**
-- Does every edge have a \`from\` and \`to\` that reference valid node IDs in the same flow?
-- Do edges from decision nodes have labels describing the condition (e.g., "valid", "invalid")?
-- Are there dead-end non-terminal nodes (nodes with no outgoing edge that aren't terminal)?
-- Are there orphan nodes with no incoming edges (except the entry node)?
+Every flow has a \`flowType\` field with value \`runtime\` or \`operational\`. Walk each flow and ask: does the content
+match the declared type?
 
-**Cross-flow references:**
-- If edges reference nodes in other flows via \`flowId:nodeId\` syntax, do those target flows and nodes exist?
-- Are cross-flow transitions logical (e.g., login flow exits to dashboard flow)?
+- \`runtime\` flow signals: URL/endpoint/CLI entry point, observables dominated by \`ui-state\`, \`api-call\`,
+  \`log-output\`, \`db-query\`, \`queue-message\`; branches at decision nodes represent actual runtime paths.
+- \`operational\` flow signals: task-trigger entry point ("Identify X", "Provision Y"), observables dominated by
+  \`file-exists\`, \`process-state\`, \`environment\`, \`custom\`; task sequence with a verify-retry loop at the end.
+
+Flag as a **Question** (judgment, not critical) if:
+- A \`runtime\` flow has observables that are almost entirely \`file-exists\`/\`process-state\` → probably operational
+- An \`operational\` flow has \`ui-state\` observables → probably runtime (or should be split)
+- A flow has an entry point format that contradicts its flowType (e.g., operational flow with a URL entry point)
+
+ChaosWhisperer made the flowType judgment and can override it — you are not the authority, you are the second pair
+of eyes.
+
+**Observable distribution sanity.**
+
+Look at the full set of observables per flow and ask:
+- Would a Siegemaster agent know how to verify this flow given these observables and this entry point? (If the
+  entry point is a URL but every observable is a grep predicate, the flow is confused about what it is.)
+- Is every decision branch represented by at least one observable that describes the branch outcome?
+- Are there terminal nodes with observables that describe state rather than behavior? For a \`runtime\` flow, the
+  terminal should describe what the user/caller sees. For an \`operational\` flow, the terminal describes the
+  post-execution state (Ward green, grep zero, service healthy).
+
+**Failure policy for operational flows.**
+
+If an \`operational\` flow has decision nodes where things could go wrong (verification fails, deployment partially
+succeeds, a step conflicts), check whether the quest has corresponding design decisions explaining the failure
+policy. A missing failure-policy design decision for an operational flow with risk points is a **Warning**
+("Should Fix") — not a critical issue, but means the implementer will have to invent the policy at execution time.
+
+**Happy and sad paths.**
+
+- For \`runtime\` flows: every decision node must have a failure branch. A \`runtime\` flow with only happy paths is
+  incomplete — flag as **Critical**.
+- For \`operational\` flows: linear task sequences are legitimate. A single retry loop at the final verify step is
+  normal. Do NOT flag operational flows for missing per-decision sad paths — their sad path is "fix and retry"
+  which does not need to be drawn for every task.
 
 **Coverage:**
-- Do the flows cover all major user journeys implied by the quest?
-- Does every flow have both happy and sad paths?
-- Are error recovery paths present (retry, redirect, error display)?
-- Is the entry point concrete (URL, command, event)?
-- Do exit points cover all terminal states (success, error, redirect)?
+- Do the flows cover all major user journeys or task sequences implied by the quest?
+- Is the entry point concrete (URL, command, event, task trigger)?
+- Do exit points cover all meaningful terminal states (success, error, redirect for runtime; completed state,
+  partial failure, abort for operational)?
 
 ### Step 4: Review Design Decisions
 

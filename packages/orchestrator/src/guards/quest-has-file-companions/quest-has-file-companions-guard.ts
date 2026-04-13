@@ -5,20 +5,21 @@
  * questHasFileCompanionsGuard({steps});
  * // Returns true if every focusFile has its required companion files in accompanyingFiles, false otherwise
  */
-import type { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
+import { fileAnchoredStepsTransformer } from '../../transformers/file-anchored-steps/file-anchored-steps-transformer';
 import { focusFileToTestPathTransformer } from '../../transformers/focus-file-to-test-path/focus-file-to-test-path-transformer';
 import { pathToFolderTypeTransformer } from '../../transformers/path-to-folder-type/path-to-folder-type-transformer';
-
-type DependencyStep = ReturnType<typeof DependencyStepStub>;
 
 export const questHasFileCompanionsGuard = ({ steps }: { steps?: DependencyStep[] }): boolean => {
   if (!steps) {
     return false;
   }
 
-  for (const step of steps) {
+  const fileSteps = fileAnchoredStepsTransformer({ steps });
+
+  for (const step of fileSteps) {
     const focusPath = step.focusFile.path;
 
     const folderType = pathToFolderTypeTransformer({

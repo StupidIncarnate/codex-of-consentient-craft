@@ -8,6 +8,7 @@
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
  * const verified = await QuestFlow.verify({ questId });
+ * const validated = await QuestFlow.validateSpec({ questId });
  */
 
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
@@ -15,6 +16,7 @@ import { QuestGetResponder } from '../../responders/quest/get/quest-get-responde
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
+import { QuestValidateSpecResponder } from '../../responders/quest/validate-spec/quest-validate-spec-responder';
 import { QuestVerifyResponder } from '../../responders/quest/verify/quest-verify-responder';
 
 type AddParams = Parameters<typeof QuestAddResponder>[0];
@@ -35,6 +37,9 @@ type ModifyResult = Awaited<ReturnType<typeof QuestModifyResponder>>;
 type VerifyParams = Parameters<typeof QuestVerifyResponder>[0];
 type VerifyResult = Awaited<ReturnType<typeof QuestVerifyResponder>>;
 
+type ValidateSpecParams = Parameters<typeof QuestValidateSpecResponder>[0];
+type ValidateSpecResult = Awaited<ReturnType<typeof QuestValidateSpecResponder>>;
+
 export const QuestFlow = {
   add: async ({ title, userRequest, guildId }: AddParams): Promise<AddResult> =>
     QuestAddResponder({ title, userRequest, guildId }),
@@ -51,4 +56,7 @@ export const QuestFlow = {
 
   verify: async ({ questId }: VerifyParams): Promise<VerifyResult> =>
     QuestVerifyResponder({ questId }),
+
+  validateSpec: async ({ questId }: ValidateSpecParams): Promise<ValidateSpecResult> =>
+    QuestValidateSpecResponder({ questId }),
 };

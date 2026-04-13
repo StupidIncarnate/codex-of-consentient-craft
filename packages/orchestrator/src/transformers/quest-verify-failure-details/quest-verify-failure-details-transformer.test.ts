@@ -11,6 +11,7 @@ import {
   FlowObservableStub,
   ObservableIdStub,
   StepFileReferenceStub,
+  StepFocusActionStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { VerifyQuestCheckStub } from '../../contracts/verify-quest-check/verify-quest-check.stub';
@@ -19,6 +20,7 @@ import { questVerifyFailureDetailsTransformer } from './quest-verify-failure-det
 type QuestContractProperty = ReturnType<typeof QuestContractPropertyStub>;
 type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 type Quest = ReturnType<typeof QuestStub>;
+type DependencyStep = ReturnType<typeof DependencyStepStub>;
 type VerifyQuestCheck = ReturnType<typeof VerifyQuestCheckStub>;
 
 const brandCheckName = (name: string): VerifyQuestCheck['name'] =>
@@ -52,6 +54,42 @@ const createQuestWithContracts = (contracts: QuestContractEntry[]): Quest => {
     ...base,
     contracts,
   } as Quest;
+};
+
+const createFocusActionStep = (overrides: { id: string; name: string }): DependencyStep => {
+  const base = DependencyStepStub({
+    id: overrides.id,
+    name: overrides.name,
+    accompanyingFiles: [],
+  });
+  Reflect.deleteProperty(base, 'focusFile');
+  Object.assign(base, { focusAction: StepFocusActionStub() });
+  return base;
+};
+
+const createNoFocusStep = (overrides: { id: string; name: string }): DependencyStep => {
+  const base = DependencyStepStub({
+    id: overrides.id,
+    name: overrides.name,
+    accompanyingFiles: [],
+  });
+  Reflect.deleteProperty(base, 'focusFile');
+  return base;
+};
+
+const createBothFocusStep = (overrides: {
+  id: string;
+  name: string;
+  path: string;
+}): DependencyStep => {
+  const base = DependencyStepStub({
+    id: overrides.id,
+    name: overrides.name,
+    focusFile: StepFileReferenceStub({ path: overrides.path }),
+    accompanyingFiles: [],
+  });
+  Object.assign(base, { focusAction: StepFocusActionStub() });
+  return base;
 };
 
 describe('questVerifyFailureDetailsTransformer', () => {
@@ -683,6 +721,225 @@ describe('questVerifyFailureDetailsTransformer', () => {
             focusFile: StepFileReferenceStub({
               path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
             }),
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Valid Focus Files'),
+      });
+
+      expect(result).toBe(
+        'step "create-unknown" focusFile "packages/orchestrator/src/unknown-folder/some-file.ts" does not match any known folder type',
+      );
+    });
+  });
+
+  describe('Step Focus Target check', () => {
+    it('VALID: {quest with step missing both focusFile and focusAction} => returns neither-message', () => {
+      const quest = QuestStub({
+        steps: [
+          createNoFocusStep({ id: 'f0a1b2c3-d4e5-4a6b-8c7d-0e9f8a7b6c5d', name: 'orphan-step' }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Step Focus Target'),
+      });
+
+      expect(result).toBe('step "orphan-step" has neither focusFile nor focusAction');
+    });
+
+    it('VALID: {quest with step having both focusFile and focusAction} => returns both-message', () => {
+      const quest = QuestStub({
+        steps: [
+          createBothFocusStep({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'dual-step',
+            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Step Focus Target'),
+      });
+
+      expect(result).toBe(
+        'step "dual-step" has both focusFile and focusAction (must be exactly one)',
+      );
+    });
+
+    it('EDGE: {multiple steps with mixed issues} => returns both issues joined by semicolon', () => {
+      const quest = QuestStub({
+        steps: [
+          createNoFocusStep({ id: 'f0a1b2c3-d4e5-4a6b-8c7d-0e9f8a7b6c5d', name: 'orphan-step' }),
+          createBothFocusStep({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'dual-step',
+            path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Step Focus Target'),
+      });
+
+      expect(result).toBe(
+        'step "orphan-step" has neither focusFile nor focusAction; step "dual-step" has both focusFile and focusAction (must be exactly one)',
+      );
+    });
+  });
+
+  describe('File Companion Completeness - filters focusAction steps', () => {
+    it('VALID: {file-anchored step with missing proxy alongside focusAction step} => returns only file-anchored issue', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'create-broker-step',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            }),
+            accompanyingFiles: [
+              StepFileReferenceStub({
+                path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              }),
+            ],
+          }),
+          createFocusActionStep({
+            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+            name: 'run-ward-step',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('File Companion Completeness'),
+      });
+
+      expect(result).toBe(
+        'Companion file issues: step "create-broker-step" focusFile "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts" needs "packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts"',
+      );
+    });
+  });
+
+  describe('Step Contract Declarations - filters focusAction steps', () => {
+    it('VALID: {file-anchored step with Void outputContracts alongside focusAction step} => returns only file-anchored issue', () => {
+      const quest = QuestStub({
+        contracts: [QuestContractEntryStub()],
+        steps: [
+          DependencyStepStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'create-auth-broker',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/brokers/auth/login/auth-login-broker.ts',
+            }),
+            outputContracts: [ContractNameStub({ value: 'Void' })],
+          }),
+          createFocusActionStep({
+            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+            name: 'run-ward-step',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Step Contract Declarations'),
+      });
+
+      expect(result).toBe(
+        'step "create-auth-broker" in folder [brokers] has outputContracts ["Void"] but folder requires real contract declarations',
+      );
+    });
+  });
+
+  describe('Step Export Names - filters focusAction steps', () => {
+    it('VALID: {file-anchored entry-file step without exportName alongside focusAction step} => returns only file-anchored issue', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'create-valid-guard',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+            }),
+          }),
+          createFocusActionStep({
+            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+            name: 'run-ward-step',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('Step Export Names'),
+      });
+
+      expect(result).toBe(
+        'step "create-valid-guard" creates entry file "packages/orchestrator/src/guards/is-valid/is-valid-guard.ts" but has no exportName',
+      );
+    });
+  });
+
+  describe('No Duplicate Focus Files - filters focusAction steps', () => {
+    it('VALID: {two file-anchored steps sharing focusFile alongside focusAction step} => returns only file-anchored duplicate', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'Step A',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+            }),
+          }),
+          DependencyStepStub({
+            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+            name: 'Step B',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/guards/is-valid/is-valid-guard.ts',
+            }),
+          }),
+          createFocusActionStep({
+            id: 'c3d4e5f6-a7b8-4c5d-8e9f-0a1b2c3d4e5f',
+            name: 'run-ward-step',
+          }),
+        ],
+      });
+
+      const result = questVerifyFailureDetailsTransformer({
+        quest,
+        checkName: brandCheckName('No Duplicate Focus Files'),
+      });
+
+      expect(result).toBe(
+        'steps "Step A" and "Step B" share focusFile "packages/orchestrator/src/guards/is-valid/is-valid-guard.ts"',
+      );
+    });
+  });
+
+  describe('Valid Focus Files - filters focusAction steps', () => {
+    it('VALID: {file-anchored step with unknown folder type alongside focusAction step} => returns only file-anchored issue', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            name: 'create-unknown',
+            focusFile: StepFileReferenceStub({
+              path: 'packages/orchestrator/src/unknown-folder/some-file.ts',
+            }),
+          }),
+          createFocusActionStep({
+            id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+            name: 'run-ward-step',
           }),
         ],
       });

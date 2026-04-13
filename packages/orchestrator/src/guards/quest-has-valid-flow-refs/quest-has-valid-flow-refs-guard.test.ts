@@ -20,12 +20,12 @@ describe('questHasValidFlowRefsGuard', () => {
     it('VALID: {multiple flows all have valid edge refs} => returns true', () => {
       const flows = [
         FlowStub({
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+          id: 'login-flow',
           nodes: [FlowNodeStub({ id: 'start' }), FlowNodeStub({ id: 'end' })],
           edges: [FlowEdgeStub({ from: 'start', to: 'end' })],
         }),
         FlowStub({
-          id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+          id: 'signup-flow',
           nodes: [FlowNodeStub({ id: 'form' }), FlowNodeStub({ id: 'success' })],
           edges: [FlowEdgeStub({ from: 'form', to: 'success' })],
         }),
@@ -36,16 +36,23 @@ describe('questHasValidFlowRefsGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {cross-flow refs containing colon} => returns true', () => {
+    it('VALID: {cross-flow ref resolves to existing flow and node} => returns true', () => {
       const flows = [
         FlowStub({
+          id: 'login-flow',
           nodes: [FlowNodeStub({ id: 'login-page' })],
           edges: [
             FlowEdgeStub({
+              id: 'cross-edge',
               from: 'login-page',
-              to: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e:dashboard',
+              to: 'dashboard-flow:dashboard',
             }),
           ],
+        }),
+        FlowStub({
+          id: 'dashboard-flow',
+          nodes: [FlowNodeStub({ id: 'dashboard' })],
+          edges: [],
         }),
       ];
 
@@ -112,6 +119,163 @@ describe('questHasValidFlowRefsGuard', () => {
       const result = questHasValidFlowRefsGuard({ flows });
 
       expect(result).toBe(false);
+    });
+
+    it('INVALID: {cross-flow ref targets non-existent flow} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'bad-cross',
+              from: 'login-page',
+              to: 'nonexistent-flow:dashboard',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {cross-flow ref targets non-existent node in existing flow} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'bad-node',
+              from: 'login-page',
+              to: 'dashboard-flow:missing-node',
+            }),
+          ],
+        }),
+        FlowStub({
+          id: 'dashboard-flow',
+          nodes: [FlowNodeStub({ id: 'dashboard' })],
+          edges: [],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {edge with "flow:" cross-flow ref (empty nodeId part)} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'malformed-empty-node',
+              from: 'login-page',
+              to: 'dashboard-flow:',
+            }),
+          ],
+        }),
+        FlowStub({
+          id: 'dashboard-flow',
+          nodes: [FlowNodeStub({ id: 'dashboard' })],
+          edges: [],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {edge with ":node" cross-flow ref (empty flowId part)} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'malformed-empty-flow',
+              from: 'login-page',
+              to: ':dashboard',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {edge with ":" cross-flow ref (both empty)} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'malformed-both-empty',
+              from: 'login-page',
+              to: ':',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {cross-flow ref used in "from" field points to missing flow} => returns false', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'bad-cross-from',
+              from: 'nonexistent-flow:dashboard',
+              to: 'login-page',
+            }),
+          ],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('cross-flow refs in from field', () => {
+    it('VALID: {cross-flow ref used in edge "from" field resolves} => returns true', () => {
+      const flows = [
+        FlowStub({
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'login-page' })],
+          edges: [
+            FlowEdgeStub({
+              id: 'cross-edge-from',
+              from: 'dashboard-flow:dashboard',
+              to: 'login-page',
+            }),
+          ],
+        }),
+        FlowStub({
+          id: 'dashboard-flow',
+          nodes: [FlowNodeStub({ id: 'dashboard' })],
+          edges: [],
+        }),
+      ];
+
+      const result = questHasValidFlowRefsGuard({ flows });
+
+      expect(result).toBe(true);
     });
   });
 

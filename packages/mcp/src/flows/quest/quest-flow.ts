@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest, validate-spec)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 7 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 8 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -14,6 +14,7 @@ import { listQuestsInputContract } from '../../contracts/list-quests-input/list-
 import { modifyQuestInputContract } from '../../contracts/modify-quest-input/modify-quest-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
+import { validateSpecInputContract } from '../../contracts/validate-spec-input/validate-spec-input-contract';
 import { verifyQuestInputContract } from '../../contracts/verify-quest-input/verify-quest-input-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
 
@@ -28,6 +29,7 @@ const getQuestStatusSchema = zodToJsonSchema(
 const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
 const verifyQuestSchema = zodToJsonSchema(verifyQuestInputContract as never, jsonSchemaOptions);
+const validateSpecSchema = zodToJsonSchema(validateSpecInputContract as never, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {
@@ -74,5 +76,12 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)' as never,
     inputSchema: verifyQuestSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'verify-quest' as never, args }),
+  },
+  {
+    name: 'validate-spec' as never,
+    description:
+      'Runs deterministic structural checks on a quest spec BEFORE step generation (flows, observables, contracts, design decisions). Call this before spawning gap reviewer.' as never,
+    inputSchema: validateSpecSchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'validate-spec' as never, args }),
   },
 ];

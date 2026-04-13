@@ -28,6 +28,7 @@ describe('QuestVerifyResponder', () => {
         'Node Observable Coverage',
         'No Duplicate Focus Files',
         'Valid Focus Files',
+        'Step Focus Target',
       ]);
       expect(checks.every((c) => c.passed)).toBe(true);
     });

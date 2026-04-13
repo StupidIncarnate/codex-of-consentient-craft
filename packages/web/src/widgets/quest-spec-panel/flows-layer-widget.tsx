@@ -6,7 +6,7 @@
  * // Renders flows with name, entry/exit points, scope, and generated mermaid diagram SVG
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Group, Text } from '@mantine/core';
 
 import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { flowToMermaidTransformer } from '@dungeonmaster/shared/transformers';
@@ -29,10 +29,20 @@ const FIELD_MARGIN_TOP_PX = 2;
 const FIELD_MARGIN_TOP = FIELD_MARGIN_TOP_PX as CssSpacing;
 const HEADER_FONT_SIZE = 'xs' as const;
 const LABEL_FONT_SIZE = 10;
+const BADGE_FONT_SIZE = 9;
+const BADGE_PADDING_X_PX = 4;
+const BADGE_PADDING_Y_PX = 1;
+const BADGE_BORDER_WIDTH_PX = 1;
+const BADGE_GROUP_GAP_PX = 6;
 
 const { colors } = emberDepthsThemeStatics;
 const DIM_COLOR = colors['text-dim'] as CssColorOverride;
 const GOLD_COLOR = colors['loot-gold'] as CssColorOverride;
+
+const FLOW_TYPE_BADGE_COLORS = {
+  runtime: { border: colors.primary, text: colors.primary },
+  operational: { border: colors['loot-rare'], text: colors['loot-rare'] },
+} as const;
 
 export interface FlowsLayerWidgetProps {
   flows: Flow[];
@@ -58,6 +68,7 @@ export const FlowsLayerWidget = ({
           {
             id: crypto.randomUUID(),
             name: '',
+            flowType: 'runtime',
             entryPoint: '',
             exitPoints: [],
             nodes: [],
@@ -72,18 +83,35 @@ export const FlowsLayerWidget = ({
         <Box>
           {editing ? (
             <>
-              <FormInputWidget
-                value={flow.name as unknown as FormInputValue}
-                onChange={(value) => {
-                  onChange(
-                    flows.map((item, i) =>
-                      i === index ? ({ ...item, name: value } as unknown as Flow) : item,
-                    ),
-                  );
-                }}
-                placeholder={NAME_PLACEHOLDER}
-                color={GOLD_COLOR}
-              />
+              <Group gap={BADGE_GROUP_GAP_PX} align="center" wrap="nowrap">
+                <FormInputWidget
+                  value={flow.name as unknown as FormInputValue}
+                  onChange={(value) => {
+                    onChange(
+                      flows.map((item, i) =>
+                        i === index ? ({ ...item, name: value } as unknown as Flow) : item,
+                      ),
+                    );
+                  }}
+                  placeholder={NAME_PLACEHOLDER}
+                  color={GOLD_COLOR}
+                />
+                <Text
+                  ff="monospace"
+                  fw={700}
+                  data-testid="FLOW_TYPE_BADGE"
+                  style={{
+                    fontSize: BADGE_FONT_SIZE,
+                    color: FLOW_TYPE_BADGE_COLORS[flow.flowType].text,
+                    border: `${BADGE_BORDER_WIDTH_PX}px solid ${FLOW_TYPE_BADGE_COLORS[flow.flowType].border}`,
+                    padding: `${BADGE_PADDING_Y_PX}px ${BADGE_PADDING_X_PX}px`,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {flow.flowType}
+                </Text>
+              </Group>
               <FormInputWidget
                 value={flow.entryPoint as unknown as FormInputValue}
                 onChange={(value) => {
@@ -100,15 +128,32 @@ export const FlowsLayerWidget = ({
             </>
           ) : (
             <>
-              <Text
-                ff="monospace"
-                size={HEADER_FONT_SIZE}
-                fw={600}
-                style={{ color: colors['loot-gold'] }}
-                data-testid="FLOW_NAME"
-              >
-                {flow.name}
-              </Text>
+              <Group gap={BADGE_GROUP_GAP_PX} align="center" wrap="nowrap">
+                <Text
+                  ff="monospace"
+                  size={HEADER_FONT_SIZE}
+                  fw={600}
+                  style={{ color: colors['loot-gold'] }}
+                  data-testid="FLOW_NAME"
+                >
+                  {flow.name}
+                </Text>
+                <Text
+                  ff="monospace"
+                  fw={700}
+                  data-testid="FLOW_TYPE_BADGE"
+                  style={{
+                    fontSize: BADGE_FONT_SIZE,
+                    color: FLOW_TYPE_BADGE_COLORS[flow.flowType].text,
+                    border: `${BADGE_BORDER_WIDTH_PX}px solid ${FLOW_TYPE_BADGE_COLORS[flow.flowType].border}`,
+                    padding: `${BADGE_PADDING_Y_PX}px ${BADGE_PADDING_X_PX}px`,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {flow.flowType}
+                </Text>
+              </Group>
               {flow.scope ? (
                 <Text
                   ff="monospace"

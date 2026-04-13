@@ -44,6 +44,7 @@ describe('pathseekerPipelineBroker', () => {
           {
             id: 'login-flow',
             name: 'Login Flow',
+            flowType: 'runtime',
             entryPoint: '/login',
             exitPoints: ['/dashboard'],
             nodes: [

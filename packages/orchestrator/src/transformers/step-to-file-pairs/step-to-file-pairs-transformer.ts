@@ -8,6 +8,8 @@
 
 import type { DependencyStep, StepFileReference } from '@dungeonmaster/shared/contracts';
 
+import { fileAnchoredStepsTransformer } from '../file-anchored-steps/file-anchored-steps-transformer';
+
 type StepFilePath = StepFileReference['path'];
 
 const TEST_SUFFIX = '.test.ts';
@@ -21,8 +23,11 @@ export const stepToFilePairsTransformer = ({
   steps: DependencyStep[];
 }): StepFilePath[][] => {
   const allFiles = new Set<StepFilePath>();
-  for (const step of steps) {
+
+  for (const step of fileAnchoredStepsTransformer({ steps })) {
     allFiles.add(step.focusFile.path);
+  }
+  for (const step of steps) {
     for (const file of step.accompanyingFiles) {
       allFiles.add(file.path);
     }

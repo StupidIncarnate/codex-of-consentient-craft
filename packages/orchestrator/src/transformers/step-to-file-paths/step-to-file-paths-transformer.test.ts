@@ -1,4 +1,4 @@
-import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import { DependencyStepStub, StepFocusActionStub } from '@dungeonmaster/shared/contracts';
 
 import { stepToFilePathsTransformer } from './step-to-file-paths-transformer';
 
@@ -39,6 +39,38 @@ describe('stepToFilePathsTransformer', () => {
       const result = stepToFilePathsTransformer({ step });
 
       expect(result).toStrictEqual(['src/new.ts']);
+    });
+  });
+
+  describe('focusAction-only steps', () => {
+    it('VALID: {focusAction-only step with accompanyingFiles} => returns only accompanying paths', () => {
+      const step = DependencyStepStub({
+        focusFile: undefined,
+        focusAction: StepFocusActionStub({
+          kind: 'verification',
+          description: 'Run ward and assert zero failures',
+        }),
+        accompanyingFiles: [{ path: 'src/a.ts' }, { path: 'src/b.ts' }],
+      });
+
+      const result = stepToFilePathsTransformer({ step });
+
+      expect(result).toStrictEqual(['src/a.ts', 'src/b.ts']);
+    });
+
+    it('EMPTY: {focusAction-only step with no accompanyingFiles} => returns empty array', () => {
+      const step = DependencyStepStub({
+        focusFile: undefined,
+        focusAction: StepFocusActionStub({
+          kind: 'command',
+          description: 'Run npm run build',
+        }),
+        accompanyingFiles: [],
+      });
+
+      const result = stepToFilePathsTransformer({ step });
+
+      expect(result).toStrictEqual([]);
     });
   });
 });
