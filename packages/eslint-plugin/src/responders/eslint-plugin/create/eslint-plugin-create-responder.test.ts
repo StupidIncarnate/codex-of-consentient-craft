@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 52 rule names', () => {
+    it('VALID: {} => returns plugin with all 53 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -32,6 +32,7 @@ describe('EslintPluginCreateResponder', () => {
         'enforce-contract-usage-in-tests',
         'enforce-e2e-base-import',
         'enforce-file-metadata',
+        'enforce-folder-return-types',
         'enforce-harness-patterns',
         'enforce-implementation-colocation',
         'enforce-import-dependencies',

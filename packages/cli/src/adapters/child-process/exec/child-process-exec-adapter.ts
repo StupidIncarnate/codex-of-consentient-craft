@@ -6,7 +6,10 @@
  * // Spawns the command in a shell without waiting for completion
  */
 import { exec } from 'child_process';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export const childProcessExecAdapter = ({ command }: { command: string }): void => {
+export const childProcessExecAdapter = ({ command }: { command: string }): AdapterResult => {
   exec(command);
+
+  return { success: true as const };
 };

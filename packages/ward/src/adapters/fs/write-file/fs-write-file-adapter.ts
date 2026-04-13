@@ -7,8 +7,7 @@
  */
 
 import { writeFile } from 'fs/promises';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FileContents, FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileAdapter = async ({
   filePath,
@@ -16,6 +15,8 @@ export const fsWriteFileAdapter = async ({
 }: {
   filePath: FilePath;
   contents: FileContents;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await writeFile(filePath, contents, 'utf-8');
+
+  return { success: true as const };
 };

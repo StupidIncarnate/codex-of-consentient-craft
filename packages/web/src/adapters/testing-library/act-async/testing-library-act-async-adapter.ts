@@ -6,13 +6,16 @@
  * // Wraps async callback in React act() to flush all pending state updates
  */
 import { act } from '@testing-library/react';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const testingLibraryActAsyncAdapter = async ({
   callback,
 }: {
   callback: () => Promise<void>;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await act(async () => {
     await callback();
   });
+
+  return { success: true as const };
 };

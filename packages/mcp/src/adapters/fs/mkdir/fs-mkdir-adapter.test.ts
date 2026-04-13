@@ -9,7 +9,9 @@ describe('fsMkdirAdapter', () => {
 
     adapterProxy.succeeds({ filepath });
 
-    await expect(fsMkdirAdapter({ filepath })).resolves.toBe(undefined);
+    await expect(fsMkdirAdapter({ filepath })).resolves.toStrictEqual({
+      success: true,
+    });
   });
 
   it('ERROR: {filepath: "/readonly/dir"} => throws error', async () => {

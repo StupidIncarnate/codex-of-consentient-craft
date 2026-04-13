@@ -10,7 +10,9 @@ describe('fsWriteFileAdapter', () => {
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test-file.txt' });
       const content = FileContentsStub({ value: 'hello world' });
 
-      await expect(fsWriteFileAdapter({ filePath, content })).resolves.toBe(undefined);
+      await expect(fsWriteFileAdapter({ filePath, content })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 

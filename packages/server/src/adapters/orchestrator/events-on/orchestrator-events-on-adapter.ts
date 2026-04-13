@@ -7,7 +7,11 @@
  */
 
 import { orchestrationEventsState } from '@dungeonmaster/orchestrator';
-import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  OrchestrationEventType,
+  ProcessId,
+} from '@dungeonmaster/shared/contracts';
 
 export const orchestratorEventsOnAdapter = ({
   type,
@@ -15,6 +19,8 @@ export const orchestratorEventsOnAdapter = ({
 }: {
   type: OrchestrationEventType;
   handler: (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
-}): void => {
+}): AdapterResult => {
   orchestrationEventsState.on({ type, handler });
+
+  return { success: true as const };
 };

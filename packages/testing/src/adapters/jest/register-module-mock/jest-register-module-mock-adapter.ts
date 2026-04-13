@@ -9,6 +9,8 @@
  * WHEN-NOT-TO-USE: When mocking individual exported functions (use registerMock instead)
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 /**
  * Runtime no-op — the AST transformer in typescript-ast-to-mock-calls-adapter.ts
  * recognizes registerModuleMock({ module: '...' }) calls and hoists them as jest.mock().
@@ -20,6 +22,7 @@ export const jestRegisterModuleMockAdapter = ({
 }: {
   module: string;
   factory?: () => Record<PropertyKey, unknown>;
-}): void => {
+}): AdapterResult =>
   // Intentionally empty — jest.mock() is hoisted by the AST transformer
-};
+
+  ({ success: true as const });

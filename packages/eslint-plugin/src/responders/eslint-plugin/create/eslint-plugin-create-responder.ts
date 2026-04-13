@@ -34,6 +34,7 @@ import { ruleNoMultiplePropertyAssertionsBroker } from '../../../brokers/rule/no
 import { ruleForbidTodoSkipBroker } from '../../../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker';
 import { ruleEnforceRegexUsageBroker } from '../../../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker';
 import { ruleEnforceFileMetadataBroker } from '../../../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker';
+import { ruleEnforceFolderReturnTypesBroker } from '../../../brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker';
 import { ruleBanFetchInProxiesBroker } from '../../../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker';
 import { ruleBanStartupBranchingBroker } from '../../../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker';
 import { ruleBanJestMockInProxiesBroker } from '../../../brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker';
@@ -91,6 +92,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'forbid-todo-skip': EslintRule;
     readonly 'enforce-regex-usage': EslintRule;
     readonly 'enforce-file-metadata': EslintRule;
+    readonly 'enforce-folder-return-types': EslintRule;
     readonly 'ban-fetch-in-proxies': EslintRule;
     readonly 'ban-startup-branching': EslintRule;
     readonly 'ban-jest-mock-in-proxies': EslintRule;
@@ -151,6 +153,7 @@ export const EslintPluginCreateResponder = (): {
       'forbid-todo-skip': ruleForbidTodoSkipBroker(),
       'enforce-regex-usage': ruleEnforceRegexUsageBroker(),
       'enforce-file-metadata': ruleEnforceFileMetadataBroker(),
+      'enforce-folder-return-types': ruleEnforceFolderReturnTypesBroker(),
       'ban-fetch-in-proxies': ruleBanFetchInProxiesBroker(),
       'ban-startup-branching': ruleBanStartupBranchingBroker(),
       'ban-jest-mock-in-proxies': ruleBanJestMockInProxiesBroker(),

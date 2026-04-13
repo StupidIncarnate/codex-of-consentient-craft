@@ -7,6 +7,7 @@
  */
 
 import type { TestInfo } from '@playwright/test';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const playwrightTestInfoAttachAdapter = async ({
   testInfo,
@@ -16,6 +17,8 @@ export const playwrightTestInfoAttachAdapter = async ({
   testInfo: TestInfo;
   name: string;
   body: string;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await testInfo.attach(name, { body, contentType: 'text/plain' });
+
+  return { success: true as const };
 };

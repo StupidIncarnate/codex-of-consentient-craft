@@ -8,9 +8,9 @@
 
 import { exec } from 'child_process';
 
-import type { NetworkPort } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, NetworkPort } from '@dungeonmaster/shared/contracts';
 
-export const netKillPortAdapter = async ({ port }: { port: NetworkPort }): Promise<void> =>
+export const netKillPortAdapter = async ({ port }: { port: NetworkPort }): Promise<AdapterResult> =>
   new Promise((resolve) => {
     exec(`lsof -ti :${String(port)}`, (_error, stdout) => {
       const output = typeof stdout === 'string' ? stdout : '';
@@ -20,12 +20,12 @@ export const netKillPortAdapter = async ({ port }: { port: NetworkPort }): Promi
         .filter((line) => line.length > 0);
 
       if (pids.length === 0) {
-        resolve();
+        resolve({ success: true as const });
         return;
       }
 
       exec(`kill ${pids.join(' ')}`, () => {
-        resolve();
+        resolve({ success: true as const });
       });
     });
   });

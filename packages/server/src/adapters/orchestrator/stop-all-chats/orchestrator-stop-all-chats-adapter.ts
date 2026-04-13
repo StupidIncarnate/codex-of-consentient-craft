@@ -7,7 +7,10 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export const orchestratorStopAllChatsAdapter = (): void => {
+export const orchestratorStopAllChatsAdapter = (): AdapterResult => {
   StartOrchestrator.stopAllChats();
+
+  return { success: true as const };
 };

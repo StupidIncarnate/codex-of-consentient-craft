@@ -7,7 +7,7 @@
  */
 
 import { appendFile } from 'fs/promises';
-import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FileContents, FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsAppendFileAdapter = async ({
   filePath,
@@ -15,6 +15,8 @@ export const fsAppendFileAdapter = async ({
 }: {
   filePath: FilePath;
   contents: FileContents;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await appendFile(filePath, contents, 'utf8');
+
+  return { success: true as const };
 };

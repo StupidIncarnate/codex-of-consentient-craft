@@ -6,9 +6,14 @@
  * // Waits until the callback stops throwing
  */
 import { waitFor } from '@testing-library/react';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const testingLibraryWaitForAdapter = async ({
   callback,
 }: {
   callback: () => void;
-}): Promise<void> => waitFor(callback);
+}): Promise<AdapterResult> => {
+  await waitFor(callback);
+
+  return { success: true as const };
+};

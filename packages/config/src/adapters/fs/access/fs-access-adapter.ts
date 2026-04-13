@@ -7,7 +7,7 @@
  */
 
 import { access } from 'fs/promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsAccessAdapter = async ({
   filePath,
@@ -15,6 +15,8 @@ export const fsAccessAdapter = async ({
 }: {
   filePath: FilePath;
   mode: number;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await access(filePath, mode);
+
+  return { success: true as const };
 };

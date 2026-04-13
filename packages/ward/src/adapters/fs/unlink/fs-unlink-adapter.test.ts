@@ -11,7 +11,9 @@ describe('fsUnlinkAdapter', () => {
 
       proxy.succeeds();
 
-      await expect(fsUnlinkAdapter({ filePath })).resolves.toBe(undefined);
+      await expect(fsUnlinkAdapter({ filePath })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 

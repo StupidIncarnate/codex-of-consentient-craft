@@ -10,7 +10,7 @@ describe('fsMkdirAdapter', () => {
 
       proxy.succeeds({ filepath });
 
-      await expect(fsMkdirAdapter({ filepath })).resolves.toBe(undefined);
+      await expect(fsMkdirAdapter({ filepath })).resolves.toStrictEqual({ success: true });
     });
   });
 

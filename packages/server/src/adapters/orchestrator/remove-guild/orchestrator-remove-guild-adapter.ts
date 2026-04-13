@@ -7,10 +7,14 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorRemoveGuildAdapter = async ({
   guildId,
 }: {
   guildId: GuildId;
-}): Promise<void> => StartOrchestrator.removeGuild({ guildId });
+}): Promise<AdapterResult> => {
+  await StartOrchestrator.removeGuild({ guildId });
+
+  return { success: true as const };
+};

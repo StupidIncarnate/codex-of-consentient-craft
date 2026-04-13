@@ -6,11 +6,11 @@ export const orchestratorReplayChatHistoryAdapterProxy = (): {
   setupFailure: (params: { error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.replayChatHistory });
-  mock.mockResolvedValue(undefined);
+  mock.mockResolvedValue({ success: true as const });
 
   return {
     setupSuccess: (): void => {
-      mock.mockResolvedValue(undefined);
+      mock.mockResolvedValue({ success: true as const });
     },
     setupFailure: ({ error }: { error: Error }): void => {
       mock.mockImplementation(async () => Promise.reject(error));

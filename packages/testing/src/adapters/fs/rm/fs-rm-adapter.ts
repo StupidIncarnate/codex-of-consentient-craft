@@ -7,6 +7,7 @@
  */
 
 import { rmSync } from 'fs';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const fsRmAdapter = ({
   filePath,
@@ -16,6 +17,8 @@ export const fsRmAdapter = ({
   filePath: string;
   recursive?: boolean;
   force?: boolean;
-}): void => {
+}): AdapterResult => {
   rmSync(filePath, { recursive, force });
+
+  return { success: true as const };
 };

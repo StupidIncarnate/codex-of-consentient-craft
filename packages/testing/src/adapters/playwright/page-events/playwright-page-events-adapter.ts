@@ -7,6 +7,7 @@
  */
 
 import type { Page, Request as PlaywrightRequest } from '@playwright/test';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
 
 export const playwrightPageEventsAdapter = ({
@@ -38,7 +39,7 @@ export const playwrightPageEventsAdapter = ({
     requestIdentity: PlaywrightRequest;
   }) => void;
   onWebSocketFrame: (args: { direction: 'sent' | 'received'; payload: string | Buffer }) => void;
-}): void => {
+}): AdapterResult => {
   page.on('request', (request) => {
     onRequest({
       url: request.url(),
@@ -83,4 +84,6 @@ export const playwrightPageEventsAdapter = ({
       onWebSocketFrame({ direction: 'sent', payload: data.payload });
     });
   });
+
+  return { success: true as const };
 };

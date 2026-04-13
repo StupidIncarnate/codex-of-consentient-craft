@@ -83,6 +83,7 @@ export const configDungeonmasterBroker = ({
       },
     ],
     '@dungeonmaster/enforce-file-metadata': 'error',
+    '@dungeonmaster/enforce-folder-return-types': 'error',
     '@dungeonmaster/enforce-implementation-colocation': 'error',
     '@dungeonmaster/enforce-import-dependencies': 'error',
     '@dungeonmaster/enforce-jest-mocked-usage': 'error',

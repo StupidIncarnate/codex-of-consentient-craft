@@ -10,7 +10,7 @@
  */
 
 import { writeFileSync } from 'fs';
-import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath, FileContents } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileSyncAdapter = ({
   filePath,
@@ -20,6 +20,8 @@ export const fsWriteFileSyncAdapter = ({
   filePath: FilePath;
   contents: FileContents;
   encoding?: BufferEncoding;
-}): void => {
+}): AdapterResult => {
   writeFileSync(filePath, contents, encoding ?? 'utf-8');
+
+  return { success: true as const };
 };

@@ -7,8 +7,14 @@
  */
 
 import { mkdir } from 'fs/promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
 
-export const fsMkdirAdapter = async ({ dirPath }: { dirPath: FilePath }): Promise<void> => {
+export const fsMkdirAdapter = async ({
+  dirPath,
+}: {
+  dirPath: FilePath;
+}): Promise<AdapterResult> => {
   await mkdir(dirPath, { recursive: true });
+
+  return { success: true as const };
 };

@@ -8,7 +8,7 @@ export const fsWriteFileAdapterProxy = (): {
 } => {
   const mockWriteFile = registerMock({ fn: writeFile });
 
-  mockWriteFile.mockResolvedValue(undefined);
+  mockWriteFile.mockResolvedValue({ success: true as const });
 
   return {
     succeeds: ({
@@ -18,7 +18,7 @@ export const fsWriteFileAdapterProxy = (): {
       filepath: FilePath;
       contents: FileContents;
     }): void => {
-      mockWriteFile.mockResolvedValueOnce(undefined);
+      mockWriteFile.mockResolvedValueOnce({ success: true as const });
     },
     throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
       mockWriteFile.mockRejectedValueOnce(error);

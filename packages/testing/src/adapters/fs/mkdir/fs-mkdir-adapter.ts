@@ -7,6 +7,7 @@
  */
 
 import { mkdirSync } from 'fs';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const fsMkdirAdapter = ({
   dirPath,
@@ -14,6 +15,8 @@ export const fsMkdirAdapter = ({
 }: {
   dirPath: string;
   recursive?: boolean;
-}): void => {
+}): AdapterResult => {
   mkdirSync(dirPath, { recursive });
+
+  return { success: true as const };
 };

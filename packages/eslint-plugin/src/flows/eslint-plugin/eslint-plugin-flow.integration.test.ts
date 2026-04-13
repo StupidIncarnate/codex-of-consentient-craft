@@ -31,6 +31,7 @@ describe('EslintPluginFlow', () => {
         'enforce-contract-usage-in-tests',
         'enforce-e2e-base-import',
         'enforce-file-metadata',
+        'enforce-folder-return-types',
         'enforce-harness-patterns',
         'enforce-implementation-colocation',
         'enforce-import-dependencies',

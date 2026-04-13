@@ -3,10 +3,11 @@
  *
  * USAGE:
  * await fsAccessAdapter({filePath: FilePathStub({value: '/config.json'}), mode: 4});
- * // Returns void if accessible, throws if not
+ * // Returns AdapterResult if accessible, throws if not
  */
 
 import { access } from 'fs/promises';
+import type { AdapterResult } from '../../../contracts/adapter-result/adapter-result-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const fsAccessAdapter = async ({
@@ -15,6 +16,8 @@ export const fsAccessAdapter = async ({
 }: {
   filePath: FilePath;
   mode: number;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await access(filePath, mode);
+
+  return { success: true as const };
 };

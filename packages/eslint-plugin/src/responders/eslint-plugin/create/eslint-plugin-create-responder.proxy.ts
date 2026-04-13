@@ -41,6 +41,7 @@ import { ruleNoMultiplePropertyAssertionsBrokerProxy } from '../../../brokers/ru
 import { ruleForbidTodoSkipBrokerProxy } from '../../../brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker.proxy';
 import { ruleEnforceRegexUsageBrokerProxy } from '../../../brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker.proxy';
 import { ruleEnforceFileMetadataBrokerProxy } from '../../../brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker.proxy';
+import { ruleEnforceFolderReturnTypesBrokerProxy } from '../../../brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.proxy';
 import { ruleBanFetchInProxiesBrokerProxy } from '../../../brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.proxy';
 import { ruleBanStartupBranchingBrokerProxy } from '../../../brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker.proxy';
 import { ruleBanJestMockInProxiesBrokerProxy } from '../../../brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker.proxy';
@@ -99,6 +100,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleForbidTodoSkipBrokerProxy();
   ruleEnforceRegexUsageBrokerProxy();
   ruleEnforceFileMetadataBrokerProxy();
+  ruleEnforceFolderReturnTypesBrokerProxy();
   ruleBanFetchInProxiesBrokerProxy();
   ruleBanStartupBranchingBrokerProxy();
   ruleBanJestMockInProxiesBrokerProxy();

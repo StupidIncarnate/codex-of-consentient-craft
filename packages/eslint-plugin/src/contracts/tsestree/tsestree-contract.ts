@@ -76,6 +76,9 @@ interface RecursiveNodeOutput {
   shorthand?: boolean | undefined;
   // TSTypeReference properties
   typeName?: RecursiveNodeOutput | null | undefined;
+  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
+  typeParameters?: RecursiveNodeOutput | null | undefined;
+  typeArguments?: RecursiveNodeOutput | null | undefined;
   // TSPropertySignature properties
   optional?: boolean | undefined;
   // TSTypeLiteral properties
@@ -142,6 +145,9 @@ interface RecursiveNodeInput {
   shorthand?: boolean | undefined;
   // TSTypeReference properties
   typeName?: RecursiveNodeInput | null | undefined;
+  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
+  typeParameters?: RecursiveNodeInput | null | undefined;
+  typeArguments?: RecursiveNodeInput | null | undefined;
   // TSPropertySignature properties
   optional?: boolean | undefined;
   // TSTypeLiteral properties
@@ -261,6 +267,15 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
+  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
+  typeParameters: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  typeArguments: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
   // TSPropertySignature properties
   optional: z.boolean().optional(),
   // TSTypeLiteral properties
@@ -335,6 +350,9 @@ export const tsestreeContract = z.object({
   shorthand: z.boolean().optional(),
   // TSTypeReference properties
   typeName: recursiveBase.nullable().optional(),
+  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
+  typeParameters: recursiveBase.nullable().optional(),
+  typeArguments: recursiveBase.nullable().optional(),
   // TSPropertySignature properties
   optional: z.boolean().optional(),
   // TSTypeLiteral properties

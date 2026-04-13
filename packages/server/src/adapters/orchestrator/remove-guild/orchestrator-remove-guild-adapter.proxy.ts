@@ -6,7 +6,7 @@ export const orchestratorRemoveGuildAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.removeGuild });
 
-  mock.mockResolvedValue(undefined);
+  mock.mockResolvedValue({ success: true as const });
 
   return {
     throws: ({ error }: { error: Error }): void => {

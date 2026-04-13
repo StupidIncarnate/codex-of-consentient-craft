@@ -8,11 +8,11 @@ export const fsMkdirAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: mkdir });
 
-  handle.mockResolvedValue(undefined);
+  handle.mockResolvedValue({ success: true as const });
 
   return {
     succeeds: ({ filepath: _filepath }: { filepath: FilePath }): void => {
-      handle.mockResolvedValueOnce(undefined);
+      handle.mockResolvedValueOnce({ success: true as const });
     },
     throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
       handle.mockRejectedValueOnce(error);

@@ -6,7 +6,7 @@ export const orchestratorStopAllChatsAdapterProxy = (): {
   wasCalled: () => boolean;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.stopAllChats });
-  mock.mockReturnValue(undefined);
+  mock.mockReturnValue({ success: true as const });
 
   return {
     throws: ({ error }: { error: Error }): void => {

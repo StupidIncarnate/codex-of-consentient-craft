@@ -12,8 +12,10 @@ export const orchestratorEventsOnAdapterProxy = (): {
   const handlers = new Map<OrchestrationEventType, EventHandler>();
 
   mock.mockImplementation(
-    ({ type, handler }: { type: OrchestrationEventType; handler: EventHandler }): void => {
+    ({ type, handler }: { type: OrchestrationEventType; handler: EventHandler }) => {
       handlers.set(type, handler);
+
+      return { success: true as const };
     },
   );
 

@@ -5,6 +5,7 @@
  * jestIsolateModulesAdapter({ mocks: [{ module: filePathContract.parse('/abs/path/to/module'), factory: () => ({}) }], entrypoint: filePathContract.parse('/abs/path/to/index') });
  * // Loads entrypoint in an isolated module scope with specified modules mocked
  */
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -19,7 +20,7 @@ export const jestIsolateModulesAdapter = ({
 }: {
   mocks: IsolateModulesMock[];
   entrypoint: FilePath;
-}): void => {
+}): AdapterResult => {
   jest.isolateModules(() => {
     for (const mock of mocks) {
       jest.doMock(mock.module, mock.factory);
@@ -27,4 +28,6 @@ export const jestIsolateModulesAdapter = ({
 
     require(filePathContract.parse(entrypoint));
   });
+
+  return { success: true as const };
 };

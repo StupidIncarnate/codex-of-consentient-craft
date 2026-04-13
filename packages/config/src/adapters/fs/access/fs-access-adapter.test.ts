@@ -11,7 +11,7 @@ describe('fsAccessAdapter', () => {
 
       proxy.resolves();
 
-      await expect(fsAccessAdapter({ filePath, mode })).resolves.toBe(undefined);
+      await expect(fsAccessAdapter({ filePath, mode })).resolves.toStrictEqual({ success: true });
     });
 
     it('VALID: {filePath: "/project/.dungeonmaster", mode: 4} => resolves for readable config file', async () => {
@@ -21,7 +21,7 @@ describe('fsAccessAdapter', () => {
 
       proxy.resolves();
 
-      await expect(fsAccessAdapter({ filePath, mode })).resolves.toBe(undefined);
+      await expect(fsAccessAdapter({ filePath, mode })).resolves.toStrictEqual({ success: true });
     });
   });
 

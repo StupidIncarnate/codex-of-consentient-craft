@@ -6,7 +6,11 @@
  * // Writes "[dev] WebSocket client connected\n" to stdout when DUNGEONMASTER_ENV=dev, no-ops otherwise
  */
 
-export const processDevLogAdapter = ({ message }: { message: string }): void => {
-  if (process.env.DUNGEONMASTER_ENV !== 'dev') return;
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
+export const processDevLogAdapter = ({ message }: { message: string }): AdapterResult => {
+  if (process.env.DUNGEONMASTER_ENV !== 'dev') return { success: true as const };
   process.stdout.write(`[dev] ${message}\n`);
+
+  return { success: true as const };
 };

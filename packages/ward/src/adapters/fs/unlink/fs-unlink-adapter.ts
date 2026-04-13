@@ -7,8 +7,14 @@
  */
 
 import { unlink } from 'fs/promises';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
 
-export const fsUnlinkAdapter = async ({ filePath }: { filePath: FilePath }): Promise<void> => {
+export const fsUnlinkAdapter = async ({
+  filePath,
+}: {
+  filePath: FilePath;
+}): Promise<AdapterResult> => {
   await unlink(filePath);
+
+  return { success: true as const };
 };

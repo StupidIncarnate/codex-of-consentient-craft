@@ -7,6 +7,7 @@
  */
 
 import { writeFileSync } from 'fs';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 
 export const fsWriteFileAdapter = ({
@@ -15,6 +16,8 @@ export const fsWriteFileAdapter = ({
 }: {
   filePath: string;
   content: FileContent;
-}): void => {
+}): AdapterResult => {
   writeFileSync(filePath, content);
+
+  return { success: true as const };
 };

@@ -29,6 +29,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
   '@dungeonmaster/ban-primitives': 'pre-edit',
   '@dungeonmaster/enforce-file-metadata': 'pre-edit',
+  '@dungeonmaster/enforce-folder-return-types': 'pre-edit',
   '@dungeonmaster/require-zod-on-primitives': 'pre-edit',
   '@dungeonmaster/require-contract-validation': 'pre-edit',
   '@dungeonmaster/enforce-object-destructuring-params': 'pre-edit',

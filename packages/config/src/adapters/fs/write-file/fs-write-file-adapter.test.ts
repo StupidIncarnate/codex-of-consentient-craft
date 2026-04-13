@@ -11,7 +11,9 @@ describe('fsWriteFileAdapter', () => {
 
       proxy.succeeds({ filepath, contents });
 
-      await expect(fsWriteFileAdapter({ filepath, contents })).resolves.toBe(undefined);
+      await expect(fsWriteFileAdapter({ filepath, contents })).resolves.toStrictEqual({
+        success: true,
+      });
     });
 
     it('INVALID: write fails => throws error', async () => {

@@ -322,3 +322,7 @@ export * from './src/contracts/ward-queue-response/ward-queue-response.stub';
 // Ward Run ID Contracts
 export * from './src/contracts/ward-run-id/ward-run-id-contract';
 export * from './src/contracts/ward-run-id/ward-run-id.stub';
+
+// Adapter Result Contracts
+export * from './src/contracts/adapter-result/adapter-result-contract';
+export * from './src/contracts/adapter-result/adapter-result.stub';

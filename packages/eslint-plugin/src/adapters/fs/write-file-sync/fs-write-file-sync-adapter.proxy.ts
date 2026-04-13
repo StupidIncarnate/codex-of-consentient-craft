@@ -9,7 +9,7 @@ export const fsWriteFileSyncAdapterProxy = (): {
   const mockWriteFileSync = registerMock({ fn: writeFileSync });
 
   // Default mock behavior - do nothing (successful write)
-  mockWriteFileSync.mockImplementation(() => undefined);
+  mockWriteFileSync.mockImplementation(() => ({ success: true as const }));
 
   return {
     succeeds: ({
@@ -19,7 +19,7 @@ export const fsWriteFileSyncAdapterProxy = (): {
       filePath: FilePath;
       contents: FileContents;
     }): void => {
-      mockWriteFileSync.mockReturnValueOnce(undefined);
+      mockWriteFileSync.mockReturnValueOnce({ success: true as const });
     },
     getWrittenContent: (): unknown => {
       const { calls } = mockWriteFileSync.mock;

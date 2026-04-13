@@ -10,7 +10,9 @@ describe('fsAccessAdapter', () => {
 
       proxy.resolves();
 
-      await expect(fsAccessAdapter({ filePath, mode: 4 })).resolves.toBe(undefined);
+      await expect(fsAccessAdapter({ filePath, mode: 4 })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 

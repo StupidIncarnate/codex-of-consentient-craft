@@ -29,6 +29,8 @@ Guards MUST be pure functions:
 - ✅ No side effects (mutations, logging, state changes)
 - ❌ Cannot call adapters or brokers
 - ❌ Cannot modify input parameters
+- ✅ MUST return `boolean` or type predicate (`x is T`) — enforced by `@dungeonmaster/enforce-folder-return-types`
+- ❌ Cannot return `Promise<boolean>`, `void`, `string`, or any other type
 
 **OPTIONAL PARAMETERS PATTERN:**
 

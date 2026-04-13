@@ -10,11 +10,11 @@ export const fsWriteFileAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: writeFile });
 
-  handle.mockResolvedValue(undefined);
+  handle.mockResolvedValue({ success: true as const });
 
   return {
     succeeds: (): void => {
-      handle.mockResolvedValueOnce(undefined);
+      handle.mockResolvedValueOnce({ success: true as const });
     },
 
     throws: ({ error }: { error: Error }): void => {

@@ -7,11 +7,11 @@ export const fsMkdirAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: mkdir });
 
-  mock.mockResolvedValue(undefined);
+  mock.mockResolvedValue({ success: true as const });
 
   return {
     succeeds: (): void => {
-      mock.mockResolvedValueOnce(undefined);
+      mock.mockResolvedValueOnce({ success: true as const });
     },
     throws: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);

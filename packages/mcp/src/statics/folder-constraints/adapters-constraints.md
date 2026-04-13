@@ -30,6 +30,9 @@ adapters/
   package name)
 - **MUST add project-specific configuration** - Add timeout, auth headers, retry logic, logging, etc. to npm package
   calls
+- **MUST return a meaningful value** — adapters must NOT return `void` or `Promise<void>`. Side-effect adapters (write,
+  delete, mkdir) return `AdapterResult` from `@dungeonmaster/shared/contracts`. Enforced by
+  `@dungeonmaster/enforce-folder-return-types`.
 
 **ERROR HANDLING:**
 
@@ -145,6 +148,7 @@ import {mkdir, writeFile} from 'fs/promises';
 import {dirname} from 'path';
 import type {FilePath} from '../../../contracts/file-path/file-path-contract';
 import type {FileContents} from '../../../contracts/file-contents/file-contents-contract';
+import type {AdapterResult} from '../../../contracts/adapter-result/adapter-result-contract';
 
 export const fsEnsureWriteAdapter = async ({
                                                filePath,
@@ -152,11 +156,12 @@ export const fsEnsureWriteAdapter = async ({
                                            }: {
     filePath: FilePath;
     content: FileContents;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
     const dir = dirname(filePath);
     await mkdir(dir, {recursive: true});  // fs.mkdir
     await writeFile(filePath, content);   // fs.writeFile
     // Both from 'fs/promises' package, one app operation: "safely write file"
+    return { success: true as const };
 };
 ```
 

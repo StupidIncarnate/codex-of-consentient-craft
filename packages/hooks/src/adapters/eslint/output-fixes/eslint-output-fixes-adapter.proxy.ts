@@ -18,11 +18,11 @@ export const eslintOutputFixesAdapterProxy = (): {
   const mockOutputFixes: SpyOnHandle = registerSpyOn({ object: ESLint, method: 'outputFixes' });
 
   // Default behavior: successful write
-  mockOutputFixes.mockResolvedValue(undefined);
+  mockOutputFixes.mockResolvedValue({ success: true as const });
 
   return {
     writesSuccessfully: (): void => {
-      mockOutputFixes.mockResolvedValueOnce(undefined);
+      mockOutputFixes.mockResolvedValueOnce({ success: true as const });
     },
 
     throwsError: ({ error }: { error: Error }): void => {

@@ -7,7 +7,10 @@
  */
 
 import { unlinkSync } from 'fs';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export const fsUnlinkAdapter = ({ filePath }: { filePath: string }): void => {
+export const fsUnlinkAdapter = ({ filePath }: { filePath: string }): AdapterResult => {
   unlinkSync(filePath);
+
+  return { success: true as const };
 };

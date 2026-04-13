@@ -7,11 +7,11 @@ export const fsAccessAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: access });
 
-  mock.mockResolvedValue(undefined);
+  mock.mockResolvedValue({ success: true as const });
 
   return {
     resolves: () => {
-      mock.mockResolvedValueOnce(undefined);
+      mock.mockResolvedValueOnce({ success: true as const });
     },
 
     rejects: ({ error }: { error: Error }) => {

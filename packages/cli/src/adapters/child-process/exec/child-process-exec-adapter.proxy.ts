@@ -5,7 +5,7 @@ export const childProcessExecAdapterProxy = (): {
   getExecCalls: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: exec });
-  handle.mockImplementation((() => undefined) as never);
+  handle.mockImplementation((() => ({ success: true as const })) as never);
 
   return {
     getExecCalls: (): readonly unknown[] => handle.mock.calls.map((call) => call[0]),

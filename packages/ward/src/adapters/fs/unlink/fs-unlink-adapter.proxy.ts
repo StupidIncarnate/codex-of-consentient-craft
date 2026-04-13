@@ -7,11 +7,11 @@ export const fsUnlinkAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: unlink });
 
-  mock.mockResolvedValue(undefined);
+  mock.mockResolvedValue({ success: true as const });
 
   return {
     succeeds: (): void => {
-      mock.mockResolvedValueOnce(undefined);
+      mock.mockResolvedValueOnce({ success: true as const });
     },
     throws: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);
