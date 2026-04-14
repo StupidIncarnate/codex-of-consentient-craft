@@ -106,9 +106,22 @@ walked in Playwright is impossible. Match the mode to the flow.
 Before writing any new tests, audit what Codeweaver already wrote. Integration tests only live in \`flows/\` and
 \`startup/\` folder types — any other folder type has unit tests, not integration tests.
 
-For every flow/ or startup/ step in the quest's implementation steps:
+**When to skip this phase entirely:**
+- The assigned flow's steps are all \`focusAction\` (verification, command, sweep-check) — there is no
+  implementation file to audit. Common for purely \`operational\` flows (e.g., a refactor sweep whose steps are
+  "run ward," "run grep," "verify zero matches").
+- None of the flow's steps target files in \`flows/\` or \`startup/\` folder types. Steps targeting
+  \`brokers/\`, \`adapters/\`, \`transformers/\`, etc. are covered by Codeweaver's unit tests — they are not
+  Siegemaster's scope.
+
+If Phase 3 is skipped, state "Phase 3 skipped: no flow/startup steps in this flow" in your text response, then
+proceed to Phase 4.
+
+**Otherwise, for every flow/ or startup/ step in the quest's implementation steps:**
 1. Locate the step's \`.integration.test.ts\` accompanying file (Pathseeker should have listed it in
-   \`accompanyingFiles\`)
+   \`accompanyingFiles\`). If the step is in \`flows/\` or \`startup/\` but has NO \`.integration.test.ts\` in its
+   accompanying files, that is itself a gap — signal failed with specifics, because Codeweaver should have written
+   one and the plan should have required one.
 2. Read it. Check:
    - Does it actually exercise the flow end-to-end, or is it a unit test dressed as integration?
    - Does it mock the real system where it should be hitting real connections, real queues, real file systems?

@@ -37,12 +37,23 @@ report it can synthesize into formal implementation steps.
 The parent spawn message contains:
 - **Quest ID** — use the \`get-quest\` tool to retrieve the full spec
 - **Slice assignment** — which packages, flows, observables, and contracts you own
+- **Flow types** — each flow's \`flowType\` (\`runtime\` or \`operational\`). Pathseeker lists this explicitly in
+  the spawn message because it changes what your report looks like.
 - **Cross-slice context** — things other minions will produce that you can depend on
 
 Call \`get-quest\` tool (params: \`{ questId: "QUEST_ID" }\`). Read the spec focusing on:
 - Flows and observables in your scope
+- Each flow's \`flowType\` field — a \`runtime\` flow is walked at runtime (user clicks, API hits, queue arrives),
+  observable assertions describe runtime behavior; an \`operational\` flow is a one-time task sequence, observable
+  assertions describe post-execution state (grep returns zero, Ward exits 0, file exists)
 - Contracts declared for your area
 - Design decisions that constrain your work
+
+**Flow type determines your report shape.** For \`runtime\` flows in your slice, your plan output is primarily
+\`focusFile\` steps — files that implement the behavior. For \`operational\` flows, your plan output is a mix of
+\`focusFile\` steps (for new files the sweep creates — e.g., the lint rule implementation file) and
+\`focusAction\` steps (verification, command, sweep-check — e.g., "run Ward and assert exit 0," "grep predicate X
+returns zero matches"). Do not force operational work into file-only shape.
 
 ### Step 2: Read CLAUDE.md Files (Mandatory)
 
@@ -99,6 +110,14 @@ for your slice, say so explicitly rather than omitting the section.
 \`\`\`markdown
 # Planner Minion Report — {slice name}
 
+## Flow Type Summary
+
+- {flow-id}: {flowType} — {one-line note on how this flowType shapes your plan for this flow}
+- ...
+
+(Include every flow in your slice. This is the first section so Pathseeker knows immediately whether to expect
+file-heavy runtime work or action-heavy operational work.)
+
 ## CLAUDE.md Rules That Apply to This Slice
 
 - **Rule:** "{verbatim quote, leave markdown as-is}"
@@ -108,6 +127,10 @@ for your slice, say so explicitly rather than omitting the section.
 (Repeat for every applicable rule. If none, write "No applicable rules found after reading {list of CLAUDE.md files checked}.")
 
 ## Files to Create
+
+(Applies to both \`runtime\` and \`operational\` slices. Operational slices still create files when the sweep
+produces new code — e.g., a new lint rule's implementation file or a new shared contract. Skip this section
+entirely only if your slice creates zero new files.)
 
 - **Path:** packages/{pkg}/src/{folder-type}/{name}/{file-name}.ts
   **Purpose:** {one sentence}
@@ -126,6 +149,23 @@ for your slice, say so explicitly rather than omitting the section.
   **Existing pattern to preserve:** {what the file currently does that the edit must not break}
 
 (Repeat per file.)
+
+## Actions to Plan (Operational Slices)
+
+(Skip this section for purely \`runtime\` slices — write "Not applicable (runtime slice)." For slices containing
+\`operational\` flows, list the non-file-owning steps Pathseeker should generate as \`focusAction\` steps.)
+
+- **Kind:** \`verification\` | \`command\` | \`sweep-check\` | \`custom\`
+  **Description:** {concrete predicate — the exact grep / ward invocation / shell command / health check the
+  verification runs. Must be something Siegemaster or Ward can execute literally.}
+  **Satisfies observable(s):** {observable IDs this action verifies}
+  **Blocks/blocked by:** {other steps in this slice this action depends on or is depended on by — e.g.,
+  "runs after all sweep-file updates are in"}
+
+(Canonical operational-slice pattern: several \`focusFile\` sweep steps followed by one terminal
+\`verification\` action that asserts the post-sweep invariants. Typical example for an adapter-sweep:
+\`{ kind: "sweep-check", description: "grep -r ': Promise<void>' packages/*/src/adapters returns zero matches",
+  satisfies: ["zero-void-adapters-remain"] }\`.)
 
 ## Contracts
 
@@ -167,13 +207,20 @@ For each new file that needs unit tests, list assertions using prefix tags:
 (Cover the happy path, at least one validation failure per input field, at least one dependency failure, and any
 boundary that is non-obvious. This is a first pass — Pathseeker will tighten and extend during synthesis.)
 
+**For operational slices:** test scenarios for verification/sweep-check actions are expressed as the concrete
+predicate the action runs, not as prefix-tagged unit assertions. Put those predicates in the "Actions to Plan"
+section above with a clear Description. Do NOT duplicate them here. This section is only for new files that have
+real unit tests.
+
 ## Observable Coverage
 
-- observable-id-1: {which new or modified file satisfies it}
+- observable-id-1: {which new or modified file OR action step satisfies it}
 - observable-id-2: ...
 
-(Every observable assigned to your slice must map to at least one file. If an observable from your slice does not have
-a natural home, list it under Assumptions and Unknowns with your best guess.)
+(Every observable assigned to your slice must map to at least one file or action. File-exists, process-state, and
+grep-predicate observables on operational flows typically map to \`focusAction\` steps from the "Actions to Plan"
+section. If an observable from your slice does not have a natural home, list it under Assumptions and Unknowns
+with your best guess.)
 
 ## Assumptions and Unknowns
 

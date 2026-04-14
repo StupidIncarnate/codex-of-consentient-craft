@@ -171,7 +171,7 @@ wrong, they will tell you and you will update it via \`modify-quest\`.
 8. **Persist flows** - Call \`modify-quest\` with \`flows\` array
 
 **Key rules:**
-- Every flow MUST include both happy and sad paths. A flow with only the happy path is incomplete.
+- \`runtime\` flows MUST include both happy and sad paths at every decision point. A runtime flow with only the happy path is incomplete. \`operational\` flows may be linear task sequences — see the "Per-flow rule branching" section above for the operational relaxation (failure policy lives in \`designDecisions\`, not as per-decision branches).
 - Node IDs must be kebab-case (e.g., \`login-page\`, \`check-credentials\`, \`show-error\`).
 - Do NOT include observables yet — leave \`observables: []\` on all nodes. Observables come in Phase 4.
 - Cross-flow references use \`"flowId:nodeId"\` format for edges that link between flows.
@@ -237,15 +237,29 @@ Mark Phase 3 task completed, mark Phase 4 task in_progress.
 16. **Persist everything** - Call \`modify-quest\` with updated \`flows\` (containing embedded observables),
     \`toolingRequirements\`, and \`contracts\`
 
-17. **Re-evaluate flow types.** Now that observables are in place, re-read each flow and ask: does the flowType still
-    match the content? Signals a flowType is wrong:
+17. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
+
+    **Pass A — Whole-flow flowType check.** Re-read each flow and ask: does the flowType still match the content?
+    Signals a flowType is wrong:
     - A \`runtime\` flow whose observables are almost all \`file-exists\` or \`process-state\` — probably operational
     - An \`operational\` flow whose observables include \`ui-state\` — probably runtime (or the user flow needs to be
       split off)
     - A flow with mixed observables that feels like two different concerns stitched together — split it into two
       flows with different types
-    If you update a flowType or split a flow, persist via \`modify-quest\` and note it briefly in your approval
-    summary so the user knows what changed.
+
+    **Pass B — Per-observable type consistency.** Walk every observable individually and ask: does its \`type\` tag
+    fit the containing flow's flowType? A single outlier may not tilt the whole-flow check but still confuses
+    Siegemaster at dispatch time.
+    - On a \`runtime\` flow: flag any \`file-exists\`, \`process-state\`, or \`custom\` grep-predicate observable as a
+      candidate to re-home. It may belong on an \`operational\` flow instead, or it may be a legitimate side-effect
+      assertion inside a runtime flow (e.g., "file X is created as a side effect of this API call"). If legitimate,
+      leave it but note it in your approval summary so the user knows the mixed observable is intentional.
+    - On an \`operational\` flow: flag any \`ui-state\` or \`api-call\`-against-app-endpoint observable as a candidate
+      to re-home. Infrastructure health checks (\`api-call\` against a post-deployment endpoint) are legitimate on
+      operational flows — those are verifier's-perspective observables, not user's-perspective ones.
+
+    If you update a flowType, move an observable between flows, or split a flow, persist via \`modify-quest\` and
+    note it briefly in your approval summary so the user knows what changed and why.
 
 **EXIT when:** All observables, contracts, and tooling requirements are persisted via \`modify-quest\` AND you have
 re-evaluated each flow's type.
@@ -422,11 +436,12 @@ observables show as red in the diagram — a visual gap indicator. Phase 2 leave
 \`\`\`
 
 **Common mistakes to avoid:**
-- Missing error branches (what if the API returns 500? what if the file doesn't exist?)
+- Missing error branches in \`runtime\` flows (what if the API returns 500? what if the file doesn't exist?) — \`operational\` flows are exempt from per-decision sad paths; their failure policy lives in \`designDecisions\`
 - Dead-end nodes with no outgoing edge that aren't explicit terminal nodes
-- Flows that only show the happy path — every decision point needs a failure branch
+- \`runtime\` flows that only show the happy path — every decision point needs a failure branch
 - Overly abstract nodes ("Process data") instead of concrete actions ("Parse JSON response")
 - Using raw mermaid text instead of structured nodes/edges — the system generates mermaid automatically
+- Forcing sad-path branches onto \`operational\` task-sequence flows — a single retry loop at the terminal verify step is the canonical shape; do not invent per-task failure branches that do not exist at runtime
 
 ### Observable Format
 
@@ -450,19 +465,24 @@ Multiple observables per node example:
 
 **Observable IDs** must be kebab-case (e.g., \`check-login-api-called\`, \`verify-cookie-set\`).
 
-**\`type\` tags** (used by PathSeeker for file planning):
-- \`ui-state\` — Visual/DOM changes (→ widgets)
-- \`api-call\` — HTTP requests/responses (→ responders, adapters)
-- \`file-exists\` — File system changes (→ brokers)
-- \`process-state\` — Running process state changes
-- \`log-output\` — Console/log output verification
-- \`environment\` — Environment variable checks
-- \`performance\` — Timing/performance thresholds
-- \`cache-state\` — Cache contents verification
-- \`db-query\` — Database state assertions
-- \`queue-message\` — Message queue verification
-- \`external-api\` — Third-party API interactions
-- \`custom\` — Anything else
+**\`type\` tags** are read by TWO downstream consumers:
+- **PathSeeker** uses them for file planning (which folder type owns the observable's implementation)
+- **Siegemaster** reads the distribution across a flow's observables to dispatch its verification mode (Playwright E2E vs integration harness vs operational verification)
+
+A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemaster to run Playwright. A flow whose observables are almost all \`file-exists\`/\`process-state\`/\`custom\` tells Siegemaster to run Ward + grep + adversarial checks. Picking the right tag is not a cosmetic choice — it decides how the flow gets verified.
+
+- \`ui-state\` — Visual/DOM changes (→ widgets, → Siegemaster Playwright)
+- \`api-call\` — HTTP requests/responses (→ responders, adapters, → Siegemaster integration harness or Playwright)
+- \`file-exists\` — File system changes (→ brokers, → Siegemaster file-system check)
+- \`process-state\` — Running process state changes (→ Siegemaster process exit/output check)
+- \`log-output\` — Console/log output verification (→ Siegemaster log tail)
+- \`environment\` — Environment variable checks (→ Siegemaster env inspection)
+- \`performance\` — Timing/performance thresholds (→ Siegemaster timing harness)
+- \`cache-state\` — Cache contents verification (→ Siegemaster cache inspection)
+- \`db-query\` — Database state assertions (→ Siegemaster integration harness)
+- \`queue-message\` — Message queue verification (→ Siegemaster integration harness)
+- \`external-api\` — Third-party API interactions (→ Siegemaster integration harness or contract test)
+- \`custom\` — Anything else (e.g. grep predicates for operational flows — write the predicate concretely in the description)
 
 **Each observable must be independently verifiable.** If an outcome has two parts, split them into separate observables.
 
@@ -538,9 +558,11 @@ before user approval. The agent's prompt MUST instruct it to call the \`get-agen
 1. **Atomic outcomes** - Each observable is a single independently verifiable assertion
 2. **Node-embedded** - Always embed observables in the relevant flow node
 3. **Testable** - Outcomes are observable and measurable
-4. **User-focused** - Write from the user's perspective
-5. **Concrete** - No placeholders or vague descriptions
-6. **Typed** - Every observable has a \`type\` tag for PathSeeker file planning
+4. **Perspective matches flow type:**
+   - \`runtime\` flows: write from the user's or caller's perspective — what a human, an HTTP client, or a message producer observes
+   - \`operational\` flows: write from the verifier's perspective — what a grep, a Ward run, or a file-system check would confirm after the task sequence completes
+5. **Concrete** - No placeholders or vague descriptions. For operational \`custom\` observables, write the grep predicate or Ward command verbatim in the description
+6. **Typed** - Every observable has a \`type\` tag that routes PathSeeker file planning AND Siegemaster mode dispatch (see the \`type\` tags section above)
 
 ---
 
