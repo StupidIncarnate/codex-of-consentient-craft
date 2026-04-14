@@ -40,10 +40,25 @@ ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker
       code: `export const formatTransformer = (): string => 'formatted';`,
       filename: '/project/src/transformers/format/format-transformer.ts',
     },
-    // Adapter without return type annotation — skipped (selector requires [returnType])
+    // Adapter without return type annotation — skipped (explicit-return-types handles this)
     {
       code: `export const noReturnTypeAdapter = () => Promise.resolve();`,
       filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
+    },
+    // Guard without return type annotation — skipped (explicit-return-types handles this)
+    {
+      code: `export const noReturnTypeGuard = () => true;`,
+      filename: '/project/src/guards/is-valid/is-valid-guard.ts',
+    },
+    // Adapter function declaration without return type — skipped
+    {
+      code: `export function writeFileAdapter() { return Promise.resolve(); }`,
+      filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
+    },
+    // Guard function declaration without return type — skipped
+    {
+      code: `export function isValidGuard() { return true; }`,
+      filename: '/project/src/guards/is-valid/is-valid-guard.ts',
     },
     // Non-exported function returning void in adapter file — not matched by selectors
     {
