@@ -14,17 +14,14 @@ import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
-import { orchestratorVerifyQuestAdapterProxy } from '../../../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import type { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
 import type { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
-import type { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
-type VerifyQuestResult = ReturnType<typeof VerifyQuestResultStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 
 export const QuestHandleResponderProxy = (): {
@@ -35,8 +32,6 @@ export const QuestHandleResponderProxy = (): {
   setupModifyQuestThrows: (params: { error: Error }) => void;
   setupStartQuestThrows: (params: { error: Error }) => void;
   setupGetQuestStatusThrows: (params: { error: Error }) => void;
-  setupVerifyQuestReturns: (params: { result: VerifyQuestResult }) => void;
-  setupVerifyQuestThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
   setupGetPlanningNotesReturns: (params: { result: GetPlanningNotesResult }) => void;
@@ -50,7 +45,6 @@ export const QuestHandleResponderProxy = (): {
   const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
-  const verifyQuestProxy = orchestratorVerifyQuestAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetPlanningNotesAdapterProxy();
 
   return {
@@ -78,14 +72,6 @@ export const QuestHandleResponderProxy = (): {
 
     setupGetQuestStatusThrows: ({ error }: { error: Error }): void => {
       getQuestStatusProxy.throws({ error });
-    },
-
-    setupVerifyQuestReturns: ({ result }: { result: VerifyQuestResult }): void => {
-      verifyQuestProxy.returns({ result });
-    },
-
-    setupVerifyQuestThrows: ({ error }: { error: Error }): void => {
-      verifyQuestProxy.throws({ error });
     },
 
     setupListQuestsThrows: ({ error }: { error: Error }): void => {

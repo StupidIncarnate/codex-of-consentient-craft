@@ -15,14 +15,14 @@ describe('questHasFileCompanionsGuard', () => {
         DependencyStepStub({
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts',
             }),
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.proxy.ts',
             }),
           ],
         }),
@@ -156,14 +156,14 @@ describe('questHasFileCompanionsGuard', () => {
         DependencyStepStub({
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts',
             }),
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.proxy.ts',
             }),
           ],
         }),
@@ -182,11 +182,11 @@ describe('questHasFileCompanionsGuard', () => {
         DependencyStepStub({
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.proxy.ts',
             }),
           ],
         }),
@@ -203,11 +203,11 @@ describe('questHasFileCompanionsGuard', () => {
         DependencyStepStub({
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts',
             }),
           ],
         }),
@@ -296,7 +296,7 @@ describe('questHasFileCompanionsGuard', () => {
         DependencyStepStub({
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [],
         }),
@@ -404,14 +404,14 @@ describe('questHasFileCompanionsGuard', () => {
           id: 'file-anchored-broker',
           observablesSatisfied: [obsId],
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
           accompanyingFiles: [
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.test.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts',
             }),
             StepFileReferenceStub({
-              path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.proxy.ts',
+              path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.proxy.ts',
             }),
           ],
         }),

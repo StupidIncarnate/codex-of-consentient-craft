@@ -249,118 +249,8 @@ describe('runPathseekerLayerBroker', () => {
     });
   });
 
-  describe('VERIFY FAILS (retries left) — retry work item created', () => {
-    it('VALID: {verify fails, attempt 0, maxAttempts 3} => pathseeker failed + retry created', async () => {
-      const questId = QuestIdStub({ value: 'test-quest' });
-      const workItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 0,
-        maxAttempts: 3,
-      });
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupDeterministicUuids({ uuids: ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeee01'] });
-      proxy.setupVerifyFail({
-        quest: buildVerifyFailQuest({ workItem }),
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-        onAgentEntry: jest.fn(),
-        abortSignal: new AbortController().signal,
-      });
-
-      const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
-      const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
-
-      expect(failedItem?.status).toBe('failed');
-      expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
-
-      expect(proxy.getPersistedQuestJsons().map(() => true)).toStrictEqual([true]);
-    });
-  });
-
-  describe('VERIFY FAILS (retries left) — failed item marked before retry insert', () => {
-    it('VALID: {verify fails, attempt 0, maxAttempts 3} => original pathseeker marked failed with errorMessage before retry', async () => {
-      const questId = QuestIdStub({ value: 'test-quest' });
-      const psWorkItemId = QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID });
-      const workItem = WorkItemStub({
-        id: psWorkItemId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 0,
-        maxAttempts: 3,
-      });
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupDeterministicUuids({ uuids: ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeee01'] });
-      proxy.setupVerifyFail({
-        quest: buildVerifyFailQuest({ workItem }),
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-        onAgentEntry: jest.fn(),
-        abortSignal: new AbortController().signal,
-      });
-
-      const failedQuest = proxy.getPersistedQuestJsons()[0] as PersistedQuest;
-      const failedItem = failedQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
-
-      expect(failedItem?.status).toBe('failed');
-      expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(failedItem?.completedAt).toBe('2024-01-15T10:00:00.000Z');
-      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
-    });
-  });
-
-  describe('VERIFY FAILS (no retries left) — no retry created', () => {
-    it('VALID: {verify fails, attempt 2, maxAttempts 3} => pathseeker failed, no retry', async () => {
-      const questId = QuestIdStub({ value: 'test-quest' });
-      const workItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 2,
-        maxAttempts: 3,
-      });
-      const proxy = runPathseekerLayerBrokerProxy();
-      proxy.setupVerifyFail({
-        quest: buildVerifyFailQuest({ workItem }),
-        spawnLines: [],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await runPathseekerLayerBroker({
-        questId,
-        workItem,
-        startPath: '/project/src' as never,
-        onAgentEntry: jest.fn(),
-        abortSignal: new AbortController().signal,
-      });
-
-      const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
-      const failedItem = lastQuest.workItems.find((item) => item.id === PS_WORK_ITEM_ID);
-
-      expect(failedItem?.status).toBe('failed');
-      expect(failedItem?.errorMessage).toBe('verification_failed');
-      expect(
-        lastQuest.workItems.filter((item) => item.role === 'pathseeker').map((item) => item.id),
-      ).toStrictEqual([PS_WORK_ITEM_ID]);
-    });
-  });
-
-  describe('CRASH — spawn fails, verify still runs', () => {
-    it('VALID: {spawn crashes, attempt 0, maxAttempts 3} => verify fails, retry created', async () => {
+  describe('SPAWN CRASHES (retries left) — retry work item created', () => {
+    it('VALID: {spawn crashes, attempt 0, maxAttempts 3} => pathseeker failed + retry created', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const workItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID }),
@@ -387,8 +277,8 @@ describe('runPathseekerLayerBroker', () => {
       const failedItems = allWorkItems.filter((item) => item.id === PS_WORK_ITEM_ID);
       const markedFailed = failedItems.find((item) => item.status === 'failed');
 
-      expect(markedFailed?.errorMessage).toBe('verification_failed');
-      expect(proxy.getUuidCalls()).toStrictEqual([[]]);
+      expect(markedFailed?.errorMessage).toBe('pathseeker_failed');
+      expect(markedFailed?.completedAt).toBe('2024-01-15T10:00:00.000Z');
     });
   });
 

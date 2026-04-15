@@ -20,7 +20,7 @@ describe('pathToFolderTypeTransformer', () => {
 
     it('VALID: {path with brokers folder} => returns brokers', () => {
       const ref = StepFileReferenceStub({
-        path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+        path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
       });
 
       const result = pathToFolderTypeTransformer({

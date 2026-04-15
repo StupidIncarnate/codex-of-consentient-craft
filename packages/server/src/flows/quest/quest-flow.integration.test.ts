@@ -64,19 +64,6 @@ describe('QuestFlow', () => {
     });
   });
 
-  describe('POST /api/quests/:questId/verify', () => {
-    it('VALID: {questId} => delegates to QuestVerifyResponder and returns response', async () => {
-      const app = QuestFlow();
-      const questId = QuestIdStub();
-
-      const response = await app.request(`/api/quests/${questId}/verify`, {
-        method: 'POST',
-      });
-
-      expect(response.status).toBe(200);
-    });
-  });
-
   describe('POST /api/quests/:questId/start', () => {
     it('VALID: {questId} => delegates to QuestStartResponder and returns response', async () => {
       const app = QuestFlow();

@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest, get-planning-notes)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-planning-notes)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 8 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 7 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -15,7 +15,6 @@ import { listQuestsInputContract } from '../../contracts/list-quests-input/list-
 import { modifyQuestInputContract } from '../../contracts/modify-quest-input/modify-quest-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
-import { verifyQuestInputContract } from '../../contracts/verify-quest-input/verify-quest-input-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
 
 const jsonSchemaOptions = { $refStrategy: 'none' as const };
@@ -28,7 +27,6 @@ const getQuestStatusSchema = zodToJsonSchema(
 );
 const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
-const verifyQuestSchema = zodToJsonSchema(verifyQuestInputContract as never, jsonSchemaOptions);
 const getPlanningNotesSchema = zodToJsonSchema(
   getPlanningNotesInputContract as never,
   jsonSchemaOptions,
@@ -72,13 +70,6 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Lists all registered guilds with their IDs, names, paths, and quest counts.' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'list-guilds' as never, args }),
-  },
-  {
-    name: 'verify-quest' as never,
-    description:
-      'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)' as never,
-    inputSchema: verifyQuestSchema as never,
-    handler: async ({ args }) => QuestHandleResponder({ tool: 'verify-quest' as never, args }),
   },
   {
     name: 'get-planning-notes' as never,

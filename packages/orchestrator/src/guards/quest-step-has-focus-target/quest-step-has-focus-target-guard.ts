@@ -5,7 +5,7 @@
  * questStepHasFocusTargetGuard({steps});
  * // Returns true if every step has exactly one focus target, false if any step has neither or both
  *
- * WHEN-TO-USE: verify-quest pipeline, to enforce the file-or-action rule that cannot be expressed
+ * WHEN-TO-USE: modify-quest validation pipeline, to enforce the file-or-action rule that cannot be expressed
  * in the Zod schema (because .refine() breaks downstream .extend() usage in modify-quest-input-contract).
  */
 import type { DependencyStep } from '@dungeonmaster/shared/contracts';

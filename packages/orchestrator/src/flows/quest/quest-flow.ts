@@ -7,7 +7,6 @@
  * const items = await QuestFlow.list({ guildId });
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
- * const verified = await QuestFlow.verify({ questId });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  */
 
@@ -17,7 +16,6 @@ import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-plann
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
-import { QuestVerifyResponder } from '../../responders/quest/verify/quest-verify-responder';
 
 type AddParams = Parameters<typeof QuestAddResponder>[0];
 type AddResult = Awaited<ReturnType<typeof QuestAddResponder>>;
@@ -36,9 +34,6 @@ type LoadResult = Awaited<ReturnType<typeof QuestLoadResponder>>;
 
 type ModifyParams = Parameters<typeof QuestModifyResponder>[0];
 type ModifyResult = Awaited<ReturnType<typeof QuestModifyResponder>>;
-
-type VerifyParams = Parameters<typeof QuestVerifyResponder>[0];
-type VerifyResult = Awaited<ReturnType<typeof QuestVerifyResponder>>;
 
 export const QuestFlow = {
   add: async ({ title, userRequest, guildId }: AddParams): Promise<AddResult> =>
@@ -59,7 +54,4 @@ export const QuestFlow = {
 
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
-
-  verify: async ({ questId }: VerifyParams): Promise<VerifyResult> =>
-    QuestVerifyResponder({ questId }),
 };

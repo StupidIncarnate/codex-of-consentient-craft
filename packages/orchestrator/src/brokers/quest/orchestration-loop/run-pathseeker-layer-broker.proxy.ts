@@ -6,7 +6,6 @@ import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { agentSpawnByRoleBrokerProxy } from '../../agent/spawn-by-role/agent-spawn-by-role-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
-import { questVerifyBrokerProxy } from '../verify/quest-verify-broker.proxy';
 import { questWorkItemInsertBrokerProxy } from '../work-item-insert/quest-work-item-insert-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -21,13 +20,6 @@ export const runPathseekerLayerBrokerProxy = (): {
   }) => void;
   setupSpawnFailure: (params: { quest: Quest }) => void;
   setupSpawnAborted: (params: { quest: Quest }) => void;
-  setupVerifyFail: (params: {
-    quest: Quest;
-    spawnLines: Parameters<
-      ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
-    >[0]['lines'];
-    exitCode: ExitCode;
-  }) => void;
   setupQuestNotFound: () => void;
   setupDeterministicUuids: (params: { uuids: readonly string[] }) => void;
   setupModifyReject: (params: { error: Error }) => void;
@@ -39,7 +31,6 @@ export const runPathseekerLayerBrokerProxy = (): {
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const verifyProxy = questVerifyBrokerProxy();
   const spawnProxy = agentSpawnByRoleBrokerProxy();
   const insertProxy = questWorkItemInsertBrokerProxy();
   const stderrSpy: { current: SpyOnHandle | null } = { current: null };
@@ -64,49 +55,19 @@ export const runPathseekerLayerBrokerProxy = (): {
       getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
       getProxy.setupQuestFound({ quest }); // post-completion fetch for steps
       modifyProxy.setupQuestFound({ quest });
-      verifyProxy.setupQuestFound({ quest });
       insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
     },
 
     setupSpawnFailure: ({ quest }: { quest: Quest }): void => {
-      // Spawn failure path: initial fetch + spawn crashes + verify + modify + get + insert
+      // Spawn failure path: initial fetch + spawn crashes + modify(failed) + get + insert
       getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
       getProxy.setupQuestFound({ quest });
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
-      verifyProxy.setupQuestFound({ quest });
       insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnFailureOnce();
-    },
-
-    setupVerifyFail: ({
-      quest,
-      spawnLines,
-      exitCode,
-    }: {
-      quest: Quest;
-      spawnLines: Parameters<
-        ReturnType<typeof agentSpawnByRoleBrokerProxy>['setupSpawnOnce']
-      >[0]['lines'];
-      exitCode: ExitCode;
-    }): void => {
-      // Verify fail path needs: initial fetch + verify + modify(failed) + get + modify(insert via insertBroker)
-      // Generous mock setups to ensure values are not exhausted
-      getProxy.setupQuestFound({ quest }); // initial fetch for sessionId resolution
-      getProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      verifyProxy.setupQuestFound({ quest });
-      verifyProxy.setupQuestFound({ quest });
-      insertProxy.setupQuestModify({ quest });
-      insertProxy.setupQuestModify({ quest });
-      spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });
     },
 
     setupSpawnAborted: ({ quest }: { quest: Quest }): void => {
@@ -118,7 +79,6 @@ export const runPathseekerLayerBrokerProxy = (): {
     setupQuestNotFound: (): void => {
       getProxy.setupEmptyFolder();
       modifyProxy.setupEmptyFolder();
-      verifyProxy.setupEmptyFolder();
       spawnProxy.setupSpawnFailureOnce();
     },
 

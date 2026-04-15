@@ -36,19 +36,6 @@ describe('StartOrchestrator', () => {
 
       expect(result.success).toBe(false);
     });
-
-    it('VALID: {nonexistent questId} => verifyQuest delegates to QuestFlow.verify and returns error', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'start-orch-verify' }),
-      });
-      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const result = await StartOrchestrator.verifyQuest({ questId: 'nonexistent-quest-id' });
-
-      restore();
-
-      expect(result.success).toBe(false);
-    });
   });
 
   describe('orchestration wiring', () => {

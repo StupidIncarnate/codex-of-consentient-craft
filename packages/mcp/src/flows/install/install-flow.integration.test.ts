@@ -76,7 +76,6 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-quest-status',
                 'mcp__dungeonmaster__list-quests',
                 'mcp__dungeonmaster__list-guilds',
-                'mcp__dungeonmaster__verify-quest',
                 'mcp__dungeonmaster__ask-user-question',
                 'mcp__dungeonmaster__get-agent-prompt',
                 'mcp__dungeonmaster__get-project-map',

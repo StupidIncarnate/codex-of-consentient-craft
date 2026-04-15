@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Executes the pathseeker phase — spawns agent, verifies quest, generates work items for next phases
+ * PURPOSE: Executes the pathseeker phase — spawns agent, generates work items for next phases on success
  *
  * USAGE:
  * await runPathseekerLayerBroker({questId, workItem, startPath});
- * // Spawns PathSeeker, verifies quest, creates downstream work items on success
+ * // Spawns PathSeeker and creates downstream work items on success
  */
 
 import {
@@ -18,7 +18,6 @@ import { getQuestInputContract } from '../../../contracts/get-quest-input/get-qu
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
-import { verifyQuestInputContract } from '../../../contracts/verify-quest-input/verify-quest-input-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questPathseekerSessionIdTransformer } from '../../../transformers/quest-pathseeker-session-id/quest-pathseeker-session-id-transformer';
@@ -26,7 +25,6 @@ import { stepsToWorkItemsTransformer } from '../../../transformers/steps-to-work
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { questVerifyBroker } from '../verify/quest-verify-broker';
 import { questWorkItemInsertBroker } from '../work-item-insert/quest-work-item-insert-broker';
 
 export const runPathseekerLayerBroker = async ({
@@ -94,13 +92,15 @@ export const runPathseekerLayerBroker = async ({
     return;
   }
 
-  // Verify quest
-  const verifyInput = verifyQuestInputContract.parse({ questId });
-  const verifyResult = await questVerifyBroker({ input: verifyInput });
+  // Completeness checks are now enforced inside modify-quest's Tier 4 transition
+  // (quest-completeness-for-transition-transformer). A non-crashed agent is treated
+  // as a successful pathseeker run — downstream work items are generated from the
+  // steps the agent committed via modify-quest.
+  const agentSucceeded = !spawnResult.crashed;
 
   const completedAt = new Date().toISOString();
 
-  if (verifyResult.success) {
+  if (agentSucceeded) {
     // Mark work item complete
     await questModifyBroker({
       input: {
@@ -146,7 +146,7 @@ export const runPathseekerLayerBroker = async ({
             id: workItem.id,
             status: 'failed',
             completedAt,
-            errorMessage: 'verification_failed',
+            errorMessage: 'pathseeker_failed',
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
           },
         ],
@@ -183,7 +183,7 @@ export const runPathseekerLayerBroker = async ({
             id: workItem.id,
             status: 'failed',
             completedAt,
-            errorMessage: 'verification_failed',
+            errorMessage: 'pathseeker_failed',
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
           },
         ],

@@ -18,7 +18,7 @@ test.describe('Quest Start Pipeline', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
+  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to seek_scope', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -69,7 +69,12 @@ test.describe('Quest Start Pipeline', () => {
 
     const questData = await questResponse.json();
 
-    expect(questData.quest.status).toBe('in_progress');
+    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
+    // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
+    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
+    // drive these transitions, so we only assert the initial transition here.
+    // TODO: End-to-end pipeline progression is deferred to Phase C manual verification.
+    expect(questData.quest.status).toBe('seek_scope');
   });
 
   test('VALID: POST /api/quests/:questId/start launches pipeline (process is registered)', async ({

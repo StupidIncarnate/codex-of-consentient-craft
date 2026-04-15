@@ -2,7 +2,6 @@ import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
-import { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
@@ -401,73 +400,6 @@ describe('QuestHandleResponder', () => {
             type: 'text',
             text: JSON.stringify(
               { success: false, error: 'Status failed' },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
-  describe('verify-quest', () => {
-    it('VALID: {questId} => returns verification result', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const verifyResult = VerifyQuestResultStub();
-      proxy.setupVerifyQuestReturns({ result: verifyResult });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'verify-quest' }),
-        args: { questId: 'test-quest-id' },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(verifyResult, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-    });
-
-    it('VALID: {unsuccessful result} => returns isError true', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const verifyResult = VerifyQuestResultStub({ success: false });
-      proxy.setupVerifyQuestReturns({ result: verifyResult });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'verify-quest' }),
-        args: { questId: 'test-quest-id' },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(verifyResult, null, JSON_INDENT_SPACES),
-          },
-        ],
-        isError: true,
-      });
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupVerifyQuestThrows({ error: new Error('Verify failed') });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'verify-quest' }),
-        args: { questId: 'test-quest-id' },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: false, error: 'Verify failed' },
               null,
               JSON_INDENT_SPACES,
             ),

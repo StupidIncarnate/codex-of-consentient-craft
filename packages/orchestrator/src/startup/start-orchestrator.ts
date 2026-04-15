@@ -32,7 +32,6 @@ import type { ClarificationQuestion } from '../contracts/clarification-question/
 import type { GetQuestResult } from '../contracts/get-quest-result/get-quest-result-contract';
 import type { ModifyQuestInput } from '../contracts/modify-quest-input/modify-quest-input-contract';
 import type { ModifyQuestResult } from '../contracts/modify-quest-result/modify-quest-result-contract';
-import type { VerifyQuestResult } from '../contracts/verify-quest-result/verify-quest-result-contract';
 import type { AgentPromptResult } from '../contracts/agent-prompt-result/agent-prompt-result-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
@@ -119,9 +118,6 @@ export const StartOrchestrator = {
     section?: 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
-
-  verifyQuest: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> =>
-    QuestFlow.verify({ questId }),
 
   modifyQuest: async ({
     questId,

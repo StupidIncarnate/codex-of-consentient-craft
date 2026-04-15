@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   DependencyStepStub,
+  ExitCodeStub,
   FilePathStub,
   GuildNameStub,
   GuildPathStub,
@@ -449,8 +450,8 @@ describe('OrchestrationFlow', () => {
     });
 
     // E2E-5: PathSeeker fails attempt 0, retry succeeds, full pipeline completes
-    // NOT testable in integration: pathseeker failure is driven by questVerifyBroker (quest
-    // structure checks), not by agent exit code or signal. The fake CLI can't modify
+    // NOT testable in integration: pathseeker failure is now driven by spawn crash
+    // (non-zero exit code), not by agent signal. The fake CLI can't modify
     // quest.json (add steps) between retry attempts. Covered by:
     //   - Unit: loop broker test #34 (PS retry dispatch mechanics)
     //   - Integration: "pathseeker fails 3 times" (retry creation chain)
@@ -1748,28 +1749,36 @@ describe('OrchestrationFlow', () => {
         const questId = addResult.questId!;
         const typedQuestId = questId;
 
-        // Approve quest but with no steps — quest verification will fail
+        // Approve quest but with no steps
         await questHelper.approveQuest({
           questId: typedQuestId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 0,
         });
 
-        // Don't add steps — quest verification will fail (no steps covering observables)
         await questHelper.completeChaosWorkItem({ questId });
 
-        // Queue 3 pathseeker attempts (all will fail verification)
+        // Queue 3 pathseeker attempts, each exiting non-zero (crashed spawn)
         queue.enqueue({
           queueDir: env.claudeQueueDir,
-          response: agentSuccessResponse({ sessionId: sid('ps-0') }),
+          response: agentFailedResponse({
+            sessionId: sid('ps-0'),
+            exitCode: ExitCodeStub({ value: 1 }),
+          }),
         });
         queue.enqueue({
           queueDir: env.claudeQueueDir,
-          response: agentSuccessResponse({ sessionId: sid('ps-1') }),
+          response: agentFailedResponse({
+            sessionId: sid('ps-1'),
+            exitCode: ExitCodeStub({ value: 1 }),
+          }),
         });
         queue.enqueue({
           queueDir: env.claudeQueueDir,
-          response: agentSuccessResponse({ sessionId: sid('ps-2') }),
+          response: agentFailedResponse({
+            sessionId: sid('ps-2'),
+            exitCode: ExitCodeStub({ value: 1 }),
+          }),
         });
 
         await OrchestrationFlow.start({ questId: typedQuestId });
@@ -1802,17 +1811,17 @@ describe('OrchestrationFlow', () => {
 
       expect(pathseekerItems[0]?.attempt).toBe(0);
       expect(pathseekerItems[0]?.status).toBe('failed');
-      expect(pathseekerItems[0]?.errorMessage).toBe('verification_failed');
+      expect(pathseekerItems[0]?.errorMessage).toBe('pathseeker_failed');
 
       expect(pathseekerItems[1]?.attempt).toBe(1);
       expect(pathseekerItems[1]?.status).toBe('failed');
-      expect(pathseekerItems[1]?.errorMessage).toBe('verification_failed');
+      expect(pathseekerItems[1]?.errorMessage).toBe('pathseeker_failed');
       expect(pathseekerItems[1]?.dependsOn).toStrictEqual([pathseekerItems[0]?.id]);
       expect(pathseekerItems[1]?.insertedBy).toBe(pathseekerItems[0]?.id);
 
       expect(pathseekerItems[2]?.attempt).toBe(2);
       expect(pathseekerItems[2]?.status).toBe('failed');
-      expect(pathseekerItems[2]?.errorMessage).toBe('verification_failed');
+      expect(pathseekerItems[2]?.errorMessage).toBe('pathseeker_failed');
       expect(pathseekerItems[2]?.dependsOn).toStrictEqual([pathseekerItems[1]?.id]);
       expect(pathseekerItems[2]?.insertedBy).toBe(pathseekerItems[1]?.id);
     });

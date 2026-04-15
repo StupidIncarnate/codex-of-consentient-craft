@@ -27,6 +27,7 @@ import { questModifyBroker } from './quest-modify-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
+import { withQuestModifyLockLayerBrokerProxy } from './with-quest-modify-lock-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -43,6 +44,8 @@ export const questModifyBrokerProxy = (): {
   const pathJoinProxy = pathJoinAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
+  const lockLayerProxy = withQuestModifyLockLayerBrokerProxy();
+  lockLayerProxy.setupEmpty();
 
   // Re-apply passthrough to actual implementation (resetAllMocks clears between tests)
   const realMod = requireActual({ module: './quest-modify-broker' });

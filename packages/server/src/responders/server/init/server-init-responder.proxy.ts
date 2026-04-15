@@ -32,7 +32,6 @@ registerModuleMock({
       stopAllChats: jest.fn(),
       stopChat: jest.fn(),
       updateGuild: jest.fn(),
-      verifyQuest: jest.fn(),
     },
     orchestrationEventsState: {
       on: jest.fn(),

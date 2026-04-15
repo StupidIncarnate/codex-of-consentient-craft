@@ -134,7 +134,7 @@ export const questModifyBroker = async ({
 
         if (validated.planningNotes) {
           const incoming = validated.planningNotes;
-          const current = quest.planningNotes ?? { surfaceReports: [] };
+          const current = quest.planningNotes;
 
           quest.planningNotes = {
             ...current,

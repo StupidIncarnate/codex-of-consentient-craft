@@ -155,7 +155,7 @@ Verify ALL concrete values are specified. Flag anything an implementer would hav
 
 ### Step 8: Review Contracts
 
-For each contract, scrutinize from a semantic perspective (structural validation like valid UUIDs and non-empty fields is handled by \`verify-quest\`):
+For each contract, scrutinize from a semantic perspective (structural validation like valid UUIDs and non-empty fields is handled by modify-quest's save-invariants layer):
 
 - **Coverage**: Are all data types referenced in observable outcomes captured as contract entries? If an observable says "User is redirected with auth token", there should be a contract for the auth token type. Walk through every observable outcome and check for implied data shapes that lack a corresponding contract.
 - **Endpoint alignment**: Do endpoint contracts match what observables describe? If an observable says "POST /api/auth/login returns user profile", is there an endpoint contract with that method, path, and response type? Check that request/response shapes align with what the observable criteria expect.

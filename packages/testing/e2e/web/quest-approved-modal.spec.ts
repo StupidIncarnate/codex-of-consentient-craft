@@ -9,6 +9,7 @@ const GUILD_PATH = '/tmp/dm-e2e-quest-approved-modal';
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
+const HTTP_OK = 200;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
@@ -253,7 +254,7 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('VALID: Begin Quest transitions to execution view when quest reaches in_progress', async ({
+  test('VALID: Begin Quest transitions quest into PathSeeker pipeline (seek_scope)', async ({
     page,
     request,
   }) => {
@@ -278,16 +279,27 @@ test.describe('Quest Approved Modal', () => {
 
     await page.getByText('Begin Quest').click();
 
+    // Modal should close
     await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
 
-    // Execution panel and dumpster raccoon should appear
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-    await expect(page.getByTestId('dumpster-raccoon-widget')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
+    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
+    // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
+    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
+    // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
+    // only activates at in_progress and beyond.
+    // TODO: End-to-end execution-view transition is deferred to Phase C manual verification.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) return null;
+          const data = await response.json();
+          return data.quest.status;
+        },
+        { timeout: PANEL_TIMEOUT },
+      )
+      .toBe('seek_scope');
   });
 });

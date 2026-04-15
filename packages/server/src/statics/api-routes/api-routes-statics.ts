@@ -13,7 +13,6 @@ export const apiRoutesStatics = {
   quests: {
     list: '/api/quests',
     byId: '/api/quests/:questId',
-    verify: '/api/quests/:questId/verify',
     start: '/api/quests/:questId/start',
     pause: '/api/quests/:questId/pause',
   },

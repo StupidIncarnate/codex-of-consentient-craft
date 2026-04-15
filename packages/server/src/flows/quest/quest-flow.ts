@@ -4,7 +4,7 @@
  * USAGE:
  * const questApp = QuestFlow();
  * app.route('', questApp);
- * // Registers GET/POST /api/quests, GET/PATCH /api/quests/:questId, POST verify and start
+ * // Registers GET/POST /api/quests, GET/PATCH /api/quests/:questId, POST start and pause
  */
 
 import { Hono } from 'hono';
@@ -14,7 +14,6 @@ import { QuestListResponder } from '../../responders/quest/list/quest-list-respo
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
-import { QuestVerifyResponder } from '../../responders/quest/verify/quest-verify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
@@ -45,11 +44,6 @@ export const QuestFlow = (): Hono => {
       params: { questId: c.req.param('questId') },
       body: await c.req.json(),
     });
-    return c.json(result.data as object, result.status as ContentfulStatusCode);
-  });
-
-  app.post(apiRoutesStatics.quests.verify, async (c) => {
-    const result = await QuestVerifyResponder({ params: { questId: c.req.param('questId') } });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

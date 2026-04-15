@@ -324,7 +324,7 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyAssertions).toThrow(/Array must contain at least 1 element/u);
     });
 
-    it('VALID: {neither focusFile nor focusAction} => parses successfully (XOR enforced at verify-quest layer)', () => {
+    it('VALID: {neither focusFile nor focusAction} => parses successfully (XOR enforced by quest-step-has-focus-target-guard)', () => {
       const step = dependencyStepContract.parse({
         id: 'valid-step',
         name: 'Test',
@@ -361,7 +361,7 @@ describe('dependencyStepContract', () => {
       });
     });
 
-    it('VALID: {both focusFile and focusAction} => parses successfully (XOR enforced at verify-quest layer)', () => {
+    it('VALID: {both focusFile and focusAction} => parses successfully (XOR enforced by quest-step-has-focus-target-guard)', () => {
       const step = dependencyStepContract.parse({
         id: 'valid-step',
         name: 'Test',

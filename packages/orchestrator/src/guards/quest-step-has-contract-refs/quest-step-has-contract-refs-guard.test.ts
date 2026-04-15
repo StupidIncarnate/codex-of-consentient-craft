@@ -14,7 +14,7 @@ describe('questStepHasContractRefsGuard', () => {
       const steps = [
         DependencyStepStub({
           focusFile: StepFileReferenceStub({
-            path: 'packages/orchestrator/src/brokers/quest/verify/quest-verify-broker.ts',
+            path: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts',
           }),
         }),
       ];

@@ -33,7 +33,6 @@ describe('orchestrator', () => {
       'questOutboxWatchBroker',
       'questSectionContract',
       'questStageContract',
-      'questVerifyBroker',
       'sessionIdExtractorTransformer',
       'siegemasterPromptStatics',
       'signalFromStreamTransformer',
@@ -50,8 +49,6 @@ describe('orchestrator', () => {
       'toolDisplayConfigStatics',
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',
-      'verifyQuestInputContract',
-      'verifyQuestResultContract',
       'workItemIdContract',
       'workTrackerContract',
     ]);
