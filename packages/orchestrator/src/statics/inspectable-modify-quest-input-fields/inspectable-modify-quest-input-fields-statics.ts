@@ -19,4 +19,5 @@ export const inspectableModifyQuestInputFieldsStatics = [
   'flows',
   'status',
   'title',
+  'planningNotes',
 ] as const;

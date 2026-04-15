@@ -107,7 +107,7 @@ export const OrchestrationStartResponder = async ({
 
   const modifyInput = modifyQuestInputContract.parse({
     questId,
-    ...(alreadyInProgress ? {} : { status: 'in_progress' }),
+    ...(alreadyInProgress ? {} : { status: 'seek_scope' }),
     ...(workItemsToUpdate.length > 0 ? { workItems: workItemsToUpdate } : {}),
   });
 

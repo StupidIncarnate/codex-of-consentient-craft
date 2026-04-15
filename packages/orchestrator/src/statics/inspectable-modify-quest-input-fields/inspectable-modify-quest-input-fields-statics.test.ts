@@ -10,6 +10,7 @@ describe('inspectableModifyQuestInputFieldsStatics', () => {
       'flows',
       'status',
       'title',
+      'planningNotes',
     ]);
   });
 });

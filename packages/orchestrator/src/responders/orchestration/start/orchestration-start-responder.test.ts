@@ -372,7 +372,7 @@ describe('OrchestrationStartResponder', () => {
   });
 
   describe('sequential modify atomicity (H-1 root cause)', () => {
-    it('VALID: {approved quest with chaos complete} => final persisted quest status is in_progress', async () => {
+    it('VALID: {approved quest with chaos complete} => final persisted quest status is seek_scope', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -388,17 +388,17 @@ describe('OrchestrationStartResponder', () => {
       await proxy.callResponder({ questId });
 
       // The responder does two sequential questModifyBroker calls:
-      //   1. Set status: approved → in_progress
+      //   1. Set status: approved → seek_scope
       //   2. Insert pathseeker work item
       // If the second call loads stale data (pre-status-change quest),
       // it overwrites status back to 'approved'. The loop then sees only
       // chaos=complete → terminal → quest=complete. This is the H-1 bug.
       const persistedQuest = proxy.getLastPersistedQuest();
 
-      expect(persistedQuest.status).toBe('in_progress');
+      expect(persistedQuest.status).toBe('seek_scope');
     });
 
-    it('VALID: {approved quest with chaos complete} => final persisted quest has pathseeker with in_progress status context', async () => {
+    it('VALID: {approved quest with chaos complete} => final persisted quest has pathseeker with seek_scope status context', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -416,9 +416,9 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      // Both status=in_progress AND pathseeker must coexist in the final write.
+      // Both status=seek_scope AND pathseeker must coexist in the final write.
       // Status regression means the loop will see terminal state and skip pathseeker.
-      expect(persistedQuest.status).toBe('in_progress');
+      expect(persistedQuest.status).toBe('seek_scope');
       expect(pathseekerItems[0]?.role).toBe('pathseeker');
       expect(pathseekerItems[0]?.status).toBe('pending');
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);

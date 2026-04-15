@@ -82,6 +82,29 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
   },
+  seek_scope: {
+    allowedFields: ['planningNotes', 'status'],
+    flowsRule: 'forbidden',
+  },
+  seek_synth: {
+    allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+    flowsRule: 'observable-wording-only',
+  },
+  seek_walk: {
+    allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+    flowsRule: 'observable-wording-only',
+  },
+  seek_plan: {
+    allowedFields: [
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
+    ],
+    flowsRule: 'observable-wording-only',
+  },
   in_progress: {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',

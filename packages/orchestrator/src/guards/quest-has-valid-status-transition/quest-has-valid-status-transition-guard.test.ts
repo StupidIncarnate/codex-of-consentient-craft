@@ -76,10 +76,10 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {approved -> in_progress} => returns true', () => {
+    it('VALID: {approved -> seek_scope} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'approved' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        nextStatus: QuestStatusStub({ value: 'seek_scope' }),
       });
 
       expect(result).toBe(true);
@@ -121,10 +121,10 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {design_approved -> in_progress} => returns true', () => {
+    it('VALID: {design_approved -> seek_scope} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'design_approved' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        nextStatus: QuestStatusStub({ value: 'seek_scope' }),
       });
 
       expect(result).toBe(true);

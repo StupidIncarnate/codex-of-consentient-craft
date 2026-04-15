@@ -11,5 +11,12 @@ export const questGateContentRequirementsStatics = {
     flows_approved: ['flows'],
     approved: ['flows'],
     design_approved: ['flows'],
+    seek_synth: ['planningNotes.scopeClassification'],
+    seek_walk: ['planningNotes.scopeClassification', 'planningNotes.synthesis'],
+    seek_plan: [
+      'planningNotes.scopeClassification',
+      'planningNotes.synthesis',
+      'planningNotes.walkFindings',
+    ],
   },
 } as const;

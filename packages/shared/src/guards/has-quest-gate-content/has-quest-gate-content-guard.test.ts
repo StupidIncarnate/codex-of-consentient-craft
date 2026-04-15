@@ -1,4 +1,6 @@
 import { FlowStub } from '../../contracts/flow/flow.stub';
+import { PlanningScopeClassificationStub } from '../../contracts/planning-scope-classification/planning-scope-classification.stub';
+import { PlanningSynthesisStub } from '../../contracts/planning-synthesis/planning-synthesis.stub';
 import { QuestStub } from '../../contracts/quest/quest.stub';
 import { QuestStatusStub } from '../../contracts/quest-status/quest-status.stub';
 import { hasQuestGateContentGuard } from './has-quest-gate-content-guard';
@@ -104,6 +106,60 @@ describe('hasQuestGateContentGuard', () => {
     it('VALID: {nextStatus: review_design} => returns true', () => {
       const quest = QuestStub();
       const nextStatus = QuestStatusStub({ value: 'review_design' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('dot-path gates', () => {
+    it('VALID: {planningNotes.scopeClassification defined, nextStatus: seek_synth} => returns true', () => {
+      const quest = QuestStub({
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          surfaceReports: [],
+        },
+      });
+      const nextStatus = QuestStatusStub({ value: 'seek_synth' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+
+    it('INVALID: {planningNotes.scopeClassification undefined, nextStatus: seek_synth} => returns false', () => {
+      const quest = QuestStub({ planningNotes: { surfaceReports: [] } });
+      const nextStatus = QuestStatusStub({ value: 'seek_synth' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {planningNotes.synthesis undefined, nextStatus: seek_walk} => returns false', () => {
+      const quest = QuestStub({
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          surfaceReports: [],
+        },
+      });
+      const nextStatus = QuestStatusStub({ value: 'seek_walk' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {planningNotes.scopeClassification + synthesis defined, nextStatus: seek_walk} => returns true', () => {
+      const quest = QuestStub({
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          synthesis: PlanningSynthesisStub(),
+          surfaceReports: [],
+        },
+      });
+      const nextStatus = QuestStatusStub({ value: 'seek_walk' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 

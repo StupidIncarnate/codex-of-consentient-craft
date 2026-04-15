@@ -130,7 +130,7 @@ describe('OrchestrationFlow', () => {
       );
       expect(status.questId).toBe(questId);
       expect(questResult.success).toBe(true);
-      expect(questResult.quest!.status).toBe('in_progress');
+      expect(questResult.quest!.status).toBe('seek_scope');
     });
   });
 
@@ -179,7 +179,7 @@ describe('OrchestrationFlow', () => {
       const postChaos = postStartQuest.quest!.workItems.find((wi) => wi.role === 'chaoswhisperer');
       const postPathseeker = postStartQuest.quest!.workItems.find((wi) => wi.role === 'pathseeker');
 
-      expect(postStartQuest.quest!.status).toBe('in_progress');
+      expect(postStartQuest.quest!.status).toBe('seek_scope');
       expect(postChaos?.status).toBe('complete');
       expect(postChaos?.completedAt).toMatch(ISO_TIMESTAMP_PATTERN);
       expect(postPathseeker?.role).toBe('pathseeker');

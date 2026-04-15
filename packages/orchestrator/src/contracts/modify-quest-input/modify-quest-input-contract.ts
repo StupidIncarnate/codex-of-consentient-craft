@@ -19,6 +19,11 @@ import {
   flowNodeIdContract,
   flowObservableContract,
   observableIdContract,
+  planningReviewReportContract,
+  planningScopeClassificationContract,
+  planningSurfaceReportContract,
+  planningSynthesisContract,
+  planningWalkFindingsContract,
   questContractEntryContract,
   questContractEntryIdContract,
   questStatusContract,
@@ -115,6 +120,19 @@ export const modifyQuestInputContract = z
     wardResults: z
       .array(wardResultContract)
       .describe('Ward result entries to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    planningNotes: z
+      .object({
+        scopeClassification: planningScopeClassificationContract.optional(),
+        surfaceReports: z.array(planningSurfaceReportContract).optional(),
+        synthesis: planningSynthesisContract.optional(),
+        walkFindings: planningWalkFindingsContract.optional(),
+        reviewReport: planningReviewReportContract.optional(),
+      })
+      .partial()
+      .describe(
+        'PathSeeker planning artifacts to merge into quest.planningNotes (any subset of sub-fields per call)',
+      )
       .optional(),
   })
   .brand<'ModifyQuestInput'>();

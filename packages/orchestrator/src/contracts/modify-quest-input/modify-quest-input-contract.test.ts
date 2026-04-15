@@ -1,4 +1,8 @@
-import { FlowStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowStub,
+  PlanningScopeClassificationStub,
+  PlanningSurfaceReportStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { modifyQuestInputContract } from './modify-quest-input-contract';
 import { ModifyQuestInputStub } from './modify-quest-input.stub';
@@ -492,6 +496,71 @@ describe('modifyQuestInputContract', () => {
         id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
         _delete: true,
       });
+    });
+  });
+
+  describe('planningNotes', () => {
+    it('VALID: {questId, planningNotes: {scopeClassification}} => parses with scope classification sub-field only', () => {
+      const scopeClassification = PlanningScopeClassificationStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { scopeClassification },
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        planningNotes: { scopeClassification },
+      });
+    });
+
+    it('VALID: {questId, planningNotes: {surfaceReports: [report]}} => parses with single surface report', () => {
+      const surfaceReport = PlanningSurfaceReportStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { surfaceReports: [surfaceReport] },
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        planningNotes: { surfaceReports: [surfaceReport] },
+      });
+    });
+
+    it('VALID: {questId, planningNotes: {}} => parses with empty planningNotes object', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {},
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        planningNotes: {},
+      });
+    });
+
+    it('INVALID: {planningNotes: {surfaceReports: [{sliceName: ""}]}} => throws validation error', () => {
+      expect(() => {
+        return modifyQuestInputContract.parse({
+          questId: 'add-auth',
+          planningNotes: {
+            surfaceReports: [
+              {
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                sliceName: '',
+                packages: ['@dungeonmaster/shared'],
+                rawReport: '# Surface Scope Report\n\nDetails.',
+                submittedAt: '2024-01-15T10:00:00.000Z',
+              },
+            ],
+          },
+        });
+      }).toThrow(/too_small/u);
     });
   });
 
