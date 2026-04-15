@@ -17,11 +17,13 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
+import { mcpToolsStatics } from '../../../statics/mcp-tools/mcp-tools-statics';
 import type { McpPermission } from '../../../contracts/mcp-permission/mcp-permission-contract';
 
 const SETTINGS_DIR = '.claude';
 const SETTINGS_FILENAME = 'settings.json';
 const JSON_INDENT_SPACES = 2;
+const DUNGEONMASTER_PERMISSION_PREFIX = `mcp__${mcpToolsStatics.server.name}__`;
 
 export const settingsPermissionsAddBroker = async ({
   targetProjectRoot,
@@ -47,8 +49,9 @@ export const settingsPermissionsAddBroker = async ({
     // File doesn't exist or is invalid JSON - will create new settings
   }
 
-  // Get MCP permissions
+  // Get current valid MCP permissions
   const mcpPermissions = mcpPermissionsCreatorTransformer();
+  const currentPermissionsSet = new Set<McpPermission>(mcpPermissions);
 
   // Get existing permissions
   const existingPermissions = Reflect.get(existingSettings, 'permissions') as
@@ -56,8 +59,15 @@ export const settingsPermissionsAddBroker = async ({
     | undefined;
   const existingAllow = (Reflect.get(existingPermissions ?? {}, 'allow') ?? []) as McpPermission[];
 
-  // Merge permissions (deduplicate)
-  const mergedAllow = [...new Set([...existingAllow, ...mcpPermissions])];
+  // Prune stale dungeonmaster permissions (tools no longer in mcpToolsStatics.tools.names),
+  // leave all other permissions untouched, then union with current dungeonmaster permissions.
+  const prunedExisting = existingAllow.filter((permission) => {
+    if (!permission.startsWith(DUNGEONMASTER_PERMISSION_PREFIX)) {
+      return true;
+    }
+    return currentPermissionsSet.has(permission);
+  });
+  const mergedAllow = [...new Set<McpPermission>([...prunedExisting, ...mcpPermissions])];
 
   // Update settings with merged permissions
   const updatedSettings = {
