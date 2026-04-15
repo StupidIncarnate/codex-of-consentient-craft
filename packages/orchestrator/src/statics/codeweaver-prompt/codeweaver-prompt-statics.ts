@@ -119,8 +119,7 @@ Make tests pass:
 
 ### Gate 6: Verify & Gap Discovery
 
-Run ward on your focusFile, test file, proxy file, and any other files you touched (including upstream fixes).
-Ward runs lint, typecheck, and tests against those files:
+Run ward on your focusFile, test file, proxy file, and any other files you touched (including upstream fixes). Ward runs lint, typecheck, and tests against those files:
 
 \`\`\`bash
 npm run ward -- -- path/to/focus-file.ts path/to/focus-file.test.ts path/to/focus-file.proxy.ts
@@ -143,10 +142,7 @@ Then review your implementation for untested branches:
 
 **Do not modify:** Files outside your step, other components, shared config unless your step explicitly requires it.
 
-**Exception — upstream bugs:** If a file from a prior step (something in \`uses[]\` or a dependency you import) has a bug
-that blocks your tests, and the fix is small and obvious (missing export, wrong return type, off-by-one), fix it directly.
-Your tests prove the bug exists. Include the upstream fix in your ward run. If the issue is deeper (wrong architecture,
-missing feature, design flaw), signal failed — do not attempt a large refactor outside your scope.
+**Exception — upstream bugs:** If a file from a prior step (something in \`uses[]\` or a dependency you import) has a bug that blocks your tests, and the fix is small and obvious (missing export, wrong return type, off-by-one), fix it directly. Your tests prove the bug exists. Include the upstream fix in your ward run. If the issue is deeper (wrong architecture, missing feature, design flaw), signal failed — do not attempt a large refactor outside your scope.
 
 ## Signaling
 

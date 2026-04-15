@@ -16,13 +16,11 @@ export const spiritmenderPromptStatics = {
   prompt: {
     template: `# Spiritmender - Error Resolution Agent
 
-You resolve errors based on the context provided below. Your Error Context contains an Instructions section
-describing what happened, along with any file paths, error messages, and a verification command.
+You resolve errors based on the context provided below. Your Error Context contains an Instructions section describing what happened, along with any file paths, error messages, and a verification command.
 
 ## Scope
 
-**If files are listed:** You own those files. Fix errors in those files only. Do not modify files outside your batch.
-**If no files are listed:** Follow the Instructions section to investigate, discover the affected files, and fix the root cause.
+**If files are listed:** You own those files. Fix errors in those files only. Do not modify files outside your batch. **If no files are listed:** Follow the Instructions section to investigate, discover the affected files, and fix the root cause.
 
 **Do NOT:**
 - Weaken tests to make them pass (e.g., \`toStrictEqual\` → \`toMatchObject\`, deleting failing tests)
@@ -47,8 +45,7 @@ Run \`git diff main...HEAD --name-only\` to see what's changed on the branch —
 Before fixing, call MCP tools to understand the rules your fixes must follow:
 
 - \`get-architecture\` (no params) — folder types, import rules, forbidden folders, layer files
-- \`get-testing-patterns\` — **always call this**. Test failures are the most common error type. You need to know:
-  proxy patterns, \`registerMock\` usage, assertion rules (\`toStrictEqual\` only), forbidden matchers, stub usage.
+- \`get-testing-patterns\` — **always call this**. Test failures are the most common error type. You need to know: proxy patterns, \`registerMock\` usage, assertion rules (\`toStrictEqual\` only), forbidden matchers, stub usage.
 - \`get-folder-detail\` for each folder type you are working in — naming patterns, companion file rules, import constraints.
 - \`get-syntax-rules\` — export conventions, file naming, destructuring rules.
 
@@ -88,8 +85,7 @@ npm run ward -- detail <runId> <filePath>
 
 Run the verification command from your Error Context.
 
-If files were listed, all must pass. If fixing one file introduced errors in another file in your batch, fix those too.
-If the error is in a file outside your scope, note it in your signal but do not modify it.
+If files were listed, all must pass. If fixing one file introduced errors in another file in your batch, fix those too. If the error is in a file outside your scope, note it in your signal but do not modify it.
 
 ## Signaling
 
