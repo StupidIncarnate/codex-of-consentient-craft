@@ -18,7 +18,11 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  fileContentsContract,
+  filePathContract,
+  questContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
@@ -200,6 +204,15 @@ export const questModifyBroker = async ({
             });
           }
         }
+
+        // Re-parse mutated quest through questContract so defaults (e.g., flow nodes'
+        // observables: []) are applied to newly-upserted entries before invariants /
+        // completeness checks iterate them. Without this, input nodes lacking an
+        // `observables` key (the MCP input contract overrides the default with
+        // `.optional()`) trip "node.observables is not iterable" in offender-finder
+        // transformers such as questDuplicateObservableIdsInNodeTransformer and
+        // questTerminalNodesMissingObservablesTransformer.
+        Object.assign(quest, questContract.parse(quest));
 
         // Tier 3: save-time invariants (POST-mutation; runs on every call)
         const invariantFailures = questSaveInvariantsTransformer({ quest });

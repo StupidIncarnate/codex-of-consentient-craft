@@ -150,6 +150,53 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, flows: [new flow with node lacking observables key]} during explore_flows => succeeds and persists node with observables: []', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // New flow with a node that has NO observables key in the input payload.
+      // The MCP modifyQuestInputContract makes node.observables `.optional()` (overriding
+      // the contract's `.default([])`), so this lands as `observables: undefined` after parse.
+      // Without a re-parse before invariants/completeness checks, downstream offender
+      // finders trip "node.observables is not iterable".
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow' as never,
+            name: 'Login Flow' as never,
+            flowType: 'runtime' as never,
+            entryPoint: '/login' as never,
+            exitPoints: ['/dashboard'] as never,
+            nodes: [
+              {
+                id: 'submit-form' as never,
+                label: 'Submit Form' as never,
+                type: 'state' as never,
+                // observables key intentionally OMITTED
+              },
+            ],
+            edges: [],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows[0]?.nodes[0]?.observables).toStrictEqual([]);
+    });
+
     it('VALID: {questId, status: "explore_flows"} with quest at "created" => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
