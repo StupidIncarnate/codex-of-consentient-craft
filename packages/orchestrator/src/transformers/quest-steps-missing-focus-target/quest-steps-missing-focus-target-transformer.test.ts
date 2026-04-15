@@ -34,9 +34,7 @@ describe('questStepsMissingFocusTargetTransformer', () => {
 
       const result = questStepsMissingFocusTargetTransformer({ steps: [step] });
 
-      expect(result).toStrictEqual([
-        "step 'bad-step' has neither focusFile nor focusAction",
-      ]);
+      expect(result).toStrictEqual(["step 'bad-step' has neither focusFile nor focusAction"]);
     });
   });
 

@@ -1,36 +1,72 @@
 /**
- * PURPOSE: Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report)
+ * PURPOSE: Returns PathSeeker's phased planningNotes for a quest (full object or a specific section)
  *
  * USAGE:
  * const notes = await questGetPlanningNotesBroker({ questId });
- * // Returns empty-shape stub (all sub-fields undefined / empty) until real implementation lands
+ * // Returns full planningNotes object
+ *
+ * const scope = await questGetPlanningNotesBroker({ questId, section: 'scope' });
+ * // Returns only planningNotes.scopeClassification (may be undefined)
  *
  * WHEN-TO-USE: PathSeeker resume-on-restart — re-read already-committed phase artifacts instead of redoing work.
  */
 
-// TODO: This is a Step 0.2 scaffold stub. Real implementation (plus the planning-* contracts
-// this return shape will reference) comes later in the plan. The shape here matches the
-// target PlanningNotes contract so downstream responders/adapters/flow/startup typecheck now.
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
 
-export type QuestGetPlanningNotesResult = {
-  readonly scopeClassification: undefined;
-  readonly surfaceReports: readonly never[];
-  readonly synthesis: undefined;
-  readonly walkFindings: undefined;
-  readonly reviewReport: undefined;
-};
+import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
+import { questLoadBroker } from '../load/quest-load-broker';
+
+const QUEST_FILE_NAME = 'quest.json';
+
+type PlanningNotes = Quest['planningNotes'];
+
+export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
+
+export type QuestGetPlanningNotesResult =
+  | PlanningNotes
+  | PlanningNotes['scopeClassification']
+  | PlanningNotes['surfaceReports']
+  | PlanningNotes['synthesis']
+  | PlanningNotes['walkFindings']
+  | PlanningNotes['reviewReport'];
 
 export const questGetPlanningNotesBroker = async ({
-  questId: _questId,
+  questId,
+  section,
 }: {
-  questId: string;
+  questId: QuestId;
+  section?: PlanningNotesSection;
 }): Promise<QuestGetPlanningNotesResult> => {
-  await Promise.resolve();
-  return {
-    scopeClassification: undefined,
-    surfaceReports: [],
-    synthesis: undefined,
-    walkFindings: undefined,
-    reviewReport: undefined,
-  };
+  const { questPath } = await questFindQuestPathBroker({ questId });
+
+  const questFilePath = filePathContract.parse(
+    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+  );
+
+  const quest = await questLoadBroker({ questFilePath });
+  const notes = quest.planningNotes;
+
+  if (section === undefined) {
+    return notes;
+  }
+
+  if (section === 'scope') {
+    return notes.scopeClassification;
+  }
+
+  if (section === 'surface') {
+    return notes.surfaceReports;
+  }
+
+  if (section === 'synthesis') {
+    return notes.synthesis;
+  }
+
+  if (section === 'walk') {
+    return notes.walkFindings;
+  }
+
+  return notes.reviewReport;
 };

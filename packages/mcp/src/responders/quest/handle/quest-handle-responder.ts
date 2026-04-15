@@ -23,6 +23,7 @@ import { orchestratorVerifyQuestAdapter } from '../../../adapters/orchestrator/v
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
+import { getPlanningNotesInputContract } from '../../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -292,10 +293,19 @@ export const QuestHandleResponder = async ({
 
   if (tool === 'get-planning-notes') {
     const questIdRaw: unknown = Reflect.get(args, 'questId');
+    const sectionRaw: unknown = Reflect.get(args, 'section');
     const questId = String(questIdRaw);
+    const parsed = getPlanningNotesInputContract.safeParse({
+      questId,
+      ...(sectionRaw !== undefined && { section: sectionRaw }),
+    });
+    const section = parsed.success ? parsed.data.section : undefined;
 
     try {
-      const notes = await orchestratorGetPlanningNotesAdapter({ questId });
+      const notes = await orchestratorGetPlanningNotesAdapter({
+        questId,
+        ...(section !== undefined && { section }),
+      });
       return {
         content: [
           {
@@ -303,6 +313,7 @@ export const QuestHandleResponder = async ({
             text: contentTextContract.parse(JSON.stringify(notes, null, JSON_INDENT_SPACES)),
           },
         ],
+        ...(!notes.success && { isError: true }),
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

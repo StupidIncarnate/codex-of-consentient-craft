@@ -1,4 +1,5 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
+import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
 import { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
@@ -556,7 +557,7 @@ describe('QuestHandleResponder', () => {
   });
 
   describe('get-planning-notes', () => {
-    it('VALID: {questId} => returns empty planning-notes shape as JSON', async () => {
+    it('VALID: {questId} => returns wrapped default planning-notes as JSON', async () => {
       const proxy = QuestHandleResponderProxy();
 
       const result = await proxy.callResponder({
@@ -569,18 +570,86 @@ describe('QuestHandleResponder', () => {
           {
             type: 'text',
             text: JSON.stringify(
-              {
-                scopeClassification: undefined,
-                surfaceReports: [],
-                synthesis: undefined,
-                walkFindings: undefined,
-                reviewReport: undefined,
-              },
+              { success: true, data: { surfaceReports: [] } },
               null,
               JSON_INDENT_SPACES,
             ),
           },
         ],
+      });
+    });
+
+    it('VALID: {questId, section: "surface"} => forwards section and returns surfaceReports', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetPlanningNotesReturns({
+        result: { success: true, data: [] },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        args: { questId: 'test-quest-id', section: 'surface' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, data: [] }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+      expect(proxy.getLastGetPlanningNotesInput()).toStrictEqual({
+        questId: 'test-quest-id',
+        section: 'surface',
+      });
+    });
+
+    it('VALID: {questId, invalid section} => ignores section and returns default', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        args: { questId: 'test-quest-id', section: 'bogus' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: true, data: { surfaceReports: [] } },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+      });
+      expect(proxy.getLastGetPlanningNotesInput()).toStrictEqual({ questId: 'test-quest-id' });
+    });
+
+    it('VALID: {unsuccessful result} => returns isError true', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetPlanningNotesReturns({
+        result: { success: false, error: ErrorMessageStub({ value: 'Quest not found' }) },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Quest not found' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
       });
     });
 

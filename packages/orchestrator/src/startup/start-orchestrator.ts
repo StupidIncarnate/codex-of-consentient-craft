@@ -113,10 +113,12 @@ export const StartOrchestrator = {
 
   getPlanningNotes: async ({
     questId,
+    section,
   }: {
     questId: string;
+    section?: 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
-    QuestFlow.getPlanningNotes({ questId }),
+    QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
 
   verifyQuest: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> =>
     QuestFlow.verify({ questId }),

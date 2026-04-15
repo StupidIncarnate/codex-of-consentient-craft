@@ -47,8 +47,11 @@ export const QuestFlow = {
   get: async ({ questId, stage }: GetParams): Promise<GetResult> =>
     QuestGetResponder({ questId, ...(stage !== undefined && { stage }) }),
 
-  getPlanningNotes: async ({ questId }: GetPlanningNotesParams): Promise<GetPlanningNotesResult> =>
-    QuestGetPlanningNotesResponder({ questId }),
+  getPlanningNotes: async ({
+    questId,
+    section,
+  }: GetPlanningNotesParams): Promise<GetPlanningNotesResult> =>
+    QuestGetPlanningNotesResponder({ questId, ...(section !== undefined && { section }) }),
 
   list: async ({ guildId }: ListParams): Promise<ListResult> => QuestListResponder({ guildId }),
 

@@ -533,7 +533,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
         synthesis: existingSynthesis,
@@ -572,7 +574,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes.surfaceReports).toStrictEqual([existingReport, newReport]);
     });
 
@@ -608,7 +612,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes.surfaceReports).toStrictEqual([updatedReport]);
     });
 
@@ -638,7 +644,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes.reviewReport).toStrictEqual(newReview);
     });
 
@@ -669,7 +677,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes.surfaceReports).toStrictEqual([keepReport]);
     });
 
@@ -701,7 +711,9 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
         scopeClassification: existingScope,
@@ -726,7 +738,7 @@ describe('questModifyBroker', () => {
         proxy.setupQuestFound({ quest });
       });
 
-      const calls = Array.from({ length: 10 }, (_, index) => {
+      const calls = Array.from({ length: 10 }, async (_, index) => {
         const uuid = `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`;
         const report = PlanningSurfaceReportStub({
           id: uuid as never,
@@ -755,8 +767,10 @@ describe('questModifyBroker', () => {
         true,
         true,
       ]);
+
       // One persist call per modify call — mutex serializes them, none are dropped.
       const persisted = proxy.getAllPersistedContents();
+
       expect(persisted.map(() => true)).toStrictEqual([
         true,
         true,

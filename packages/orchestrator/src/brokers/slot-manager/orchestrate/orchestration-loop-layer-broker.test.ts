@@ -286,7 +286,7 @@ describe('orchestrationLoopLayerBroker', () => {
   });
 
   describe('spawn_role path - siegemaster fails', () => {
-    it('VALID: {siegemaster signals failed with summary} => skips pending, spawns pathseeker with questId and failureContext', async () => {
+    it('VALID: {siegemaster signals failed with summary} => skips pending, spawns pathseeker without transitioning quest status', async () => {
       const proxy = orchestrationLoopLayerBrokerProxy();
       proxy.setupDateNow({ timestamp: 1700000000000 });
 
@@ -354,14 +354,22 @@ describe('orchestrationLoopLayerBroker', () => {
         followupDepth: 1,
         crashRetries: 0,
       });
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
-      expect(mockMarkStarted).toHaveBeenCalledTimes(1);
+      expect({
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        markStarted: mockMarkStarted.mock.calls.length,
+      }).toStrictEqual({
+        skipAllPending: 1,
+        addWorkItem: 1,
+        markStarted: 1,
+      });
+      // Siegemaster failure keeps its fix-chain model — no quest status transition
+      expect(proxy.getQuestModifyCalls()).toStrictEqual([]);
     });
   });
 
   describe('spawn_role path - codeweaver fails', () => {
-    it('VALID: {codeweaver signals failed with summary} => skips pending, spawns pathseeker with questId and failureContext', async () => {
+    it('VALID: {codeweaver signals failed with summary} => drains pending, transitions quest to seek_walk, spawns pathseeker in that order', async () => {
       const proxy = orchestrationLoopLayerBrokerProxy();
       proxy.setupDateNow({ timestamp: 1700000000000 });
 
@@ -429,9 +437,26 @@ describe('orchestrationLoopLayerBroker', () => {
         followupDepth: 1,
         crashRetries: 0,
       });
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
-      expect(mockMarkStarted).toHaveBeenCalledTimes(1);
+      expect({
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        markStarted: mockMarkStarted.mock.calls.length,
+      }).toStrictEqual({
+        skipAllPending: 1,
+        addWorkItem: 1,
+        markStarted: 1,
+      });
+      // Codeweaver failure drains pending work, transitions quest backward to seek_walk,
+      // then spawns a recovery pathseeker — verify the single modify-quest call targeted seek_walk.
+      expect(proxy.getQuestModifyCalls()).toStrictEqual([
+        { input: { questId: QuestIdStub({ value: 'add-auth' }), status: 'seek_walk' } },
+      ]);
+
+      // Drain must precede status transition which must precede spawn work item insert.
+      const drainOrder = mockSkipAllPending.mock.invocationCallOrder[0]!;
+      const spawnOrder = mockAddWorkItem.mock.invocationCallOrder[0]!;
+
+      expect(drainOrder).toBeLessThan(spawnOrder);
     });
   });
 
@@ -504,9 +529,15 @@ describe('orchestrationLoopLayerBroker', () => {
         followupDepth: 1,
         crashRetries: 0,
       });
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
-      expect(mockMarkStarted).toHaveBeenCalledTimes(1);
+      expect({
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        markStarted: mockMarkStarted.mock.calls.length,
+      }).toStrictEqual({
+        skipAllPending: 1,
+        addWorkItem: 1,
+        markStarted: 1,
+      });
     });
   });
 
@@ -579,9 +610,112 @@ describe('orchestrationLoopLayerBroker', () => {
         followupDepth: 1,
         crashRetries: 0,
       });
-      expect(mockSkipAllPending).toHaveBeenCalledTimes(1);
-      expect(mockAddWorkItem).toHaveBeenCalledTimes(1);
-      expect(mockMarkStarted).toHaveBeenCalledTimes(1);
+      expect({
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        markStarted: mockMarkStarted.mock.calls.length,
+      }).toStrictEqual({
+        skipAllPending: 1,
+        addWorkItem: 1,
+        markStarted: 1,
+      });
+      // Spiritmender failure drains pending work, transitions quest backward to seek_walk,
+      // then spawns a recovery pathseeker.
+      expect(proxy.getQuestModifyCalls()).toStrictEqual([
+        { input: { questId: QuestIdStub({ value: 'add-auth' }), status: 'seek_walk' } },
+      ]);
+
+      const drainOrder = mockSkipAllPending.mock.invocationCallOrder[0]!;
+      const spawnOrder = mockAddWorkItem.mock.invocationCallOrder[0]!;
+
+      expect(drainOrder).toBeLessThan(spawnOrder);
+    });
+  });
+
+  describe('spawn_role path - spiritmender fails, modify-quest transition rejects', () => {
+    it('VALID: {spiritmender signals failed, modify-quest rejects} => drains, logs error, still spawns recovery pathseeker', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+      proxy.setupReplanTransitionReject({ error: new Error('gate-content check failed') });
+
+      const workItemId = WorkItemIdStub({ value: 'spiritmender-reject-1' });
+      const spiritmenderWorkUnit = SpiritmenderWorkUnitStub();
+      const mockMarkStarted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => spiritmenderWorkUnit,
+        markStarted: mockMarkStarted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Cannot fix' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+      });
+
+      const continueResult = result as Extract<
+        Awaited<ReturnType<typeof orchestrationLoopLayerBroker>>,
+        { done: false }
+      >;
+      const [firstAgent] = continueResult.activeAgents;
+      const { promise: agentPromise, ...agentRest } = firstAgent!;
+
+      expect(agentPromise).toBeInstanceOf(Promise);
+      // Recovery pathseeker is still spawned despite the transition rejection.
+      expect(agentRest).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        workItemId: 'followup-spiritmender-reject-1-1700000000000',
+        sessionId: null,
+        followupDepth: 1,
+        crashRetries: 0,
+      });
+      expect({
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        markStarted: mockMarkStarted.mock.calls.length,
+      }).toStrictEqual({
+        skipAllPending: 1,
+        addWorkItem: 1,
+        markStarted: 1,
+      });
+      // Modify-quest was attempted with seek_walk before the drain+spawn completed.
+      expect(proxy.getQuestModifyCalls()).toStrictEqual([
+        { input: { questId: QuestIdStub({ value: 'add-auth' }), status: 'seek_walk' } },
+      ]);
     });
   });
 

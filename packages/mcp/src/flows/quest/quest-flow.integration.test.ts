@@ -2,7 +2,7 @@ import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 7 registrations with correct tool names', () => {
+    it('VALID: returns 8 registrations with correct tool names', () => {
       const registrations = QuestFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -15,6 +15,7 @@ describe('QuestFlow', () => {
         'list-quests',
         'list-guilds',
         'verify-quest',
+        'get-planning-notes',
       ]);
     });
 
@@ -24,6 +25,7 @@ describe('QuestFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
+        'function',
         'function',
         'function',
         'function',
@@ -47,6 +49,7 @@ describe('QuestFlow', () => {
         'Lists all quests in the .dungeonmaster-quests folder.',
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)',
+        "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts.",
       ]);
     });
 
@@ -56,6 +59,7 @@ describe('QuestFlow', () => {
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
       expect(schemaTypes).toStrictEqual([
+        'object',
         'object',
         'object',
         'object',

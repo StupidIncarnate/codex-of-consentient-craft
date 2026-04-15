@@ -27,7 +27,7 @@ describe('withQuestModifyLockLayerBroker', () => {
         run: async () => {
           events.push(QuestIdStub({ value: 'second-start' }));
           events.push(QuestIdStub({ value: 'second-end' }));
-          return QuestIdStub({ value: 'second' });
+          return Promise.resolve(QuestIdStub({ value: 'second' }));
         },
       });
 
@@ -49,18 +49,19 @@ describe('withQuestModifyLockLayerBroker', () => {
       const proxy = withQuestModifyLockLayerBrokerProxy();
       proxy.setupEmpty();
       const questId = QuestIdStub({ value: 'quest-counter' });
-      let counter = QuestIdStub({ value: '0' });
+      const history: ReturnType<typeof QuestIdStub>[] = [];
       const observed: ReturnType<typeof QuestIdStub>[] = [];
 
-      const calls = Array.from({ length: 10 }, (_, index) =>
+      const calls = Array.from({ length: 10 }, async (_, index) =>
         withQuestModifyLockLayerBroker({
           questId,
           run: async () => {
-            const start = Number(String(counter));
+            const start = history.length;
             await Promise.resolve();
-            counter = QuestIdStub({ value: String(start + 1) });
+            const next = QuestIdStub({ value: String(start + 1) });
+            history.push(next);
             observed.push(QuestIdStub({ value: String(index) }));
-            return counter;
+            return next;
           },
         }),
       );
@@ -91,7 +92,18 @@ describe('withQuestModifyLockLayerBroker', () => {
         QuestIdStub({ value: '8' }),
         QuestIdStub({ value: '9' }),
       ]);
-      expect(counter).toStrictEqual(QuestIdStub({ value: '10' }));
+      expect(history).toStrictEqual([
+        QuestIdStub({ value: '1' }),
+        QuestIdStub({ value: '2' }),
+        QuestIdStub({ value: '3' }),
+        QuestIdStub({ value: '4' }),
+        QuestIdStub({ value: '5' }),
+        QuestIdStub({ value: '6' }),
+        QuestIdStub({ value: '7' }),
+        QuestIdStub({ value: '8' }),
+        QuestIdStub({ value: '9' }),
+        QuestIdStub({ value: '10' }),
+      ]);
     });
   });
 
@@ -126,10 +138,7 @@ describe('withQuestModifyLockLayerBroker', () => {
 
       const results = await Promise.all([first, second]);
 
-      expect(results).toStrictEqual([
-        QuestIdStub({ value: 'a' }),
-        QuestIdStub({ value: 'b' }),
-      ]);
+      expect(results).toStrictEqual([QuestIdStub({ value: 'a' }), QuestIdStub({ value: 'b' })]);
       expect(events).toStrictEqual([
         QuestIdStub({ value: 'a-start' }),
         QuestIdStub({ value: 'b-start' }),
@@ -150,7 +159,7 @@ describe('withQuestModifyLockLayerBroker', () => {
         questId,
         run: async () => {
           events.push(QuestIdStub({ value: 'first-start' }));
-          throw new Error('first failed');
+          return Promise.reject(new Error('first failed'));
         },
       });
 
@@ -158,7 +167,7 @@ describe('withQuestModifyLockLayerBroker', () => {
         questId,
         run: async () => {
           events.push(QuestIdStub({ value: 'second-start' }));
-          return QuestIdStub({ value: 'second' });
+          return Promise.resolve(QuestIdStub({ value: 'second' }));
         },
       });
 
@@ -180,7 +189,7 @@ describe('withQuestModifyLockLayerBroker', () => {
 
       const result = await withQuestModifyLockLayerBroker({
         questId,
-        run: async () => QuestIdStub({ value: 'the-value' }),
+        run: async () => Promise.resolve(QuestIdStub({ value: 'the-value' })),
       });
 
       expect(result).toStrictEqual(QuestIdStub({ value: 'the-value' }));

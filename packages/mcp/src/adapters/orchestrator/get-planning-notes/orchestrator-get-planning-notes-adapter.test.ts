@@ -2,28 +2,46 @@ import { orchestratorGetPlanningNotesAdapter } from './orchestrator-get-planning
 import { orchestratorGetPlanningNotesAdapterProxy } from './orchestrator-get-planning-notes-adapter.proxy';
 
 describe('orchestratorGetPlanningNotesAdapter', () => {
-  describe('scaffold stub', () => {
-    it('VALID: {questId} => returns empty planning-notes shape', async () => {
+  describe('default (no section)', () => {
+    it('VALID: {questId} => returns wrapped planning-notes shape', async () => {
       const proxy = orchestratorGetPlanningNotesAdapterProxy();
       proxy.returns({
         result: {
-          scopeClassification: undefined,
-          surfaceReports: [],
-          synthesis: undefined,
-          walkFindings: undefined,
-          reviewReport: undefined,
+          success: true,
+          data: { surfaceReports: [] },
         },
       });
 
       const result = await orchestratorGetPlanningNotesAdapter({ questId: 'add-auth' });
 
       expect(result).toStrictEqual({
-        scopeClassification: undefined,
-        surfaceReports: [],
-        synthesis: undefined,
-        walkFindings: undefined,
-        reviewReport: undefined,
+        success: true,
+        data: { surfaceReports: [] },
       });
+    });
+
+    it('VALID: {questId, section} => forwards section to orchestrator', async () => {
+      const proxy = orchestratorGetPlanningNotesAdapterProxy();
+      proxy.returns({ result: { success: true, data: [] } });
+
+      const result = await orchestratorGetPlanningNotesAdapter({
+        questId: 'add-auth',
+        section: 'surface',
+      });
+
+      expect(result).toStrictEqual({ success: true, data: [] });
+      expect(proxy.getLastCalledInput()).toStrictEqual({
+        questId: 'add-auth',
+        section: 'surface',
+      });
+    });
+
+    it('VALID: {questId, no section} => omits section in call', async () => {
+      const proxy = orchestratorGetPlanningNotesAdapterProxy();
+
+      await orchestratorGetPlanningNotesAdapter({ questId: 'add-auth' });
+
+      expect(proxy.getLastCalledInput()).toStrictEqual({ questId: 'add-auth' });
     });
   });
 

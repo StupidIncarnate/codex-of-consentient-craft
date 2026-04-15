@@ -2,8 +2,12 @@ import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
+import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
+import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 import { handleSignalLayerBrokerProxy } from './handle-signal-layer-broker.proxy';
 import { spawnAgentLayerBrokerProxy } from './spawn-agent-layer-broker.proxy';
+
+type QuestModifyCall = Parameters<typeof questModifyBroker>[0];
 
 export const orchestrationLoopLayerBrokerProxy = (): {
   getWorkTracker: () => ReturnType<typeof WorkTrackerStub>;
@@ -13,9 +17,12 @@ export const orchestrationLoopLayerBrokerProxy = (): {
   setupSpawnOnceLazy: () => void;
   setupSpawnFailure: () => void;
   setupDateNow: (params: { timestamp: number }) => void;
+  setupReplanTransitionReject: (params: { error: Error }) => void;
+  getQuestModifyCalls: () => readonly QuestModifyCall[];
 } => {
   const spawnProxy = spawnAgentLayerBrokerProxy();
   handleSignalLayerBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
 
   const workTracker = WorkTrackerStub({
     markStarted: jest.fn().mockResolvedValue(undefined),
@@ -61,6 +68,13 @@ export const orchestrationLoopLayerBrokerProxy = (): {
     },
     setupDateNow: ({ timestamp }: { timestamp: number }): void => {
       registerSpyOn({ object: Date, method: 'now' }).mockReturnValue(timestamp);
+    },
+    setupReplanTransitionReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
+    },
+    getQuestModifyCalls: (): readonly QuestModifyCall[] => {
+      const mocked = questModifyBroker as jest.MockedFunction<typeof questModifyBroker>;
+      return mocked.mock.calls.map((call) => call[0]);
     },
   };
 };

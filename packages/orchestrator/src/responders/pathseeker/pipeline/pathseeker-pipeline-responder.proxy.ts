@@ -7,8 +7,8 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const PathseekerPipelineResponderProxy = (): {
   callResponder: typeof PathseekerPipelineResponder;
-  setupVerifySuccess: (params: { quest: Quest }) => void;
-  setupVerifyFailure: () => void;
+  setupQuestStatus: (params: { quest: Quest }) => void;
+  setupQuestNotFound: () => void;
   setupSpawnSuccess: () => void;
   onVerifySuccess: jest.Mock;
   onProcessUpdate: jest.Mock;
@@ -18,12 +18,12 @@ export const PathseekerPipelineResponderProxy = (): {
   return {
     callResponder: PathseekerPipelineResponder,
 
-    setupVerifySuccess: ({ quest }: { quest: Quest }): void => {
-      brokerProxy.setupVerifySuccess({ quest });
+    setupQuestStatus: ({ quest }: { quest: Quest }): void => {
+      brokerProxy.setupQuestStatus({ quest });
     },
 
-    setupVerifyFailure: (): void => {
-      brokerProxy.setupVerifyFailure();
+    setupQuestNotFound: (): void => {
+      brokerProxy.setupQuestNotFound();
     },
 
     setupSpawnSuccess: (): void => {

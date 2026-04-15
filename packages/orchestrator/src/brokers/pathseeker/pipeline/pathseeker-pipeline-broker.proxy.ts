@@ -1,43 +1,52 @@
 /**
- * PURPOSE: Proxy for pathseeker-pipeline-broker that mocks verification and spawn dependencies
+ * PURPOSE: Proxy for pathseeker-pipeline-broker that mocks quest load and spawn dependencies
  *
  * USAGE:
  * const proxy = pathseekerPipelineBrokerProxy();
- * proxy.setupVerifySuccess({ quest });
+ * proxy.setupQuestStatus({ quest });
  */
 
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
-import { questVerifyBrokerProxy } from '../../quest/verify/quest-verify-broker.proxy';
+import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const pathseekerPipelineBrokerProxy = (): {
-  setupVerifySuccess: (params: { quest: Quest }) => void;
-  setupVerifyFailure: () => void;
+  setupQuestStatus: (params: { quest: Quest }) => void;
+  setupQuestNotFound: () => void;
   setupSpawnSuccess: () => void;
+  getLastSpawnedPrompt: () => unknown;
   onVerifySuccess: jest.Mock;
   onProcessUpdate: jest.Mock;
 } => {
-  const verifyProxy = questVerifyBrokerProxy();
+  const getProxy = questGetBrokerProxy();
   const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
 
   const onVerifySuccess = jest.fn();
   const onProcessUpdate = jest.fn();
 
   return {
-    setupVerifySuccess: ({ quest }: { quest: Quest }): void => {
-      verifyProxy.setupQuestFound({ quest });
+    setupQuestStatus: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
     },
 
-    setupVerifyFailure: (): void => {
-      verifyProxy.setupEmptyFolder();
+    setupQuestNotFound: (): void => {
+      getProxy.setupEmptyFolder();
     },
 
     setupSpawnSuccess: (): void => {
       spawnProxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+    },
+
+    // Reaches into the spawn proxy for the last spawned CLI argv. The Claude
+    // adapter places the prompt at argv index 1 (after the `-p` flag).
+    getLastSpawnedPrompt: (): unknown => {
+      const args = spawnProxy.getSpawnedArgs();
+      if (!Array.isArray(args)) return undefined;
+      return args[1];
     },
 
     onVerifySuccess,

@@ -66,9 +66,7 @@ export const questCyclicStepDepsTransformer = ({
         const cyclePath = [...top.path, top.nodeId, next]
           .map((id) => `'${String(id)}'`)
           .join(' -> ');
-        offenders.push(
-          errorMessageContract.parse(`cycle in step dependsOn: ${cyclePath}`),
-        );
+        offenders.push(errorMessageContract.parse(`cycle in step dependsOn: ${cyclePath}`));
         continue;
       }
 

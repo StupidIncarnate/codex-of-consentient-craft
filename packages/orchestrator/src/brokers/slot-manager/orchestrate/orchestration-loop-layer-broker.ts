@@ -9,6 +9,7 @@
 import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
+import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
@@ -25,8 +26,15 @@ import type { WorkItemId } from '../../../contracts/work-item-id/work-item-id-co
 import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
+import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
+import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
+
+// Roles whose failure-routing transitions the quest backward to seek_walk
+// before spawning a recovery pathseeker. Siegemaster also routes to pathseeker
+// but keeps its fix-chain model — do not transition the status for siegemaster.
+const REPLAN_STATUS_TRANSITION_ROLES = new Set<AgentRole>(['codeweaver', 'spiritmender']);
 
 const ZERO_DEPTH = followupDepthContract.parse(0);
 const ZERO_CRASH_RETRIES = 0 as ActiveAgent['crashRetries'];
@@ -242,6 +250,28 @@ export const orchestrationLoopLayerBroker = async ({
       if (isWithinDepthLimit) {
         // Drain: skip all pending items so no new work spawns while active agents finish
         workTracker.skipAllPending();
+
+        // Transition quest backward to seek_walk so the recovery pathseeker resumes
+        // from the walk phase instead of starting over. Only for codeweaver/spiritmender
+        // failures — siegemaster keeps its fix-chain model unchanged.
+        // If the transition fails (e.g., gate-content preconditions missing), log and
+        // continue — the recovery pathseeker can still run against in_progress state.
+        if (REPLAN_STATUS_TRANSITION_ROLES.has(workUnit.role)) {
+          try {
+            const transitionResult = await questModifyBroker({
+              input: { questId, status: 'seek_walk' } as ModifyQuestInput,
+            });
+            if (!transitionResult.success) {
+              process.stderr.write(
+                `[orchestration-loop] replan transition to seek_walk failed for questId=${questId}: ${transitionResult.error ?? 'unknown error'}\n`,
+              );
+            }
+          } catch (error: unknown) {
+            process.stderr.write(
+              `[orchestration-loop] replan transition to seek_walk threw for questId=${questId}: ${String(error)}\n`,
+            );
+          }
+        }
 
         const followupWorkUnit =
           signalResult.targetRole === 'spiritmender'

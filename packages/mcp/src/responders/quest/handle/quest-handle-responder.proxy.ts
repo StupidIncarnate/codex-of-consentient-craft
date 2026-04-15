@@ -15,6 +15,8 @@ import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orches
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import { orchestratorVerifyQuestAdapterProxy } from '../../../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter.proxy';
+import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import type { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
 import type { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
 import type { VerifyQuestResultStub } from '../../../contracts/verify-quest-result/verify-quest-result.stub';
@@ -23,6 +25,7 @@ import { QuestHandleResponder } from './quest-handle-responder';
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
 type VerifyQuestResult = ReturnType<typeof VerifyQuestResultStub>;
+type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 
 export const QuestHandleResponderProxy = (): {
   callResponder: typeof QuestHandleResponder;
@@ -36,8 +39,10 @@ export const QuestHandleResponderProxy = (): {
   setupVerifyQuestThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
+  setupGetPlanningNotesReturns: (params: { result: GetPlanningNotesResult }) => void;
   setupGetPlanningNotesThrows: (params: { error: Error }) => void;
   getLastModifyInput: () => unknown;
+  getLastGetPlanningNotesInput: () => unknown;
 } => {
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
@@ -91,10 +96,16 @@ export const QuestHandleResponderProxy = (): {
       listGuildsProxy.throws({ error });
     },
 
+    setupGetPlanningNotesReturns: ({ result }: { result: GetPlanningNotesResult }): void => {
+      getPlanningNotesProxy.returns({ result });
+    },
+
     setupGetPlanningNotesThrows: ({ error }: { error: Error }): void => {
       getPlanningNotesProxy.throws({ error });
     },
 
     getLastModifyInput: (): unknown => modifyQuestProxy.getLastCalledInput(),
+
+    getLastGetPlanningNotesInput: (): unknown => getPlanningNotesProxy.getLastCalledInput(),
   };
 };

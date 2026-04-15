@@ -6,73 +6,21 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { KillableProcessStub } from '../../../contracts/killable-process/killable-process.stub';
+import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { pathseekerPipelineBroker } from './pathseeker-pipeline-broker';
 import { pathseekerPipelineBrokerProxy } from './pathseeker-pipeline-broker.proxy';
 
 describe('pathseekerPipelineBroker', () => {
-  describe('verify succeeds', () => {
-    it('VALID: {verify succeeds} => calls onVerifySuccess', async () => {
+  describe('quest reached in_progress', () => {
+    it('VALID: {quest.status=in_progress after exit} => calls onVerifySuccess and does not retry', async () => {
       const proxy = pathseekerPipelineBrokerProxy();
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
       const killableProcess = KillableProcessStub();
 
-      const quest = QuestStub({
-        id: questId,
-        steps: [
-          {
-            id: 'create-login-broker',
-            name: 'Create login broker',
-            assertions: [
-              { prefix: 'VALID', input: '{valid credentials}', expected: 'returns auth token' },
-            ],
-            observablesSatisfied: ['redirects-to-dashboard'],
-            dependsOn: [],
-            focusFile: {
-              path: 'packages/api/src/guards/has-auth/has-auth-guard.ts',
-            },
-            accompanyingFiles: [
-              { path: 'packages/api/src/guards/has-auth/has-auth-guard.test.ts' },
-            ],
-            exportName: 'hasAuthGuard',
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          },
-        ],
-        flows: [
-          {
-            id: 'login-flow',
-            name: 'Login Flow',
-            flowType: 'runtime',
-            entryPoint: '/login',
-            exitPoints: ['/dashboard'],
-            nodes: [
-              {
-                id: 'login-page',
-                label: 'Login Page',
-                type: 'state',
-                observables: [
-                  {
-                    id: 'redirects-to-dashboard',
-                    type: 'ui-state',
-                    description: 'redirects to dashboard',
-                  },
-                ],
-              },
-              {
-                id: 'dashboard',
-                label: 'Dashboard',
-                type: 'state',
-                observables: [],
-              },
-            ],
-            edges: [{ id: 'login-to-dashboard', from: 'login-page', to: 'dashboard' }],
-          },
-        ],
-      });
-
-      proxy.setupVerifySuccess({ quest });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
+      proxy.setupQuestStatus({ quest });
 
       await pathseekerPipelineBroker({
         processId,
@@ -91,7 +39,7 @@ describe('pathseekerPipelineBroker', () => {
     });
   });
 
-  describe('verify fails at max attempts', () => {
+  describe('max attempts reached', () => {
     it('VALID: {attempt >= maxAttempts} => returns immediately without running', async () => {
       const proxy = pathseekerPipelineBrokerProxy();
 
@@ -116,17 +64,17 @@ describe('pathseekerPipelineBroker', () => {
     });
   });
 
-  describe('verify fails with retry', () => {
-    it('VALID: {verify fails, attempt < maxAttempts} => spawns new process and retries', async () => {
+  describe('agent signaled complete without transitioning', () => {
+    it('VALID: {quest.status=seek_plan after exit, attempt=2} => retries once then stops at cap', async () => {
       const proxy = pathseekerPipelineBrokerProxy();
 
       const processId = ProcessIdStub({ value: 'proc-12345' });
       const questId = QuestIdStub();
       const killableProcess = KillableProcessStub();
 
-      proxy.setupVerifyFailure();
+      const quest = QuestStub({ id: questId, status: 'seek_plan' });
+      proxy.setupQuestStatus({ quest });
       proxy.setupSpawnSuccess();
-      proxy.setupVerifyFailure();
 
       await pathseekerPipelineBroker({
         processId,
@@ -138,7 +86,10 @@ describe('pathseekerPipelineBroker', () => {
         onProcessUpdate: proxy.onProcessUpdate,
       });
 
-      expect(proxy.onProcessUpdate).toHaveBeenCalledTimes(1);
+      const { onVerifySuccess, onProcessUpdate } = proxy;
+
+      expect(onVerifySuccess.mock.calls).toStrictEqual([]);
+      expect(onProcessUpdate).toHaveBeenCalledTimes(1);
     });
 
     it('VALID: {all 3 attempts fail from attempt 0} => spawns 3 retries then stops', async () => {
@@ -148,11 +99,12 @@ describe('pathseekerPipelineBroker', () => {
       const questId = QuestIdStub();
       const killableProcess = KillableProcessStub();
 
-      proxy.setupVerifyFailure();
+      const quest = QuestStub({ id: questId, status: 'seek_walk' });
+      proxy.setupQuestStatus({ quest });
       proxy.setupSpawnSuccess();
-      proxy.setupVerifyFailure();
+      proxy.setupQuestStatus({ quest });
       proxy.setupSpawnSuccess();
-      proxy.setupVerifyFailure();
+      proxy.setupQuestStatus({ quest });
       proxy.setupSpawnSuccess();
 
       await pathseekerPipelineBroker({
@@ -169,6 +121,95 @@ describe('pathseekerPipelineBroker', () => {
 
       expect(onVerifySuccess.mock.calls).toStrictEqual([]);
       expect(onProcessUpdate).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('resume hint prepended to $ARGUMENTS', () => {
+    it('VALID: {quest.status=seek_scope} => spawned prompt contains seek resume guidance and Quest ID', async () => {
+      const proxy = pathseekerPipelineBrokerProxy();
+
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const questId = QuestIdStub();
+      const killableProcess = KillableProcessStub();
+
+      const quest = QuestStub({ id: questId, status: 'seek_scope' });
+      proxy.setupQuestStatus({ quest });
+      proxy.setupSpawnSuccess();
+
+      await pathseekerPipelineBroker({
+        processId,
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        killableProcess,
+        attempt: 2,
+        onVerifySuccess: proxy.onVerifySuccess,
+        onProcessUpdate: proxy.onProcessUpdate,
+      });
+
+      const expectedPrompt = pathseekerPromptStatics.prompt.template.replace(
+        pathseekerPromptStatics.prompt.placeholders.arguments,
+        `Current status: seek_scope.\nPrior planningNotes may exist — call get-planning-notes to load before starting work. Do NOT redo any phase whose artifact is already committed.\n\nQuest ID: ${questId}`,
+      );
+
+      expect(proxy.getLastSpawnedPrompt()).toBe(expectedPrompt);
+    });
+
+    it('VALID: {quest.status=seek_synth} => spawned prompt contains seek resume guidance', async () => {
+      const proxy = pathseekerPipelineBrokerProxy();
+
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const questId = QuestIdStub();
+      const killableProcess = KillableProcessStub();
+
+      const quest = QuestStub({ id: questId, status: 'seek_synth' });
+      proxy.setupQuestStatus({ quest });
+      proxy.setupSpawnSuccess();
+
+      await pathseekerPipelineBroker({
+        processId,
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        killableProcess,
+        attempt: 2,
+        onVerifySuccess: proxy.onVerifySuccess,
+        onProcessUpdate: proxy.onProcessUpdate,
+      });
+
+      const expectedPrompt = pathseekerPromptStatics.prompt.template.replace(
+        pathseekerPromptStatics.prompt.placeholders.arguments,
+        `Current status: seek_synth.\nPrior planningNotes may exist — call get-planning-notes to load before starting work. Do NOT redo any phase whose artifact is already committed.\n\nQuest ID: ${questId}`,
+      );
+
+      expect(proxy.getLastSpawnedPrompt()).toBe(expectedPrompt);
+    });
+
+    it('VALID: {quest.status=approved} => spawned prompt omits seek resume guidance', async () => {
+      const proxy = pathseekerPipelineBrokerProxy();
+
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const questId = QuestIdStub();
+      const killableProcess = KillableProcessStub();
+
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      proxy.setupQuestStatus({ quest });
+      proxy.setupSpawnSuccess();
+
+      await pathseekerPipelineBroker({
+        processId,
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        killableProcess,
+        attempt: 2,
+        onVerifySuccess: proxy.onVerifySuccess,
+        onProcessUpdate: proxy.onProcessUpdate,
+      });
+
+      const expectedPrompt = pathseekerPromptStatics.prompt.template.replace(
+        pathseekerPromptStatics.prompt.placeholders.arguments,
+        `Current status: approved.\n\nQuest ID: ${questId}`,
+      );
+
+      expect(proxy.getLastSpawnedPrompt()).toBe(expectedPrompt);
     });
   });
 });

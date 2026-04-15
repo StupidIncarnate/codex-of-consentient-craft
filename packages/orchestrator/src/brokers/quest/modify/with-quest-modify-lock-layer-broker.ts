@@ -29,7 +29,7 @@ export const withQuestModifyLockLayerBroker = async <T>({
     () => undefined,
   );
 
-  const runPromise = waitForPrior.then(() => run());
+  const runPromise = waitForPrior.then(async () => run());
 
   // Track completion (success or failure) so the next waiter proceeds once this call finishes.
   // Swallow at the chain level — callers still observe the real rejection via runPromise.
