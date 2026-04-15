@@ -10,18 +10,16 @@
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
+import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fileScannerBrokerProxy = (): {
   setupFiles: (params: {
-    files: readonly { filepath: FilePath; contents: FileContents }[];
+    files: readonly { filepath: PathSegment; contents: FileContents }[];
     pattern: GlobPattern;
   }) => void;
   setupFilesWithFailingReads: (params: {
     files: readonly {
-      filepath: FilePath;
+      filepath: PathSegment;
       contents?: FileContents;
       error?: Error;
     }[];
@@ -37,7 +35,7 @@ export const fileScannerBrokerProxy = (): {
       files,
       pattern,
     }: {
-      files: readonly { filepath: FilePath; contents: FileContents }[];
+      files: readonly { filepath: PathSegment; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
       globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
@@ -50,7 +48,7 @@ export const fileScannerBrokerProxy = (): {
       pattern,
     }: {
       files: readonly {
-        filepath: FilePath;
+        filepath: PathSegment;
         contents?: FileContents;
         error?: Error;
       }[];

@@ -12,7 +12,7 @@ import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-proc
 import { killableProcessContract } from '../../../contracts/killable-process/killable-process-contract';
 import type { KillableProcess } from '../../../contracts/killable-process/killable-process-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { pathseekerPipelineStatics } from '../../../statics/pathseeker-pipeline/pathseeker-pipeline-statics';
 import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';

@@ -22,8 +22,8 @@ import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmast
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-server-url-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';

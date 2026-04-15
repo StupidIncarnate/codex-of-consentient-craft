@@ -6,7 +6,7 @@
  * // Returns true if file has export const
  */
 
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 const EXPORT_PATTERN = /export\s+const\s+\w+/u;
 

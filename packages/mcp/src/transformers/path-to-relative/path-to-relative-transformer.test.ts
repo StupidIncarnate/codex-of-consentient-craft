@@ -1,10 +1,10 @@
 import { pathToRelativeTransformer } from './path-to-relative-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('pathToRelativeTransformer', () => {
   it('VALID: removes cwd from absolute path', () => {
     const currentCwd = process.cwd();
-    const filepath = AbsoluteFilePathStub({
+    const filepath = PathSegmentStub({
       value: `${currentCwd}/packages/mcp/src/file.ts`,
     });
 
@@ -14,7 +14,7 @@ describe('pathToRelativeTransformer', () => {
   });
 
   it('VALID: handles path that does not start with cwd', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/other/path/file.ts' });
+    const filepath = PathSegmentStub({ value: '/other/path/file.ts' });
 
     const result = pathToRelativeTransformer({ filepath });
 
@@ -23,7 +23,7 @@ describe('pathToRelativeTransformer', () => {
 
   it('VALID: handles nested structure within current directory', () => {
     const currentCwd = process.cwd();
-    const filepath = AbsoluteFilePathStub({
+    const filepath = PathSegmentStub({
       value: `${currentCwd}/src/guards/is-valid.ts`,
     });
 

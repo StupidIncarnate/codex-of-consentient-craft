@@ -2,16 +2,20 @@
  * PURPOSE: Adds MCP permissions to .claude/settings.json, creating the file and directory if needed
  *
  * USAGE:
- * await settingsPermissionsAddBroker({ targetProjectRoot: FilePathStub() });
+ * await settingsPermissionsAddBroker({ targetProjectRoot: PathSegmentStub() });
  * // Creates/updates .claude/settings.json with MCP tool permissions in permissions.allow array
  */
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
+import {
+  fileContentsContract,
+  pathSegmentContract,
+  type FileContents,
+  type PathSegment,
+} from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
 import type { McpPermission } from '../../../contracts/mcp-permission/mcp-permission-contract';
 
@@ -22,12 +26,12 @@ const JSON_INDENT_SPACES = 2;
 export const settingsPermissionsAddBroker = async ({
   targetProjectRoot,
 }: {
-  targetProjectRoot: FilePath;
+  targetProjectRoot: PathSegment;
 }): Promise<FileContents> => {
-  const settingsDir = filePathContract.parse(
+  const settingsDir = pathSegmentContract.parse(
     pathJoinAdapter({ paths: [targetProjectRoot, SETTINGS_DIR] }),
   );
-  const settingsPath = filePathContract.parse(
+  const settingsPath = pathSegmentContract.parse(
     pathJoinAdapter({ paths: [targetProjectRoot, SETTINGS_DIR, SETTINGS_FILENAME] }),
   );
 

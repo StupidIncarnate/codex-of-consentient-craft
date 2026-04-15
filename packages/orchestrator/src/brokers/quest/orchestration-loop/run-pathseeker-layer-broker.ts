@@ -14,8 +14,8 @@ import {
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';

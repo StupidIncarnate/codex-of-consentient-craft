@@ -17,8 +17,7 @@ import { treeFormatterTransformer } from '../../../transformers/tree-formatter/t
 import { treeOutputContract } from '../../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
-import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
@@ -77,7 +76,7 @@ export const mcpDiscoverBroker = async ({
   // Empty-result hint: if a glob was provided and no files matched, probe for directories
   // that DO match with includeDirectories=true. If any are found, tell the caller to append `/**`.
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = filePathContract.parse(process.cwd());
+    const cwdPath = pathSegmentContract.parse(process.cwd());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
     const directoryHits = await globFindAdapter({

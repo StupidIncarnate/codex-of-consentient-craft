@@ -19,7 +19,7 @@ import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-fil
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { settingsPermissionsAddBroker } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 const CONFIG_FILENAME = '.mcp.json';
 const PACKAGE_NAME = '@dungeonmaster/mcp';
@@ -44,7 +44,7 @@ export const InstallConfigCreateResponder = async ({
   }
 
   // Add MCP permissions to .claude/settings.json (always, regardless of MCP config state)
-  const targetProjectRoot = filePathContract.parse(context.targetProjectRoot);
+  const targetProjectRoot = pathSegmentContract.parse(context.targetProjectRoot);
   await settingsPermissionsAddBroker({ targetProjectRoot });
 
   // Check if dungeonmaster is already configured

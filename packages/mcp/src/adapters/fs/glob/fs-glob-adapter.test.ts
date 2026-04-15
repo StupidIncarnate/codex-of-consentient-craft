@@ -1,19 +1,18 @@
 import { fsGlobAdapter } from './fs-glob-adapter';
 import { fsGlobAdapterProxy } from './fs-glob-adapter.proxy';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { GlobPatternStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import { AbsolutePathStub } from '../../../contracts/absolute-path/absolute-path.stub';
 
-type FilePath = ReturnType<typeof FilePathStub>;
+type PathSegment = ReturnType<typeof PathSegmentStub>;
 
 describe('fsGlobAdapter', () => {
   it('VALID: {pattern: "**/*.ts"} => returns array of .ts files', async () => {
     const adapterProxy = fsGlobAdapterProxy();
 
     const pattern = GlobPatternStub({ value: '**/*.ts' });
-    const expectedFiles: FilePath[] = [
-      FilePathStub({ value: '/project/src/file1.ts' }),
-      FilePathStub({ value: '/project/src/file2.ts' }),
+    const expectedFiles: PathSegment[] = [
+      PathSegmentStub({ value: '/project/src/file1.ts' }),
+      PathSegmentStub({ value: '/project/src/file2.ts' }),
     ];
 
     adapterProxy.returns({ pattern, files: expectedFiles });
@@ -27,9 +26,9 @@ describe('fsGlobAdapter', () => {
     const adapterProxy = fsGlobAdapterProxy();
 
     const pattern = GlobPatternStub({ value: '**/*.tsx' });
-    const expectedFiles: FilePath[] = [
-      FilePathStub({ value: '/project/src/component1.tsx' }),
-      FilePathStub({ value: '/project/src/component2.tsx' }),
+    const expectedFiles: PathSegment[] = [
+      PathSegmentStub({ value: '/project/src/component1.tsx' }),
+      PathSegmentStub({ value: '/project/src/component2.tsx' }),
     ];
 
     adapterProxy.returns({ pattern, files: expectedFiles });
@@ -44,9 +43,9 @@ describe('fsGlobAdapter', () => {
 
     const pattern = GlobPatternStub({ value: 'src/guards/**/*.ts' });
     const cwd = AbsolutePathStub({ value: '/project' });
-    const expectedFiles: FilePath[] = [
-      FilePathStub({ value: '/project/src/guards/is-valid-guard.ts' }),
-      FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' }),
+    const expectedFiles: PathSegment[] = [
+      PathSegmentStub({ value: '/project/src/guards/is-valid-guard.ts' }),
+      PathSegmentStub({ value: '/project/src/guards/has-permission-guard.ts' }),
     ];
 
     adapterProxy.returns({ pattern, files: expectedFiles });
@@ -60,7 +59,7 @@ describe('fsGlobAdapter', () => {
     const adapterProxy = fsGlobAdapterProxy();
 
     const pattern = GlobPatternStub({ value: 'nonexistent/**' });
-    const expectedFiles: FilePath[] = [];
+    const expectedFiles: PathSegment[] = [];
 
     adapterProxy.returns({ pattern, files: expectedFiles });
 

@@ -18,7 +18,7 @@ import {
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';

@@ -6,7 +6,7 @@
  * // Returns SessionSummary 'Built login' or undefined if no summary found
  */
 
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import {
   sessionSummaryContract,
   type SessionSummary,

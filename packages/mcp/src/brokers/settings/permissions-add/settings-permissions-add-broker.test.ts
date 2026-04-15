@@ -1,14 +1,13 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('settingsPermissionsAddBroker', () => {
   describe('no existing settings file', () => {
     it('VALID: {targetProjectRoot: /project, settings: none} => creates settings with MCP permissions', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
-      const settingsPath = FilePathStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
 
       proxy.setupNoExistingSettings({ settingsPath });
 
@@ -50,8 +49,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('existing settings file with no permissions', () => {
     it('VALID: {targetProjectRoot: /project, settings: hooks only} => adds permissions to existing settings', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
-      const settingsPath = FilePathStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
       const existingContents = FileContentsStub({
         value: JSON.stringify({ hooks: { PreToolUse: [] } }),
       });
@@ -97,8 +96,8 @@ describe('settingsPermissionsAddBroker', () => {
   describe('existing settings file with existing permissions', () => {
     it('VALID: {targetProjectRoot: /project, settings: has permissions} => merges and deduplicates permissions', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
-      const targetProjectRoot = FilePathStub({ value: '/project' });
-      const settingsPath = FilePathStub({ value: '/project/.claude/settings.json' });
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
       const existingContents = FileContentsStub({
         value: JSON.stringify({
           permissions: {

@@ -12,10 +12,10 @@
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { GetQuestInput } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import { getQuestResultContract } from '../../../contracts/get-quest-result/get-quest-result-contract';
-import type { GetQuestResult } from '../../../contracts/get-quest-result/get-quest-result-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { GetQuestInput } from '@dungeonmaster/shared/contracts';
+import { getQuestResultContract } from '@dungeonmaster/shared/contracts';
+import type { GetQuestResult } from '@dungeonmaster/shared/contracts';
 import { questSectionFilterTransformer } from '../../../transformers/quest-section-filter/quest-section-filter-transformer';
 import { questStageToSectionsTransformer } from '../../../transformers/quest-stage-to-sections/quest-stage-to-sections-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';

@@ -1,11 +1,11 @@
 import { readdir } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FolderName } from '../../../contracts/folder-name/folder-name-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsReaddirAdapterProxy = (): {
-  returns: ({ filepath, entries }: { filepath: FilePath; entries: FolderName[] }) => void;
-  throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
+  returns: ({ filepath, entries }: { filepath: PathSegment; entries: FolderName[] }) => void;
+  throws: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: readdir });
 
@@ -16,12 +16,12 @@ export const fsReaddirAdapterProxy = (): {
       filepath: _filepath,
       entries,
     }: {
-      filepath: FilePath;
+      filepath: PathSegment;
       entries: FolderName[];
     }): void => {
       handle.mockResolvedValueOnce(entries);
     },
-    throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
+    throws: ({ filepath: _filepath, error }: { filepath: PathSegment; error: Error }): void => {
       handle.mockRejectedValueOnce(error);
     },
   };

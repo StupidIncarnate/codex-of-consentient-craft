@@ -2,10 +2,10 @@
  * PURPOSE: Extracts just the filename (basename) from a file path
  *
  * USAGE:
- * const filename = pathToBasenameTransformer({ filepath: AbsoluteFilePathStub({ value: '/path/to/file.test.ts' }) });
+ * const filename = pathToBasenameTransformer({ filepath: PathSegmentStub({ value: '/path/to/file.test.ts' }) });
  * // Returns: 'file.test.ts'
  */
-import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { FileMetadata } from '../../contracts/file-metadata/file-metadata-contract';
 
 export const pathToBasenameTransformer = ({
@@ -16,5 +16,5 @@ export const pathToBasenameTransformer = ({
   const parts = filepath.split('/');
   const basename = parts[parts.length - 1] ?? filepath;
 
-  return absoluteFilePathContract.parse(basename);
+  return pathSegmentContract.parse(basename);
 };

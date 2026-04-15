@@ -1,5 +1,5 @@
-import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
-import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorModifyQuestAdapter } from './orchestrator-modify-quest-adapter';
 import { orchestratorModifyQuestAdapterProxy } from './orchestrator-modify-quest-adapter.proxy';

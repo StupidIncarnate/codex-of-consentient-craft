@@ -1,4 +1,4 @@
-import { QuestStageStub } from '../../contracts/quest-stage/quest-stage.stub';
+import { QuestStageStub } from '@dungeonmaster/shared/contracts';
 import { questStageToSectionsTransformer } from './quest-stage-to-sections-transformer';
 
 describe('questStageToSectionsTransformer', () => {

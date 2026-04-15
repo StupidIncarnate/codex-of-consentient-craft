@@ -3,14 +3,14 @@
  *
  * USAGE:
  * const sharedPath = sharedPackageResolveAdapter();
- * // Returns AbsoluteFilePath to shared package root or null if not found
+ * // Returns PathSegment to shared package root or null if not found
  */
 import { dirname } from 'path';
 import { existsSync } from 'fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-export const sharedPackageResolveAdapter = (): AbsoluteFilePath | null => {
+export const sharedPackageResolveAdapter = (): PathSegment | null => {
   try {
     // Resolve a known subpath export (package has no default export)
     // @dungeonmaster/shared/contracts resolves to dist/contracts.js
@@ -25,7 +25,7 @@ export const sharedPackageResolveAdapter = (): AbsoluteFilePath | null => {
       return null;
     }
 
-    return absoluteFilePathContract.parse(packageRoot);
+    return pathSegmentContract.parse(packageRoot);
   } catch {
     // Package not found or other error - fail silently
     return null;

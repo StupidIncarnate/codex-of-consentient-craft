@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: Default is literal substring match. Opt into regex via `re:<pattern>` prefix or leading inline flags like `(?i)foo`.
  */
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { GrepHit } from '../../contracts/grep-hit/grep-hit-contract';
 import { grepHitContract } from '../../contracts/grep-hit/grep-hit-contract';
 import type { DiscoverInput } from '../../contracts/discover-input/discover-input-contract';

@@ -1,7 +1,6 @@
 import { fsWriteFileAdapter } from './fs-write-file-adapter';
 import { fsWriteFileAdapterProxy } from './fs-write-file-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub, PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsWriteFileAdapter', () => {
   it('VALID: {filepath: "/path/to/file.json", contents: "..."} => writes file successfully', async () => {

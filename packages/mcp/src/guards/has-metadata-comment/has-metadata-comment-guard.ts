@@ -6,7 +6,7 @@
  * // Returns true if all required sections are present
  */
 
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const hasMetadataCommentGuard = ({
   fileContents,

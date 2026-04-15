@@ -1,5 +1,5 @@
 import { hasExportedFunctionGuard } from './has-exported-function-guard';
-import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('hasExportedFunctionGuard', () => {
   describe('with export const', () => {

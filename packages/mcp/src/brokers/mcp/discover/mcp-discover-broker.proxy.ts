@@ -9,22 +9,20 @@
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
+import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const mcpDiscoverBrokerProxy = (): {
   setupFileDiscovery: (params: {
-    filepath: FilePath;
+    filepath: PathSegment;
     contents: FileContents;
     pattern: GlobPattern;
   }) => void;
   setupMultipleFileDiscovery: (params: {
-    files: readonly { filepath: FilePath; contents: FileContents }[];
+    files: readonly { filepath: PathSegment; contents: FileContents }[];
     pattern: GlobPattern;
   }) => void;
   setupEmptyWithDirectoryHits: (params: {
-    directoryPaths: readonly FilePath[];
+    directoryPaths: readonly PathSegment[];
     pattern: GlobPattern;
   }) => void;
 } => {
@@ -37,7 +35,7 @@ export const mcpDiscoverBrokerProxy = (): {
       contents,
       pattern,
     }: {
-      filepath: FilePath;
+      filepath: PathSegment;
       contents: FileContents;
       pattern: GlobPattern;
     }): void => {
@@ -48,7 +46,7 @@ export const mcpDiscoverBrokerProxy = (): {
       files,
       pattern,
     }: {
-      files: readonly { filepath: FilePath; contents: FileContents }[];
+      files: readonly { filepath: PathSegment; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
       fileScannerProxy.setupFiles({ files, pattern });
@@ -58,7 +56,7 @@ export const mcpDiscoverBrokerProxy = (): {
       directoryPaths,
       pattern,
     }: {
-      directoryPaths: readonly FilePath[];
+      directoryPaths: readonly PathSegment[];
       pattern: GlobPattern;
     }): void => {
       // First glob call (from scanner) returns no files.

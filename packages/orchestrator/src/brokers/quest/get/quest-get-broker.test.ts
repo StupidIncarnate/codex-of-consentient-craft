@@ -5,7 +5,7 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { GetQuestInputStub } from '../../../contracts/get-quest-input/get-quest-input.stub';
+import { GetQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from './quest-get-broker';
 import { questGetBrokerProxy } from './quest-get-broker.proxy';
 

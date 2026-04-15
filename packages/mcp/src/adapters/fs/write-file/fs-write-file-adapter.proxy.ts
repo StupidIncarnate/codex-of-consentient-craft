@@ -1,11 +1,10 @@
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileAdapterProxy = (): {
-  succeeds: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;
-  throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
+  succeeds: ({ filepath, contents }: { filepath: PathSegment; contents: FileContents }) => void;
+  throws: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
   getWrittenContent: () => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
@@ -18,12 +17,12 @@ export const fsWriteFileAdapterProxy = (): {
       filepath: _filepath,
       contents: _contents,
     }: {
-      filepath: FilePath;
+      filepath: PathSegment;
       contents: FileContents;
     }): void => {
       handle.mockResolvedValueOnce({ success: true as const });
     },
-    throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
+    throws: ({ filepath: _filepath, error }: { filepath: PathSegment; error: Error }): void => {
       handle.mockRejectedValueOnce(error);
     },
     getWrittenContent: (): unknown => {

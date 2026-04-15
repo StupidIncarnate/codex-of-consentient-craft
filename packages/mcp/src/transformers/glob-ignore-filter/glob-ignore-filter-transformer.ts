@@ -6,8 +6,8 @@
  * // Returns ignore list without the node_modules rule when pattern targets node_modules
  */
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
-import { globPatternContract } from '../../contracts/glob-pattern/glob-pattern-contract';
-import type { GlobPattern } from '../../contracts/glob-pattern/glob-pattern-contract';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 
 const DIR_NAME_PATTERN = /^\*\*\//u;
 const TRAILING_GLOB_PATTERN = /\/\*\*$/u;

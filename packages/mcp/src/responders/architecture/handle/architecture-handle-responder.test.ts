@@ -1,7 +1,9 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import {
+  FileContentsStub,
+  GlobPatternStub,
+  PathSegmentStub as FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 import { ArchitectureHandleResponderProxy } from './architecture-handle-responder.proxy';
 
 describe('ArchitectureHandleResponder', () => {

@@ -2,8 +2,7 @@ import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-f
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub, PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 
 type FilePath = ReturnType<typeof FilePathStub>;
 type FileContents = ReturnType<typeof FileContentsStub>;

@@ -10,7 +10,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { AgentPromptResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { AgentPromptResultStub } from '../../../contracts/agent-prompt-result/agent-prompt-result.stub';
+import { AgentPromptResultStub } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorGetAgentPromptAdapterProxy = (): {
   returns: (params: { result: AgentPromptResult }) => void;

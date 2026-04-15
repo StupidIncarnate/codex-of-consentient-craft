@@ -1,6 +1,6 @@
 import { fsMkdirAdapter } from './fs-mkdir-adapter';
 import { fsMkdirAdapterProxy } from './fs-mkdir-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsMkdirAdapter', () => {
   it('VALID: {filepath: "/path/to/dir"} => creates directory successfully', async () => {

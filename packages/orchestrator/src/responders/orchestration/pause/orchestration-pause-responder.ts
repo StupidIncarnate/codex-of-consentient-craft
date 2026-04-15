@@ -8,8 +8,8 @@
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';

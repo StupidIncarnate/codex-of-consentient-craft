@@ -5,12 +5,11 @@
  * const files = await globFindAdapter({
  *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' })
  * });
- * // Returns: [FilePath('/path/to/file.ts'), ...]
+ * // Returns: [PathSegment('/path/to/file.ts'), ...]
  */
 import { glob } from 'glob';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 
 export const globFindAdapter = async ({
@@ -19,9 +18,9 @@ export const globFindAdapter = async ({
   includeDirectories,
 }: {
   pattern: GlobPattern;
-  cwd?: FilePath;
+  cwd?: PathSegment;
   includeDirectories?: boolean;
-}): Promise<readonly FilePath[]> => {
+}): Promise<readonly PathSegment[]> => {
   const ignore = globIgnoreFilterTransformer({ pattern });
 
   const files = await glob(pattern, {
@@ -31,5 +30,5 @@ export const globFindAdapter = async ({
     ignore: [...ignore],
   });
 
-  return files.map((file) => filePathContract.parse(file));
+  return files.map((file) => pathSegmentContract.parse(file));
 };

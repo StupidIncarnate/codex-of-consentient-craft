@@ -1,7 +1,7 @@
 import { readdirSync } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 export const fsReaddirAdapterProxy = (): {
   returns: (params: { files: FileName[] }) => void;

@@ -8,8 +8,7 @@
 
 import { resolve } from 'path';
 import { registerSpyOn, isolateModules } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { FilePathStub } from './contracts/file-path/file-path.stub';
+import type { IsolateModulesMock, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 export const indexProxy = (): {
   captureProcessInteractions: () => {
@@ -43,16 +42,18 @@ export const indexProxy = (): {
    * Uses isolateModules to prevent module cache pollution
    */
   const loadIndexWithStartupBehavior = (startMcpServerBehavior: () => Promise<void>): void => {
+    type ModulePath = IsolateModulesMock['module'];
+
     isolateModules({
       mocks: [
         {
-          module: FilePathStub({ value: resolve(__dirname, './startup/start-mcp-server') }),
+          module: resolve(__dirname, './startup/start-mcp-server') as ModulePath,
           factory: () => ({
             StartMcpServer: startMcpServerBehavior,
           }),
         },
       ],
-      entrypoint: FilePathStub({ value: resolve(__dirname, './index') }),
+      entrypoint: resolve(__dirname, './index') as ModulePath,
     });
   };
 

@@ -7,11 +7,10 @@
  */
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FileContents, FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const questFolderFindBrokerProxy = (): {
   setupQuestFolders: (params: {

@@ -29,7 +29,7 @@ import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild
 import { QuestAddResponder } from '../../../src/responders/quest/add/quest-add-responder';
 import { QuestGetResponder } from '../../../src/responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../../src/responders/quest/modify/quest-modify-responder';
-import { ModifyQuestInputStub } from '../../../src/contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';

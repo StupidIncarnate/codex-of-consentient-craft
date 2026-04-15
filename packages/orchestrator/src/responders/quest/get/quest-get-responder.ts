@@ -7,8 +7,8 @@
  */
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { GetQuestResult } from '../../../contracts/get-quest-result/get-quest-result-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { GetQuestResult } from '@dungeonmaster/shared/contracts';
 
 export const QuestGetResponder = async ({
   questId,

@@ -21,8 +21,8 @@ import {
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';

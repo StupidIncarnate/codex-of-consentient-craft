@@ -6,7 +6,7 @@ import {
   SessionIdStub,
   UserTextArrayStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from './chat-history-replay-broker';
 import { chatHistoryReplayBrokerProxy } from './chat-history-replay-broker.proxy';

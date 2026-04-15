@@ -1,4 +1,4 @@
-import { FileNameStub } from '../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { stripAgentFilenamePrefixTransformer } from './strip-agent-filename-prefix-transformer';
 
 describe('stripAgentFilenamePrefixTransformer', () => {

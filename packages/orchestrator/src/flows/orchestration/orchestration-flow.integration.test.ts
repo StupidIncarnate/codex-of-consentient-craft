@@ -19,7 +19,7 @@ import { GuildAddResponder } from '../../responders/guild/add/guild-add-responde
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
-import { ModifyQuestInputStub } from '../../contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationFlow } from './orchestration-flow';
 import { orchestrationQueueHarness } from '../../../test/harnesses/orchestration-queue/orchestration-queue.harness';
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';

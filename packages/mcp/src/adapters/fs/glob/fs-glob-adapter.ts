@@ -6,14 +6,13 @@
  *   pattern: GlobPatternStub({ value: '**\/*.ts' }),
  *   cwd: AbsolutePathStub({ value: '/path/to/project' })
  * });
- * // Returns array of FilePath branded strings
+ * // Returns array of PathSegment branded strings
  */
 
 import { glob } from 'glob';
 import { z } from 'zod';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment, GlobPattern } from '@dungeonmaster/shared/contracts';
 import type { AbsolutePath } from '../../../contracts/absolute-path/absolute-path-contract';
 
 export const fsGlobAdapter = async ({
@@ -22,11 +21,11 @@ export const fsGlobAdapter = async ({
 }: {
   pattern: GlobPattern;
   cwd?: AbsolutePath;
-}): Promise<FilePath[]> => {
+}): Promise<PathSegment[]> => {
   const results = await glob(pattern, {
     ...(cwd ? { cwd } : {}),
     absolute: true,
   });
 
-  return z.array(filePathContract).parse(results);
+  return z.array(pathSegmentContract).parse(results);
 };

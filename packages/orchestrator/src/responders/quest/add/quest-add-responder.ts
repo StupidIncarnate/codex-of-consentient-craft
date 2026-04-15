@@ -9,8 +9,8 @@
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 
 import { questAddBroker } from '../../../brokers/quest/add/quest-add-broker';
-import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
-import type { AddQuestResult } from '../../../contracts/add-quest-result/add-quest-result-contract';
+import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestResult } from '@dungeonmaster/shared/contracts';
 
 export const QuestAddResponder = async ({
   title,

@@ -6,13 +6,12 @@
  * // Returns validated FileWithSource
  */
 import { z } from 'zod';
-import { filePathContract } from '../file-path/file-path-contract';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const fileWithSourceContract = z.object({
-  filepath: filePathContract,
+  filepath: pathSegmentContract,
   source: z.enum(['project', 'shared']).brand<'FileSource'>(),
-  basePath: absoluteFilePathContract,
+  basePath: pathSegmentContract,
 });
 
 export type FileWithSource = z.infer<typeof fileWithSourceContract>;

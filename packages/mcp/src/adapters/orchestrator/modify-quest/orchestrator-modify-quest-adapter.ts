@@ -9,7 +9,7 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { ModifyQuestResult } from '@dungeonmaster/orchestrator';
 
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorModifyQuestAdapter = async ({
   questId,

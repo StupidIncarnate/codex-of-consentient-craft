@@ -1,10 +1,9 @@
 import { glob } from 'glob';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const globFindAdapterProxy = (): {
-  returns: (params: { pattern: GlobPattern; files: readonly FilePath[] }) => void;
+  returns: (params: { pattern: GlobPattern; files: readonly PathSegment[] }) => void;
   throws: (params: { pattern: GlobPattern; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: glob });
@@ -12,7 +11,7 @@ export const globFindAdapterProxy = (): {
   handle.mockResolvedValue([]);
 
   return {
-    returns: ({ files }: { pattern: GlobPattern; files: readonly FilePath[] }): void => {
+    returns: ({ files }: { pattern: GlobPattern; files: readonly PathSegment[] }): void => {
       handle.mockResolvedValueOnce([...files]);
     },
     throws: ({ error }: { pattern: GlobPattern; error: Error }): void => {

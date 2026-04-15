@@ -7,16 +7,17 @@
  */
 
 import { z } from 'zod';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
 export const discoverResultItemContract = z.object({
   name: z.string().brand<'FunctionName'>(),
-  path: z.string().brand<'AbsoluteFilePath'>(),
+  path: pathSegmentContract,
   type: z.string().brand<'FileType'>(),
   purpose: z.string().brand<'Purpose'>().optional(),
   usage: z.string().brand<'UsageExample'>().optional(),
   signature: z.string().brand<'FunctionSignature'>().optional(),
-  relatedFiles: z.array(z.string().brand<'AbsoluteFilePath'>()),
+  relatedFiles: z.array(pathSegmentContract),
   hits: z.array(grepHitContract).optional(),
 });
 

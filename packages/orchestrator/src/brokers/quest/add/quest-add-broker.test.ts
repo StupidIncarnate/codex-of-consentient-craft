@@ -1,6 +1,6 @@
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
-import { AddQuestInputStub } from '../../../contracts/add-quest-input/add-quest-input.stub';
+import { AddQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questAddBroker } from './quest-add-broker';
 import { questAddBrokerProxy } from './quest-add-broker.proxy';
 

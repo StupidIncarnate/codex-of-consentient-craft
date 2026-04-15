@@ -3,11 +3,11 @@
  *
  * USAGE:
  * const absolutePath = pathResolveAdapter({ paths: ['/base', 'relative', 'file.ts'] });
- * // Returns validated absolute FilePath
+ * // Returns validated absolute PathSegment
  */
 import { resolve } from 'path';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-export const pathResolveAdapter = ({ paths }: { paths: string[] }): FilePath =>
-  filePathContract.parse(resolve(...paths));
+export const pathResolveAdapter = ({ paths }: { paths: string[] }): PathSegment =>
+  pathSegmentContract.parse(resolve(...paths));

@@ -9,7 +9,7 @@
  */
 import { metadataExtractorTransformer as sharedMetadataExtractor } from '@dungeonmaster/shared/transformers';
 import type { ExtractedMetadata } from '@dungeonmaster/shared/contracts';
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const metadataExtractorTransformer = ({
   fileContents,

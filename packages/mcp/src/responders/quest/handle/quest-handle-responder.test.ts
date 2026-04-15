@@ -1,7 +1,7 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
-import { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
-import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;

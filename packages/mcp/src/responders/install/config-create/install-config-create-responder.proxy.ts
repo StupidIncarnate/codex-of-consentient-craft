@@ -11,9 +11,8 @@ import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adap
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import { FileContentsStub, PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { InstallConfigCreateResponder } from './install-config-create-responder';
 
 export const InstallConfigCreateResponderProxy = (): {

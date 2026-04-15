@@ -5,9 +5,9 @@ import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrat
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import type { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import type { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import type { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;

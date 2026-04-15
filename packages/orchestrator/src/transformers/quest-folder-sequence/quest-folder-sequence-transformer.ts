@@ -7,9 +7,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
-
-import type { FileName } from '../../contracts/file-name/file-name-contract';
+import type { ContentText, FileName } from '@dungeonmaster/shared/contracts';
 
 const SEQUENCE_PREFIX_PATTERN = /^(\d+)-/u;
 const SEQUENCE_PADDING_LENGTH = 3;

@@ -1,6 +1,6 @@
 import { fsReaddirAdapter } from './fs-readdir-adapter';
 import { fsReaddirAdapterProxy } from './fs-readdir-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 import { FolderNameStub } from '../../../contracts/folder-name/folder-name.stub';
 
 describe('fsReaddirAdapter', () => {

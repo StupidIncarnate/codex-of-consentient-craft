@@ -10,8 +10,8 @@
  */
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import type { VerifyQuestCheck } from '../../contracts/verify-quest-check/verify-quest-check-contract';
-import { verifyQuestCheckContract } from '../../contracts/verify-quest-check/verify-quest-check-contract';
+import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
+import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 
 import { questContractRawPrimitivePropertiesTransformer } from '../quest-contract-raw-primitive-properties/quest-contract-raw-primitive-properties-transformer';
 import { questDeadEndFlowNodesTransformer } from '../quest-dead-end-flow-nodes/quest-dead-end-flow-nodes-transformer';

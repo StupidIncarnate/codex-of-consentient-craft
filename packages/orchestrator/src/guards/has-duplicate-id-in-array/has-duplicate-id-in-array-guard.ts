@@ -6,7 +6,7 @@
  * // Returns true if duplicates found
  */
 
-import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../is-array-of-items-with-id/is-array-of-items-with-id-guard';
 

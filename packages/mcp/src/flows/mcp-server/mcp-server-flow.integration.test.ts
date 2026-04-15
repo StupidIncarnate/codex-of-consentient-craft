@@ -14,8 +14,8 @@ import { RpcMethodStub } from '../../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverTreeResultStub } from '../../contracts/discover-tree-result/discover-tree-result.stub';
-import { GetQuestResultStub } from '../../contracts/get-quest-result/get-quest-result.stub';
-import { ModifyQuestResultStub } from '../../contracts/modify-quest-result/modify-quest-result.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.harness';
 

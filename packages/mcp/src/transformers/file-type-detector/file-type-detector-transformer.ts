@@ -12,10 +12,10 @@
  */
 import { fileTypeContract } from '../../contracts/file-type/file-type-contract';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
-import type { FilePath } from '../../contracts/file-path/file-path-contract';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { FileType } from '../../contracts/file-type/file-type-contract';
 
-export const fileTypeDetectorTransformer = ({ filepath }: { filepath: FilePath }): FileType => {
+export const fileTypeDetectorTransformer = ({ filepath }: { filepath: PathSegment }): FileType => {
   const pathParts = filepath.split('/');
 
   // Find the folder immediately after any path anchor (src, test)

@@ -16,8 +16,8 @@ import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-import type { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
-import type { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
+import type { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;

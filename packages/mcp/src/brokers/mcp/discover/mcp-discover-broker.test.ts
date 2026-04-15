@@ -1,9 +1,11 @@
 import { mcpDiscoverBroker } from './mcp-discover-broker';
 import { mcpDiscoverBrokerProxy } from './mcp-discover-broker.proxy';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import {
+  FileContentsStub,
+  GlobPatternStub,
+  PathSegmentStub as FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 describe('mcpDiscoverBroker', () => {
   describe('input validation', () => {

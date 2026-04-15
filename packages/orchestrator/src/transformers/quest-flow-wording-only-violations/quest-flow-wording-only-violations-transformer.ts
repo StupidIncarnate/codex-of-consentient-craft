@@ -6,7 +6,7 @@
  * // Returns ErrorMessage[] of violations: flow add/delete, node add/delete, edge add/delete, observable add/delete.
  * // Empty array means every entry in `inputFlows` is an in-place wording rewrite of an existing observable.
  */
-import type { ModifyQuestInput } from '../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';

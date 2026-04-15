@@ -1,6 +1,6 @@
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { chatSubagentTailBrokerProxy } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker.proxy';
@@ -9,7 +9,6 @@ import { orchestrationEventsStateProxy } from '../../../state/orchestration-even
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { pendingClarificationStateProxy } from '../../../state/pending-clarification/pending-clarification-state.proxy';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import { ChatStartResponder } from './chat-start-responder';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;

@@ -25,12 +25,12 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
-import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
-import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
-import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
-import { verifyQuestCheckContract } from '../../../contracts/verify-quest-check/verify-quest-check-contract';
-import type { VerifyQuestCheck } from '../../../contracts/verify-quest-check/verify-quest-check-contract';
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
+import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
+import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';

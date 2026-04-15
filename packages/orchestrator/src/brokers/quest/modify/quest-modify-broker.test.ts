@@ -12,7 +12,7 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
 

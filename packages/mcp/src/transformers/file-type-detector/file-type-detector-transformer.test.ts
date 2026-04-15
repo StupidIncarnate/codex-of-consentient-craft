@@ -1,10 +1,10 @@
 import { fileTypeDetectorTransformer } from './file-type-detector-transformer';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('fileTypeDetectorTransformer', () => {
   it('VALID: {broker filepath} => returns "broker"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({
+      filepath: PathSegmentStub({
         value: '/packages/eslint-plugin/src/brokers/user/fetch/user-fetch-broker.ts',
       }),
     });
@@ -14,7 +14,9 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('VALID: {widget filepath} => returns "widget"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({ value: '/packages/app/src/widgets/user-card/user-card-widget.tsx' }),
+      filepath: PathSegmentStub({
+        value: '/packages/app/src/widgets/user-card/user-card-widget.tsx',
+      }),
     });
 
     expect(result).toBe('widget');
@@ -22,7 +24,7 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('VALID: {guard filepath} => returns "guard"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({
+      filepath: PathSegmentStub({
         value: '/packages/eslint-plugin/src/guards/is-test-file/is-test-file-guard.ts',
       }),
     });
@@ -32,7 +34,7 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('VALID: {harness filepath under test/} => returns "harness"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({
+      filepath: PathSegmentStub({
         value:
           '/packages/orchestrator/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
       }),
@@ -43,7 +45,7 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('VALID: {filepath under test/harnesses} => returns "harness"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({
+      filepath: PathSegmentStub({
         value: '/packages/testing/test/harnesses/session/session.harness.ts',
       }),
     });
@@ -53,7 +55,7 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('EDGE: {filepath with -file suffix} => extracts type from suffix', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({ value: '/packages/something/random-file.ts' }),
+      filepath: PathSegmentStub({ value: '/packages/something/random-file.ts' }),
     });
 
     expect(result).toBe('file');
@@ -61,7 +63,7 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('EDGE: {filepath with no src/ and no suffix} => returns "unknown"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: FilePathStub({ value: '/packages/something/randomfile.ts' }),
+      filepath: PathSegmentStub({ value: '/packages/something/randomfile.ts' }),
     });
 
     expect(result).toBe('unknown');
@@ -70,7 +72,7 @@ describe('fileTypeDetectorTransformer', () => {
   describe('javascript extensions', () => {
     it('VALID: {.js filepath with -broker suffix} => extracts type from suffix', () => {
       const result = fileTypeDetectorTransformer({
-        filepath: FilePathStub({ value: '/packages/something/random-broker.js' }),
+        filepath: PathSegmentStub({ value: '/packages/something/random-broker.js' }),
       });
 
       expect(result).toBe('broker');
@@ -78,7 +80,7 @@ describe('fileTypeDetectorTransformer', () => {
 
     it('VALID: {.jsx filepath with -widget suffix} => extracts type from suffix', () => {
       const result = fileTypeDetectorTransformer({
-        filepath: FilePathStub({
+        filepath: PathSegmentStub({
           value: '/packages/something/random-widget.jsx',
         }),
       });
@@ -88,7 +90,7 @@ describe('fileTypeDetectorTransformer', () => {
 
     it('EDGE: {.js filepath with -file suffix} => extracts type from suffix', () => {
       const result = fileTypeDetectorTransformer({
-        filepath: FilePathStub({ value: '/packages/something/random-file.js' }),
+        filepath: PathSegmentStub({ value: '/packages/something/random-file.js' }),
       });
 
       expect(result).toBe('file');
@@ -96,7 +98,7 @@ describe('fileTypeDetectorTransformer', () => {
 
     it('EDGE: {.jsx filepath with no suffix} => returns "unknown"', () => {
       const result = fileTypeDetectorTransformer({
-        filepath: FilePathStub({ value: '/packages/something/randomfile.jsx' }),
+        filepath: PathSegmentStub({ value: '/packages/something/randomfile.jsx' }),
       });
 
       expect(result).toBe('unknown');

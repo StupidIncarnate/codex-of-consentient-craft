@@ -6,7 +6,7 @@
  * // Returns 'a750c8bc' as AgentId
  */
 
-import type { FileName } from '../../contracts/file-name/file-name-contract';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 import { agentIdContract } from '../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../contracts/agent-id/agent-id-contract';
 

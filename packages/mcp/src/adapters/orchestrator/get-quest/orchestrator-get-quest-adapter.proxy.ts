@@ -10,7 +10,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { GetQuestResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorGetQuestAdapterProxy = (): {
   returns: (params: { result: GetQuestResult }) => void;

@@ -8,7 +8,7 @@
 
 import type { DependencyStep, Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questModifyBroker } from '../modify/quest-modify-broker';

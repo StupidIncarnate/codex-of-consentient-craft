@@ -1,4 +1,4 @@
-import { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorGetQuestAdapter } from './orchestrator-get-quest-adapter';
 import { orchestratorGetQuestAdapterProxy } from './orchestrator-get-quest-adapter.proxy';

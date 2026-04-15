@@ -1,8 +1,7 @@
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 

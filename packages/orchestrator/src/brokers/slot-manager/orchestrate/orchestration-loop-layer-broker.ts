@@ -27,7 +27,7 @@ import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-c
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { spawnAgentLayerBroker } from './spawn-agent-layer-broker';
 

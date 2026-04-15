@@ -11,7 +11,7 @@
  * - Array fields without `id` items: replace entirely
  */
 
-import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { questArrayUpsertTransformer } from '../quest-array-upsert/quest-array-upsert-transformer';

@@ -12,7 +12,7 @@
  * - Items in existing but not in updates => unchanged
  */
 
-import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
 
 import { questItemDeepMergeTransformer } from '../quest-item-deep-merge/quest-item-deep-merge-transformer';
 

@@ -1,5 +1,5 @@
 import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';

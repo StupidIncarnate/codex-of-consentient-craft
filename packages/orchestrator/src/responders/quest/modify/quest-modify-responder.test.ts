@@ -5,7 +5,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { QuestModifyResponderProxy } from './quest-modify-responder.proxy';

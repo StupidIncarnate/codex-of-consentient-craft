@@ -6,7 +6,7 @@
  * // Returns SessionSummary 'Help me build a login page' or undefined if no valid user message found
  */
 
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import {
   sessionSummaryContract,
   type SessionSummary,

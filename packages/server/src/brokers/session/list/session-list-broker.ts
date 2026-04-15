@@ -6,7 +6,11 @@
  * // Returns sorted session entries with optional quest correlation
  */
 
-import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  globPatternContract,
+  sessionIdContract,
+} from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { isoTimestampContract } from '@dungeonmaster/orchestrator';
@@ -19,7 +23,6 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
-import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { mtimeMsContract } from '../../../contracts/mtime-ms/mtime-ms-contract';
 import type { MtimeMs } from '../../../contracts/mtime-ms/mtime-ms-contract';

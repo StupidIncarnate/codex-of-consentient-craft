@@ -1,10 +1,10 @@
 import { pathToTreeRelativeTransformer } from './path-to-tree-relative-transformer';
-import { FilePathStub } from '../../contracts/file-path/file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('pathToTreeRelativeTransformer', () => {
   describe('monorepo paths', () => {
     it('VALID: {absolute monorepo path} => prepends package name, strips through src/', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: '/home/user/repo/packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts',
       });
 
@@ -14,7 +14,7 @@ describe('pathToTreeRelativeTransformer', () => {
     });
 
     it('VALID: {relative monorepo path} => prepends package name, strips through src/', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: 'packages/shared/src/brokers/foo/bar/foo-bar-broker.ts',
       });
 
@@ -24,10 +24,10 @@ describe('pathToTreeRelativeTransformer', () => {
     });
 
     it('VALID: {two different packages same sub-path} => two distinct roots', () => {
-      const hooks = FilePathStub({
+      const hooks = PathSegmentStub({
         value: 'packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts',
       });
-      const shared = FilePathStub({
+      const shared = PathSegmentStub({
         value: 'packages/shared/src/adapters/fs/write-file/fs-write-file-adapter.ts',
       });
 
@@ -41,7 +41,7 @@ describe('pathToTreeRelativeTransformer', () => {
 
   describe('single-package repo paths', () => {
     it('VALID: {project with src/ only} => strips through src/, no package prefix', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: '/home/user/my-project/src/brokers/user/fetch/user-fetch-broker.ts',
       });
 
@@ -51,7 +51,7 @@ describe('pathToTreeRelativeTransformer', () => {
     });
 
     it('VALID: {relative project-root path} => strips through src/', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: 'src/guards/has-permission-guard.ts',
       });
 
@@ -63,7 +63,7 @@ describe('pathToTreeRelativeTransformer', () => {
 
   describe('scoped package alias paths', () => {
     it('VALID: {@dungeonmaster/shared/src/ path} => uses scoped alias as root', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: '@dungeonmaster/shared/src/contracts/quest/quest-contract.ts',
       });
 
@@ -75,7 +75,7 @@ describe('pathToTreeRelativeTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {path without /src/ or packages/} => returns unchanged', () => {
-      const filepath = FilePathStub({ value: '/tmp/scratch.ts' });
+      const filepath = PathSegmentStub({ value: '/tmp/scratch.ts' });
 
       const result = pathToTreeRelativeTransformer({ filepath });
 
@@ -83,7 +83,7 @@ describe('pathToTreeRelativeTransformer', () => {
     });
 
     it('EDGE: {path with multiple src/ segments} => uses last /src/', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: '/home/user/projects/src-tooling/src/brokers/foo.ts',
       });
 
@@ -93,7 +93,7 @@ describe('pathToTreeRelativeTransformer', () => {
     });
 
     it('EDGE: {packages/ in path but no src/ after} => falls through to /src/ logic', () => {
-      const filepath = FilePathStub({
+      const filepath = PathSegmentStub({
         value: '/home/user/my-project/src/brokers/packages-broker.ts',
       });
 

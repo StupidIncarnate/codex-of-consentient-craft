@@ -1,7 +1,7 @@
 import { fsReadFileAdapter } from './fs-read-file-adapter';
 import { fsReadFileAdapterProxy } from './fs-read-file-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsReadFileAdapter', () => {
   it('VALID: {filepath: "/path/to/file.ts"} => returns file contents', async () => {

@@ -6,8 +6,8 @@
  * // Returns 'packages/mcp/src/**\/*' for directory-like input
  */
 
-import { globPatternContract } from '../../contracts/glob-pattern/glob-pattern-contract';
-import type { GlobPattern } from '../../contracts/glob-pattern/glob-pattern-contract';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import type { DiscoverInput } from '../../contracts/discover-input/discover-input-contract';
 
 type InputGlob = NonNullable<DiscoverInput['glob']>;

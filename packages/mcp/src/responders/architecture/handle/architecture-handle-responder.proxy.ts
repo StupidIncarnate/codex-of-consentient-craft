@@ -10,10 +10,12 @@ import {
   architectureOverviewBrokerProxy,
   architectureProjectMapBrokerProxy,
 } from '@dungeonmaster/shared/testing';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import type { FolderType } from '@dungeonmaster/shared/contracts';
+import type {
+  FileContents,
+  FolderType,
+  GlobPattern,
+  PathSegment,
+} from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
@@ -26,7 +28,7 @@ import { ArchitectureHandleResponder } from './architecture-handle-responder';
 export const ArchitectureHandleResponderProxy = (): {
   callResponder: typeof ArchitectureHandleResponder;
   setupFileDiscovery: (params: {
-    filepath: FilePath;
+    filepath: PathSegment;
     contents: FileContents;
     pattern: GlobPattern;
   }) => void;
@@ -51,7 +53,7 @@ export const ArchitectureHandleResponderProxy = (): {
       contents,
       pattern,
     }: {
-      filepath: FilePath;
+      filepath: PathSegment;
       contents: FileContents;
       pattern: GlobPattern;
     }): void => {

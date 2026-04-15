@@ -1,4 +1,4 @@
-import { AgentPromptResultStub } from '../../../contracts/agent-prompt-result/agent-prompt-result.stub';
+import { AgentPromptResultStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorGetAgentPromptAdapter } from './orchestrator-get-agent-prompt-adapter';
 import { orchestratorGetAgentPromptAdapterProxy } from './orchestrator-get-agent-prompt-adapter.proxy';

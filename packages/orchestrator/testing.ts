@@ -12,9 +12,11 @@ export * from './src/brokers/quest/list/quest-list-broker.proxy';
 export * from './src/brokers/quest/load/quest-load-broker.proxy';
 
 // Contract Stubs
-export { AddQuestResultStub } from './src/contracts/add-quest-result/add-quest-result.stub';
-export { GetQuestResultStub } from './src/contracts/get-quest-result/get-quest-result.stub';
-export { ModifyQuestResultStub } from './src/contracts/modify-quest-result/modify-quest-result.stub';
+export {
+  AddQuestResultStub,
+  GetQuestResultStub,
+  ModifyQuestResultStub,
+} from '@dungeonmaster/shared/contracts';
 export { AgentRoleStub } from './src/contracts/agent-role/agent-role.stub';
 export { AgentSlotStub } from './src/contracts/agent-slot/agent-slot.stub';
 export { IsoTimestampStub } from './src/contracts/iso-timestamp/iso-timestamp.stub';

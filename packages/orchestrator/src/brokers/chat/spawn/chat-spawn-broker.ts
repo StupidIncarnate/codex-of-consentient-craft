@@ -27,11 +27,11 @@ import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
-import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
+import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { questStatics } from '../../../statics/quest/quest-statics';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
@@ -41,7 +41,7 @@ import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questAddBroker } from '../../quest/add/quest-add-broker';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
-import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
+import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 export const chatSpawnBroker = async ({
   role,

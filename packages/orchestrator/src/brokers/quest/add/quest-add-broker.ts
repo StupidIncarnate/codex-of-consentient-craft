@@ -17,10 +17,10 @@ import {
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
-import { addQuestInputContract } from '../../../contracts/add-quest-input/add-quest-input-contract';
-import type { AddQuestInput } from '../../../contracts/add-quest-input/add-quest-input-contract';
-import { addQuestResultContract } from '../../../contracts/add-quest-result/add-quest-result-contract';
-import type { AddQuestResult } from '../../../contracts/add-quest-result/add-quest-result-contract';
+import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput } from '@dungeonmaster/shared/contracts';
+import { addQuestResultContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestResult } from '@dungeonmaster/shared/contracts';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 
 const QUEST_FILE_NAME = 'quest.json';

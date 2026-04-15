@@ -12,28 +12,32 @@ export { questModifyBroker } from './brokers/quest/modify/quest-modify-broker';
 export { questOutboxWatchBroker } from './brokers/quest/outbox-watch/quest-outbox-watch-broker';
 
 // Quest contracts - exported for use by other packages
-export { addQuestInputContract } from './contracts/add-quest-input/add-quest-input-contract';
-export type { AddQuestInput } from './contracts/add-quest-input/add-quest-input-contract';
-export { addQuestResultContract } from './contracts/add-quest-result/add-quest-result-contract';
-export type { AddQuestResult } from './contracts/add-quest-result/add-quest-result-contract';
-export { getQuestInputContract } from './contracts/get-quest-input/get-quest-input-contract';
-export type { GetQuestInput } from './contracts/get-quest-input/get-quest-input-contract';
-export { getQuestResultContract } from './contracts/get-quest-result/get-quest-result-contract';
-export type { GetQuestResult } from './contracts/get-quest-result/get-quest-result-contract';
-export { modifyQuestInputContract } from './contracts/modify-quest-input/modify-quest-input-contract';
-export type { ModifyQuestInput } from './contracts/modify-quest-input/modify-quest-input-contract';
-export { modifyQuestResultContract } from './contracts/modify-quest-result/modify-quest-result-contract';
-export type { ModifyQuestResult } from './contracts/modify-quest-result/modify-quest-result-contract';
+export {
+  addQuestInputContract,
+  addQuestResultContract,
+  getQuestInputContract,
+  getQuestResultContract,
+  modifyQuestInputContract,
+  modifyQuestResultContract,
+  questStageContract,
+  verifyQuestCheckContract,
+} from '@dungeonmaster/shared/contracts';
+export type {
+  AddQuestInput,
+  AddQuestResult,
+  GetQuestInput,
+  GetQuestResult,
+  ModifyQuestInput,
+  ModifyQuestResult,
+  QuestStage,
+  VerifyQuestCheck,
+} from '@dungeonmaster/shared/contracts';
 export { questSectionContract } from './contracts/quest-section/quest-section-contract';
 export type { QuestSection } from './contracts/quest-section/quest-section-contract';
-export { questStageContract } from './contracts/quest-stage/quest-stage-contract';
-export type { QuestStage } from './contracts/quest-stage/quest-stage-contract';
-export { verifyQuestCheckContract } from './contracts/verify-quest-check/verify-quest-check-contract';
-export type { VerifyQuestCheck } from './contracts/verify-quest-check/verify-quest-check-contract';
 
 // Agent prompt contracts - exported for MCP package
-export { agentPromptResultContract } from './contracts/agent-prompt-result/agent-prompt-result-contract';
-export type { AgentPromptResult } from './contracts/agent-prompt-result/agent-prompt-result-contract';
+export { agentPromptResultContract } from '@dungeonmaster/shared/contracts';
+export type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 
 // Prompt statics - re-exported for CLI package
 export { chaoswhispererPromptStatics } from './statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';

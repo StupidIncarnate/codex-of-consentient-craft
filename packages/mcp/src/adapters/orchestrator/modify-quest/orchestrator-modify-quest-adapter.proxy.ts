@@ -10,7 +10,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { ModifyQuestResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorModifyQuestAdapterProxy = (): {
   returns: (params: { result: ModifyQuestResult }) => void;

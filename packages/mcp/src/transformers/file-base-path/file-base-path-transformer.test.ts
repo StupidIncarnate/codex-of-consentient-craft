@@ -1,9 +1,9 @@
 import { fileBasePathTransformer } from './file-base-path-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('fileBasePathTransformer', () => {
   it('VALID: removes .ts extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.ts' });
+    const filepath = PathSegmentStub({ value: '/test/user-broker.ts' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -11,7 +11,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .test.ts extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.test.ts' });
+    const filepath = PathSegmentStub({ value: '/test/user-broker.test.ts' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -19,7 +19,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .proxy.ts extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.proxy.ts' });
+    const filepath = PathSegmentStub({ value: '/test/user-broker.proxy.ts' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -27,7 +27,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .integration.test.ts extension', () => {
-    const filepath = AbsoluteFilePathStub({
+    const filepath = PathSegmentStub({
       value: '/test/user-broker.integration.test.ts',
     });
 
@@ -37,7 +37,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .spec.ts extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.spec.ts' });
+    const filepath = PathSegmentStub({ value: '/test/user-broker.spec.ts' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -45,7 +45,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .tsx extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/component.tsx' });
+    const filepath = PathSegmentStub({ value: '/test/component.tsx' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -53,7 +53,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: removes .test.tsx extension', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/component.test.tsx' });
+    const filepath = PathSegmentStub({ value: '/test/component.test.tsx' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -61,7 +61,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: handles file with hyphenated name', () => {
-    const filepath = AbsoluteFilePathStub({ value: '/test/user-fetch-broker.ts' });
+    const filepath = PathSegmentStub({ value: '/test/user-fetch-broker.ts' });
 
     const result = fileBasePathTransformer({ filepath });
 
@@ -69,7 +69,7 @@ describe('fileBasePathTransformer', () => {
   });
 
   it('VALID: handles deeply nested paths', () => {
-    const filepath = AbsoluteFilePathStub({
+    const filepath = PathSegmentStub({
       value: '/test/brokers/user/fetch/user-fetch-broker.test.ts',
     });
 
@@ -80,7 +80,7 @@ describe('fileBasePathTransformer', () => {
 
   describe('javascript extensions', () => {
     it('VALID: removes .js extension', () => {
-      const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.js' });
+      const filepath = PathSegmentStub({ value: '/test/user-broker.js' });
 
       const result = fileBasePathTransformer({ filepath });
 
@@ -88,7 +88,7 @@ describe('fileBasePathTransformer', () => {
     });
 
     it('VALID: removes .jsx extension', () => {
-      const filepath = AbsoluteFilePathStub({ value: '/test/component.jsx' });
+      const filepath = PathSegmentStub({ value: '/test/component.jsx' });
 
       const result = fileBasePathTransformer({ filepath });
 
@@ -96,7 +96,7 @@ describe('fileBasePathTransformer', () => {
     });
 
     it('VALID: removes .test.js extension', () => {
-      const filepath = AbsoluteFilePathStub({ value: '/test/user-broker.test.js' });
+      const filepath = PathSegmentStub({ value: '/test/user-broker.test.js' });
 
       const result = fileBasePathTransformer({ filepath });
 
@@ -104,7 +104,7 @@ describe('fileBasePathTransformer', () => {
     });
 
     it('VALID: removes .proxy.jsx extension', () => {
-      const filepath = AbsoluteFilePathStub({ value: '/test/component.proxy.jsx' });
+      const filepath = PathSegmentStub({ value: '/test/component.proxy.jsx' });
 
       const result = fileBasePathTransformer({ filepath });
 
@@ -112,7 +112,7 @@ describe('fileBasePathTransformer', () => {
     });
 
     it('VALID: removes .integration.test.js extension', () => {
-      const filepath = AbsoluteFilePathStub({
+      const filepath = PathSegmentStub({
         value: '/test/user-broker.integration.test.js',
       });
 

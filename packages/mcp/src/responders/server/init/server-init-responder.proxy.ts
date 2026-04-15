@@ -11,11 +11,11 @@ import { folderConstraintsInitBrokerProxy } from '../../../brokers/folder-constr
 import { folderConstraintsStateProxy } from '../../../state/folder-constraints/folder-constraints-state.proxy';
 import { ServerInitResponder } from './server-init-responder';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const ServerInitResponderProxy = (): {
   callResponder: typeof ServerInitResponder;
-  setupConstraintFiles: (params: Record<FilePath, ContentText>) => void;
+  setupConstraintFiles: (params: Record<PathSegment, ContentText>) => void;
 } => {
   const brokerProxy = folderConstraintsInitBrokerProxy();
   const stateProxy = folderConstraintsStateProxy();
@@ -24,7 +24,7 @@ export const ServerInitResponderProxy = (): {
   return {
     callResponder: ServerInitResponder,
 
-    setupConstraintFiles: (files: Record<FilePath, ContentText>): void => {
+    setupConstraintFiles: (files: Record<PathSegment, ContentText>): void => {
       brokerProxy.setupConstraintFiles(files);
     },
   };

@@ -11,7 +11,7 @@ import { signatureRawContract } from '../../contracts/signature-raw/signature-ra
 import { parameterNameContract } from '../../contracts/parameter-name/parameter-name-contract';
 import { returnTypeContract } from '../../contracts/return-type/return-type-contract';
 import { typeNameContract } from '../../contracts/type-name/type-name-contract';
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
 import type { TypeName } from '../../contracts/type-name/type-name-contract';
 import type { FunctionName } from '../../contracts/function-name/function-name-contract';

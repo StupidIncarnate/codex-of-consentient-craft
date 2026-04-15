@@ -1,5 +1,5 @@
 import { metadataExtractorTransformer } from './metadata-extractor-transformer';
-import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('metadataExtractorTransformer', () => {
   it('VALID: {file with PURPOSE, USAGE} => extracts metadata', () => {

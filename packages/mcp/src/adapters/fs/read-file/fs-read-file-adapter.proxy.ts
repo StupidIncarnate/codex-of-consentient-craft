@@ -1,11 +1,10 @@
 import { readFile } from 'fs/promises';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileAdapterProxy = (): {
-  returns: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;
-  throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
+  returns: ({ filepath, contents }: { filepath: PathSegment; contents: FileContents }) => void;
+  throws: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: readFile });
 
@@ -19,10 +18,10 @@ export const fsReadFileAdapterProxy = (): {
   ) => unknown);
 
   return {
-    returns: ({ contents }: { filepath: FilePath; contents: FileContents }): void => {
+    returns: ({ contents }: { filepath: PathSegment; contents: FileContents }): void => {
       handle.mockResolvedValueOnce(contents);
     },
-    throws: ({ error }: { filepath: FilePath; error: Error }): void => {
+    throws: ({ error }: { filepath: PathSegment; error: Error }): void => {
       handle.mockRejectedValueOnce(error);
     },
   };

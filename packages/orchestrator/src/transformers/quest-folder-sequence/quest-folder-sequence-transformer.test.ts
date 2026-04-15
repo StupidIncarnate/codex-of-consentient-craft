@@ -1,4 +1,4 @@
-import { FileNameStub } from '../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { questFolderSequenceTransformer } from './quest-folder-sequence-transformer';
 
 describe('questFolderSequenceTransformer', () => {

@@ -9,10 +9,10 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { getPlanningNotesInputContract } from '../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
-import { getQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
-import { modifyQuestInputContract } from '../../contracts/modify-quest-input/modify-quest-input-contract';
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';

@@ -6,10 +6,8 @@
  * // Returns: 'Duplicate ID "a" in flows — this ID already exists. Use a unique ID or omit to leave existing unchanged.'
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, ItemWithId } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-
-import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 

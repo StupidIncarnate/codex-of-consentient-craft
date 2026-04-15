@@ -1,5 +1,5 @@
 import { globIgnoreFilterTransformer } from './glob-ignore-filter-transformer';
-import { GlobPatternStub } from '../../contracts/glob-pattern/glob-pattern.stub';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 
 describe('globIgnoreFilterTransformer', () => {
   it('VALID: {pattern: "src/..."} => returns all ignore rules (no targeted dir)', () => {

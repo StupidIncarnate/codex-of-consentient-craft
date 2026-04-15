@@ -7,7 +7,7 @@
  */
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import type { AgentPromptResult } from '../../contracts/agent-prompt-result/agent-prompt-result-contract';
+import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import { agentNameToPromptTransformer } from '../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
 
 export const AgentPromptFlow = {

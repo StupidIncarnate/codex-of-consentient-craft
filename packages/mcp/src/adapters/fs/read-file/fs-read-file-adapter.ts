@@ -2,22 +2,21 @@
  * PURPOSE: Read file contents from filesystem using fs/promises
  *
  * USAGE:
- * const contents = await fsReadFileAdapter({ filepath: FilePathStub({ value: '/path/to/file.ts' }) });
+ * const contents = await fsReadFileAdapter({ filepath: PathSegmentStub({ value: '/path/to/file.ts' }) });
  * // Returns: FileContents('export const foo = ...')
  *
- * CONTRACTS: Input: FilePath (branded string)
+ * CONTRACTS: Input: PathSegment (branded string)
  * CONTRACTS: Output: FileContents (branded string)
  */
 
 import { readFile } from 'fs/promises';
-import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileAdapter = async ({
   filepath,
 }: {
-  filepath: FilePath;
+  filepath: PathSegment;
 }): Promise<FileContents> => {
   const buffer = await readFile(filepath, 'utf8');
 

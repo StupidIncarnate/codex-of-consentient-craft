@@ -1,7 +1,7 @@
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {

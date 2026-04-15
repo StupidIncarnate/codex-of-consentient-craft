@@ -6,7 +6,7 @@
  * // Returns true if all items are objects with an `id` property
  */
 
-import type { ItemWithId } from '../../contracts/item-with-id/item-with-id-contract';
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
 
 export const isArrayOfItemsWithIdGuard = (params: {
   value?: unknown;

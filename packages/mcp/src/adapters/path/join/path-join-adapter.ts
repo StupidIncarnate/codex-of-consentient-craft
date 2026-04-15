@@ -3,11 +3,11 @@
  *
  * USAGE:
  * const joinedPath = pathJoinAdapter({ paths: ['/base', 'folder', 'file.ts'] });
- * // Returns validated FilePath
+ * // Returns validated PathSegment
  */
 import { join } from 'path';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-export const pathJoinAdapter = ({ paths }: { paths: readonly string[] }): FilePath =>
-  filePathContract.parse(join(...paths));
+export const pathJoinAdapter = ({ paths }: { paths: readonly string[] }): PathSegment =>
+  pathSegmentContract.parse(join(...paths));

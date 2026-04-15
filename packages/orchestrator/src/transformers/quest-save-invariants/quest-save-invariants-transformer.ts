@@ -7,7 +7,7 @@
  */
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import type { VerifyQuestCheck } from '../../contracts/verify-quest-check/verify-quest-check-contract';
+import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { questValidateSpecTransformer } from '../quest-validate-spec/quest-validate-spec-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;

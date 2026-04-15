@@ -1,6 +1,6 @@
 import { globFindAdapter } from './glob-find-adapter';
 import { globFindAdapterProxy } from './glob-find-adapter.proxy';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('globFindAdapter', () => {

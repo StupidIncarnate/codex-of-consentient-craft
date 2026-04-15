@@ -6,10 +6,7 @@
  * // Returns { name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' }
  */
 
-import {
-  agentPromptResultContract,
-  type AgentPromptResult,
-} from '../../contracts/agent-prompt-result/agent-prompt-result-contract';
+import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { pathseekerQuestReviewMinionStatics } from '../../statics/pathseeker-quest-review-minion/pathseeker-quest-review-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';

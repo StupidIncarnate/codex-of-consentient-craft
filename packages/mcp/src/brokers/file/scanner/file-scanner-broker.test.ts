@@ -1,15 +1,17 @@
 import { fileScannerBroker } from './file-scanner-broker';
 import { fileScannerBrokerProxy } from './file-scanner-broker.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
+import {
+  FileContentsStub,
+  GlobPatternStub,
+  PathSegmentStub,
+} from '@dungeonmaster/shared/contracts';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
 describe('fileScannerBroker', () => {
   describe('no filters', () => {
     it('VALID: {} => returns all matched files with metadata', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/has-permission-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
@@ -54,7 +56,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
     it('VALID: files without PURPOSE/USAGE => still returned with undefined metadata', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/transformers/plain-transformer.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/transformers/plain-transformer.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `export const plainTransformer = () => true;`,
@@ -80,7 +82,7 @@ export const hasPermissionGuard = ({ user, resource }: { user?: User; resource?:
 
     it('VALID: files without exported function => still returned (no gate)', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/no-export-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/no-export-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
@@ -112,7 +114,7 @@ const privateFunction = () => true;`,
   describe('glob filter', () => {
     it('VALID: {glob: "**/*.ts"} => glob with extension used as-is', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/has-permission-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const contents = FileContentsStub({
         value: `/**
@@ -154,7 +156,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
   describe('grep filter', () => {
     it('VALID: {grep: "permission"} => returns files with matching content and hits', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/has-permission-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `/**
@@ -195,7 +197,7 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
 
     it('EMPTY: {grep: "nonexistent"} => returns empty array', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/guards/has-permission-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/has-permission-guard.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `export const hasPermissionGuard = (): boolean => true;`,
@@ -213,15 +215,15 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({
+      const implPath = PathSegmentStub({
         value:
           '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.ts',
       });
-      const proxyPath = FilePathStub({
+      const proxyPath = PathSegmentStub({
         value:
           '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy.ts',
       });
-      const testPath = FilePathStub({
+      const testPath = PathSegmentStub({
         value:
           '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.test.ts',
       });
@@ -318,8 +320,8 @@ describe('rule', () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({ value: '/project/src/brokers/lonely-broker.ts' });
-      const testPath = FilePathStub({ value: '/project/src/brokers/lonely-broker.test.ts' });
+      const implPath = PathSegmentStub({ value: '/project/src/brokers/lonely-broker.ts' });
+      const testPath = PathSegmentStub({ value: '/project/src/brokers/lonely-broker.test.ts' });
 
       const implContents = FileContentsStub({
         value: `export const lonelyBroker = (): boolean => true;`,
@@ -345,7 +347,7 @@ describe('rule', () => {
 
     it('VALID: {grep: "ERROR", context: 1} => returns hits with context lines', async () => {
       const proxy = fileScannerBrokerProxy();
-      const filepath = FilePathStub({ value: '/project/src/adapters/fs-access-adapter.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/adapters/fs-access-adapter.ts' });
       const pattern = GlobPatternStub({ value: '**/*' });
       const contents = FileContentsStub({
         value: `line1
@@ -385,13 +387,13 @@ line5`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({
+      const implPath = PathSegmentStub({
         value: '/project/src/brokers/user-broker.ts',
       });
-      const testPath = FilePathStub({
+      const testPath = PathSegmentStub({
         value: '/project/src/brokers/user-broker.test.ts',
       });
-      const proxyPath = FilePathStub({
+      const proxyPath = PathSegmentStub({
         value: '/project/src/brokers/user-broker.proxy.ts',
       });
 
@@ -453,10 +455,10 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const implPath = FilePathStub({ value: '/project/src/brokers/data-broker.ts' });
-      const testPath = FilePathStub({ value: '/project/src/brokers/data-broker.test.ts' });
-      const proxyPath = FilePathStub({ value: '/project/src/brokers/data-broker.proxy.ts' });
-      const stubPath = FilePathStub({ value: '/project/src/brokers/data-broker.stub.ts' });
+      const implPath = PathSegmentStub({ value: '/project/src/brokers/data-broker.ts' });
+      const testPath = PathSegmentStub({ value: '/project/src/brokers/data-broker.test.ts' });
+      const proxyPath = PathSegmentStub({ value: '/project/src/brokers/data-broker.proxy.ts' });
+      const stubPath = PathSegmentStub({ value: '/project/src/brokers/data-broker.stub.ts' });
 
       const implContents = FileContentsStub({
         value: `export const dataBroker = (): boolean => true;`,
@@ -506,7 +508,7 @@ export const userBroker = ({ userId }: { userId: string }): boolean => true;`,
     it('VALID: implementation with no related files => relatedFiles is empty', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
-      const filepath = FilePathStub({ value: '/project/src/guards/orphan-guard.ts' });
+      const filepath = PathSegmentStub({ value: '/project/src/guards/orphan-guard.ts' });
       const contents = FileContentsStub({
         value: `/**
  * PURPOSE: Orphaned guard
@@ -556,9 +558,9 @@ export const orphanGuard = (): boolean => true;`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const fileZ = FilePathStub({ value: '/project/src/guards/zebra-guard.ts' });
-      const fileA = FilePathStub({ value: '/project/src/guards/alpha-guard.ts' });
-      const fileM = FilePathStub({ value: '/project/src/guards/middle-guard.ts' });
+      const fileZ = PathSegmentStub({ value: '/project/src/guards/zebra-guard.ts' });
+      const fileA = PathSegmentStub({ value: '/project/src/guards/alpha-guard.ts' });
+      const fileM = PathSegmentStub({ value: '/project/src/guards/middle-guard.ts' });
 
       const contentsZ = FileContentsStub({
         value: `export const zebraGuard = (): boolean => true;`,
@@ -633,8 +635,8 @@ export const orphanGuard = (): boolean => true;`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const goodPath = FilePathStub({ value: '/project/src/guards/good-guard.ts' });
-      const badPath = FilePathStub({ value: '/project/src/guards/bad-guard.ts' });
+      const goodPath = PathSegmentStub({ value: '/project/src/guards/good-guard.ts' });
+      const badPath = PathSegmentStub({ value: '/project/src/guards/bad-guard.ts' });
 
       const goodContents = FileContentsStub({
         value: `export const goodGuard = (): boolean => true;`,
@@ -672,8 +674,8 @@ export const orphanGuard = (): boolean => true;`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const path1 = FilePathStub({ value: '/project/src/guards/one-guard.ts' });
-      const path2 = FilePathStub({ value: '/project/src/guards/two-guard.ts' });
+      const path1 = PathSegmentStub({ value: '/project/src/guards/one-guard.ts' });
+      const path2 = PathSegmentStub({ value: '/project/src/guards/two-guard.ts' });
 
       proxy.setupFilesWithFailingReads({
         files: [
@@ -694,7 +696,7 @@ export const orphanGuard = (): boolean => true;`,
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
 
-      const samePath = FilePathStub({ value: '/project/src/guards/unique-guard.ts' });
+      const samePath = PathSegmentStub({ value: '/project/src/guards/unique-guard.ts' });
       const contents = FileContentsStub({
         value: `export const uniqueGuard = (): boolean => true;`,
       });
@@ -733,8 +735,8 @@ export const orphanGuard = (): boolean => true;`,
     it('VALID: {glob, grep} => glob filters files, grep filters contents', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
-      const matchingFile = FilePathStub({ value: '/project/src/guards/permission-guard.ts' });
-      const nonMatchingFile = FilePathStub({ value: '/project/src/guards/other-guard.ts' });
+      const matchingFile = PathSegmentStub({ value: '/project/src/guards/permission-guard.ts' });
+      const nonMatchingFile = PathSegmentStub({ value: '/project/src/guards/other-guard.ts' });
 
       const matchingContents = FileContentsStub({
         value: `export const permissionGuard = (): boolean => checkPermission();`,

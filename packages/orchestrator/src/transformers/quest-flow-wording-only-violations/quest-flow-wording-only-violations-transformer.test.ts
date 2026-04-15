@@ -6,7 +6,7 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ModifyQuestInputStub } from '../../contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 
 import { questFlowWordingOnlyViolationsTransformer } from './quest-flow-wording-only-violations-transformer';
 

@@ -25,8 +25,8 @@
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 
-import type { VerifyQuestCheck } from '../../contracts/verify-quest-check/verify-quest-check-contract';
-import { verifyQuestCheckContract } from '../../contracts/verify-quest-check/verify-quest-check-contract';
+import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
+import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import { questCyclicStepDepsTransformer } from '../quest-cyclic-step-deps/quest-cyclic-step-deps-transformer';
 import { questStepsMissingFocusTargetTransformer } from '../quest-steps-missing-focus-target/quest-steps-missing-focus-target-transformer';
 import { questUnresolvedStepDepsTransformer } from '../quest-unresolved-step-deps/quest-unresolved-step-deps-transformer';

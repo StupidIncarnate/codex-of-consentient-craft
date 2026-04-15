@@ -25,7 +25,7 @@ import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import type { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
-import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import type {
   ChatLineEntry,
   ChatLinePatch,

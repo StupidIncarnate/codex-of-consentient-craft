@@ -19,10 +19,8 @@ import { pathToBasenameTransformer } from '../../../transformers/path-to-basenam
 import { contentGrepTransformer } from '../../../transformers/content-grep/content-grep-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
-import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
@@ -41,7 +39,7 @@ export const fileScannerBroker = async ({
   context?: ContextLines;
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from cwd + shared package
-  const cwdPath = filePathContract.parse(process.cwd());
+  const cwdPath = pathSegmentContract.parse(process.cwd());
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
   const projectFiles = await globFindAdapter({ pattern, cwd: cwdPath });
@@ -49,8 +47,8 @@ export const fileScannerBroker = async ({
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
   const isBroadGlob = globSuffix.startsWith('**');
   const sharedPath = isBroadGlob ? sharedPackageResolveAdapter() : null;
-  const sharedFilePaths: FilePath[] = [];
-  const sharedBasePathStr = sharedPath ? filePathContract.parse(sharedPath) : null;
+  const sharedFilePaths: PathSegment[] = [];
+  const sharedBasePathStr = sharedPath ? pathSegmentContract.parse(sharedPath) : null;
   if (sharedBasePathStr !== null) {
     const sharedPattern = globPatternContract.parse(`${sharedBasePathStr}/${globSuffix}`);
     const foundSharedFiles = await globFindAdapter({
@@ -62,14 +60,14 @@ export const fileScannerBroker = async ({
 
   // Build a set of shared file paths for later path conversion
   const sharedFileSet = new Set<FileMetadata['path']>(
-    sharedFilePaths.map((fp) => absoluteFilePathContract.parse(fp)),
+    sharedFilePaths.map((fp) => pathSegmentContract.parse(fp)),
   );
 
   // Combine project files and shared files, deduped by absolute path.
   // A broad glob run from the monorepo root can hit the same shared source both
   // via the cwd scan and the secondary shared-path scan — dedup prevents doubled results.
-  const seenPaths = new Set<FilePath>();
-  const allFilePaths: FilePath[] = [];
+  const seenPaths = new Set<PathSegment>();
+  const allFilePaths: PathSegment[] = [];
   for (const fp of [...projectFiles, ...sharedFilePaths]) {
     if (seenPaths.has(fp)) continue;
     seenPaths.add(fp);
@@ -192,9 +190,7 @@ export const fileScannerBroker = async ({
     const isShared = sharedFileSet.has(file.path);
     const displayPath =
       isShared && sharedBasePathStr
-        ? absoluteFilePathContract.parse(
-            file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'),
-          )
+        ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
         : pathToRelativeTransformer({ filepath: file.path });
 
     const relatedFilenames = related
@@ -213,9 +209,7 @@ export const fileScannerBroker = async ({
     const isShared = sharedFileSet.has(file.path);
     const displayPath =
       isShared && sharedBasePathStr
-        ? absoluteFilePathContract.parse(
-            file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'),
-          )
+        ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
         : pathToRelativeTransformer({ filepath: file.path });
 
     return fileMetadataContract.parse({

@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileAdapterProxy = (): {
   returns: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;

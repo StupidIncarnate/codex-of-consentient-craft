@@ -7,7 +7,7 @@
  */
 
 import type { QuestSection } from '../../contracts/quest-section/quest-section-contract';
-import type { QuestStage } from '../../contracts/quest-stage/quest-stage-contract';
+import type { QuestStage } from '@dungeonmaster/shared/contracts';
 import { questStageMappingStatics } from '../../statics/quest-stage-mapping/quest-stage-mapping-statics';
 
 export const questStageToSectionsTransformer = ({ stage }: { stage: QuestStage }): QuestSection[] =>

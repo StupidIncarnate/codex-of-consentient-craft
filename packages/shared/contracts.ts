@@ -18,6 +18,9 @@ export * from './src/contracts/absolute-file-path/absolute-file-path.stub';
 export * from './src/contracts/relative-file-path/relative-file-path-contract';
 export * from './src/contracts/relative-file-path/relative-file-path.stub';
 
+export * from './src/contracts/path-segment/path-segment-contract';
+export * from './src/contracts/path-segment/path-segment.stub';
+
 // File Contents Contracts
 export * from './src/contracts/file-contents/file-contents-contract';
 export * from './src/contracts/file-contents/file-contents.stub';
@@ -326,6 +329,54 @@ export * from './src/contracts/ward-run-id/ward-run-id.stub';
 // Adapter Result Contracts
 export * from './src/contracts/adapter-result/adapter-result-contract';
 export * from './src/contracts/adapter-result/adapter-result.stub';
+
+// Glob Pattern Contracts
+export * from './src/contracts/glob-pattern/glob-pattern-contract';
+export * from './src/contracts/glob-pattern/glob-pattern.stub';
+
+// Item With Id Contracts
+export * from './src/contracts/item-with-id/item-with-id-contract';
+export * from './src/contracts/item-with-id/item-with-id.stub';
+
+// Agent Prompt Result Contracts
+export * from './src/contracts/agent-prompt-result/agent-prompt-result-contract';
+export * from './src/contracts/agent-prompt-result/agent-prompt-result.stub';
+
+// Add Quest Result Contracts
+export * from './src/contracts/add-quest-result/add-quest-result-contract';
+export * from './src/contracts/add-quest-result/add-quest-result.stub';
+
+// Add Quest Input Contracts
+export * from './src/contracts/add-quest-input/add-quest-input-contract';
+export * from './src/contracts/add-quest-input/add-quest-input.stub';
+
+// Verify Quest Check Contracts
+export * from './src/contracts/verify-quest-check/verify-quest-check-contract';
+export * from './src/contracts/verify-quest-check/verify-quest-check.stub';
+
+// Get Quest Result Contracts
+export * from './src/contracts/get-quest-result/get-quest-result-contract';
+export * from './src/contracts/get-quest-result/get-quest-result.stub';
+
+// Modify Quest Result Contracts
+export * from './src/contracts/modify-quest-result/modify-quest-result-contract';
+export * from './src/contracts/modify-quest-result/modify-quest-result.stub';
+
+// Work Item For Upsert Contracts
+export * from './src/contracts/work-item-for-upsert/work-item-for-upsert-contract';
+export * from './src/contracts/work-item-for-upsert/work-item-for-upsert.stub';
+
+// Quest Stage Contracts
+export * from './src/contracts/quest-stage/quest-stage-contract';
+export * from './src/contracts/quest-stage/quest-stage.stub';
+
+// Get Quest Input Contracts
+export * from './src/contracts/get-quest-input/get-quest-input-contract';
+export * from './src/contracts/get-quest-input/get-quest-input.stub';
+
+// Modify Quest Input Contracts
+export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
+export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
 // Planning Notes Contracts (PathSeeker phased statuses)
 export * from './src/contracts/planning-scope-classification/planning-scope-classification-contract';

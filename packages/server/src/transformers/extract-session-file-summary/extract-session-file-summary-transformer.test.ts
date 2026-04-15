@@ -1,5 +1,5 @@
 import { extractSessionFileSummaryTransformer } from './extract-session-file-summary-transformer';
-import { FileContentsStub } from '../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('extractSessionFileSummaryTransformer', () => {
   describe('last line summary', () => {
