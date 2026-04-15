@@ -1,13 +1,14 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest, get-planning-notes)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 7 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 8 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
+import { getPlanningNotesInputContract } from '../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
 import { getQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
@@ -28,6 +29,10 @@ const getQuestStatusSchema = zodToJsonSchema(
 const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
 const verifyQuestSchema = zodToJsonSchema(verifyQuestInputContract as never, jsonSchemaOptions);
+const getPlanningNotesSchema = zodToJsonSchema(
+  getPlanningNotesInputContract as never,
+  jsonSchemaOptions,
+);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {
@@ -74,5 +79,13 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Validates quest structure integrity (dependency graph, observable coverage, file companions, etc.)' as never,
     inputSchema: verifyQuestSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'verify-quest' as never, args }),
+  },
+  {
+    name: 'get-planning-notes' as never,
+    description:
+      "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts." as never,
+    inputSchema: getPlanningNotesSchema as never,
+    handler: async ({ args }) =>
+      QuestHandleResponder({ tool: 'get-planning-notes' as never, args }),
   },
 ];
