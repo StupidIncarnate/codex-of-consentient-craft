@@ -13,7 +13,6 @@ import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
-import { orchestratorValidateSpecAdapterProxy } from '../../../adapters/orchestrator/validate-spec/orchestrator-validate-spec-adapter.proxy';
 import { orchestratorVerifyQuestAdapterProxy } from '../../../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter.proxy';
 import type { GetQuestResultStub } from '../../../contracts/get-quest-result/get-quest-result.stub';
 import type { ModifyQuestResultStub } from '../../../contracts/modify-quest-result/modify-quest-result.stub';
@@ -34,8 +33,6 @@ export const QuestHandleResponderProxy = (): {
   setupGetQuestStatusThrows: (params: { error: Error }) => void;
   setupVerifyQuestReturns: (params: { result: VerifyQuestResult }) => void;
   setupVerifyQuestThrows: (params: { error: Error }) => void;
-  setupValidateSpecReturns: (params: { result: VerifyQuestResult }) => void;
-  setupValidateSpecThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
   getLastModifyInput: () => unknown;
@@ -46,7 +43,6 @@ export const QuestHandleResponderProxy = (): {
   const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
-  const validateSpecProxy = orchestratorValidateSpecAdapterProxy();
   const verifyQuestProxy = orchestratorVerifyQuestAdapterProxy();
 
   return {
@@ -82,14 +78,6 @@ export const QuestHandleResponderProxy = (): {
 
     setupVerifyQuestThrows: ({ error }: { error: Error }): void => {
       verifyQuestProxy.throws({ error });
-    },
-
-    setupValidateSpecReturns: ({ result }: { result: VerifyQuestResult }): void => {
-      validateSpecProxy.returns({ result });
-    },
-
-    setupValidateSpecThrows: ({ error }: { error: Error }): void => {
-      validateSpecProxy.throws({ error });
     },
 
     setupListQuestsThrows: ({ error }: { error: Error }): void => {

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest, validate-spec)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -18,7 +18,6 @@ import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/st
 import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
-import { orchestratorValidateSpecAdapter } from '../../../adapters/orchestrator/validate-spec/orchestrator-validate-spec-adapter';
 import { orchestratorVerifyQuestAdapter } from '../../../adapters/orchestrator/verify-quest/orchestrator-verify-quest-adapter';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
@@ -204,37 +203,6 @@ export const QuestHandleResponder = async ({
 
     try {
       const result = await orchestratorVerifyQuestAdapter({ questId });
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
-          },
-        ],
-        ...(!result.success && { isError: true }),
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  if (tool === 'validate-spec') {
-    const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const questId = String(questIdRaw);
-
-    try {
-      const result = await orchestratorValidateSpecAdapter({ questId });
       return {
         content: [
           {

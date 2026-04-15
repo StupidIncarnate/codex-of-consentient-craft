@@ -114,9 +114,6 @@ export const StartOrchestrator = {
   verifyQuest: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> =>
     QuestFlow.verify({ questId }),
 
-  validateSpec: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> =>
-    QuestFlow.validateSpec({ questId }),
-
   modifyQuest: async ({
     questId,
     input,
