@@ -27,7 +27,7 @@
 Orchestration Loop (workItems queue)
   │  "find next ready item, run it, repeat"
   │
-  ├─ PathSeeker ──── verify-quest + pathseeker-quest-review-minion (retry max 3)
+  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk → seek_plan) + pathseeker-quest-review-minion (retry max 3)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
   │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
@@ -58,15 +58,18 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 ```
 pending ──┐
            ▼
-created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
-                                    │                                                          │                   │              │
-                                    └──► explore_flows (back)                                   └──► explore_observables (back)    ├──► blocked ──► in_progress
-                                                                                                                   │              │         └──► abandoned
-                                                                                                                   │              └──► abandoned
-                                                                                                                   ▼
-                                                                                                            explore_design ──► review_design ──► design_approved ──► in_progress
-                                                                                                                                      │
-                                                                                                                                      └──► explore_design (back)
+created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► seek_scope ──► seek_synth ──► seek_walk ──► seek_plan ──► in_progress ──► complete
+                                    │                                                          │                   │                          │              │              │              │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)                └──► seek_scope │              │              ├──► blocked ──► in_progress
+                                                                                                                   │                                         └──► seek_scope │              │         └──► abandoned
+                                                                                                                   │                                                         └──► seek_walk │              └──► abandoned
+                                                                                                                   ▼                                                                        │
+                                                                                                            explore_design ──► review_design ──► design_approved ──► seek_scope ...        │
+                                                                                                                                      │                                                    │
+                                                                                                                                      └──► explore_design (back)                           │
+                                                                                                                                                                                           │
+                                                                                                 in_progress ──► seek_walk (failure routing)                                               │
+                                                                                                 in_progress ──► seek_scope (full replan) ─────────────────────────────────────────────────┘
 ```
 
 | Status                | Set By                                                    | Gate                                                      |
@@ -81,7 +84,11 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
 | `explore_design`      | Glyphsmith starts design work                             | Create prototypes, iterate on designs                     |
 | `review_design`       | Glyphsmith ready for design review                        | User reviews designs, APPROVE button visible              |
 | `design_approved`     | User approves designs                                     | Design locked. `start-quest` allowed.                     |
-| `in_progress`         | `start-quest`                                             | Steps can be added/modified                               |
+| `seek_scope`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.scopeClassification`              |
+| `seek_synth`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.surfaceReports[]` + `planningNotes.synthesis` |
+| `seek_walk`           | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.walkFindings`                     |
+| `seek_plan`           | PathSeeker agent transitions via modify-quest             | Requires `steps[]`, `planningNotes.reviewReport`, + spec-completeness checks pass |
+| `in_progress`         | `start-quest` / PathSeeker transition from `seek_plan`    | Steps can be added/modified                               |
 | `blocked`             | Pipeline blocker                                          | Execution paused                                          |
 | `complete`            | All phases pass                                           | Terminal                                                  |
 | `abandoned`           | User abandons                                             | Terminal                                                  |
@@ -127,20 +134,30 @@ Three consumers read different parts:
 | `spec`           | flows (with observables), designDecisions, contracts, tooling                 |
 | `spec-flows`     | flows (nodes/edges only, no observables), designDecisions, contracts, tooling |
 | `spec-obs`       | flows (observables only), designDecisions, contracts, tooling                 |
-| `implementation` | steps, contracts, tooling                                                     |
+| `planning`       | planningNotes, steps, contracts                                               |
+| `implementation` | planningNotes, steps, contracts, tooling                                      |
 
 Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
 
 ## Agent Roles
 
-| Role         | Spawned By         | Signals          | On Failure        | MCP Tools (modify-quest)              |
-|--------------|--------------------|------------------|-------------------|---------------------------------------|
-| Glyphsmith   | startDesignChat    | N/A (design)     | N/A               | status                                |
-| PathSeeker   | orchestration loop | complete, failed | Bubble to user    | steps, contracts, toolingRequirements |
-| Codeweaver   | slot manager (x3)  | complete, failed | → PathSeeker      | none                                  |
-| Spiritmender | slot manager       | complete, failed | → PathSeeker      | none                                  |
-| Siegemaster  | orchestration loop | complete, failed | Creates fix chain | none                                  |
-| Lawbringer   | slot manager (x3)  | complete, failed | → Spiritmender    | none                                  |
+| Role         | Spawned By         | Signals          | On Failure        | MCP Tools (modify-quest)                             |
+|--------------|--------------------|------------------|-------------------|------------------------------------------------------|
+| Glyphsmith   | startDesignChat    | N/A (design)     | N/A               | status                                               |
+| PathSeeker   | orchestration loop | complete, failed | Bubble to user    | planningNotes, steps, contracts, toolingRequirements |
+| Codeweaver   | slot manager (x3)  | complete, failed | → PathSeeker      | none                                                 |
+| Spiritmender | slot manager       | complete, failed | → PathSeeker      | none                                                 |
+| Siegemaster  | orchestration loop | complete, failed | Creates fix chain | none                                                 |
+| Lawbringer   | slot manager (x3)  | complete, failed | → Spiritmender    | none                                                 |
+
+**Minion direct-writes to `planningNotes`.** During the seek_* phases, PathSeeker's subordinate minions also commit their own output directly via `modify-quest`:
+
+- `pathseeker-surface-scope-minion` writes entries to `planningNotes.surfaceReports[]` (one per minion — dispatched in parallel during `seek_synth`).
+- `pathseeker-quest-review-minion` writes `planningNotes.reviewReport` during `seek_plan`.
+
+These writes flow through the same `modify-quest` pipeline as PathSeeker's own writes; the `questStatusInputAllowlistStatics` entry for each seek_* status governs exactly which `planningNotes.*` sub-fields are writable at that status. Minion output is durable the moment it's committed — a minion crash after write does not lose work.
+
+PathSeeker itself reads accumulated planning state via the `get-planning-notes` MCP tool when resuming after a restart or downstream failure.
 
 ## Signal System
 
@@ -220,7 +237,8 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. Parent roles spawn an agent and instruct it to
 call `get-agent-prompt` as its first action.
 
-| Agent                          | Spawned By          | Purpose                                      |
-|--------------------------------|---------------------|----------------------------------------------|
-| chaoswhisperer-gap-minion      | ChaosWhisperer      | Validate spec completeness before execution  |
-| pathseeker-quest-review-minion | PathSeeker pipeline | Verify + semantic review after steps created |
+| Agent                           | Spawned By          | Purpose                                                      |
+|---------------------------------|---------------------|--------------------------------------------------------------|
+| chaoswhisperer-gap-minion       | ChaosWhisperer      | Validate spec completeness before execution                  |
+| pathseeker-surface-scope-minion | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]`  |
+| pathseeker-quest-review-minion  | PathSeeker pipeline | Verify + semantic review after steps; writes `reviewReport`  |

@@ -288,13 +288,15 @@ test.describe('Quest Approved Modal', () => {
     // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
     // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
     // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
-    // only activates at in_progress and beyond.
-    // TODO: End-to-end execution-view transition is deferred to Phase C manual verification.
+    // only activates at in_progress and beyond. Full pipeline validation lives in
+    // Phase C manual verification.
     await expect
       .poll(
         async () => {
           const response = await request.get(`/api/quests/${questId}`);
-          if (response.status() !== HTTP_OK) return null;
+          if (response.status() !== HTTP_OK) {
+            return null;
+          }
           const data = await response.json();
           return data.quest.status;
         },

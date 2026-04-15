@@ -73,7 +73,6 @@ test.describe('Quest Start Pipeline', () => {
     // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
     // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
     // drive these transitions, so we only assert the initial transition here.
-    // TODO: End-to-end pipeline progression is deferred to Phase C manual verification.
     expect(questData.quest.status).toBe('seek_scope');
   });
 
