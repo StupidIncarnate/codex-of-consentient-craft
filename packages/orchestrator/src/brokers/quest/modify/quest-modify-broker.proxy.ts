@@ -108,7 +108,11 @@ export const questModifyBrokerProxy = (): {
     getAllPersistedContents: (): readonly unknown[] =>
       persistProxy
         .getAllWrittenFiles()
-        .filter(({ path }) => String(path).endsWith('quest.json'))
+        .filter(({ path }) => {
+          const pathStr = String(path);
+          // Writes go to quest.json.tmp then rename to quest.json; capture tmp writes.
+          return pathStr.endsWith('quest.json') || pathStr.endsWith('quest.json.tmp');
+        })
         .map(({ content }) => content),
 
     setupEmptyFolder: (): void => {

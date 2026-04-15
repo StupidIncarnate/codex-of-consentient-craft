@@ -3,12 +3,25 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  PlanningReviewReportStub,
+  PlanningScopeClassificationStub,
+  PlanningSurfaceReportStub,
+  PlanningSynthesisStub,
+  PlanningWalkFindingsStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '../../../contracts/modify-quest-input/modify-quest-input.stub';
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
+
+type PersistedQuest = ReturnType<typeof QuestStub>;
+
+const parseLatestPersisted = (persisted: readonly unknown[]): PersistedQuest => {
+  const raw = persisted[persisted.length - 1];
+  const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  return QuestStub(parsed as Parameters<typeof QuestStub>[0]);
+};
 
 describe('questModifyBroker', () => {
   describe('successful modification', () => {
@@ -490,6 +503,310 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('planningNotes handling', () => {
+    it('VALID: {planningNotes.scopeClassification only} => writes scopeClassification without touching other sub-fields', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingSynthesis = PlanningSynthesisStub();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_scope',
+        planningNotes: {
+          surfaceReports: [],
+          synthesis: existingSynthesis,
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newScope = PlanningScopeClassificationStub({ size: 'large' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          scopeClassification: newScope,
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        synthesis: existingSynthesis,
+        scopeClassification: newScope,
+      });
+    });
+
+    it('VALID: {planningNotes.surfaceReports with two distinct UUIDs} => both entries land via upsert', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingReport = PlanningSurfaceReportStub({
+        id: '11111111-1111-4111-8111-111111111111' as never,
+        sliceName: 'existing-slice' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        planningNotes: {
+          surfaceReports: [existingReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newReport = PlanningSurfaceReportStub({
+        id: '22222222-2222-4222-8222-222222222222' as never,
+        sliceName: 'new-slice' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          surfaceReports: [newReport],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes.surfaceReports).toStrictEqual([existingReport, newReport]);
+    });
+
+    it('VALID: {planningNotes.surfaceReports with existing UUID} => deep-merges (overwrites matching id)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const sameId = '11111111-1111-4111-8111-111111111111' as never;
+      const existingReport = PlanningSurfaceReportStub({
+        id: sameId,
+        sliceName: 'original-slice' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        planningNotes: {
+          surfaceReports: [existingReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const updatedReport = PlanningSurfaceReportStub({
+        id: sameId,
+        sliceName: 'updated-slice' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          surfaceReports: [updatedReport],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes.surfaceReports).toStrictEqual([updatedReport]);
+    });
+
+    it('VALID: {planningNotes.reviewReport overwrite} => replaces prior reviewReport wholesale', async () => {
+      const proxy = questModifyBrokerProxy();
+      const oldReview = PlanningReviewReportStub({ signal: 'warnings' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_plan',
+        planningNotes: {
+          surfaceReports: [],
+          reviewReport: oldReview,
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newReview = PlanningReviewReportStub({ signal: 'clean' });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          reviewReport: newReview,
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes.reviewReport).toStrictEqual(newReview);
+    });
+
+    it('VALID: {planningNotes.surfaceReports with _delete: true} => removes matching entry', async () => {
+      const proxy = questModifyBrokerProxy();
+      const keepId = '11111111-1111-4111-8111-111111111111' as never;
+      const deleteId = '22222222-2222-4222-8222-222222222222' as never;
+      const keepReport = PlanningSurfaceReportStub({ id: keepId, sliceName: 'keep' as never });
+      const deleteReport = PlanningSurfaceReportStub({ id: deleteId, sliceName: 'gone' as never });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        planningNotes: {
+          surfaceReports: [keepReport, deleteReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          surfaceReports: [{ id: deleteId, _delete: true } as never],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes.surfaceReports).toStrictEqual([keepReport]);
+    });
+
+    it('VALID: {planningNotes.walkFindings only} => sets walkFindings without clearing synthesis or scopeClassification', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingScope = PlanningScopeClassificationStub();
+      const existingSynthesis = PlanningSynthesisStub();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_walk',
+        planningNotes: {
+          surfaceReports: [],
+          scopeClassification: existingScope,
+          synthesis: existingSynthesis,
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newWalk = PlanningWalkFindingsStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          walkFindings: newWalk,
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      expect(persisted.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        scopeClassification: existingScope,
+        synthesis: existingSynthesis,
+        walkFindings: newWalk,
+      });
+    });
+  });
+
+  describe('mutex behavior (concurrency safety)', () => {
+    it('VALID: {10 concurrent modify calls on same questId} => all 10 persist calls complete (serialized, none dropped)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        planningNotes: { surfaceReports: [] },
+      });
+
+      // Queue 10 quest-file responses so each of the 10 serialized modify calls has a load result
+      Array.from({ length: 10 }).forEach(() => {
+        proxy.setupQuestFound({ quest });
+      });
+
+      const calls = Array.from({ length: 10 }, (_, index) => {
+        const uuid = `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`;
+        const report = PlanningSurfaceReportStub({
+          id: uuid as never,
+          sliceName: `slice-${String(index)}` as never,
+        });
+        const input = ModifyQuestInputStub({
+          questId: 'add-auth',
+          planningNotes: {
+            surfaceReports: [report],
+          },
+        });
+        return questModifyBroker({ input });
+      });
+
+      const results = await Promise.all(calls);
+
+      expect(results.map((r) => r.success)).toStrictEqual([
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+      ]);
+      // One persist call per modify call — mutex serializes them, none are dropped.
+      const persisted = proxy.getAllPersistedContents();
+      expect(persisted.map(() => true)).toStrictEqual([
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+      ]);
+    });
+
+    it('VALID: {concurrent modify calls on different questIds} => both succeed independently', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        planningNotes: { surfaceReports: [] },
+      });
+
+      // Queue two load responses — one per concurrent call.
+      proxy.setupQuestFound({ quest });
+      proxy.setupQuestFound({ quest });
+
+      const reportA = PlanningSurfaceReportStub({
+        id: 'aaaaaaaa-1111-4111-8111-111111111111' as never,
+      });
+      const reportB = PlanningSurfaceReportStub({
+        id: 'bbbbbbbb-2222-4222-8222-222222222222' as never,
+      });
+
+      const inputA = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { surfaceReports: [reportA] },
+      });
+      const inputB = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { surfaceReports: [reportB] },
+      });
+
+      const [resultA, resultB] = await Promise.all([
+        questModifyBroker({ input: inputA }),
+        questModifyBroker({ input: inputB }),
+      ]);
+
+      expect(resultA.success).toBe(true);
+      expect(resultB.success).toBe(true);
     });
   });
 

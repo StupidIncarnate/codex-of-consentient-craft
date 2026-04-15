@@ -124,7 +124,14 @@ export const modifyQuestInputContract = z
     planningNotes: z
       .object({
         scopeClassification: planningScopeClassificationContract.optional(),
-        surfaceReports: z.array(planningSurfaceReportContract).optional(),
+        surfaceReports: z
+          .array(
+            z.union([
+              planningSurfaceReportContract.extend({ _delete: z.boolean().optional() }),
+              z.object({ id: planningSurfaceReportContract.shape.id, _delete: deleteMarker }),
+            ]),
+          )
+          .optional(),
         synthesis: planningSynthesisContract.optional(),
         walkFindings: planningWalkFindingsContract.optional(),
         reviewReport: planningReviewReportContract.optional(),
