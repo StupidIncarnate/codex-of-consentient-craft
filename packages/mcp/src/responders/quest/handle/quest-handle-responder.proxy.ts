@@ -8,6 +8,7 @@
  */
 
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
+import { orchestratorGetPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-planning-notes/orchestrator-get-planning-notes-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
 import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
@@ -35,6 +36,7 @@ export const QuestHandleResponderProxy = (): {
   setupVerifyQuestThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
+  setupGetPlanningNotesThrows: (params: { error: Error }) => void;
   getLastModifyInput: () => unknown;
 } => {
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
@@ -44,6 +46,7 @@ export const QuestHandleResponderProxy = (): {
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const verifyQuestProxy = orchestratorVerifyQuestAdapterProxy();
+  const getPlanningNotesProxy = orchestratorGetPlanningNotesAdapterProxy();
 
   return {
     callResponder: QuestHandleResponder,
@@ -86,6 +89,10 @@ export const QuestHandleResponderProxy = (): {
 
     setupListGuildsThrows: ({ error }: { error: Error }): void => {
       listGuildsProxy.throws({ error });
+    },
+
+    setupGetPlanningNotesThrows: ({ error }: { error: Error }): void => {
+      getPlanningNotesProxy.throws({ error });
     },
 
     getLastModifyInput: (): unknown => modifyQuestProxy.getLastCalledInput(),

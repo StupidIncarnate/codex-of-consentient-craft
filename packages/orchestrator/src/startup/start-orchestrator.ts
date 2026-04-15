@@ -111,6 +111,13 @@ export const StartOrchestrator = {
     stage?: string;
   }): Promise<GetQuestResult> => QuestFlow.get({ questId, ...(stage !== undefined && { stage }) }),
 
+  getPlanningNotes: async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
+    QuestFlow.getPlanningNotes({ questId }),
+
   verifyQuest: async ({ questId }: { questId: string }): Promise<VerifyQuestResult> =>
     QuestFlow.verify({ questId }),
 

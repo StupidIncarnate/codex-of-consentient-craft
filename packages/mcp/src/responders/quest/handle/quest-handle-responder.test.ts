@@ -555,6 +555,60 @@ describe('QuestHandleResponder', () => {
     });
   });
 
+  describe('get-planning-notes', () => {
+    it('VALID: {questId} => returns empty planning-notes shape as JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                scopeClassification: undefined,
+                surfaceReports: [],
+                synthesis: undefined,
+                walkFindings: undefined,
+                reviewReport: undefined,
+              },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetPlanningNotesThrows({ error: new Error('Notes unavailable') });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Notes unavailable' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
   describe('unknown tool', () => {
     it('ERROR: {tool: unknown-tool} => throws unknown tool error', async () => {
       const proxy = QuestHandleResponderProxy();

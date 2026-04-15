@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, verify-quest, get-planning-notes)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -13,6 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { orchestratorGetPlanningNotesAdapter } from '../../../adapters/orchestrator/get-planning-notes/orchestrator-get-planning-notes-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
@@ -270,6 +271,36 @@ export const QuestHandleResponder = async ({
             text: contentTextContract.parse(
               JSON.stringify({ success: true, guilds }, null, JSON_INDENT_SPACES),
             ),
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: contentTextContract.parse(
+              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
+            ),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  if (tool === 'get-planning-notes') {
+    const questIdRaw: unknown = Reflect.get(args, 'questId');
+    const questId = String(questIdRaw);
+
+    try {
+      const notes = await orchestratorGetPlanningNotesAdapter({ questId });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: contentTextContract.parse(JSON.stringify(notes, null, JSON_INDENT_SPACES)),
           },
         ],
       };

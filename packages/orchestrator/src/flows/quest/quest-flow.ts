@@ -8,10 +8,12 @@
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
  * const verified = await QuestFlow.verify({ questId });
+ * const notes = await QuestFlow.getPlanningNotes({ questId });
  */
 
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
@@ -22,6 +24,9 @@ type AddResult = Awaited<ReturnType<typeof QuestAddResponder>>;
 
 type GetParams = Parameters<typeof QuestGetResponder>[0];
 type GetResult = Awaited<ReturnType<typeof QuestGetResponder>>;
+
+type GetPlanningNotesParams = Parameters<typeof QuestGetPlanningNotesResponder>[0];
+type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesResponder>>;
 
 type ListParams = Parameters<typeof QuestListResponder>[0];
 type ListResult = Awaited<ReturnType<typeof QuestListResponder>>;
@@ -41,6 +46,9 @@ export const QuestFlow = {
 
   get: async ({ questId, stage }: GetParams): Promise<GetResult> =>
     QuestGetResponder({ questId, ...(stage !== undefined && { stage }) }),
+
+  getPlanningNotes: async ({ questId }: GetPlanningNotesParams): Promise<GetPlanningNotesResult> =>
+    QuestGetPlanningNotesResponder({ questId }),
 
   list: async ({ guildId }: ListParams): Promise<ListResult> => QuestListResponder({ guildId }),
 
