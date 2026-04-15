@@ -10,9 +10,6 @@ describe('inspectableModifyQuestInputFieldsStatics', () => {
       'flows',
       'status',
       'title',
-      'designPort',
-      'workItems',
-      'wardResults',
     ]);
   });
 });

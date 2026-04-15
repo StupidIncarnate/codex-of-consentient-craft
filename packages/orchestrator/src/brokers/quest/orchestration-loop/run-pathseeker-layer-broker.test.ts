@@ -65,6 +65,7 @@ const buildValidQuestWith2Steps = ({
     contracts: [
       QuestContractEntryStub({
         name: contractName,
+        nodeId: 'login-page' as never,
         properties: [QuestContractPropertyStub({ name: 'email', type: 'EmailAddress' })],
       }),
     ],

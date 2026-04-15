@@ -20,11 +20,16 @@ import { modifyQuestInputContract } from '../../../contracts/modify-quest-input/
 import type { ModifyQuestInput } from '../../../contracts/modify-quest-input/modify-quest-input-contract';
 import { modifyQuestResultContract } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
 import type { ModifyQuestResult } from '../../../contracts/modify-quest-result/modify-quest-result-contract';
+import { verifyQuestCheckContract } from '../../../contracts/verify-quest-check/verify-quest-check-contract';
+import type { VerifyQuestCheck } from '../../../contracts/verify-quest-check/verify-quest-check-contract';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
+import { questCompletenessForTransitionTransformer } from '../../../transformers/quest-completeness-for-transition/quest-completeness-for-transition-transformer';
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
+import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
+import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 
@@ -57,6 +62,29 @@ export const questModifyBroker = async ({
 
     const loadedQuest = await questLoadBroker({ questFilePath });
     const quest = { ...loadedQuest };
+
+    // Tier 2: per-status input allowlist (runs BEFORE any mutation)
+    const forbiddenFieldOffenders = questInputForbiddenFieldsTransformer({
+      input: validated,
+      currentQuest: loadedQuest,
+      currentStatus: loadedQuest.status,
+      ...(validated.status === undefined ? {} : { nextStatus: validated.status }),
+    });
+
+    if (forbiddenFieldOffenders.length > 0) {
+      const forbiddenChecks: VerifyQuestCheck[] = forbiddenFieldOffenders.map((offender) =>
+        verifyQuestCheckContract.parse({
+          name: 'Input Allowlist',
+          passed: false,
+          details: String(offender),
+        }),
+      );
+      return modifyQuestResultContract.parse({
+        success: false,
+        error: `Field(s) not allowed in status ${loadedQuest.status}`,
+        failedChecks: forbiddenChecks,
+      });
+    }
 
     if (validated.designDecisions) {
       quest.designDecisions = questArrayUpsertTransformer({
@@ -137,6 +165,31 @@ export const questModifyBroker = async ({
         return modifyQuestResultContract.parse({
           success: false,
           error: `Missing required content for transition to ${validated.status}`,
+        });
+      }
+    }
+
+    // Tier 3: save-time invariants (POST-mutation; runs on every call)
+    const invariantFailures = questSaveInvariantsTransformer({ quest });
+    if (invariantFailures.length > 0) {
+      return modifyQuestResultContract.parse({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: invariantFailures,
+      });
+    }
+
+    // Tier 4: completeness checks gating LLM-driven transitions (POST-mutation; only when transitioning)
+    if (validated.status) {
+      const completenessFailures = questCompletenessForTransitionTransformer({
+        quest,
+        nextStatus: validated.status,
+      });
+      if (completenessFailures.length > 0) {
+        return modifyQuestResultContract.parse({
+          success: false,
+          error: `Completeness checks failed for transition to ${validated.status}`,
+          failedChecks: completenessFailures,
         });
       }
 

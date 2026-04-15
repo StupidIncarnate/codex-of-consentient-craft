@@ -8,7 +8,7 @@ type Quest = ReturnType<typeof QuestStub>;
 describe('ClarifyAnswerResponder', () => {
   describe('persisting design decisions', () => {
     it('VALID: {answers with matching questions} => persists design decisions to quest', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -44,7 +44,7 @@ describe('ClarifyAnswerResponder', () => {
     });
 
     it('VALID: {multiple answers with matching questions} => persists all design decisions to quest', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -98,7 +98,7 @@ describe('ClarifyAnswerResponder', () => {
     });
 
     it('VALID: {answer matches question but option label does not match} => uses answer label as rationale', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -134,7 +134,7 @@ describe('ClarifyAnswerResponder', () => {
     });
 
     it('EMPTY: {answers with no matching questions} => does not modify quest', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -156,7 +156,7 @@ describe('ClarifyAnswerResponder', () => {
     });
 
     it('EMPTY: {empty answers array} => does not modify quest', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -178,7 +178,7 @@ describe('ClarifyAnswerResponder', () => {
     });
 
     it('EDGE: {mixed answers where some match and some do not} => persists only matching decisions', async () => {
-      const quest = QuestStub({ designDecisions: [] });
+      const quest = QuestStub({ designDecisions: [], status: 'explore_flows' });
       const proxy = ClarifyAnswerResponderProxy();
       proxy.setupQuestFound({ quest });
 

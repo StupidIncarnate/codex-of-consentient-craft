@@ -1,4 +1,5 @@
 import {
+  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
@@ -13,7 +14,12 @@ describe('questModifyBroker', () => {
   describe('successful modification', () => {
     it('VALID: {questId, steps: [new]} => adds new step', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', steps: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        steps: [],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -41,7 +47,17 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', contracts: [] });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        contracts: [],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -72,7 +88,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, designDecisions: [new]} => adds new design decision', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', designDecisions: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        designDecisions: [],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -95,7 +116,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, flows: [new]} => adds new flow', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', flows: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [],
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -158,7 +184,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, title} => updates quest title', async () => {
       const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', title: 'Old Title' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        title: 'Old Title',
+      });
 
       proxy.setupQuestFound({ quest });
 
@@ -309,6 +340,194 @@ describe('questModifyBroker', () => {
         success: false,
         error: expect.stringMatching(/^Missing required content for transition to approved$/u),
       });
+    });
+  });
+
+  describe('input allowlist rejection (Tier 2)', () => {
+    it('INVALID: {steps during explore_flows} => returns failedChecks rejecting steps field', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [FlowStub()],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Create API',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
+            observablesSatisfied: [],
+            dependsOn: [],
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Field(s) not allowed in status explore_flows',
+        failedChecks: [
+          {
+            name: 'Input Allowlist',
+            passed: false,
+            details: "Field 'steps' not allowed in status 'explore_flows'",
+          },
+        ],
+      });
+    });
+  });
+
+  describe('save-invariants rejection (Tier 3)', () => {
+    it('INVALID: {flows with duplicate ids in stored quest} => returns failedChecks; nothing persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingFlow = FlowStub({ id: 'login-flow' as never });
+      const conflictingFlow = FlowStub({
+        id: 'login-flow' as never,
+        name: 'Conflicting Flow' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [existingFlow, conflictingFlow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Flow ID Uniqueness',
+            passed: false,
+            details: 'Duplicate flow ids: login-flow',
+          },
+        ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+  });
+
+  describe('completeness rejection (Tier 4)', () => {
+    it('INVALID: {status: "review_flows" with orphan node} => returns failedChecks naming completeness failures', async () => {
+      const proxy = questModifyBrokerProxy();
+      const orphanNode = FlowNodeStub({ id: 'orphan-node' as never });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [orphanNode],
+        edges: [],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'review_flows',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Completeness checks failed for transition to review_flows',
+        failedChecks: [
+          {
+            name: 'No Orphan Flow Nodes',
+            passed: false,
+            details: "Orphan flow nodes: flow 'login-flow' has orphan node 'orphan-node'",
+          },
+          {
+            name: 'No Dead-End Non-Terminal Nodes',
+            passed: false,
+            details:
+              "Dead-end non-terminal nodes: flow 'login-flow' node 'orphan-node' (type state) has no outgoing edge",
+          },
+        ],
+      });
+    });
+
+    it('VALID: {orphan node without status change in explore_flows} => saves cleanly (completeness only gates transitions)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const orphanNode = FlowNodeStub({ id: 'orphan-node' as never });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [orphanNode],
+        edges: [],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('valid transition passes all tiers', () => {
+    it('VALID: {explore_flows -> review_flows with connected non-orphan flow} => transitions and persists', async () => {
+      const proxy = questModifyBrokerProxy();
+      const startNode = FlowNodeStub({ id: 'login-page' as never, type: 'state' as never });
+      const terminalNode = FlowNodeStub({
+        id: 'dashboard' as never,
+        type: 'terminal' as never,
+      });
+      const edge = FlowEdgeStub({
+        id: 'login-to-dashboard' as never,
+        from: 'login-page' as never,
+        to: 'dashboard' as never,
+      });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [startNode, terminalNode],
+        edges: [edge],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'review_flows',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
     });
   });
 });
