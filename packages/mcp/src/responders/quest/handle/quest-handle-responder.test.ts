@@ -307,6 +307,83 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('VALID: {all failedChecks passed=true} => uses success header with [INFO] tags', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub({
+        success: true,
+        failedChecks: [
+          {
+            name: 'Plan Review Report' as never,
+            passed: true,
+            details: 'Plan review reported warnings (non-blocking): missing edge label' as never,
+          },
+        ] as never,
+      });
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      const expectedJson = JSON.stringify(modifyResult, null, JSON_INDENT_SPACES);
+      const expectedText = `Transition succeeded with non-blocking warnings:\n- [INFO] Plan Review Report: Plan review reported warnings (non-blocking): missing edge label\n\n${expectedJson}`;
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: expectedText,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {mixed passed and failed checks} => uses failure header with [FAIL] and [INFO] tags per check', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub({
+        success: false,
+        error: 'Validation failed' as never,
+        failedChecks: [
+          {
+            name: 'Plan Review Report' as never,
+            passed: true,
+            details: 'non-blocking warnings' as never,
+          },
+          {
+            name: 'Step Coverage' as never,
+            passed: false,
+            details: 'Observable obs-1 unsatisfied' as never,
+          },
+        ] as never,
+      });
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      const expectedJson = JSON.stringify(modifyResult, null, JSON_INDENT_SPACES);
+      const expectedText = [
+        'Structural validation failed:',
+        '- [INFO] Plan Review Report: non-blocking warnings',
+        '- [FAIL] Step Coverage: Observable obs-1 unsatisfied',
+        '',
+        expectedJson,
+      ].join('\n');
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: expectedText,
+          },
+        ],
+        isError: true,
+      });
+    });
+
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupModifyQuestThrows({ error: new Error('Modify failed') });

@@ -150,21 +150,57 @@ Write the report to the quest via \`modify-quest\`. Determine the \`signal\` lev
 - \`signal: 'warnings'\` — zero critical items AND ≥1 warning
 - \`signal: 'critical'\` — ≥1 critical item (regardless of warnings)
 
-Populate \`rawReport\` with the full markdown from Step 7. Omit \`reviewedBy\` — you do not have access to your own session id.
+**Payload shape (read carefully — both mistakes below cause first-call rejection):**
+
+- \`planningNotes\` MUST be an **object literal**, NOT a JSON-encoded string. Pass \`{ reviewReport: {...} }\` directly as the argument value — do NOT wrap it in \`JSON.stringify(...)\` or pass it as \`'{"reviewReport":{...}}'\`. The MCP tool parses the argument as a structured object; a string here fails with \`expected object, received string\`.
+- The \`reviewReport\` object MUST include every required field. Missing any one of them rejects the whole call.
+
+**Required fields on \`reviewReport\`:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| \`signal\` | enum: \`"clean" \\| "warnings" \\| "critical"\` | Pick exactly one, derived from the rules above. |
+| \`rawReport\` | non-empty string | The full markdown report from Step 7. |
+| \`reviewedAt\` | ISO datetime string | Current time as ISO-8601 (e.g. \`new Date().toISOString()\` — \`"2026-04-15T10:30:00.000Z"\`). |
+
+**Optional fields (include when you have findings; each defaults to \`[]\`):**
+
+- \`criticalItems\` — array of short non-empty strings, one per critical issue from Step 7 (e.g. \`["Step 4 assertion is vague: 'validates input' has no testable predicate"]\`). NOTE: this is an array of issue strings, NOT a count.
+- \`warnings\` — array of short non-empty strings, one per warning from Step 7.
+- \`info\` — array of short non-empty strings, one per info/observation entry from Step 7.
+- \`reviewedBy\` — OMIT this; you do not have access to your own session id.
+
+**Do NOT include \`criticalCount\` or \`warningCount\` fields — those do not exist on the contract and will be silently stripped. Put the per-item strings in \`criticalItems\`/\`warnings\`/\`info\` arrays; counts are derived from the array lengths.**
+
+**Example \`modify-quest\` payload (note: \`planningNotes\` is an object, NOT a string):**
 
 \`\`\`
 modify-quest({
   questId: "QUEST_ID",
   planningNotes: {
     reviewReport: {
-      signal: "clean" | "warnings" | "critical",
+      signal: "warnings",
       rawReport: "## Pathseeker Quest Review Report: ...\\n[full markdown from Step 7]",
-      criticalCount: [n],
-      warningCount: [n]
+      reviewedAt: "{current ISO-8601 datetime, e.g. 2026-04-15T10:30:00.000Z}",
+      criticalItems: [],
+      warnings: [
+        "Step 3: focusFile path doesn't match folder type (brokers/ for a guard)",
+        "Step 5: outputContracts is Void but folder type is transformer — transformers typically produce output"
+      ],
+      info: [
+        "Step 2 uses a sibling pattern that is being phased out — consider referencing newer sibling X"
+      ]
     }
   }
 })
 \`\`\`
+
+**Pre-send checklist — verify before calling \`modify-quest\`:**
+
+1. Is \`planningNotes\` an object (starts with \`{\`), not a string (starts with \`"\`)?
+2. Does \`reviewReport\` include all three required fields: \`signal\`, \`rawReport\`, \`reviewedAt\`?
+3. Are \`criticalItems\`/\`warnings\`/\`info\` arrays of strings (one entry per finding), NOT numeric counts?
+4. Is \`reviewedAt\` an ISO-8601 datetime string?
 
 **Handling modify-quest failure:** if \`modify-quest\` returns \`success: false\`, DO NOT signal-back with \`complete\`. Your report never landed on the quest, which means Pathseeker has nothing to act on. Instead, signal-back with \`failed\` and include the \`failedChecks\` list from the response in your summary.
 

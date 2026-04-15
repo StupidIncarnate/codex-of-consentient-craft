@@ -100,12 +100,17 @@ export const QuestHandleResponder = async ({
       });
       const jsonPayload = JSON.stringify(result, null, JSON_INDENT_SPACES);
       const failedChecks = result.failedChecks ?? [];
+      const hasFailures = failedChecks.some((check) => !check.passed);
+      const header = hasFailures
+        ? 'Structural validation failed:'
+        : 'Transition succeeded with non-blocking warnings:';
       const text =
         failedChecks.length > 0
           ? `${[
-              'Structural validation failed:',
+              header,
               ...failedChecks.map(
-                (check) => `- [FAIL] ${String(check.name)}: ${String(check.details)}`,
+                (check) =>
+                  `- [${check.passed ? 'INFO' : 'FAIL'}] ${String(check.name)}: ${String(check.details)}`,
               ),
             ].join('\n')}\n\n${jsonPayload}`
           : jsonPayload;

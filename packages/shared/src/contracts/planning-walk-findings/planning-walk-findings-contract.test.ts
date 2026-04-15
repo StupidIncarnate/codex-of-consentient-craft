@@ -16,13 +16,13 @@ describe('planningWalkFindingsContract', () => {
 
     it('VALID: {populated arrays} => parses successfully', () => {
       const result = PlanningWalkFindingsStub({
-        filesRead: ['/home/user/src/foo.ts'],
+        filesRead: ['packages/shared/src/contracts/quest/quest-contract.ts'],
         structuralIssuesFound: ['Missing barrel export in shared/contracts.ts'],
         planPatches: ['Step 3 now references existing adapter, not a new one'],
       });
 
       expect(result).toStrictEqual({
-        filesRead: ['/home/user/src/foo.ts'],
+        filesRead: ['packages/shared/src/contracts/quest/quest-contract.ts'],
         structuralIssuesFound: ['Missing barrel export in shared/contracts.ts'],
         planPatches: ['Step 3 now references existing adapter, not a new one'],
         verifiedAt: '2024-01-15T10:00:00.000Z',
@@ -37,6 +37,15 @@ describe('planningWalkFindingsContract', () => {
           verifiedAt: 'not-a-date',
         });
       }).toThrow(/Invalid datetime/u);
+    });
+
+    it('INVALID: {filesRead: ["/home/user/file.ts"]} => throws validation error', () => {
+      expect(() => {
+        return planningWalkFindingsContract.parse({
+          filesRead: ['/home/user/file.ts'],
+          verifiedAt: '2024-01-15T10:00:00.000Z',
+        });
+      }).toThrow(/Path must be repo-relative/u);
     });
 
     it('INVALID: {structuralIssuesFound: [""]} => throws validation error', () => {

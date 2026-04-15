@@ -18,6 +18,9 @@ export * from './src/contracts/absolute-file-path/absolute-file-path.stub';
 export * from './src/contracts/relative-file-path/relative-file-path-contract';
 export * from './src/contracts/relative-file-path/relative-file-path.stub';
 
+export * from './src/contracts/repo-relative-path/repo-relative-path-contract';
+export * from './src/contracts/repo-relative-path/repo-relative-path.stub';
+
 export * from './src/contracts/path-segment/path-segment-contract';
 export * from './src/contracts/path-segment/path-segment.stub';
 

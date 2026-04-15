@@ -8,10 +8,10 @@
 
 import { z } from 'zod';
 
-import { filePathContract } from '../file-path/file-path-contract';
+import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 
 export const planningWalkFindingsContract = z.object({
-  filesRead: z.array(filePathContract).default([]),
+  filesRead: z.array(repoRelativePathContract).default([]),
   structuralIssuesFound: z.array(z.string().min(1).brand<'StructuralIssue'>()).default([]),
   planPatches: z.array(z.string().min(1).brand<'PlanPatch'>()).default([]),
   verifiedAt: z.string().datetime().brand<'IsoTimestamp'>(),

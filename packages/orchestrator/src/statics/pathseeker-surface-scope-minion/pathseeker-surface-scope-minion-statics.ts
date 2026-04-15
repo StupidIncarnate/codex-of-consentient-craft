@@ -216,12 +216,28 @@ slices made incompatible assumptions.)
 
 Write your completed report to \`planningNotes.surfaceReports[]\` via the \`modify-quest\` MCP tool. The report is persisted on the quest itself — it survives even if your subprocess is killed, and Pathseeker will read it via \`get-planning-notes\` during synthesis.
 
-- Generate a fresh UUID for the report's \`id\` (e.g. use any UUID you are confident is unique — your own guess is fine).
-- Populate \`rawReport\` with the full markdown report (the template from Step 6, with your content filled in).
-- Omit \`submittedBy\` — you do not have access to your own session id.
-- Include \`sliceName\` so Pathseeker can correlate with the slice assignment it gave you.
+**Payload shape (read carefully — both mistakes below cause first-call rejection):**
 
-Example \`modify-quest\` payload:
+- \`planningNotes\` MUST be an **object literal**, NOT a JSON-encoded string. Pass \`{ surfaceReports: [...] }\` directly as the argument value — do NOT wrap it in \`JSON.stringify(...)\` or pass it as \`'{"surfaceReports":[...]}'\`. The MCP tool parses the argument as a structured object; a string here fails with \`expected object, received string\`.
+- Every entry in \`surfaceReports\` MUST include ALL required fields. Missing any one of them rejects the whole call.
+
+**Required fields on each surfaceReport entry:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| \`id\` | UUID string | Generate a fresh UUID — any value you're confident is unique is fine. |
+| \`sliceName\` | non-empty string | Match the slice name from the parent spawn message so Pathseeker can correlate. |
+| \`packages\` | string array, min length 1 | List every package your slice touches (e.g. \`["web", "server"]\`). At least one entry is required. |
+| \`rawReport\` | non-empty string | The full markdown report from Step 6, with your content filled in. |
+| \`submittedAt\` | ISO datetime string | Current time as ISO-8601 (e.g. \`new Date().toISOString()\` — \`"2026-04-15T10:30:00.000Z"\`). |
+
+**Optional fields (include when you have them):**
+
+- \`flowIds\` — flow UUIDs your slice covers (defaults to \`[]\`).
+- \`observableIds\` — observable UUIDs your slice satisfies (defaults to \`[]\`).
+- \`submittedBy\` — OMIT this; you do not have access to your own session id.
+
+**Example \`modify-quest\` payload (note: \`planningNotes\` is an object, NOT a string):**
 
 \`\`\`
 modify-quest({
@@ -231,12 +247,21 @@ modify-quest({
       {
         id: "{fresh-uuid}",
         sliceName: "{name from parent spawn message}",
-        rawReport: "# Pathseeker Surface Scope Minion Report — {slice name}\\n\\n## Flow Type Summary\\n...[full markdown from Step 6]..."
+        packages: ["{pkg-1}", "{pkg-2}"],
+        rawReport: "# Pathseeker Surface Scope Minion Report — {slice name}\\n\\n## Flow Type Summary\\n...[full markdown from Step 6]...",
+        submittedAt: "{current ISO-8601 datetime, e.g. 2026-04-15T10:30:00.000Z}"
       }
     ]
   }
 })
 \`\`\`
+
+**Pre-send checklist — verify before calling \`modify-quest\`:**
+
+1. Is \`planningNotes\` an object (starts with \`{\`), not a string (starts with \`"\`)?
+2. Does your surfaceReport entry include all five required fields: \`id\`, \`sliceName\`, \`packages\`, \`rawReport\`, \`submittedAt\`?
+3. Is \`packages\` a non-empty array?
+4. Is \`submittedAt\` an ISO-8601 datetime string?
 
 **Handling modify-quest failure:** if \`modify-quest\` returns \`success: false\`, DO NOT signal-back with \`complete\`. Your report never landed on the quest, which means Pathseeker has nothing to synthesize from. Instead, signal-back with \`failed\` and include the \`failedChecks\` list from the \`modify-quest\` response in your summary. The parent PathSeeker must know the write failed so it can recover (by re-dispatching you, handling the slice itself, or reporting the blocker upstream).
 
