@@ -21,6 +21,12 @@ describe('questStageContract', () => {
       expect(result).toBe('spec-obs');
     });
 
+    it('VALID: {value: "planning"} => parses successfully', () => {
+      const result = questStageContract.parse(QuestStageStub({ value: 'planning' }));
+
+      expect(result).toBe('planning');
+    });
+
     it('VALID: {value: "implementation"} => parses successfully', () => {
       const result = questStageContract.parse(QuestStageStub({ value: 'implementation' }));
 

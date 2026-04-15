@@ -210,6 +210,9 @@ describe('OrchestrationFlow', () => {
           questId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
+          // Seeded at in_progress so the orchestration loop can reach 'complete'
+          // via work-item-derived status. Start() still promotes chat items.
+          finalStatus: 'in_progress',
         });
 
         // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
@@ -283,12 +286,14 @@ describe('OrchestrationFlow', () => {
 
       const questId = addResult.questId!;
 
-      // Seed quest directly to design_approved with valid flows + steps.
+      // Seed quest directly at in_progress so the orchestration loop can reach
+      // 'complete' via work-item-derived status. Start() still promotes chat
+      // items (chaos + glyph) regardless of the starting status.
       await questHelper.approveQuest({
         questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
-        finalStatus: 'design_approved',
+        finalStatus: 'in_progress',
       });
 
       // Add a glyphsmith work item (pending) alongside the existing chaos work item
@@ -1439,6 +1444,9 @@ describe('OrchestrationFlow', () => {
           questId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
+          // Seeded at in_progress so the orchestration loop reaches 'complete'
+          // via work-item-derived status. Start() still creates pathseeker etc.
+          finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
 
@@ -1511,6 +1519,9 @@ describe('OrchestrationFlow', () => {
           questId: typedQuestId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
+          // Seeded at in_progress so the orchestration loop reaches 'complete'
+          // via work-item-derived status.
+          finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
         await questHelper.completeGlyphWorkItem({ questId });
@@ -1837,11 +1848,13 @@ describe('OrchestrationFlow', () => {
         // intentionally typed as 'state' (not 'terminal') so terminal-observable
         // coverage is vacuously satisfied — this test is about the empty-deps
         // dispatch path, not flow validation.
+        // Seeded at in_progress so the orchestration loop reaches 'complete'
+        // via work-item-derived status.
         await questHelper.seedQuestState({
           questId: typedQuestId,
           flows: [],
           steps: [],
-          finalStatus: 'approved',
+          finalStatus: 'in_progress',
         });
 
         await questHelper.completeChaosWorkItem({ questId });
@@ -2057,7 +2070,9 @@ describe('OrchestrationFlow', () => {
           questId: typedQuestId,
           flows,
           steps,
-          finalStatus: 'approved',
+          // Seeded at in_progress so the orchestration loop reaches 'complete'
+          // via work-item-derived status.
+          finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
 

@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Filters a quest to include only the specified sections, replacing excluded sections with empty arrays
+ * PURPOSE: Filters a quest to include only the specified sections, replacing excluded array sections with empty arrays and the excluded planningNotes object with its default empty shape
  *
  * USAGE:
- * questSectionFilterTransformer({ quest, sections: ['requirements', 'observables'] });
- * // Returns quest with only requirements and observables populated; all other array sections are empty arrays
+ * questSectionFilterTransformer({ quest, sections: ['flows', 'planningNotes'] });
+ * // Returns quest with only flows and planningNotes populated; other array sections are empty arrays and planningNotes defaults when excluded
  *
  * questSectionFilterTransformer({ quest });
  * // Returns the quest unchanged when sections is undefined
@@ -30,9 +30,14 @@ export const questSectionFilterTransformer = ({
   const filtered = { ...quest };
 
   for (const section of questSectionContract.options) {
-    if (!sectionsSet.has(section)) {
-      filtered[section] = [] as never;
+    if (sectionsSet.has(section)) {
+      continue;
     }
+    if (section === 'planningNotes') {
+      filtered.planningNotes = { surfaceReports: [] } as Quest['planningNotes'];
+      continue;
+    }
+    filtered[section] = [] as never;
   }
 
   return filtered;

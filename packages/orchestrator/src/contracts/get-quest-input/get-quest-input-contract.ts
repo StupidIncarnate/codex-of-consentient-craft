@@ -18,13 +18,13 @@ export const getQuestInputContract = z
     stage: questStageContract
       .describe(
         [
-          'Optional pipeline stage to filter sections. Omit to return all sections. Excluded sections return as empty arrays.',
+          'Optional pipeline stage to filter sections. Omit to return all sections. Excluded array sections return as empty arrays; excluded planningNotes returns as its default empty shape.',
           'Stage values:',
           '- "spec": flows, designDecisions, contracts, toolingRequirements',
           '- "spec-flows": flows, designDecisions, contracts, toolingRequirements',
-          '- "spec-obs": flows, contracts, toolingRequirements',
-          '- "implementation": steps, contracts, toolingRequirements',
-          'Contracts and toolingRequirements are included in every stage.',
+          '- "spec-obs": flows, designDecisions, contracts, toolingRequirements',
+          '- "planning": planningNotes, steps, contracts',
+          '- "implementation": planningNotes, steps, contracts, toolingRequirements',
         ].join(' '),
       )
       .optional(),

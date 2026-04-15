@@ -220,4 +220,154 @@ describe('questSectionFilterTransformer', () => {
       expect(quest.flows).toStrictEqual([flow]);
     });
   });
+
+  describe('planningNotes section', () => {
+    it('VALID: {sections: ["planningNotes"]} => returns only planningNotes populated', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+        designDecisions: [DesignDecisionStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['planningNotes'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        steps: [],
+        toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { surfaceReports: [] },
+        flows: [],
+      });
+    });
+
+    it('VALID: {sections: ["flows"]} => planningNotes resets to default empty shape', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['flows'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        steps: [],
+        toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { surfaceReports: [] },
+        flows: quest.flows,
+      });
+    });
+
+    it('VALID: {sections: ["planningNotes", "steps", "contracts"]} => planning-stage set passes through', () => {
+      const contract = QuestContractEntryStub();
+      const quest = QuestStub({
+        contracts: [contract],
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['planningNotes', 'steps', 'contracts'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [contract],
+        steps: [],
+        toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { surfaceReports: [] },
+        flows: [],
+      });
+    });
+
+    it('VALID: {sections: ["planningNotes", "steps", "contracts", "toolingRequirements"]} => implementation-stage set passes through', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['planningNotes', 'steps', 'contracts', 'toolingRequirements'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        steps: [],
+        toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { surfaceReports: [] },
+        flows: [],
+      });
+    });
+
+    it('VALID: {sections: []} => planningNotes resets to default empty shape', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: [],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        steps: [],
+        toolingRequirements: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { surfaceReports: [] },
+        flows: [],
+      });
+    });
+  });
 });

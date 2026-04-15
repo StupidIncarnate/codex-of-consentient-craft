@@ -28,6 +28,10 @@ export const workItemsToQuestStatusTransformer = ({
   workItems: WorkItem[];
   currentStatus: QuestStatus;
 }): QuestStatus => {
+  if (currentStatus.startsWith('seek_')) {
+    return currentStatus;
+  }
+
   if (PRE_EXECUTION_STATUSES.has(currentStatus)) {
     return currentStatus;
   }

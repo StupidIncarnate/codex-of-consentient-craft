@@ -379,7 +379,17 @@ export const orchestrationQuestHarness = (): {
 
       const questId = addResult.questId!;
 
-      await approveQuest({ questId, observableIds, stepCount });
+      // Seed quest directly at 'in_progress' so the orchestration loop can
+      // drive work items to terminal states. Once PathSeeker phased statuses
+      // (seek_scope → seek_synth → seek_walk → seek_plan → in_progress) are
+      // fully implemented, this could step through the seek_* pipeline; for
+      // now the tests exercise the post-start execution path only.
+      await approveQuest({
+        questId,
+        observableIds,
+        stepCount,
+        finalStatus: 'in_progress',
+      });
 
       const readBack = await QuestGetResponder({ questId });
       if (readBack.quest && readBack.quest.steps.length !== stepCount) {

@@ -61,6 +61,20 @@ describe('getQuestInputContract', () => {
       });
     });
 
+    it('VALID: {questId with planning stage} => parses successfully', () => {
+      const input = GetQuestInputStub({
+        questId: 'add-auth',
+        stage: 'planning',
+      });
+
+      const result = getQuestInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        questId: 'add-auth',
+        stage: 'planning',
+      });
+    });
+
     it('VALID: {questId with implementation stage} => parses successfully', () => {
       const input = GetQuestInputStub({
         questId: 'add-auth',

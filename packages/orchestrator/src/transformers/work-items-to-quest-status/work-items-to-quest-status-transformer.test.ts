@@ -41,6 +41,68 @@ describe('workItemsToQuestStatusTransformer', () => {
     });
   });
 
+  describe('seek_* statuses (PathSeeker phased)', () => {
+    it('VALID: {currentStatus: "seek_scope", mixed workItems} => unchanged', () => {
+      const item1 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+      const item2 = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'in_progress',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [item1, item2],
+        currentStatus: 'seek_scope',
+      });
+
+      expect(result).toBe('seek_scope');
+    });
+
+    it('VALID: {currentStatus: "seek_synth", all items complete} => unchanged', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [item],
+        currentStatus: 'seek_synth',
+      });
+
+      expect(result).toBe('seek_synth');
+    });
+
+    it('VALID: {currentStatus: "seek_walk", pending items with failed deps} => unchanged', () => {
+      const failedId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const failedItem = WorkItemStub({ id: failedId, status: 'failed' });
+      const pendingItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [failedId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [failedItem, pendingItem],
+        currentStatus: 'seek_walk',
+      });
+
+      expect(result).toBe('seek_walk');
+    });
+
+    it('VALID: {currentStatus: "seek_plan", empty workItems} => unchanged', () => {
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [],
+        currentStatus: 'seek_plan',
+      });
+
+      expect(result).toBe('seek_plan');
+    });
+  });
+
   describe('complete status', () => {
     it('VALID: {all items complete} => complete', () => {
       const item = WorkItemStub({
