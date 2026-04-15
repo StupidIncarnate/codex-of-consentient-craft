@@ -2,10 +2,6 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 import {
   DependencyStepStub,
   FilePathStub,
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
   GuildNameStub,
   GuildPathStub,
   ObservableIdStub,
@@ -113,46 +109,10 @@ describe('OrchestrationFlow', () => {
 
       const questId = addResult.questId!;
 
-      await QuestModifyResponder({
+      await questHelper.approveQuest({
         questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({
-          questId,
-          flows: [
-            FlowStub({
-              nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
-            }),
-          ],
-        }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 0,
       });
 
       const processId = await OrchestrationFlow.start({ questId });
@@ -193,45 +153,11 @@ describe('OrchestrationFlow', () => {
       });
 
       const questId = addResult.questId!;
-      const flows = questHelper.buildValidFlows({
-        observableIds: [ObservableIdStub({ value: 'obs-1' })],
-      });
-      const steps = questHelper.buildValidSteps({
+
+      await questHelper.approveQuest({
+        questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, flows }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'approved' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, steps }),
       });
 
       // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
@@ -279,45 +205,11 @@ describe('OrchestrationFlow', () => {
         });
 
         const questId = addResult.questId!;
-        const flows = questHelper.buildValidFlows({
-          observableIds: [ObservableIdStub({ value: 'obs-1' })],
-        });
-        const steps = questHelper.buildValidSteps({
+
+        await questHelper.approveQuest({
+          questId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
-        });
-
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, flows }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, status: 'approved' }),
-        });
-        await QuestModifyResponder({
-          questId,
-          input: ModifyQuestInputStub({ questId, steps }),
         });
 
         // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
@@ -390,62 +282,13 @@ describe('OrchestrationFlow', () => {
       });
 
       const questId = addResult.questId!;
-      const flows = questHelper.buildValidFlows({
-        observableIds: [ObservableIdStub({ value: 'obs-1' })],
-      });
-      const steps = questHelper.buildValidSteps({
+
+      // Seed quest directly to design_approved with valid flows + steps.
+      await questHelper.approveQuest({
+        questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
-      });
-
-      // Walk through approval: explore_flows → add flows → review_flows → flows_approved → explore_observables → review_observables → approved
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, flows }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'approved' }),
-      });
-
-      // Walk through design phase: explore_design → review_design → design_approved
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'explore_design' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'review_design' }),
-      });
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'design_approved' }),
-      });
-
-      // Add steps
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({ questId, steps }),
+        finalStatus: 'design_approved',
       });
 
       // Add a glyphsmith work item (pending) alongside the existing chaos work item
@@ -1662,48 +1505,12 @@ describe('OrchestrationFlow', () => {
         });
 
         const questId = addResult.questId!;
-
-        // Walk quest through full approval with needsDesign=true
         const typedQuestId = questId;
-        const flows = questHelper.buildValidFlows({
-          observableIds: [ObservableIdStub({ value: 'obs-1' })],
-        });
-        const steps = questHelper.buildValidSteps({
+
+        await questHelper.approveQuest({
+          questId: typedQuestId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
-        });
-
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, flows }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'flows_approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, steps }),
         });
         await questHelper.completeChaosWorkItem({ questId });
         await questHelper.completeGlyphWorkItem({ questId });
@@ -1931,38 +1738,10 @@ describe('OrchestrationFlow', () => {
         const typedQuestId = questId;
 
         // Approve quest but with no steps — quest verification will fail
-        await QuestModifyResponder({
+        await questHelper.approveQuest({
           questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({
-            questId: typedQuestId,
-            flows: questHelper.buildValidFlows({
-              observableIds: [ObservableIdStub({ value: 'obs-1' })],
-            }),
-          }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'flows_approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'approved' }),
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 0,
         });
 
         // Don't add steps — quest verification will fail (no steps covering observables)
@@ -2054,47 +1833,15 @@ describe('OrchestrationFlow', () => {
         const questId = addResult.questId!;
         const typedQuestId = questId;
 
-        // Approve quest with 0 steps but valid flows (no observables to cover)
-        const nodeA = FlowNodeStub({
-          id: 'node-a' as ReturnType<typeof FlowNodeStub>['id'],
-          type: 'state',
-          observables: [],
-        });
-        const nodeB = FlowNodeStub({
-          id: 'node-b' as ReturnType<typeof FlowNodeStub>['id'],
-          type: 'state',
-          observables: [],
-        });
-        const edge = FlowEdgeStub({ from: nodeA.id, to: nodeB.id });
-        const flows = [FlowStub({ nodes: [nodeA, nodeB], edges: [edge] })];
-
-        await QuestModifyResponder({
+        // Approve quest with 0 steps and a flow whose terminal-equivalent node is
+        // intentionally typed as 'state' (not 'terminal') so terminal-observable
+        // coverage is vacuously satisfied — this test is about the empty-deps
+        // dispatch path, not flow validation.
+        await questHelper.seedQuestState({
           questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, flows }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'flows_approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'approved' }),
+          flows: [],
+          steps: [],
+          finalStatus: 'approved',
         });
 
         await questHelper.completeChaosWorkItem({ questId });
@@ -2306,37 +2053,11 @@ describe('OrchestrationFlow', () => {
           }),
         ];
 
-        await QuestModifyResponder({
+        await questHelper.seedQuestState({
           questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, flows }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_flows' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'flows_approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'explore_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'review_observables' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, status: 'approved' }),
-        });
-        await QuestModifyResponder({
-          questId: typedQuestId,
-          input: ModifyQuestInputStub({ questId: typedQuestId, steps }),
+          flows,
+          steps,
+          finalStatus: 'approved',
         });
         await questHelper.completeChaosWorkItem({ questId });
 

@@ -52,12 +52,13 @@ test.describe('Quest WS Update', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    // Write quest with no content (empty flows) so spec panel shows with empty quest data
+    // Seed at 'explore_flows' so the subsequent PATCH that adds flows passes the
+    // per-status input allowlist (created status only permits title + status).
     quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,
-      status: 'created',
+      status: 'explore_flows',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
@@ -124,12 +125,13 @@ test.describe('Quest WS Update', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    // Create quest with one flow so the spec panel renders immediately
+    // Seed at 'flows_approved' so the subsequent PATCH that adds another flow
+    // passes the per-status input allowlist (approved status only permits status).
     quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,
-      status: 'approved',
+      status: 'flows_approved',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
@@ -227,9 +229,14 @@ test.describe('Quest WS Update', () => {
     // PATCH the quest to add a flow and advance status — this triggers quest-modified WS broadcast.
     // If quest-session-linked was handled correctly, the client knows the questId and
     // useQuestEventsBinding is subscribed to updates for it.
+    // The transition to explore_flows must run first because the per-status input
+    // allowlist gate runs against the current status before mutations apply, and
+    // the freshly-created quest sits at 'created' which only allows title + status.
+    await request.patch(`/api/quests/${questId}`, {
+      data: { status: 'explore_flows' },
+    });
     await request.patch(`/api/quests/${questId}`, {
       data: {
-        status: 'explore_flows',
         flows: [
           {
             id: 'race-condition-flow',

@@ -30,6 +30,14 @@ import { QuestAddResponder } from '../../../src/responders/quest/add/quest-add-r
 import { QuestGetResponder } from '../../../src/responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../../src/responders/quest/modify/quest-modify-responder';
 import { ModifyQuestInputStub } from '../../../src/contracts/modify-quest-input/modify-quest-input.stub';
+import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
+import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
+import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+
+const QUEST_FILE_NAME = 'quest.json';
+const JSON_INDENT_SPACES = 2;
 
 const POLL_INTERVAL_MS = 50;
 const MAX_POLL_ITERATIONS = 500;
@@ -54,6 +62,13 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     observableIds: ReturnType<typeof ObservableIdStub>[];
     stepCount: number;
+    finalStatus?: QuestType['status'];
+  }) => Promise<void>;
+  seedQuestState: (params: {
+    questId: QuestId;
+    flows?: ReturnType<typeof FlowStub>[];
+    steps?: ReturnType<typeof DependencyStepStub>[];
+    finalStatus?: QuestType['status'];
   }) => Promise<void>;
   createTestQuest: (params: {
     testbed: ReturnType<typeof installTestbedCreateBroker>;
@@ -86,13 +101,15 @@ export const orchestrationQuestHarness = (): {
       id: 'node-a' as ReturnType<typeof FlowNodeStub>['id'],
       label: 'Node A',
       type: 'state',
-      observables: obs,
+      observables: [],
     });
+    // nodeB is the terminal node so the flow has no dead-end non-terminal nodes
+    // and terminal-observable-coverage is satisfied.
     const nodeB = FlowNodeStub({
       id: 'node-b' as ReturnType<typeof FlowNodeStub>['id'],
       label: 'Node B',
-      type: 'state',
-      observables: [],
+      type: 'terminal',
+      observables: obs,
     });
     const edge = FlowEdgeStub({ from: nodeA.id, to: nodeB.id });
     return [FlowStub({ nodes: [nodeA, nodeB], edges: [edge] })];
@@ -175,49 +192,61 @@ export const orchestrationQuestHarness = (): {
     });
   };
 
+  // approveQuest seeds the quest directly to the 'approved' state (with valid
+  // flows + observables + steps) by writing the quest JSON to disk. It bypasses
+  // QuestModifyResponder so the lifecycle modify-quest validators (per-status
+  // input allowlist, save-time invariants, transition completeness) are not
+  // exercised here — those are tested in the broker's own unit tests. This also
+  // avoids triggering auto-resume when transitioning to 'in_progress'.
+  const seedQuestState = async ({
+    questId,
+    flows,
+    steps,
+    finalStatus = 'approved',
+  }: {
+    questId: QuestId;
+    flows?: ReturnType<typeof FlowStub>[];
+    steps?: ReturnType<typeof DependencyStepStub>[];
+    finalStatus?: QuestType['status'];
+  }): Promise<void> => {
+    const { questPath } = await questFindQuestPathBroker({ questId });
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
+    const loadedQuest = await questLoadBroker({ questFilePath });
+
+    const seededQuest = {
+      ...loadedQuest,
+      status: finalStatus,
+      ...(flows === undefined ? {} : { flows }),
+      ...(steps === undefined ? {} : { steps }),
+      updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
+    };
+
+    const questJson = fileContentsContract.parse(
+      JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
+    );
+    await questPersistBroker({ questFilePath, contents: questJson, questId });
+  };
+
   const approveQuest = async ({
     questId,
     observableIds,
     stepCount,
+    finalStatus = 'approved',
   }: {
     questId: QuestId;
     observableIds: ReturnType<typeof ObservableIdStub>[];
     stepCount: number;
+    finalStatus?: QuestType['status'];
   }): Promise<void> => {
-    const flows = buildValidFlows({ observableIds });
+    const flowsWithObservables = buildValidFlows({ observableIds });
     const steps = buildValidSteps({ observableIds, stepCount });
-
-    await QuestModifyResponder({
+    await seedQuestState({
       questId,
-      input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, flows }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, status: 'review_flows' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, status: 'explore_observables' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, status: 'review_observables' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, status: 'approved' }),
-    });
-    await QuestModifyResponder({
-      questId,
-      input: ModifyQuestInputStub({ questId, steps }),
+      flows: flowsWithObservables,
+      steps,
+      finalStatus,
     });
   };
 
@@ -325,6 +354,7 @@ export const orchestrationQuestHarness = (): {
     completeChaosWorkItem,
     completeGlyphWorkItem,
     approveQuest,
+    seedQuestState,
     createTestQuest: async ({
       testbed,
       observableIds,

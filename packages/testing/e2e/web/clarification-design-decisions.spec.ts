@@ -52,11 +52,14 @@ test.describe('Clarification Design Decisions', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
+    // Seed at 'explore_flows' — ChaosWhisperer's clarification flow writes
+    // designDecisions via modify-quest, and the per-status input allowlist only
+    // permits designDecisions during the spec-exploration phases.
     quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
-      status: 'approved',
+      status: 'explore_flows',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
@@ -80,12 +83,7 @@ test.describe('Clarification Design Decisions', () => {
       .replace(/\s+/gu, '-');
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    // Dismiss the quest approved modal
-    const keepChattingBtn = page.getByText('Keep Chatting');
-
-    await expect(keepChattingBtn).toBeVisible({ timeout: PANEL_TIMEOUT });
-
-    await keepChattingBtn.click();
+    // No "Keep Chatting" modal at explore_flows; proceed straight to chat.
 
     // Send initial message to trigger the clarification
     await page.getByTestId('CHAT_INPUT').fill('Start the quest');

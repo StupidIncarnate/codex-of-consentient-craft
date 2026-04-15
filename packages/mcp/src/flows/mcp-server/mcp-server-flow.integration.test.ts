@@ -274,11 +274,13 @@ describe('McpServerFlow', () => {
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       const questFolder = '001-modify-flow-quest';
 
+      // Seed quest at 'explore_flows' — that's the earliest lifecycle status that
+      // permits writing designDecisions per the per-status input allowlist.
       const quest = QuestStub({
         id: questId as never,
         folder: questFolder as never,
         title: 'Modify Flow Quest' as never,
-        status: 'created' as never,
+        status: 'explore_flows' as never,
         userRequest: 'Testing modify flow' as never,
       });
 
