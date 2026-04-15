@@ -178,6 +178,135 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('EDGE: {designPort in args} => strips designPort before passing to adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          designPort: 5173,
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput();
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
+    it('VALID: {failedChecks present} => prepends human-readable block above JSON payload', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub({
+        success: false,
+        error: 'Save invariants failed' as never,
+        failedChecks: [
+          {
+            name: 'Flow ID Uniqueness' as never,
+            passed: false,
+            details: "Duplicate flow ids: 'user-login'" as never,
+          },
+        ] as never,
+      });
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      const expectedJson = JSON.stringify(modifyResult, null, JSON_INDENT_SPACES);
+      const expectedText = `Structural validation failed:\n- [FAIL] Flow ID Uniqueness: Duplicate flow ids: 'user-login'\n\n${expectedJson}`;
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: expectedText,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    it('VALID: {failedChecks absent} => returns just the JSON payload with no header', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub({
+        success: false,
+        error: 'Some unrelated failure' as never,
+      });
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    it('VALID: {multi-check failure} => lists all checks in order above the JSON payload', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub({
+        success: false,
+        error: 'Completeness checks failed' as never,
+        failedChecks: [
+          {
+            name: 'No Orphan Flow Nodes' as never,
+            passed: false,
+            details: "Orphan node 'extra' in flow 'login'" as never,
+          },
+          {
+            name: 'Decision Node Branching' as never,
+            passed: false,
+            details: "Decision 'check-auth' has 1 outgoing edge (need >=2)" as never,
+          },
+          {
+            name: 'Observable Descriptions' as never,
+            passed: false,
+            details: "Observable 'obs-1' missing description" as never,
+          },
+        ] as never,
+      });
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      const expectedJson = JSON.stringify(modifyResult, null, JSON_INDENT_SPACES);
+      const expectedText = [
+        'Structural validation failed:',
+        "- [FAIL] No Orphan Flow Nodes: Orphan node 'extra' in flow 'login'",
+        "- [FAIL] Decision Node Branching: Decision 'check-auth' has 1 outgoing edge (need >=2)",
+        "- [FAIL] Observable Descriptions: Observable 'obs-1' missing description",
+        '',
+        expectedJson,
+      ].join('\n');
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: expectedText,
+          },
+        ],
+        isError: true,
+      });
+    });
+
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupModifyQuestThrows({ error: new Error('Modify failed') });

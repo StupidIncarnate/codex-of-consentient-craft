@@ -91,17 +91,29 @@ export const QuestHandleResponder = async ({
     const sanitized = { ...args };
     Reflect.deleteProperty(sanitized, 'workItems');
     Reflect.deleteProperty(sanitized, 'wardResults');
+    Reflect.deleteProperty(sanitized, 'designPort');
 
     try {
       const result = await orchestratorModifyQuestAdapter({
         questId,
         input: sanitized as never,
       });
+      const jsonPayload = JSON.stringify(result, null, JSON_INDENT_SPACES);
+      const failedChecks = result.failedChecks ?? [];
+      const text =
+        failedChecks.length > 0
+          ? `${[
+              'Structural validation failed:',
+              ...failedChecks.map(
+                (check) => `- [FAIL] ${String(check.name)}: ${String(check.details)}`,
+              ),
+            ].join('\n')}\n\n${jsonPayload}`
+          : jsonPayload;
       return {
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
+            text: contentTextContract.parse(text),
           },
         ],
         ...(!result.success && { isError: true }),
