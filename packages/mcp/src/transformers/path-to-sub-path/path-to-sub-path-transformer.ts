@@ -12,7 +12,11 @@ import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discover
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-export const pathToSubPathTransformer = ({ filepath }: { filepath?: PathSegment }): PathSegment | null => {
+export const pathToSubPathTransformer = ({
+  filepath,
+}: {
+  filepath?: PathSegment;
+}): PathSegment | null => {
   if (!filepath) {
     return null;
   }
