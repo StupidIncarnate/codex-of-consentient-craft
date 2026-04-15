@@ -76,7 +76,9 @@ describe('agentSpawnByRoleBroker', () => {
       const [, prompt] = spawnedArgs;
 
       expect(String(prompt)).toMatch(/^Quest ID: add-auth$/mu);
-      expect(String(prompt)).toMatch(/^## Phase 1: Orient$/mu);
+      expect(String(prompt)).toMatch(
+        /^## Phase 1\+2: Orient and Classify Scope \(while `status === 'seek_scope'`\)$/mu,
+      );
     });
 
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {

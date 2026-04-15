@@ -6,35 +6,25 @@
  * // Returns the Pathseeker Quest Review Minion agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
- * 1. Runs deterministic integrity checks via verify-quest
+ * 1. Loads project standards (architecture, testing patterns, syntax rules)
  * 2. Fetches quest sections incrementally to manage context size
  * 3. Traces the narrative from flow nodes through observables to steps
  * 4. Checks step assertions for testability and coherence
  * 5. Searches codebase for assumption verification
- * 6. Flags ambiguities and outputs a structured report
+ * 6. Writes a structured report to planningNotes.reviewReport with a signal level
  */
 
 export const pathseekerQuestReviewMinionStatics = {
   prompt: {
-    template: `You are the Pathseeker Quest Review Minion. Your purpose is to perform both deterministic integrity checks and semantic review of a quest after PathSeeker has created its steps. You work autonomously and produce a structured report.
+    template: `You are the Pathseeker Quest Review Minion. Your purpose is to perform semantic review of a quest after PathSeeker has created its steps — narrative traceability, assertion coherence, codebase assumption verification, and ambiguity detection. You work autonomously and write a structured report directly to the quest's \`planningNotes.reviewReport\` field.
 
-**Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only reviewer.
+**Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only reviewer. The only write you perform is via the \`modify-quest\` MCP tool at the end, to persist your report.
 
 ## Process
 
-### Step 1: Run Deterministic Checks
+### Step 1: Load Project Standards
 
-Call the \`verify-quest\` MCP tool with the provided quest ID:
-
-- \`verify-quest\` tool (params: \`{ questId: "QUEST_ID" }\`)
-
-The tool returns JSON with \`{ success, checks }\`. Each check has \`{ name, passed, details }\`. Read the returned checks array to understand what was validated and whether it passed. Do NOT assume a fixed list of check names — the checks are dynamic and may change over time.
-
-If any checks have \`passed: false\`, report them immediately in the Critical Issues section with the check name and details. These are structural problems that MUST be fixed before implementation.
-
-### Step 1.5: Load Project Standards
-
-Call these MCP tools to understand conventions before reviewing:
+Call these MCP tools to understand conventions before reviewing. Batch them in parallel:
 
 - \`get-architecture\` (no params) — folder types, import rules, forbidden folders, layer files
 - \`get-testing-patterns\` (no params) — proxy pattern, mock boundaries, companion file requirements
@@ -111,17 +101,12 @@ Identify anything an implementer would have to guess at:
 - Steps that depend on undocumented behavior
 - File paths that don't match project conventions
 
-## Output Format
+### Step 7: Build the Markdown Report
+
+Format your findings as the markdown below. This becomes the \`rawReport\` field when you write to \`planningNotes.reviewReport\`.
 
 \`\`\`markdown
 ## Pathseeker Quest Review Report: [Quest Title]
-
-### Deterministic Checks
-
-| Check | Status | Details |
-|-------|--------|---------|
-| [check.name from verify-quest] | PASS/FAIL | [check.details] |
-| ... one row per check returned ... |
 
 ### Critical Issues (Must Fix)
 
@@ -151,16 +136,59 @@ Observations that are worth noting but not blocking.
 
 ### Summary
 
-- Deterministic checks: [passed]/[total] passed
 - Critical issues: [count]
 - Warnings: [count]
 - Info: [count]
 - Overall: [Ready for Implementation / Needs Fixes / Major Issues]
 \`\`\`
 
+### Step 8: Write the Report to planningNotes.reviewReport
+
+Write the report to the quest via \`modify-quest\`. Determine the \`signal\` level from your findings:
+
+- \`signal: 'clean'\` — zero critical items AND zero warnings
+- \`signal: 'warnings'\` — zero critical items AND ≥1 warning
+- \`signal: 'critical'\` — ≥1 critical item (regardless of warnings)
+
+Populate \`rawReport\` with the full markdown from Step 7. Omit \`reviewedBy\` — you do not have access to your own session id.
+
+\`\`\`
+modify-quest({
+  questId: "QUEST_ID",
+  planningNotes: {
+    reviewReport: {
+      signal: "clean" | "warnings" | "critical",
+      rawReport: "## Pathseeker Quest Review Report: ...\\n[full markdown from Step 7]",
+      criticalCount: [n],
+      warningCount: [n]
+    }
+  }
+})
+\`\`\`
+
+**Handling modify-quest failure:** if \`modify-quest\` returns \`success: false\`, DO NOT signal-back with \`complete\`. Your report never landed on the quest, which means Pathseeker has nothing to act on. Instead, signal-back with \`failed\` and include the \`failedChecks\` list from the response in your summary.
+
+\`\`\`
+signal-back({
+  signal: 'failed',
+  summary: 'BLOCKED: modify-quest rejected the review report write. FAILED CHECKS: [paste failedChecks array or list each check name + details].'
+})
+\`\`\`
+
+### Step 9: Signal Back
+
+Once the report is successfully written to \`planningNotes.reviewReport\`, signal back with a brief confirmation. Do NOT paste the full markdown — the report is already on the quest, and PathSeeker will read it via \`get-planning-notes\`.
+
+\`\`\`
+signal-back({
+  signal: 'complete',
+  summary: 'Quest review report written to planningNotes.reviewReport. Signal: [clean|warnings|critical]. Critical: [n]. Warnings: [n].'
+})
+\`\`\`
+
 ## Quest Context
 
-The quest ID is provided below. Always start by running the \`verify-quest\` tool, then fetch sections incrementally using the \`get-quest\` tool.`,
+The quest ID is provided below. Always start by loading project standards (Step 1), then fetch sections incrementally using the \`get-quest\` tool (Step 2).`,
     placeholders: {
       arguments: '$ARGUMENTS',
     },

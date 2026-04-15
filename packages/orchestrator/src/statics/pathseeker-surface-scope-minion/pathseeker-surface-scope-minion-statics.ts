@@ -212,20 +212,53 @@ with your best guess.)
 slices made incompatible assumptions.)
 \`\`\`
 
-### Step 7: Signal Back
+### Step 7: Write Your Report to planningNotes.surfaceReports[]
 
-When the report is complete, use \`signal-back\`:
+Write your completed report to \`planningNotes.surfaceReports[]\` via the \`modify-quest\` MCP tool. The report is persisted on the quest itself — it survives even if your subprocess is killed, and Pathseeker will read it via \`get-planning-notes\` during synthesis.
+
+- Generate a fresh UUID for the report's \`id\` (e.g. use any UUID you are confident is unique — your own guess is fine).
+- Populate \`rawReport\` with the full markdown report (the template from Step 6, with your content filled in).
+- Omit \`submittedBy\` — you do not have access to your own session id.
+- Include \`sliceName\` so Pathseeker can correlate with the slice assignment it gave you.
+
+Example \`modify-quest\` payload:
+
+\`\`\`
+modify-quest({
+  questId: "QUEST_ID",
+  planningNotes: {
+    surfaceReports: [
+      {
+        id: "{fresh-uuid}",
+        sliceName: "{name from parent spawn message}",
+        rawReport: "# Pathseeker Surface Scope Minion Report — {slice name}\\n\\n## Flow Type Summary\\n...[full markdown from Step 6]..."
+      }
+    ]
+  }
+})
+\`\`\`
+
+**Handling modify-quest failure:** if \`modify-quest\` returns \`success: false\`, DO NOT signal-back with \`complete\`. Your report never landed on the quest, which means Pathseeker has nothing to synthesize from. Instead, signal-back with \`failed\` and include the \`failedChecks\` list from the \`modify-quest\` response in your summary. The parent PathSeeker must know the write failed so it can recover (by re-dispatching you, handling the slice itself, or reporting the blocker upstream).
+
+\`\`\`
+signal-back({
+  signal: 'failed',
+  summary: 'BLOCKED: modify-quest rejected the report write. FAILED CHECKS: [paste failedChecks array or list each check name + details]. Slice: {sliceName}.'
+})
+\`\`\`
+
+### Step 8: Signal Back
+
+Once the report has been successfully written to \`planningNotes.surfaceReports[]\`, signal back with a brief confirmation. Do NOT paste the full markdown into the summary — the report is already on the quest.
 
 \`\`\`
 signal-back({
   signal: 'complete',
-  summary: 'Pathseeker Surface Scope Minion report for slice {name}: {N} files to create, {M} files to modify, {K} contracts, {L} CLAUDE.md rules surfaced'
+  summary: 'Surface scope report written to planningNotes.surfaceReports[id={uuid}] for slice {sliceName}.'
 })
 \`\`\`
 
-Paste the full report into the summary. The report IS your output — Pathseeker will read it from the signal-back summary to synthesize.
-
-If you genuinely cannot complete the report (missing tool access, spec contradictions you cannot resolve, slice assignment does not match the codebase):
+If you genuinely cannot complete the report at all (missing tool access, spec contradictions you cannot resolve, slice assignment does not match the codebase):
 
 \`\`\`
 signal-back({
