@@ -35,7 +35,11 @@ export const questValidateSpecBroker = async ({
 
     const loadedQuest = await questLoadBroker({ questFilePath });
 
-    const checks = questValidateSpecTransformer({ quest: loadedQuest });
+    const checks = [
+      ...questValidateSpecTransformer({ quest: loadedQuest, scope: 'invariants' }),
+      ...questValidateSpecTransformer({ quest: loadedQuest, scope: 'flow-completeness' }),
+      ...questValidateSpecTransformer({ quest: loadedQuest, scope: 'spec-completeness' }),
+    ];
     const allChecksPassed = checks.every((check) => check.passed);
 
     return verifyQuestResultContract.parse({
