@@ -76,9 +76,7 @@ describe('agentSpawnByRoleBroker', () => {
       const [, prompt] = spawnedArgs;
 
       expect(String(prompt)).toMatch(/^Quest ID: add-auth$/mu);
-      expect(String(prompt)).toMatch(
-        /^You are PathSeeker, a specialized implementation planning agent\. Your purpose is to translate a quest$/mu,
-      );
+      expect(String(prompt)).toMatch(/^## Phase 1: Orient$/mu);
     });
 
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {

@@ -136,7 +136,7 @@ For every \`uses\` dependency cited in any minion report:
 - Confirm the symbol exists at the claimed path with the claimed export name
 - \`discover\` for the name if Reading the file is overkill
 
-Batch the Reads in parallel whenever you can. Multiple Read tool calls in a single message is the default.
+Batch the Reads in parallel whenever you can. Multiple Read tool calls in a single message should be the default.
 
 **What to do with findings:**
 
