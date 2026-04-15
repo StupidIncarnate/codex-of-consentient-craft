@@ -2,7 +2,7 @@
  * PURPOSE: Defines the return shape for agent prompt lookups via the get-agent-prompt MCP tool
  *
  * USAGE:
- * agentPromptResultContract.parse({ name: 'quest-gap-reviewer', model: 'sonnet', prompt: '...' });
+ * agentPromptResultContract.parse({ name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' });
  * // Returns validated AgentPromptResult
  */
 

@@ -2,28 +2,28 @@ import { agentPromptNameContract } from './agent-prompt-name-contract';
 import { AgentPromptNameStub } from './agent-prompt-name.stub';
 
 describe('agentPromptNameContract', () => {
-  it('VALID: {value: "quest-gap-reviewer"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'quest-gap-reviewer' });
+  it('VALID: {value: "chaoswhisperer-gap-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'chaoswhisperer-gap-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('quest-gap-reviewer');
+    expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "finalizer-quest-agent"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'finalizer-quest-agent' });
+  it('VALID: {value: "pathseeker-quest-review-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-quest-review-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('finalizer-quest-agent');
+    expect(result).toBe('pathseeker-quest-review-minion');
   });
 
-  it('VALID: {value: "planner-minion-quest-agent"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'planner-minion-quest-agent' });
+  it('VALID: {value: "pathseeker-surface-scope-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-surface-scope-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('planner-minion-quest-agent');
+    expect(result).toBe('pathseeker-surface-scope-minion');
   });
 
   it('VALID: {default stub} => parses with default value', () => {
@@ -31,7 +31,7 @@ describe('agentPromptNameContract', () => {
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('quest-gap-reviewer');
+    expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
   it('INVALID: {value: "unknown-agent"} => throws validation error', () => {

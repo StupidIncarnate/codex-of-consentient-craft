@@ -61,12 +61,12 @@ describe('InteractionHandleResponder', () => {
   });
 
   describe('get-agent-prompt', () => {
-    it('VALID: {agent: "quest-gap-reviewer"} => returns JSON with name, model, prompt', () => {
+    it('VALID: {agent: "chaoswhisperer-gap-minion"} => returns JSON with name, model, prompt', () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'quest-gap-reviewer' },
+        args: { agent: 'chaoswhisperer-gap-minion' },
       });
 
       expect(result).toStrictEqual({

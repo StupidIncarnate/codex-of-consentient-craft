@@ -3,8 +3,8 @@
 ## Callouts
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
-  `packages/orchestrator/src/statics/` (e.g., `gap-reviewer-agent-prompt-statics.ts`,
-  `finalizer-quest-agent-prompt-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
+  `packages/orchestrator/src/statics/` (e.g., `chaoswhisperer-gap-minion-statics.ts`,
+  `pathseeker-quest-review-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
   tell spawned agents to call the MCP tool to get their instructions.
 
 ## Quest Pipeline
@@ -12,7 +12,7 @@
 ```
 /quest (ChaosWhisperer)
   ├─ Explore agents ────── codebase research (read-only)
-  ├─ quest-gap-reviewer ── spec validation (read-only)
+  ├─ chaoswhisperer-gap-minion ── spec validation (read-only)
   │
   ├─ Phase 1: Discovery ──────── explore codebase, interview user → status: explore_flows
   ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory) → status: review_flows
@@ -27,7 +27,7 @@
 Orchestration Loop (workItems queue)
   │  "find next ready item, run it, repeat"
   │
-  ├─ PathSeeker ──── verify-quest + finalizer (retry max 3)
+  ├─ PathSeeker ──── verify-quest + pathseeker-quest-review-minion (retry max 3)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
   │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
@@ -220,7 +220,7 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. Parent roles spawn an agent and instruct it to
 call `get-agent-prompt` as its first action.
 
-| Agent                 | Spawned By          | Purpose                                      |
-|-----------------------|---------------------|----------------------------------------------|
-| quest-gap-reviewer    | ChaosWhisperer      | Validate spec completeness before execution  |
-| finalizer-quest-agent | PathSeeker pipeline | Verify + semantic review after steps created |
+| Agent                          | Spawned By          | Purpose                                      |
+|--------------------------------|---------------------|----------------------------------------------|
+| chaoswhisperer-gap-minion      | ChaosWhisperer      | Validate spec completeness before execution  |
+| pathseeker-quest-review-minion | PathSeeker pipeline | Verify + semantic review after steps created |

@@ -1,8 +1,8 @@
-import { plannerMinionQuestAgentPromptStatics } from './planner-minion-quest-agent-prompt-statics';
+import { pathseekerSurfaceScopeMinionStatics } from './pathseeker-surface-scope-minion-statics';
 
-describe('plannerMinionQuestAgentPromptStatics', () => {
+describe('pathseekerSurfaceScopeMinionStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
-    expect(plannerMinionQuestAgentPromptStatics).toStrictEqual({
+    expect(pathseekerSurfaceScopeMinionStatics).toStrictEqual({
       prompt: {
         template: expect.stringMatching(/^.+$/su),
         placeholders: {

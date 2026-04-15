@@ -6,6 +6,6 @@ export const GetAgentPromptInputStub = ({
   ...props
 }: StubArgument<GetAgentPromptInput> = {}): GetAgentPromptInput =>
   getAgentPromptInputContract.parse({
-    agent: 'quest-gap-reviewer',
+    agent: 'chaoswhisperer-gap-minion',
     ...props,
   });

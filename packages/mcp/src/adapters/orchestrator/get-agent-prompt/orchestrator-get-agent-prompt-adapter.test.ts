@@ -12,7 +12,7 @@ describe('orchestratorGetAgentPromptAdapter', () => {
       proxy.returns({ result: expectedResult });
 
       const result = orchestratorGetAgentPromptAdapter({
-        agent: 'quest-gap-reviewer',
+        agent: 'chaoswhisperer-gap-minion',
       });
 
       expect(result).toStrictEqual(expectedResult);

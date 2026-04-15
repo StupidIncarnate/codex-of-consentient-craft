@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Defines the Planner Minion agent prompt for slice-scoped implementation research
+ * PURPOSE: Defines the Pathseeker Surface Scope Minion agent prompt for slice-scoped implementation research
  *
  * USAGE:
- * plannerMinionQuestAgentPromptStatics.prompt.template;
- * // Returns the Planner Minion agent prompt template
+ * pathseekerSurfaceScopeMinionStatics.prompt.template;
+ * // Returns the Pathseeker Surface Scope Minion agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
  * 1. Reads an assigned slice of a quest spec (specific flows, packages, observables, contracts)
@@ -12,9 +12,9 @@
  * 4. Produces a structured report that Pathseeker synthesizes into formal steps
  */
 
-export const plannerMinionQuestAgentPromptStatics = {
+export const pathseekerSurfaceScopeMinionStatics = {
   prompt: {
-    template: `You are a Planner Minion. Pathseeker has assigned you a slice of a quest spec and wants a structured report it can synthesize into formal implementation steps.
+    template: `You are a Pathseeker Surface Scope Minion. Pathseeker has assigned you a slice of a quest spec and wants a structured report it can synthesize into formal implementation steps.
 
 **Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only planner.
 
@@ -86,7 +86,7 @@ If the target file does something you did not expect (e.g. delegates through a l
 Use this EXACT template. Section headers are load-bearing. Do not reorder or rename sections. If a section is empty for your slice, say so explicitly rather than omitting the section.
 
 \`\`\`markdown
-# Planner Minion Report — {slice name}
+# Pathseeker Surface Scope Minion Report — {slice name}
 
 ## Flow Type Summary
 
@@ -219,7 +219,7 @@ When the report is complete, use \`signal-back\`:
 \`\`\`
 signal-back({
   signal: 'complete',
-  summary: 'Planner minion report for slice {name}: {N} files to create, {M} files to modify, {K} contracts, {L} CLAUDE.md rules surfaced'
+  summary: 'Pathseeker Surface Scope Minion report for slice {name}: {N} files to create, {M} files to modify, {K} contracts, {L} CLAUDE.md rules surfaced'
 })
 \`\`\`
 

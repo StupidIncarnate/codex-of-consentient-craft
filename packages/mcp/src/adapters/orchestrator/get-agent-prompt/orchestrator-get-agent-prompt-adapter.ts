@@ -2,7 +2,7 @@
  * PURPOSE: Adapter for StartOrchestrator.getAgentPrompt that wraps the orchestrator package
  *
  * USAGE:
- * const result = orchestratorGetAgentPromptAdapter({ agent: 'quest-gap-reviewer' });
+ * const result = orchestratorGetAgentPromptAdapter({ agent: 'chaoswhisperer-gap-minion' });
  * // Returns: AgentPromptResult { name, model, prompt }
  */
 

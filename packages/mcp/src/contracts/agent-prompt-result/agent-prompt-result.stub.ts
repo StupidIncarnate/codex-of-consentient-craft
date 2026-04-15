@@ -7,7 +7,7 @@ export const AgentPromptResultStub = ({
   ...props
 }: StubArgument<AgentPromptResult> = {}): AgentPromptResult =>
   agentPromptResultContract.parse({
-    name: 'quest-gap-reviewer',
+    name: 'chaoswhisperer-gap-minion',
     model: 'sonnet',
     prompt: 'You are a Staff Engineer specializing in quest validation.',
     ...props,

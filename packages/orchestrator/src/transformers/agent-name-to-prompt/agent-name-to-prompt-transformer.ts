@@ -2,8 +2,8 @@
  * PURPOSE: Resolves an agent prompt name to its prompt result (name, model, prompt text)
  *
  * USAGE:
- * const result = agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('quest-gap-reviewer') });
- * // Returns { name: 'quest-gap-reviewer', model: 'sonnet', prompt: '...' }
+ * const result = agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('chaoswhisperer-gap-minion') });
+ * // Returns { name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' }
  */
 
 import {
@@ -11,9 +11,9 @@ import {
   type AgentPromptResult,
 } from '../../contracts/agent-prompt-result/agent-prompt-result-contract';
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import { finalizerQuestAgentPromptStatics } from '../../statics/finalizer-quest-agent-prompt/finalizer-quest-agent-prompt-statics';
-import { gapReviewerAgentPromptStatics } from '../../statics/gap-reviewer-agent-prompt/gap-reviewer-agent-prompt-statics';
-import { plannerMinionQuestAgentPromptStatics } from '../../statics/planner-minion-quest-agent-prompt/planner-minion-quest-agent-prompt-statics';
+import { pathseekerQuestReviewMinionStatics } from '../../statics/pathseeker-quest-review-minion/pathseeker-quest-review-minion-statics';
+import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 
 export const agentNameToPromptTransformer = ({
   agent,
@@ -21,23 +21,23 @@ export const agentNameToPromptTransformer = ({
   agent: AgentPromptName;
 }): AgentPromptResult => {
   switch (agent) {
-    case 'quest-gap-reviewer':
+    case 'chaoswhisperer-gap-minion':
       return agentPromptResultContract.parse({
-        name: 'quest-gap-reviewer',
+        name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
-        prompt: gapReviewerAgentPromptStatics.prompt.template,
+        prompt: chaoswhispererGapMinionStatics.prompt.template,
       });
-    case 'finalizer-quest-agent':
+    case 'pathseeker-quest-review-minion':
       return agentPromptResultContract.parse({
-        name: 'finalizer-quest-agent',
+        name: 'pathseeker-quest-review-minion',
         model: 'sonnet',
-        prompt: finalizerQuestAgentPromptStatics.prompt.template,
+        prompt: pathseekerQuestReviewMinionStatics.prompt.template,
       });
-    case 'planner-minion-quest-agent':
+    case 'pathseeker-surface-scope-minion':
       return agentPromptResultContract.parse({
-        name: 'planner-minion-quest-agent',
+        name: 'pathseeker-surface-scope-minion',
         model: 'sonnet',
-        prompt: plannerMinionQuestAgentPromptStatics.prompt.template,
+        prompt: pathseekerSurfaceScopeMinionStatics.prompt.template,
       });
     default: {
       const exhaustiveCheck: never = agent;

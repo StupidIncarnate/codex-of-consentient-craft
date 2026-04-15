@@ -2,8 +2,8 @@
  * PURPOSE: Resolves an agent name to its prompt data for the get-agent-prompt MCP tool
  *
  * USAGE:
- * const result = AgentPromptFlow.get({ agent: 'quest-gap-reviewer' });
- * // Returns { name: 'quest-gap-reviewer', model: 'sonnet', prompt: '...' }
+ * const result = AgentPromptFlow.get({ agent: 'chaoswhisperer-gap-minion' });
+ * // Returns { name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' }
  */
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';

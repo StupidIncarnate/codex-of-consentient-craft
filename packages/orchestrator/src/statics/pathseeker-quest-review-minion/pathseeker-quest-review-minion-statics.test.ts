@@ -1,8 +1,8 @@
-import { gapReviewerAgentPromptStatics } from './gap-reviewer-agent-prompt-statics';
+import { pathseekerQuestReviewMinionStatics } from './pathseeker-quest-review-minion-statics';
 
-describe('gapReviewerAgentPromptStatics', () => {
+describe('pathseekerQuestReviewMinionStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
-    expect(gapReviewerAgentPromptStatics).toStrictEqual({
+    expect(pathseekerQuestReviewMinionStatics).toStrictEqual({
       prompt: {
         template: expect.stringMatching(/^.+$/su),
         placeholders: {

@@ -1,8 +1,8 @@
-import { finalizerQuestAgentPromptStatics } from './finalizer-quest-agent-prompt-statics';
+import { chaoswhispererGapMinionStatics } from './chaoswhisperer-gap-minion-statics';
 
-describe('finalizerQuestAgentPromptStatics', () => {
+describe('chaoswhispererGapMinionStatics', () => {
   it('VALID: exported value => has expected keys with string values', () => {
-    expect(finalizerQuestAgentPromptStatics).toStrictEqual({
+    expect(chaoswhispererGapMinionStatics).toStrictEqual({
       prompt: {
         template: expect.stringMatching(/^.+$/su),
         placeholders: {

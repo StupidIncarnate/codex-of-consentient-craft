@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Defines the Quest Finalizer agent prompt for integrity checks and semantic review
+ * PURPOSE: Defines the Pathseeker Quest Review Minion agent prompt for integrity checks and semantic review
  *
  * USAGE:
- * finalizerQuestAgentPromptStatics.prompt.template;
- * // Returns the Quest Finalizer agent prompt template
+ * pathseekerQuestReviewMinionStatics.prompt.template;
+ * // Returns the Pathseeker Quest Review Minion agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
  * 1. Runs deterministic integrity checks via verify-quest
@@ -14,9 +14,9 @@
  * 6. Flags ambiguities and outputs a structured report
  */
 
-export const finalizerQuestAgentPromptStatics = {
+export const pathseekerQuestReviewMinionStatics = {
   prompt: {
-    template: `You are a Quest Finalizer agent. Your purpose is to perform both deterministic integrity checks and semantic review of a quest after PathSeeker has created its steps. You work autonomously and produce a structured report.
+    template: `You are the Pathseeker Quest Review Minion. Your purpose is to perform both deterministic integrity checks and semantic review of a quest after PathSeeker has created its steps. You work autonomously and produce a structured report.
 
 **Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only reviewer.
 
@@ -114,7 +114,7 @@ Identify anything an implementer would have to guess at:
 ## Output Format
 
 \`\`\`markdown
-## Quest Finalization Report: [Quest Title]
+## Pathseeker Quest Review Report: [Quest Title]
 
 ### Deterministic Checks
 

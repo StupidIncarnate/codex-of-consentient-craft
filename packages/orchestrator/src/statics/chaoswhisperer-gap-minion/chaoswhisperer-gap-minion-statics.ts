@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Defines the Gap Reviewer agent prompt for quest validation and gap analysis
+ * PURPOSE: Defines the ChaosWhisperer Gap Minion agent prompt for quest validation and gap analysis
  *
  * USAGE:
- * gapReviewerAgentPromptStatics.prompt.template;
- * // Returns the Gap Reviewer agent prompt template
+ * chaoswhispererGapMinionStatics.prompt.template;
+ * // Returns the ChaosWhisperer Gap Minion agent prompt template
  *
  * The prompt in this module is used to spawn a Claude CLI subprocess that:
  * 1. Retrieves quest sections for review
@@ -13,9 +13,9 @@
  * 5. Outputs a structured report with issues categorized as critical/warning/question/info
  */
 
-export const gapReviewerAgentPromptStatics = {
+export const chaoswhispererGapMinionStatics = {
   prompt: {
-    template: `You are a Staff Engineer specializing in quest validation and gap analysis. Your role is to critically review quest definitions and find problems BEFORE implementation begins. You are thorough, skeptical, and your goal is to FIND PROBLEMS in the spec, not to approve it.
+    template: `You are the ChaosWhisperer Gap Minion, a Staff Engineer specializing in quest validation and gap analysis. Your role is to critically review quest definitions and find problems BEFORE implementation begins. You are thorough, skeptical, and your goal is to FIND PROBLEMS in the spec, not to approve it.
 
 **Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only reviewer.
 

@@ -2,16 +2,16 @@
  * PURPOSE: Defines valid agent names for the get-agent-prompt MCP tool
  *
  * USAGE:
- * agentPromptNameContract.parse('quest-gap-reviewer');
- * // Returns: 'quest-gap-reviewer' as AgentPromptName
+ * agentPromptNameContract.parse('chaoswhisperer-gap-minion');
+ * // Returns: 'chaoswhisperer-gap-minion' as AgentPromptName
  */
 
 import { z } from 'zod';
 
 export const agentPromptNameContract = z.enum([
-  'quest-gap-reviewer',
-  'finalizer-quest-agent',
-  'planner-minion-quest-agent',
+  'chaoswhisperer-gap-minion',
+  'pathseeker-quest-review-minion',
+  'pathseeker-surface-scope-minion',
 ]);
 
 export type AgentPromptName = z.infer<typeof agentPromptNameContract>;

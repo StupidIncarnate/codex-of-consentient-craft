@@ -2,20 +2,20 @@ import { getAgentPromptInputContract } from './get-agent-prompt-input-contract';
 import { GetAgentPromptInputStub } from './get-agent-prompt-input.stub';
 
 describe('getAgentPromptInputContract', () => {
-  it('VALID: {agent: "quest-gap-reviewer"} => parses successfully', () => {
-    const input = GetAgentPromptInputStub({ agent: 'quest-gap-reviewer' });
+  it('VALID: {agent: "chaoswhisperer-gap-minion"} => parses successfully', () => {
+    const input = GetAgentPromptInputStub({ agent: 'chaoswhisperer-gap-minion' });
 
     const result = getAgentPromptInputContract.parse(input);
 
-    expect(result).toStrictEqual({ agent: 'quest-gap-reviewer' });
+    expect(result).toStrictEqual({ agent: 'chaoswhisperer-gap-minion' });
   });
 
-  it('VALID: {agent: "finalizer-quest-agent"} => parses successfully', () => {
-    const input = GetAgentPromptInputStub({ agent: 'finalizer-quest-agent' });
+  it('VALID: {agent: "pathseeker-quest-review-minion"} => parses successfully', () => {
+    const input = GetAgentPromptInputStub({ agent: 'pathseeker-quest-review-minion' });
 
     const result = getAgentPromptInputContract.parse(input);
 
-    expect(result).toStrictEqual({ agent: 'finalizer-quest-agent' });
+    expect(result).toStrictEqual({ agent: 'pathseeker-quest-review-minion' });
   });
 
   it('VALID: {default stub} => parses with default', () => {
@@ -23,7 +23,7 @@ describe('getAgentPromptInputContract', () => {
 
     const result = getAgentPromptInputContract.parse(input);
 
-    expect(result).toStrictEqual({ agent: 'quest-gap-reviewer' });
+    expect(result).toStrictEqual({ agent: 'chaoswhisperer-gap-minion' });
   });
 
   it('INVALID: {agent: ""} => throws validation error', () => {

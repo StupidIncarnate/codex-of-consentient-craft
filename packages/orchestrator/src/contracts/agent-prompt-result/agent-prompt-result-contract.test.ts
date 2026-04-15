@@ -4,7 +4,7 @@ import { AgentPromptResultStub } from './agent-prompt-result.stub';
 describe('agentPromptResultContract', () => {
   it('VALID: {name, model, prompt} => parses successfully', () => {
     const input = AgentPromptResultStub({
-      name: 'quest-gap-reviewer',
+      name: 'chaoswhisperer-gap-minion',
       model: 'sonnet',
       prompt: 'You are a reviewer.',
     });
@@ -12,7 +12,7 @@ describe('agentPromptResultContract', () => {
     const result = agentPromptResultContract.parse(input);
 
     expect(result).toStrictEqual({
-      name: 'quest-gap-reviewer',
+      name: 'chaoswhisperer-gap-minion',
       model: 'sonnet',
       prompt: 'You are a reviewer.',
     });
@@ -24,7 +24,7 @@ describe('agentPromptResultContract', () => {
     const result = agentPromptResultContract.parse(input);
 
     expect(result).toStrictEqual({
-      name: 'quest-gap-reviewer',
+      name: 'chaoswhisperer-gap-minion',
       model: 'sonnet',
       prompt: 'You are a Staff Engineer specializing in quest validation.',
     });

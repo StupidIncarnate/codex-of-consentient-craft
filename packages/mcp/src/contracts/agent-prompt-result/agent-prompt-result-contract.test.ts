@@ -9,7 +9,7 @@ describe('agentPromptResultContract', () => {
       const parsed = agentPromptResultContract.parse(result);
 
       expect(parsed).toStrictEqual({
-        name: 'quest-gap-reviewer',
+        name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
         prompt: 'You are a Staff Engineer specializing in quest validation.',
       });

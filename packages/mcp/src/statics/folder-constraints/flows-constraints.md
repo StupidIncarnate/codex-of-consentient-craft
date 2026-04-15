@@ -97,7 +97,7 @@ describe('InstallFlow', () => {
                 packageName: '@dungeonmaster/orchestrator',
                 success: true,
                 action: 'created',
-                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with finalizer-quest-agent.md and quest-gap-reviewer.md',
+                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with pathseeker-quest-review-minion.md and chaoswhisperer-gap-minion.md',
             });
             expect(questContent).toMatch(/ChaosWhisperer/u);
         });

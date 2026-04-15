@@ -2,7 +2,7 @@
  * PURPOSE: Defines the input schema for the MCP get-agent-prompt tool
  *
  * USAGE:
- * getAgentPromptInputContract.parse({ agent: 'quest-gap-reviewer' });
+ * getAgentPromptInputContract.parse({ agent: 'chaoswhisperer-gap-minion' });
  * // Returns validated get-agent-prompt input
  */
 import { z } from 'zod';
@@ -12,7 +12,7 @@ export const getAgentPromptInputContract = z.object({
     .string()
     .min(1)
     .brand<'AgentPromptInputAgent'>()
-    .describe('Agent name (e.g. quest-gap-reviewer, finalizer-quest-agent)'),
+    .describe('Agent name (e.g. chaoswhisperer-gap-minion, pathseeker-quest-review-minion)'),
 });
 
 export type GetAgentPromptInput = z.infer<typeof getAgentPromptInputContract>;
