@@ -326,3 +326,19 @@ export * from './src/contracts/ward-run-id/ward-run-id.stub';
 // Adapter Result Contracts
 export * from './src/contracts/adapter-result/adapter-result-contract';
 export * from './src/contracts/adapter-result/adapter-result.stub';
+
+// Planning Notes Contracts (PathSeeker phased statuses)
+export * from './src/contracts/planning-scope-classification/planning-scope-classification-contract';
+export * from './src/contracts/planning-scope-classification/planning-scope-classification.stub';
+
+export * from './src/contracts/planning-surface-report/planning-surface-report-contract';
+export * from './src/contracts/planning-surface-report/planning-surface-report.stub';
+
+export * from './src/contracts/planning-synthesis/planning-synthesis-contract';
+export * from './src/contracts/planning-synthesis/planning-synthesis.stub';
+
+export * from './src/contracts/planning-walk-findings/planning-walk-findings-contract';
+export * from './src/contracts/planning-walk-findings/planning-walk-findings.stub';
+
+export * from './src/contracts/planning-review-report/planning-review-report-contract';
+export * from './src/contracts/planning-review-report/planning-review-report.stub';

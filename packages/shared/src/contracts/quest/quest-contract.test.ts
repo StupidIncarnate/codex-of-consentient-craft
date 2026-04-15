@@ -29,6 +29,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        planningNotes: { surfaceReports: [] },
       });
     });
 
@@ -56,6 +57,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        planningNotes: { surfaceReports: [] },
       });
     });
 
@@ -83,6 +85,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        planningNotes: { surfaceReports: [] },
       });
     });
 
@@ -170,6 +173,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
+        planningNotes: { surfaceReports: [] },
       });
     });
 
@@ -253,6 +257,21 @@ describe('questContract', () => {
       });
 
       expect(result.wardResults).toStrictEqual([]);
+    });
+
+    it('VALID: quest without planningNotes field => backward compat defaults to {surfaceReports: []}', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.planningNotes).toStrictEqual({ surfaceReports: [] });
     });
   });
 

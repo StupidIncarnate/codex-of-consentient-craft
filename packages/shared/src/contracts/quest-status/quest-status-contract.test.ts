@@ -83,6 +83,38 @@ describe('questStatusContract', () => {
       expect(result).toBe('design_approved');
     });
 
+    it('VALID: seek_scope => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'seek_scope' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('seek_scope');
+    });
+
+    it('VALID: seek_synth => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'seek_synth' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('seek_synth');
+    });
+
+    it('VALID: seek_walk => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'seek_walk' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('seek_walk');
+    });
+
+    it('VALID: seek_plan => parses successfully', () => {
+      const status = QuestStatusStub({ value: 'seek_plan' });
+
+      const result = questStatusContract.parse(status);
+
+      expect(result).toBe('seek_plan');
+    });
+
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 

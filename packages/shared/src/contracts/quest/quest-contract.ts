@@ -11,6 +11,11 @@ import { z } from 'zod';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
+import { planningReviewReportContract } from '../planning-review-report/planning-review-report-contract';
+import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
+import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
+import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
+import { planningWalkFindingsContract } from '../planning-walk-findings/planning-walk-findings-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -70,6 +75,18 @@ export const questContract = z.object({
     .array(wardResultContract)
     .default([])
     .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
+  planningNotes: z
+    .object({
+      scopeClassification: planningScopeClassificationContract.optional(),
+      surfaceReports: z.array(planningSurfaceReportContract).default([]),
+      synthesis: planningSynthesisContract.optional(),
+      walkFindings: planningWalkFindingsContract.optional(),
+      reviewReport: planningReviewReportContract.optional(),
+    })
+    .default({ surfaceReports: [] })
+    .describe(
+      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings, review report) persisted between seek_* statuses',
+    ),
 });
 
 export type Quest = z.infer<typeof questContract>;
