@@ -212,19 +212,26 @@ export const questModifyBroker = async ({
         }
 
         // Tier 4: completeness checks gating LLM-driven transitions (POST-mutation; only when transitioning)
-        if (validated.status) {
-          const completenessFailures = questCompletenessForTransitionTransformer({
-            quest,
-            nextStatus: validated.status,
+        // Severity encoding: passed === false is blocking; passed === true is info-level (non-blocking,
+        // surfaced in the success response so the caller sees review-minion warnings). See
+        // quest-completeness-for-transition-transformer JSDoc for the severity convention.
+        const completenessResults = validated.status
+          ? questCompletenessForTransitionTransformer({
+              quest,
+              nextStatus: validated.status,
+            })
+          : [];
+        const blockingFailures = completenessResults.filter((check) => !check.passed);
+        if (blockingFailures.length > 0) {
+          return modifyQuestResultContract.parse({
+            success: false,
+            error: `Completeness checks failed for transition to ${String(validated.status)}`,
+            failedChecks: blockingFailures,
           });
-          if (completenessFailures.length > 0) {
-            return modifyQuestResultContract.parse({
-              success: false,
-              error: `Completeness checks failed for transition to ${validated.status}`,
-              failedChecks: completenessFailures,
-            });
-          }
+        }
+        const completenessInfoChecks = completenessResults.filter((check) => check.passed);
 
+        if (validated.status) {
           quest.status = validated.status;
         }
 
@@ -242,6 +249,7 @@ export const questModifyBroker = async ({
 
         return modifyQuestResultContract.parse({
           success: true,
+          ...(completenessInfoChecks.length > 0 && { failedChecks: completenessInfoChecks }),
         });
       },
     });
