@@ -6,6 +6,8 @@ import {
   GuildNameStub,
   GuildPathStub,
   ObservableIdStub,
+  PlanningScopeClassificationStub,
+  PlanningSynthesisStub,
   ProcessIdStub,
   QuestIdStub,
   SessionIdStub,
@@ -667,6 +669,97 @@ describe('OrchestrationFlow', () => {
       const replanPs = pathseekerItems.find((wi) => wi.insertedBy !== undefined);
 
       expect(replanPs?.role).toBe('pathseeker');
+    });
+
+    // Test 2c: Codeweaver failure with pre-seeded planningNotes (scope + synthesis)
+    // so the orchestration-loop's modify-quest(status=seek_walk) succeeds. Asserts
+    // the quest transitions to seek_walk AND a pathseeker replan is appended.
+    it('VALID: {codeweaver failure, pre-seeded planningNotes} => quest transitions to seek_walk + pathseeker replan added', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'orch-cw-fail-seek-walk' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+      const quest: QuestType = await (async (): Promise<QuestType> => {
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
+          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          stepCount: 2,
+        });
+
+        // Pre-seed planningNotes (scope + synthesis) so the handle-signal
+        // broker's modify-quest(status='seek_walk') transition satisfies the
+        // gate-content guard requirements.
+        await questHelper.seedQuestState({
+          questId,
+          planningNotes: {
+            scopeClassification: PlanningScopeClassificationStub(),
+            surfaceReports: [],
+            synthesis: PlanningSynthesisStub(),
+          },
+          finalStatus: 'in_progress',
+        });
+
+        // pathseeker succeeds
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
+        });
+        // codeweaver 0 fails, codeweaver 1 succeeds (slot concurrency drain)
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentFailedResponse({
+            sessionId: sid('cw-fail-seekwalk-0'),
+            summary: 'Missing wiring',
+          }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('cw-ok-seekwalk-1') }),
+        });
+        // Replan pathseeker spawns after codeweaver failure
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('ps-replan-seekwalk') }),
+        });
+        // Extra entries covering downstream ward/siege/lawbringers/final-ward
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('siege-seekwalk') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-seekwalk-0') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-seekwalk-1') }),
+        });
+        queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
+
+        await OrchestrationFlow.start({ questId });
+
+        const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
+          questId,
+          minItems: 6,
+        });
+
+        testbed.cleanup();
+        return result;
+      })();
+
+      const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const replanPathseeker = pathseekerItems.find((wi) => wi.insertedBy !== undefined);
+      const cwItems = quest.workItems.filter((wi) => wi.role === 'codeweaver');
+      const failedCw = cwItems.filter((wi) => wi.status === 'failed');
+
+      // The handle-signal broker transitioned the quest backward to seek_walk
+      // via modify-quest before spawning the recovery pathseeker.
+      expect(quest.status).toBe('seek_walk');
+      // A pathseeker replan was appended with insertedBy set (followup chain).
+      expect(replanPathseeker?.role).toBe('pathseeker');
+      // The original codeweaver failure was recorded.
+      expect(failedCw.map((wi) => wi.status)).toStrictEqual(['failed']);
     });
 
     // Test 3: Ward failure → spiritmender → ward retry → siege

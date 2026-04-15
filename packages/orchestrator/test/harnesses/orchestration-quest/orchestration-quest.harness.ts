@@ -68,6 +68,7 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     flows?: ReturnType<typeof FlowStub>[];
     steps?: ReturnType<typeof DependencyStepStub>[];
+    planningNotes?: QuestType['planningNotes'];
     finalStatus?: QuestType['status'];
   }) => Promise<void>;
   createTestQuest: (params: {
@@ -202,11 +203,13 @@ export const orchestrationQuestHarness = (): {
     questId,
     flows,
     steps,
+    planningNotes,
     finalStatus = 'approved',
   }: {
     questId: QuestId;
     flows?: ReturnType<typeof FlowStub>[];
     steps?: ReturnType<typeof DependencyStepStub>[];
+    planningNotes?: QuestType['planningNotes'];
     finalStatus?: QuestType['status'];
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
@@ -220,6 +223,7 @@ export const orchestrationQuestHarness = (): {
       status: finalStatus,
       ...(flows === undefined ? {} : { flows }),
       ...(steps === undefined ? {} : { steps }),
+      ...(planningNotes === undefined ? {} : { planningNotes }),
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
     };
 
