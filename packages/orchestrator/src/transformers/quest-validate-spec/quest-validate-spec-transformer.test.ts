@@ -59,9 +59,8 @@ describe('questValidateSpecTransformer', () => {
 
   describe('individual FAIL branches', () => {
     it('INVALID: {flow with empty exitPoints} => Flow Required Fields fails with missing-field details', () => {
-      const flow = FlowStub();
-      Object.assign(flow, { exitPoints: [] });
-      const quest = QuestStub({ flows: [flow] });
+      const quest = QuestStub({ flows: [FlowStub()] });
+      Object.assign(quest.flows[0] as object, { exitPoints: [] });
 
       const checks = questValidateSpecTransformer({ quest });
 
@@ -602,12 +601,6 @@ describe('questValidateSpecTransformer', () => {
 
   describe('mixed failures', () => {
     it('EDGE: {quest with multiple distinct failures} => returns all failures with correct names and details', () => {
-      const flow = FlowStub();
-      Object.assign(flow, { exitPoints: [] });
-
-      const decision = DesignDecisionStub();
-      Object.assign(decision, { rationale: '' });
-
       const contract = QuestContractEntryStub({ nodeId: 'nonexistent-node' as never });
 
       const step = DependencyStepStub();
@@ -616,11 +609,13 @@ describe('questValidateSpecTransformer', () => {
       });
 
       const quest = QuestStub({
-        flows: [flow],
-        designDecisions: [decision],
+        flows: [FlowStub()],
+        designDecisions: [DesignDecisionStub()],
         contracts: [contract],
         steps: [step],
       });
+      Object.assign(quest.flows[0] as object, { exitPoints: [] });
+      Object.assign(quest.designDecisions[0] as object, { rationale: '' });
 
       const checks = questValidateSpecTransformer({ quest });
 

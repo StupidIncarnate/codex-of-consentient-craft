@@ -3,14 +3,17 @@
  *
  * USAGE:
  * const result: ModifyQuestResult = modifyQuestResultContract.parse({ success: true });
- * // Returns validated ModifyQuestResult with success status and optional error
+ * // Returns validated ModifyQuestResult with success status, optional error, and optional failedChecks
  */
 import { z } from 'zod';
+
+import { verifyQuestCheckContract } from '../verify-quest-check/verify-quest-check-contract';
 
 export const modifyQuestResultContract = z
   .object({
     success: z.boolean(),
     error: z.string().brand<'ErrorMessage'>().optional(),
+    failedChecks: z.array(verifyQuestCheckContract).optional(),
   })
   .brand<'ModifyQuestResult'>();
 

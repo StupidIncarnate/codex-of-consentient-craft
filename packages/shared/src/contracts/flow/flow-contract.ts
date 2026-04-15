@@ -19,7 +19,7 @@ export const flowContract = z.object({
   flowType: flowTypeContract,
   scope: z.string().brand<'FlowScope'>().optional(),
   entryPoint: z.string().min(1).brand<'FlowEntryPoint'>(),
-  exitPoints: z.array(z.string().min(1).brand<'FlowExitPoint'>()),
+  exitPoints: z.array(z.string().min(1).brand<'FlowExitPoint'>()).min(1),
   nodes: z.array(flowNodeContract).default([]),
   edges: z.array(flowEdgeContract).default([]),
 });

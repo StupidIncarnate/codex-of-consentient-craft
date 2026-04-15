@@ -122,6 +122,18 @@ describe('flowContract', () => {
       }).toThrow(/String must contain at least 1 character/u);
     });
 
+    it('INVALID: {exitPoints: []} => throws validation error', () => {
+      expect(() => {
+        flowContract.parse({
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          exitPoints: [],
+        });
+      }).toThrow(/Array must contain at least 1 element/u);
+    });
+
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowContract.parse({});

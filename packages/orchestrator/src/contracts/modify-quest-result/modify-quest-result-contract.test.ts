@@ -1,3 +1,4 @@
+import { VerifyQuestCheckStub } from '../verify-quest-check/verify-quest-check.stub';
 import { modifyQuestResultContract } from './modify-quest-result-contract';
 import { ModifyQuestResultStub } from './modify-quest-result.stub';
 
@@ -20,6 +21,26 @@ describe('modifyQuestResultContract', () => {
       expect(result).toStrictEqual({
         success: false,
         error: 'Quest not found',
+      });
+    });
+
+    it('VALID: {success: false, error, failedChecks} => parses with failed checks', () => {
+      const failedCheck = VerifyQuestCheckStub({
+        name: 'Flow ID Uniqueness',
+        passed: false,
+        details: "Duplicate flow ids: 'login'",
+      });
+
+      const result = modifyQuestResultContract.parse({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [failedCheck],
+      });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [failedCheck],
       });
     });
 
