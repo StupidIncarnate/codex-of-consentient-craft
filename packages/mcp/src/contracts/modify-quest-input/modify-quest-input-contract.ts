@@ -19,6 +19,11 @@ import {
   flowNodeIdContract,
   flowObservableContract,
   observableIdContract,
+  planningReviewReportContract,
+  planningScopeClassificationContract,
+  planningSurfaceReportContract,
+  planningSynthesisContract,
+  planningWalkFindingsContract,
   questContractEntryContract,
   questContractEntryIdContract,
   questStatusContract,
@@ -95,6 +100,26 @@ export const modifyQuestInputContract = z
     flows: z
       .array(deletableFlowContract)
       .describe('Flows to upsert (existing ID updates, new ID adds)')
+      .optional(),
+    planningNotes: z
+      .object({
+        scopeClassification: planningScopeClassificationContract.optional(),
+        surfaceReports: z
+          .array(
+            z.union([
+              planningSurfaceReportContract.extend({ _delete: z.boolean().optional() }),
+              z.object({ id: planningSurfaceReportContract.shape.id, _delete: deleteMarker }),
+            ]),
+          )
+          .optional(),
+        synthesis: planningSynthesisContract.optional(),
+        walkFindings: planningWalkFindingsContract.optional(),
+        reviewReport: planningReviewReportContract.optional(),
+      })
+      .partial()
+      .describe(
+        'PathSeeker planningNotes upserts: scoped per status (allowlist-gated). surfaceReports use UUID-based upsert; tombstones supported.',
+      )
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
     title: z.string().min(1).describe('New title for the quest').optional(),

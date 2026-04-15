@@ -12,7 +12,7 @@ subprocess complexity.
 
 ## Bug Punch List (running across iterations)
 
-_Open / assigned / fixed / verified-clean entries appear here._
+- **[fixed, iter 1]** MCP `modify-quest` input schema missing `planningNotes`. Item 3 of the plan added `planningNotes` to the orchestrator's `modify-quest-input-contract.ts` but the MCP package has its OWN copy (mirroring the dual-contract pattern of `get-quest-input` and `get-planning-notes-input`). Without this, no caller can write planningNotes through MCP — blocking the entire PathSeeker walk. Fixed by adding planningNotes (with surfaceReports tombstone variant) to `packages/mcp/src/contracts/modify-quest-input/modify-quest-input-contract.ts`.
 
 ## Decisions Made (running across iterations)
 

@@ -507,6 +507,70 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  describe('planningNotes', () => {
+    it('VALID: {planningNotes: {scopeClassification}} => parses scopeClassification', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          scopeClassification: {
+            size: 'medium',
+            slicing: 'Slice A handles auth, Slice B handles session storage',
+            rationale: 'Two independent surfaces with a shared session contract',
+            classifiedAt: '2024-01-15T10:00:00.000Z',
+          },
+        },
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.planningNotes).toStrictEqual({
+        scopeClassification: {
+          size: 'medium',
+          slicing: 'Slice A handles auth, Slice B handles session storage',
+          rationale: 'Two independent surfaces with a shared session contract',
+          classifiedAt: '2024-01-15T10:00:00.000Z',
+        },
+      });
+    });
+
+    it('VALID: {planningNotes: {surfaceReports tombstone}} => parses tombstone with id + _delete only', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          surfaceReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+        },
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.planningNotes).toStrictEqual({
+        surfaceReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      });
+    });
+
+    it('VALID: {planningNotes: {}} => parses empty object via .partial()', () => {
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {},
+      });
+
+      const result = modifyQuestInputContract.parse(input);
+
+      expect(result.planningNotes).toStrictEqual({});
+    });
+
+    it('INVALID: {surfaceReports entry with invalid UUID id} => throws validation error', () => {
+      expect(() => {
+        return modifyQuestInputContract.parse({
+          questId: 'add-auth',
+          planningNotes: {
+            surfaceReports: [{ id: 'not-a-uuid', _delete: true }],
+          },
+        });
+      }).toThrow(/uuid/iu);
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
