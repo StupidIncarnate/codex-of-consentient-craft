@@ -36,6 +36,13 @@ Then begin Phase 1.
 - ALWAYS use the \`mcp__dungeonmaster__ask-user-question\` MCP tool to ask the user clarifying questions about spec details. However, you don't need to use the tool to ask the user if they approve a phase or not. Under that circumstance, just output "Does this look good for [phase] approval?".
 - ALWAYS follow the phase ordering. The quest needs to be filled in in a specific ordering for it to be successful.
 
+**\`modify-quest\` validates on every call.** Three layers run automatically:
+- **Per-status input allowlist:** only fields that make sense for the current status are accepted. \`steps\` can't be written during the spec phase; \`flows\` can't be written during \`in_progress\`; observables can't be embedded in nodes before \`flows_approved\`.
+- **Save-time invariants:** unique IDs, references resolve, no raw primitives in contracts. These can never be saved broken, mid-build or otherwise.
+- **Completeness checks** (transitions to \`review_flows\` or \`review_observables\`): required fields, branching, coverage, descriptions, rationale. Later transitions re-check earlier requirements — Phase 4 edits don't slip past Phase 2 invariants.
+
+Failures come back as a list of \`failedChecks\` with names and details. **Submit your work as a best-first attempt — don't pre-validate in your head.** The validator is authoritative and tells you exactly what to fix. The standalone \`validate-spec\` tool no longer exists.
+
 **NEVER do these things:**
 - NEVER enter plan mode or write implementation plans
 - NEVER read files directly - always use exploration sub-agents
@@ -138,7 +145,7 @@ Signals for \`operational\`:
 
 **Key rules:**
 - \`runtime\` flows MUST include both happy and sad paths at every decision point. A runtime flow with only the happy path is incomplete. \`operational\` flows may be linear task sequences — see the "Per-flow rule branching" section above for the operational relaxation (failure policy lives in \`designDecisions\`, not as per-decision branches).
-- Node IDs must be kebab-case (e.g., \`login-page\`, \`check-credentials\`, \`show-error\`).
+- Use kebab-case IDs for nodes, edges, and observables.
 - Do NOT include observables yet — leave \`observables: []\` on all nodes. Observables come in Phase 4.
 - Cross-flow references use \`"flowId:nodeId"\` format for edges that link between flows.
 
@@ -162,13 +169,13 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 1. **Update status** - Call \`modify-quest\` with \`status: 'explore_observables'\` to signal you are entering observable work.
 2. **Lock down tangible values** - For each flow node, get concrete values where needed (see Tangible Requirements section).
 3. **Embed observables in flow nodes** - Walk each flow path (happy path, error paths, edge cases) and create observables as flat assertions. Each observable has:
-    - \`id\`: kebab-case string (e.g., \`check-login-api-called\`)
+    - \`id\`: short identifier (e.g., \`check-login-api-called\`)
     - \`type\`: outcome type tag (\`ui-state\`, \`api-call\`, \`file-exists\`, \`process-state\`, \`log-output\`, \`environment\`, \`performance\`, \`cache-state\`, \`db-query\`, \`queue-message\`, \`external-api\`, \`custom\`)
     - \`description\`: concrete, testable outcome description
     - \`designRef\` (optional): reference to a design decision
 
     Observables are embedded directly in flow nodes via the \`observables\` array on each node. See the "Observable Format" section below for type-guidance per flow type and operational observable examples.
-4. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`type\` for branded type references and \`value\` for literal values. NEVER use raw primitives (string, number) as type references.
+4. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`type\` for branded type references and \`value\` for literal values.
 5. **Identify tooling needs** - Note any new packages required.
 6. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
 
@@ -189,12 +196,11 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
 ### Phase 5: Observables Approval Gate
 
-1. **Run validate-spec first.** Call the \`validate-spec\` MCP tool with \`{questId: "QUEST_ID"}\`. It returns \`{success, checks}\` with deterministic structural checks on the spec. If any check has \`passed: false\`, fix the issue via \`modify-quest\` and re-run until success is true. THEN spawn the gap reviewer for semantic review.
-2. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
-3. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
-4. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
-5. **Summarize for approval** - Brief summary of what was added/changed (counts, notable items). The user can see full details in their UI.
-6. **Get approval** - User must approve observables and contracts
+1. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
+2. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. When you need to ask the user questions, use the ask-user-question MCP tool. The user's answers will arrive as your next message when the session resumes.
+3. **Refresh quest state** - Call \`get-quest\` with \`stage: "spec"\` to see current state
+4. **Summarize for approval** - Brief summary of what was added/changed (counts, notable items). The user can see full details in their UI.
+5. **Get approval** - User must approve observables and contracts
 
 If the user requests changes or identifies gaps, call \`modify-quest\` with \`status: 'explore_observables'\` to return to exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to \`review_observables\` when ready for another review.
 
@@ -262,19 +268,13 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 - \`action\` — Operations, API calls, processing steps (mermaid: rectangle, blue when no observables)
 - \`terminal\` — End states, exit points (mermaid: rectangle, red when missing observables — gap indicator)
 
-**Node ID format:** kebab-case only (e.g., \`login-page\`, \`validate-credentials\`, \`show-dashboard\`). Regex: \`^[a-z][a-z0-9]*(-[a-z0-9]+)*$\`
-
-**Edge rules:**
-- Every edge MUST have an \`id\` field (kebab-case, e.g., \`form-to-submit\`, \`validate-invalid\`)
-- Every node must have at least one incoming or outgoing edge (except entry/exit)
-- Use \`label\` on edges for branch conditions (e.g., "yes"/"no", "valid"/"invalid", "200"/"401")
-- Cross-flow references use \`"flowId:nodeId"\` format in the \`from\` or \`to\` field
+**Edge labels:** Use \`label\` on edges for branch conditions (e.g., "yes"/"no", "valid"/"invalid", "200"/"401"). Cross-flow references use \`"flowId:nodeId"\` format in the \`from\` or \`to\` field.
 
 **Deep upsert:** \`modify-quest\` supports deep recursive upsert. You only need to send the nested path you're changing, not the entire structure. For example, to add an observable to a single node, send only that flow with that node — you don't need to echo all other flows/nodes.
 
 **Deleting entities:** Set \`_delete: true\` on any entity with an \`id\` to remove it. Works on flows, nodes, edges, observables, contracts, design decisions, etc.
 
-**Terminal node rule:** Every \`terminal\` node MUST eventually have at least one observable. Terminal nodes without observables show as red in the diagram — a visual gap indicator. Phase 2 leaves them empty; Phase 4 fills them in.
+**Terminal nodes** are visual gap indicators — they show red until observables fill them in during Phase 4. Phase 2 leaves \`observables: []\` on terminal nodes; Phase 4 walks back through and adds them.
 
 **\`entryPoint\` / \`exitPoints\` format** — Adapt to context:
 - Web: URL paths (\`/login\`, \`/dashboard/settings\`)
@@ -340,9 +340,7 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 \`\`\`
 
 **Common mistakes to avoid:**
-- Missing error branches in \`runtime\` flows (what if the API returns 500? what if the file doesn't exist?) — \`operational\` flows are exempt from per-decision sad paths; their failure policy lives in \`designDecisions\`
-- Dead-end nodes with no outgoing edge that aren't explicit terminal nodes
-- \`runtime\` flows that only show the happy path — every decision point needs a failure branch
+- Missing semantic error branches in \`runtime\` flows — think through what realistically goes wrong (API returns 500, file doesn't exist, user cancels) rather than just covering "every decision needs a branch" mechanically. \`operational\` flows are exempt from per-decision sad paths; their failure policy lives in \`designDecisions\`.
 - Overly abstract nodes ("Process data") instead of concrete actions ("Parse JSON response")
 - Using raw mermaid text instead of structured nodes/edges — the system generates mermaid automatically
 - Forcing sad-path branches onto \`operational\` task-sequence flows — a single retry loop at the terminal verify step is the canonical shape; do not invent per-task failure branches that do not exist at runtime
@@ -366,8 +364,6 @@ Multiple observables per node example:
   { "id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard" }
 ]
 \`\`\`
-
-**Observable IDs** must be kebab-case (e.g., \`check-login-api-called\`, \`verify-cookie-set\`).
 
 **\`type\` tags** are read by TWO downstream consumers:
 - **PathSeeker** uses them for file planning (which folder type owns the observable's implementation)
@@ -403,19 +399,18 @@ A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemas
 
 ### Contract Rules
 
-- \`type\` field = branded type references (e.g., "EmailAddress", "UserId"). NEVER raw primitives ("string", "number")
+- \`type\` field = branded type references (e.g., "EmailAddress", "UserId"). Use named contracts, not anonymous shapes.
 - \`value\` field = literal/fixed values (e.g., "POST", "/api/auth/login")
 - For \`existing\` contracts, use exploration agents to find the actual shape in the codebase
 - Properties support nesting for complex objects
 - Every data type that appears in observable outcomes should have a corresponding contract
-- Every contract MUST include a \`nodeId\` field linking it to the flow node where the contract is consumed or produced
 
 **\`nodeId\` linking guidance — which node type a contract links to:**
 - **Endpoint contracts** → \`action\` nodes (the node representing the API call)
 - **Data contracts** (request payloads, input shapes) → \`action\` or \`state\` nodes (wherever the data is sent or held)
 - **Response/result contracts** → \`state\` nodes that receive the response, or \`decision\` nodes that branch on the result
 
-**Example contract with \`nodeId\`:**
+**Example contract:**
 \`\`\`json
 {
   "name": "LoginEndpoint",

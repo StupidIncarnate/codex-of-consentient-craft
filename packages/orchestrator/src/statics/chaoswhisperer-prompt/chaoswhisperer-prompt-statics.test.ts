@@ -13,17 +13,22 @@ describe('chaoswhispererPromptStatics', () => {
     });
   });
 
-  it('VALID: Phase 5 => instructs calling validate-spec MCP tool before gap reviewer', () => {
-    const needle = 'Run validate-spec first';
+  it('VALID: prompt template => length matches the trimmed prompt size', () => {
     const { template } = chaoswhispererPromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const templateLength = template.length;
 
-    expect(foundSlice).toBe(needle);
+    expect(templateLength).toBe(33221);
   });
 
-  it('VALID: Phase 5 => references validate-spec MCP tool with questId payload', () => {
-    const needle = '`validate-spec` MCP tool with `{questId: "QUEST_ID"}`';
+  it('VALID: prompt template => Phase 5 no longer instructs calling validate-spec MCP tool', () => {
+    const removedNeedle = 'Run validate-spec first';
+    const { template } = chaoswhispererPromptStatics.prompt;
+
+    expect(template.indexOf(removedNeedle)).toBe(-1);
+  });
+
+  it('VALID: prompt template => documents modify-quest validation layers', () => {
+    const needle = '`modify-quest` validates on every call.';
     const { template } = chaoswhispererPromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
