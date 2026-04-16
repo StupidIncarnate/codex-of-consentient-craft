@@ -198,6 +198,42 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('EDGE: {planningNotes in args} => passes planningNotes through sanitization unchanged', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          planningNotes: {
+            scopeClassification: {
+              size: 'medium',
+              slicing: 'Slice A',
+              rationale: 'Two surfaces',
+              classifiedAt: '2024-01-15T10:00:00.000Z',
+            },
+          },
+          workItems: [{ id: 'sneaky-item', status: 'complete' }],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput();
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+        planningNotes: {
+          scopeClassification: {
+            size: 'medium',
+            slicing: 'Slice A',
+            rationale: 'Two surfaces',
+            classifiedAt: '2024-01-15T10:00:00.000Z',
+          },
+        },
+      });
+    });
+
     it('VALID: {failedChecks present} => prepends human-readable block above JSON payload', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({

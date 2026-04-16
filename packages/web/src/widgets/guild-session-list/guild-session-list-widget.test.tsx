@@ -131,6 +131,35 @@ describe('GuildSessionListWidget', () => {
       );
     });
 
+    it('VALID: {session with questStatus: seek_synth} => shows SEEK SYNTH with seek-synth color', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'seek-synth-session' });
+      const session = SessionListItemStub({
+        sessionId,
+        questStatus: 'seek_synth' as never,
+        questId: 'quest-ss' as never,
+      });
+      const filter = SessionFilterStub();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            sessions={[session]}
+            loading={false}
+            filter={filter}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('SEEK SYNTH');
+      expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
+        'rgb(167, 139, 250)',
+      );
+    });
+
     it('VALID: {session with questStatus: in_progress} => shows IN PROGRESS with primary color', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'in-progress-session' });

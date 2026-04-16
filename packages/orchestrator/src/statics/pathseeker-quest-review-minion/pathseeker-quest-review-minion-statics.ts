@@ -22,6 +22,26 @@ export const pathseekerQuestReviewMinionStatics = {
 
 ## Process
 
+### Findings Output Protocol (read first)
+
+You have no scratchpad tool. To keep findings in context for the final report, you MUST emit each step's findings as a text block IMMEDIATELY after completing that step, before moving to the next step. The Step 7 report build reads these blocks back from your own context.
+
+**Format for per-step findings (emit verbatim after each review step in Steps 3–6):**
+
+\`\`\`markdown
+#### Findings — Step [N]: [Step Name]
+
+- **[Critical|Warning|Info]**: [Issue title]
+  - Location: [step/flow/node/observable/contract ID]
+  - Detail: [what's wrong]
+  - Suggestion: [how to fix, if applicable]
+- ...
+
+(If a step has no findings, emit: "#### Findings — Step [N]: [Step Name]\\n\\nNo issues.")
+\`\`\`
+
+Steps 1 and 2 are setup — they do not produce findings and do not need a Findings block. Do NOT skip emitting a Findings block for Steps 3–6 — even an empty one. Skipping breaks the assembly contract.
+
 ### Step 1: Load Project Standards
 
 Call these MCP tools to understand conventions before reviewing. Batch them in parallel:
@@ -49,13 +69,12 @@ Fetch the quest in stages via MCP tools to manage context size:
 
 Verify the logical flow from user intent to implementation:
 
-1. **Flow nodes -> Observables**: Do flow nodes have observables where behavior needs verification? Are there terminal nodes that should have observables but don't?
+1. **Flow nodes -> Observables**: Do flow nodes have observables where behavior needs verification? (Terminal-node observable coverage and contract→nodeId anchoring are enforced deterministically by save-time invariants — do not duplicate.)
 2. **Observables -> Steps**: Does every observable get satisfied by at least one step via \`observablesSatisfied\`? (Not all steps need observables — helper steps, contracts, and statics may have empty \`observablesSatisfied\`.)
 3. **Steps -> focusFile**: Does each step's focusFile path match the folder type implied by the step's name and contracts?
-4. **Contracts -> Flow Nodes**: Verify every contract's \`nodeId\` references an existing flow node. A contract without a \`nodeId\` is a spec gap — flag it. A contract whose \`nodeId\` does not match any node in any flow is orphaned — flag it.
-5. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
-6. **Design decisions -> Steps**: Are design decisions reflected in the steps that implement related flow nodes? If a decision says "use WebSocket," do the relevant steps' assertions and \`uses[]\` align with that choice?
-7. **Flow edges -> Completeness**: Do edges cover both happy and sad paths through the flow graph?
+4. **Contracts -> Steps**: Do step inputContracts/outputContracts reference contracts that make sense for what the step does? Does a step claiming to "validate credentials" actually list LoginCredentials in its inputContracts?
+5. **Design decisions -> Steps**: Are design decisions reflected in the steps that implement related flow nodes? If a decision says "use WebSocket," do the relevant steps' assertions and \`uses[]\` align with that choice?
+6. **Flow edges -> Completeness**: Do edges cover both happy and sad paths through the flow graph?
 
 ### Step 4: Check Assertion Completeness and Coherence
 
@@ -103,7 +122,7 @@ Identify anything an implementer would have to guess at:
 
 ### Step 7: Build the Markdown Report
 
-Format your findings as the markdown below. This becomes the \`rawReport\` field when you write to \`planningNotes.reviewReport\`.
+Re-read the per-step Findings blocks you emitted in Steps 3–6 from your own context. Group every entry by severity (Critical / Warning / Info) — NOT by step. Within each severity, dedupe entries that surfaced the same underlying issue from multiple angles (e.g., an assertion gap caught in both Step 4 and Step 6). Then format the consolidated findings as the markdown below. This becomes the \`rawReport\` field when you write to \`planningNotes.reviewReport\`.
 
 \`\`\`markdown
 ## Pathseeker Quest Review Report: [Quest Title]

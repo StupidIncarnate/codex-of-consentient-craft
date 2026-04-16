@@ -16,6 +16,10 @@ describe('emberDepthsThemeStatics', () => {
         danger: '#ef4444',
         'loot-gold': '#fbbf24',
         'loot-rare': '#e879f9',
+        'seek-scope': '#818cf8',
+        'seek-synth': '#a78bfa',
+        'seek-walk': '#c084fc',
+        'seek-plan': '#f472b6',
       },
       typography: {
         font: 'monospace',

@@ -17,7 +17,7 @@ describe('chaoswhispererPromptStatics', () => {
     const { template } = chaoswhispererPromptStatics.prompt;
     const templateLength = template.length;
 
-    expect(templateLength).toBe(33221);
+    expect(templateLength).toBe(28813);
   });
 
   it('VALID: prompt template => Phase 5 no longer instructs calling validate-spec MCP tool', () => {
