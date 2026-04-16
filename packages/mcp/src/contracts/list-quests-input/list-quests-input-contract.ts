@@ -11,6 +11,7 @@ export const listQuestsInputContract = z
   .object({
     guildId: z.string().uuid().describe('The guild ID to list quests for').brand<'GuildId'>(),
   })
+  .strict()
   .brand<'ListQuestsInput'>();
 
 export type ListQuestsInput = z.infer<typeof listQuestsInputContract>;

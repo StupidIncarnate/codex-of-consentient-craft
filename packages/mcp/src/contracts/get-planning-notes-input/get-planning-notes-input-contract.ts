@@ -32,6 +32,7 @@ export const getPlanningNotesInputContract = z
       )
       .optional(),
   })
+  .strict()
   .brand<'GetPlanningNotesInput'>();
 
 export type GetPlanningNotesInput = z.infer<typeof getPlanningNotesInputContract>;

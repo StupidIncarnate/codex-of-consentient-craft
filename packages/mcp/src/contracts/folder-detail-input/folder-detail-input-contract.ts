@@ -8,8 +8,10 @@
 import { z } from 'zod';
 import { folderTypeContract } from '@dungeonmaster/shared/contracts';
 
-export const folderDetailInputContract = z.object({
-  folderType: folderTypeContract.describe('Type of folder to get details for'),
-});
+export const folderDetailInputContract = z
+  .object({
+    folderType: folderTypeContract.describe('Type of folder to get details for'),
+  })
+  .strict();
 
 export type FolderDetailInput = z.infer<typeof folderDetailInputContract>;

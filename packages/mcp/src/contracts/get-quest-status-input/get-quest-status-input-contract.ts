@@ -15,6 +15,7 @@ export const getQuestStatusInputContract = z
       .describe('The process ID returned from start-quest')
       .brand<'ProcessId'>(),
   })
+  .strict()
   .brand<'GetQuestStatusInput'>();
 
 export type GetQuestStatusInput = z.infer<typeof getQuestStatusInputContract>;

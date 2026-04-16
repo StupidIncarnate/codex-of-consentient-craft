@@ -106,6 +106,17 @@ describe('ArchitectureHandleResponder', () => {
         content: [{ type: 'text', text: result.content[0]!.text }],
       });
     });
+
+    it('INVALID: {tool: get-folder-detail, unknown key} => throws Unrecognized key error', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-folder-detail' }),
+          args: { folderType: 'brokers', path: '/some/path' },
+        }),
+      ).rejects.toThrow(/Unrecognized key/u);
+    });
   });
 
   describe('get-project-map', () => {

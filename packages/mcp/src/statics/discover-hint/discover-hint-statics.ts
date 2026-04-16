@@ -16,4 +16,9 @@ export const discoverHintStatics = {
   explanation: 'Hint: your glob matched these directories but discover returns files only.',
   /** Suggestion prefix. */
   suggestion: 'Try appending "/**" to descend into them:',
+  /** Header shown when glob matched files but grep filtered them all out. */
+  grepNoMatchHeader: '(no content matches)',
+  /** Explanation shown when grep returned zero hits across otherwise-matching files. */
+  grepNoMatchExplanation:
+    'Your glob matched files, but your grep pattern did not match any content.',
 } as const;

@@ -11,80 +11,105 @@ import * as os from 'os';
 import * as path from 'path';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+import {
+  AskUserQuestionToolResultStreamLineStub,
+  AssistantAskUserQuestionStreamLineStub,
+  AssistantReadToolUseStreamLineStub,
+  AssistantTaskToolUseStreamLineStub,
+  AssistantTextStreamLineStub,
+  SuccessfulToolResultStreamLineStub,
+  TaskToolResultStreamLineStub,
+  UserTextStringStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
 
 const buildAnsweredClarificationLines = (): ReturnType<typeof JSON.stringify>[] => {
   const toolUseId = 'toolu_e2e_clarify_history';
 
   return [
-    JSON.stringify({
-      type: 'user',
-      message: { role: 'user', content: 'Build the quest feature' },
-    }),
-    JSON.stringify({
-      type: 'assistant',
-      message: {
-        content: [{ type: 'text', text: "I'll analyze the requirements for this feature." }],
-      },
-    }),
-    JSON.stringify({
-      type: 'assistant',
-      message: {
-        content: [
-          {
-            type: 'tool_use',
-            id: toolUseId,
-            name: 'mcp__dungeonmaster__ask-user-question',
-            input: {
-              questions: [
-                {
-                  question: 'Which database do you want to use?',
-                  header: 'Database Selection',
-                  options: [
-                    { label: 'PostgreSQL', description: 'Relational database with JSONB support' },
-                    { label: 'SQLite', description: 'Lightweight file-based database' },
-                  ],
-                  multiSelect: false,
-                },
-              ],
+    JSON.stringify(
+      UserTextStringStreamLineStub({
+        message: { role: 'user', content: 'Build the quest feature' },
+      }),
+    ),
+    JSON.stringify(
+      AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: "I'll analyze the requirements for this feature." }],
+        },
+      }),
+    ),
+    JSON.stringify(
+      AssistantAskUserQuestionStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: toolUseId,
+              name: 'mcp__dungeonmaster__ask-user-question',
+              input: {
+                questions: [
+                  {
+                    question: 'Which database do you want to use?',
+                    header: 'Database Selection',
+                    options: [
+                      {
+                        label: 'PostgreSQL',
+                        description: 'Relational database with JSONB support',
+                      },
+                      { label: 'SQLite', description: 'Lightweight file-based database' },
+                    ],
+                    multiSelect: false,
+                  },
+                ],
+              },
             },
-          },
-        ],
-      },
-    }),
-    JSON.stringify({
-      type: 'user',
-      message: {
-        role: 'user',
-        content: [
-          {
-            type: 'tool_result',
-            tool_use_id: toolUseId,
-            content: 'Questions sent to user. Their answers will arrive as your next user message.',
-          },
-        ],
-      },
-    }),
-    JSON.stringify({
-      type: 'assistant',
-      message: {
-        content: [{ type: 'text', text: "I'll wait for your response before proceeding." }],
-      },
-    }),
-    JSON.stringify({
-      type: 'user',
-      message: { role: 'user', content: 'Database Selection: PostgreSQL' },
-    }),
-    JSON.stringify({
-      type: 'assistant',
-      message: {
-        content: [
-          {
-            type: 'text',
-            text: 'Great choice! Phase 1: Setting up PostgreSQL schema. Phase 2: Creating migrations. Phase 3: Wiring up the broker layer.',
-          },
-        ],
-      },
-    }),
+          ],
+        },
+      }),
+    ),
+    JSON.stringify(
+      AskUserQuestionToolResultStreamLineStub({
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: toolUseId,
+              content:
+                'Questions sent to user. Their answers will arrive as your next user message.',
+            },
+          ],
+        },
+      }),
+    ),
+    JSON.stringify(
+      AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: "I'll wait for your response before proceeding." }],
+        },
+      }),
+    ),
+    JSON.stringify(
+      UserTextStringStreamLineStub({
+        message: { role: 'user', content: 'Database Selection: PostgreSQL' },
+      }),
+    ),
+    JSON.stringify(
+      AssistantTextStreamLineStub({
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'text',
+              text: 'Great choice! Phase 1: Setting up PostgreSQL schema. Phase 2: Creating migrations. Phase 3: Wiring up the broker layer.',
+            },
+          ],
+        },
+      }),
+    ),
   ];
 };
 
@@ -103,6 +128,17 @@ export const sessionHarness = ({
     userMessage: string;
     mainAssistantText: string;
     subagentText: string;
+  }) => void;
+  createSubagentSessionWithInternalTool: (params: {
+    sessionId: string;
+    agentId: string;
+    taskToolUseId: string;
+    internalToolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    subagentToolName: string;
+    subagentToolInput: Record<string, unknown>;
+    subagentToolResult: string;
   }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
@@ -128,10 +164,9 @@ export const sessionHarness = ({
 
     fs.mkdirSync(jsonlDir, { recursive: true });
 
-    const entry = JSON.stringify({
-      type: 'user',
-      message: { role: 'user', content: userMessage },
-    });
+    const entry = JSON.stringify(
+      UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+    );
     fs.writeFileSync(jsonlPath, `${entry}\n`);
   };
 
@@ -167,39 +202,118 @@ export const sessionHarness = ({
     const jsonlDir = getJsonlDir();
 
     const mainLines = [
+      JSON.stringify(
+        UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+      ),
+      JSON.stringify(
+        AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: toolUseId,
+                name: 'Task',
+                input: { description: 'Sub-agent work', prompt: 'Do the thing' },
+              },
+            ],
+          },
+        }),
+      ),
+      JSON.stringify(
+        TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+          toolUseResult: { agentId },
+        }),
+      ),
+      JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: mainAssistantText }],
+            usage: { input_tokens: 200, output_tokens: 80 },
+          },
+        }),
+      ),
+    ];
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+
+    const subagentLines = [
+      JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: subagentText }],
+            usage: { input_tokens: 50, output_tokens: 20 },
+          },
+        }),
+      ),
+    ];
+
+    fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), `${subagentLines.join('\n')}\n`);
+  };
+
+  const createSubagentSessionWithInternalTool = ({
+    sessionId,
+    agentId,
+    taskToolUseId,
+    internalToolUseId,
+    userMessage,
+    taskDescription,
+    subagentToolName,
+    subagentToolInput,
+    subagentToolResult,
+  }: {
+    sessionId: string;
+    agentId: string;
+    taskToolUseId: string;
+    internalToolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    subagentToolName: string;
+    subagentToolInput: Record<string, unknown>;
+    subagentToolResult: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+
+    const mainLines = [
       JSON.stringify({
-        type: 'user',
-        message: { role: 'user', content: userMessage },
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        timestamp: '2026-04-15T20:00:00.000Z',
       }),
       JSON.stringify({
-        type: 'assistant',
-        message: {
-          role: 'assistant',
-          content: [
-            {
-              type: 'tool_use',
-              id: toolUseId,
-              name: 'Task',
-              input: { description: 'Sub-agent work', prompt: 'Do the thing' },
-            },
-          ],
-        },
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: taskToolUseId,
+                name: 'Task',
+                input: { description: taskDescription, prompt: 'Do the thing' },
+              },
+            ],
+          },
+        }),
+        timestamp: '2026-04-15T20:00:01.000Z',
       }),
       JSON.stringify({
-        type: 'user',
-        message: {
-          role: 'user',
-          content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-        },
-        toolUseResult: { agentId },
-      }),
-      JSON.stringify({
-        type: 'assistant',
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: mainAssistantText }],
-          usage: { input_tokens: 200, output_tokens: 80 },
-        },
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: taskToolUseId, content: 'done' }],
+          },
+          toolUseResult: { agentId },
+        }),
+        timestamp: '2026-04-15T20:00:05.000Z',
       }),
     ];
 
@@ -211,16 +325,42 @@ export const sessionHarness = ({
 
     const subagentLines = [
       JSON.stringify({
-        type: 'assistant',
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: subagentText }],
-          usage: { input_tokens: 50, output_tokens: 20 },
-        },
+        ...AssistantReadToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: internalToolUseId,
+                name: subagentToolName,
+                input: subagentToolInput,
+              },
+            ],
+          },
+        }),
+        timestamp: '2026-04-15T20:00:02.000Z',
+      }),
+      JSON.stringify({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: internalToolUseId,
+                content: subagentToolResult,
+              },
+            ],
+          },
+        }),
+        timestamp: '2026-04-15T20:00:03.000Z',
       }),
     ];
 
-    fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), `${subagentLines.join('\n')}\n`);
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${agentId}.jsonl`),
+      `${subagentLines.join('\n')}\n`,
+    );
   };
 
   const cleanSessionFiles = (): void => {
@@ -250,18 +390,18 @@ export const sessionHarness = ({
     createMultiEntrySessionFile({
       sessionId,
       lines: [
-        JSON.stringify({
-          type: 'user',
-          message: { role: 'user', content: 'Build the feature' },
-        }),
-        JSON.stringify({
-          type: 'assistant',
-          message: {
-            role: 'assistant',
-            content: [{ type: 'text', text }],
-            usage: { input_tokens: 100, output_tokens: 50 },
-          },
-        }),
+        JSON.stringify(
+          UserTextStringStreamLineStub({ message: { role: 'user', content: 'Build the feature' } }),
+        ),
+        JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text }],
+              usage: { input_tokens: 100, output_tokens: 50 },
+            },
+          }),
+        ),
       ],
     });
   };
@@ -282,6 +422,7 @@ export const sessionHarness = ({
     createSessionFile,
     createMultiEntrySessionFile,
     createSubagentSessionFiles,
+    createSubagentSessionWithInternalTool,
     cleanSessionFiles,
     cleanSessionDirectory,
     createSessionWithAssistantText,

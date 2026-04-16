@@ -92,5 +92,14 @@ describe('signalBackInputContract', () => {
         signalBackInputContract.parse({});
       }).toThrow(/Required/u);
     });
+
+    it('INVALID: {unknown key} => throws Unrecognized key error', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          signal: 'complete',
+          status: 'done',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
+    });
   });
 });

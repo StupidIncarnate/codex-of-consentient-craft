@@ -482,6 +482,17 @@ describe('QuestHandleResponder', () => {
         isError: true,
       });
     });
+
+    it('INVALID: {unknown key} => throws Unrecognized key error', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'start-quest' }),
+          args: { questId: 'add-auth', guild: 'test' },
+        }),
+      ).rejects.toThrow(/Unrecognized key/u);
+    });
   });
 
   describe('get-quest-status', () => {
@@ -649,27 +660,15 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {questId, invalid section} => ignores section and returns default', async () => {
+    it('INVALID: {questId, invalid section} => throws validation error', async () => {
       const proxy = QuestHandleResponderProxy();
 
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-planning-notes' }),
-        args: { questId: 'test-quest-id', section: 'bogus' },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: true, data: { surfaceReports: [] } },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-      });
-      expect(proxy.getLastGetPlanningNotesInput()).toStrictEqual({ questId: 'test-quest-id' });
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-planning-notes' }),
+          args: { questId: 'test-quest-id', section: 'bogus' },
+        }),
+      ).rejects.toThrow(/Invalid enum value/u);
     });
 
     it('VALID: {unsuccessful result} => returns isError true', async () => {

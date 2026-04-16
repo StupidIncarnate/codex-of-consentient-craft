@@ -32,5 +32,14 @@ describe('getQuestInputContract', () => {
         return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
       }).toThrow(/Invalid enum value/u);
     });
+
+    it('INVALID: {unknown key} => throws Unrecognized key error', () => {
+      expect(() => {
+        return getQuestInputContract.parse({
+          questId: 'add-auth',
+          path: '/some/path',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
+    });
   });
 });

@@ -78,5 +78,14 @@ describe('getPlanningNotesInputContract', () => {
         return getPlanningNotesInputContract.parse({ questId: 'add-auth', section: 'unknown' });
       }).toThrow(/invalid_enum_value/u);
     });
+
+    it('INVALID: {unknown key} => throws Unrecognized key error', () => {
+      expect(() => {
+        return getPlanningNotesInputContract.parse({
+          questId: 'add-auth',
+          stage: 'planning',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
+    });
   });
 });

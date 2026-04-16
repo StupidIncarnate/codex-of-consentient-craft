@@ -1,4 +1,4 @@
-import { folderDetailInputContract as _folderDetailInputContract } from './folder-detail-input-contract';
+import { folderDetailInputContract } from './folder-detail-input-contract';
 import { FolderDetailInputStub } from './folder-detail-input.stub';
 
 describe('folderDetailInputContract', () => {
@@ -30,5 +30,11 @@ describe('folderDetailInputContract', () => {
     const result = FolderDetailInputStub({ folderType: 'adapters' });
 
     expect(result).toStrictEqual({ folderType: 'adapters' });
+  });
+
+  it('INVALID: {folderType, extra} => throws Unrecognized key error', () => {
+    expect(() => {
+      folderDetailInputContract.parse({ folderType: 'brokers', path: '/some/path' } as never);
+    }).toThrow(/Unrecognized key/u);
   });
 });

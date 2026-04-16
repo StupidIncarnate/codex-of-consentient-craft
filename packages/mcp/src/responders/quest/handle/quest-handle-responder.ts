@@ -6,11 +6,7 @@
  * // Returns ToolResponse with quest data
  */
 
-import {
-  questIdContract,
-  processIdContract,
-  guildIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorGetPlanningNotesAdapter } from '../../../adapters/orchestrator/get-planning-notes/orchestrator-get-planning-notes-adapter';
@@ -23,6 +19,10 @@ import type { ToolResponse } from '../../../contracts/tool-response/tool-respons
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getPlanningNotesInputContract } from '../../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
+import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
+import { listQuestsInputContract } from '../../../contracts/list-quests-input/list-quests-input-contract';
+import { startQuestInputContract } from '../../../contracts/start-quest-input/start-quest-input-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -34,12 +34,7 @@ export const QuestHandleResponder = async ({
   args: Record<string, unknown>;
 }): Promise<ToolResponse> => {
   if (tool === 'get-quest') {
-    const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const stageRaw: unknown = Reflect.get(args, 'stage');
-    const formatRaw: unknown = Reflect.get(args, 'format');
-    const questId = String(questIdRaw);
-    const stage = typeof stageRaw === 'string' ? stageRaw : undefined;
-    const format = formatRaw === 'json' ? 'json' : 'text';
+    const { questId, stage, format } = getQuestInputContract.parse(args);
 
     try {
       const result = await orchestratorGetQuestAdapter({
@@ -140,8 +135,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'start-quest') {
-    const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const questId = questIdContract.parse(questIdRaw);
+    const { questId } = startQuestInputContract.parse(args);
 
     try {
       const processId = await orchestratorStartQuestAdapter({ questId });
@@ -172,8 +166,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'get-quest-status') {
-    const processIdRaw: unknown = Reflect.get(args, 'processId');
-    const processId = processIdContract.parse(processIdRaw);
+    const { processId } = getQuestStatusInputContract.parse(args);
 
     try {
       const status = orchestratorGetQuestStatusAdapter({ processId });
@@ -204,8 +197,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'list-quests') {
-    const guildIdRaw: unknown = Reflect.get(args, 'guildId');
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = listQuestsInputContract.parse(args);
 
     try {
       const quests = await orchestratorListQuestsAdapter({ guildId });
@@ -265,14 +257,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'get-planning-notes') {
-    const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const sectionRaw: unknown = Reflect.get(args, 'section');
-    const questId = String(questIdRaw);
-    const parsed = getPlanningNotesInputContract.safeParse({
-      questId,
-      ...(sectionRaw !== undefined && { section: sectionRaw }),
-    });
-    const section = parsed.success ? parsed.data.section : undefined;
+    const { questId, section } = getPlanningNotesInputContract.parse(args);
 
     try {
       const notes = await orchestratorGetPlanningNotesAdapter({

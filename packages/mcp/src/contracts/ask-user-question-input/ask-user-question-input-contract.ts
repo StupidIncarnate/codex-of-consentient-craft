@@ -7,22 +7,24 @@
  */
 import { z } from 'zod';
 
-export const askUserQuestionInputContract = z.object({
-  questions: z
-    .array(
-      z.object({
-        question: z.string().min(1).brand<'AskQuestionText'>(),
-        header: z.string().brand<'AskQuestionHeader'>(),
-        options: z.array(
-          z.object({
-            label: z.string().min(1).brand<'AskOptionLabel'>(),
-            description: z.string().brand<'AskOptionDescription'>(),
-          }),
-        ),
-        multiSelect: z.boolean(),
-      }),
-    )
-    .min(1),
-});
+export const askUserQuestionInputContract = z
+  .object({
+    questions: z
+      .array(
+        z.object({
+          question: z.string().min(1).brand<'AskQuestionText'>(),
+          header: z.string().brand<'AskQuestionHeader'>(),
+          options: z.array(
+            z.object({
+              label: z.string().min(1).brand<'AskOptionLabel'>(),
+              description: z.string().brand<'AskOptionDescription'>(),
+            }),
+          ),
+          multiSelect: z.boolean(),
+        }),
+      )
+      .min(1),
+  })
+  .strict();
 
 export type AskUserQuestionInput = z.infer<typeof askUserQuestionInputContract>;

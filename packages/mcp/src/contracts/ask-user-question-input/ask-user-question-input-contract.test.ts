@@ -209,5 +209,21 @@ describe('askUserQuestionInputContract', () => {
         });
       }).toThrow(/Expected boolean/u);
     });
+
+    it('INVALID: {unknown top-level key} => throws Unrecognized key error', () => {
+      expect(() => {
+        askUserQuestionInputContract.parse({
+          questions: [
+            {
+              question: 'Test?',
+              header: 'Test',
+              options: [],
+              multiSelect: false,
+            },
+          ],
+          extraField: 'should fail',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
+    });
   });
 });

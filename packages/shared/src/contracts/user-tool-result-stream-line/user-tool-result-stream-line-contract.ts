@@ -21,6 +21,11 @@ export const userToolResultStreamLineContract = z.object({
       }),
     ),
   }),
+  toolUseResult: z
+    .object({
+      agentId: z.string().brand<'AgentIdCorrelation'>().optional(),
+    })
+    .optional(),
 });
 
 export type UserToolResultStreamLine = z.infer<typeof userToolResultStreamLineContract>;

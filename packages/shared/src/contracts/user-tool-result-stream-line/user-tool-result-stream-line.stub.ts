@@ -95,3 +95,53 @@ export const TextOnlyUserStreamLineStub = ({
     },
     ...props,
   });
+
+/**
+ * Task tool result closing out a sub-agent dispatch - carries toolUseResult.agentId.
+ * Emitted in the PARENT session's JSONL after a Task tool completes; the `toolUseResult.agentId`
+ * field correlates this result back to the subagent's JSONL file. The chat-line processor
+ * uses this field to stamp `agentId` onto the matching assistant Task tool_use entry.
+ */
+export const TaskToolResultStreamLineStub = ({
+  ...props
+}: StubArgument<UserToolResultStreamLine> = {}): UserToolResultStreamLine =>
+  userToolResultStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01TaskDispatch7890abcd',
+          content: 'done',
+        },
+      ],
+    },
+    toolUseResult: { agentId: 'subagent-correlation-id' },
+    ...props,
+  });
+
+/**
+ * ask-user-question tool result - MCP tool acknowledgement that the question was sent to the user.
+ * Emitted immediately after the assistant invokes `mcp__dungeonmaster__ask-user-question`. The
+ * assistant then pauses until the user answers via the UI; the answer arrives as the NEXT user text
+ * message (not as a tool_result). Tests exercising the clarification flow must pair this with the
+ * assistant tool_use stub and a following UserTextStringStreamLineStub for the user's answer.
+ */
+export const AskUserQuestionToolResultStreamLineStub = ({
+  ...props
+}: StubArgument<UserToolResultStreamLine> = {}): UserToolResultStreamLine =>
+  userToolResultStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01AskUserQuestion7890',
+          content: 'Questions sent to user. Their answers will arrive as your next user message.',
+        },
+      ],
+    },
+    ...props,
+  });

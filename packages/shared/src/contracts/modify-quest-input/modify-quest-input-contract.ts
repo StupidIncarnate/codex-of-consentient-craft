@@ -139,6 +139,7 @@ export const modifyQuestInputContract = z
       )
       .optional(),
   })
+  .strict()
   .brand<'ModifyQuestInput'>();
 
 export type ModifyQuestInput = z.infer<typeof modifyQuestInputContract>;

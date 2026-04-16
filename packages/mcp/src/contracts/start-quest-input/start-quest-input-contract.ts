@@ -11,6 +11,7 @@ export const startQuestInputContract = z
   .object({
     questId: z.string().min(1).describe('The ID of the quest to start').brand<'QuestId'>(),
   })
+  .strict()
   .brand<'StartQuestInput'>();
 
 export type StartQuestInput = z.infer<typeof startQuestInputContract>;

@@ -6,7 +6,6 @@
  * // Returns ToolResponse with architecture content
  */
 
-import type { FolderType } from '@dungeonmaster/shared/contracts';
 import {
   architectureOverviewBroker,
   architectureProjectMapBroker,
@@ -20,6 +19,7 @@ import { folderConstraintsState } from '../../../state/folder-constraints/folder
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
+import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -59,7 +59,7 @@ export const ArchitectureHandleResponder = async ({
   }
 
   if (tool === 'get-folder-detail') {
-    const folderType = Reflect.get(args, 'folderType') as FolderType;
+    const { folderType } = folderDetailInputContract.parse(args);
     const supplementalConstraints = folderConstraintsState.get({ folderType });
 
     const result = architectureFolderDetailBroker({

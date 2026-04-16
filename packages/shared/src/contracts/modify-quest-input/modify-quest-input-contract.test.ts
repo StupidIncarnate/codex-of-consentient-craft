@@ -22,4 +22,13 @@ describe('modifyQuestInputContract', () => {
       return modifyQuestInputContract.parse({ questId: '' });
     }).toThrow(/too_small/u);
   });
+
+  it('INVALID: {unknown key} => throws Unrecognized key error', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        unknownField: 'should fail',
+      } as never);
+    }).toThrow(/Unrecognized key/u);
+  });
 });

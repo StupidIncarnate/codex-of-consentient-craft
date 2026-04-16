@@ -75,6 +75,10 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
               Reflect.set(parsed, 'agentId', parsedAgentId);
             }
           }
+
+          if (agentId !== undefined && Reflect.get(parsed, 'agentId') === undefined) {
+            Reflect.set(parsed, 'agentId', agentId);
+          }
         }
 
         if (entryType === 'assistant') {

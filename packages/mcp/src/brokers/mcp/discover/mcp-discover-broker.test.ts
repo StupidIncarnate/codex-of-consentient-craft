@@ -271,6 +271,37 @@ describe('mcpDiscoverBroker', () => {
         count: 0,
       });
     });
+
+    it('VALID: {glob matches files, grep filters all out} => returns grep-specific hint, not directory hint', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+
+      const pattern = GlobPatternStub({
+        value: `${process.cwd()}/packages/web/src/**`,
+      });
+      const filePath1 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file1.ts` });
+      const filePath2 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file2.ts` });
+      const filePath3 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file3.ts` });
+
+      brokerProxy.setupGrepFilteredEmpty({
+        filePaths: [filePath1, filePath2, filePath3],
+        pattern,
+      });
+
+      const input = DiscoverInputStub({
+        glob: 'packages/web/src/**' as never,
+        grep: 'nonexistent-token' as never,
+      });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [
+          '(no content matches)',
+          '',
+          'Your glob matched files, but your grep pattern did not match any content. Glob matched 3 file(s).',
+        ].join('\n'),
+        count: 0,
+      });
+    });
   });
 
   describe('multi-dot files', () => {

@@ -1,10 +1,13 @@
 import { assistantStreamLineContract } from './assistant-stream-line-contract';
 import {
-  AssistantTextStreamLineStub,
-  AssistantToolUseStreamLineStub,
-  AssistantToolResultStreamLineStub,
+  AssistantAskUserQuestionStreamLineStub,
   AssistantMixedContentStreamLineStub,
+  AssistantReadToolUseStreamLineStub,
+  AssistantTaskToolUseStreamLineStub,
+  AssistantTextStreamLineStub,
   AssistantThinkingStreamLineStub,
+  AssistantToolResultStreamLineStub,
+  AssistantToolUseStreamLineStub,
 } from './assistant-stream-line.stub';
 
 describe('assistantStreamLineContract', () => {
@@ -109,6 +112,88 @@ describe('assistantStreamLineContract', () => {
       const result = assistantStreamLineContract.parse(streamLine);
 
       expect(result.message.usage).toBe(undefined);
+    });
+
+    it('VALID: {Task tool_use content} => parses Task dispatch with description, prompt, subagent_type', () => {
+      const streamLine = AssistantTaskToolUseStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_01TaskDispatch7890abcd',
+              name: 'Task',
+              input: {
+                description: 'Explore the auth flow',
+                prompt: 'Research the auth system and report back with file paths and purposes.',
+                subagent_type: 'Explore',
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {ask-user-question tool_use} => parses MCP clarification invocation', () => {
+      const streamLine = AssistantAskUserQuestionStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_01AskUserQuestion7890',
+              name: 'mcp__dungeonmaster__ask-user-question',
+              input: {
+                questions: [
+                  {
+                    question: 'Which database do you want to use?',
+                    header: 'Database Selection',
+                    options: [
+                      {
+                        label: 'PostgreSQL',
+                        description: 'Relational database with JSONB support',
+                      },
+                      { label: 'SQLite', description: 'Lightweight file-based database' },
+                    ],
+                    multiSelect: false,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {Read tool_use content} => parses Read invocation with file_path', () => {
+      const streamLine = AssistantReadToolUseStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_01ReadFile7890abcd',
+              name: 'Read',
+              input: { file_path: '/src/index.ts' },
+            },
+          ],
+        },
+      });
     });
   });
 

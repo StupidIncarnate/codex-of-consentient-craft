@@ -5,7 +5,7 @@
  * const hits = contentGrepTransformer({ contents: FileContentsStub({ value: 'line1\nERROR here\nline3' }), pattern: GrepPatternStub({ value: 'ERROR' }) });
  * // Returns [{ line: 2, text: 'ERROR here' }]
  *
- * WHEN-TO-USE: Default is literal substring match. Opt into regex via `re:<pattern>` prefix or leading inline flags like `(?i)foo`.
+ * WHEN-TO-USE: Default is regex (like grep). Invalid regex falls back to escaped literal. Use `re:<pattern>` prefix or `(?i)foo` inline flags to make intent explicit.
  */
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { GrepHit } from '../../contracts/grep-hit/grep-hit-contract';

@@ -9,13 +9,17 @@
 import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
+import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
+import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { ToolRowWidget } from '../tool-row/tool-row-widget';
+
+type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 
 export interface SubagentChainWidgetProps {
   group: ChatEntryGroup;
@@ -44,7 +48,7 @@ export const SubagentChainWidget = ({
       : `${String(group.entryCount)} entries, ${formattedTokens} context`;
 
   return (
-    <Box>
+    <Box data-testid="SUBAGENT_CHAIN">
       <Box
         data-testid="SUBAGENT_CHAIN_HEADER"
         onClick={() => {
@@ -83,24 +87,38 @@ export const SubagentChainWidget = ({
             const singleEntries = group.innerGroups
               .filter((ig) => ig.kind === 'single')
               .map((ig) => ig.entry);
-            const mergedItems = singleEntries.map((entry) =>
-              mergedChatItemContract.parse({ kind: 'entry', entry }),
-            );
+            const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
 
-            let annotationIndex = 0;
+            return mergedItems.map((item, index) => {
+              const annotation = annotations[index];
 
-            return group.innerGroups.map((innerGroup, index) => {
-              if (innerGroup.kind !== 'single') return null;
+              if (item.kind === 'tool-pair') {
+                const toolUseEntry = item.toolUse;
 
-              const { entry } = innerGroup;
-              const annotation = annotations[annotationIndex];
-              annotationIndex += 1;
+                return (
+                  <ToolRowWidget
+                    key={`inner-${String(index)}`}
+                    toolUse={toolUseEntry as Extract<typeof toolUseEntry, { type: 'tool_use' }>}
+                    {...(item.toolResult === null
+                      ? {}
+                      : { toolResult: item.toolResult as ToolResultEntry })}
+                    {...(annotation?.tokenBadgeLabel === undefined ||
+                    annotation.tokenBadgeLabel === null
+                      ? {}
+                      : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
+                    {...(annotation?.resultTokenBadgeLabel === undefined ||
+                    annotation.resultTokenBadgeLabel === null
+                      ? {}
+                      : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
+                  />
+                );
+              }
 
               return (
                 <ChatMessageWidget
                   key={`inner-${String(index)}`}
-                  entry={entry}
+                  entry={item.entry}
                   {...(annotation?.tokenBadgeLabel === undefined ||
                   annotation.tokenBadgeLabel === null
                     ? {}

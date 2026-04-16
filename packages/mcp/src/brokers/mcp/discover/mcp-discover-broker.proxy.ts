@@ -25,6 +25,10 @@ export const mcpDiscoverBrokerProxy = (): {
     directoryPaths: readonly PathSegment[];
     pattern: GlobPattern;
   }) => void;
+  setupGrepFilteredEmpty: (params: {
+    filePaths: readonly PathSegment[];
+    pattern: GlobPattern;
+  }) => void;
 } => {
   const fileScannerProxy = fileScannerBrokerProxy();
   const globProxy = globFindAdapterProxy();
@@ -63,6 +67,19 @@ export const mcpDiscoverBrokerProxy = (): {
       fileScannerProxy.setupFiles({ files: [], pattern });
       // Second glob call (the includeDirectories probe) returns the directory paths.
       globProxy.returns({ pattern, files: directoryPaths });
+    },
+
+    setupGrepFilteredEmpty: ({
+      filePaths,
+      pattern,
+    }: {
+      filePaths: readonly PathSegment[];
+      pattern: GlobPattern;
+    }): void => {
+      // File scanner returns no files (because grep filtered them all out).
+      fileScannerProxy.setupFiles({ files: [], pattern });
+      // Next glob call (the nodir:true probe) returns files — glob DID match, grep didn't.
+      globProxy.returns({ pattern, files: filePaths });
     },
   };
 };

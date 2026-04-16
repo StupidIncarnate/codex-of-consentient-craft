@@ -1,4 +1,4 @@
-import { discoverInputContract as _discoverInputContract } from './discover-input-contract';
+import { discoverInputContract } from './discover-input-contract';
 import { DiscoverInputStub } from './discover-input.stub';
 
 describe('discoverInputContract', () => {
@@ -36,5 +36,17 @@ describe('discoverInputContract', () => {
     const result = DiscoverInputStub({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
 
     expect(result).toStrictEqual({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
+  });
+
+  it('INVALID: {path: "..."} => rejects unknown key with Unrecognized key message', () => {
+    expect(() =>
+      discoverInputContract.parse({ glob: 'src/**', path: '/some/path' } as never),
+    ).toThrow(/Unrecognized key/u);
+  });
+
+  it('INVALID: {query: "..."} => rejects unknown key', () => {
+    expect(() => discoverInputContract.parse({ query: 'foo' } as never)).toThrow(
+      /Unrecognized key/u,
+    );
   });
 });

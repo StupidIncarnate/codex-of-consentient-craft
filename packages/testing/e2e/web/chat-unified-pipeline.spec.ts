@@ -208,6 +208,78 @@ test.describe('Unified JSONL Pipeline', () => {
     await expect(page.getByText('Sub-agent output text')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
+  test('VALID: sub-agent internal tool_use + tool_result pair inside the chain on replay', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Subagent Internal Tool Guild',
+      path: GUILD_PATH,
+    });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
+
+    const sessionId = 'e2e-subagent-internal-001';
+    const agentId = 'e2e-subagent-agent-internal';
+    const taskToolUseId = 'toolu_e2e_task_internal_001';
+    const internalToolUseId = 'toolu_e2e_internal_read_001';
+
+    sessions.createSubagentSessionWithInternalTool({
+      sessionId,
+      agentId,
+      taskToolUseId,
+      internalToolUseId,
+      userMessage: 'Spawn sub-agent that runs internal tools',
+      taskDescription: 'Internal-tool sub-agent',
+      subagentToolName: 'Read',
+      subagentToolInput: { file_path: '/some/file.ts' },
+      subagentToolResult: 'SUBAGENT_READ_RESULT_MARKER_xyz',
+    });
+
+    await page.goto(`/${guildId}/session/${sessionId}`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    // Sub-agent chain header should appear (collapsed by default).
+    await expect(page.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    // Assertion 1 — chain must claim BOTH the tool_use AND its tool_result (2 entries).
+    // Catches bug #1: chat-line-process-transformer dropping agentId on subagent user
+    // entries. Before that fix, tool_result leaked out of the chain and entryCount was 1.
+    await expect(page.getByText('(2 entries)')).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    // Assertion 2 — while the chain is collapsed, NO sub-agent content bleeds into the
+    // page-level DOM. The collapsed chain hides its inner entries entirely.
+    await expect(page.getByText('SUBAGENT_READ_RESULT_MARKER_xyz')).toHaveCount(0);
+
+    await page.getByTestId('SUBAGENT_CHAIN_HEADER').click();
+
+    const chainScope = page.getByTestId('SUBAGENT_CHAIN');
+
+    // Assertion 3 — inside the expanded chain, the tool_use and tool_result must be
+    // PAIRED into a single TOOL_ROW widget, not rendered as two separate items.
+    // Catches bug #2: SubagentChainWidget rendered innerGroups without mergeToolEntries,
+    // which left tool_use with no paired toolResult prop and tool_result as a standalone
+    // "TOOL RESULT" CHAT_MESSAGE box inside the chain.
+    await expect(chainScope.getByTestId('TOOL_ROW')).toHaveCount(1);
+    await expect(chainScope.getByText('TOOL RESULT', { exact: true })).toHaveCount(0);
+
+    // Assertion 4 — expanding the paired tool row reveals the result inline (not as a
+    // separate CHAT_MESSAGE). The TOOL_ROW_RESULT container only renders when a tool_use
+    // received its paired toolResult prop.
+    await chainScope.getByTestId('TOOL_ROW_HEADER').click();
+
+    await expect(chainScope.getByTestId('TOOL_ROW_RESULT')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(
+      chainScope.getByTestId('TOOL_ROW_RESULT').getByText('SUBAGENT_READ_RESULT_MARKER_xyz'),
+    ).toBeVisible({ timeout: CHAT_TIMEOUT });
+  });
+
   test('ERROR: old HTTP chat history endpoint returns 404', async ({ request }) => {
     const response = await request.get('/api/sessions/fake-session-id/chat/history');
 

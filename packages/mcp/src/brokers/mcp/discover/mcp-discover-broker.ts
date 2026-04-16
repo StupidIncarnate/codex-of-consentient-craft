@@ -73,12 +73,30 @@ export const mcpDiscoverBroker = async ({
 
   const treeOutput = treeFormatterTransformer({ items: treeItems });
 
-  // Empty-result hint: if a glob was provided and no files matched, probe for directories
-  // that DO match with includeDirectories=true. If any are found, tell the caller to append `/**`.
+  // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
     const cwdPath = pathSegmentContract.parse(process.cwd());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
+
+    // When grep was set, check if the glob itself matched files before grep filtered them out.
+    // This prevents the misleading "append /**" directory hint when the real problem is grep.
+    if (validated.grep) {
+      const fileHits = await globFindAdapter({ pattern, cwd: cwdPath });
+      if (fileHits.length > 0) {
+        const hintLines = [
+          discoverHintStatics.grepNoMatchHeader,
+          '',
+          `${discoverHintStatics.grepNoMatchExplanation} Glob matched ${fileHits.length} file(s).`,
+        ];
+        return {
+          results: treeOutputContract.parse(hintLines.join('\n')),
+          count: resultCountContract.parse(0),
+        };
+      }
+    }
+
+    // Fall-through: glob matched no files. Probe for directories and suggest `/**`.
     const directoryHits = await globFindAdapter({
       pattern,
       cwd: cwdPath,

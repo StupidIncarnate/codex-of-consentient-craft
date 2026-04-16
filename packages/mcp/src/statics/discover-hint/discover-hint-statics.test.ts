@@ -7,6 +7,9 @@ describe('discoverHintStatics', () => {
       header: '(no files matched)',
       explanation: 'Hint: your glob matched these directories but discover returns files only.',
       suggestion: 'Try appending "/**" to descend into them:',
+      grepNoMatchHeader: '(no content matches)',
+      grepNoMatchExplanation:
+        'Your glob matched files, but your grep pattern did not match any content.',
     });
   });
 });

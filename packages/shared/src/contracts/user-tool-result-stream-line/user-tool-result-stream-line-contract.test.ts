@@ -1,8 +1,10 @@
 import { userToolResultStreamLineContract } from './user-tool-result-stream-line-contract';
 import {
+  AskUserQuestionToolResultStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
   PermissionDeniedStreamLineStub,
   SuccessfulToolResultStreamLineStub,
+  TaskToolResultStreamLineStub,
   TextOnlyUserStreamLineStub,
 } from './user-tool-result-stream-line.stub';
 
@@ -79,6 +81,48 @@ describe('userToolResultStreamLineContract', () => {
           text: 'Just a user message',
         },
       ]);
+    });
+
+    it('VALID: {Task tool result with toolUseResult.agentId} => parses agentId correlation field', () => {
+      const streamLine = TaskToolResultStreamLineStub();
+
+      const result = userToolResultStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01TaskDispatch7890abcd',
+              content: 'done',
+            },
+          ],
+        },
+        toolUseResult: { agentId: 'subagent-correlation-id' },
+      });
+    });
+
+    it('VALID: {ask-user-question tool result} => parses MCP acknowledgement content', () => {
+      const streamLine = AskUserQuestionToolResultStreamLineStub();
+
+      const result = userToolResultStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01AskUserQuestion7890',
+              content:
+                'Questions sent to user. Their answers will arrive as your next user message.',
+            },
+          ],
+        },
+      });
     });
   });
 

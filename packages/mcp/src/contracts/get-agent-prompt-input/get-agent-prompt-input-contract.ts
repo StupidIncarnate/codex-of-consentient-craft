@@ -7,12 +7,14 @@
  */
 import { z } from 'zod';
 
-export const getAgentPromptInputContract = z.object({
-  agent: z
-    .string()
-    .min(1)
-    .brand<'AgentPromptInputAgent'>()
-    .describe('Agent name (e.g. chaoswhisperer-gap-minion, pathseeker-quest-review-minion)'),
-});
+export const getAgentPromptInputContract = z
+  .object({
+    agent: z
+      .string()
+      .min(1)
+      .brand<'AgentPromptInputAgent'>()
+      .describe('Agent name (e.g. chaoswhisperer-gap-minion, pathseeker-quest-review-minion)'),
+  })
+  .strict();
 
 export type GetAgentPromptInput = z.infer<typeof getAgentPromptInputContract>;

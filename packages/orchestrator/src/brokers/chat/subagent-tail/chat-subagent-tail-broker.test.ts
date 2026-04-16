@@ -116,6 +116,7 @@ describe('chatSubagentTailBroker', () => {
             timestamp: '2025-01-01T00:00:00Z',
             message: { content: [{ type: 'text', text: 'user input' }] },
             source: 'subagent',
+            agentId: 'agent-beta',
           },
         },
       ]);
@@ -207,6 +208,7 @@ describe('chatSubagentTailBroker', () => {
             timestamp: '2025-01-01T00:00:00Z',
             message: { content: [{ type: 'text', text: 'first' }] },
             source: 'subagent',
+            agentId: 'agent-delta',
           },
         },
         {

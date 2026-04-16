@@ -37,4 +37,13 @@ describe('getAgentPromptInputContract', () => {
       getAgentPromptInputContract.parse({});
     }).toThrow(/Required/u);
   });
+
+  it('INVALID: {unknown key} => throws Unrecognized key error', () => {
+    expect(() => {
+      getAgentPromptInputContract.parse({
+        agent: 'chaoswhisperer-gap-minion',
+        name: 'extra',
+      } as never);
+    }).toThrow(/Unrecognized key/u);
+  });
 });

@@ -4,8 +4,8 @@ import { GrepHitStub } from '../../contracts/grep-hit/grep-hit.stub';
 import { DiscoverInputStub } from '../../contracts/discover-input/discover-input.stub';
 
 describe('contentGrepTransformer', () => {
-  describe('literal mode (default)', () => {
-    it('VALID: basic literal match => returns single hit', () => {
+  describe('regex mode (default)', () => {
+    it('VALID: basic match => returns single hit', () => {
       const contents = FileContentsStub({ value: 'line one\nERROR here\nline three' });
       const { grep: pattern } = DiscoverInputStub({ grep: 'ERROR' });
 
@@ -36,7 +36,7 @@ describe('contentGrepTransformer', () => {
       ]);
     });
 
-    it('VALID: kebab identifier with dot => dot is literal, does not wildcard-match', () => {
+    it('VALID: pattern with dot => dot acts as regex wildcard and matches both forms', () => {
       const contents = FileContentsStub({
         value: 'fs-mkdir-adapter.ts\nfs-mkdir-adapterXts\nother',
       });
@@ -44,14 +44,52 @@ describe('contentGrepTransformer', () => {
 
       const result = contentGrepTransformer({ contents, pattern: pattern! });
 
-      expect(result).toStrictEqual([GrepHitStub({ line: 1, text: 'fs-mkdir-adapter.ts' })]);
+      expect(result).toStrictEqual([
+        GrepHitStub({ line: 1, text: 'fs-mkdir-adapter.ts' }),
+        GrepHitStub({ line: 2, text: 'fs-mkdir-adapterXts' }),
+      ]);
     });
 
-    it('VALID: pattern with parens => escaped, matches literal .parse(', () => {
+    it('VALID: backslash-d matches digits as regex character class', () => {
+      const contents = FileContentsStub({ value: 'abc 123\ndef 456\nghi' });
+      const { grep: pattern } = DiscoverInputStub({ grep: '\\d+' });
+
+      const result = contentGrepTransformer({ contents, pattern: pattern! });
+
+      expect(result).toStrictEqual([
+        GrepHitStub({ line: 1, text: 'abc 123' }),
+        GrepHitStub({ line: 2, text: 'def 456' }),
+      ]);
+    });
+
+    it('VALID: alternation pipe matches either branch', () => {
+      const contents = FileContentsStub({ value: 'delete foo\nremove bar\ncreate baz' });
+      const { grep: pattern } = DiscoverInputStub({ grep: 'delete|remove' });
+
+      const result = contentGrepTransformer({ contents, pattern: pattern! });
+
+      expect(result).toStrictEqual([
+        GrepHitStub({ line: 1, text: 'delete foo' }),
+        GrepHitStub({ line: 2, text: 'remove bar' }),
+      ]);
+    });
+
+    it('VALID: caret anchor matches line start in multiline mode', () => {
+      const contents = FileContentsStub({
+        value: 'import foo;\nexport const bar;\n  export const baz;',
+      });
+      const { grep: pattern } = DiscoverInputStub({ grep: '^export const' });
+
+      const result = contentGrepTransformer({ contents, pattern: pattern! });
+
+      expect(result).toStrictEqual([GrepHitStub({ line: 2, text: 'export const bar;' })]);
+    });
+
+    it('VALID: invalid regex (unclosed group) => falls back to literal match', () => {
       const contents = FileContentsStub({
         value: 'const x = contract.parse(input);\nconst y = 42;',
       });
-      const { grep: pattern } = DiscoverInputStub({ grep: '.parse(' });
+      const { grep: pattern } = DiscoverInputStub({ grep: '.parse(input' });
 
       const result = contentGrepTransformer({ contents, pattern: pattern! });
 
@@ -60,16 +98,7 @@ describe('contentGrepTransformer', () => {
       ]);
     });
 
-    it('VALID: backslash-d literal => does not match digits', () => {
-      const contents = FileContentsStub({ value: 'abc 123\ndef 456\nghi' });
-      const { grep: pattern } = DiscoverInputStub({ grep: '\\d+' });
-
-      const result = contentGrepTransformer({ contents, pattern: pattern! });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('VALID: unclosed bracket literal => matches escaped bracket', () => {
+    it('VALID: unclosed bracket => falls back to escaped literal match', () => {
       const contents = FileContentsStub({ value: 'has [invalid bracket\nno match here' });
       const { grep: pattern } = DiscoverInputStub({ grep: '[invalid' });
 

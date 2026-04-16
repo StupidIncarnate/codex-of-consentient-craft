@@ -2,8 +2,8 @@ import { compileGrepRegexTransformer } from './compile-grep-regex-transformer';
 import { DiscoverInputStub } from '../../contracts/discover-input/discover-input.stub';
 
 describe('compileGrepRegexTransformer', () => {
-  describe('literal mode (default)', () => {
-    it('VALID: {plain kebab identifier} => literal regex, hyphens not escaped (not metacharacters)', () => {
+  describe('regex mode (default)', () => {
+    it('VALID: {plain kebab identifier} => compiles as regex with same text (no metacharacters)', () => {
       const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
@@ -11,7 +11,7 @@ describe('compileGrepRegexTransformer', () => {
       expect(result.toString()).toBe('/fs-mkdir-adapter/gmu');
     });
 
-    it('VALID: {literal pattern tested against matching string} => matches', () => {
+    it('VALID: {plain kebab identifier tested against matching string} => matches', () => {
       const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
@@ -19,36 +19,68 @@ describe('compileGrepRegexTransformer', () => {
       expect(result.test('fs-mkdir-adapter')).toBe(true);
     });
 
-    it('VALID: {literal pattern with dot tested against different separator} => does not match', () => {
+    it('VALID: {pattern with dot} => dot acts as regex wildcard', () => {
       const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter.ts' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
-      expect(result.test('fs-mkdir-adapterXts')).toBe(false);
+      expect(result.test('fs-mkdir-adapterXts')).toBe(true);
     });
 
-    it('VALID: {literal pattern with dot tested against literal} => matches', () => {
-      const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter.ts' });
+    it('VALID: {alternation pipe} => matches first alternative', () => {
+      const { grep } = DiscoverInputStub({ grep: 'delete|remove' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
-      expect(result.test('fs-mkdir-adapter.ts')).toBe(true);
+      expect(result.test('delete')).toBe(true);
     });
 
-    it('VALID: {literal pattern with open paren} => escapes paren, still valid regex', () => {
-      const { grep } = DiscoverInputStub({ grep: 'broker.parse(input' });
+    it('VALID: {alternation pipe} => matches second alternative', () => {
+      const { grep } = DiscoverInputStub({ grep: 'delete|remove' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
-      expect(result.test('broker.parse(input')).toBe(true);
+      expect(result.test('remove')).toBe(true);
     });
 
-    it('VALID: {backslash-d literal} => does not match digits', () => {
+    it('VALID: {alternation pipe} => does not match unrelated string', () => {
+      const { grep } = DiscoverInputStub({ grep: 'delete|remove' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('create')).toBe(false);
+    });
+
+    it('VALID: {dot-star wildcard} => matches any characters between parts', () => {
+      const { grep } = DiscoverInputStub({ grep: 'import.*shared' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test("import { x } from '@dungeonmaster/shared'")).toBe(true);
+    });
+
+    it('VALID: {word-char class} => matches word characters', () => {
+      const { grep } = DiscoverInputStub({ grep: 'export const \\w+Guard' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('export const isNewSessionGuard')).toBe(true);
+    });
+
+    it('VALID: {anchor caret} => matches line start in multiline mode', () => {
+      const { grep } = DiscoverInputStub({ grep: '^export const' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('import foo;\nexport const bar')).toBe(true);
+    });
+
+    it('VALID: {digit class} => matches digits', () => {
       const { grep } = DiscoverInputStub({ grep: '\\d+' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
-      expect(result.test('123')).toBe(false);
+      expect(result.test('abc 123')).toBe(true);
     });
   });
 
@@ -113,12 +145,36 @@ describe('compileGrepRegexTransformer', () => {
   });
 
   describe('invalid regex fallback', () => {
+    it('VALID: {unclosed group} => falls back to literal match', () => {
+      const { grep } = DiscoverInputStub({ grep: 'broker.parse(input' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('broker.parse(input')).toBe(true);
+    });
+
+    it('VALID: {unclosed group} => literal fallback does not match wildcard', () => {
+      const { grep } = DiscoverInputStub({ grep: 'broker.parse(input' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('brokerXparseXinput')).toBe(false);
+    });
+
     it('VALID: {re: with unclosed bracket} => falls back to literal match', () => {
       const { grep } = DiscoverInputStub({ grep: 're:[invalid' });
 
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
       expect(result.test('has [invalid bracket')).toBe(true);
+    });
+
+    it('VALID: {alternation with invalid second branch} => falls back to literal', () => {
+      const { grep } = DiscoverInputStub({ grep: 'foo|[invalid' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('foo|[invalid')).toBe(true);
     });
   });
 });

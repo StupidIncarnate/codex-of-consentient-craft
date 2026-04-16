@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
+import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
 
 export const SubagentChainWidgetProxy = (): {
   clickHeader: () => Promise<void>;
@@ -10,6 +11,7 @@ export const SubagentChainWidgetProxy = (): {
   hasInnerGroupCount: (params: { count: number }) => boolean;
 } => {
   ChatMessageWidgetProxy();
+  ToolRowWidgetProxy();
 
   return {
     clickHeader: async (): Promise<void> => {

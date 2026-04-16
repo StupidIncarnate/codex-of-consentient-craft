@@ -338,6 +338,38 @@ describe('chatLineProcessTransformer', () => {
         },
       ]);
     });
+
+    it('VALID: {user tool_result line with agentId param, no toolUseResult} => attaches agentId to user entry', () => {
+      const processor = chatLineProcessTransformer();
+      const agentId = AgentIdStub({ value: 'agent-subagent-internal' });
+      const source = ChatLineSourceStub({ value: 'subagent' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify(SuccessfulToolResultStreamLineStub()),
+      });
+
+      const result = processor.processLine({ line, source, agentId });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entry',
+          entry: {
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  content: 'File contents retrieved successfully',
+                },
+              ],
+            },
+            source: 'subagent',
+            agentId: 'agent-subagent-internal',
+          },
+        },
+      ]);
+    });
   });
 
   describe('filtered entry types', () => {

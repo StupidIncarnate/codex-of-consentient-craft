@@ -29,6 +29,7 @@ export const getQuestInputContract = z
       )
       .optional(),
   })
+  .strict()
   .brand<'GetQuestInput'>();
 
 export type GetQuestInput = z.infer<typeof getQuestInputContract>;

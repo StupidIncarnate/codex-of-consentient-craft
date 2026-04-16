@@ -8,7 +8,7 @@
  * WHEN-TO-USE: Referenced by content-grep-transformer to avoid inline magic strings
  */
 export const contentGrepStatics = {
-  /** Prefix that opts a grep pattern into regex mode (otherwise the pattern is literal). */
+  /** Prefix that opts a grep pattern into regex mode (kept for backwards-compat; default is now regex). */
   regexPrefix: 're:',
   /** Regex source for detecting inline flag syntax like `(?i)` at the start of a pattern. */
   inlineFlagsPattern: '^\\(\\?([gimsuy]+)\\)',
