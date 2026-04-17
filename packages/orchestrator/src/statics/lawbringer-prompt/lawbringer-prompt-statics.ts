@@ -70,6 +70,12 @@ Read the test file. Lint enforces proxy-per-test, no-jest-mock, stub-not-contrac
 - Conditional JSX rendering and event handlers (for widgets)
 - Do NOT trust \`jest --coverage\` — verify manually by reading the code
 
+**Parameterization cleanup (state matrices):** Scan the test file for copy-paste tests that differ only by a literal input value. If 3 or more \`it\` blocks share identical body shape (same setup, same assertion shape) and vary only by one literal (status, enum member, error code, boundary value), they MUST be collapsed into \`it.each\` / \`test.each\` / \`describe.each\`. See the "Parameterize State Matrices with \`it.each\`" section in \`get-testing-patterns\`. Common smells:
+- Cycling through every variant of a union/enum with the same assertion
+- Repeating the same "neither X nor Y is visible" assertion across 10+ statuses
+- Identical \`render\` + \`expect\` with only a stub field changing
+Flag these as a violation with a suggested \`it.each(...)\` rewrite. DAMP > DRY still applies — do NOT suggest parameterization when setup shape, assertion shape, or semantic meaning differs between cases.
+
 ### 4. Run Ward
 
 \`\`\`bash

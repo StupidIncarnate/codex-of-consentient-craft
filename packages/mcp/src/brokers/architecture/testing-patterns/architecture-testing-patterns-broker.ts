@@ -76,6 +76,70 @@ expect(myGuard({value: 'test', optional: undefined})).toBe(false);
   // Core Principles - DAMP > DRY
   const dampPattern = `Tests should be **Descriptive And Meaningful**, not DRY. Each test must be readable standalone without looking at helpers.`;
 
+  // Core Principles - Parameterize State Matrices
+  const parameterizeStateMatrices = `**DAMP > DRY still holds.** But when a test is repeated 3 or more times with the only variation being an input value (cycling through every status in a union, every enum member, every invalid input variant), parameterize with \`it.each\`, \`test.each\`, or \`describe.each\`. The body, setup, and assertion shape must be identical across cases — only literal values change.
+
+\`\`\`typescript
+// ❌ WRONG - 15 near-identical tests differing only by one string value
+it('EMPTY: {status: pending} => neither PAUSE nor RESUME button visible', () => {
+  const proxy = ExecutionPanelWidgetProxy();
+  const quest: Quest = QuestStub({ status: 'pending' });
+  mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+  expect(proxy.hasPauseButton()).toBe(false);
+  expect(proxy.hasResumeButton()).toBe(false);
+});
+it('EMPTY: {status: created} => neither PAUSE nor RESUME button visible', () => { /* same body, 'created' */ });
+it('EMPTY: {status: blocked} => neither PAUSE nor RESUME button visible', () => { /* same body, 'blocked' */ });
+// ...12 more
+
+// ✅ CORRECT - Parameterize the matrix
+it.each([
+  'pending',
+  'created',
+  'blocked',
+  'explore_flows',
+  'review_flows',
+  'flows_approved',
+  'complete',
+  'abandoned',
+] as const)('EMPTY: {status: %s} => neither PAUSE nor RESUME button visible', (status) => {
+  const proxy = ExecutionPanelWidgetProxy();
+  const quest: Quest = QuestStub({ status });
+  mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+  expect(proxy.hasPauseButton()).toBe(false);
+  expect(proxy.hasResumeButton()).toBe(false);
+});
+\`\`\`
+
+**When to parameterize:**
+- 3 or more cases with identical test body shape
+- Only literal input values differ (not setup, not assertion shape)
+- The test proves "this rule applies to every member of set X" — an invariant across a list
+- Cycling through union variants, enum members, status matrices, error codes, boundary values
+
+**When NOT to parameterize (DAMP wins):**
+- Setup differs between cases (different stubs, different mock configurations)
+- Assertion shape differs (different expected values per case beyond a simple mapping)
+- Each case has distinct semantic meaning that deserves its own sentence-length name
+- Only 2 cases — just write them inline
+
+**Grouping related variants:** Use \`describe.each\` when multiple \`it\` blocks share the same parameterization (e.g., "for each pause-capable status, [PAUSE is visible] and [click PAUSE fires onPause]").
+
+\`\`\`typescript
+describe.each(['seek_scope', 'seek_walk', 'in_progress'] as const)(
+  'pause-capable status: %s',
+  (status) => {
+    it('VALID: {status} => PAUSE button visible', () => { /* ... */ });
+    it('VALID: {click PAUSE} => calls onPause once', () => { /* ... */ });
+  },
+);
+\`\`\`
+
+**Name template rules:**
+- Use \`%s\` for the positional case value in the title template
+- Keep the \`VALID:\`/\`INVALID:\`/\`EMPTY:\` prefix — \`enforce-test-name-prefix\` validates the substituted name
+- Keep the \`{input} => result\` shape so substituted titles still read naturally`;
+
   // Core Principles - Test Behavior Not Implementation
   const testBehavior = `\`\`\`typescript
 // ✅ CORRECT
@@ -1133,6 +1197,10 @@ ${typeSafety}
 
 ${dampPattern}
 
+### Parameterize State Matrices with \`it.each\`
+
+${parameterizeStateMatrices}
+
 ### Test Behavior, Not Implementation
 
 ${testBehavior}
@@ -1241,6 +1309,7 @@ Before writing any test, verify:
 - [ ] All branches manually verified against implementation
 - [ ] Each test is self-contained and isolated
 - [ ] DSL/query logic uses integration tests (real execution)
+- [ ] Parameterized state matrices with \`it.each\`/\`describe.each\` when 3+ cases differ only by input value
 `;
 
   return contentTextContract.parse(markdown);

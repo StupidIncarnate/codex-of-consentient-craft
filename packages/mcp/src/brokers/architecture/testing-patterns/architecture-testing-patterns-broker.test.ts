@@ -43,6 +43,22 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes parameterize state matrices section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### Parameterize State Matrices with `it\.each`$/mu);
+      expect(result).toMatch(
+        /^\*\*DAMP > DRY still holds\.\*\* But when a test is repeated 3 or more times with the only variation being an input value \(cycling through every status in a union, every enum member, every invalid input variant\), parameterize with `it\.each`, `test\.each`, or `describe\.each`\. The body, setup, and assertion shape must be identical across cases — only literal values change\.$/mu,
+      );
+      expect(result).toMatch(/^\*\*When to parameterize:\*\*$/mu);
+      expect(result).toMatch(/^\*\*When NOT to parameterize \(DAMP wins\):\*\*$/mu);
+      expect(result).toMatch(
+        /^describe\.each\(\['seek_scope', 'seek_walk', 'in_progress'\] as const\)\($/mu,
+      );
+    });
+
     it('VALID: {} => includes test behavior not implementation', () => {
       architectureTestingPatternsBrokerProxy();
 
