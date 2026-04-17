@@ -283,15 +283,23 @@ even though orchestration is running, and refreshing the session URL can send yo
 execution panel.
 
 - **Action:** In the Web UI, click the "Begin Quest" button in the popup that appears after Gate #2.
-- **Assert:**
-  - Status → `seek_scope` (or further)
-    - PathSeeker work item dispatched by orchestration loop
-  - Web UI switches to the execution panel
-  - **Refresh test:** refresh the session URL `/codex/session/<uuid>`. Execution panel MUST still render (not fall back
-    to chat view).
+- **Assert (in order — do not skip the panel-switch check):**
+    1. **UI switches to the execution panel automatically.** The WebSocket `quest-modified` event is supposed to drive
+       this — no manual reload, no URL change, no second click. Within a few seconds of the Begin Quest click, the
+       right-side panel must swap from the observables approval / spec view to the execution panel
+       (`data-testid="execution-panel-widget"` is visible; `QUEST_SPEC_PANEL` is NOT visible). Screenshot this to
+       confirm BEFORE running any further checks.
+    2. Status → `seek_scope` (or further). PathSeeker work item dispatched by orchestration loop.
+    3. **Refresh persistence test:** ONLY after assertion #1 passes, refresh the session URL
+       `/codex/session/<uuid>`. Execution panel MUST still render — same `execution-panel-widget` testId visible, no
+       fall back to spec/chat view. This catches a different class of bug (guard/route mismatch on cold mount) from
+       assertion #1 (guard/route mismatch on live WS update).
 
-**→ FAIL refresh falls back to chat view:** UI bug in the execution-panel guard or quest-chat responder routing. File
-it, fix, restart.
+**→ FAIL assertion #1 (UI never switches after Begin Quest click):** UI bug in the execution-panel guard or in the
+binding that reacts to `quest-modified`. Most likely candidate: `isExecutionPhaseGuard` is missing one of the
+intermediate statuses (`seek_scope`, `seek_synth`, `seek_walk`, `seek_plan`, `in_progress`). File it, fix, restart.
+**→ FAIL assertion #3 (refresh falls back to chat/spec view):** UI bug in the cold-mount panel selector — guard
+evaluation on page load disagrees with live-update evaluation. File it, fix, restart.
 **→ FAIL no "Begin Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
 **→ PASS:** continue.
 
