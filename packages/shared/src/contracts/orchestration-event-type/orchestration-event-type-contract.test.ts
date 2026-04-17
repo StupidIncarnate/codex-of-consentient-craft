@@ -22,6 +22,7 @@ describe('orchestrationEventTypeContract', () => {
     'chat-patch',
     'chat-history-complete',
     'quest-session-linked',
+    'chat-session-started',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
     expect(orchestrationEventTypeContract.parse(type)).toBe(type);
   });

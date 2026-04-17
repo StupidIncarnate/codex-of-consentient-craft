@@ -58,6 +58,13 @@ export const DesignChatStartResponder = async ({
         payload: { chatProcessId, toolUseId, agentId },
       });
     },
+    onSessionIdExtracted: ({ chatProcessId, sessionId: sid }) => {
+      orchestrationEventsState.emit({
+        type: 'chat-session-started',
+        processId: chatProcessId,
+        payload: { chatProcessId, sessionId: sid },
+      });
+    },
     onAgentDetected: () => {
       // Design chat does not tail sub-agents
     },

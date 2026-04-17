@@ -110,7 +110,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
   }, [questData?.status]);
 
   useEffect(() => {
-    if (isStreaming) return;
     if (!currentSessionId || sessionId) return;
     if (!guildSlug) return;
 
@@ -120,7 +119,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
         globalThis.console.error('[quest-chat] navigation failed', navError);
       });
     }
-  }, [currentSessionId, sessionId, guildSlug, navigate, isStreaming]);
+  }, [currentSessionId, sessionId, guildSlug, navigate]);
 
   useEffect(() => {
     if (prevIsStreamingRef.current && !isStreaming) {

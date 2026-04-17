@@ -131,6 +131,13 @@ export const ChatStartResponder = async ({
         payload: { chatProcessId, toolUseId, agentId },
       });
     },
+    onSessionIdExtracted: ({ chatProcessId, sessionId: sid }) => {
+      orchestrationEventsState.emit({
+        type: 'chat-session-started',
+        processId: chatProcessId,
+        payload: { chatProcessId, sessionId: sid },
+      });
+    },
     onAgentDetected: ({ chatProcessId, agentId, sessionId: sid }) => {
       chatSubagentTailBroker({
         sessionId: sid,

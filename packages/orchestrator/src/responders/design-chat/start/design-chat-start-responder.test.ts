@@ -59,6 +59,60 @@ describe('DesignChatStartResponder', () => {
     });
   });
 
+  describe('chat-session-started event', () => {
+    it('VALID: {new session, sessionId extracted} => emits chat-session-started BEFORE chat-complete', async () => {
+      const proxy = DesignChatStartResponderProxy();
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'design-quest' });
+      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
+      const sessionLine = JSON.stringify({ session_id: 'design-session-early' });
+
+      proxy.setupDesignSession({
+        exitCode: ExitCodeStub({ value: 0 }),
+        quest,
+        stdoutLines: [sessionLine],
+      });
+
+      const capture = proxy.setupEventCapture();
+
+      await proxy.callResponder({
+        guildId,
+        questId,
+        message: 'Create prototype',
+      });
+
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      const events = capture.getEmittedEvents();
+      const sessionStartedEvents = events.filter((event) => event.type === 'chat-session-started');
+
+      expect(sessionStartedEvents).toStrictEqual([
+        {
+          type: 'chat-session-started',
+          processId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          payload: {
+            chatProcessId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            sessionId: 'design-session-early',
+          },
+        },
+      ]);
+
+      const sessionStartedIdx = events.findIndex((event) => event.type === 'chat-session-started');
+      const chatCompleteIdx = events.findIndex((event) => event.type === 'chat-complete');
+
+      expect(sessionStartedIdx).toBe(0);
+      expect(chatCompleteIdx).toBeGreaterThan(sessionStartedIdx);
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {quest not found} => throws quest not found error', async () => {
       const proxy = DesignChatStartResponderProxy();

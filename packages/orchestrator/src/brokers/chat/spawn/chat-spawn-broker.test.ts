@@ -458,6 +458,100 @@ describe('chatSpawnBroker', () => {
     });
   });
 
+  describe('onSessionIdExtracted callback', () => {
+    it('VALID: {sessionId$ resolves, new session} => invokes onSessionIdExtracted', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const onSessionIdExtracted = jest.fn();
+      const sessionLine = JSON.stringify({ session_id: 'extracted-session-abc' });
+
+      const linkQuest = QuestStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        status: 'created',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+
+      proxy.setupNewSession({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: [sessionLine],
+      });
+      proxy.setupSessionLinkQuest({ quest: linkQuest });
+
+      const { chatProcessId } = await chatSpawnBroker({
+        role,
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntries: jest.fn(),
+        onPatch: jest.fn(),
+        onAgentDetected: jest.fn(),
+        onComplete: jest.fn(),
+        onSessionIdExtracted,
+        registerProcess: jest.fn(),
+      });
+
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(onSessionIdExtracted).toHaveBeenCalledTimes(1);
+
+      const [[extractedArg]] = onSessionIdExtracted.mock.calls;
+
+      expect(extractedArg).toStrictEqual({
+        chatProcessId,
+        sessionId: 'extracted-session-abc',
+      });
+    });
+
+    it('EMPTY: {resumed session} => does NOT invoke onSessionIdExtracted', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const sessionId = SessionIdStub({ value: 'resumed-session-xyz' });
+      const onSessionIdExtracted = jest.fn();
+      const sessionLine = JSON.stringify({ session_id: 'extracted-session-should-ignore' });
+
+      proxy.setupResumeSession({
+        exitCode: ExitCodeStub({ value: 0 }),
+        stdoutLines: [sessionLine],
+      });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message: 'Continue working',
+        sessionId,
+        processor: chatLineProcessTransformer(),
+        onEntries: jest.fn(),
+        onPatch: jest.fn(),
+        onAgentDetected: jest.fn(),
+        onComplete: jest.fn(),
+        onSessionIdExtracted,
+        registerProcess: jest.fn(),
+      });
+
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(onSessionIdExtracted).toHaveBeenCalledTimes(0);
+    });
+  });
+
   describe('session-id quest link failure', () => {
     it('ERROR: {questModifyBroker rejects during session link} => writes error to stderr', async () => {
       const proxy = chatSpawnBrokerProxy();
