@@ -6,6 +6,38 @@ type QuestStatus = ReturnType<typeof QuestStatusStub>;
 
 describe('isExecutionPhaseGuard', () => {
   describe('execution phase statuses', () => {
+    it('VALID: {status: seek_scope} => returns true', () => {
+      const status: QuestStatus = QuestStatusStub({ value: 'seek_scope' });
+
+      const result = isExecutionPhaseGuard({ status });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: seek_synth} => returns true', () => {
+      const status: QuestStatus = QuestStatusStub({ value: 'seek_synth' });
+
+      const result = isExecutionPhaseGuard({ status });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: seek_walk} => returns true', () => {
+      const status: QuestStatus = QuestStatusStub({ value: 'seek_walk' });
+
+      const result = isExecutionPhaseGuard({ status });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {status: seek_plan} => returns true', () => {
+      const status: QuestStatus = QuestStatusStub({ value: 'seek_plan' });
+
+      const result = isExecutionPhaseGuard({ status });
+
+      expect(result).toBe(true);
+    });
+
     it('VALID: {status: in_progress} => returns true', () => {
       const status: QuestStatus = QuestStatusStub({ value: 'in_progress' });
 

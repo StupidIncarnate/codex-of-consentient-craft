@@ -95,11 +95,9 @@ test.describe('Quest Begin Transition', () => {
     });
 
     // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
-    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
-    // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
-    // only activates at in_progress and beyond. Full pipeline validation lives in
-    // Phase C manual verification.
+    // seek_* is now classified as an execution phase (isExecutionPhaseGuard), so the
+    // UI MUST swap the spec panel for the execution panel live via the quest-modified
+    // WS event — no page reload required.
     await expect
       .poll(
         async () => {
@@ -113,6 +111,12 @@ test.describe('Quest Begin Transition', () => {
         { timeout: PATHSEEKER_TIMEOUT },
       )
       .toBe('seek_scope');
+
+    // UI panel swap must happen live (WS-driven) — no reload.
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
   test('VALID: Begin Quest from review_observables transitions quest into PathSeeker pipeline (seek_scope) and promotes chaoswhisperer work item', async ({

@@ -14,6 +14,10 @@ export const isExecutionPhaseGuard = ({ status }: { status?: QuestStatus }): boo
   }
 
   return (
+    status === 'seek_scope' ||
+    status === 'seek_synth' ||
+    status === 'seek_walk' ||
+    status === 'seek_plan' ||
     status === 'in_progress' ||
     status === 'paused' ||
     status === 'blocked' ||

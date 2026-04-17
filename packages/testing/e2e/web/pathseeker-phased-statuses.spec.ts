@@ -10,11 +10,6 @@ const GUILD_PATH = '/tmp/dm-e2e-pathseeker-phased';
 const PANEL_TIMEOUT = 5_000;
 const HTTP_OK = 200;
 
-const SEEK_SCOPE_LABEL = 'SEEK SCOPE';
-const SEEK_SYNTH_LABEL = 'SEEK SYNTH';
-const SEEK_WALK_LABEL = 'SEEK WALK';
-const SEEK_PLAN_LABEL = 'SEEK PLAN';
-
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
@@ -25,7 +20,7 @@ test.describe('PathSeeker Phased Statuses', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {status: seek_scope} => spec panel renders with SEEK SCOPE header and flows section', async ({
+  test('VALID: {status: seek_scope} => execution panel renders (seek_* is execution phase)', async ({
     page,
     request,
   }) => {
@@ -67,12 +62,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_SCOPE_LABEL);
-    await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: {status: seek_synth} => spec panel renders with SEEK SYNTH header and flows section', async ({
+  test('VALID: {status: seek_synth} => execution panel renders (seek_* is execution phase)', async ({
     page,
     request,
   }) => {
@@ -114,12 +110,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_SYNTH_LABEL);
-    await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: {status: seek_walk} => spec panel renders with SEEK WALK header and flows section', async ({
+  test('VALID: {status: seek_walk} => execution panel renders (seek_* is execution phase)', async ({
     page,
     request,
   }) => {
@@ -161,12 +158,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_WALK_LABEL);
-    await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: {status: seek_plan} => spec panel renders with SEEK PLAN header and flows section', async ({
+  test('VALID: {status: seek_plan} => execution panel renders (seek_* is execution phase)', async ({
     page,
     request,
   }) => {
@@ -208,9 +206,10 @@ test.describe('PathSeeker Phased Statuses', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_PLAN_LABEL);
-    await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
   test('VALID: {status: seek_scope, PATCH planningNotes.scopeClassification} => PATCH succeeds, GET returns planningNotes, UI stays stable', async ({
@@ -255,8 +254,9 @@ test.describe('PathSeeker Phased Statuses', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_SCOPE_LABEL);
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
 
     // Build a valid planningNotes.scopeClassification payload from the contract stub.
     // The stub parses through the Zod contract, so the returned object is validated and
@@ -300,8 +300,9 @@ test.describe('PathSeeker Phased Statuses', () => {
       String(scopeClassification.rationale),
     );
 
-    // UI must not crash — spec panel stays visible after the WS quest-modified event fires.
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByTestId('PANEL_HEADER')).toHaveText(SEEK_SCOPE_LABEL);
+    // UI must not crash — execution panel stays visible after the WS quest-modified event fires.
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
   });
 });
