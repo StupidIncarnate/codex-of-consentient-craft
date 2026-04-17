@@ -12,6 +12,7 @@ describe('executionStepStatusConfigStatics', () => {
         spiritmender: 'primary',
         siegemaster: 'primary',
         lawbringer: 'primary',
+        blightwarden: 'primary',
       },
       statusConfig: {
         queued: { label: 'QUEUED', color: 'text-dim', symbol: '···' },

@@ -626,7 +626,7 @@ describe('QuestHandleResponder', () => {
           {
             type: 'text',
             text: JSON.stringify(
-              { success: true, data: { surfaceReports: [] } },
+              { success: true, data: { surfaceReports: [], blightReports: [] } },
               null,
               JSON_INDENT_SPACES,
             ),

@@ -13,7 +13,7 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPla
 
 const emptyPlanningNotes = (): GetPlanningNotesResult => ({
   success: true,
-  data: { surfaceReports: [] },
+  data: { surfaceReports: [], blightReports: [] },
 });
 
 export const orchestratorGetPlanningNotesAdapterProxy = (): {

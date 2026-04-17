@@ -115,7 +115,7 @@ export const StartOrchestrator = {
     section,
   }: {
     questId: string;
-    section?: 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
+    section?: 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
 

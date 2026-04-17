@@ -16,6 +16,7 @@ export const executionFloorConfigStatics = {
     { name: 'INFIRMARY', role: 'spiritmender', type: 'floor' },
     { name: 'ARENA', role: 'siegemaster', type: 'floor' },
     { name: 'TRIBUNAL', role: 'lawbringer', type: 'floor' },
+    { name: 'QUARANTINE', role: 'blightwarden', type: 'floor' },
     { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
   ],
 } as const;

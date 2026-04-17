@@ -20,6 +20,12 @@ describe('executionRoleContract', () => {
 
       expect(result).toBe('ward');
     });
+
+    it('VALID: {value: "blightwarden"} => parses blightwarden role', () => {
+      const result = executionRoleContract.parse('blightwarden');
+
+      expect(result).toBe('blightwarden');
+    });
   });
 
   describe('invalid inputs', () => {

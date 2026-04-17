@@ -8,7 +8,7 @@ describe('orchestratorGetPlanningNotesAdapter', () => {
       proxy.returns({
         result: {
           success: true,
-          data: { surfaceReports: [] },
+          data: { surfaceReports: [], blightReports: [] },
         },
       });
 
@@ -16,7 +16,7 @@ describe('orchestratorGetPlanningNotesAdapter', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { surfaceReports: [] },
+        data: { surfaceReports: [], blightReports: [] },
       });
     });
 
