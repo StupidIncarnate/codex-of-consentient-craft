@@ -1,15 +1,16 @@
 /**
  * PURPOSE: After PathSeeker creates steps, generate the full work item chain
- *          (codeweaver -> ward -> siegemaster -> lawbringer -> final-ward)
+ *          (codeweaver -> ward -> siegemaster[per flow, chained] -> lawbringer -> final-ward)
  *
  * USAGE:
- * stepsToWorkItemsTransformer({ steps, pathseekerWorkItemId, now });
- * // Returns: WorkItem[] with dependency chain wired
+ * stepsToWorkItemsTransformer({ steps, flows, pathseekerWorkItemId, now });
+ * // Returns: WorkItem[] with dependency chain wired (one siegeItem per flow, chained)
  */
 
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   DependencyStep,
+  Flow,
   QuestWorkItemId,
   StepId,
   WorkItem,
@@ -20,10 +21,12 @@ import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-stat
 
 export const stepsToWorkItemsTransformer = ({
   steps,
+  flows,
   pathseekerWorkItemId,
   now,
 }: {
   steps: DependencyStep[];
+  flows: Flow[];
   pathseekerWorkItemId: QuestWorkItemId;
   now: IsoTimestamp;
 }): WorkItem[] => {
@@ -66,15 +69,33 @@ export const stepsToWorkItemsTransformer = ({
     wardMode: 'changed',
   });
 
-  const siegeItem = workItemContract.parse({
-    id: crypto.randomUUID(),
-    role: 'siegemaster',
-    status: 'pending',
-    spawnerType: 'agent',
-    dependsOn: [wardItem.id],
-    maxAttempts: 1,
-    createdAt: now,
-  });
+  // Emit one siegeItem per flow, chained sequentially via dependsOn so that
+  // at most one Siegemaster runs at a time (dev server / port / FS contention).
+  const siegeItems: WorkItem[] = flows.reduce<WorkItem[]>((acc, flow) => {
+    const prevSiegeId: QuestWorkItemId | undefined =
+      acc.length > 0 ? acc[acc.length - 1]?.id : undefined;
+    const siegeDependsOn: QuestWorkItemId[] =
+      prevSiegeId === undefined ? [wardItem.id] : [wardItem.id, prevSiegeId];
+
+    const siegeItem = workItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'siegemaster',
+      status: 'pending',
+      spawnerType: 'agent',
+      relatedDataItems: [`flows/${String(flow.id)}`],
+      dependsOn: siegeDependsOn,
+      maxAttempts: 1,
+      createdAt: now,
+    });
+    return [...acc, siegeItem];
+  }, []);
+
+  const allSiegeIds = siegeItems.map((item) => item.id);
+
+  // Lawbringer deps: all siegeItems (so laws wait for every flow's siege).
+  // Empty-flows guard: if no sieges exist, lawbringers depend on the wardItem directly.
+  const lawbringerDependsOn: QuestWorkItemId[] =
+    allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
 
   const lawItems: WorkItem[] = steps.map((step) =>
     workItemContract.parse({
@@ -83,14 +104,15 @@ export const stepsToWorkItemsTransformer = ({
       status: 'pending',
       spawnerType: 'agent',
       relatedDataItems: [`steps/${String(step.id)}`],
-      dependsOn: [siegeItem.id],
+      dependsOn: lawbringerDependsOn,
       maxAttempts: 1,
       createdAt: now,
     }),
   );
 
   const allLawIds = lawItems.map((item) => item.id);
-  const finalWardDeps = allLawIds.length > 0 ? allLawIds : [siegeItem.id];
+  const finalWardDeps: QuestWorkItemId[] =
+    allLawIds.length > 0 ? allLawIds : allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
 
   const finalWardItem = workItemContract.parse({
     id: crypto.randomUUID(),
@@ -103,5 +125,5 @@ export const stepsToWorkItemsTransformer = ({
     wardMode: 'full',
   });
 
-  return [...cwItems, wardItem, siegeItem, ...lawItems, finalWardItem];
+  return [...cwItems, wardItem, ...siegeItems, ...lawItems, finalWardItem];
 };
