@@ -2770,21 +2770,6 @@ describe('OrchestrationFlow', () => {
       );
     };
 
-    const debugDump = (label: string, captured: unknown[]): void => {
-      process.stderr.write(`DEBUG ${label} total=${String(captured.length)}\n`);
-      for (const e of captured) {
-        const entry = getFirstEntry(e);
-        const role = entry === undefined ? 'none' : String(Reflect.get(entry, 'role'));
-        const type = entry === undefined ? 'none' : String(Reflect.get(entry, 'type'));
-        const toolName = entry === undefined ? 'none' : String(Reflect.get(entry, 'toolName'));
-        const toolInput = entry === undefined ? 'none' : String(Reflect.get(entry, 'toolInput'));
-        const content = entry === undefined ? 'none' : String(Reflect.get(entry, 'content'));
-        process.stderr.write(
-          `DEBUG event sid=${String(getSessionId(e))} role=${role} type=${type} toolName=${toolName} toolInput=${toolInput} content=${content.slice(0, 80)}\n`,
-        );
-      }
-    };
-
     it('VALID: {happy path, 2 steps} => chat-output events emitted for all roles', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orch-stream-happy' }),
@@ -3074,9 +3059,10 @@ describe('OrchestrationFlow', () => {
 
       expect(pathseekerItems.length).toBeGreaterThanOrEqual(2);
 
-      // The last pathseeker is the replan — emits a signal-back complete entry
-      const replanPathseeker = pathseekerItems[pathseekerItems.length - 1]!;
-      debugDump(`replan.sessionId=${String(replanPathseeker.sessionId)}`, sub.captured);
+      // Find the replan pathseeker by the sessionId queued for it. The drain+skip
+      // cycle after the first replan can spawn additional pathseekers (still in
+      // progress or without sessions), so we can't just grab the last item.
+      const replanPathseeker = pathseekerItems.find((ps) => ps.sessionId === sid('ps-replan-sf'))!;
       const replanEvents = sub.captured
         .filter((e) => getSessionId(e) === replanPathseeker.sessionId)
         .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));

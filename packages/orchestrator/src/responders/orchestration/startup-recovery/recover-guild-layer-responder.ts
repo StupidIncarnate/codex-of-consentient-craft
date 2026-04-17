@@ -7,12 +7,11 @@
  */
 
 import {
-  chatEntryContract,
   filePathContract,
   processIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -23,7 +22,7 @@ import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { recoverableQuestStatusesStatics } from '../../../statics/recoverable-quest-statuses/recoverable-quest-statuses-statics';
-import { streamJsonToChatEntryTransformer } from '../../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
+import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const RecoverGuildLayerResponder = async ({
   guildItem,
@@ -123,16 +122,7 @@ export const RecoverGuildLayerResponder = async ({
           const rawLine: unknown = Reflect.get(entry, 'raw');
           if (typeof rawLine !== 'string') return;
           const parsed = claudeLineNormalizeBroker({ rawLine });
-          let entries: ChatEntry[];
-          if (parsed === null) {
-            // Plain-text line (e.g. ward build/test output) — emit as assistant text entry
-            if (rawLine.length === 0) return;
-            entries = [
-              chatEntryContract.parse({ role: 'assistant', type: 'text', content: rawLine }),
-            ];
-          } else {
-            entries = streamJsonToChatEntryTransformer({ parsed }).entries;
-          }
+          const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
           if (entries.length === 0) return;
           orchestrationEventsState.emit({
             type: 'chat-output',

@@ -154,6 +154,8 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
     await chainHeader.click();
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
-    await expect(chainScope.getByText(SUBAGENT_MARKER)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(chainScope.getByText(SUBAGENT_MARKER).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
   });
 });

@@ -1,4 +1,5 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
@@ -25,6 +26,7 @@ export const QuestModifyResponderProxy = (): {
   setupQuestModifyEmpty: ReturnType<typeof questModifyBrokerProxy>['setupEmptyFolder'];
   setupAutoResume: (params: { quest: Quest }) => void;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();

@@ -1,4 +1,5 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
@@ -32,6 +33,7 @@ export const OrchestrationStartResponderProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
