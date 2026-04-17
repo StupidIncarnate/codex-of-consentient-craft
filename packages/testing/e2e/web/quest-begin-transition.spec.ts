@@ -139,9 +139,9 @@ test.describe('Quest Begin Transition', () => {
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    // Chaoswhisperer must be 'complete' before review_observables → approved:
-    // a broker/widget guard now blocks the APPROVE transition while any
-    // chaoswhisperer work item is still pending/in_progress.
+    // Chaoswhisperer starts as 'pending' — matches real quest data where
+    // the spec phase never explicitly marks the work item complete.
+    // The OrchestrationStartResponder must promote it to 'complete' on quest start.
     quests.writeQuestFile({
       questId,
       questFolder,
@@ -152,7 +152,7 @@ test.describe('Quest Begin Transition', () => {
           id: 'e2e00000-0000-4000-8000-000000000001',
           role: 'chaoswhisperer',
           sessionId,
-          status: 'complete',
+          status: 'pending',
         },
       ],
     });
@@ -189,10 +189,9 @@ test.describe('Quest Begin Transition', () => {
     // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
     // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
     // only activates at in_progress and beyond.
-    // We still assert OrchestrationStartResponder effects on the persisted quest:
+    // We still assert two OrchestrationStartResponder effects on the persisted quest:
     //   1. status is set to seek_scope
-    //   2. the chaoswhisperer work item remains complete (guard requires it
-    //      be complete before the review_observables → approved transition)
+    //   2. the pending chaoswhisperer work item is promoted to complete
     //   3. a pathseeker work item is added (its runtime status depends on subsequent
     //      pipeline execution, which is deferred to Phase C manual verification)
     await expect

@@ -1,12 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {
-  QuestStub,
-  DesignDecisionStub,
-  FlowStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestStub, DesignDecisionStub, FlowStub } from '@dungeonmaster/shared/contracts';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -195,82 +190,6 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [],
-      });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
-
-      expect(approveButton?.style.opacity).toBe('0.4');
-      expect(approveButton?.style.pointerEvents).toBe('none');
-    });
-
-    it('VALID: {status: review_observables, spec complete, chaoswhisperer complete} => APPROVE enabled', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'review_observables',
-        flows: [FlowStub()],
-        workItems: [WorkItemStub({ role: 'chaoswhisperer', status: 'complete' })],
-      });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
-
-      expect(approveButton?.style.opacity).toBe('1');
-      expect(approveButton?.style.pointerEvents).toBe('auto');
-    });
-
-    it('VALID: {status: review_observables, spec complete, chaoswhisperer skipped} => APPROVE enabled', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'review_observables',
-        flows: [FlowStub()],
-        workItems: [WorkItemStub({ role: 'chaoswhisperer', status: 'skipped' })],
-      });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
-
-      expect(approveButton?.style.opacity).toBe('1');
-      expect(approveButton?.style.pointerEvents).toBe('auto');
-    });
-
-    it('INVALID: {status: review_observables, spec complete, chaoswhisperer pending} => APPROVE disabled', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'review_observables',
-        flows: [FlowStub()],
-        workItems: [WorkItemStub({ role: 'chaoswhisperer', status: 'pending' })],
-      });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
-
-      expect(approveButton?.style.opacity).toBe('0.4');
-      expect(approveButton?.style.pointerEvents).toBe('none');
-    });
-
-    it('INVALID: {status: review_observables, spec complete, chaoswhisperer in_progress} => APPROVE disabled', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'review_observables',
-        flows: [FlowStub()],
-        workItems: [WorkItemStub({ role: 'chaoswhisperer', status: 'in_progress' })],
       });
 
       mantineRenderAdapter({
