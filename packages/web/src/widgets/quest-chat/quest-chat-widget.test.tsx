@@ -169,30 +169,26 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: 'replay-chat-q4',
-              line: JSON.stringify({
-                type: 'assistant',
-                message: {
-                  content: [
-                    {
-                      type: 'tool_use',
-                      name: 'mcp__dungeonmaster__ask-user-question',
-                      input: {
-                        questions: [
-                          {
-                            question: 'Which framework?',
-                            header: 'Framework Choice',
-                            options: [
-                              { label: 'React', description: 'Component-based UI' },
-                              { label: 'Vue', description: 'Progressive framework' },
-                            ],
-                            multiSelect: false,
-                          },
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'tool_use',
+                  toolName: 'mcp__dungeonmaster__ask-user-question',
+                  toolInput: JSON.stringify({
+                    questions: [
+                      {
+                        question: 'Which framework?',
+                        header: 'Framework Choice',
+                        options: [
+                          { label: 'React', description: 'Component-based UI' },
+                          { label: 'Vue', description: 'Progressive framework' },
                         ],
+                        multiSelect: false,
                       },
-                    },
-                  ],
+                    ],
+                  }),
                 },
-              }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -240,30 +236,26 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: 'replay-chat-q5',
-              line: JSON.stringify({
-                type: 'assistant',
-                message: {
-                  content: [
-                    {
-                      type: 'tool_use',
-                      name: 'mcp__dungeonmaster__ask-user-question',
-                      input: {
-                        questions: [
-                          {
-                            question: 'Which framework?',
-                            header: 'Framework Choice',
-                            options: [
-                              { label: 'React', description: 'Component-based UI' },
-                              { label: 'Vue', description: 'Progressive framework' },
-                            ],
-                            multiSelect: false,
-                          },
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'tool_use',
+                  toolName: 'mcp__dungeonmaster__ask-user-question',
+                  toolInput: JSON.stringify({
+                    questions: [
+                      {
+                        question: 'Which framework?',
+                        header: 'Framework Choice',
+                        options: [
+                          { label: 'React', description: 'Component-based UI' },
+                          { label: 'Vue', description: 'Progressive framework' },
                         ],
+                        multiSelect: false,
                       },
-                    },
-                  ],
+                    ],
+                  }),
                 },
-              }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -477,30 +469,26 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: 'replay-chat-q8',
-              line: JSON.stringify({
-                type: 'assistant',
-                message: {
-                  content: [
-                    {
-                      type: 'tool_use',
-                      name: 'mcp__dungeonmaster__ask-user-question',
-                      input: {
-                        questions: [
-                          {
-                            question: 'Which DB?',
-                            header: 'Database Choice',
-                            options: [
-                              { label: 'Postgres', description: 'Relational' },
-                              { label: 'Mongo', description: 'Document' },
-                            ],
-                            multiSelect: false,
-                          },
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'tool_use',
+                  toolName: 'mcp__dungeonmaster__ask-user-question',
+                  toolInput: JSON.stringify({
+                    questions: [
+                      {
+                        question: 'Which DB?',
+                        header: 'Database Choice',
+                        options: [
+                          { label: 'Postgres', description: 'Relational' },
+                          { label: 'Mongo', description: 'Document' },
                         ],
+                        multiSelect: false,
                       },
-                    },
-                  ],
+                    ],
+                  }),
                 },
-              }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1153,15 +1141,13 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               slotIndex: 0,
-              entry: {
-                raw: JSON.stringify({
-                  type: 'assistant',
-                  message: {
-                    role: 'assistant',
-                    content: [{ type: 'text', text: 'Building auth guard...' }],
-                  },
-                }),
-              },
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Building auth guard...',
+                },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1277,15 +1263,7 @@ describe('QuestChatWidget', () => {
             payload: {
               slotIndex: 0,
               sessionId: 'wi-live-session-cw',
-              entry: {
-                raw: JSON.stringify({
-                  type: 'assistant',
-                  message: {
-                    role: 'assistant',
-                    content: [{ type: 'text', text: 'Live codeweaver output...' }],
-                  },
-                }),
-              },
+              entries: [{ role: 'assistant', type: 'text', content: 'Live codeweaver output...' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1372,15 +1350,9 @@ describe('QuestChatWidget', () => {
             payload: {
               slotIndex: 0,
               sessionId: 'wi-cw-session-1',
-              entry: {
-                raw: JSON.stringify({
-                  type: 'assistant',
-                  message: {
-                    role: 'assistant',
-                    content: [{ type: 'text', text: 'Codeweaver instance one working...' }],
-                  },
-                }),
-              },
+              entries: [
+                { role: 'assistant', type: 'text', content: 'Codeweaver instance one working...' },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1468,15 +1440,9 @@ describe('QuestChatWidget', () => {
             payload: {
               slotIndex: 1,
               sessionId: 'wi-cw-session-2',
-              entry: {
-                raw: JSON.stringify({
-                  type: 'assistant',
-                  message: {
-                    role: 'assistant',
-                    content: [{ type: 'text', text: 'Codeweaver instance two working...' }],
-                  },
-                }),
-              },
+              entries: [
+                { role: 'assistant', type: 'text', content: 'Codeweaver instance two working...' },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1547,9 +1513,9 @@ describe('QuestChatWidget', () => {
             payload: {
               slotIndex: 0,
               sessionId: 'chat-plaintext-1',
-              entry: {
-                raw: 'This is plain text, not JSON',
-              },
+              entries: [
+                { role: 'assistant', type: 'text', content: 'This is plain text, not JSON' },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1630,13 +1596,13 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: 'exec-replay-wi-normal-session',
-              line: JSON.stringify({
-                type: 'assistant',
-                message: {
+              entries: [
+                {
                   role: 'assistant',
-                  content: [{ type: 'text', text: 'Normal codeweaver output...' }],
+                  type: 'text',
+                  content: 'Normal codeweaver output...',
                 },
-              }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -1907,13 +1873,13 @@ describe('QuestChatWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: 'exec-replay-wi-session-bbb',
-              line: JSON.stringify({
-                type: 'assistant',
-                message: {
+              entries: [
+                {
                   role: 'assistant',
-                  content: [{ type: 'text', text: 'Exploring quest requirements...' }],
+                  type: 'text',
+                  content: 'Exploring quest requirements...',
                 },
-              }),
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),

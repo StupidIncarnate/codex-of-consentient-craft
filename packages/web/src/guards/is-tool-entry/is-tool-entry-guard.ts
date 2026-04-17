@@ -6,7 +6,7 @@
  * // Returns true if entry is a tool_use or tool_result
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 export const isToolEntryGuard = ({ entry }: { entry?: ChatEntry }): boolean => {
   if (entry === undefined) return false;

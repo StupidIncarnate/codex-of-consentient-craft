@@ -4,7 +4,7 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { ToolGroupStub } from '../../contracts/chat-entry-group/chat-entry-group.stub';
 import { ToolGroupWidget } from './tool-group-widget';
 import { ToolGroupWidgetProxy } from './tool-group-widget.proxy';

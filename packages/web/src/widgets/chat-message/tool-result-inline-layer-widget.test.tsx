@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { AssistantToolResultChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantToolResultChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { ToolResultInlineLayerWidgetProps } from './tool-result-inline-layer-widget';
 import { ToolResultInlineLayerWidget } from './tool-result-inline-layer-widget';
 import { ToolResultInlineLayerWidgetProxy } from './tool-result-inline-layer-widget.proxy';

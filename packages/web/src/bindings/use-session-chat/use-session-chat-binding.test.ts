@@ -166,7 +166,7 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Hi there"}]}}',
+                entries: [{ role: 'assistant', type: 'text', content: 'Hi there' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -218,7 +218,7 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'different-proc',
-                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"wrong"}]}}',
+                entries: [{ role: 'assistant', type: 'text', content: 'wrong' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -254,10 +254,11 @@ describe('useSessionChatBinding', () => {
         callback: () => {
           proxy.receiveWsMessage({
             data: JSON.stringify({
-              type: 'chat-output',
+              type: 'chat-complete',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"system","subtype":"init","session_id":"new-session-id"}',
+                exitCode: 0,
+                sessionId: 'new-session-id',
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -818,7 +819,15 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'tool_use',
+                    toolUseId: 'tool-abc-123',
+                    toolName: 'Read',
+                    toolInput: JSON.stringify({ file_path: '/tmp/test.ts' }),
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -882,7 +891,15 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'tool_use',
+                    toolUseId: 'tool-abc-123',
+                    toolName: 'Read',
+                    toolInput: JSON.stringify({ file_path: '/tmp/test.ts' }),
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -945,7 +962,15 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'tool_use',
+                    toolUseId: 'tool-abc-123',
+                    toolName: 'Read',
+                    toolInput: JSON.stringify({ file_path: '/tmp/test.ts' }),
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -1008,7 +1033,15 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'chat-proc-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tool-abc-123","name":"Read","input":{"file_path":"/tmp/test.ts"}}]}}',
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'tool_use',
+                    toolUseId: 'tool-abc-123',
+                    toolName: 'Read',
+                    toolInput: JSON.stringify({ file_path: '/tmp/test.ts' }),
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -1155,7 +1188,7 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'replay-session-replay-1',
-                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Replayed answer"}]}}',
+                entries: [{ role: 'assistant', type: 'text', content: 'Replayed answer' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -1184,7 +1217,7 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'replay-session-replay-done',
-                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Historic answer"}]}}',
+                entries: [{ role: 'assistant', type: 'text', content: 'Historic answer' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -1249,7 +1282,7 @@ describe('useSessionChatBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'replay-session-replay-mismatch',
-                line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Still works"}]}}',
+                entries: [{ role: 'assistant', type: 'text', content: 'Still works' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),

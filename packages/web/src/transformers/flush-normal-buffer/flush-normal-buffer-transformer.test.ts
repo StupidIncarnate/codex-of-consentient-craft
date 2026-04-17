@@ -1,4 +1,4 @@
-import { UserChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { flushNormalBufferTransformer } from './flush-normal-buffer-transformer';
 
 describe('flushNormalBufferTransformer', () => {

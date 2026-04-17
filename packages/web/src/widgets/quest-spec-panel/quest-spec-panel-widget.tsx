@@ -13,7 +13,7 @@ import { Box, Group, Stack, Text } from '@mantine/core';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 
-import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
+import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';

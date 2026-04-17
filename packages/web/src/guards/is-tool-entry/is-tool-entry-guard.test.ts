@@ -4,7 +4,7 @@ import {
   AssistantToolUseChatEntryStub,
   SystemErrorChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { isToolEntryGuard } from './is-tool-entry-guard';
 
 describe('isToolEntryGuard', () => {

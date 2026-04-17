@@ -7,7 +7,7 @@ import {
   TaskNotificationChatEntryStub,
   SystemErrorChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import {
   MergedEntryItemStub,
   MergedToolPairItemStub,

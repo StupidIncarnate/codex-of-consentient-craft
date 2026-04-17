@@ -6,7 +6,7 @@
  * // Returns FormattedTokenLabel like "29.4k" or null if no entries have usage
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { computeEntryContextTransformer } from '../compute-entry-context/compute-entry-context-transformer';
 import { formatContextTokensTransformer } from '../format-context-tokens/format-context-tokens-transformer';

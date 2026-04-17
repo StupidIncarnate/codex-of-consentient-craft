@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { AssistantThinkingChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { ThinkingLayerWidgetProps } from './thinking-layer-widget';
 import { ThinkingLayerWidget } from './thinking-layer-widget';
 import { ThinkingLayerWidgetProxy } from './thinking-layer-widget.proxy';

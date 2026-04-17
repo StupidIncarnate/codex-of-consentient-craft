@@ -7,7 +7,7 @@
  */
 import { useCallback, useState } from 'react';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import { agentOutputState } from '../../state/agent-output/agent-output-state';
 

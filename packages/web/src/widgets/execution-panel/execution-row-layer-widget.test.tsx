@@ -14,7 +14,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';

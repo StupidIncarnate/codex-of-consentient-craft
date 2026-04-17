@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
+import type { AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';

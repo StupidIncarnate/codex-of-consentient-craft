@@ -8,7 +8,7 @@
 
 import { Box, Text } from '@mantine/core';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 type ThinkingEntry = Extract<ChatEntry, { type: 'thinking' }>;

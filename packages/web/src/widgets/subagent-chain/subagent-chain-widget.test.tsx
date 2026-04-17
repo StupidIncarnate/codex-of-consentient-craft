@@ -7,7 +7,7 @@ import {
   AssistantToolUseChatEntryStub,
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { SubagentChainGroupStub } from '../../contracts/chat-entry-group/chat-entry-group.stub';
 import { SubagentChainWidget } from './subagent-chain-widget';
 import { SubagentChainWidgetProxy } from './subagent-chain-widget.proxy';

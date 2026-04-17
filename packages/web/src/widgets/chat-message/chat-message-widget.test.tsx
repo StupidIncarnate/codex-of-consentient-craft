@@ -9,7 +9,7 @@ import {
   SystemErrorChatEntryStub,
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ChatMessageWidget } from './chat-message-widget';

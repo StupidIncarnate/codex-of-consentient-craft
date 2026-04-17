@@ -9,7 +9,7 @@
 import { Box, Text, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';

@@ -6,7 +6,7 @@
  * // Returns 'session' or 'subagent'
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 export const resolveChatEntrySourceTransformer = ({
   entry,

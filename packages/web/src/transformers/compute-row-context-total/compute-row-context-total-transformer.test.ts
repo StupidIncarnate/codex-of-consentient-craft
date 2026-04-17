@@ -1,8 +1,5 @@
 import { computeRowContextTotalTransformer } from './compute-row-context-total-transformer';
-import {
-  AssistantTextChatEntryStub,
-  UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantTextChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 
 describe('computeRowContextTotalTransformer', () => {
   describe('empty and no-usage cases', () => {

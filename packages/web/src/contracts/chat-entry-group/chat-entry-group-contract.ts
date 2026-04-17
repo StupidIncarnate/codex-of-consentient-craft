@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 
-import { chatEntryContract } from '../chat-entry/chat-entry-contract';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import { contextTokenCountContract } from '../context-token-count/context-token-count-contract';
 
 const singleGroupContract = z.object({

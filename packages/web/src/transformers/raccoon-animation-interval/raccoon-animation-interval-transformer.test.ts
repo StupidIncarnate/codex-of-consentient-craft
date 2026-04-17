@@ -2,7 +2,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { raccoonAnimationIntervalTransformer } from './raccoon-animation-interval-transformer';
 

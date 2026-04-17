@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { AskUserQuestionStub } from '../../contracts/ask-user-question/ask-user-question.stub';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestClarifyPanelWidget } from './quest-clarify-panel-widget';
 import { QuestClarifyPanelWidgetProxy } from './quest-clarify-panel-widget.proxy';

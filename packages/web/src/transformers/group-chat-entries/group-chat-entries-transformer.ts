@@ -6,7 +6,7 @@
  * // Returns ChatEntryGroup[] with single entries and tool groups
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { isToolEntryGuard } from '../../guards/is-tool-entry/is-tool-entry-guard';
 import { flushToolGroupTransformer } from '../flush-tool-group/flush-tool-group-transformer';

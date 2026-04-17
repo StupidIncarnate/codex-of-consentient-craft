@@ -1,4 +1,4 @@
-import { AssistantTextChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 
 import { agentOutputState } from './agent-output-state';

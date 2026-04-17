@@ -7,7 +7,7 @@
  * // Returns ChatEntry[] for the slot
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
 import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';

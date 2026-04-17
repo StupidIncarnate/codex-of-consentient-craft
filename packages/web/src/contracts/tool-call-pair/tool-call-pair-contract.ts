@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 
-import { chatEntryContract } from '../chat-entry/chat-entry-contract';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 export const toolCallPairContract = z.object({
   toolUse: chatEntryContract.nullable(),

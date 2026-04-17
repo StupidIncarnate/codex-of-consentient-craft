@@ -20,11 +20,10 @@ import { websocketConnectAdapter } from '../../adapters/websocket/connect/websoc
 import { sessionChatBroker } from '../../brokers/session/chat/session-chat-broker';
 import { sessionChatStopBroker } from '../../brokers/session/chat-stop/session-chat-stop-broker';
 import { sessionClarifyBroker } from '../../brokers/session/clarify/session-clarify-broker';
-import type { AskUserQuestionItem } from '../../contracts/ask-user-question/ask-user-question-contract';
-import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-user-question-contract';
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
-import { chatEntryContract } from '../../contracts/chat-entry/chat-entry-contract';
-import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
+import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
+import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 export const useSessionChatBinding = ({
   guildId,
@@ -81,19 +80,20 @@ export const useSessionChatBinding = ({
 
       if (rawChatProcessId !== chatProcessIdRef.current) return;
 
-      const rawLine: unknown = Reflect.get(payload, 'line');
-      if (typeof rawLine !== 'string') return;
+      const rawEntries: unknown = Reflect.get(payload, 'entries');
+      if (!Array.isArray(rawEntries)) return;
 
-      const result = streamJsonToChatEntryTransformer({ line: rawLine });
-
-      if (result.sessionId) {
-        sessionIdRef.current = result.sessionId;
-        setCurrentSessionId(result.sessionId);
+      const validEntries: ChatEntry[] = [];
+      for (const candidate of rawEntries) {
+        const parseResult = chatEntryContract.safeParse(candidate);
+        if (parseResult.success) {
+          validEntries.push(parseResult.data);
+        }
       }
 
-      if (result.entries.length > 0) {
+      if (validEntries.length > 0) {
         replayReceivedEntriesRef.current = true;
-        setEntries((prev) => [...prev, ...result.entries]);
+        setEntries((prev) => [...prev, ...validEntries]);
       }
     }
 

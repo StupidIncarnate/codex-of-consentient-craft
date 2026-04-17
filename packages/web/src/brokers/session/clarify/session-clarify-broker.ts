@@ -9,7 +9,7 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
-import type { AskUserQuestionItem } from '../../../contracts/ask-user-question/ask-user-question-contract';
+import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const sessionClarifyBroker = async ({

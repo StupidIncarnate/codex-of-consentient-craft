@@ -10,10 +10,7 @@ import { useState } from 'react';
 
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type {
-  AskUserQuestionItem,
-  AskUserQuestionOption,
-} from '../../contracts/ask-user-question/ask-user-question-contract';
+import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';

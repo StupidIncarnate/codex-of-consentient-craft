@@ -8,7 +8,7 @@
 
 import { animationIntervalMsContract } from '../../contracts/animation-interval-ms/animation-interval-ms-contract';
 import type { AnimationIntervalMs } from '../../contracts/animation-interval-ms/animation-interval-ms-contract';
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 
 const IDLE_INTERVAL = animationIntervalMsContract.parse(

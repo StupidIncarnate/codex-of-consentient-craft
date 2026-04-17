@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { AssistantToolUseChatEntryStub } from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantToolUseChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { ToolUseLayerWidgetProps } from './tool-use-layer-widget';
 import { ToolUseLayerWidget } from './tool-use-layer-widget';
 import { ToolUseLayerWidgetProxy } from './tool-use-layer-widget.proxy';

@@ -6,7 +6,7 @@
  * // Returns 'Run tests'
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { SubagentChainGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 
 type ChainDescription = SubagentChainGroup['description'];

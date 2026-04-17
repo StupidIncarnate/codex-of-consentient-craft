@@ -6,7 +6,7 @@
  * // Returns true if the last AskUserQuestion tool call has not been answered by the user
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 

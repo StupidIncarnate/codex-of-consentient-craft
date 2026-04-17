@@ -2,7 +2,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 
 import { hasPendingQuestionGuard } from './has-pending-question-guard';
 

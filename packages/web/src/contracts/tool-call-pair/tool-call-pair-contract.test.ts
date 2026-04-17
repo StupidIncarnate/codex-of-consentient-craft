@@ -1,7 +1,7 @@
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-} from '../chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { toolCallPairContract } from './tool-call-pair-contract';
 import {
   ToolCallPairStub,

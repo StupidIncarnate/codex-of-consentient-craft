@@ -9,7 +9,7 @@
 import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 type UserEntry = Extract<ChatEntry, { role: 'user' }>;
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';

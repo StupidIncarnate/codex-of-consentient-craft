@@ -1,7 +1,4 @@
-import {
-  TaskToolUseChatEntryStub,
-  UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+import { TaskToolUseChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { extractTaskDescriptionTransformer } from './extract-task-description-transformer';
 
 describe('extractTaskDescriptionTransformer', () => {

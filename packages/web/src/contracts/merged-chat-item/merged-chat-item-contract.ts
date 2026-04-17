@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 
-import { chatEntryContract } from '../chat-entry/chat-entry-contract';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 const entryItemContract = z.object({
   kind: z.literal('entry'),

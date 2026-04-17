@@ -1,7 +1,4 @@
-import {
-  AssistantToolUseChatEntryStub,
-  UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+import { AssistantToolUseChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { indexSubagentEntriesTransformer } from './index-subagent-entries-transformer';
 
 describe('indexSubagentEntriesTransformer', () => {

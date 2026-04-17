@@ -7,9 +7,10 @@
  */
 
 import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntryGroup,
+  SingleGroup,
   SubagentChainGroup,
 } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
@@ -78,8 +79,8 @@ export const collectSubagentChainsTransformer = ({
 
       consumed.add(entry);
 
-      const innerGroups = subagentEntries.map(
-        (e) => ({ kind: 'single' as const, entry: e }) as ChatEntryGroup,
+      const innerGroups: SingleGroup[] = subagentEntries.map(
+        (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
       );
       const description = extractTaskDescriptionTransformer({ entry });
 
@@ -156,8 +157,8 @@ export const collectSubagentChainsTransformer = ({
 
     if (group.kind === 'subagent-chain') {
       const innerEntries = group.innerGroups
-        .filter((g): g is Extract<ChatEntryGroup, { kind: 'single' }> => g.kind === 'single')
-        .map((g) => g.entry);
+        .filter((g): g is SingleGroup => g.kind === 'single')
+        .map((g: SingleGroup) => g.entry);
 
       let firstContext: ContextTokenCount | null = null;
       let lastContext: ContextTokenCount | null = null;

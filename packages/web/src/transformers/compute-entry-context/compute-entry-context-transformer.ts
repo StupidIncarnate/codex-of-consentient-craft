@@ -6,7 +6,7 @@
  * // Returns ContextTokenCount or null if entry has no usage
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 

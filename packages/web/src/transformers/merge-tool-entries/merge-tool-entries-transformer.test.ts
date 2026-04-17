@@ -3,7 +3,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { mergeToolEntriesTransformer } from './merge-tool-entries-transformer';
 
 describe('mergeToolEntriesTransformer', () => {

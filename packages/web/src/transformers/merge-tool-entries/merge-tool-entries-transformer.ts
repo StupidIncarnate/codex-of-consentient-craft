@@ -6,7 +6,7 @@
  * // Returns MergedChatItem[] where tool_use+tool_result are paired and non-tool entries pass through
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { MergedChatItem } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';

@@ -6,7 +6,7 @@
  * // Returns ChatEntryGroup[] from grouping the buffered entries
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { groupChatEntriesTransformer } from '../group-chat-entries/group-chat-entries-transformer';
 

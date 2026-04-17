@@ -13,11 +13,10 @@ import { Box, Text } from '@mantine/core';
 
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
-import { chatEntryContract, type ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import { chatEntryContract, type ChatEntry } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
-import { streamJsonToChatEntryTransformer } from '../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
@@ -207,27 +206,19 @@ export const QuestChatWidget = (): React.JSX.Element => {
         const rawSlotIndex: unknown = Reflect.get(parsed.data.payload, 'slotIndex');
         const slotIndexParsed = slotIndexContract.safeParse(rawSlotIndex);
         if (slotIndexParsed.success) {
-          const rawEntry: unknown = Reflect.get(parsed.data.payload, 'entry');
-          if (typeof rawEntry !== 'object' || rawEntry === null) return;
+          const rawEntries: unknown = Reflect.get(parsed.data.payload, 'entries');
+          if (!Array.isArray(rawEntries)) return;
 
-          const rawLine: unknown = Reflect.get(rawEntry, 'raw');
-          if (typeof rawLine !== 'string') return;
-
-          const result = ((): ReturnType<typeof streamJsonToChatEntryTransformer> => {
-            try {
-              return streamJsonToChatEntryTransformer({ line: rawLine });
-            } catch {
-              const plainTextEntry = chatEntryContract.parse({
-                role: 'assistant',
-                type: 'text',
-                content: rawLine,
-              });
-              return { entries: [plainTextEntry], sessionId: null };
+          const validEntries: ChatEntry[] = [];
+          for (const candidate of rawEntries) {
+            const parseResult = chatEntryContract.safeParse(candidate);
+            if (parseResult.success) {
+              validEntries.push(parseResult.data);
             }
-          })();
-          if (result.entries.length === 0) return;
+          }
+          if (validEntries.length === 0) return;
 
-          handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: result.entries });
+          handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: validEntries });
 
           const rawSessionId: unknown = Reflect.get(parsed.data.payload, 'sessionId');
           if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
@@ -235,7 +226,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
             setWorkItemSessionEntries((prev) => {
               const updated = new Map(prev);
               const existing = updated.get(liveSessionId) ?? [];
-              updated.set(liveSessionId, [...existing, ...result.entries]);
+              updated.set(liveSessionId, [...existing, ...validEntries]);
               return updated;
             });
           }
@@ -254,16 +245,22 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
         const replaySessionId = rawChatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId;
 
-        const rawLine: unknown = Reflect.get(parsed.data.payload, 'line');
-        if (typeof rawLine !== 'string') return;
+        const rawEntries: unknown = Reflect.get(parsed.data.payload, 'entries');
+        if (!Array.isArray(rawEntries)) return;
 
-        const result = streamJsonToChatEntryTransformer({ line: rawLine });
-        if (result.entries.length === 0) return;
+        const validEntries: ChatEntry[] = [];
+        for (const candidate of rawEntries) {
+          const parseResult = chatEntryContract.safeParse(candidate);
+          if (parseResult.success) {
+            validEntries.push(parseResult.data);
+          }
+        }
+        if (validEntries.length === 0) return;
 
         setWorkItemSessionEntries((prev) => {
           const updated = new Map(prev);
           const existing = updated.get(replaySessionId) ?? [];
-          updated.set(replaySessionId, [...existing, ...result.entries]);
+          updated.set(replaySessionId, [...existing, ...validEntries]);
           return updated;
         });
       },

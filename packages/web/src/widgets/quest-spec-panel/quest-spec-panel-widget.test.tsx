@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import { QuestStub, DesignDecisionStub, FlowStub } from '@dungeonmaster/shared/contracts';
 
-import { AskUserQuestionStub } from '../../contracts/ask-user-question/ask-user-question.stub';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';

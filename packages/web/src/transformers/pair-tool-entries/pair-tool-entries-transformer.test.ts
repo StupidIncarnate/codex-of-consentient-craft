@@ -1,7 +1,7 @@
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { pairToolEntriesTransformer } from './pair-tool-entries-transformer';
 
 describe('pairToolEntriesTransformer', () => {

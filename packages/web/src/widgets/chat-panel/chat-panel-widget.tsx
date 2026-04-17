@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';

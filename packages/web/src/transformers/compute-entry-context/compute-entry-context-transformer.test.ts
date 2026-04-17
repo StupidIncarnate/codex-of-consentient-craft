@@ -2,7 +2,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
   UserChatEntryStub,
-} from '../../contracts/chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { computeEntryContextTransformer } from './compute-entry-context-transformer';
 
 describe('computeEntryContextTransformer', () => {

@@ -17,7 +17,7 @@ import type {
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';

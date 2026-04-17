@@ -6,9 +6,9 @@
  * // Returns parsed {questions: [...]} object or null if no AskUserQuestion found
  */
 
-import { askUserQuestionContract } from '../../contracts/ask-user-question/ask-user-question-contract';
-import type { AskUserQuestion } from '../../contracts/ask-user-question/ask-user-question-contract';
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestion } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 

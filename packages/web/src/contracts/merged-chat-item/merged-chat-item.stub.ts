@@ -4,7 +4,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   UserChatEntryStub,
-} from '../chat-entry/chat-entry.stub';
+} from '@dungeonmaster/shared/contracts';
 import { mergedChatItemContract } from './merged-chat-item-contract';
 import type { MergedChatItem } from './merged-chat-item-contract';
 

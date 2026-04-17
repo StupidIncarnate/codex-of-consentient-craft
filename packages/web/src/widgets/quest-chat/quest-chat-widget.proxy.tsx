@@ -21,7 +21,7 @@ import type {
 import { WorkItemStub } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
-import type { AskUserQuestionOption } from '../../contracts/ask-user-question/ask-user-question-contract';
+import type { AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
 import { useAgentOutputBindingProxy } from '../../bindings/use-agent-output/use-agent-output-binding.proxy';
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';

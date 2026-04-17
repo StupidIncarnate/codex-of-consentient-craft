@@ -6,7 +6,7 @@
  * // Returns ToolCallPair[] with each tool_use linked to its tool_result (or null if pending)
  */
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ToolCallPair } from '../../contracts/tool-call-pair/tool-call-pair-contract';
 import { toolCallPairContract } from '../../contracts/tool-call-pair/tool-call-pair-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';

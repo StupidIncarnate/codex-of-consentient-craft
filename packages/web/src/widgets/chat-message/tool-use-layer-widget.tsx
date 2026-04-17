@@ -9,7 +9,7 @@
 import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
-import type { ChatEntry } from '../../contracts/chat-entry/chat-entry-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 type ToolUseEntry = Extract<ChatEntry, { type: 'tool_use' }>;
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
