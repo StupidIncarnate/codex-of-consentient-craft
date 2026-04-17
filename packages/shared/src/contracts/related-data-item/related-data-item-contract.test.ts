@@ -28,12 +28,24 @@ describe('relatedDataItemContract', () => {
 
       expect(item).toBe('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
+
+    it('VALID: flows reference => parses successfully', () => {
+      const item = RelatedDataItemStub({ value: 'flows/login-flow' });
+
+      expect(item).toBe('flows/login-flow');
+    });
   });
 
   describe('invalid references', () => {
     it('INVALID: unknown collection => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('unknown/abc');
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
+    });
+
+    it('INVALID: flows with empty id => throws validation error', () => {
+      expect(() => {
+        relatedDataItemContract.parse('flows/');
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 

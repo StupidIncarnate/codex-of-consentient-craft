@@ -1,7 +1,10 @@
 import { WardResultStub } from '@dungeonmaster/shared/contracts';
 
 import { resolvedRelatedDataItemContract } from './resolved-related-data-item-contract';
-import { ResolvedRelatedDataItemStub } from './resolved-related-data-item.stub';
+import {
+  ResolvedRelatedDataItemFlowStub,
+  ResolvedRelatedDataItemStub,
+} from './resolved-related-data-item.stub';
 
 describe('resolvedRelatedDataItemContract', () => {
   describe('valid results', () => {
@@ -23,6 +26,12 @@ describe('resolvedRelatedDataItemContract', () => {
       });
 
       expect(result.collection).toBe('wardResults');
+    });
+
+    it('VALID: {collection: flows, flow item} => parses successfully', () => {
+      const result = ResolvedRelatedDataItemFlowStub();
+
+      expect(result.collection).toBe('flows');
     });
   });
 });

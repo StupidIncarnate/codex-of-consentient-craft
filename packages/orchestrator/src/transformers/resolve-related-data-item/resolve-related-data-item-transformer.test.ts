@@ -1,5 +1,7 @@
 import {
   DependencyStepStub,
+  FlowIdStub,
+  FlowStub,
   QuestStub,
   RelatedDataItemStub,
   StepIdStub,
@@ -67,6 +69,48 @@ describe('resolveRelatedDataItemTransformer', () => {
 
       expect(() => resolveRelatedDataItemTransformer({ ref, quest })).toThrow(
         /WardResult b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e not found/u,
+      );
+    });
+  });
+
+  describe('flows collection', () => {
+    it('VALID: {ref: "flows/login-flow", quest with matching flow} => returns flow', () => {
+      const flowId = FlowIdStub({ value: 'login-flow' });
+      const flow = FlowStub({ id: flowId });
+      const quest = QuestStub({ flows: [flow] });
+      const ref = RelatedDataItemStub({
+        value: `flows/${String(flowId)}`,
+      });
+
+      const result = resolveRelatedDataItemTransformer({ ref, quest });
+
+      expect(result).toStrictEqual({
+        collection: 'flows',
+        id: flowId,
+        item: flow,
+      });
+    });
+
+    it('ERROR: {ref: "flows/unknown-id"} => throws flow not found', () => {
+      const quest = QuestStub({ flows: [] });
+      const ref = RelatedDataItemStub({
+        value: 'flows/missing-flow',
+      });
+
+      expect(() => resolveRelatedDataItemTransformer({ ref, quest })).toThrow(
+        /Flow missing-flow not found/u,
+      );
+    });
+
+    it('ERROR: {ref: "flows/other-flow", quest has different flow} => throws flow not found', () => {
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const quest = QuestStub({ flows: [flow] });
+      const ref = RelatedDataItemStub({
+        value: 'flows/signup-flow',
+      });
+
+      expect(() => resolveRelatedDataItemTransformer({ ref, quest })).toThrow(
+        /Flow signup-flow not found/u,
       );
     });
   });

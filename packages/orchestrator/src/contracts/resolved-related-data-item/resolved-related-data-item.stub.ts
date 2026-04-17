@@ -1,4 +1,9 @@
-import { DependencyStepStub, StepIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  DependencyStepStub,
+  FlowIdStub,
+  FlowStub,
+  StepIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { resolvedRelatedDataItemContract } from './resolved-related-data-item-contract';
 import type { ResolvedItem } from './resolved-related-data-item-contract';
@@ -10,5 +15,15 @@ export const ResolvedRelatedDataItemStub = (): ResolvedItem => {
     collection: 'steps',
     id: stepId,
     item: step,
+  });
+};
+
+export const ResolvedRelatedDataItemFlowStub = (): ResolvedItem => {
+  const flowId = FlowIdStub({ value: 'login-flow' });
+  const flow = FlowStub({ id: flowId });
+  return resolvedRelatedDataItemContract.parse({
+    collection: 'flows',
+    id: flowId,
+    item: flow,
   });
 };
