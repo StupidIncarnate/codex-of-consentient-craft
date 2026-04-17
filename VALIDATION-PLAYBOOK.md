@@ -4,6 +4,49 @@ End-to-end manual validation of the quest pipeline, written as if both Per-Flow 
 Plan 1) are already implemented. Orchestrator (me) runs Phase 0 checks individually, then drives Phases 1–3 as a live
 quest and branches to fixer agents on red.
 
+---
+
+## Picking Up Mid-Validation (New Session Handoff)
+
+If you're a fresh Claude session resuming this smoke test, read these in order before doing anything else:
+
+1. **This file** (the full playbook) — for rules, run lifecycle, bug procedure.
+2. **`/tmp/validation-notes.md`** — per-run log. Find the last `## Run N` heading with `Outcome: in_progress` or
+   `blocked` → that's where you pick up. Each entry has:
+    - session / quest IDs
+    - phase / checkpoint where it stopped
+    - bugs filed (blocking vs non-blocking) and fix commit SHAs if already addressed
+3. **`git log --oneline -30`** — recent bug-fix commits. Each validation-driven fix has a message prefixed with
+   "Phase N checkpoint X.Y fix:" — these landed because a prior run blocked on them.
+4. **`~/.claude/plans/we-need-to-add-generic-dream.md`** and **`~/.claude/plans/lets-do-this-as-misty-gray.md`** — only
+   if you need context on WHY Siegemaster is per-flow or WHY Blightwarden exists. Both plans' progress trackers are
+   fully checked (Plan A: 9 groups, Plan B: 10 groups); both features are merged to `master`.
+5. **`VALIDATION-PLAYBOOK.md` Phase 0** — re-confirm all 23 static checkpoints still pass before kicking off a live
+   run. A failed Phase 0 means a prior commit regressed a landed feature; file as blocking.
+
+**Known state (as of last handoff):**
+
+- All 24+ bug-fix commits since session start are on branch `master`, NOT pushed. Use `git log origin/master..HEAD`
+  to see them. Do NOT push unless the user explicitly says so.
+- Working tree should be clean at handoff time (only `VALIDATION-PLAYBOOK.md` or `FOLLOWUP-ISSUES.md` may be dirty
+  if the user is mid-edit). If anything else is dirty, check the last run's "Bug Procedure" notes — quest-generated
+  artifacts must be reverted before restarting a run.
+- Dev server is probably NOT running across a session handoff — start fresh per Run Lifecycle step 4.
+- Known non-blocking issue: session URL auto-nav from `/codex/session` → `/codex/session/<uuid>` takes ~2 minutes
+  after ChaosWhisperer's first turn. Be patient. Never manually navigate the session URL.
+
+**Resumption rules:**
+
+- Continue from the last non-success run's phase/checkpoint. Do not re-run earlier successful checkpoints.
+- If the last run was `blocked` AND the fix was committed, start a fresh run at the phase where it blocked (new
+  quest, per Run Lifecycle).
+- If the last run was `in_progress` with no blocker filed, the prior session may have just stopped mid-run — restart
+  with a new quest on the same phase.
+- Do NOT abandon or delete the prior run's quest unless it's blocking your ability to proceed. Just park it and
+  create a new one.
+
+---
+
 ## Ground Rules
 
 Static policies. These hold for every run.
