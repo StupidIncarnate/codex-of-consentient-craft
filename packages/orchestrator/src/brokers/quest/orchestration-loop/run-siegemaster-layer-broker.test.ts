@@ -104,7 +104,7 @@ describe('runSiegemasterLayerBroker', () => {
 
       expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('failed');
       expect(proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId })?.errorMessage).toBe(
-        'siege_check_failed',
+        'Task completed successfully',
       );
       expect(proxy.getPersistedWorkItemStatus({ workItemId: lawbringerWorkItemId })).toBe(
         'skipped',

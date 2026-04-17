@@ -1925,12 +1925,13 @@ describe('OrchestrationFlow', () => {
     });
 
     // Test 14: PathSeeker creates 0 steps (edge case)
-    // With 0 steps, stepsToWorkItemsTransformer creates ward + siege + finalWard.
-    // Both ward and finalWard have empty dependsOn (0 codeweavers, 0 lawbringers).
-    // The orchestration loop groups both wards as ready simultaneously, marks both
-    // in_progress, but only dispatches the first. The final ward stays in_progress
-    // permanently — quest never reaches 'complete'. This is a known limitation when
-    // multiple same-role items have empty dependsOn.
+    // With 0 steps and 0 flows, stepsToWorkItemsTransformer creates ward + finalWard
+    // (no siegeItems — per-flow siege requires ≥1 flow). Both wards have empty
+    // dependsOn (0 codeweavers, 0 lawbringers, 0 sieges). The orchestration loop
+    // groups both wards as ready simultaneously, marks both in_progress, but only
+    // dispatches the first. The final ward stays in_progress permanently — quest
+    // never reaches 'complete'. This is a known limitation when multiple same-role
+    // items have empty dependsOn.
     it('VALID: {pathseeker verify passes, 0 steps} => 0 codeweavers, ward + siege dispatched', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orch-ps-0-steps' }),
@@ -1967,19 +1968,15 @@ describe('OrchestrationFlow', () => {
         await questHelper.completeChaosWorkItem({ questId });
 
         // pathseeker succeeds — verify passes (no observables to violate), 0 steps
-        // stepsToWorkItemsTransformer creates ward + siege + finalWard (all with empty dependsOn lists)
+        // With 0 flows, stepsToWorkItemsTransformer creates ward + finalWard only
+        // (no siegeItems — per-flow siege requires ≥1 flow).
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('ps-0-steps') }),
         });
         // ward (immediately ready — dependsOn empty codeweaver list)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
-        // siege
-        queue.enqueue({
-          queueDir: env.claudeQueueDir,
-          response: agentSuccessResponse({ sessionId: sid('siege-0-steps') }),
-        });
-        // final ward (dependsOn empty lawbringer list — immediately ready after siege)
+        // final ward (dependsOn empty lawbringer list — immediately ready after ward)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({ questId: typedQuestId });
@@ -2000,7 +1997,7 @@ describe('OrchestrationFlow', () => {
       expect(quest.status).toBe('complete');
       expect(codeweavers).toStrictEqual([]);
       expect(wardItems.map((wi) => wi.status)).toStrictEqual(['complete', 'complete']);
-      expect(siegeItems.map((wi) => wi.status)).toStrictEqual(['complete']);
+      expect(siegeItems.map((wi) => wi.status)).toStrictEqual([]);
     });
 
     // Test 15: Invariant — lawbringer count matches codeweaver count
