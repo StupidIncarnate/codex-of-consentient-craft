@@ -151,6 +151,13 @@ export const sessionHarness = ({
     notificationSummary: string;
     notificationResult: string;
   }) => void;
+  // Creates ONLY the sub-agent JSONL (no main session file) so streaming tests can
+  // pre-seed what chatSubagentTailBroker will read once agentId correlation fires.
+  createSubagentTailOnly: (params: {
+    sessionId: string;
+    agentId: string;
+    assistantText: string;
+  }) => void;
   createSessionWithRedactedThinking: (params: { sessionId: string; assistantText: string }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
@@ -466,6 +473,35 @@ export const sessionHarness = ({
     );
   };
 
+  const createSubagentTailOnly = ({
+    sessionId,
+    agentId,
+    assistantText,
+  }: {
+    sessionId: string;
+    agentId: string;
+    assistantText: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+    const subagentLines = [
+      JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: assistantText }],
+            usage: { input_tokens: 10, output_tokens: 5 },
+          },
+        }),
+      ),
+    ];
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${agentId}.jsonl`),
+      `${subagentLines.join('\n')}\n`,
+    );
+  };
+
   const createSessionWithRedactedThinking = ({
     sessionId,
     assistantText,
@@ -551,6 +587,7 @@ export const sessionHarness = ({
     createMultiEntrySessionFile,
     createSubagentSessionFiles,
     createSubagentSessionWithInternalTool,
+    createSubagentTailOnly,
     createBackgroundAgentSession,
     createSessionWithRedactedThinking,
     cleanSessionFiles,

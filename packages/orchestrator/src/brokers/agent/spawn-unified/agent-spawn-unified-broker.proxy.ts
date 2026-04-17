@@ -1,3 +1,5 @@
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+
 import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
 import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
 
@@ -31,6 +33,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const readlineProxy = readlineCreateInterfaceAdapterProxy();
   const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
 

@@ -1,4 +1,7 @@
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  claudeLineNormalizeBrokerProxy,
+  osUserHomedirAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
@@ -14,6 +17,7 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupSubagentFile: (params: { content: string }) => void;
   setupSubagentDirMissing: () => void;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const homedirProxy = osUserHomedirAdapterProxy();
   const readJsonlProxy = fsReadJsonlAdapterProxy();

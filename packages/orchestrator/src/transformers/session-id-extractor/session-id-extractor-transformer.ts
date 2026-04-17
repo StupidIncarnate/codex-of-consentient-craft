@@ -1,42 +1,35 @@
 /**
- * PURPOSE: Extracts session_id from a Claude stream-json output line
+ * PURPOSE: Extracts sessionId from a normalized (camelCase) Claude stream-json line object
  *
  * USAGE:
- * sessionIdExtractorTransformer({ line: StreamJsonLineStub({ value: '{"session_id":"abc-123"}' }) });
+ * sessionIdExtractorTransformer({ parsed: {sessionId:'abc-123'} });
  * // Returns SessionId if found, null otherwise
  */
 
 import { sessionIdContract, type SessionId } from '@dungeonmaster/shared/contracts';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export const sessionIdExtractorTransformer = ({
-  line,
+  parsed,
 }: {
-  line: StreamJsonLine;
+  parsed: unknown;
 }): SessionId | null => {
-  try {
-    const parsed: unknown = JSON.parse(line);
-
-    if (typeof parsed !== 'object' || parsed === null) {
-      return null;
-    }
-
-    // Skip hook events — they carry a temporary session_id that differs from the real one
-    const subtype: unknown = Reflect.get(parsed, 'subtype');
-    if (subtype === 'hook_started' || subtype === 'hook_response') {
-      return null;
-    }
-
-    if ('session_id' in parsed && typeof Reflect.get(parsed, 'session_id') === 'string') {
-      const sessionIdValue = Reflect.get(parsed, 'session_id');
-      const parseResult = sessionIdContract.safeParse(sessionIdValue);
-      if (parseResult.success) {
-        return parseResult.data;
-      }
-    }
-
-    return null;
-  } catch {
+  if (typeof parsed !== 'object' || parsed === null) {
     return null;
   }
+
+  // Skip hook events — they carry a temporary sessionId that differs from the real one
+  const subtype: unknown = Reflect.get(parsed, 'subtype');
+  if (subtype === 'hook_started' || subtype === 'hook_response') {
+    return null;
+  }
+
+  if ('sessionId' in parsed && typeof Reflect.get(parsed, 'sessionId') === 'string') {
+    const sessionIdValue = Reflect.get(parsed, 'sessionId');
+    const parseResult = sessionIdContract.safeParse(sessionIdValue);
+    if (parseResult.success) {
+      return parseResult.data;
+    }
+  }
+
+  return null;
 };

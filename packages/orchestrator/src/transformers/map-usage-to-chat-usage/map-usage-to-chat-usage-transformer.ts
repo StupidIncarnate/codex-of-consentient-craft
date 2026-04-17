@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Transforms raw API usage object with snake_case keys into ChatUsage with camelCase keys
+ * PURPOSE: Builds a ChatUsage object from a normalized (camelCase) usage record, defaulting any missing field to 0
  *
  * USAGE:
- * mapUsageToChatUsageTransformer({usage: {input_tokens: 100, output_tokens: 50, cache_creation_input_tokens: 10, cache_read_input_tokens: 5}});
+ * mapUsageToChatUsageTransformer({usage: {inputTokens: 100, outputTokens: 50, cacheCreationInputTokens: 10, cacheReadInputTokens: 5}});
  * // Returns {inputTokens: 100, outputTokens: 50, cacheCreationInputTokens: 10, cacheReadInputTokens: 5}
  */
 import type { ChatUsage } from '@dungeonmaster/shared/contracts';
@@ -13,8 +13,8 @@ export const mapUsageToChatUsageTransformer = ({
   usage: Record<string, unknown>;
 }): ChatUsage =>
   ({
-    inputTokens: Number(usage.input_tokens ?? 0),
-    outputTokens: Number(usage.output_tokens ?? 0),
-    cacheCreationInputTokens: Number(usage.cache_creation_input_tokens ?? 0),
-    cacheReadInputTokens: Number(usage.cache_read_input_tokens ?? 0),
+    inputTokens: Number(usage.inputTokens ?? 0),
+    outputTokens: Number(usage.outputTokens ?? 0),
+    cacheCreationInputTokens: Number(usage.cacheCreationInputTokens ?? 0),
+    cacheReadInputTokens: Number(usage.cacheReadInputTokens ?? 0),
   }) as ChatUsage;

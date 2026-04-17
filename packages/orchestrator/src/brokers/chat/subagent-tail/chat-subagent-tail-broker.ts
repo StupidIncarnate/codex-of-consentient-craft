@@ -15,7 +15,8 @@
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import {
@@ -70,9 +71,9 @@ export const chatSubagentTailBroker = async ({
   const handle = fsWatchTailAdapter({
     filePath: subagentJsonlPath,
     onLine: ({ line }) => {
-      const parsedLine = streamJsonLineContract.parse(line);
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
       const outputs = processor.processLine({
-        line: parsedLine,
+        parsed,
         source: subagentSource,
         agentId,
       });

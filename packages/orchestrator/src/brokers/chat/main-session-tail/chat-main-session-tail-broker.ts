@@ -22,7 +22,8 @@
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
@@ -71,9 +72,9 @@ export const chatMainSessionTailBroker = async ({
     // Reading from 0 would re-emit the whole session and duplicate what stdout already sent.
     startPosition: 'end',
     onLine: ({ line }) => {
-      const parsedLine = streamJsonLineContract.parse(line);
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
       const outputs = processor.processLine({
-        line: parsedLine,
+        parsed,
         source: sessionSource,
       });
 

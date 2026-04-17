@@ -57,7 +57,7 @@ export const mapContentItemToChatEntryTransformer = ({
   }
 
   if (itemType === 'tool_result') {
-    const toolUseId = typeof item.tool_use_id === 'string' ? item.tool_use_id : '';
+    const toolUseId = typeof item.toolUseId === 'string' ? item.toolUseId : '';
     const content =
       typeof item.content === 'string'
         ? item.content
@@ -69,7 +69,7 @@ export const mapContentItemToChatEntryTransformer = ({
               .filter((t: unknown) => typeof t === 'string')
               .join('\n')
           : '';
-    const isError = item.is_error === true;
+    const isError = item.isError === true;
 
     return chatEntryContract.parse({
       role: 'assistant',

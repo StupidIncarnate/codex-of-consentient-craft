@@ -7,11 +7,13 @@
  */
 
 import {
+  chatEntryContract,
   filePathContract,
   processIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -23,7 +25,6 @@ import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
-import { safeJsonParseTransformer } from '../../../transformers/safe-json-parse/safe-json-parse-transformer';
 import { streamJsonToChatEntryTransformer } from '../../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const OrchestrationStartResponder = async ({
@@ -130,9 +131,15 @@ export const OrchestrationStartResponder = async ({
     onAgentEntry: ({ slotIndex, entry, sessionId }) => {
       const rawLine: unknown = Reflect.get(entry, 'raw');
       if (typeof rawLine !== 'string') return;
-      const parseResult = safeJsonParseTransformer({ value: rawLine });
-      if (!parseResult.ok) return;
-      const { entries } = streamJsonToChatEntryTransformer({ parsed: parseResult.value });
+      const parsed = claudeLineNormalizeBroker({ rawLine });
+      let entries: ChatEntry[];
+      if (parsed === null) {
+        // Plain-text line (e.g. ward build/test output) — emit as assistant text entry
+        if (rawLine.length === 0) return;
+        entries = [chatEntryContract.parse({ role: 'assistant', type: 'text', content: rawLine })];
+      } else {
+        entries = streamJsonToChatEntryTransformer({ parsed }).entries;
+      }
       if (entries.length === 0) return;
       orchestrationEventsState.emit({
         type: 'chat-output',

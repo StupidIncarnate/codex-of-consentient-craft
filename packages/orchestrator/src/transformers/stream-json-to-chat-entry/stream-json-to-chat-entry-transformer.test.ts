@@ -12,12 +12,15 @@ import {
   TextOnlyUserStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { streamJsonToChatEntryTransformer } from './stream-json-to-chat-entry-transformer';
+
+const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({ value });
 
 describe('streamJsonToChatEntryTransformer', () => {
   describe('system init messages', () => {
-    it('VALID: {type: "system", subtype: "init", session_id} => returns empty entries with session ID', () => {
-      const parsed = SystemInitStreamLineStub({ session_id: 'sess-abc-123' });
+    it('VALID: {type: "system", subtype: "init", sessionId} => returns empty entries with session ID', () => {
+      const parsed = normalize(SystemInitStreamLineStub({ session_id: 'sess-abc-123' }));
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -27,7 +30,7 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "system", subtype: "init", no session_id} => returns null sessionId', () => {
+    it('EDGE: {type: "system", subtype: "init", no sessionId} => returns null sessionId', () => {
       const result = streamJsonToChatEntryTransformer({
         parsed: { type: 'system', subtype: 'init' },
       });
@@ -52,16 +55,18 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('assistant messages', () => {
     it('VALID: {type: "assistant", text content} => returns text chat entry', () => {
-      const parsed = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello world' }],
-          usage: {
-            input_tokens: 100,
-            output_tokens: 50,
+      const parsed = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello world' }],
+            usage: {
+              input_tokens: 100,
+              output_tokens: 50,
+            },
           },
-        },
-      });
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -84,12 +89,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry', () => {
-      const parsed = AssistantToolUseStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
-        },
-      });
+      const parsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -107,12 +114,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_result content} => returns tool result chat entry', () => {
-      const parsed = AssistantToolResultStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
-        },
-      });
+      const parsed = normalize(
+        AssistantToolResultStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -130,19 +139,21 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", multiple content items} => returns multiple entries', () => {
-      const parsed = AssistantMixedContentStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [
-            { type: 'text', text: 'Let me read that file' },
-            { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
-          ],
-          usage: {
-            input_tokens: 200,
-            output_tokens: 100,
+      const parsed = normalize(
+        AssistantMixedContentStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              { type: 'text', text: 'Let me read that file' },
+              { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
+            ],
+            usage: {
+              input_tokens: 200,
+              output_tokens: 100,
+            },
           },
-        },
-      });
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -200,13 +211,15 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", model field on message} => passes model to resulting entries', () => {
-      const parsed = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello world' }],
-          model: 'claude-opus-4-20250514' as never,
-        },
-      });
+      const parsed = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello world' }],
+            model: 'claude-opus-4-20250514' as never,
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -224,12 +237,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", no model field} => entries have no model', () => {
-      const parsed = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello world' }],
-        },
-      });
+      const parsed = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello world' }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -246,12 +261,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", thinking content} => returns thinking entry', () => {
-      const parsed = AssistantThinkingStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'thinking', thinking: 'Let me think about this.' }],
-        },
-      });
+      const parsed = normalize(
+        AssistantThinkingStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'thinking', thinking: 'Let me think about this.' }],
+          },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -362,7 +379,7 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('user messages with tool_result', () => {
     it('VALID: {permission denied tool result} => returns tool result entry with isError', () => {
-      const parsed = PermissionDeniedStreamLineStub();
+      const parsed = normalize(PermissionDeniedStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -382,7 +399,7 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {successful tool result} => returns tool result entry without isError', () => {
-      const parsed = SuccessfulToolResultStreamLineStub();
+      const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -400,7 +417,7 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {mixed text and tool result} => only returns tool_result entries', () => {
-      const parsed = MixedTextAndToolResultStreamLineStub();
+      const parsed = normalize(MixedTextAndToolResultStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -427,9 +444,11 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "user", content is plain string} => returns user entry', () => {
-      const parsed = UserTextStringStreamLineStub({
-        message: { role: 'user', content: 'plain string without tool results' },
-      });
+      const parsed = normalize(
+        UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'plain string without tool results' },
+        }),
+      );
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -445,7 +464,7 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('EDGE: {text only user message} => returns empty entries', () => {
-      const parsed = TextOnlyUserStreamLineStub();
+      const parsed = normalize(TextOnlyUserStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -457,8 +476,8 @@ describe('streamJsonToChatEntryTransformer', () => {
   });
 
   describe('result messages', () => {
-    it('VALID: {type: "result", session_id} => returns empty entries with session ID', () => {
-      const parsed = ResultStreamLineStub({ session_id: 'sess-xyz-789' });
+    it('VALID: {type: "result", sessionId} => returns empty entries with session ID', () => {
+      const parsed = normalize(ResultStreamLineStub({ session_id: 'sess-xyz-789' }));
 
       const result = streamJsonToChatEntryTransformer({ parsed });
 
@@ -468,7 +487,7 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "result", no session_id} => returns null sessionId', () => {
+    it('EDGE: {type: "result", no sessionId} => returns null sessionId', () => {
       const result = streamJsonToChatEntryTransformer({ parsed: { type: 'result' } });
 
       expect(result).toStrictEqual({
@@ -477,9 +496,9 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "result", session_id is non-string} => returns null sessionId', () => {
+    it('EDGE: {type: "result", sessionId is non-string} => returns null sessionId', () => {
       const result = streamJsonToChatEntryTransformer({
-        parsed: { type: 'result', session_id: 123 },
+        parsed: { type: 'result', sessionId: 123 },
       });
 
       expect(result).toStrictEqual({

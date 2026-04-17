@@ -1,8 +1,10 @@
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  StreamJsonLineStub,
+  ResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
+  SystemInitStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
@@ -10,16 +12,16 @@ import { ChatLineSourceStub } from '../../contracts/chat-line-source/chat-line-s
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
 
+const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({ value });
+
 describe('chatLineProcessTransformer', () => {
   describe('basic line processing', () => {
     it('VALID: {assistant text line, source: session} => emits entries with source tag', () => {
       const processor = chatLineProcessTransformer();
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(AssistantTextStreamLineStub()),
-      });
+      const parsed = normalize(AssistantTextStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([
         {
@@ -38,12 +40,10 @@ describe('chatLineProcessTransformer', () => {
 
     it('VALID: {user tool_result line, source: subagent} => emits entries with source tag', () => {
       const processor = chatLineProcessTransformer();
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(SuccessfulToolResultStreamLineStub()),
-      });
+      const parsed = normalize(SuccessfulToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'subagent' });
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([
         {
@@ -69,31 +69,27 @@ describe('chatLineProcessTransformer', () => {
       const agentId = AgentIdStub({ value: 'agent-abc' });
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId },
-        }),
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId },
       });
 
-      const assistantLine = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-            },
-          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-        ),
-      });
+      const assistantParsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+          },
+        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+      );
 
-      processor.processLine({ line: userLine, source });
-      const assistantResult = processor.processLine({ line: assistantLine, source });
+      processor.processLine({ parsed: userParsed, source });
+      const assistantResult = processor.processLine({ parsed: assistantParsed, source });
 
       expect(assistantResult).toStrictEqual([
         {
@@ -119,31 +115,27 @@ describe('chatLineProcessTransformer', () => {
       const agentId = AgentIdStub({ value: 'agent-xyz' });
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const assistantLine = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-            },
-          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-        ),
+      const assistantParsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+          },
+        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+      );
+
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId },
       });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId },
-        }),
-      });
-
-      processor.processLine({ line: assistantLine, source });
-      const userResult = processor.processLine({ line: userLine, source });
+      processor.processLine({ parsed: assistantParsed, source });
+      const userResult = processor.processLine({ parsed: userParsed, source });
 
       expect(userResult).toStrictEqual([
         {
@@ -173,19 +165,17 @@ describe('chatLineProcessTransformer', () => {
       const agentId = AgentIdStub({ value: 'agent-123' });
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId },
-        }),
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId },
       });
 
-      const result = processor.processLine({ line: userLine, source });
+      const result = processor.processLine({ parsed: userParsed, source });
 
       expect(result).toStrictEqual([
         {
@@ -212,31 +202,27 @@ describe('chatLineProcessTransformer', () => {
       const agentId = AgentIdStub({ value: 'agent-new-cli' });
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const assistantLine = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
-            },
-          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-        ),
+      const assistantParsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+          },
+        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+      );
+
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId },
       });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId },
-        }),
-      });
-
-      processor.processLine({ line: assistantLine, source });
-      const userResult = processor.processLine({ line: userLine, source });
+      processor.processLine({ parsed: assistantParsed, source });
+      const userResult = processor.processLine({ parsed: userParsed, source });
 
       expect(userResult).toStrictEqual([
         {
@@ -266,31 +252,27 @@ describe('chatLineProcessTransformer', () => {
       const agentId = AgentIdStub({ value: 'agent-forward' });
       const source = ChatLineSourceStub({ value: 'session' });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId },
-        }),
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId },
       });
 
-      const assistantLine = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
-            },
-          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-        ),
-      });
+      const assistantParsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+          },
+        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+      );
 
-      processor.processLine({ line: userLine, source });
-      const assistantResult = processor.processLine({ line: assistantLine, source });
+      processor.processLine({ parsed: userParsed, source });
+      const assistantResult = processor.processLine({ parsed: assistantParsed, source });
 
       expect(assistantResult).toStrictEqual([
         {
@@ -316,11 +298,9 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-explicit' });
       const source = ChatLineSourceStub({ value: 'subagent' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(AssistantTextStreamLineStub()),
-      });
+      const parsed = normalize(AssistantTextStreamLineStub());
 
-      const result = processor.processLine({ line, source, agentId });
+      const result = processor.processLine({ parsed, source, agentId });
 
       expect(result).toStrictEqual([
         {
@@ -342,11 +322,9 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-subagent-internal' });
       const source = ChatLineSourceStub({ value: 'subagent' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(SuccessfulToolResultStreamLineStub()),
-      });
+      const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
-      const result = processor.processLine({ line, source, agentId });
+      const result = processor.processLine({ parsed, source, agentId });
 
       expect(result).toStrictEqual([
         {
@@ -367,14 +345,12 @@ describe('chatLineProcessTransformer', () => {
   });
 
   describe('filtered entry types', () => {
-    it('EMPTY: {system message line} => returns empty array', () => {
+    it('EMPTY: {system init line} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'system', message: 'init' }),
-      });
+      const parsed = normalize(SystemInitStreamLineStub());
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([]);
     });
@@ -382,43 +358,29 @@ describe('chatLineProcessTransformer', () => {
     it('EMPTY: {result type line} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'result', result: 'done' }),
-      });
+      const parsed = normalize(ResultStreamLineStub());
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([]);
     });
   });
 
-  describe('invalid JSON handling', () => {
-    it('ERROR: {invalid JSON line} => returns empty array', () => {
+  describe('non-object parsed input', () => {
+    it('ERROR: {parsed: null} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({ value: 'not valid json' });
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed: null, source });
 
       expect(result).toStrictEqual([]);
     });
 
-    it('ERROR: {JSON null value} => returns empty array', () => {
+    it('ERROR: {parsed: 42} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({ value: 'null' });
 
-      const result = processor.processLine({ line, source });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('ERROR: {JSON primitive number} => returns empty array', () => {
-      const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({ value: '42' });
-
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed: 42, source });
 
       expect(result).toStrictEqual([]);
     });
@@ -428,14 +390,12 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {toolUseResult with numeric agentId} => emits entries without agentId', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub(),
-          toolUseResult: { agentId: 123 },
-        }),
+      const parsed = normalize({
+        ...SuccessfulToolResultStreamLineStub(),
+        toolUseResult: { agentId: 123 },
       });
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([
         {
@@ -462,33 +422,29 @@ describe('chatLineProcessTransformer', () => {
       const explicitAgentId = AgentIdStub({ value: 'agent-explicit-param' });
       const source = ChatLineSourceStub({ value: 'subagent' });
 
-      const userLine = StreamJsonLineStub({
-        value: JSON.stringify({
-          ...SuccessfulToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-          toolUseResult: { agentId: mapAgentId },
-        }),
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId: mapAgentId },
       });
 
-      processor.processLine({ line: userLine, source });
+      processor.processLine({ parsed: userParsed, source });
 
-      const assistantLine = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-            },
-          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-        ),
-      });
+      const assistantParsed = normalize(
+        AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+          },
+        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+      );
 
       const result = processor.processLine({
-        line: assistantLine,
+        parsed: assistantParsed,
         source,
         agentId: explicitAgentId,
       });
@@ -516,11 +472,9 @@ describe('chatLineProcessTransformer', () => {
     it('EMPTY: {user tool_result without toolUseResult} => emits entries without agentId', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(SuccessfulToolResultStreamLineStub()),
-      });
+      const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({ parsed, source });
 
       expect(result).toStrictEqual([
         {
@@ -539,27 +493,31 @@ describe('chatLineProcessTransformer', () => {
     });
   });
 
-  describe('task-notification XML sanitization', () => {
-    it('VALID: {user text starting with <task-notification>} => emits task_notification ChatEntry', () => {
+  describe('task-notification XML lifting (post-inflate shape)', () => {
+    it('VALID: {user with content.taskNotification object} => lifts to top-level and coerces numeric fields', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const content = [
-        '<task-notification>',
-        '<task-id>acfc7f06a8ac21baf</task-id>',
-        '<status>completed</status>',
-        '<summary>Agent completed</summary>',
-        '<result>Made both MCP calls successfully.</result>',
-        '<usage><total_tokens>28054</total_tokens><tool_uses>3</tool_uses><duration_ms>9033</duration_ms></usage>',
-        '</task-notification>',
-      ].join('\n');
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'user',
-          message: { role: 'user', content },
-        }),
-      });
 
-      const result = processor.processLine({ line, source });
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: {
+              taskNotification: {
+                taskId: 'acfc7f06a8ac21baf',
+                status: 'completed',
+                summary: 'Agent completed',
+                result: 'Made both MCP calls successfully.',
+                totalTokens: '28054',
+                toolUses: '3',
+                durationMs: '9033',
+              },
+            },
+          },
+        },
+        source,
+      });
 
       expect(result).toStrictEqual([
         {
@@ -581,17 +539,17 @@ describe('chatLineProcessTransformer', () => {
       ]);
     });
 
-    it('VALID: {user text without <task-notification> prefix} => emits user entry without taskNotification', () => {
+    it('VALID: {user text without taskNotification} => emits user entry', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
+
+      const result = processor.processLine({
+        parsed: {
           type: 'user',
           message: { role: 'user', content: 'regular user message' },
-        }),
+        },
+        source,
       });
-
-      const result = processor.processLine({ line, source });
 
       expect(result).toStrictEqual([
         {
@@ -612,8 +570,9 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {assistant with empty thinking item + text} => strips empty thinking, keeps text', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
+
+      const result = processor.processLine({
+        parsed: {
           type: 'assistant',
           message: {
             role: 'assistant',
@@ -622,10 +581,9 @@ describe('chatLineProcessTransformer', () => {
               { type: 'text', text: 'Hello.' },
             ],
           },
-        }),
+        },
+        source,
       });
-
-      const result = processor.processLine({ line, source });
 
       expect(result).toStrictEqual([
         {
@@ -645,17 +603,17 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {assistant with non-empty thinking} => preserves thinking content', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
+
+      const result = processor.processLine({
+        parsed: {
           type: 'assistant',
           message: {
             role: 'assistant',
             content: [{ type: 'thinking', thinking: 'Let me consider this.', signature: 'sig' }],
           },
-        }),
+        },
+        source,
       });
-
-      const result = processor.processLine({ line, source });
 
       expect(result).toStrictEqual([
         {
@@ -675,17 +633,17 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {assistant with ONLY empty thinking} => emits entries with empty array', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
+
+      const result = processor.processLine({
+        parsed: {
           type: 'assistant',
           message: {
             role: 'assistant',
             content: [{ type: 'thinking', thinking: '', signature: 'sig' }],
           },
-        }),
+        },
+        source,
       });
-
-      const result = processor.processLine({ line, source });
 
       expect(result).toStrictEqual([
         {

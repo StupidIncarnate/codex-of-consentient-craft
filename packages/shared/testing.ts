@@ -21,6 +21,7 @@ export * from './src/adapters/child-process/spawn-capture/child-process-spawn-ca
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter.proxy';
 export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
+export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
 
 // Broker Proxies
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
@@ -34,3 +35,6 @@ export * from './src/brokers/quests-folder/ensure/quests-folder-ensure-broker.pr
 // Dungeonmaster Home Broker Proxies
 export * from './src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 export * from './src/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
+
+// Claude Line Normalize Broker Proxy (single funnel)
+export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';

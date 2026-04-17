@@ -1,20 +1,19 @@
 /**
- * PURPOSE: Extracts a StreamSignal from a StreamJsonLine by delegating to signalFromStreamTransformer
+ * PURPOSE: Extracts a StreamSignal from a normalized Claude line object by delegating to signalFromStreamTransformer
  *
  * USAGE:
- * signalExtractorTransformer({ line: StreamJsonLineStub({ value: '{"type":"assistant",...}' }) });
+ * signalExtractorTransformer({ parsed: {type:'assistant',...} });
  * // Returns { signal: StreamSignal } if found, { signal: null } otherwise
  */
 
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { StreamSignal } from '../../contracts/stream-signal/stream-signal-contract';
 import { signalFromStreamTransformer } from '../signal-from-stream/signal-from-stream-transformer';
 
 export const signalExtractorTransformer = ({
-  line,
+  parsed,
 }: {
-  line: StreamJsonLine;
+  parsed: unknown;
 }): { signal: StreamSignal | null } => {
-  const signal = signalFromStreamTransformer({ line });
+  const signal = signalFromStreamTransformer({ parsed });
   return { signal };
 };

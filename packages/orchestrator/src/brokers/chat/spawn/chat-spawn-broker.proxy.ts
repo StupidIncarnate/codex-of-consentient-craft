@@ -5,6 +5,7 @@ import {
   GuildStub,
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -33,6 +34,7 @@ export const chatSpawnBrokerProxy = (): {
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const addProxy = questAddBrokerProxy();

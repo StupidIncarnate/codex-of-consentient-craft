@@ -4,6 +4,7 @@ import {
   type QuestWorkItemId,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -21,6 +22,7 @@ export const runChatLayerBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const spawnProxy = agentSpawnUnifiedBrokerProxy();
 

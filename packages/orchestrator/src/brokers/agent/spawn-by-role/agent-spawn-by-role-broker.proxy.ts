@@ -1,4 +1,5 @@
 import type { ExitCode } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -15,6 +16,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   setupStderrCapture: () => SpyOnHandle;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
 
   return {

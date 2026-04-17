@@ -5,20 +5,25 @@ import {
   AssistantMixedContentStreamLineStub,
   AssistantThinkingStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseAssistantStreamEntryTransformer } from './parse-assistant-stream-entry-transformer';
+
+const normalize = (value: unknown): object => snakeKeysToCamelKeysTransformer({ value }) as object;
 
 describe('parseAssistantStreamEntryTransformer', () => {
   describe('text content', () => {
     it('VALID: {text content with usage} => returns text chat entry with usage', () => {
-      const stub = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello world' }],
-          usage: { input_tokens: 100, output_tokens: 50 },
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: 'Hello world' }],
+              usage: { input_tokens: 100, output_tokens: 50 },
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -36,14 +41,16 @@ describe('parseAssistantStreamEntryTransformer', () => {
     });
 
     it('VALID: {thinking content} => returns thinking entry', () => {
-      const stub = AssistantThinkingStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'thinking', thinking: 'Let me think about this.' }],
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantThinkingStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'thinking', thinking: 'Let me think about this.' }],
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -57,14 +64,16 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('tool content', () => {
     it('VALID: {tool_use content} => returns tool use chat entry', () => {
-      const stub = AssistantToolUseStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -77,14 +86,16 @@ describe('parseAssistantStreamEntryTransformer', () => {
     });
 
     it('VALID: {tool_result content} => returns tool result chat entry', () => {
-      const stub = AssistantToolResultStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantToolResultStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_result', tool_use_id: 'toolu_123', content: 'file data' }],
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -99,18 +110,20 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('mixed content', () => {
     it('VALID: {multiple content items} => returns multiple entries', () => {
-      const stub = AssistantMixedContentStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [
-            { type: 'text', text: 'Let me read that file' },
-            { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
-          ],
-          usage: { input_tokens: 200, output_tokens: 100 },
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantMixedContentStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'text', text: 'Let me read that file' },
+                { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
+              ],
+              usage: { input_tokens: 200, output_tokens: 100 },
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -142,12 +155,14 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {no message field} => returns empty array', () => {
-      const stub = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'will be removed' }],
-        },
-      });
+      const stub = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'will be removed' }],
+          },
+        }),
+      );
       Reflect.deleteProperty(stub, 'message');
 
       const result = parseAssistantStreamEntryTransformer({ parsed: stub });
@@ -173,12 +188,12 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
     it('EDGE: {content array has null item} => skips null items', () => {
       const result = parseAssistantStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'assistant',
           message: {
             content: [null, { type: 'text', text: 'valid' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -191,29 +206,31 @@ describe('parseAssistantStreamEntryTransformer', () => {
     });
 
     it('EDGE: {unrecognized content item type} => skips unknown items', () => {
-      const stub = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'valid' }],
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'unknown_type' }],
+          },
+        }),
       });
-      stub.message.content = [{ type: 'unknown_type' } as never];
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([]);
     });
 
     it('VALID: {model field on message} => passes model to entries', () => {
-      const stub = AssistantTextStreamLineStub({
-        message: {
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello world' }],
-          model: 'claude-opus-4-20250514' as never,
-        },
+      const result = parseAssistantStreamEntryTransformer({
+        parsed: normalize(
+          AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: 'Hello world' }],
+              model: 'claude-opus-4-20250514' as never,
+            },
+          }),
+        ),
       });
-
-      const result = parseAssistantStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -229,14 +246,14 @@ describe('parseAssistantStreamEntryTransformer', () => {
   describe('source and agentId resolution', () => {
     it('VALID: {top-level source and agentId, no item-level} => uses top-level values', () => {
       const result = parseAssistantStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'assistant',
           source: 'subagent',
           agentId: 'top-agent',
           message: {
             content: [{ type: 'text', text: 'hello' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -252,14 +269,14 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
     it('VALID: {item-level source and agentId override top-level} => uses item-level values', () => {
       const result = parseAssistantStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'assistant',
           source: 'session',
           agentId: 'top-agent',
           message: {
             content: [{ type: 'text', text: 'hello', source: 'subagent', agentId: 'item-agent' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -275,13 +292,13 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
     it('EDGE: {invalid top-level source} => source is omitted', () => {
       const result = parseAssistantStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'assistant',
           source: 'invalid',
           message: {
             content: [{ type: 'text', text: 'hello' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -295,13 +312,13 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
     it('EDGE: {empty agentId string} => agentId is omitted', () => {
       const result = parseAssistantStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'assistant',
           agentId: '',
           message: {
             content: [{ type: 'text', text: 'hello' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([

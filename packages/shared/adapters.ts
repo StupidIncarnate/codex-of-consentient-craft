@@ -32,3 +32,6 @@ export * from './src/adapters/net/free-port/net-free-port-adapter';
 
 // Module Adapters
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter';
+
+// XML Parser Adapters
+export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter';

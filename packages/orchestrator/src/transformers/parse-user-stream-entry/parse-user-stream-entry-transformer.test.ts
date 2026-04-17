@@ -5,14 +5,17 @@ import {
   TextOnlyUserStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseUserStreamEntryTransformer } from './parse-user-stream-entry-transformer';
+
+const normalize = (value: unknown): object => snakeKeysToCamelKeysTransformer({ value }) as object;
 
 describe('parseUserStreamEntryTransformer', () => {
   describe('tool_result content', () => {
     it('VALID: {permission denied tool result} => returns tool result entry with isError', () => {
-      const stub = PermissionDeniedStreamLineStub();
-
-      const result = parseUserStreamEntryTransformer({ parsed: stub });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(PermissionDeniedStreamLineStub()),
+      });
 
       expect(result).toStrictEqual([
         {
@@ -27,9 +30,9 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('VALID: {successful tool result} => returns tool result entry without isError', () => {
-      const stub = SuccessfulToolResultStreamLineStub();
-
-      const result = parseUserStreamEntryTransformer({ parsed: stub });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(SuccessfulToolResultStreamLineStub()),
+      });
 
       expect(result).toStrictEqual([
         {
@@ -42,9 +45,9 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('VALID: {mixed text and tool result} => only returns tool_result entries', () => {
-      const stub = MixedTextAndToolResultStreamLineStub();
-
-      const result = parseUserStreamEntryTransformer({ parsed: stub });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(MixedTextAndToolResultStreamLineStub()),
+      });
 
       expect(result).toStrictEqual([
         {
@@ -60,14 +63,14 @@ describe('parseUserStreamEntryTransformer', () => {
   describe('source and agentId propagation', () => {
     it('VALID: {entry with source and agentId} => propagates to tool_result entries', () => {
       const result = parseUserStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'user',
           source: 'session',
           agentId: 'agent-42',
           message: {
             content: [{ type: 'tool_result', tool_use_id: 'toolu_abc', content: 'done' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -85,7 +88,7 @@ describe('parseUserStreamEntryTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {no message field} => returns empty array', () => {
-      const stub = TextOnlyUserStreamLineStub();
+      const stub = normalize(TextOnlyUserStreamLineStub());
       Reflect.deleteProperty(stub, 'message');
 
       const result = parseUserStreamEntryTransformer({ parsed: stub });
@@ -102,11 +105,13 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('VALID: {content is plain string} => returns user entry', () => {
-      const stub = UserTextStringStreamLineStub({
-        message: { role: 'user', content: 'plain string without tool results' },
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: 'plain string without tool results' },
+          }),
+        ),
       });
-
-      const result = parseUserStreamEntryTransformer({ parsed: stub });
 
       expect(result).toStrictEqual([
         {
@@ -117,21 +122,21 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('EDGE: {text only user message with array content} => returns empty array', () => {
-      const stub = TextOnlyUserStreamLineStub();
-
-      const result = parseUserStreamEntryTransformer({ parsed: stub });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(TextOnlyUserStreamLineStub()),
+      });
 
       expect(result).toStrictEqual([]);
     });
 
     it('EDGE: {content array has null item} => skips null items', () => {
       const result = parseUserStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'user',
           message: {
             content: [null, { type: 'tool_result', tool_use_id: 'toolu_abc', content: 'data' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([
@@ -146,12 +151,12 @@ describe('parseUserStreamEntryTransformer', () => {
 
     it('EDGE: {content item without type field} => skips item', () => {
       const result = parseUserStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'user',
           message: {
             content: [{ tool_use_id: 'toolu_abc', content: 'data' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([]);
@@ -159,12 +164,12 @@ describe('parseUserStreamEntryTransformer', () => {
 
     it('EDGE: {content item with non-tool_result type} => skips non-tool_result items', () => {
       const result = parseUserStreamEntryTransformer({
-        parsed: {
+        parsed: normalize({
           type: 'user',
           message: {
             content: [{ type: 'text', text: 'hello' }],
           },
-        },
+        }),
       });
 
       expect(result).toStrictEqual([]);

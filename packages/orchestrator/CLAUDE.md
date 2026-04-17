@@ -97,7 +97,7 @@ After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw
 ## Quest Pipeline
 
 ```
-/quest (ChaosWhisperer)
+Web UI "Start Chat" ──► server chat-start-responder ──► chat-spawn-broker (role: chaoswhisperer)
   ├─ Explore agents ────── codebase research (read-only)
   ├─ chaoswhisperer-gap-minion ── spec validation (read-only)
   │
@@ -108,7 +108,7 @@ After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw
   ├─ Phase 5: Gate #2 ─────────── user approves observables + contracts → status: approved
   │
   ▼
-/quest:start ──► start-quest MCP
+Web UI "Start Quest" ──► server orchestration-start-responder  (or: MCP start-quest tool)
   │
   ▼
 Orchestration Loop (workItems queue)
@@ -309,15 +309,13 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 - NEVER call `fsWriteFileAdapter` directly for quest files — always use `questPersistBroker`
 - Transient chat events stay on in-memory bus (single-process, high-frequency)
 
-## User-Invoked Skills
+## Quest Kickoff Surfaces
 
-| Skill          | Purpose                                                            |
-|----------------|--------------------------------------------------------------------|
-| `/quest`       | ChaosWhisperer — BDD spec creation with two human approval gates   |
-| `/quest:start` | Start execution, poll progress                                     |
-| `/test`        | Write unit tests for existing code                                 |
-| `/tegrity`     | Fix lint + type errors iteratively                                 |
-| `/document`    | Update project standards docs                                      |
+| Surface                                | Purpose                                                                     |
+|----------------------------------------|-----------------------------------------------------------------------------|
+| Web UI "New Chat" / "Start Chat"       | Hits server `chat-start-responder`; spawns ChaosWhisperer spec conversation |
+| MCP `start-quest` tool                 | Programmatic quest execution kickoff (agents + tests)                       |
+| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls                    |
 
 ## Agents (MCP-Delivered)
 

@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Defines the interface for a stateful chat line processor that parses JSONL lines and emits enriched entries and patches
+ * PURPOSE: Defines the interface for a stateful chat line processor that consumes pre-normalized Claude line objects and emits enriched entries and patches
  *
  * USAGE:
  * const processor: ChatLineProcessor = chatLineProcessTransformer();
- * processor.processLine({ line, source: chatLineSourceContract.parse('session') });
+ * processor.processLine({ parsed, source: chatLineSourceContract.parse('session') });
  */
 
 import { z } from 'zod';
@@ -11,7 +11,6 @@ import { z } from 'zod';
 import type { AgentId } from '../agent-id/agent-id-contract';
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export const chatLineProcessorContract = z.object({
   processLine: z.function(),
@@ -19,11 +18,11 @@ export const chatLineProcessorContract = z.object({
 
 export interface ChatLineProcessor {
   processLine: ({
-    line,
+    parsed,
     source,
     agentId,
   }: {
-    line: StreamJsonLine;
+    parsed: unknown;
     source: ChatLineSource;
     agentId?: AgentId;
   }) => ChatLineOutput[];

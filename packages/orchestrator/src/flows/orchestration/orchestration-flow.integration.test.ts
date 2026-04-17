@@ -36,10 +36,15 @@ const sid = (
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
 const WARD_RUN_LINE_PATTERN = /^run: ward-(?:fail-)?\d+$/u;
-const SIGNAL_BACK_COMPLETE_LINE =
-  '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"complete","summary":"Task completed successfully"}}]}}';
-const SIGNAL_BACK_SIEGE_FAILED_LINE =
-  '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__signal-back","input":{"signal":"failed","summary":"FAILED OBSERVABLES: login redirect broken"}}]}}';
+const SIGNAL_BACK_TOOL_NAME = 'mcp__dungeonmaster__signal-back';
+const SIGNAL_BACK_COMPLETE_TOOL_INPUT = JSON.stringify({
+  signal: 'complete',
+  summary: 'Task completed successfully',
+});
+const SIGNAL_BACK_SIEGE_FAILED_TOOL_INPUT = JSON.stringify({
+  signal: 'failed',
+  summary: 'FAILED OBSERVABLES: login redirect broken',
+});
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -2723,11 +2728,14 @@ describe('OrchestrationFlow', () => {
     const getPayload = (event: unknown): Record<PropertyKey, unknown> =>
       Reflect.get(event as object, 'payload') as Record<PropertyKey, unknown>;
 
-    const getEntryRaw = (event: unknown): unknown => {
+    const getEntries = (event: unknown): Record<PropertyKey, unknown>[] => {
       const payload = getPayload(event);
-      const entry = Reflect.get(payload, 'entry') as Record<PropertyKey, unknown> | undefined;
-      return entry ? Reflect.get(entry, 'raw') : undefined;
+      const entries = Reflect.get(payload, 'entries');
+      return Array.isArray(entries) ? (entries as Record<PropertyKey, unknown>[]) : [];
     };
+
+    const getFirstEntry = (event: unknown): Record<PropertyKey, unknown> | undefined =>
+      getEntries(event)[0];
 
     const getSessionId = (event: unknown): unknown => {
       const payload = getPayload(event);
@@ -2737,6 +2745,44 @@ describe('OrchestrationFlow', () => {
     const getSlotIndex = (event: unknown): unknown => {
       const payload = getPayload(event);
       return Reflect.get(payload, 'slotIndex');
+    };
+
+    const isSignalBackEntry = (event: unknown, params: { toolInput: string }): boolean => {
+      const entry = getFirstEntry(event);
+      return (
+        entry !== undefined &&
+        Reflect.get(entry, 'role') === 'assistant' &&
+        Reflect.get(entry, 'type') === 'tool_use' &&
+        String(Reflect.get(entry, 'toolName')) === SIGNAL_BACK_TOOL_NAME &&
+        String(Reflect.get(entry, 'toolInput')) === params.toolInput
+      );
+    };
+
+    const isWardTextEntry = (event: unknown): boolean => {
+      const entry = getFirstEntry(event);
+      const content = entry === undefined ? undefined : Reflect.get(entry, 'content');
+      return (
+        entry !== undefined &&
+        Reflect.get(entry, 'role') === 'assistant' &&
+        Reflect.get(entry, 'type') === 'text' &&
+        typeof content === 'string' &&
+        WARD_RUN_LINE_PATTERN.test(content)
+      );
+    };
+
+    const debugDump = (label: string, captured: unknown[]): void => {
+      process.stderr.write(`DEBUG ${label} total=${String(captured.length)}\n`);
+      for (const e of captured) {
+        const entry = getFirstEntry(e);
+        const role = entry === undefined ? 'none' : String(Reflect.get(entry, 'role'));
+        const type = entry === undefined ? 'none' : String(Reflect.get(entry, 'type'));
+        const toolName = entry === undefined ? 'none' : String(Reflect.get(entry, 'toolName'));
+        const toolInput = entry === undefined ? 'none' : String(Reflect.get(entry, 'toolInput'));
+        const content = entry === undefined ? 'none' : String(Reflect.get(entry, 'content'));
+        process.stderr.write(
+          `DEBUG event sid=${String(getSessionId(e))} role=${role} type=${type} toolName=${toolName} toolInput=${toolInput} content=${content.slice(0, 80)}\n`,
+        );
+      }
     };
 
     it('VALID: {happy path, 2 steps} => chat-output events emitted for all roles', async () => {
@@ -2797,13 +2843,11 @@ describe('OrchestrationFlow', () => {
 
       // Pathseeker events
       const pathseekerItem = workItems.find((wi) => wi.role === 'pathseeker')!;
-      const pathseekerEvents = sub.captured.filter(
-        (e) => getSessionId(e) === pathseekerItem.sessionId,
-      );
+      const pathseekerEvents = sub.captured
+        .filter((e) => getSessionId(e) === pathseekerItem.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(pathseekerEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(pathseekerEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(pathseekerEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(pathseekerEvents[0])).toBe(pathseekerItem.sessionId);
 
       // Codeweaver events (one per step, 2 steps)
@@ -2811,46 +2855,42 @@ describe('OrchestrationFlow', () => {
 
       expect(codeweaverItems.map((wi) => wi.role)).toStrictEqual(['codeweaver', 'codeweaver']);
 
-      const cw0Events = sub.captured.filter(
-        (e) => getSessionId(e) === codeweaverItems[0]!.sessionId,
-      );
+      const cw0Events = sub.captured
+        .filter((e) => getSessionId(e) === codeweaverItems[0]!.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(cw0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(cw0Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(cw0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw0Events[0])).toBe(codeweaverItems[0]!.sessionId);
 
-      const cw1Events = sub.captured.filter(
-        (e) => getSessionId(e) === codeweaverItems[1]!.sessionId,
-      );
+      const cw1Events = sub.captured
+        .filter((e) => getSessionId(e) === codeweaverItems[1]!.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(cw1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(cw1Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(cw1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(cw1Events[0])).toBe(codeweaverItems[1]!.sessionId);
 
       // Ward events (at least 1 per ward run)
       const wardItems = workItems.filter((wi) => wi.role === 'ward');
-      const ward0Events = sub.captured.filter((e) => getSessionId(e) === wardItems[0]!.sessionId);
+      const ward0Events = sub.captured
+        .filter((e) => getSessionId(e) === wardItems[0]!.sessionId)
+        .filter((e) => isWardTextEntry(e));
 
       expect(ward0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(ward0Events[0])).toMatch(WARD_RUN_LINE_PATTERN);
-      expect(String(getEntryRaw(ward0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(ward0Events[0])).toBe(wardItems[0]!.sessionId);
 
-      const ward1Events = sub.captured.filter((e) => getSessionId(e) === wardItems[1]!.sessionId);
+      const ward1Events = sub.captured
+        .filter((e) => getSessionId(e) === wardItems[1]!.sessionId)
+        .filter((e) => isWardTextEntry(e));
 
       expect(ward1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(ward1Events[0])).toMatch(WARD_RUN_LINE_PATTERN);
-      expect(String(getEntryRaw(ward1Events[0])).length).toBeGreaterThan(0);
 
       // Siegemaster events
       const siegeItem = workItems.find((wi) => wi.role === 'siegemaster')!;
-      const siegeEvents = sub.captured.filter((e) => getSessionId(e) === siegeItem.sessionId);
+      const siegeEvents = sub.captured
+        .filter((e) => getSessionId(e) === siegeItem.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(siegeEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(siegeItem.sessionId);
 
       // Lawbringer events (one per step, 2 steps)
@@ -2858,27 +2898,24 @@ describe('OrchestrationFlow', () => {
 
       expect(lawbringerItems.map((wi) => wi.role)).toStrictEqual(['lawbringer', 'lawbringer']);
 
-      const lb0Events = sub.captured.filter(
-        (e) => getSessionId(e) === lawbringerItems[0]!.sessionId,
-      );
+      const lb0Events = sub.captured
+        .filter((e) => getSessionId(e) === lawbringerItems[0]!.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(lb0Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(lb0Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(lb0Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb0Events[0])).toBe(lawbringerItems[0]!.sessionId);
 
-      const lb1Events = sub.captured.filter(
-        (e) => getSessionId(e) === lawbringerItems[1]!.sessionId,
-      );
+      const lb1Events = sub.captured
+        .filter((e) => getSessionId(e) === lawbringerItems[1]!.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(lb1Events.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(lb1Events[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(lb1Events[0])).length).toBeGreaterThan(0);
       expect(getSessionId(lb1Events[0])).toBe(lawbringerItems[1]!.sessionId);
 
-      // Every event has a valid slotIndex (number)
+      // Every event has a valid slotIndex (number) and a non-empty entries array
       expect(sub.captured.length).toBeGreaterThanOrEqual(8);
       expect(sub.captured.every((e) => typeof getSlotIndex(e) === 'number')).toBe(true);
+      expect(sub.captured.every((e) => getEntries(e).length > 0)).toBe(true);
     });
 
     it('VALID: {ward fails with retries} => chat-output events for ward, spiritmender, and ward retry', async () => {
@@ -2940,24 +2977,23 @@ describe('OrchestrationFlow', () => {
       // Failed ward events
       const wardItems = workItems.filter((wi) => wi.role === 'ward');
       const failedWard = wardItems.find((wi) => wi.status === 'failed')!;
-      const failedWardEvents = sub.captured.filter((e) => getSessionId(e) === failedWard.sessionId);
+      const failedWardEvents = sub.captured
+        .filter((e) => getSessionId(e) === failedWard.sessionId)
+        .filter((e) => isWardTextEntry(e));
 
       expect(failedWardEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(failedWardEvents[0])).toMatch(WARD_RUN_LINE_PATTERN);
-      expect(String(getEntryRaw(failedWardEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(failedWardEvents[0])).toBe(failedWard.sessionId);
 
       // Spiritmender events
       const spiritmenderItems = workItems.filter((wi) => wi.role === 'spiritmender');
 
       expect(spiritmenderItems.length).toBeGreaterThanOrEqual(1);
 
-      const smEvents = sub.captured.filter(
-        (e) => getSessionId(e) === spiritmenderItems[0]!.sessionId,
-      );
+      const smEvents = sub.captured
+        .filter((e) => getSessionId(e) === spiritmenderItems[0]!.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(smEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(smEvents[0])).toBe(SIGNAL_BACK_COMPLETE_LINE);
-      expect(String(getEntryRaw(smEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(smEvents[0])).toBe(spiritmenderItems[0]!.sessionId);
 
       // Ward retry events (completed ward)
@@ -2965,13 +3001,12 @@ describe('OrchestrationFlow', () => {
 
       expect(completedWards.length).toBeGreaterThanOrEqual(1);
 
-      const retryEvents = sub.captured.filter(
-        (e) => getSessionId(e) === completedWards[0]!.sessionId,
-      );
+      const retryEvents = sub.captured
+        .filter((e) => getSessionId(e) === completedWards[0]!.sessionId)
+        .filter((e) => isWardTextEntry(e));
 
       expect(retryEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(retryEvents[0])).toMatch(WARD_RUN_LINE_PATTERN);
-      expect(String(getEntryRaw(retryEvents[0])).length).toBeGreaterThan(0);
+      expect(getSessionId(retryEvents[0])).toBe(completedWards[0]!.sessionId);
     });
 
     it('VALID: {siege fails} => chat-output events for siegemaster and pathseeker replan', async () => {
@@ -3027,11 +3062,11 @@ describe('OrchestrationFlow', () => {
       // Failed siegemaster events
       const siegeItems = workItems.filter((wi) => wi.role === 'siegemaster');
       const failedSiege = siegeItems.find((wi) => wi.status === 'failed')!;
-      const siegeEvents = sub.captured.filter((e) => getSessionId(e) === failedSiege.sessionId);
+      const siegeEvents = sub.captured
+        .filter((e) => getSessionId(e) === failedSiege.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_SIEGE_FAILED_TOOL_INPUT }));
 
       expect(siegeEvents.length).toBeGreaterThanOrEqual(1);
-      expect(getEntryRaw(siegeEvents[0])).toBe(SIGNAL_BACK_SIEGE_FAILED_LINE);
-      expect(String(getEntryRaw(siegeEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(siegeEvents[0])).toBe(failedSiege.sessionId);
 
       // Pathseeker replan events
@@ -3039,15 +3074,14 @@ describe('OrchestrationFlow', () => {
 
       expect(pathseekerItems.length).toBeGreaterThanOrEqual(2);
 
-      // The last pathseeker is the replan
+      // The last pathseeker is the replan — emits a signal-back complete entry
       const replanPathseeker = pathseekerItems[pathseekerItems.length - 1]!;
-      const replanEvents = sub.captured.filter(
-        (e) => getSessionId(e) === replanPathseeker.sessionId,
-      );
+      debugDump(`replan.sessionId=${String(replanPathseeker.sessionId)}`, sub.captured);
+      const replanEvents = sub.captured
+        .filter((e) => getSessionId(e) === replanPathseeker.sessionId)
+        .filter((e) => isSignalBackEntry(e, { toolInput: SIGNAL_BACK_COMPLETE_TOOL_INPUT }));
 
       expect(replanEvents.length).toBeGreaterThanOrEqual(1);
-      expect(JSON.parse(String(getEntryRaw(replanEvents[0]))).type).toBe('system');
-      expect(String(getEntryRaw(replanEvents[0])).length).toBeGreaterThan(0);
       expect(getSessionId(replanEvents[0])).toBe(replanPathseeker.sessionId);
     });
   });

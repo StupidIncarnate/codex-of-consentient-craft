@@ -1,4 +1,7 @@
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  claudeLineNormalizeBrokerProxy,
+  osUserHomedirAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
@@ -10,6 +13,7 @@ export const chatSubagentTailBrokerProxy = (): {
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
 } => {
+  claudeLineNormalizeBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const homedirProxy = osUserHomedirAdapterProxy();
   const tailProxy = fsWatchTailAdapterProxy();

@@ -16,10 +16,10 @@ describe('toolInputToDisplayTransformer', () => {
       expect(result).toBe('pattern="*.ts"');
     });
 
-    it('VALID: {file_path: "/path/to/file.ts"} => returns file_path="/path/to/file.ts"', () => {
-      const result = toolInputToDisplayTransformer({ input: { file_path: '/path/to/file.ts' } });
+    it('VALID: {filePath: "/path/to/file.ts"} => returns filePath="/path/to/file.ts"', () => {
+      const result = toolInputToDisplayTransformer({ input: { filePath: '/path/to/file.ts' } });
 
-      expect(result).toBe('file_path="/path/to/file.ts"');
+      expect(result).toBe('filePath="/path/to/file.ts"');
     });
   });
 
@@ -82,21 +82,21 @@ describe('toolInputToDisplayTransformer', () => {
   });
 
   describe('priority key ordering', () => {
-    it('VALID: {file_path with other keys} => file_path comes first', () => {
+    it('VALID: {filePath with other keys} => filePath comes first', () => {
       const result = toolInputToDisplayTransformer({
-        input: { zebra: 'last', file_path: '/test.ts', apple: 'middle' },
+        input: { zebra: 'last', filePath: '/test.ts', apple: 'middle' },
       });
 
-      expect(result).toBe('file_path="/test.ts" apple="middle" zebra="last"');
+      expect(result).toBe('filePath="/test.ts" apple="middle" zebra="last"');
     });
 
     it('VALID: {multiple priority keys} => ordered by priority', () => {
       const result = toolInputToDisplayTransformer({
-        input: { pattern: '*.ts', file_path: '/test.ts', path: 'src/' },
+        input: { pattern: '*.ts', filePath: '/test.ts', path: 'src/' },
       });
 
-      // Priority order: file_path, path, pattern
-      expect(result).toBe('file_path="/test.ts" path="src/" pattern="*.ts"');
+      // Priority order: filePath, path, pattern
+      expect(result).toBe('filePath="/test.ts" path="src/" pattern="*.ts"');
     });
 
     it('VALID: {non-priority keys only} => sorted alphabetically', () => {

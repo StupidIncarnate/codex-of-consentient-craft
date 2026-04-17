@@ -22,7 +22,7 @@ export const streamJsonToChatEntryTransformer = ({
   const type: unknown = Reflect.get(parsed, 'type');
 
   if (type === 'system' && 'subtype' in parsed && Reflect.get(parsed, 'subtype') === 'init') {
-    const sessionId: unknown = 'session_id' in parsed ? Reflect.get(parsed, 'session_id') : null;
+    const sessionId: unknown = 'sessionId' in parsed ? Reflect.get(parsed, 'sessionId') : null;
 
     return streamJsonResultContract.parse({
       entries: [],
@@ -43,7 +43,7 @@ export const streamJsonToChatEntryTransformer = ({
   }
 
   if (type === 'result') {
-    const sessionId: unknown = 'session_id' in parsed ? Reflect.get(parsed, 'session_id') : null;
+    const sessionId: unknown = 'sessionId' in parsed ? Reflect.get(parsed, 'sessionId') : null;
 
     return streamJsonResultContract.parse({
       entries: [],

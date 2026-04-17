@@ -1,33 +1,35 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  StreamJsonLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
 import { signalExtractorTransformer } from './signal-extractor-transformer';
 
 describe('signalExtractorTransformer', () => {
   describe('valid signal extraction', () => {
-    it('VALID: {line with signal-back tool call} => returns extracted signal', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__signal-back',
-                input: {
-                  signal: 'complete',
-                  summary: 'Task completed',
-                },
+    it('VALID: {parsed with signal-back tool call} => returns extracted signal', () => {
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            JSON.stringify({
+              type: 'assistant',
+              message: {
+                content: [
+                  {
+                    type: 'tool_use',
+                    name: 'mcp__dungeonmaster__signal-back',
+                    input: {
+                      signal: 'complete',
+                      summary: 'Task completed',
+                    },
+                  },
+                ],
               },
-            ],
-          },
+            }),
+          ),
         }),
       });
-
-      const result = signalExtractorTransformer({ line });
 
       expect(result).toStrictEqual({
         signal: {
@@ -38,31 +40,33 @@ describe('signalExtractorTransformer', () => {
     });
 
     it('VALID: {mixed tool_use items, one signal-back} => extracts signal', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                name: 'mcp__dungeonmaster__other-tool',
-                input: { foo: 'bar' },
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            JSON.stringify({
+              type: 'assistant',
+              message: {
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                    name: 'mcp__dungeonmaster__other-tool',
+                    input: { foo: 'bar' },
+                  },
+                  {
+                    type: 'tool_use',
+                    name: 'mcp__dungeonmaster__signal-back',
+                    input: {
+                      signal: 'complete',
+                      summary: 'Done',
+                    },
+                  },
+                ],
               },
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__signal-back',
-                input: {
-                  signal: 'complete',
-                  summary: 'Done',
-                },
-              },
-            ],
-          },
+            }),
+          ),
         }),
       });
-
-      const result = signalExtractorTransformer({ line });
 
       expect(result).toStrictEqual({
         signal: {
@@ -74,52 +78,52 @@ describe('signalExtractorTransformer', () => {
   });
 
   describe('no signal found', () => {
-    it('EMPTY: {line with no signal} => returns signal null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(AssistantTextStreamLineStub()),
+    it('EMPTY: {parsed assistant text line} => returns signal null', () => {
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(JSON.stringify(AssistantTextStreamLineStub())),
+        }),
       });
 
-      const result = signalExtractorTransformer({ line });
+      expect(result).toStrictEqual({ signal: null });
+    });
+
+    it('EMPTY: {parsed object that is not stream-json structure} => returns signal null', () => {
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({ value: JSON.parse('{"foo":"bar"}') }),
+      });
 
       expect(result).toStrictEqual({ signal: null });
     });
 
-    it('EMPTY: {valid JSON that is not stream-json structure} => returns signal null', () => {
-      const line = StreamJsonLineStub({ value: '{"foo":"bar"}' });
-
-      const result = signalExtractorTransformer({ line });
+    it('EMPTY: {parsed null from non-JSON line upstream} => returns signal null', () => {
+      const result = signalExtractorTransformer({ parsed: null });
 
       expect(result).toStrictEqual({ signal: null });
     });
 
-    it('EMPTY: {non-JSON line} => returns signal null', () => {
-      const line = StreamJsonLineStub({ value: 'this is not JSON' });
-
-      const result = signalExtractorTransformer({ line });
-
-      expect(result).toStrictEqual({ signal: null });
-    });
-
-    it('EMPTY: {JSON line without signal-back tool} => returns signal null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'tool_use',
-                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  name: 'mcp__dungeonmaster__other-tool',
-                  input: { foo: 'bar' },
+    it('EMPTY: {parsed assistant tool_use without signal-back} => returns signal null', () => {
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            JSON.stringify(
+              AssistantToolUseStreamLineStub({
+                message: {
+                  role: 'assistant',
+                  content: [
+                    {
+                      type: 'tool_use',
+                      id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                      name: 'mcp__dungeonmaster__other-tool',
+                      input: { foo: 'bar' },
+                    },
+                  ],
                 },
-              ],
-            },
-          }),
-        ),
+              }),
+            ),
+          ),
+        }),
       });
-
-      const result = signalExtractorTransformer({ line });
 
       expect(result).toStrictEqual({ signal: null });
     });

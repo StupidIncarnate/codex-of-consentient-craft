@@ -29,3 +29,6 @@ export * from './src/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure
 
 // Install
 export * from './src/brokers/install/check/install-check-broker';
+
+// Claude Line Normalize (single funnel for all Claude session ingest)
+export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker';

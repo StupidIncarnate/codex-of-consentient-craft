@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Extracts tool_use_id values from tool_result content items in a JSONL entry's message
+ * PURPOSE: Extracts toolUseId values from tool_result content items in a normalized (camelCase) JSONL entry's message
  *
  * USAGE:
- * toolUseIdsFromContentTransformer({ entry: { message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_01X' }] } } });
+ * toolUseIdsFromContentTransformer({ entry: { message: { content: [{ type: 'tool_result', toolUseId: 'toolu_01X' }] } } });
  * // Returns ['toolu_01X'] as ToolUseId[]
  */
 
@@ -28,7 +28,7 @@ export const toolUseIdsFromContentTransformer = ({
   for (const item of content) {
     if (typeof item !== 'object' || item === null) continue;
     if (Reflect.get(item, 'type') !== 'tool_result') continue;
-    const toolUseId: unknown = Reflect.get(item, 'tool_use_id');
+    const toolUseId: unknown = Reflect.get(item, 'toolUseId');
     if (typeof toolUseId === 'string') {
       ids.push(toolUseIdContract.parse(toolUseId));
     }

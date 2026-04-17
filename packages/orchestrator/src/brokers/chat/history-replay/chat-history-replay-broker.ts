@@ -12,6 +12,7 @@
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import {
@@ -90,7 +91,7 @@ export const chatHistoryReplayBroker = async ({
   const subagentSource = chatLineSourceContract.parse('subagent');
 
   const taggedLines: {
-    line: StreamJsonLine;
+    parsed: unknown;
     source: ChatLineSource;
     agentId?: ReturnType<typeof agentIdContract.parse>;
     timestamp: IsoTimestamp;
@@ -100,9 +101,10 @@ export const chatHistoryReplayBroker = async ({
   let globalIndex = 0;
 
   for (const line of sessionLines) {
-    const timestamp = extractTimestampFromJsonlLineTransformer({ line });
+    const parsed = claudeLineNormalizeBroker({ rawLine: line });
+    const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
     taggedLines.push({
-      line,
+      parsed,
       source: sessionSource,
       timestamp,
       index: arrayIndexContract.parse(globalIndex),
@@ -112,9 +114,10 @@ export const chatHistoryReplayBroker = async ({
 
   for (const subagentFile of subagentFiles) {
     for (const line of subagentFile.lines) {
-      const timestamp = extractTimestampFromJsonlLineTransformer({ line });
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
+      const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
       taggedLines.push({
-        line,
+        parsed,
         source: subagentSource,
         agentId: subagentFile.agentId,
         timestamp,
@@ -133,7 +136,7 @@ export const chatHistoryReplayBroker = async ({
 
   for (const tagged of taggedLines) {
     const outputs = processor.processLine({
-      line: tagged.line,
+      parsed: tagged.parsed,
       source: tagged.source,
       ...(tagged.agentId === undefined ? {} : { agentId: tagged.agentId }),
     });

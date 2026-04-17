@@ -54,3 +54,12 @@ export * from './src/transformers/render-mermaid-contract-property/render-mermai
 
 // Render Mermaid Contract Lines
 export * from './src/transformers/render-mermaid-contract-lines/render-mermaid-contract-lines-transformer';
+
+// Snake Keys to Camel Keys (recursive)
+export * from './src/transformers/snake-keys-to-camel-keys/snake-keys-to-camel-keys-transformer';
+
+// Inflate XML Strings (recursive)
+export * from './src/transformers/inflate-xml-strings/inflate-xml-strings-transformer';
+
+// Safe JSON Parse
+export * from './src/transformers/safe-json-parse/safe-json-parse-transformer';

@@ -1,5 +1,4 @@
 import {
-  SuccessfulToolResultStreamLineStub,
   AssistantTextStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
@@ -8,12 +7,11 @@ import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { toolUseIdsFromContentTransformer } from './tool-use-ids-from-content-transformer';
 
 const UserToolResultEntry = ({ toolUseId }: { toolUseId: string }) => ({
-  ...SuccessfulToolResultStreamLineStub({
-    message: {
-      role: 'user',
-      content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-    },
-  } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+  type: 'user' as const,
+  message: {
+    role: 'user' as const,
+    content: [{ type: 'tool_result' as const, toolUseId, content: 'done' }],
+  },
 });
 
 const EntryWithoutMessage = () => ({
@@ -42,7 +40,7 @@ const ToolResultWithoutToolUseId = () => ({
 
 const ToolResultWithNumericToolUseId = () => ({
   message: {
-    content: [{ type: 'tool_result' as const, tool_use_id: 999, content: 'done' }],
+    content: [{ type: 'tool_result' as const, toolUseId: 999, content: 'done' }],
   },
 });
 
@@ -53,20 +51,19 @@ const UserMultipleToolResultEntry = ({
   toolUseId1: string;
   toolUseId2: string;
 }) => ({
-  ...SuccessfulToolResultStreamLineStub({
-    message: {
-      role: 'user',
-      content: [
-        { type: 'tool_result', tool_use_id: toolUseId1, content: 'done' },
-        { type: 'tool_result', tool_use_id: toolUseId2, content: 'done' },
-      ],
-    },
-  } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+  type: 'user' as const,
+  message: {
+    role: 'user' as const,
+    content: [
+      { type: 'tool_result' as const, toolUseId: toolUseId1, content: 'done' },
+      { type: 'tool_result' as const, toolUseId: toolUseId2, content: 'done' },
+    ],
+  },
 });
 
 describe('toolUseIdsFromContentTransformer', () => {
   describe('valid extraction', () => {
-    it('VALID: {entry with tool_result content} => returns tool_use_id array', () => {
+    it('VALID: {entry with tool_result content} => returns toolUseId array', () => {
       const toolUseId = ToolUseIdStub({ value: 'toolu_01X' });
       const entry = UserToolResultEntry({ toolUseId });
 
@@ -125,7 +122,7 @@ describe('toolUseIdsFromContentTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('EMPTY: {tool_result without tool_use_id} => returns empty array', () => {
+    it('EMPTY: {tool_result without toolUseId} => returns empty array', () => {
       const entry = ToolResultWithoutToolUseId();
 
       const result = toolUseIdsFromContentTransformer({ entry });
@@ -133,7 +130,7 @@ describe('toolUseIdsFromContentTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('EMPTY: {tool_result with numeric tool_use_id} => returns empty array', () => {
+    it('EMPTY: {tool_result with numeric toolUseId} => returns empty array', () => {
       const entry = ToolResultWithNumericToolUseId();
 
       const result = toolUseIdsFromContentTransformer({ entry });
@@ -143,7 +140,7 @@ describe('toolUseIdsFromContentTransformer', () => {
   });
 
   describe('multiple items', () => {
-    it('VALID: {multiple tool_result items} => returns all tool_use_ids', () => {
+    it('VALID: {multiple tool_result items} => returns all toolUseIds', () => {
       const toolUseId1 = ToolUseIdStub({ value: 'toolu_01A' });
       const toolUseId2 = ToolUseIdStub({ value: 'toolu_01B' });
       const entry = UserMultipleToolResultEntry({ toolUseId1, toolUseId2 });

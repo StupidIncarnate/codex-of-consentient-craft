@@ -16,6 +16,6 @@ export const toolDisplayConfigStatics = {
     ellipsis: '...',
   },
   priorityKeys: {
-    ordered: ['file_path', 'path', 'pattern', 'query', 'url', 'prompt', 'command', 'action'],
+    ordered: ['filePath', 'path', 'pattern', 'query', 'url', 'prompt', 'command', 'action'],
   },
 } as const;

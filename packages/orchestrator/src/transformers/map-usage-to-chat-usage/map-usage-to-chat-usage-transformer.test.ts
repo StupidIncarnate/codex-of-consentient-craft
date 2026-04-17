@@ -5,10 +5,10 @@ describe('mapUsageToChatUsageTransformer', () => {
     it('VALID: {all fields present} => returns camelCase usage', () => {
       const result = mapUsageToChatUsageTransformer({
         usage: {
-          input_tokens: 100,
-          output_tokens: 50,
-          cache_creation_input_tokens: 10,
-          cache_read_input_tokens: 5,
+          inputTokens: 100,
+          outputTokens: 50,
+          cacheCreationInputTokens: 10,
+          cacheReadInputTokens: 5,
         },
       });
 
@@ -35,7 +35,7 @@ describe('mapUsageToChatUsageTransformer', () => {
 
     it('EDGE: {partial fields} => defaults missing to zero', () => {
       const result = mapUsageToChatUsageTransformer({
-        usage: { input_tokens: 42 },
+        usage: { inputTokens: 42 },
       });
 
       expect(result).toStrictEqual({

@@ -9,7 +9,6 @@
 import {
   absoluteFilePathContract,
   sessionIdContract,
-  streamJsonLineContract,
   type ExitCode,
   type FilePath,
   type QuestId,
@@ -17,6 +16,7 @@ import {
   type UserInput,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -67,12 +67,10 @@ export const runChatLayerBroker = async ({
           });
 
           if (trackedSessionId === null) {
-            const parseResult = streamJsonLineContract.safeParse(line);
-            if (parseResult.success) {
-              const sid = sessionIdExtractorTransformer({ line: parseResult.data });
-              if (sid !== null) {
-                trackedSessionId = sid;
-              }
+            const parsed = claudeLineNormalizeBroker({ rawLine: line });
+            const sid = sessionIdExtractorTransformer({ parsed });
+            if (sid !== null) {
+              trackedSessionId = sid;
             }
           }
         },

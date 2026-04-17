@@ -21,8 +21,8 @@ import {
   absoluteFilePathContract,
   processIdContract,
   sessionIdContract,
-  streamJsonLineContract,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
@@ -131,14 +131,10 @@ export const chatSpawnBroker = async ({
     cwd: guildAbsolutePath,
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
     onLine: ({ line }) => {
-      const lineParseResult = streamJsonLineContract.safeParse(line);
-
-      if (!lineParseResult.success) {
-        return;
-      }
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
 
       const outputs = processor.processLine({
-        line: lineParseResult.data,
+        parsed,
         source: sessionSource,
       });
 

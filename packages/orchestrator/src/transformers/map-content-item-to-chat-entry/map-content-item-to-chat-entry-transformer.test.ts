@@ -169,9 +169,9 @@ describe('mapContentItemToChatEntryTransformer', () => {
   });
 
   describe('tool_result items', () => {
-    it('VALID: {type: "tool_result", tool_use_id, content} => returns tool result entry', () => {
+    it('VALID: {type: "tool_result", toolUseId, content} => returns tool result entry', () => {
       const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'tool_result', tool_use_id: 'toolu_123', content: 'file contents' },
+        item: { type: 'tool_result', toolUseId: 'toolu_123', content: 'file contents' },
         usage: undefined,
       });
 
@@ -185,7 +185,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
 
     it('EDGE: {type: "tool_result", empty content} => returns entry with empty content', () => {
       const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'tool_result', tool_use_id: 'toolu_456', content: '' },
+        item: { type: 'tool_result', toolUseId: 'toolu_456', content: '' },
         usage: undefined,
       });
 
@@ -201,7 +201,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
-          tool_use_id: 'toolu_789',
+          toolUseId: 'toolu_789',
           content: [
             { type: 'text', text: 'First line' },
             { type: 'text', text: 'Second line' },
@@ -222,7 +222,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
-          tool_use_id: 'toolu_789',
+          toolUseId: 'toolu_789',
           content: [{ type: 'text', text: 'Valid text' }, { type: 'image', data: 'base64...' }, 42],
         },
         usage: undefined,
@@ -238,7 +238,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
 
     it('EDGE: {type: "tool_result", content is non-string non-array} => falls back to empty content', () => {
       const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'tool_result', tool_use_id: 'toolu_789', content: 42 },
+        item: { type: 'tool_result', toolUseId: 'toolu_789', content: 42 },
         usage: undefined,
       });
 
@@ -415,7 +415,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
 
     it('VALID: {tool_result item with source and agentId} => includes source and agentId', () => {
       const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'tool_result', tool_use_id: 'toolu_123', content: 'data' },
+        item: { type: 'tool_result', toolUseId: 'toolu_123', content: 'data' },
         usage: undefined,
         source: 'subagent',
         agentId: 'agent-1',
@@ -432,14 +432,14 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
-  describe('tool_result is_error', () => {
-    it('VALID: {tool_result with is_error: true} => includes isError in result', () => {
+  describe('tool_result isError', () => {
+    it('VALID: {tool_result with isError: true} => includes isError in result', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
-          tool_use_id: 'toolu_123',
+          toolUseId: 'toolu_123',
           content: 'error msg',
-          is_error: true,
+          isError: true,
         },
         usage: undefined,
       });
@@ -453,9 +453,9 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {tool_result with is_error: false} => omits isError from result', () => {
+    it('EDGE: {tool_result with isError: false} => omits isError from result', () => {
       const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'tool_result', tool_use_id: 'toolu_123', content: 'ok', is_error: false },
+        item: { type: 'tool_result', toolUseId: 'toolu_123', content: 'ok', isError: false },
         usage: undefined,
       });
 
@@ -484,11 +484,11 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
-  describe('tool_result tool_use_id edge cases', () => {
-    it('EDGE: {tool_result with non-string tool_use_id} => throws validation error', () => {
+  describe('tool_result toolUseId edge cases', () => {
+    it('EDGE: {tool_result with non-string toolUseId} => throws validation error', () => {
       expect(() => {
         mapContentItemToChatEntryTransformer({
-          item: { type: 'tool_result', tool_use_id: 123, content: 'data' },
+          item: { type: 'tool_result', toolUseId: 123, content: 'data' },
           usage: undefined,
         });
       }).toThrow(/too_small/u);

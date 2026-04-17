@@ -1,34 +1,32 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  StreamJsonLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
 import { streamJsonToTextTransformer } from './stream-json-to-text-transformer';
 
 describe('streamJsonToTextTransformer', () => {
   describe('valid text extraction', () => {
     it('VALID: {assistant message with single text} => returns StreamText', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantTextStreamLineStub({
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantTextStreamLineStub({
             message: {
               role: 'assistant',
               content: [{ type: 'text', text: 'Hello from Claude' }],
             },
           }),
-        ),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe('Hello from Claude');
     });
 
     it('VALID: {assistant message with multiple text blocks} => returns concatenated StreamText', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantTextStreamLineStub({
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantTextStreamLineStub({
             message: {
               role: 'assistant',
               content: [
@@ -37,18 +35,16 @@ describe('streamJsonToTextTransformer', () => {
               ],
             },
           }),
-        ),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe('Hello World');
     });
 
     it('VALID: {assistant message with mixed content types} => returns only text content', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantTextStreamLineStub({
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantTextStreamLineStub({
             message: {
               role: 'assistant',
               content: [
@@ -63,44 +59,38 @@ describe('streamJsonToTextTransformer', () => {
               ],
             },
           }),
-        ),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe('Before tool after tool');
     });
 
     it('VALID: {assistant message with empty string text} => returns empty StreamText', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantTextStreamLineStub({
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantTextStreamLineStub({
             message: {
               role: 'assistant',
               content: [{ type: 'text', text: '' }],
             },
           }),
-        ),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe('');
     });
 
     it('VALID: {assistant message with multiline text} => returns multiline StreamText', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantTextStreamLineStub({
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantTextStreamLineStub({
             message: {
               role: 'assistant',
               content: [{ type: 'text', text: 'Line 1\nLine 2\nLine 3' }],
             },
           }),
-        ),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe('Line 1\nLine 2\nLine 3');
     });
@@ -108,184 +98,135 @@ describe('streamJsonToTextTransformer', () => {
 
   describe('no text found', () => {
     it('EMPTY: {JSON null value} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: 'null',
-      });
-
-      const result = streamJsonToTextTransformer({ line });
+      const result = streamJsonToTextTransformer({ parsed: null });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {JSON primitive string} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: '"just a string"',
-      });
-
-      const result = streamJsonToTextTransformer({ line });
+      const result = streamJsonToTextTransformer({ parsed: 'just a string' });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {object without type property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          message: { content: [] },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"message":{"content":[]}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {non-assistant message} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'system',
-          message: 'Hello',
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"system","message":"Hello"}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with only tool calls} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(AssistantToolUseStreamLineStub()),
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantToolUseStreamLineStub(),
+        }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with no content property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {},
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with null message} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: null,
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":null}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant without message property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant"}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with empty content array} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [],
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{"content":[]}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {assistant message with non-array content} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: 'not an array',
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{"content":"not an array"}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {text item without text property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text' }],
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{"content":[{"type":"text"}]}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {text item with non-string text property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'text', text: 123 }],
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            '{"type":"assistant","message":{"content":[{"type":"text","text":123}]}}',
+          ),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {content item is null} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [null],
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{"content":[null]}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {content item is primitive} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: ['not an object'],
-          },
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse('{"type":"assistant","message":{"content":["not an object"]}}'),
         }),
       });
-
-      const result = streamJsonToTextTransformer({ line });
 
       expect(result).toBe(null);
     });
@@ -293,21 +234,13 @@ describe('streamJsonToTextTransformer', () => {
 
   describe('invalid JSON handling', () => {
     it('ERROR: {invalid JSON} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: 'not valid json',
-      });
-
-      const result = streamJsonToTextTransformer({ line });
+      const result = streamJsonToTextTransformer({ parsed: null });
 
       expect(result).toBe(null);
     });
 
     it('ERROR: {truncated JSON} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: '{"type":"assistant"',
-      });
-
-      const result = streamJsonToTextTransformer({ line });
+      const result = streamJsonToTextTransformer({ parsed: null });
 
       expect(result).toBe(null);
     });

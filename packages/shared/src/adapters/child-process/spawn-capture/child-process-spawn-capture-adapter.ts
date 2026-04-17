@@ -46,13 +46,17 @@ export const childProcessSpawnCaptureAdapter = async ({
       stderr += chunk.toString();
     });
 
-    if (timeout !== undefined) {
-      setTimeout(() => {
-        child.kill();
-      }, timeout);
-    }
+    const timeoutHandle =
+      timeout === undefined
+        ? null
+        : setTimeout(() => {
+            child.kill();
+          }, timeout);
 
     child.on('exit', (code) => {
+      if (timeoutHandle !== null) {
+        clearTimeout(timeoutHandle);
+      }
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
 
       if (code !== null && code !== 0) {
@@ -66,6 +70,9 @@ export const childProcessSpawnCaptureAdapter = async ({
     });
 
     child.on('error', () => {
+      if (timeoutHandle !== null) {
+        clearTimeout(timeoutHandle);
+      }
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
       resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
     });

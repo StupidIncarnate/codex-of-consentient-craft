@@ -11,10 +11,10 @@
 import {
   absoluteFilePathContract,
   exitCodeContract,
-  streamJsonLineContract,
   type FilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import {
   agentSpawnStreamingResultContract,
@@ -70,18 +70,14 @@ export const agentSpawnByRoleBroker = async ({
         onLine: ({ line }) => {
           onLine?.({ line });
 
-          const parseResult = streamJsonLineContract.safeParse(line);
-          if (!parseResult.success) {
-            return;
-          }
-          const parsedLine = parseResult.data;
+          const parsed = claudeLineNormalizeBroker({ rawLine: line });
 
-          const text = streamJsonToTextTransformer({ line: parsedLine });
+          const text = streamJsonToTextTransformer({ parsed });
           if (text !== null) {
             outputLines.push(text);
           }
 
-          const signal = signalFromStreamTransformer({ line: parsedLine });
+          const signal = signalFromStreamTransformer({ parsed });
           if (signal !== null) {
             lastSignal = signal;
           }
