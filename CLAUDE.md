@@ -3,6 +3,10 @@
 **Critical:** DO NOT run anything in /tmp if you're trying to test eslint effects. That folder is outside the repo and
 thus won't trigger eslint at all.
 
+**Do NOT use `~/tmp` for scratch files** — it has permission issues. Use `<repoRoot>/tmp` instead (already present at
+the root of this repo). This keeps scratch files inside the repo's permission scope and, for eslint work, inside the
+folder that actually triggers the linter.
+
 ## What This Repo Is
 
 This is a **published npm package** (`dungeonmaster`). When users install it in their projects and run
@@ -64,6 +68,31 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
   and domains (~6k tokens). Start here before using `discover` for targeted exploration.
 - **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
   invocation patterns.
+
+## Never Edit `.claude/settings.json` Directly
+
+`.claude/settings.json` (and `settings.local.json`) have **permission issues** that block direct edits. Do NOT touch
+them by hand. They are generated/merged by package `StartInstall` functions (hooks, permissions, etc.).
+
+**To change anything in `.claude/settings.json`:**
+
+1. Update the install logic in the package that owns that concern:
+    - Hook entries (`PreToolUse`, `SessionStart`, `WorktreeCreate`, etc.) → `@dungeonmaster/hooks`
+      (`transformers/dungeonmaster-hooks-creator/...` + `responders/install/create-settings/...`).
+    - MCP permissions (`permissions.allow[]` entries like `mcp__dungeonmaster__<tool>`) → `@dungeonmaster/mcp`
+      (`settingsPermissionsAddBroker`, generated from `mcpToolsStatics.tools.names`).
+    - Other settings → the package whose `StartInstall` writes them.
+2. From the repo root, run:
+   ```bash
+   npm run build
+   npm link --workspaces
+   npm run init
+   ```
+   `npm run init` invokes `dungeonmaster init`, which discovers each package's `dist/startup/start-install.js` and
+   executes its `StartInstall` — that's what regenerates/merges `.claude/settings.json`.
+
+If you're tempted to hand-edit `.claude/settings.json` to add/remove an entry, stop — fix the install logic so the entry
+is produced the next time someone runs `npm run init`.
 
 ## Ward Invocation Rules (MANDATORY)
 

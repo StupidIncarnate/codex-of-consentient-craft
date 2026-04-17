@@ -182,7 +182,6 @@
       "Bash(npm link)",
       "Bash(npm view:*)",
       "Bash(npm show:*)",
-      "mcp__dungeonmaster__add-quest",
       "mcp__dungeonmaster__modify-quest",
       "mcp__dungeonmaster__get-quest",
       "mcp__dungeonmaster__discover",

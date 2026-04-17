@@ -3,11 +3,9 @@ the MCP before manually testing changes.
 
 ## Adding New MCP Tools
 
-When adding a new MCP tool, you MUST also add the permission string to `.claude/settings.json` in the repo root.
-The install script (`settingsPermissionsAddBroker`) generates permissions from `mcpToolsStatics.tools.names` and writes
-them during `dungeonmaster init`, but existing installs (including this repo) won't pick up the new permission until
-re-init. Add the permission manually: `"mcp__dungeonmaster__<tool-name>"` to `permissions.allow[]` in
-`.claude/settings.json`.
+Add the tool to `mcpToolsStatics.tools.names` so `settingsPermissionsAddBroker` picks it up. **Do NOT hand-edit
+`.claude/settings.json`** — see root `CLAUDE.md` ("Never Edit `.claude/settings.json` Directly") for the
+build → `npm link --workspaces` → `npm run init` flow that regenerates permissions for this repo.
 
 ## Troubleshooting: MCP Tools Not Available
 

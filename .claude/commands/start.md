@@ -24,21 +24,35 @@ dispatch a sub agent to gather it and report back.
   dispatch a separate agent for test coverage. The same applies to cleanup work (merge conflicts, package-lock fixes,
   ward debugging) — do not pile these onto a testing agent.
 
+## Plan File Setup (DO THIS FIRST)
+
+Plans start out in `~/.claude/plans/`, which has permission issues when you (or agents) need to edit the plan to mark
+progress or append `> [!]` review notes. **Before doing anything else:**
+
+1. **Copy** (do NOT `mv`) the plan file from `~/.claude/plans/<plan-file>` to `<repo-root>/plan/<plan-file>`. Use `cp`,
+   not `mv` — leave the original intact.
+2. From this point forward, **all references to "the plan file" in this prompt mean the copy
+   at `<repo-root>/plan/<plan-file>`**.
+   Every agent and sub agent you dispatch must be given that repo-local path — never the `~/.claude/plans/` path.
+3. All edits (progress marks, `> [!]` review notes) happen on the repo-local copy.
+
 ## Workflow
 
-1. Read the plan below. Identify logical groups of work (steps, phases, or however the plan is structured).
+1. Read the plan file (the repo-local copy). Identify logical groups of work (steps, phases, or however the plan is
+   structured).
 2. For each group:
-   a. **Dispatch an agent** with the plan context and specify which steps to implement.
+   a. **Dispatch an agent** with the plan context (pass the repo-local plan file path) and specify which steps to
+   implement.
    b. **Dispatch a sub agent** to pull a list of changed implementation files and manually verify that all implementation changes have test coverage based on project standards. If missing cases are discovered, the agent needs to fill them in and run tests until passing. 
    c. **Dispatch a sub agent** to run `npm run ward --changed` at root of repo. If issues are found, dispatch a sub
    agent to fix them.
-   d. **Update progress** — Edit the plan file directly to mark completed steps. Then **commit** the changes.
+   d. **Update progress** — Edit the repo-local plan file directly to mark completed steps. Then **commit** the changes.
 3. Repeat until all plan steps are complete.
 
 ## After All Steps Pass — Manual E2E Verification
 
-Dispatch an agent with the full plan file path. Its job is to **design and execute manual E2E tests** that prove the
-plan's goals were achieved end-to-end. The agent must:
+Dispatch an agent with the full repo-local plan file path (at `<repo-root>/plan/...`, NOT `~/.claude/plans/...`). Its
+job is to **design and execute manual E2E tests** that prove the plan's goals were achieved end-to-end. The agent must:
 
 1. **Read the plan** and identify every user-facing behavior or system-level outcome the plan intended to deliver.
 2. **Think through and output a numbered list of concrete E2E test cases** before running anything. Each test case must
@@ -67,18 +81,20 @@ Commit any remaining changes.
 ## Plan Alignment Review
 
 After all work is done and ward is green, **you (the orchestrator) personally verify the implementation against the
-plan.** This is not delegated — you own the final judgment.
+plan.** This is not delegated — you own the final judgment. All plan reads and edits in this section use the repo-local
+plan file at `<repo-root>/plan/...`, not `~/.claude/plans/...`.
 
 ### Verification Loop
 
-1. **Re-read the full plan.** For each plan step, read the actual code changes yourself (diff or file reads via sub
-   agents). You must understand what was built, not just trust agent reports.
+1. **Re-read the full plan (repo-local copy).** For each plan step, read the actual code changes yourself (diff or file
+   reads via sub agents). You must understand what was built, not just trust agent reports.
 2. **For each plan step, ask yourself:**
     - Does the implementation match what the plan specified?
     - Are there gaps — things the plan required that are missing or incomplete?
     - Are there deviations — things built differently than the plan intended?
     - Are there wrong implementations — code that looks related but doesn't fulfill the requirement?
-3. **Write issues directly onto the plan file.** Under each plan step that has a problem, append a `> [!] ...` line
+3. **Write issues directly onto the repo-local plan file.** Under each plan step that has a problem, append a
+   `> [!] ...` line
    describing the issue. This is your tracking mechanism — issues live next to the step they belong to, not in your
    head or a separate list. Example:
    ```
@@ -113,8 +129,9 @@ Watch for these patterns in agent reports — they indicate the agent gave up or
 
 ## Progress Tracking
 
-Edit the plan file directly to mark step status as work completes. Use `[x]` for done, `[ ]` for pending, `[!]` for
-failed. This is your source of truth if context compacts — always re-read the plan file before deciding what to do next.
+Edit the repo-local plan file (at `<repo-root>/plan/...`) directly to mark step status as work completes. Use `[x]` for
+done, `[ ]` for pending, `[!]` for failed. This is your source of truth if context compacts — always re-read the
+repo-local plan file before deciding what to do next. Never edit or read back from the `~/.claude/plans/` original.
 
 ## Plan
 
