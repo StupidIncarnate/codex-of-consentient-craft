@@ -1,30 +1,33 @@
 /**
- * PURPOSE: Builds a WorkUnit for the given role from a dependency step and quest context
+ * PURPOSE: Builds a WorkUnit for the given role from role-specific inputs via a discriminated union
  *
  * USAGE:
  * const workUnit = buildWorkUnitForRoleTransformer({ role: 'codeweaver', step, quest });
- * // Returns CodeweaverWorkUnit { role: 'codeweaver', step, questId, relatedContracts, relatedObservables }
+ * // Returns CodeweaverWorkUnit { role: 'codeweaver', step, questId, relatedContracts, relatedObservables, ... }
+ * const siegeUnit = buildWorkUnitForRoleTransformer({ role: 'siegemaster', flow, quest, devServerUrl });
+ * // Returns SiegemasterWorkUnit { role: 'siegemaster', questId, flow, relatedDesignDecisions, devServerUrl? }
  */
 
-import type { DependencyStep, Quest } from '@dungeonmaster/shared/contracts';
+import type { DependencyStep, Flow, Quest } from '@dungeonmaster/shared/contracts';
 
-import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
+import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import type { WorkUnit } from '../../contracts/work-unit/work-unit-contract';
 import { workUnitContract } from '../../contracts/work-unit/work-unit-contract';
 import { stepToFilePathsTransformer } from '../step-to-file-paths/step-to-file-paths-transformer';
 import { stepToQuestContextTransformer } from '../step-to-quest-context/step-to-quest-context-transformer';
 
+type BuildWorkUnitForRoleInput =
+  | { role: 'codeweaver'; step: DependencyStep; quest: Quest }
+  | { role: 'siegemaster'; flow: Flow; quest: Quest; devServerUrl?: DevServerUrl }
+  | { role: 'lawbringer'; step: DependencyStep }
+  | { role: 'spiritmender'; step: DependencyStep };
+
 export const buildWorkUnitForRoleTransformer = ({
-  role,
-  step,
-  quest,
-}: {
-  role: AgentRole;
-  step: DependencyStep;
-  quest: Quest;
-}): WorkUnit => {
-  switch (role) {
+  ...params
+}: BuildWorkUnitForRoleInput): WorkUnit => {
+  switch (params.role) {
     case 'codeweaver': {
+      const { step, quest } = params;
       const { relatedContracts, relatedObservables, relatedDesignDecisions, relatedFlows } =
         stepToQuestContextTransformer({
           step,
@@ -43,22 +46,19 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'siegemaster': {
-      const { relatedObservables, relatedDesignDecisions, relatedFlows } =
-        stepToQuestContextTransformer({
-          step,
-          quest,
-        });
+      const { flow, quest, devServerUrl } = params;
 
       return workUnitContract.parse({
         role: 'siegemaster',
         questId: quest.id,
-        relatedDesignDecisions,
-        relatedFlows,
-        relatedObservables,
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        ...(devServerUrl === undefined ? {} : { devServerUrl }),
       });
     }
 
     case 'lawbringer': {
+      const { step } = params;
       const filePaths = stepToFilePathsTransformer({ step });
 
       return workUnitContract.parse({
@@ -68,6 +68,7 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'spiritmender': {
+      const { step } = params;
       const filePaths = stepToFilePathsTransformer({ step });
 
       return workUnitContract.parse({
@@ -76,13 +77,9 @@ export const buildWorkUnitForRoleTransformer = ({
       });
     }
 
-    case 'pathseeker': {
-      throw new Error('Role "pathseeker" is not step-based and cannot be built from a step');
-    }
-
     default: {
-      const exhaustiveCheck: never = role;
-      throw new Error(`Unknown role: ${String(exhaustiveCheck)}`);
+      const exhaustiveCheck: never = params;
+      throw new Error(`Unknown role in input: ${JSON.stringify(exhaustiveCheck)}`);
     }
   }
 };

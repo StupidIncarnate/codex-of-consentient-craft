@@ -72,7 +72,7 @@ export const runLawbringerLayerBroker = async ({
     }
     const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
     slotToQuestMap.set(slotId, wi.id);
-    return buildWorkUnitForRoleTransformer({ role: 'lawbringer', step: resolved.item, quest });
+    return buildWorkUnitForRoleTransformer({ role: 'lawbringer', step: resolved.item });
   });
 
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });

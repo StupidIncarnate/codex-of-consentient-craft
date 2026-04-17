@@ -7,6 +7,7 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { buildWorkUnitForRoleTransformer } from './build-work-unit-for-role-transformer';
 import { buildWorkUnitForRoleTransformerProxy } from './build-work-unit-for-role-transformer.proxy';
 
@@ -109,89 +110,71 @@ describe('buildWorkUnitForRoleTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {role: siegemaster, step with observablesSatisfied, quest with matching flow observables} => returns SiegemasterWorkUnit with filtered context', () => {
+    it('VALID: {role: siegemaster, flow, quest, devServerUrl} => returns SiegemasterWorkUnit with flow and all design decisions', () => {
       buildWorkUnitForRoleTransformerProxy();
 
-      const observable = FlowObservableStub({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-      });
-      const unrelatedObservable = FlowObservableStub({
-        id: 'c3d4e5f6-a7b8-4c5d-0e1f-2a3b4c5d6e7f',
-      });
-
-      const step = DependencyStepStub({
-        observablesSatisfied: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'],
-      });
-
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page',
-                observables: [observable, unrelatedObservable],
-              }),
-            ],
+      const flow = FlowStub({
+        id: 'checkout-flow',
+        name: 'Checkout Flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'cart-page',
+            observables: [FlowObservableStub()],
           }),
         ],
       });
 
+      const quest = QuestStub({
+        flows: [flow],
+      });
+
+      const devServerUrl = DevServerUrlStub({ value: 'http://localhost:4700' });
+
       const result = buildWorkUnitForRoleTransformer({
         role: 'siegemaster',
-        step,
+        flow,
         quest,
+        devServerUrl,
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: quest.id,
-        relatedDesignDecisions: [],
-        relatedFlows: [
-          FlowStub({
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page',
-                observables: [observable, unrelatedObservable],
-              }),
-            ],
-          }),
-        ],
-        relatedObservables: [observable],
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        devServerUrl,
       });
     });
 
-    it('EDGE: {role: siegemaster, no matching observables} => returns empty related arrays', () => {
+    it('VALID: {role: siegemaster, flow, quest, no devServerUrl} => returns SiegemasterWorkUnit without devServerUrl', () => {
       buildWorkUnitForRoleTransformerProxy();
 
-      const step = DependencyStepStub({
-        observablesSatisfied: ['deadbeef-0000-4000-a000-000000000000'],
-      });
-
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page',
-                observables: [FlowObservableStub()],
-              }),
-            ],
+      const flow = FlowStub({
+        id: 'login-flow',
+        name: 'Login Flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page',
+            observables: [FlowObservableStub()],
           }),
         ],
       });
 
+      const quest = QuestStub({
+        flows: [flow],
+      });
+
       const result = buildWorkUnitForRoleTransformer({
         role: 'siegemaster',
-        step,
+        flow,
         quest,
       });
 
       expect(result).toStrictEqual({
         role: 'siegemaster',
         questId: quest.id,
-        relatedDesignDecisions: [],
-        relatedFlows: [],
-        relatedObservables: [],
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
       });
     });
   });
@@ -205,12 +188,9 @@ describe('buildWorkUnitForRoleTransformer', () => {
         accompanyingFiles: [{ path: '/src/brokers/index.ts' }],
       });
 
-      const quest = QuestStub();
-
       const result = buildWorkUnitForRoleTransformer({
         role: 'lawbringer',
         step,
-        quest,
       });
 
       expect(result).toStrictEqual({
@@ -229,35 +209,15 @@ describe('buildWorkUnitForRoleTransformer', () => {
         accompanyingFiles: [{ path: '/src/guards/index.ts' }],
       });
 
-      const quest = QuestStub();
-
       const result = buildWorkUnitForRoleTransformer({
         role: 'spiritmender',
         step,
-        quest,
       });
 
       expect(result).toStrictEqual({
         role: 'spiritmender',
         filePaths: ['/src/guards/auth/auth-guard.ts', '/src/guards/index.ts'],
       });
-    });
-  });
-
-  describe('pathseeker role', () => {
-    it('ERROR: {role: pathseeker} => throws error because pathseeker is not step-based', () => {
-      buildWorkUnitForRoleTransformerProxy();
-
-      const step = DependencyStepStub();
-      const quest = QuestStub();
-
-      expect(() =>
-        buildWorkUnitForRoleTransformer({
-          role: 'pathseeker',
-          step,
-          quest,
-        }),
-      ).toThrow(/Role "pathseeker" is not step-based/u);
     });
   });
 });
