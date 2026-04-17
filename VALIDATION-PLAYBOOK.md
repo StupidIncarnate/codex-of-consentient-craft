@@ -51,6 +51,7 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 
 Static policies. These hold for every run.
 
+- **NEVER manually refresh the browser. EVER.** This includes F5, Ctrl+R, Cmd+R, right-click-reload, clicking the browser reload button, `page.reload()`, `mcp__claude-in-chrome__navigate` to the current URL, `key: "F5"`, `key: "ctrl+r"`, or ANY other mechanism that reloads the page. Manually refreshing **kills any agent currently running in the quest session** (PathSeeker, codeweaver, blightwarden, etc.) and corrupts the orchestration state. The UI manages its own state end-to-end: panels swap, statuses update, clarifications appear, execution progress renders — all via WebSocket. If something doesn't show up live, **that is a bug to file** — not something to work around with a refresh. If you see yourself about to refresh for any reason (including the phrase "refresh test"), stop, screenshot the current state, and describe what's missing. Refreshing is a destructive action on live runs. This rule supersedes any step in this playbook that appears to request a refresh; if you find such wording, treat it as a doc bug and edit it out before proceeding.
 - **Autonomy: fix, then restart — do NOT ask for approval between runs.** After a blocking bug is fixed and committed, immediately follow Run Lifecycle step 1 for the next run. Do not pause to ask the user "should I start Run N?" or "do you want me to proceed?". The user will intervene if they want you to stop. Same rule applies mid-run: keep driving through checkpoints, branching to fixers on red, without checking in at every checkpoint. Only stop-and-ask when you genuinely cannot decide (ambiguous bug classification, missing context for a fix).
 - **Orchestrator (you) does NOT edit source code or run ward directly.** Fix work and ward invocation MUST be delegated to sub-agents via the `Agent` tool. The orchestrator's job is to drive the flow, observe outcomes, classify bugs, dispatch agents, and commit results. Exceptions: the orchestrator may freely edit `VALIDATION-PLAYBOOK.md`, `/tmp/validation-notes.md`, and update task lists — those are process artifacts, not codebase changes. Everything else — contract edits, prompt edits, guard fixes, broker fixes, widget fixes, test updates, rebuilds — goes to an agent. This protects the orchestrator's context window for the full end-to-end validation run.
 - **Kickoff surfaces.** Web UI, MCP tools, server HTTP endpoints. No slash commands.
@@ -283,23 +284,19 @@ even though orchestration is running, and refreshing the session URL can send yo
 execution panel.
 
 - **Action:** In the Web UI, click the "Begin Quest" button in the popup that appears after Gate #2.
-- **Assert (in order — do not skip the panel-switch check):**
-    1. **UI switches to the execution panel automatically.** The WebSocket `quest-modified` event is supposed to drive
-       this — no manual reload, no URL change, no second click. Within a few seconds of the Begin Quest click, the
-       right-side panel must swap from the observables approval / spec view to the execution panel
-       (`data-testid="execution-panel-widget"` is visible; `QUEST_SPEC_PANEL` is NOT visible). Screenshot this to
-       confirm BEFORE running any further checks.
+- **Assert (in order, screenshot each — DO NOT REFRESH between checks):**
+    1. **UI switches to the execution panel automatically.** The WebSocket `quest-modified` event drives this — no
+       manual reload, no URL change, no second click. Within a few seconds of the Begin Quest click, the layout
+       must swap from the observables approval / spec view to the execution panel (tab "EXECUTION | QUEST SPEC",
+       HOMEBASE section with work items like `[CHAOSWHISPERER] Chaoswhisperer DONE` and
+       `[PATHSEEKER] Planning steps... RUNNING`, `data-testid="execution-panel-widget"` visible). Screenshot to
+       confirm.
     2. Status → `seek_scope` (or further). PathSeeker work item dispatched by orchestration loop.
-    3. **Refresh persistence test:** ONLY after assertion #1 passes, refresh the session URL
-       `/codex/session/<uuid>`. Execution panel MUST still render — same `execution-panel-widget` testId visible, no
-       fall back to spec/chat view. This catches a different class of bug (guard/route mismatch on cold mount) from
-       assertion #1 (guard/route mismatch on live WS update).
 
 **→ FAIL assertion #1 (UI never switches after Begin Quest click):** UI bug in the execution-panel guard or in the
 binding that reacts to `quest-modified`. Most likely candidate: `isExecutionPhaseGuard` is missing one of the
 intermediate statuses (`seek_scope`, `seek_synth`, `seek_walk`, `seek_plan`, `in_progress`). File it, fix, restart.
-**→ FAIL assertion #3 (refresh falls back to chat/spec view):** UI bug in the cold-mount panel selector — guard
-evaluation on page load disagrees with live-update evaluation. File it, fix, restart.
+DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 **→ FAIL no "Begin Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
 **→ PASS:** continue.
 
