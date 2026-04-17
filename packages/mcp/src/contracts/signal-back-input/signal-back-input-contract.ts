@@ -13,8 +13,10 @@ import { z } from 'zod';
 export const signalBackInputContract = z
   .object({
     signal: z
-      .enum(['complete', 'failed'])
-      .describe('Signal type: complete when work succeeded, failed when it did not'),
+      .enum(['complete', 'failed', 'failed-replan'])
+      .describe(
+        'Signal type: complete when work succeeded, failed when it did not, failed-replan when work needs PathSeeker to add new steps before retry',
+      ),
     summary: z
       .string()
       .min(1)

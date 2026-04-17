@@ -31,6 +31,20 @@ describe('signalBackInputContract', () => {
       });
     });
 
+    it('VALID: {signal: "failed-replan", summary} => parses failed-replan signal', () => {
+      const input = SignalBackInputStub({
+        signal: 'failed-replan',
+        summary: 'Semantic findings require new steps',
+      });
+
+      const result = signalBackInputContract.parse(input);
+
+      expect(result).toStrictEqual({
+        signal: 'failed-replan',
+        summary: 'Semantic findings require new steps',
+      });
+    });
+
     it('EDGE: {signal only, no summary} => parses minimal input', () => {
       const result = signalBackInputContract.parse({
         signal: 'complete',
