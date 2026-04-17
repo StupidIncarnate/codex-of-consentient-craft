@@ -9,6 +9,7 @@ import {
   PlanningSynthesisStub,
   PlanningWalkFindingsStub,
   QuestStub,
+  StepFileReferenceStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questCompletenessForTransitionTransformer } from './quest-completeness-for-transition-transformer';
@@ -326,6 +327,55 @@ describe('questCompletenessForTransitionTransformer', () => {
       });
 
       expect(failures).toStrictEqual([]);
+    });
+
+    it('INVALID: {integration step missing transitive dep on same-package peer} => returns Integration Step Package Dependency Coverage failedCheck', () => {
+      const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
+      const observable = FlowObservableStub({ id: 'obs-ok' as never });
+      Object.assign(terminal, { observables: [observable] });
+      const edge = FlowEdgeStub({
+        id: 'self' as never,
+        from: 'done' as never,
+        to: 'done' as never,
+      });
+      const broker = DependencyStepStub({
+        id: 'create-broker' as never,
+        focusFile: StepFileReferenceStub({
+          path: 'packages/orchestrator/src/brokers/x/y/x-y-broker.ts' as never,
+        }),
+      });
+      const flow = DependencyStepStub({
+        id: 'wire-flow' as never,
+        focusFile: StepFileReferenceStub({
+          path: 'packages/orchestrator/src/flows/install/install-flow.ts' as never,
+        }),
+      });
+      const quest = QuestStub({
+        status: 'seek_plan',
+        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
+        steps: [broker, flow],
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          surfaceReports: [],
+          synthesis: PlanningSynthesisStub(),
+          walkFindings: PlanningWalkFindingsStub(),
+          reviewReport: PlanningReviewReportStub({ signal: 'clean' }),
+        },
+      });
+
+      const failures = questCompletenessForTransitionTransformer({
+        quest,
+        nextStatus: 'in_progress',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'Integration Step Package Dependency Coverage',
+          passed: false,
+          details:
+            "Integration steps missing transitive deps on same-package steps: step 'wire-flow' creates an integration file but does not (transitively) depend on step 'create-broker' in the same package scope",
+        },
+      ]);
     });
 
     it('INVALID: {step-structure: orphan dep, missing focus, cycle} => returns three blocking step-structure failedChecks', () => {

@@ -28,6 +28,7 @@ import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import { questCyclicStepDepsTransformer } from '../quest-cyclic-step-deps/quest-cyclic-step-deps-transformer';
+import { questIntegrationStepsMissingPackageDepsTransformer } from '../quest-integration-steps-missing-package-deps/quest-integration-steps-missing-package-deps-transformer';
 import { questStepsMissingFocusTargetTransformer } from '../quest-steps-missing-focus-target/quest-steps-missing-focus-target-transformer';
 import { questUnresolvedStepDepsTransformer } from '../quest-unresolved-step-deps/quest-unresolved-step-deps-transformer';
 import { questValidateSpecTransformer } from '../quest-validate-spec/quest-validate-spec-transformer';
@@ -104,6 +105,21 @@ export const questCompletenessForTransitionTransformer = ({
           passed: false,
           details: checkDetailsSchema.parse(
             `Cycles in step dependsOn graph: ${cycleOffenders.map((offender) => String(offender)).join('; ')}`,
+          ),
+        }),
+      );
+    }
+
+    const integrationDepOffenders = questIntegrationStepsMissingPackageDepsTransformer({
+      steps: quest.steps,
+    });
+    if (integrationDepOffenders.length > 0) {
+      results.push(
+        verifyQuestCheckContract.parse({
+          name: checkNameSchema.parse('Integration Step Package Dependency Coverage'),
+          passed: false,
+          details: checkDetailsSchema.parse(
+            `Integration steps missing transitive deps on same-package steps: ${integrationDepOffenders.map((offender) => String(offender)).join('; ')}`,
           ),
         }),
       );
