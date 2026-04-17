@@ -1,49 +1,68 @@
 import { devLogChatOutputFormatTransformer } from './dev-log-chat-output-format-transformer';
 
 describe('devLogChatOutputFormatTransformer', () => {
-  it('VALID: {chat event with line} => parses and formats inner JSONL', () => {
+  it('VALID: {chat event with assistant text entries} => formats summary', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
         chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
-        line: JSON.stringify({ type: 'system', subtype: 'init' }),
+        entries: [{ role: 'assistant', type: 'text', content: 'Hello world' }],
       },
     });
 
-    expect(result).toBe('proc:abc12345  system/init');
+    expect(result).toBe('proc:abc12345  assistant/text  "Hello world"');
   });
 
-  it('VALID: {pipeline event with entry.raw and slotIndex} => shows slot', () => {
+  it('VALID: {pipeline event with slotIndex and tool_use entries} => shows slot and tool', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
         processId: 'proc-recovery-1925f6f6-e4b2-48fa-8b80-77e62301cc82',
         slotIndex: 2,
-        entry: {
-          raw: JSON.stringify({ type: 'system', subtype: 'init' }),
-        },
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_use',
+            toolName: 'Read',
+            toolInput: '{}',
+          },
+        ],
       },
     });
 
-    expect(result).toBe('proc:1925f6f6  slot:2  system/init');
+    expect(result).toBe('proc:1925f6f6  slot:2  assistant/tool_use  Read');
   });
 
-  it('EDGE: {unparseable line} => shows unparseable', () => {
-    const result = devLogChatOutputFormatTransformer({
-      payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
-        line: 'not json',
-      },
-    });
-
-    expect(result).toBe('proc:abc12345  (unparseable)');
-  });
-
-  it('EDGE: {no line or entry} => shows unparseable', () => {
+  it('EDGE: {no entries field} => shows (no entries)', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
         chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
       },
     });
 
-    expect(result).toBe('proc:abc12345  (unparseable)');
+    expect(result).toBe('proc:abc12345  (no entries)');
+  });
+
+  it('EDGE: {empty entries array} => shows (no entries)', () => {
+    const result = devLogChatOutputFormatTransformer({
+      payload: {
+        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        entries: [],
+      },
+    });
+
+    expect(result).toBe('proc:abc12345  (no entries)');
+  });
+
+  it('VALID: {multiple entries} => joins with " | "', () => {
+    const result = devLogChatOutputFormatTransformer({
+      payload: {
+        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        entries: [
+          { role: 'assistant', type: 'text', content: 'hello' },
+          { role: 'assistant', type: 'thinking', content: 'thinking' },
+        ],
+      },
+    });
+
+    expect(result).toBe('proc:abc12345  assistant/text  "hello" | assistant/thinking');
   });
 });

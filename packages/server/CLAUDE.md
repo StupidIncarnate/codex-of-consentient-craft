@@ -1,5 +1,35 @@
 # Server Package - Claude Session Guide
 
+## Chat-line translation: this package does NOT own it
+
+The server is a **relay**, not a translator. Raw Claude CLI output (stdout stream-json or
+JSONL on disk) is translated into `ChatEntry[]` entirely by the orchestrator before it
+reaches the server. The server's job is to broadcast those entries via WebSocket.
+
+**If you're tempted to add string parsing, XML extraction, format decoding, or any logic that
+turns a raw line into a structured shape — stop. That belongs in the orchestrator's
+`chat-line-process-transformer`.** See `packages/orchestrator/CLAUDE.md` for the full funnel.
+
+### What server WS broadcast events look like
+
+```
+chat-output   { chatProcessId, entries: ChatEntry[] }
+chat-patch    { chatProcessId, toolUseId, agentId }
+chat-complete { chatProcessId, exitCode, sessionId }
+```
+
+The `entries` array is already fully-structured `ChatEntry` objects from
+`@dungeonmaster/shared/contracts`. No further parsing is needed or allowed on the wire.
+
+### What the server IS responsible for
+
+- Subscribing to `orchestrationEventsState` and forwarding events to WS clients.
+- Dual-tier routing: in-memory bus for transient events (chat-output, chat-complete),
+  file outbox for persistent mutations (quest-modified).
+- Pipeline `chat-output` batching (100ms) for agents with a `slotIndex` — the entries are
+  already translated, batching is a throughput concern only.
+- Dev-mode logging of WS traffic for debugging (see below).
+
 ## Dev-Mode Logging
 
 All runtime observability logging in the server MUST go through the `processDevLogAdapter`. Do NOT use
