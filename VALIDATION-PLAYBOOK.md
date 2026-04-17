@@ -104,6 +104,34 @@ each run, in order:
 
 ---
 
+## TDD-First Fix Process (MANDATORY for every fix agent)
+
+Every fix agent dispatched from this playbook MUST follow this order. No exceptions. If an agent starts editing source
+before it has a failing test that proves the bug, it has failed its task — dispatch a replacement.
+
+1. **Explore.** Before touching any source, the agent reads the surrounding code to understand how the feature is
+   supposed to work end-to-end: which widget renders it, which binding wires it up, which HTTP/MCP endpoint the UI
+   calls, which broker does the work, which status transitions are involved, how tests in the area are structured.
+   `git log -S "<keyword>"` / `git show` is fair game to see how a missing feature used to be built. This phase
+   produces *understanding*, not code.
+2. **Enumerate the behavior matrix.** List every state/input combination the fix has to satisfy — the full truth
+   table, not the one happy path. If the user already gave you the matrix (e.g., the list of quest statuses where
+   the pause button should/shouldn't render), that matrix is the contract. Each row is a future test case.
+3. **Write the failing tests that prove the bug exists.** Landed tests only — no mock patches to make them green,
+   no `.skip`, no `.todo`. They must run against the real current code and fail for the right reason. The agent
+   reports which tests it wrote and which exact assertion fails in each (e.g., `expect(find('PAUSE_BUTTON')).toBeVisible() — currently fails: element not found`).
+4. **Fix the code until every test passes.** Minimal change. Do not refactor surrounding code. Do not add tests for
+   things outside the matrix.
+5. **Run ward.** Green gate. Agents use `npm run ward` from repo root with `timeout: 600000`. Never `cd` into
+   a package. If ward catches something outside the fix's footprint, diagnose — don't hand-wave as "pre-existing."
+6. **Report back.** Explicit list: which tests were written, which assertion failed before, which passes now, what
+   files changed, ward status. No commits — the orchestrator commits after receiving the report.
+
+When the orchestrator (you) writes a fix-agent prompt, include step 1 (what to explore), step 2 (the behavior matrix,
+spelled out), and an explicit instruction that step 3 (failing tests) MUST land before step 4 (source fix). If the
+agent returns saying "I just fixed it, here's ward green," reject the work — the regression proof (failing-then-passing
+test) is the point.
+
 ## Bug Procedure
 
 The moment something is off, regardless of blocking status:
