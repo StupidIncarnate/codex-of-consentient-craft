@@ -27,9 +27,19 @@ const WARD_UUID = '33333333-3333-4333-8333-333333333303';
 const SIEGE_UUID = '44444444-4444-4444-8444-444444444404';
 const LB1_UUID = '55555555-5555-4555-8555-555555555505';
 const LB2_UUID = '66666666-6666-4666-8666-666666666606';
+const BLIGHT_UUID = '88888888-8888-4888-8888-888888888808';
 const FINAL_WARD_UUID = '77777777-7777-4777-8777-777777777707';
 const PS_WORK_ITEM_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
-const ALL_UUIDS = [CW1_UUID, CW2_UUID, WARD_UUID, SIEGE_UUID, LB1_UUID, LB2_UUID, FINAL_WARD_UUID];
+const ALL_UUIDS = [
+  CW1_UUID,
+  CW2_UUID,
+  WARD_UUID,
+  SIEGE_UUID,
+  LB1_UUID,
+  LB2_UUID,
+  BLIGHT_UUID,
+  FINAL_WARD_UUID,
+];
 
 const buildValidQuestWith2Steps = ({
   workItem,
@@ -210,7 +220,7 @@ describe('runPathseekerLayerBroker', () => {
         })),
       ).toStrictEqual([
         { spawnerType: 'command', maxAttempts: 3, dependsOn: [CW1_UUID, CW2_UUID] },
-        { spawnerType: 'command', maxAttempts: 3, dependsOn: [LB1_UUID, LB2_UUID] },
+        { spawnerType: 'command', maxAttempts: 3, dependsOn: [BLIGHT_UUID] },
       ]);
     });
   });

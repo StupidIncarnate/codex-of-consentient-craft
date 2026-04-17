@@ -227,9 +227,7 @@ export const workUnitToArgumentsTransformer = ({
         scopeSize,
         relatedDesignDecisions: blightDesignDecisions,
       } = workUnit;
-      const blightParts: ContentText[] = [
-        contentTextContract.parse(`Quest ID: ${blightQuestId}`),
-      ];
+      const blightParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${blightQuestId}`)];
 
       if (scopeSize !== undefined) {
         blightParts.push(contentTextContract.parse(`Scope Size: ${scopeSize}`));

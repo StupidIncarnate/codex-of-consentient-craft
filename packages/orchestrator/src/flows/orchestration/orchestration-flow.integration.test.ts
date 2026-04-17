@@ -248,6 +248,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+        });
         // final ward (pass)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -349,6 +354,11 @@ describe('OrchestrationFlow', () => {
         queueDir: env.claudeQueueDir,
         response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
       });
+      // blightwarden
+      queue.enqueue({
+        queueDir: env.claudeQueueDir,
+        response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+      });
       // final ward (pass)
       queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -421,6 +431,11 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess-1') }),
+        });
+        // Queue: blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
         });
         // Queue: final ward (pass)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
@@ -537,6 +552,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess-1') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -635,6 +655,11 @@ describe('OrchestrationFlow', () => {
             response: agentSuccessResponse({ sessionId: sid(`lb-${String(i)}`) }),
           });
         }
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -699,6 +724,7 @@ describe('OrchestrationFlow', () => {
           planningNotes: {
             scopeClassification: PlanningScopeClassificationStub(),
             surfaceReports: [],
+            blightReports: [],
             synthesis: PlanningSynthesisStub(),
           },
           finalStatus: 'in_progress',
@@ -739,6 +765,10 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-seekwalk-1') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-seekwalk') }),
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -811,6 +841,11 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
+        });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
         });
         // final ward (after lawbringers)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
@@ -919,12 +954,17 @@ describe('OrchestrationFlow', () => {
       const skippedItems = quest.workItems.filter((wi) => wi.status === 'skipped');
       const pathseekers = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      // 3 ward failures (attempts 0, 1, 2). On exhaustion: siege + LB + final-ward skipped.
+      // 3 ward failures (attempts 0, 1, 2). On exhaustion: siege + LB + blightwarden + final-ward skipped.
       // Pathseeker replan runs and creates new downstream items that then crash → quest blocks.
       expect(quest.status).toBe('blocked');
       expect(failedWards.map((wi) => wi.status)).toStrictEqual(['failed', 'failed', 'failed']);
-      // Skipped: siege + LB + final-ward from the original flow
-      expect(skippedItems.map((wi) => wi.status)).toStrictEqual(['skipped', 'skipped', 'skipped']);
+      // Skipped: siege + LB + blightwarden + final-ward from the original flow
+      expect(skippedItems.map((wi) => wi.status)).toStrictEqual([
+        'skipped',
+        'skipped',
+        'skipped',
+        'skipped',
+      ]);
       // Original pathseeker + replan pathseeker from exhausted ward
       expect(pathseekers.map((wi) => wi.role)).toStrictEqual(['pathseeker', 'pathseeker']);
     });
@@ -1209,6 +1249,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-2') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -1248,7 +1293,7 @@ describe('OrchestrationFlow', () => {
           stepCount: 2,
         });
 
-        // pathseeker + 2 codeweavers + ward + siege + 2 lawbringers + final ward
+        // pathseeker + 2 codeweavers + ward + siege + 2 lawbringers + blightwarden + final ward
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('ps') }),
@@ -1273,6 +1318,10 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-1') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -1341,6 +1390,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-dc-1') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-dc') }),
+        });
         // final ward (full mode)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -1383,10 +1437,14 @@ describe('OrchestrationFlow', () => {
       expect(lbItems[0]!.dependsOn).toStrictEqual([siegeId]);
       expect(lbItems[1]!.dependsOn).toStrictEqual([siegeId]);
 
-      // Final ward depends on ALL lawbringer IDs
+      // Blightwarden depends on ALL lawbringer IDs
       const lbIds = lbItems.map((wi) => wi.id);
+      const bwItem = workItems.find((wi) => wi.role === 'blightwarden')!;
 
-      expect(wardItems[1]!.dependsOn).toStrictEqual(lbIds);
+      expect(bwItem.dependsOn).toStrictEqual(lbIds);
+
+      // Final ward depends on blightwarden
+      expect(wardItems[1]!.dependsOn).toStrictEqual([bwItem.id]);
 
       // Ward modes: first ward = 'changed', final ward = 'full'
       expect(wardItems[0]!.wardMode).toBe('changed');
@@ -1455,6 +1513,11 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-1') }),
+        });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
         });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
@@ -1567,6 +1630,10 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
         });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
+        });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({
@@ -1625,7 +1692,7 @@ describe('OrchestrationFlow', () => {
         await questHelper.completeChaosWorkItem({ questId });
         await questHelper.completeGlyphWorkItem({ questId });
 
-        // Queue full flow: pathseeker + codeweaver + ward + siege + lawbringer + final ward
+        // Queue full flow: pathseeker + codeweaver + ward + siege + lawbringer + blightwarden + final ward
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
@@ -1642,6 +1709,10 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sess') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sess') }),
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -1925,13 +1996,10 @@ describe('OrchestrationFlow', () => {
     });
 
     // Test 14: PathSeeker creates 0 steps (edge case)
-    // With 0 steps and 0 flows, stepsToWorkItemsTransformer creates ward + finalWard
-    // (no siegeItems — per-flow siege requires ≥1 flow). Both wards have empty
-    // dependsOn (0 codeweavers, 0 lawbringers, 0 sieges). The orchestration loop
-    // groups both wards as ready simultaneously, marks both in_progress, but only
-    // dispatches the first. The final ward stays in_progress permanently — quest
-    // never reaches 'complete'. This is a known limitation when multiple same-role
-    // items have empty dependsOn.
+    // With 0 steps and 0 flows, stepsToWorkItemsTransformer creates ward + blightwarden +
+    // finalWard (no siegeItems — per-flow siege requires ≥1 flow). The first ward has
+    // empty dependsOn, blightwarden depends on the first ward, and the final ward depends
+    // on blightwarden — so the chain is strictly sequential and the quest reaches 'complete'.
     it('VALID: {pathseeker verify passes, 0 steps} => 0 codeweavers, ward + siege dispatched', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orch-ps-0-steps' }),
@@ -1968,7 +2036,7 @@ describe('OrchestrationFlow', () => {
         await questHelper.completeChaosWorkItem({ questId });
 
         // pathseeker succeeds — verify passes (no observables to violate), 0 steps
-        // With 0 flows, stepsToWorkItemsTransformer creates ward + finalWard only
+        // With 0 flows, stepsToWorkItemsTransformer creates ward + blightwarden + finalWard
         // (no siegeItems — per-flow siege requires ≥1 flow).
         queue.enqueue({
           queueDir: env.claudeQueueDir,
@@ -1976,7 +2044,12 @@ describe('OrchestrationFlow', () => {
         });
         // ward (immediately ready — dependsOn empty codeweaver list)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
-        // final ward (dependsOn empty lawbringer list — immediately ready after ward)
+        // blightwarden (depends on ward — fires after ward completes)
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-0-steps') }),
+        });
+        // final ward (depends on blightwarden)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({ questId: typedQuestId });
@@ -2034,6 +2107,11 @@ describe('OrchestrationFlow', () => {
             response: agentSuccessResponse({ sessionId: sid(`lb-${String(i)}`) }),
           });
         }
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-inv') }),
+        });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({ questId });
@@ -2218,6 +2296,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-cd-2') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-cd') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -2306,6 +2389,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-ms') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-ms') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
@@ -2375,6 +2463,11 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-fw') }),
         });
+        // blightwarden passes
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-fw') }),
+        });
         // final ward FAILS with file path
         queue.enqueue({
           queueDir: env.wardQueueDir,
@@ -2390,10 +2483,10 @@ describe('OrchestrationFlow', () => {
 
         await OrchestrationFlow.start({ questId });
 
-        // chaos + PS + CW + ward(pass) + siege + LB + final-ward(fail) + SM + final-ward-retry(pass)
+        // chaos + PS + CW + ward(pass) + siege + LB + blightwarden + final-ward(fail) + SM + final-ward-retry(pass)
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
-          minItems: 9,
+          minItems: 10,
         });
 
         testbed.cleanup();
@@ -2467,15 +2560,20 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-rw') }),
         });
+        // blightwarden
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-rw') }),
+        });
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({ questId });
 
-        // chaos + PS + CW + ward(fail) + SM + ward-retry(pass) + siege + LB + final-ward
+        // chaos + PS + CW + ward(fail) + SM + ward-retry(pass) + siege + LB + blightwarden + final-ward
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
-          minItems: 9,
+          minItems: 10,
         });
 
         testbed.cleanup();
@@ -2670,6 +2768,10 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-sro') }),
         });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-sro') }),
+        });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
         await OrchestrationFlow.start({ questId });
@@ -2689,8 +2791,8 @@ describe('OrchestrationFlow', () => {
       const pathseekerItems = quest.workItems.filter((wi) => wi.role === 'pathseeker');
 
       expect(failedSiege.map((wi) => wi.status)).toStrictEqual(['failed']);
-      // Skipped items from first pass (lb + final-ward)
-      expect(skippedItems.map((wi) => wi.status)).toStrictEqual(['skipped', 'skipped']);
+      // Skipped items from first pass (lb + blightwarden + final-ward)
+      expect(skippedItems.map((wi) => wi.status)).toStrictEqual(['skipped', 'skipped', 'skipped']);
       // Original pathseeker + replan pathseeker
       expect(pathseekerItems.map((wi) => wi.role)).toStrictEqual(['pathseeker', 'pathseeker']);
     });
@@ -2805,6 +2907,10 @@ describe('OrchestrationFlow', () => {
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('lb-stream-1') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('bw-stream') }),
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 

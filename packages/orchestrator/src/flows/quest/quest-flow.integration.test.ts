@@ -563,6 +563,7 @@ describe('QuestFlow', () => {
         data: {
           scopeClassification: scope,
           surfaceReports: [report],
+          blightReports: [],
           synthesis,
         },
       });
