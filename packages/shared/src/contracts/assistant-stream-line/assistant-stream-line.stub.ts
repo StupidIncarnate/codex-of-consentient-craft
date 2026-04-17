@@ -106,6 +106,30 @@ export const AssistantThinkingStreamLineStub = ({
   });
 
 /**
+ * Assistant message with a redacted-thinking content item — Claude CLI emits this shape when
+ * extended thinking is enabled on a signature-carrying model: the `thinking` text is empty and
+ * a cryptographic `signature` preserves cache continuity. Renderers should filter these out;
+ * an empty "THINKING" label with no body is noise.
+ */
+export const AssistantRedactedThinkingStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        {
+          type: 'thinking',
+          thinking: '',
+          signature: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+redactedblob',
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
  * Assistant dispatching a sub-agent via the Task tool.
  * Occurs when the main session spawns an Explore/sub-agent. The id must appear in
  * the paired TaskToolResultStreamLineStub so the chat-line processor can correlate

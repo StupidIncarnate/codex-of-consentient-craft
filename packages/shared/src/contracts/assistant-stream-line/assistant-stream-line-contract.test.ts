@@ -3,6 +3,7 @@ import {
   AssistantAskUserQuestionStreamLineStub,
   AssistantMixedContentStreamLineStub,
   AssistantReadToolUseStreamLineStub,
+  AssistantRedactedThinkingStreamLineStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantThinkingStreamLineStub,
@@ -192,6 +193,20 @@ describe('assistantStreamLineContract', () => {
               input: { file_path: '/src/index.ts' },
             },
           ],
+        },
+      });
+    });
+
+    it('VALID: {redacted thinking content} => parses thinking block with empty text (contract strips unknown signature field)', () => {
+      const streamLine = AssistantRedactedThinkingStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'thinking', thinking: '' }],
         },
       });
     });

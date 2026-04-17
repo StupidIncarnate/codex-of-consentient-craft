@@ -1,0 +1,106 @@
+/**
+ * PURPOSE: Defines chat entry types for user messages and assistant responses in quest chat
+ *
+ * USAGE:
+ * chatEntryContract.parse({role: 'user', content: 'Hello'});
+ * // Returns validated ChatEntry object
+ */
+
+import { z } from 'zod';
+
+const chatUsageContract = z.object({
+  inputTokens: z.number().int().nonnegative().brand<'InputTokens'>(),
+  outputTokens: z.number().int().nonnegative().brand<'OutputTokens'>(),
+  cacheCreationInputTokens: z.number().int().nonnegative().brand<'CacheCreationInputTokens'>(),
+  cacheReadInputTokens: z.number().int().nonnegative().brand<'CacheReadInputTokens'>(),
+});
+
+export type ChatUsage = z.infer<typeof chatUsageContract>;
+
+const sourceContract = z.enum(['session', 'subagent']).optional();
+const agentIdContract = z.string().min(1).brand<'AgentId'>().optional();
+
+const modelContract = z.string().min(1).brand<'ModelName'>().optional();
+
+const userEntryContract = z.object({
+  role: z.literal('user'),
+  content: z.string().min(1).brand<'UserContent'>(),
+  isInjectedPrompt: z.boolean().optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const assistantTextEntryContract = z.object({
+  role: z.literal('assistant'),
+  type: z.literal('text'),
+  content: z.string().brand<'AssistantContent'>(),
+  model: modelContract,
+  usage: chatUsageContract.optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const assistantToolUseEntryContract = z.object({
+  role: z.literal('assistant'),
+  type: z.literal('tool_use'),
+  toolUseId: z.string().min(1).brand<'ToolUseId'>().optional(),
+  toolName: z.string().min(1).brand<'ToolName'>(),
+  toolInput: z.string().brand<'ToolInput'>(),
+  model: modelContract,
+  usage: chatUsageContract.optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const assistantThinkingEntryContract = z.object({
+  role: z.literal('assistant'),
+  type: z.literal('thinking'),
+  content: z.string().brand<'ThinkingContent'>(),
+  model: modelContract,
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const assistantToolResultEntryContract = z.object({
+  role: z.literal('assistant'),
+  type: z.literal('tool_result'),
+  toolName: z.string().min(1).brand<'ToolName'>(),
+  content: z.string().brand<'ToolResultContent'>(),
+  isError: z.boolean().optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const taskNotificationEntryContract = z.object({
+  role: z.literal('system'),
+  type: z.literal('task_notification'),
+  taskId: z.string().min(1).brand<'TaskId'>(),
+  status: z.string().min(1).brand<'TaskStatus'>(),
+  summary: z.string().brand<'TaskSummary'>().optional(),
+  result: z.string().brand<'TaskResult'>().optional(),
+  totalTokens: z.number().int().nonnegative().brand<'TotalTokens'>().optional(),
+  toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
+  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+const systemErrorEntryContract = z.object({
+  role: z.literal('system'),
+  type: z.literal('error'),
+  content: z.string().min(1).brand<'ErrorContent'>(),
+  source: sourceContract,
+  agentId: agentIdContract,
+});
+
+export const chatEntryContract = z.union([
+  userEntryContract,
+  assistantTextEntryContract,
+  assistantToolUseEntryContract,
+  assistantThinkingEntryContract,
+  assistantToolResultEntryContract,
+  taskNotificationEntryContract,
+  systemErrorEntryContract,
+]);
+
+export type ChatEntry = z.infer<typeof chatEntryContract>;

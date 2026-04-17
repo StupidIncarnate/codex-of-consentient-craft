@@ -396,3 +396,11 @@ export * from './src/contracts/planning-walk-findings/planning-walk-findings.stu
 
 export * from './src/contracts/planning-review-report/planning-review-report-contract';
 export * from './src/contracts/planning-review-report/planning-review-report.stub';
+
+// Chat Entry Contracts
+export * from './src/contracts/chat-entry/chat-entry-contract';
+export * from './src/contracts/chat-entry/chat-entry.stub';
+
+// Ask User Question Contracts
+export * from './src/contracts/ask-user-question/ask-user-question-contract';
+export * from './src/contracts/ask-user-question/ask-user-question.stub';
