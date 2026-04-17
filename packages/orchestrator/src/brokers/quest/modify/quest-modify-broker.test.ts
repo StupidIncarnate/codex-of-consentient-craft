@@ -4,6 +4,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  PlanningBlightReportStub,
   PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
@@ -586,6 +587,7 @@ describe('questModifyBroker', () => {
 
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
+        blightReports: [],
         synthesis: existingSynthesis,
         scopeClassification: newScope,
       });
@@ -731,6 +733,154 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes.surfaceReports).toStrictEqual([keepReport]);
     });
 
+    it('VALID: {planningNotes.blightReports with two distinct UUIDs} => both entries land via upsert', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingReport = PlanningBlightReportStub({
+        id: '11111111-1111-4111-8111-111111111111' as never,
+        minion: 'security',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          surfaceReports: [],
+          blightReports: [existingReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newReport = PlanningBlightReportStub({
+        id: '22222222-2222-4222-8222-222222222222' as never,
+        minion: 'dedup',
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightReports: [newReport],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightReports).toStrictEqual([existingReport, newReport]);
+    });
+
+    it('VALID: {planningNotes.blightReports with existing UUID} => deep-merges (overwrites matching id)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const sameId = '11111111-1111-4111-8111-111111111111' as never;
+      const existingReport = PlanningBlightReportStub({
+        id: sameId,
+        minion: 'security',
+        status: 'active',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          surfaceReports: [],
+          blightReports: [existingReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const updatedReport = PlanningBlightReportStub({
+        id: sameId,
+        minion: 'security',
+        status: 'resolved',
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightReports: [updatedReport],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightReports).toStrictEqual([updatedReport]);
+    });
+
+    it('VALID: {planningNotes.blightReports with _delete: true} => removes matching entry', async () => {
+      const proxy = questModifyBrokerProxy();
+      const keepId = '11111111-1111-4111-8111-111111111111' as never;
+      const deleteId = '22222222-2222-4222-8222-222222222222' as never;
+      const keepReport = PlanningBlightReportStub({ id: keepId, minion: 'security' });
+      const deleteReport = PlanningBlightReportStub({ id: deleteId, minion: 'dedup' });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          surfaceReports: [],
+          blightReports: [keepReport, deleteReport],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightReports: [{ id: deleteId, _delete: true } as never],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes.blightReports).toStrictEqual([keepReport]);
+    });
+
+    it('VALID: {planningNotes.blightReports only} => does not clear surfaceReports or other sub-fields', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingSurface = PlanningSurfaceReportStub();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          surfaceReports: [existingSurface],
+          blightReports: [],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newBlight = PlanningBlightReportStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {
+          blightReports: [newBlight],
+        },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        surfaceReports: [existingSurface],
+        blightReports: [newBlight],
+      });
+    });
+
     it('VALID: {planningNotes.walkFindings only} => sets walkFindings without clearing synthesis or scopeClassification', async () => {
       const proxy = questModifyBrokerProxy();
       const existingScope = PlanningScopeClassificationStub();
@@ -764,6 +914,7 @@ describe('questModifyBroker', () => {
 
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
+        blightReports: [],
         scopeClassification: existingScope,
         synthesis: existingSynthesis,
         walkFindings: newWalk,

@@ -34,7 +34,10 @@ export const questSectionFilterTransformer = ({
       continue;
     }
     if (section === 'planningNotes') {
-      filtered.planningNotes = { surfaceReports: [] } as Quest['planningNotes'];
+      filtered.planningNotes = {
+        surfaceReports: [],
+        blightReports: [],
+      } as Quest['planningNotes'];
       continue;
     }
     filtered[section] = [] as never;

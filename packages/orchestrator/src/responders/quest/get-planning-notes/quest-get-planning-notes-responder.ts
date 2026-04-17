@@ -16,12 +16,13 @@ import { questGetPlanningNotesBroker } from '../../../brokers/quest/get-planning
 
 type PlanningNotes = Quest['planningNotes'];
 
-type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
+type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
 
 type PlanningNotesData =
   | PlanningNotes
   | PlanningNotes['scopeClassification']
   | PlanningNotes['surfaceReports']
+  | PlanningNotes['blightReports']
   | PlanningNotes['synthesis']
   | PlanningNotes['walkFindings']
   | PlanningNotes['reviewReport'];

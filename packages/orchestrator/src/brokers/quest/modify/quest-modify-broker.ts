@@ -154,6 +154,12 @@ export const questModifyBroker = async ({
                 updates: incoming.surfaceReports as typeof current.surfaceReports,
               }),
             }),
+            ...(incoming.blightReports !== undefined && {
+              blightReports: questArrayUpsertTransformer({
+                existing: current.blightReports,
+                updates: incoming.blightReports as typeof current.blightReports,
+              }),
+            }),
           };
         }
 

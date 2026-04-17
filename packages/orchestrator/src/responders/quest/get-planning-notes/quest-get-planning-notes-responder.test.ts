@@ -1,4 +1,5 @@
 import {
+  PlanningBlightReportStub,
   PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
@@ -18,13 +19,17 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       const result = await proxy.callResponder({ questId: 'add-auth' });
 
-      expect(result).toStrictEqual({ success: true, data: { surfaceReports: [] } });
+      expect(result).toStrictEqual({
+        success: true,
+        data: { surfaceReports: [], blightReports: [] },
+      });
     });
 
     it('VALID: {questId, populated planningNotes} => returns success with full object', async () => {
       const proxy = QuestGetPlanningNotesResponderProxy();
       const scope = PlanningScopeClassificationStub();
       const surface = PlanningSurfaceReportStub();
+      const blight = PlanningBlightReportStub();
       const synthesis = PlanningSynthesisStub();
       const walk = PlanningWalkFindingsStub();
       const review = PlanningReviewReportStub();
@@ -34,6 +39,7 @@ describe('QuestGetPlanningNotesResponder', () => {
         planningNotes: {
           scopeClassification: scope,
           surfaceReports: [surface],
+          blightReports: [blight],
           synthesis,
           walkFindings: walk,
           reviewReport: review,
@@ -48,6 +54,7 @@ describe('QuestGetPlanningNotesResponder', () => {
         data: {
           scopeClassification: scope,
           surfaceReports: [surface],
+          blightReports: [blight],
           synthesis,
           walkFindings: walk,
           reviewReport: review,
@@ -130,6 +137,21 @@ describe('QuestGetPlanningNotesResponder', () => {
       const result = await proxy.callResponder({ questId: 'add-auth', section: 'review' });
 
       expect(result).toStrictEqual({ success: true, data: review });
+    });
+
+    it('VALID: {section: "blight"} => returns success with blightReports array', async () => {
+      const proxy = QuestGetPlanningNotesResponderProxy();
+      const blight = PlanningBlightReportStub();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        planningNotes: { surfaceReports: [], blightReports: [blight] },
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId: 'add-auth', section: 'blight' });
+
+      expect(result).toStrictEqual({ success: true, data: [blight] });
     });
 
     it('VALID: {section: "scope", absent} => returns success with undefined data', async () => {

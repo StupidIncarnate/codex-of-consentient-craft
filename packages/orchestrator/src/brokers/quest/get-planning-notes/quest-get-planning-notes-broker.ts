@@ -22,12 +22,13 @@ const QUEST_FILE_NAME = 'quest.json';
 
 type PlanningNotes = Quest['planningNotes'];
 
-export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review';
+export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
 
 export type QuestGetPlanningNotesResult =
   | PlanningNotes
   | PlanningNotes['scopeClassification']
   | PlanningNotes['surfaceReports']
+  | PlanningNotes['blightReports']
   | PlanningNotes['synthesis']
   | PlanningNotes['walkFindings']
   | PlanningNotes['reviewReport'];
@@ -66,6 +67,10 @@ export const questGetPlanningNotesBroker = async ({
 
   if (section === 'walk') {
     return notes.walkFindings;
+  }
+
+  if (section === 'blight') {
+    return notes.blightReports;
   }
 
   return notes.reviewReport;

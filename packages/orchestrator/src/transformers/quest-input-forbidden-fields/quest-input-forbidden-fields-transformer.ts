@@ -8,6 +8,9 @@
  *
  * Behavior:
  * - Top-level fields not in allowlist (and not in backTransitionFields when nextStatus matches the carveout) are rejected.
+ * - Nested-path carveout: `planningNotes` containing ONLY `blightReports` is permitted when the status's
+ *   blightReportsRule is `'full'`, even if `planningNotes` itself is not in allowedFields. This lets Blightwarden
+ *   write to `planningNotes.blightReports[]` during `in_progress` without unlocking the rest of `planningNotes`.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
@@ -22,6 +25,7 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { inspectableModifyQuestInputFieldsStatics } from '../../statics/inspectable-modify-quest-input-fields/inspectable-modify-quest-input-fields-statics';
 import {
   questStatusInputAllowlistStatics,
+  type QuestStatusBlightReportsRule,
   type QuestStatusFlowsRule,
 } from '../../statics/quest-status-input-allowlist/quest-status-input-allowlist-statics';
 import { questFlowWordingOnlyViolationsTransformer } from '../quest-flow-wording-only-violations/quest-flow-wording-only-violations-transformer';
@@ -54,9 +58,25 @@ export const questInputForbiddenFieldsTransformer = ({
     }
   }
 
+  const blightReportsRule: QuestStatusBlightReportsRule = entry.blightReportsRule;
+  const inputPlanningNotes = input.planningNotes;
+  // Nested-path carveout: when `planningNotes` is NOT in allowedFields but the only sub-field
+  // the caller is writing is `blightReports` AND `blightReportsRule === 'full'`, the write is
+  // permitted. This is how Blightwarden writes `planningNotes.blightReports[]` during `in_progress`
+  // without opening the full `planningNotes` object to general writers at that status.
+  const planningNotesBlightOnly =
+    inputPlanningNotes !== undefined &&
+    !allowedSet.has('planningNotes') &&
+    blightReportsRule === 'full' &&
+    Object.keys(inputPlanningNotes).every((key) => key === 'blightReports') &&
+    inputPlanningNotes.blightReports !== undefined;
+
   for (const field of inspectableModifyQuestInputFieldsStatics) {
     const value = Reflect.get(input, field);
     if (value === undefined) {
+      continue;
+    }
+    if (field === 'planningNotes' && planningNotesBlightOnly) {
       continue;
     }
     if (!allowedSet.has(field)) {
