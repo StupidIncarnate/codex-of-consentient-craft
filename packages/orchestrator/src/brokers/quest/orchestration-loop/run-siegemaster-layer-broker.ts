@@ -24,7 +24,8 @@ import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-serv
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
-import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
+import { buildWorkUnitForRoleTransformer } from '../../../transformers/build-work-unit-for-role/build-work-unit-for-role-transformer';
+import { resolveRelatedDataItemTransformer } from '../../../transformers/resolve-related-data-item/resolve-related-data-item-transformer';
 import { devServerStopBroker } from '../../dev-server/stop/dev-server-stop-broker';
 import { agentSpawnByRoleBroker } from '../../agent/spawn-by-role/agent-spawn-by-role-broker';
 import { questGetBroker } from '../get/quest-get-broker';
@@ -32,7 +33,6 @@ import { questModifyBroker } from '../modify/quest-modify-broker';
 import { buildPreflightLoopLayerBroker } from './build-preflight-loop-layer-broker';
 import { devServerStartLoopLayerBroker } from './dev-server-start-loop-layer-broker';
 
-const FAILURE_MARKER = 'FAILED OBSERVABLES:';
 const MAX_BUILD_ATTEMPTS = 3;
 const MAX_DEV_SERVER_START_ATTEMPTS = 3;
 
@@ -59,7 +59,18 @@ export const runSiegemasterLayerBroker = async ({
   }
   const { quest } = questResult;
 
-  const allObservables = quest.flows.flatMap((f) => f.nodes).flatMap((n) => n.observables);
+  // Resolve the single flow this siege work item targets via relatedDataItems[0]
+  const [ref] = workItem.relatedDataItems;
+  if (!ref) {
+    throw new Error(`Siegemaster work item ${String(workItem.id)} has no relatedDataItems`);
+  }
+  const resolved = resolveRelatedDataItemTransformer({ ref, quest });
+  if (resolved.collection !== 'flows') {
+    throw new Error(
+      `Siegemaster work item ${String(workItem.id)} expected flows reference, got ${resolved.collection}`,
+    );
+  }
+  const { item: flow } = resolved;
 
   // Load project config to check for devServer
   // Config resolution may fail if no .dungeonmaster.json exists — treat as "no devServer config"
@@ -204,10 +215,10 @@ export const runSiegemasterLayerBroker = async ({
   const slotIndex = slotIndexContract.parse(0);
   let trackedSessionId: SessionId | null = null;
 
-  const workUnit = workUnitContract.parse({
+  const workUnit = buildWorkUnitForRoleTransformer({
     role: 'siegemaster',
-    questId,
-    relatedObservables: allObservables,
+    flow,
+    quest,
     ...(devServerUrl === null ? {} : { devServerUrl }),
   });
 
@@ -242,9 +253,7 @@ export const runSiegemasterLayerBroker = async ({
     }
 
     const agentSummary = spawnResult.signal?.summary ?? undefined;
-    const summaryText = agentSummary ?? '';
-    const hasFailed = summaryText.includes(FAILURE_MARKER);
-    const isComplete = spawnResult.signal?.signal === 'complete' && !hasFailed;
+    const isComplete = spawnResult.signal?.signal === 'complete';
 
     const sessionId = spawnResult.sessionId ?? undefined;
 
@@ -268,9 +277,11 @@ export const runSiegemasterLayerBroker = async ({
 
     // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
     const completedAt = new Date().toISOString();
-    const errorMessage = hasFailed
-      ? errorMessageContract.parse(summaryText)
-      : errorMessageContract.parse('siege_check_failed');
+    const summaryText = agentSummary ?? '';
+    const errorMessage =
+      summaryText.length > 0
+        ? errorMessageContract.parse(summaryText)
+        : errorMessageContract.parse('siege_check_failed');
 
     // Fetch fresh quest state — work items may have been added since the initial fetch
     const freshQuestInput = getQuestInputContract.parse({ questId });
