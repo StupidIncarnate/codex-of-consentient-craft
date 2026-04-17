@@ -3,6 +3,7 @@ import {
   DependencyStepStub,
   DesignDecisionStub,
   ErrorMessageStub,
+  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
@@ -259,42 +260,166 @@ describe('workUnitToArgumentsTransformer', () => {
   });
 
   describe('siegemaster role', () => {
-    it('VALID: {siegemaster with relatedObservables} => returns formatted assertions', () => {
+    const OBSERVABLE_TYPE_REFERENCE_BLOCK =
+      '\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details';
+
+    it('VALID: {siegemaster runtime flow with single node + observable} => renders quest, flow header, nodes with observable IDs, and type reference', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'verify-quest' }),
-        relatedObservables: [
-          FlowObservableStub({
-            id: 'shows-success-message',
-            type: 'ui-state',
-            description: 'Shows success message',
-          }),
-        ],
+        flow: FlowStub({
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              type: 'state',
+              observables: [
+                FlowObservableStub({
+                  id: 'shows-success-message',
+                  type: 'ui-state',
+                  description: 'Shows success message',
+                }),
+              ],
+            }),
+          ],
+          edges: [],
+        }),
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: verify-quest\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nObservables:\n    - Shows success message (ui-state)',
+        `Quest ID: verify-quest\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n    Observables:\n      - shows-success-message (ui-state) Shows success message\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
 
-    it('VALID: {siegemaster with empty relatedObservables} => returns quest ID only', () => {
-      const workUnit = SiegemasterWorkUnitStub({
-        questId: QuestIdStub({ value: 'empty-quest' }),
-        relatedObservables: [],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toBe(
-        'Quest ID: empty-quest\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
-      );
-    });
-
-    it('VALID: {siegemaster with design decisions} => includes design decisions', () => {
+    it('VALID: {siegemaster operational flow with multiple nodes and multiple observables per node} => renders all nodes with observable IDs nested', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
+        flow: FlowStub({
+          id: 'deploy-flow',
+          name: 'Deploy Flow',
+          flowType: 'operational',
+          entryPoint: 'npm run deploy',
+          nodes: [
+            FlowNodeStub({
+              id: 'build',
+              label: 'Build Artifact',
+              type: 'action',
+              observables: [
+                FlowObservableStub({
+                  id: 'dist-exists',
+                  type: 'file-exists',
+                  description: 'dist/ directory exists',
+                }),
+                FlowObservableStub({
+                  id: 'build-log-success',
+                  type: 'log-output',
+                  description: 'logs "Build succeeded"',
+                }),
+              ],
+            }),
+            FlowNodeStub({
+              id: 'publish',
+              label: 'Publish Package',
+              type: 'action',
+              observables: [
+                FlowObservableStub({
+                  id: 'registry-call',
+                  type: 'api-call',
+                  description: 'POST https://registry.npmjs.org',
+                }),
+              ],
+            }),
+          ],
+          edges: [],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Deploy Flow\n  flowType: operational\n  entryPoint: npm run deploy\nNodes:\n  - build "Build Artifact" [type: action]\n    Observables:\n      - dist-exists (file-exists) dist/ directory exists\n      - build-log-success (log-output) logs "Build succeeded"\n  - publish "Publish Package" [type: action]\n    Observables:\n      - registry-call (api-call) POST https://registry.npmjs.org\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
+    it('VALID: {siegemaster flow with edges including labeled and unlabeled} => renders edges block with labels preserved', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              type: 'state',
+              observables: [],
+            }),
+            FlowNodeStub({
+              id: 'dashboard',
+              label: 'Dashboard',
+              type: 'state',
+              observables: [],
+            }),
+          ],
+          edges: [
+            FlowEdgeStub({
+              id: 'login-to-dashboard',
+              from: 'login-page',
+              to: 'dashboard',
+              label: 'success',
+            }),
+            FlowEdgeStub({
+              id: 'dashboard-to-login',
+              from: 'dashboard',
+              to: 'login-page',
+            }),
+          ],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n  - dashboard "Dashboard" [type: state]\nEdges:\n  - login-page --[success]--> dashboard\n  - dashboard --[]--> login-page\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
+    it('VALID: {siegemaster flow with no edges} => omits edges block', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [],
+          edges: [],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
+    it('VALID: {siegemaster with design decisions} => renders design decisions block before dev server URL and type reference', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [],
+          edges: [],
+        }),
         relatedDesignDecisions: [
           DesignDecisionStub({
             title: 'Use JWT for auth',
@@ -306,71 +431,119 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication',
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
 
-    it('VALID: {siegemaster with flows} => includes flows with relevant nodes', () => {
-      const observable = FlowObservableStub({ id: 'obs-1' });
+    it('VALID: {siegemaster with devServerUrl defined} => renders dev server URL line after design decisions', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
-        relatedFlows: [
-          FlowStub({
-            name: 'Login Flow',
-            nodes: [
-              FlowNodeStub({ id: 'login-page', label: 'Login Page', observables: [observable] }),
-            ],
-          }),
-        ],
-      });
-
-      const result = workUnitToArgumentsTransformer({ workUnit });
-
-      expect(result).toBe(
-        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details\nFlows:\n  - Login Flow (nodes: Login Page)',
-      );
-    });
-
-    it('VALID: {siegemaster with devServerUrl} => includes dev server URL after quest ID', () => {
-      const workUnit = SiegemasterWorkUnitStub({
-        questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [],
+          edges: [],
+        }),
         devServerUrl: 'http://localhost:3000' as never,
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: quest-1\nDev Server URL: http://localhost:3000\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nDev Server URL: http://localhost:3000\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
 
     it('VALID: {siegemaster without devServerUrl} => omits dev server URL line', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [],
+          edges: [],
+        }),
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
 
-    it('VALID: {siegemaster with empty design decisions and flows} => omits those sections', () => {
+    it('VALID: {siegemaster with node that has no observables} => renders node header without nested Observables subsection', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
-        relatedObservables: [],
-        relatedDesignDecisions: [],
-        relatedFlows: [],
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              type: 'state',
+              observables: [],
+            }),
+          ],
+          edges: [],
+        }),
       });
 
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Quest ID: quest-1\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details',
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
+    it('VALID: {siegemaster fully populated: nodes + observables + edges + design decisions + devServerUrl} => renders full block in canonical order', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              type: 'state',
+              observables: [
+                FlowObservableStub({
+                  id: 'obs-form-visible',
+                  type: 'ui-state',
+                  description: 'login form is visible',
+                }),
+              ],
+            }),
+          ],
+          edges: [
+            FlowEdgeStub({
+              id: 'login-to-dashboard',
+              from: 'login-page',
+              to: 'dashboard',
+              label: 'success',
+            }),
+          ],
+        }),
+        relatedDesignDecisions: [
+          DesignDecisionStub({
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+          }),
+        ],
+        devServerUrl: 'http://localhost:3000' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n    Observables:\n      - obs-form-visible (ui-state) login form is visible\nEdges:\n  - login-page --[success]--> dashboard\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication\nDev Server URL: http://localhost:3000\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
   });

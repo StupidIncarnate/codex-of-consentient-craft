@@ -109,22 +109,41 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const {
-        questId: siegeQuestId,
-        relatedObservables,
-        relatedDesignDecisions,
-        relatedFlows,
-        devServerUrl,
-      } = workUnit;
-      const siegeParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${siegeQuestId}`)];
+      const { questId: siegeQuestId, relatedDesignDecisions, flow, devServerUrl } = workUnit;
+      const siegeParts: ContentText[] = [
+        contentTextContract.parse(`Quest ID: ${siegeQuestId}`),
+        contentTextContract.parse(`Flow: ${flow.name}`),
+        contentTextContract.parse(`  flowType: ${flow.flowType}`),
+        contentTextContract.parse(`  entryPoint: ${flow.entryPoint}`),
+      ];
 
-      if (devServerUrl !== undefined) {
-        siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
+      if (flow.nodes.length > 0) {
+        siegeParts.push(contentTextContract.parse('Nodes:'));
+        for (const node of flow.nodes) {
+          siegeParts.push(
+            contentTextContract.parse(`  - ${node.id} "${node.label}" [type: ${node.type}]`),
+          );
+          if (node.observables.length > 0) {
+            siegeParts.push(contentTextContract.parse('    Observables:'));
+            for (const observable of node.observables) {
+              siegeParts.push(
+                contentTextContract.parse(
+                  `      - ${observable.id} (${observable.type}) ${observable.description}`,
+                ),
+              );
+            }
+          }
+        }
       }
 
-      siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
-      for (const [type, desc] of Object.entries(outcomeTypeDescriptionsStatics)) {
-        siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
+      if (flow.edges.length > 0) {
+        siegeParts.push(contentTextContract.parse('Edges:'));
+        for (const edge of flow.edges) {
+          const edgeLabel = edge.label ?? '';
+          siegeParts.push(
+            contentTextContract.parse(`  - ${edge.from} --[${edgeLabel}]--> ${edge.to}`),
+          );
+        }
       }
 
       if (relatedDesignDecisions.length > 0) {
@@ -136,25 +155,14 @@ export const workUnitToArgumentsTransformer = ({
         }
       }
 
-      if (relatedFlows.length > 0) {
-        siegeParts.push(contentTextContract.parse('Flows:'));
-        for (const flow of relatedFlows) {
-          const relevantNodes = flow.nodes
-            .filter((node) => node.observables.length > 0)
-            .map((node) => node.label);
-          const nodesSuffix =
-            relevantNodes.length > 0 ? ` (nodes: ${relevantNodes.join(', ')})` : '';
-          siegeParts.push(contentTextContract.parse(`  - ${flow.name}${nodesSuffix}`));
-        }
+      if (devServerUrl !== undefined) {
+        siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
       }
 
-      if (relatedObservables.length > 0) {
-        siegeParts.push(contentTextContract.parse('Observables:'));
-        for (const observable of relatedObservables) {
-          siegeParts.push(
-            contentTextContract.parse(`    - ${observable.description} (${observable.type})`),
-          );
-        }
+      siegeParts.push(contentTextContract.parse(''));
+      siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
+      for (const [type, desc] of Object.entries(outcomeTypeDescriptionsStatics)) {
+        siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
       }
 
       return contentTextContract.parse(siegeParts.join('\n'));
