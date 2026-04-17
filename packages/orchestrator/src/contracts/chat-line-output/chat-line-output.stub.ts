@@ -3,12 +3,12 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { chatLineOutputContract } from './chat-line-output-contract';
 import type { ChatLineOutput } from './chat-line-output-contract';
 
-export const ChatLineEntryStub = ({
+export const ChatLineEntriesStub = ({
   ...props
 }: StubArgument<ChatLineOutput> = {}): ChatLineOutput =>
   chatLineOutputContract.parse({
-    type: 'entry',
-    entry: { type: 'assistant', message: { content: [] } },
+    type: 'entries',
+    entries: [{ role: 'assistant', type: 'text', content: 'hello' }],
     ...props,
   });
 

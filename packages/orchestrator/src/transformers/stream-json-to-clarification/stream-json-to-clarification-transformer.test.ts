@@ -1,45 +1,31 @@
 import {
-  AssistantTextStreamLineStub,
-  AssistantToolUseStreamLineStub,
-  StreamJsonLineStub,
+  AssistantTextChatEntryStub,
+  AssistantToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { streamJsonToClarificationTransformer } from './stream-json-to-clarification-transformer';
 
 describe('streamJsonToClarificationTransformer', () => {
   describe('valid ask-user-question tool call', () => {
-    it('VALID: {assistant message with ask-user-question tool_use} => returns questions array', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'tool_use',
-                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  name: 'mcp__dungeonmaster__ask-user-question',
-                  input: {
-                    questions: [
-                      {
-                        question: 'Which database?',
-                        header: 'Database Choice',
-                        options: [
-                          { label: 'PostgreSQL', description: 'Relational DB' },
-                          { label: 'MongoDB', description: 'Document DB' },
-                        ],
-                        multiSelect: false,
-                      },
-                    ],
-                  },
-                },
+    it('VALID: {assistant tool_use entry for ask-user-question} => returns questions array', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({
+          questions: [
+            {
+              question: 'Which database?',
+              header: 'Database Choice',
+              options: [
+                { label: 'PostgreSQL', description: 'Relational DB' },
+                { label: 'MongoDB', description: 'Document DB' },
               ],
+              multiSelect: false,
             },
-          }),
-        ),
-      });
+          ],
+        }),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toStrictEqual({
         questions: [
@@ -57,37 +43,27 @@ describe('streamJsonToClarificationTransformer', () => {
     });
 
     it('VALID: {multiple questions} => returns all questions', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: {
-                  questions: [
-                    {
-                      question: 'Which database?',
-                      header: 'DB',
-                      options: [],
-                      multiSelect: false,
-                    },
-                    {
-                      question: 'Which framework?',
-                      header: 'Framework',
-                      options: [{ label: 'Express', description: 'Node.js' }],
-                      multiSelect: true,
-                    },
-                  ],
-                },
-              },
-            ],
-          },
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({
+          questions: [
+            {
+              question: 'Which database?',
+              header: 'DB',
+              options: [],
+              multiSelect: false,
+            },
+            {
+              question: 'Which framework?',
+              header: 'Framework',
+              options: [{ label: 'Express', description: 'Node.js' }],
+              multiSelect: true,
+            },
+          ],
         }),
-      });
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toStrictEqual({
         questions: [
@@ -106,258 +82,81 @@ describe('streamJsonToClarificationTransformer', () => {
         ],
       });
     });
-
-    it('VALID: {mixed content with ask-user-question} => returns questions from tool call', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              { type: 'text', text: 'I need some clarification.' },
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: {
-                  questions: [
-                    {
-                      question: 'Pick one',
-                      header: 'Choice',
-                      options: [{ label: 'A', description: 'First' }],
-                      multiSelect: false,
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toStrictEqual({
-        questions: [
-          {
-            question: 'Pick one',
-            header: 'Choice',
-            options: [{ label: 'A', description: 'First' }],
-            multiSelect: false,
-          },
-        ],
-      });
-    });
   });
 
   describe('no ask-user-question content', () => {
-    it('EMPTY: {assistant message with only text} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(AssistantTextStreamLineStub()),
-      });
+    it('EMPTY: {assistant text entry} => returns null', () => {
+      const entry = AssistantTextChatEntryStub();
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
 
-    it('EMPTY: {assistant message with different tool_use} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify(
-          AssistantToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'tool_use',
-                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  name: 'Bash',
-                  input: { command: 'ls' },
-                },
-              ],
-            },
-          }),
-        ),
-      });
+    it('EMPTY: {assistant tool_use entry with different tool name} => returns null', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'Bash',
+        toolInput: JSON.stringify({ command: 'ls' }),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {empty content array} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: { content: [] },
-        }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-  });
-
-  describe('non-assistant messages', () => {
-    it('EMPTY: {init message type} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'init', session_id: 'abc-123' }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {result message type} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'result', data: {} }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
   });
 
   describe('malformed input', () => {
-    it('EMPTY: {invalid JSON} => returns null', () => {
-      const line = StreamJsonLineStub({ value: 'not valid json' });
+    it('EMPTY: {ask-user-question with non-JSON toolInput} => returns null', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: 'not valid json',
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {missing message property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'assistant' }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
 
-    it('EMPTY: {missing content property} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({ type: 'assistant', message: {} }),
-      });
+    it('EMPTY: {ask-user-question with toolInput missing questions} => returns null', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({}),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {content is not array} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: { content: 'not an array' },
-        }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {ask-user-question with missing input} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [{ type: 'tool_use', name: 'mcp__dungeonmaster__ask-user-question' }],
-          },
-        }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {ask-user-question with missing questions} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: {},
-              },
-            ],
-          },
-        }),
-      });
-
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with non-array questions} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: { questions: 'not-array' },
-              },
-            ],
-          },
-        }),
-      });
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({ questions: 'not-array' }),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with empty questions array} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: { questions: [] },
-              },
-            ],
-          },
-        }),
-      });
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({ questions: [] }),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {ask-user-question with invalid question shape} => returns null', () => {
-      const line = StreamJsonLineStub({
-        value: JSON.stringify({
-          type: 'assistant',
-          message: {
-            content: [
-              {
-                type: 'tool_use',
-                name: 'mcp__dungeonmaster__ask-user-question',
-                input: {
-                  questions: [{ invalid: 'shape' }],
-                },
-              },
-            ],
-          },
-        }),
-      });
+      const entry = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__ask-user-question',
+        toolInput: JSON.stringify({ questions: [{ invalid: 'shape' }] }),
+      } as never);
 
-      const result = streamJsonToClarificationTransformer({ line });
+      const result = streamJsonToClarificationTransformer({ entry });
 
       expect(result).toBe(null);
     });

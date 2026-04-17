@@ -1,7 +1,8 @@
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
-import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import type { ExitCodeStub, GuildConfigStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
+import { chatMainSessionTailBrokerProxy } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker.proxy';
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { chatSubagentTailBrokerProxy } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
@@ -10,6 +11,8 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { pendingClarificationStateProxy } from '../../../state/pending-clarification/pending-clarification-state.proxy';
 import { ChatStartResponder } from './chat-start-responder';
+
+type GuildConfig = ReturnType<typeof GuildConfigStub>;
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
 
@@ -55,6 +58,9 @@ export const ChatStartResponderProxy = ({
       payload: Record<PropertyKey, unknown>;
     }[];
   };
+  setupMainTailGuild: (params: { config: GuildConfig; homeDir: string }) => void;
+  setupMainTailLines: (params: { lines: readonly string[] }) => void;
+  triggerMainTailChange: () => void;
 } => {
   // Quest list proxy MUST be created first and set up with quest mocks
   // BEFORE chatSpawnBrokerProxy, because both use shared sequential mock
@@ -75,6 +81,7 @@ export const ChatStartResponderProxy = ({
   const pendingProxy = pendingClarificationStateProxy();
   orchestrationEventsStateProxy();
   chatSubagentTailBrokerProxy();
+  const mainTailProxy = chatMainSessionTailBrokerProxy();
 
   return {
     callResponder: ChatStartResponder,
@@ -107,6 +114,15 @@ export const ChatStartResponderProxy = ({
       }
 
       return { getEmittedEvents: () => emittedEvents };
+    },
+    setupMainTailGuild: ({ config, homeDir }: { config: GuildConfig; homeDir: string }): void => {
+      mainTailProxy.setupGuild({ config, homeDir });
+    },
+    setupMainTailLines: ({ lines }: { lines: readonly string[] }): void => {
+      mainTailProxy.setupLines({ lines });
+    },
+    triggerMainTailChange: (): void => {
+      mainTailProxy.triggerChange();
     },
   };
 };

@@ -1,87 +1,58 @@
 /**
- * PURPOSE: Extracts ask-user-question tool calls from a Claude stream-json output line
+ * PURPOSE: Extracts ask-user-question clarification payload from a parsed ChatEntry
  *
  * USAGE:
- * streamJsonToClarificationTransformer({ line: StreamJsonLineStub({ value: '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"mcp__dungeonmaster__ask-user-question","input":{"questions":[...]}}]}}' }) });
- * // Returns { questions: ClarificationQuestion[] } if ask-user-question tool found, null otherwise
+ * streamJsonToClarificationTransformer({ entry: AssistantToolUseChatEntryStub({ toolName: 'mcp__dungeonmaster__ask-user-question', toolInput: '{"questions":[...]}' }) });
+ * // Returns { questions: ClarificationQuestion[] } if the entry is an ask-user-question tool_use, null otherwise
  */
+
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 import {
   clarificationQuestionContract,
   type ClarificationQuestion,
 } from '../../contracts/clarification-question/clarification-question-contract';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
+
+const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
 export const streamJsonToClarificationTransformer = ({
-  line,
+  entry,
 }: {
-  line: StreamJsonLine;
+  entry: ChatEntry;
 }): { questions: ClarificationQuestion[] } | null => {
-  try {
-    const parsed: unknown = JSON.parse(line);
-
-    if (
-      typeof parsed !== 'object' ||
-      parsed === null ||
-      !('type' in parsed) ||
-      Reflect.get(parsed, 'type') !== 'assistant'
-    ) {
-      return null;
-    }
-
-    const message: unknown = Reflect.get(parsed, 'message');
-    if (typeof message !== 'object' || message === null || !('content' in message)) {
-      return null;
-    }
-
-    const content: unknown = Reflect.get(message, 'content');
-    if (!Array.isArray(content)) {
-      return null;
-    }
-
-    for (const item of content) {
-      if (
-        typeof item !== 'object' ||
-        item === null ||
-        !('type' in item) ||
-        Reflect.get(item, 'type') !== 'tool_use' ||
-        !('name' in item) ||
-        Reflect.get(item, 'name') !== 'mcp__dungeonmaster__ask-user-question'
-      ) {
-        continue;
-      }
-
-      if (!('input' in item)) {
-        return null;
-      }
-
-      const input: unknown = Reflect.get(item, 'input');
-      if (typeof input !== 'object' || input === null || !('questions' in input)) {
-        return null;
-      }
-
-      const questionsRaw: unknown = Reflect.get(input, 'questions');
-      if (!Array.isArray(questionsRaw)) {
-        return null;
-      }
-
-      const questions: ClarificationQuestion[] = [];
-      for (const q of questionsRaw) {
-        const parseResult = clarificationQuestionContract.safeParse(q);
-        if (!parseResult.success) {
-          return null;
-        }
-        questions.push(parseResult.data);
-      }
-
-      if (questions.length === 0) {
-        return null;
-      }
-
-      return { questions };
-    }
-
+  if (entry.role !== 'assistant' || entry.type !== 'tool_use') {
     return null;
+  }
+
+  if (entry.toolName !== ASK_USER_QUESTION_TOOL) {
+    return null;
+  }
+
+  try {
+    const parsedInput: unknown = JSON.parse(entry.toolInput);
+    if (typeof parsedInput !== 'object' || parsedInput === null || !('questions' in parsedInput)) {
+      return null;
+    }
+
+    const questionsRaw: unknown = Reflect.get(parsedInput, 'questions');
+    if (!Array.isArray(questionsRaw)) {
+      return null;
+    }
+
+    const questions: ClarificationQuestion[] = [];
+    for (const q of questionsRaw) {
+      const parseResult = clarificationQuestionContract.safeParse(q);
+      if (!parseResult.success) {
+        return null;
+      }
+      questions.push(parseResult.data);
+    }
+
+    if (questions.length === 0) {
+      return null;
+    }
+
+    return { questions };
   } catch {
     return null;
   }

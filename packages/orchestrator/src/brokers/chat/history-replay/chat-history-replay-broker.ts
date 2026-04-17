@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Replays a Claude session's JSONL history by reading main + subagent files, processing each line, and emitting enriched entries and patches via callbacks
+ * PURPOSE: Replays a Claude session's JSONL history by reading main + subagent files, processing each line, and emitting fully-parsed ChatEntry arrays and patches via callbacks
  *
  * USAGE:
  * await chatHistoryReplayBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  *   guildId: GuildIdStub({ value: 'f47ac10b-...' }),
- *   onEntry: ({ entry }) => { },
+ *   onEntries: ({ entries }) => { },
  *   onPatch: ({ toolUseId, agentId }) => { },
  * });
  * // Emits entries and patches through callbacks (no return value)
@@ -13,7 +13,7 @@
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -26,10 +26,7 @@ import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-json
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import type { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type {
-  ChatLineEntry,
-  ChatLinePatch,
-} from '../../../contracts/chat-line-output/chat-line-output-contract';
+import type { ChatLinePatch } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -41,12 +38,12 @@ import { guildGetBroker } from '../../guild/get/guild-get-broker';
 export const chatHistoryReplayBroker = async ({
   sessionId,
   guildId,
-  onEntry,
+  onEntries,
   onPatch,
 }: {
   sessionId: SessionId;
   guildId: GuildId;
-  onEntry: (params: { entry: ChatLineEntry['entry'] }) => void;
+  onEntries: (params: { entries: ChatEntry[] }) => void;
   onPatch: (params: {
     toolUseId: ChatLinePatch['toolUseId'];
     agentId: ChatLinePatch['agentId'];
@@ -141,8 +138,8 @@ export const chatHistoryReplayBroker = async ({
       ...(tagged.agentId === undefined ? {} : { agentId: tagged.agentId }),
     });
     for (const output of outputs) {
-      if (output.type === 'entry') {
-        onEntry({ entry: output.entry });
+      if (output.type === 'entries') {
+        onEntries({ entries: output.entries });
       }
       if (output.type === 'patch') {
         onPatch({ toolUseId: output.toolUseId, agentId: output.agentId });

@@ -44,11 +44,11 @@ export const DesignChatStartResponder = async ({
         payload: { questId: qId, chatProcessId },
       });
     },
-    onEntry: ({ chatProcessId, entry }) => {
+    onEntries: ({ chatProcessId, entries }) => {
       orchestrationEventsState.emit({
         type: 'chat-output',
         processId: chatProcessId,
-        payload: { chatProcessId, line: JSON.stringify(entry) },
+        payload: { chatProcessId, entries },
       });
     },
     onPatch: ({ chatProcessId, toolUseId, agentId }) => {

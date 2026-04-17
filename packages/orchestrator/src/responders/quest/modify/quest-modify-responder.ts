@@ -18,6 +18,8 @@ import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { autoResumableQuestStatusesStatics } from '../../../statics/auto-resumable-quest-statuses/auto-resumable-quest-statuses-statics';
+import { safeJsonParseTransformer } from '../../../transformers/safe-json-parse/safe-json-parse-transformer';
+import { streamJsonToChatEntryTransformer } from '../../../transformers/stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 
 export const QuestModifyResponder = async ({
   questId,
@@ -62,13 +64,19 @@ export const QuestModifyResponder = async ({
               questId: typedQuestId,
               startPath,
               onAgentEntry: ({ slotIndex, entry, sessionId }) => {
+                const rawLine: unknown = Reflect.get(entry, 'raw');
+                if (typeof rawLine !== 'string') return;
+                const parseResult = safeJsonParseTransformer({ value: rawLine });
+                if (!parseResult.ok) return;
+                const { entries } = streamJsonToChatEntryTransformer({ parsed: parseResult.value });
+                if (entries.length === 0) return;
                 orchestrationEventsState.emit({
                   type: 'chat-output',
                   processId,
                   payload: {
                     processId,
                     slotIndex,
-                    entry,
+                    entries,
                     ...(sessionId === undefined ? {} : { sessionId }),
                   },
                 });

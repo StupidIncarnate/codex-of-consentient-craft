@@ -1,5 +1,92 @@
 # @dungeonmaster/orchestrator
 
+## Chat-line translation: this package owns it
+
+The orchestrator is the single place where raw Claude CLI output (stdout stream-json OR the
+JSONL file on disk) is translated into structured `ChatEntry[]`. The server just relays the
+translated entries; the web just renders them. **If you're adding logic that parses a string
+format, filters stream content, or converts one shape into another — it goes here.**
+
+### The unified funnel
+
+Every line from every source — live stdout during streaming, sub-agent JSONL file, replay of
+the main JSONL — passes through a single factory:
+
+```
+chatLineProcessTransformer() → processor.processLine({ line, source, agentId? }) → ChatLineOutput[]
+```
+
+`ChatLineOutput` has two variants:
+
+- `{ type: 'entries', entries: ChatEntry[] }` — one or more ready-to-render entries
+- `{ type: 'patch', toolUseId, agentId }` — a late-arriving correlation patch for an entry
+  that already shipped (e.g. a Task tool_use whose agentId wasn't known when the assistant
+  message was emitted)
+
+The four entry points that feed the processor:
+
+| Path                    | Broker                          | Source                             | Start position |
+|-------------------------|---------------------------------|------------------------------------|----------------|
+| Parent stdout streaming | `chat-spawn-broker`             | CLI stdout via `spawn-stream-json` | —              |
+| Sub-agent streaming     | `chat-subagent-tail-broker`     | `subagents/agent-<id>.jsonl`       | `beginning`    |
+| Parent replay           | `chat-history-replay-broker`    | `<sessionId>.jsonl` (full read)    | —              |
+| Main JSONL post-exit    | `chat-main-session-tail-broker` | `<sessionId>.jsonl` (tail)         | `end`          |
+
+The post-exit tail catches background-agent `<task-notification>` lines Claude CLI appends
+after the parent process exits — stdout is already closed so the tail is the only live path.
+
+### Sanitation & parsing happens here, not on the web
+
+Everything below is implemented in `chat-line-process-transformer.ts` (or transformers it
+invokes). Do NOT move any of this to the web:
+
+- **Empty-thinking filter** — Claude CLI emits `{ type: 'thinking', thinking: '', signature }`
+  when extended thinking is on. The empty-text blocks are stripped from `message.content` so
+  renderers never see them.
+- **Task-notification parsing** — user-text messages wrapped in `<task-notification>` XML are
+  parsed via `parse-task-notification-transformer` and attached as a structured
+  `taskNotification` field on the entry.
+- **AgentId correlation** — assistant `Task`/`Agent` tool_use entries get `agentId` stamped
+  once the matching user tool_result (with `toolUseResult.agentId`) is seen. Late arrivals
+  trigger a `patch` output. The processor instance is SHARED across all three live paths
+  within a session — parent stdout, sub-agent tail, AND the main-session post-exit tail —
+  so correlation state carries seamlessly whichever source a line arrives on.
+- **Source tagging** — every emitted entry carries `source: 'session' | 'subagent'` so the
+  web can decide chain membership.
+
+### Tail lifecycle (chat-start-responder)
+
+The responder owns the lifecycle of both tails it starts:
+
+- `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
+  Omit it (or pass `'beginning'`) for the sub-agent tail — it must drain the JSONL Claude
+  CLI already wrote while the parent blocked on the Agent tool. Pass `'end'` for the main
+  post-exit tail — stdout already streamed every existing line, so only NEW appends
+  (background task-notifications) should emit.
+- `chatMainSessionTailBroker` is started from `chat-start-responder`'s `onComplete` handler
+  the moment a `sessionId` is known. The returned `stop` handle is captured in a
+  closed-over variable and composed into the `registerProcess` kill callback so teardown
+  cleans up both the CLI child process AND the file-tail watcher in one call.
+- Sub-agent tails follow the same composition pattern (`subagentStopHandles[]` are all
+  stopped synchronously in `onComplete` before the main tail starts).
+
+After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw line into
+`ChatEntry[]`. `mapContentItemToChatEntryTransformer`, `mapUsageToChatUsageTransformer`,
+`normalizeAskUserQuestionInputTransformer`, `parseAssistantStreamEntryTransformer`, and
+`parseUserStreamEntryTransformer` all live here — they're the "ChatEntry builders."
+
+### Adding new translation logic
+
+1. If it's a format-specific parser (XML, CSV, a new Claude CLI shape): add a transformer in
+   `transformers/` and call it from `chat-line-process-transformer.ts`.
+2. If it's a new `ChatEntry` variant: update `chat-entry-contract` in
+   `@dungeonmaster/shared/contracts/chat-entry/`, then handle it in
+   `map-content-item-to-chat-entry-transformer.ts`.
+3. If it's a new emit shape: extend `ChatLineOutput` in `chat-line-output-contract.ts` and
+   update every call site (chat-spawn-broker, chat-subagent-tail-broker,
+   chat-history-replay-broker, chat-main-session-tail-broker).
+4. Do NOT add parsing on the server or the web.
+
 ## Callouts
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in

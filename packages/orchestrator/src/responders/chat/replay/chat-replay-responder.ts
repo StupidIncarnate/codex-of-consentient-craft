@@ -29,11 +29,11 @@ export const ChatReplayResponder = async ({
     await chatHistoryReplayBroker({
       sessionId,
       guildId,
-      onEntry: ({ entry }) => {
+      onEntries: ({ entries }) => {
         orchestrationEventsState.emit({
           type: 'chat-output',
           processId: chatProcessId,
-          payload: { chatProcessId, line: JSON.stringify(entry) },
+          payload: { chatProcessId, entries },
         });
       },
       onPatch: ({ toolUseId, agentId }) => {

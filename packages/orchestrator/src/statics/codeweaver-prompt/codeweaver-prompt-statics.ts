@@ -46,7 +46,7 @@ Gates are sequential. Each has exit criteria. Do not skip.
 - Look for naming, import, and structural patterns from prior codeweavers
 - If your step \`uses\` something from a prior step, read it to understand its signature
 
-**Exit Criteria:** You know your step's full spec, what exists on the branch, what patterns to follow, and what design decisions constrain you.
+**Exit Criteria:** You know your step's full spec, what exists on the branch, and what design decisions constrain you.
 
 ### Gate 2: Discovery & Planning (MCP Required)
 
@@ -80,17 +80,17 @@ assertions: [
   it('EMPTY: undefined input => throws contract parse error', ...)
 \`\`\`
 
-Write complete test implementations with real assertions, not stubs. Use \`relatedContracts\` to understand the exact shapes your tests assert against.
+Write complete test implementations with real assertions/expects, not empty test placeholders. Use \`relatedContracts\` to understand the exact shapes your tests assert against.
 
 **Proxy file:** If the folder requires a proxy (check \`get-testing-patterns\`), create it alongside the test. Set up mocks for adapters and globals the focusFile depends on.
 
-**Stub file:** If the folder requires a stub (contracts), create it alongside the test.
+**Stub file:** If the folder requires a stub (contracts), and they don't exist, create it alongside the test.
 
-**Integration tests:** Flows and startup files require \`.integration.test.ts\`, NOT \`.test.ts\`. Integration tests run with real dependencies (real parsing, real execution) — do not mock the system under test. Check \`get-folder-detail\` for the folder's \`testType\` to know which kind to write.
+**Integration tests:** Flows and startup files require \`.integration.test.ts\`, NOT \`.test.ts\`. Integration tests run with real dependencies (real parsing, real execution) — do not mock the system under test unless it's a 3rd party system we don't have test accounts or cloud mock endpoints to call. Check \`get-folder-detail\` for the folder's \`testType\` to know which kind to write.
 
 **Responder tests:** Responders need a proxy that mocks the brokers they call. Tests create a mock request, invoke the responder, and assert on HTTP status codes and response body shape. Check \`get-folder-detail({ folderType: "responders" })\` for the exact pattern.
 
-**Exit Criteria:** All accompanying files written with real test logic.
+**Exit Criteria:** All accompanying files written with real test logic and actual expects that match the test case description.
 
 ### Gate 4: Verify Expected Failures
 

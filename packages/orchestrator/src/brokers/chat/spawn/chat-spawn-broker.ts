@@ -7,7 +7,7 @@
  *   guildId: GuildIdStub(),
  *   message: 'Help me build auth',
  *   processor,
- *   onEntry: ({ chatProcessId, entry }) => {},
+ *   onEntries: ({ chatProcessId, entries }) => {},
  *   onPatch: ({ chatProcessId, toolUseId, agentId }) => {},
  *   onAgentDetected: ({ chatProcessId, toolUseId, agentId, sessionId }) => {},
  *   onComplete: ({ chatProcessId, exitCode, sessionId }) => {},
@@ -28,14 +28,13 @@ import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ChatLineEntry } from '../../../contracts/chat-line-output/chat-line-output-contract';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { questStatics } from '../../../statics/quest/quest-statics';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
-import { taskToolUseIdsFromContentTransformer } from '../../../transformers/task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questAddBroker } from '../../quest/add/quest-add-broker';
@@ -50,7 +49,7 @@ export const chatSpawnBroker = async ({
   message,
   sessionId,
   processor,
-  onEntry,
+  onEntries,
   onPatch,
   onAgentDetected,
   onComplete,
@@ -64,7 +63,7 @@ export const chatSpawnBroker = async ({
   message: string;
   sessionId?: SessionId;
   processor: ChatLineProcessor;
-  onEntry: (params: { chatProcessId: ProcessId; entry: ChatLineEntry['entry'] }) => void;
+  onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
   onPatch: (params: { chatProcessId: ProcessId; toolUseId: ToolUseId; agentId: AgentId }) => void;
   onAgentDetected: (params: {
     chatProcessId: ProcessId;
@@ -144,14 +143,14 @@ export const chatSpawnBroker = async ({
       });
 
       for (const output of outputs) {
-        if (output.type === 'entry') {
-          onEntry({ chatProcessId, entry: output.entry });
+        if (output.type === 'entries') {
+          onEntries({ chatProcessId, entries: output.entries });
 
-          const taskToolUseIds = taskToolUseIdsFromContentTransformer({ entry: output.entry });
-          const entryAgentId: unknown = Reflect.get(output.entry, 'agentId');
-
-          if (taskToolUseIds.length > 0 && typeof entryAgentId === 'string' && sessionId) {
-            for (const toolUseId of taskToolUseIds) {
+          for (const entry of output.entries) {
+            if (entry.role !== 'assistant' || entry.type !== 'tool_use') continue;
+            if (entry.toolName !== 'Task' && entry.toolName !== 'Agent') continue;
+            const { toolUseId, agentId: entryAgentId } = entry;
+            if (toolUseId !== undefined && entryAgentId !== undefined && sessionId) {
               onAgentDetected({
                 chatProcessId,
                 toolUseId,

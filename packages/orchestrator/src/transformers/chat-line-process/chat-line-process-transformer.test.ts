@@ -12,7 +12,7 @@ import { chatLineProcessTransformer } from './chat-line-process-transformer';
 
 describe('chatLineProcessTransformer', () => {
   describe('basic line processing', () => {
-    it('VALID: {assistant text line, source: session} => emits entry with source tag', () => {
+    it('VALID: {assistant text line, source: session} => emits entries with source tag', () => {
       const processor = chatLineProcessTransformer();
       const line = StreamJsonLineStub({
         value: JSON.stringify(AssistantTextStreamLineStub()),
@@ -23,20 +23,20 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'assistant',
-            message: {
+          type: 'entries',
+          entries: [
+            {
               role: 'assistant',
-              content: [{ type: 'text', text: 'Hello, I can help with that.' }],
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'session',
             },
-            source: 'session',
-          },
+          ],
         },
       ]);
     });
 
-    it('VALID: {user tool_result line, source: subagent} => emits entry with source tag', () => {
+    it('VALID: {user tool_result line, source: subagent} => emits entries with source tag', () => {
       const processor = chatLineProcessTransformer();
       const line = StreamJsonLineStub({
         value: JSON.stringify(SuccessfulToolResultStreamLineStub()),
@@ -47,28 +47,23 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [
-                {
-                  type: 'tool_result',
-                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  content: 'File contents retrieved successfully',
-                },
-              ],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'subagent',
             },
-            source: 'subagent',
-          },
+          ],
         },
       ]);
     });
   });
 
   describe('agent ID correlation', () => {
-    it('VALID: {user tool_result with agentId followed by assistant Task tool_use} => attaches agentId to assistant entry', () => {
+    it('VALID: {user tool_result with agentId followed by assistant Task tool_use} => attaches agentId to assistant entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_01' });
       const agentId = AgentIdStub({ value: 'agent-abc' });
@@ -102,21 +97,23 @@ describe('chatLineProcessTransformer', () => {
 
       expect(assistantResult).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'assistant',
-            message: {
+          type: 'entries',
+          entries: [
+            {
               role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+              type: 'tool_use',
+              toolUseId: 'toolu_task_01',
+              toolName: 'Task',
+              toolInput: '{}',
+              source: 'session',
+              agentId: 'agent-abc',
             },
-            source: 'session',
-            agentId: 'agent-abc',
-          },
+          ],
         },
       ]);
     });
 
-    it('VALID: {assistant Task tool_use emitted first, then user tool_result with agentId} => emits patch', () => {
+    it('VALID: {assistant Task tool_use emitted first, then user tool_result with agentId} => emits patch then entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_02' });
       const agentId = AgentIdStub({ value: 'agent-xyz' });
@@ -155,22 +152,22 @@ describe('chatLineProcessTransformer', () => {
           agentId: 'agent-xyz',
         },
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_task_02',
+              content: 'done',
+              source: 'session',
+              agentId: 'agent-xyz',
             },
-            toolUseResult: { agentId },
-            source: 'session',
-            agentId: 'agent-xyz',
-          },
+          ],
         },
       ]);
     });
 
-    it('VALID: {user tool_result with agentId} => attaches agentId to user entry', () => {
+    it('VALID: {user tool_result with agentId} => attaches agentId to entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_03' });
       const agentId = AgentIdStub({ value: 'agent-123' });
@@ -192,24 +189,24 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_task_03',
+              content: 'done',
+              source: 'session',
+              agentId: 'agent-123',
             },
-            toolUseResult: { agentId },
-            source: 'session',
-            agentId: 'agent-123',
-          },
+          ],
         },
       ]);
     });
   });
 
   describe('agent ID correlation with Agent tool name', () => {
-    it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits patch', () => {
+    it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits patch then entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_04' });
       const agentId = AgentIdStub({ value: 'agent-new-cli' });
@@ -248,22 +245,22 @@ describe('chatLineProcessTransformer', () => {
           agentId: 'agent-new-cli',
         },
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_agent_04',
+              content: 'done',
+              source: 'session',
+              agentId: 'agent-new-cli',
             },
-            toolUseResult: { agentId },
-            source: 'session',
-            agentId: 'agent-new-cli',
-          },
+          ],
         },
       ]);
     });
 
-    it('VALID: {user tool_result with agentId followed by assistant Agent tool_use} => attaches agentId to assistant entry', () => {
+    it('VALID: {user tool_result with agentId followed by assistant Agent tool_use} => attaches agentId to entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_05' });
       const agentId = AgentIdStub({ value: 'agent-forward' });
@@ -297,23 +294,25 @@ describe('chatLineProcessTransformer', () => {
 
       expect(assistantResult).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'assistant',
-            message: {
+          type: 'entries',
+          entries: [
+            {
               role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: {} }],
+              type: 'tool_use',
+              toolUseId: 'toolu_agent_05',
+              toolName: 'Agent',
+              toolInput: '{}',
+              source: 'session',
+              agentId: 'agent-forward',
             },
-            source: 'session',
-            agentId: 'agent-forward',
-          },
+          ],
         },
       ]);
     });
   });
 
   describe('explicit agentId parameter', () => {
-    it('VALID: {assistant line with agentId param} => attaches agentId to assistant entry', () => {
+    it('VALID: {assistant line with agentId param} => attaches agentId to assistant entries', () => {
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-explicit' });
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -325,21 +324,21 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'assistant',
-            message: {
+          type: 'entries',
+          entries: [
+            {
               role: 'assistant',
-              content: [{ type: 'text', text: 'Hello, I can help with that.' }],
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'subagent',
+              agentId: 'agent-explicit',
             },
-            source: 'subagent',
-            agentId: 'agent-explicit',
-          },
+          ],
         },
       ]);
     });
 
-    it('VALID: {user tool_result line with agentId param, no toolUseResult} => attaches agentId to user entry', () => {
+    it('VALID: {user tool_result line with agentId param, no toolUseResult} => attaches agentId to entries', () => {
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-subagent-internal' });
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -351,22 +350,17 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [
-                {
-                  type: 'tool_result',
-                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  content: 'File contents retrieved successfully',
-                },
-              ],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'subagent',
+              agentId: 'agent-subagent-internal',
             },
-            source: 'subagent',
-            agentId: 'agent-subagent-internal',
-          },
+          ],
         },
       ]);
     });
@@ -431,7 +425,7 @@ describe('chatLineProcessTransformer', () => {
   });
 
   describe('user tool_result with toolUseResult but non-string agentId', () => {
-    it('VALID: {toolUseResult with numeric agentId} => emits entry without agentId', () => {
+    it('VALID: {toolUseResult with numeric agentId} => emits entries without agentId', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
       const line = StreamJsonLineStub({
@@ -445,22 +439,16 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [
-                {
-                  type: 'tool_result',
-                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  content: 'File contents retrieved successfully',
-                },
-              ],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'session',
             },
-            toolUseResult: { agentId: 123 },
-            source: 'session',
-          },
+          ],
         },
       ]);
     });
@@ -507,23 +495,25 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'assistant',
-            message: {
+          type: 'entries',
+          entries: [
+            {
               role: 'assistant',
-              content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
+              type: 'tool_use',
+              toolUseId: 'toolu_task_map_wins',
+              toolName: 'Task',
+              toolInput: '{}',
+              source: 'subagent',
+              agentId: 'agent-from-map',
             },
-            source: 'subagent',
-            agentId: 'agent-from-map',
-          },
+          ],
         },
       ]);
     });
   });
 
   describe('user tool_result without agentId', () => {
-    it('EMPTY: {user tool_result without toolUseResult} => emits entry without agentId', () => {
+    it('EMPTY: {user tool_result without toolUseResult} => emits entries without agentId', () => {
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
       const line = StreamJsonLineStub({
@@ -534,21 +524,173 @@ describe('chatLineProcessTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          type: 'entry',
-          entry: {
-            type: 'user',
-            message: {
-              role: 'user',
-              content: [
-                {
-                  type: 'tool_result',
-                  tool_use_id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                  content: 'File contents retrieved successfully',
-                },
-              ],
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'session',
             },
-            source: 'session',
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('task-notification XML sanitization', () => {
+    it('VALID: {user text starting with <task-notification>} => emits task_notification ChatEntry', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const content = [
+        '<task-notification>',
+        '<task-id>acfc7f06a8ac21baf</task-id>',
+        '<status>completed</status>',
+        '<summary>Agent completed</summary>',
+        '<result>Made both MCP calls successfully.</result>',
+        '<usage><total_tokens>28054</total_tokens><tool_uses>3</tool_uses><duration_ms>9033</duration_ms></usage>',
+        '</task-notification>',
+      ].join('\n');
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'user',
+          message: { role: 'user', content },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'system',
+              type: 'task_notification',
+              taskId: 'acfc7f06a8ac21baf',
+              status: 'completed',
+              summary: 'Agent completed',
+              result: 'Made both MCP calls successfully.',
+              totalTokens: 28054,
+              toolUses: 3,
+              durationMs: 9033,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {user text without <task-notification> prefix} => emits user entry without taskNotification', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'user',
+          message: { role: 'user', content: 'regular user message' },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'user',
+              content: 'regular user message',
+              source: 'session',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('empty thinking sanitization', () => {
+    it('VALID: {assistant with empty thinking item + text} => strips empty thinking, keeps text', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: '', signature: 'EtQCencryptedblob' },
+              { type: 'text', text: 'Hello.' },
+            ],
           },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'Hello.',
+              source: 'session',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {assistant with non-empty thinking} => preserves thinking content', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'thinking', thinking: 'Let me consider this.', signature: 'sig' }],
+          },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'thinking',
+              content: 'Let me consider this.',
+              source: 'session',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {assistant with ONLY empty thinking} => emits entries with empty array', () => {
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const line = StreamJsonLineStub({
+        value: JSON.stringify({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'thinking', thinking: '', signature: 'sig' }],
+          },
+        }),
+      });
+
+      const result = processor.processLine({ line, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [],
         },
       ]);
     });

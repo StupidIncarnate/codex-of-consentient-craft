@@ -6,9 +6,10 @@
  * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
-import { questIdContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
+import { chatMainSessionTailBroker } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker';
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -67,6 +68,10 @@ export const ChatStartResponder = async ({
 
   const processor = chatLineProcessTransformer();
   const subagentStopHandles: (() => void)[] = [];
+  // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
+  // have a session ID — catches background-agent task-notifications appended after stdout
+  // closes (Claude CLI writes them async). Stopped when the session's process is killed.
+  let mainTailStopHandle: (() => void) | null = null;
 
   return chatSpawnBroker({
     role: workItemRoleContract.parse('chaoswhisperer'),
@@ -82,22 +87,19 @@ export const ChatStartResponder = async ({
         payload: { questId, chatProcessId, role: 'chaoswhisperer' },
       });
     },
-    onEntry: ({ chatProcessId, entry }) => {
+    onEntries: ({ chatProcessId, entries }) => {
       orchestrationEventsState.emit({
         type: 'chat-output',
         processId: chatProcessId,
-        payload: { chatProcessId, line: JSON.stringify(entry) },
+        payload: { chatProcessId, entries },
       });
 
-      const entryJson = JSON.stringify(entry);
-      const lineParseResult = streamJsonLineContract.safeParse(entryJson);
-      if (lineParseResult.success) {
-        const clarification = streamJsonToClarificationTransformer({
-          line: lineParseResult.data,
-        });
+      for (const entry of entries) {
+        if (entry.role !== 'assistant' || entry.type !== 'tool_use') continue;
+        const clarification = streamJsonToClarificationTransformer({ entry });
         if (clarification) {
           process.stderr.write(
-            `[CLARIFICATION-DEBUG] onEntry: clarification DETECTED with ${clarification.questions.length} questions, chatQuestId=${chatQuestId ?? 'NULL'}\n`,
+            `[CLARIFICATION-DEBUG] onEntries: clarification DETECTED with ${clarification.questions.length} questions, chatQuestId=${chatQuestId ?? 'NULL'}\n`,
           );
           orchestrationEventsState.emit({
             type: 'clarification-request',
@@ -112,11 +114,11 @@ export const ChatStartResponder = async ({
               questions: clarification.questions,
             });
             process.stderr.write(
-              `[CLARIFICATION-DEBUG] onEntry: stored in pendingClarificationState for processId=${chatProcessId}\n`,
+              `[CLARIFICATION-DEBUG] onEntries: stored in pendingClarificationState for processId=${chatProcessId}\n`,
             );
           } else {
             process.stderr.write(
-              `[CLARIFICATION-DEBUG] onEntry: SKIPPED storage - chatQuestId is NULL\n`,
+              `[CLARIFICATION-DEBUG] onEntries: SKIPPED storage - chatQuestId is NULL\n`,
             );
           }
         }
@@ -136,11 +138,11 @@ export const ChatStartResponder = async ({
         agentId,
         processor,
         chatProcessId,
-        onEntry: ({ chatProcessId: cpid, entry }) => {
+        onEntries: ({ chatProcessId: cpid, entries }) => {
           orchestrationEventsState.emit({
             type: 'chat-output',
             processId: cpid,
-            payload: { chatProcessId: cpid, line: JSON.stringify(entry) },
+            payload: { chatProcessId: cpid, entries },
           });
         },
         onPatch: ({ chatProcessId: cpid, toolUseId: tuId, agentId: aId }) => {
@@ -173,6 +175,39 @@ export const ChatStartResponder = async ({
         process.stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: promoteToSession processId=${chatProcessId} → sessionId=${sid}, promoted=${promoted}\n`,
         );
+
+        // Start tailing the main session JSONL. Claude CLI appends background-agent
+        // task-notifications after stdout closes, and those lines only reach the web via
+        // this tail. Uses the SAME processor instance as stdout so agentId correlation
+        // state carries forward seamlessly.
+        chatMainSessionTailBroker({
+          sessionId: sid,
+          guildId,
+          processor,
+          chatProcessId,
+          onEntries: ({ chatProcessId: cpid, entries }) => {
+            orchestrationEventsState.emit({
+              type: 'chat-output',
+              processId: cpid,
+              payload: { chatProcessId: cpid, entries },
+            });
+          },
+          onPatch: ({ chatProcessId: cpid, toolUseId: tuId, agentId: aId }) => {
+            orchestrationEventsState.emit({
+              type: 'chat-patch',
+              processId: cpid,
+              payload: { chatProcessId: cpid, toolUseId: tuId, agentId: aId },
+            });
+          },
+        })
+          .then((stop) => {
+            mainTailStopHandle = stop;
+          })
+          .catch((error: unknown) => {
+            process.stderr.write(
+              `chatMainSessionTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
+          });
       } else {
         process.stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: NO sessionId available, skipping promoteToSession\n`,
@@ -187,11 +222,20 @@ export const ChatStartResponder = async ({
       });
     },
     registerProcess: ({ processId, kill }) => {
+      // Compose the original CLI-kill with a main-session tail stop. When the session is
+      // torn down (user navigates away, chat-stop, etc.), both the CLI process AND the
+      // file-tail watcher are cleaned up together.
       orchestrationProcessesState.register({
         orchestrationProcess: {
           processId,
           questId: chatQuestId ?? questIdContract.parse(`chat-${processId}`),
-          kill,
+          kill: () => {
+            kill();
+            if (mainTailStopHandle !== null) {
+              mainTailStopHandle();
+              mainTailStopHandle = null;
+            }
+          },
         },
       });
     },

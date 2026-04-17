@@ -115,6 +115,76 @@ describe('fsWatchTailAdapter', () => {
     });
   });
 
+  describe('startPosition parameter', () => {
+    it("VALID: {startPosition: 'end', existing file content} => createReadStream starts at file size so existing content is skipped", async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      proxy.setupExistingFileWithContent();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+        startPosition: 'end',
+      });
+
+      proxy.setupLines({ lines: ['appended-after-start'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(proxy.lastStartPositionWasFromFileEnd()).toBe(true);
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'appended-after-start' });
+    });
+
+    it("VALID: {startPosition: 'beginning', existing file content} => createReadStream starts at 0 so existing content is drained", async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      proxy.setupExistingFileWithContent();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+        startPosition: 'beginning',
+      });
+
+      proxy.setupLines({ lines: ['drained-from-start'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(proxy.lastStartPositionWasZero()).toBe(true);
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'drained-from-start' });
+    });
+
+    it('EDGE: {startPosition omitted, existing file content} => defaults to 0 (beginning) and drains existing content', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      proxy.setupExistingFileWithContent();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['default-drain'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(proxy.lastStartPositionWasZero()).toBe(true);
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'default-drain' });
+    });
+  });
+
   describe('error handling', () => {
     it('ERROR: watcher emits error => calls onError', () => {
       const proxy = fsWatchTailAdapterProxy();

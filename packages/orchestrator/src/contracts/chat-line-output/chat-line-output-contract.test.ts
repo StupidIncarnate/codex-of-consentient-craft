@@ -1,14 +1,14 @@
 import { chatLineOutputContract } from './chat-line-output-contract';
-import { ChatLineEntryStub, ChatLinePatchStub } from './chat-line-output.stub';
+import { ChatLineEntriesStub, ChatLinePatchStub } from './chat-line-output.stub';
 
 describe('chatLineOutputContract', () => {
-  describe('entry variant', () => {
-    it('VALID: {type: "entry", entry: record} => parses successfully', () => {
-      const result = ChatLineEntryStub();
+  describe('entries variant', () => {
+    it('VALID: {type: "entries", entries: ChatEntry[]} => parses successfully', () => {
+      const result = ChatLineEntriesStub();
 
       expect(chatLineOutputContract.parse(result)).toStrictEqual({
-        type: 'entry',
-        entry: { type: 'assistant', message: { content: [] } },
+        type: 'entries',
+        entries: [{ role: 'assistant', type: 'text', content: 'hello' }],
       });
     });
   });
@@ -32,8 +32,8 @@ describe('chatLineOutputContract', () => {
       );
     });
 
-    it('INVALID: {type: "entry" without entry field} => throws validation error', () => {
-      expect(() => chatLineOutputContract.parse({ type: 'entry' })).toThrow(/Required/u);
+    it('INVALID: {type: "entries" without entries field} => throws validation error', () => {
+      expect(() => chatLineOutputContract.parse({ type: 'entries' })).toThrow(/Required/u);
     });
 
     it('INVALID: {type: "patch" without toolUseId} => throws validation error', () => {

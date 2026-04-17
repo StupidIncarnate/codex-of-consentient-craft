@@ -4,12 +4,17 @@ import { EventEmitter } from 'events';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
+const EXISTING_FILE_SIZE_BYTES = 128;
+
 export const fsWatchTailAdapterProxy = (): {
   triggerChange: () => void;
   triggerWatchError: (params: { error: Error }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   setupStreamError: (params: { error: Error }) => void;
   setupStatError: (params: { error: Error }) => void;
+  setupExistingFileWithContent: () => void;
+  lastStartPositionWasFromFileEnd: () => boolean;
+  lastStartPositionWasZero: () => boolean;
 } => {
   const mockWatch: MockHandle = registerMock({ fn: watch });
   const mockCreateReadStream: MockHandle = registerMock({ fn: createReadStream });
@@ -22,15 +27,22 @@ export const fsWatchTailAdapterProxy = (): {
   const watchCallbacks: (() => void)[] = [];
   const pendingLinesBatches: unknown[] = [];
   const pendingStreamErrors: Error[] = [];
+  const recordedStartPositions: unknown[] = [];
+  const fileSizeState = { bytes: 0 };
 
-  mockStatSync.mockReturnValue({ size: 0 } as ReturnType<typeof statSync>);
+  mockStatSync.mockImplementation(
+    () => ({ size: fileSizeState.bytes }) as ReturnType<typeof statSync>,
+  );
 
   mockWatch.mockImplementation((_path: unknown, listener: unknown) => {
     watchCallbacks.push(listener as () => void);
     return watchEmitter as unknown as FSWatcher;
   });
 
-  mockCreateReadStream.mockImplementation(() => {
+  mockCreateReadStream.mockImplementation((_path: unknown, options: unknown) => {
+    const opts = options as { start?: unknown } | undefined;
+    recordedStartPositions.push(opts?.start);
+
     const streamEmitter = new EventEmitter();
 
     const errorToEmit = pendingStreamErrors.shift();
@@ -83,6 +95,20 @@ export const fsWatchTailAdapterProxy = (): {
       mockStatSync.mockImplementationOnce(() => {
         throw error;
       });
+    },
+
+    setupExistingFileWithContent: (): void => {
+      fileSizeState.bytes = EXISTING_FILE_SIZE_BYTES;
+    },
+
+    lastStartPositionWasFromFileEnd: (): boolean => {
+      const last = recordedStartPositions[recordedStartPositions.length - 1];
+      return last === fileSizeState.bytes && fileSizeState.bytes > 0;
+    },
+
+    lastStartPositionWasZero: (): boolean => {
+      const last = recordedStartPositions[recordedStartPositions.length - 1];
+      return last === 0;
     },
   };
 };
