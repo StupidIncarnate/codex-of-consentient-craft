@@ -12,6 +12,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import {
+  BlightwardenWorkUnitStub,
   CodeweaverWorkUnitStub,
   LawbringerWorkUnitStub,
   PathseekerWorkUnitStub,
@@ -699,6 +700,80 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe('Quest ID: my-quest');
+    });
+  });
+
+  describe('blightwarden role', () => {
+    it('VALID: {blightwarden minimal} => returns quest ID only', () => {
+      const workUnit = BlightwardenWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        relatedDesignDecisions: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe('Quest ID: my-quest');
+    });
+
+    it('VALID: {blightwarden with scopeSize: small} => includes scope size line', () => {
+      const workUnit = BlightwardenWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        scopeSize: 'small',
+        relatedDesignDecisions: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe('Quest ID: my-quest\nScope Size: small');
+    });
+
+    it('VALID: {blightwarden with scopeSize: medium} => includes scope size line', () => {
+      const workUnit = BlightwardenWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        scopeSize: 'medium',
+        relatedDesignDecisions: [],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe('Quest ID: my-quest\nScope Size: medium');
+    });
+
+    it('VALID: {blightwarden with design decisions} => includes design decisions block', () => {
+      const workUnit = BlightwardenWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        relatedDesignDecisions: [
+          DesignDecisionStub({
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Quest ID: my-quest\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication',
+      );
+    });
+
+    it('VALID: {blightwarden with scopeSize + design decisions} => renders scope size then design decisions', () => {
+      const workUnit = BlightwardenWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        scopeSize: 'large',
+        relatedDesignDecisions: [
+          DesignDecisionStub({
+            title: 'Use JWT for auth',
+            rationale: 'Stateless authentication',
+          }),
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Quest ID: my-quest\nScope Size: large\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication',
+      );
     });
   });
 });

@@ -9,6 +9,7 @@
 import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
+import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -27,6 +28,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(lawbringerPromptStatics.prompt.template);
     case 'spiritmender':
       return contentTextContract.parse(spiritmenderPromptStatics.prompt.template);
+    case 'blightwarden':
+      return contentTextContract.parse(blightwardenPromptStatics.prompt.template);
     default: {
       const exhaustiveCheck: never = role;
       throw new Error(`Unknown role: ${String(exhaustiveCheck)}`);

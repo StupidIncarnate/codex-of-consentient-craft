@@ -151,6 +151,35 @@ describe('handleSignalLayerBroker', () => {
     });
   });
 
+  describe('failed signal - blightwarden', () => {
+    it('VALID: {signal: failed, role: blightwarden} => spawns pathseeker', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Audit blocked' as never,
+      });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        workItemId,
+        workTracker,
+        role: 'blightwarden',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'spawn_role',
+        targetRole: 'pathseeker',
+        summary: 'Audit blocked',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('failed signal - pathseeker', () => {
     it('VALID: {signal: failed, role: pathseeker} => bubbles to user', async () => {
       handleSignalLayerBrokerProxy();

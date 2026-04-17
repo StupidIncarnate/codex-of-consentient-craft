@@ -221,6 +221,32 @@ export const workUnitToArgumentsTransformer = ({
       return contentTextContract.parse(pathParts.join('\n'));
     }
 
+    case 'blightwarden': {
+      const {
+        questId: blightQuestId,
+        scopeSize,
+        relatedDesignDecisions: blightDesignDecisions,
+      } = workUnit;
+      const blightParts: ContentText[] = [
+        contentTextContract.parse(`Quest ID: ${blightQuestId}`),
+      ];
+
+      if (scopeSize !== undefined) {
+        blightParts.push(contentTextContract.parse(`Scope Size: ${scopeSize}`));
+      }
+
+      if (blightDesignDecisions.length > 0) {
+        blightParts.push(contentTextContract.parse('Design Decisions:'));
+        for (const decision of blightDesignDecisions) {
+          blightParts.push(
+            contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`),
+          );
+        }
+      }
+
+      return contentTextContract.parse(blightParts.join('\n'));
+    }
+
     default: {
       const exhaustiveCheck: never = workUnit;
       throw new Error(`Unknown role: ${JSON.stringify(exhaustiveCheck)}`);

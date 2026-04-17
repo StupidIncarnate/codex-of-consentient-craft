@@ -20,7 +20,8 @@ type BuildWorkUnitForRoleInput =
   | { role: 'codeweaver'; step: DependencyStep; quest: Quest }
   | { role: 'siegemaster'; flow: Flow; quest: Quest; devServerUrl?: DevServerUrl }
   | { role: 'lawbringer'; step: DependencyStep }
-  | { role: 'spiritmender'; step: DependencyStep };
+  | { role: 'spiritmender'; step: DependencyStep }
+  | { role: 'blightwarden'; quest: Quest };
 
 export const buildWorkUnitForRoleTransformer = ({
   ...params
@@ -75,6 +76,12 @@ export const buildWorkUnitForRoleTransformer = ({
         role: 'spiritmender',
         filePaths,
       });
+    }
+
+    case 'blightwarden': {
+      throw new Error(
+        'Unknown role in input: blightwarden work units are built inline by run-blightwarden-layer-broker, not via buildWorkUnitForRoleTransformer',
+      );
     }
 
     default: {

@@ -220,4 +220,21 @@ describe('buildWorkUnitForRoleTransformer', () => {
       });
     });
   });
+
+  describe('blightwarden role', () => {
+    it('ERROR: {role: blightwarden, quest} => throws because blightwarden work units are built inline by layer broker', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const quest = QuestStub();
+
+      expect(() =>
+        buildWorkUnitForRoleTransformer({
+          role: 'blightwarden',
+          quest,
+        }),
+      ).toThrow(
+        'Unknown role in input: blightwarden work units are built inline by run-blightwarden-layer-broker, not via buildWorkUnitForRoleTransformer',
+      );
+    });
+  });
 });

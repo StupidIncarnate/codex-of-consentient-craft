@@ -42,5 +42,13 @@ describe('roleToPromptTemplateTransformer', () => {
 
       expect(result.length).toBeGreaterThan(0);
     });
+
+    it('VALID: {role: blightwarden} => returns blightwarden prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'blightwarden' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
   });
 });

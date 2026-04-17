@@ -17,12 +17,14 @@ type SignalSummary = NonNullable<StreamSignal['summary']>;
 // Most failures route to pathseeker for replanning (drain+skip wipes pending items)
 // Lawbringer routes to spiritmender (targeted code fix using same file paths)
 // PathSeeker itself failing bubbles to the user (terminal)
+// Blightwarden routes to pathseeker (mirrors siegemaster; failed-replan handling is in run-blightwarden-layer-broker)
 const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   codeweaver: 'pathseeker',
   siegemaster: 'pathseeker',
   lawbringer: 'spiritmender',
   spiritmender: 'pathseeker',
   pathseeker: null,
+  blightwarden: 'pathseeker',
 };
 
 type HandleSignalResult =
