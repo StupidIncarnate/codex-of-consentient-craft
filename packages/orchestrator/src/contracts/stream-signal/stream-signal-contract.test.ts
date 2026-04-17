@@ -57,6 +57,28 @@ describe('streamSignalContract', () => {
         signal: 'failed',
       });
     });
+
+    it('VALID: {signal: "failed-replan", summary} => parses failed-replan signal', () => {
+      const result = streamSignalContract.parse({
+        signal: 'failed-replan',
+        summary: 'Semantic findings require new steps',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'failed-replan',
+        summary: 'Semantic findings require new steps',
+      });
+    });
+
+    it('VALID: {signal: "failed-replan"} => parses without optional summary', () => {
+      const result = streamSignalContract.parse({
+        signal: 'failed-replan',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'failed-replan',
+      });
+    });
   });
 
   describe('invalid signals', () => {

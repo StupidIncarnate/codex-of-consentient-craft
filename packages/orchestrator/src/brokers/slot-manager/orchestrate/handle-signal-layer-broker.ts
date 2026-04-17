@@ -51,7 +51,12 @@ export const handleSignalLayerBroker = async ({
       return { action: 'continue' };
     }
 
-    case 'failed': {
+    case 'failed':
+    case 'failed-replan': {
+      // 'failed-replan' is only emitted by blightwarden, which has its own layer broker that
+      // intercepts the signal directly (run-blightwarden-layer-broker). If it ever reaches
+      // this slot-manager handler, treat it identically to 'failed' — mark failed + route
+      // to the FAILURE_ROLE_MAP target (pathseeker for blightwarden).
       if (workItemId) {
         await workTracker.markFailed({ workItemId });
       }
