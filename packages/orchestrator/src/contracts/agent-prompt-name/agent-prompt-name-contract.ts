@@ -12,6 +12,11 @@ export const agentPromptNameContract = z.enum([
   'chaoswhisperer-gap-minion',
   'pathseeker-quest-review-minion',
   'pathseeker-surface-scope-minion',
+  'blightwarden-security-minion',
+  'blightwarden-dedup-minion',
+  'blightwarden-perf-minion',
+  'blightwarden-integrity-minion',
+  'blightwarden-dead-code-minion',
 ]);
 
 export type AgentPromptName = z.infer<typeof agentPromptNameContract>;

@@ -10,6 +10,7 @@ import {
 
 import { workUnitContract } from './work-unit-contract';
 import {
+  BlightwardenWorkUnitStub,
   CodeweaverWorkUnitStub,
   LawbringerWorkUnitStub,
   PathseekerWorkUnitStub,
@@ -365,6 +366,102 @@ describe('workUnitContract', () => {
         workUnitContract.parse({
           role: 'siegemaster',
           questId: QuestIdStub({ value: 'add-auth' }),
+        }),
+      ).toThrow(/required/iu);
+    });
+  });
+
+  describe('blightwarden work unit', () => {
+    it('VALID: {role: blightwarden, questId} => parses successfully with default relatedDesignDecisions', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'blightwarden',
+        questId,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'blightwarden',
+        questId,
+        relatedDesignDecisions: [],
+      });
+    });
+
+    it('VALID: {BlightwardenWorkUnitStub} => parses successfully', () => {
+      const stub = BlightwardenWorkUnitStub();
+
+      expect(stub).toStrictEqual({
+        role: 'blightwarden',
+        questId: QuestIdStub({ value: 'add-auth' }),
+        relatedDesignDecisions: [],
+      });
+    });
+
+    it('VALID: {role: blightwarden, scopeSize: small} => parses with scopeSize', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'small',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'small',
+        relatedDesignDecisions: [],
+      });
+    });
+
+    it('VALID: {role: blightwarden, scopeSize: medium} => parses with scopeSize', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'medium',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'medium',
+        relatedDesignDecisions: [],
+      });
+    });
+
+    it('VALID: {role: blightwarden, scopeSize: large} => parses with scopeSize', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'large',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'blightwarden',
+        questId,
+        scopeSize: 'large',
+        relatedDesignDecisions: [],
+      });
+    });
+
+    it('INVALID: {blightwarden with invalid scopeSize} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'blightwarden',
+          questId: QuestIdStub({ value: 'add-auth' }),
+          scopeSize: 'huge',
+        }),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {blightwarden without questId} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'blightwarden',
         }),
       ).toThrow(/required/iu);
     });

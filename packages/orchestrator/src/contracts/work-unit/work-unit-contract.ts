@@ -13,6 +13,7 @@ import {
   errorMessageContract,
   flowContract,
   flowObservableContract,
+  planningScopeClassificationContract,
   questContractEntryContract,
   questIdContract,
   stepFileReferenceContract,
@@ -57,12 +58,20 @@ const lawbringerWorkUnitContract = z.object({
   filePaths: z.array(stepFilePathContract),
 });
 
+const blightwardenWorkUnitContract = z.object({
+  role: z.literal('blightwarden'),
+  questId: questIdContract,
+  scopeSize: planningScopeClassificationContract.shape.size.optional(),
+  relatedDesignDecisions: z.array(designDecisionContract).default([]),
+});
+
 export const workUnitContract = z.discriminatedUnion('role', [
   pathseekerWorkUnitContract,
   codeweaverWorkUnitContract,
   spiritmenderWorkUnitContract,
   lawbringerWorkUnitContract,
   siegemasterWorkUnitContract,
+  blightwardenWorkUnitContract,
 ]);
 
 export type WorkUnit = z.infer<typeof workUnitContract>;
@@ -71,3 +80,4 @@ export type CodeweaverWorkUnit = z.infer<typeof codeweaverWorkUnitContract>;
 export type SpiritmenderWorkUnit = z.infer<typeof spiritmenderWorkUnitContract>;
 export type LawbringerWorkUnit = z.infer<typeof lawbringerWorkUnitContract>;
 export type SiegemasterWorkUnit = z.infer<typeof siegemasterWorkUnitContract>;
+export type BlightwardenWorkUnit = z.infer<typeof blightwardenWorkUnitContract>;
