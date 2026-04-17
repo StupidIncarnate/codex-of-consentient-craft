@@ -51,6 +51,7 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 
 Static policies. These hold for every run.
 
+- **Autonomy: fix, then restart — do NOT ask for approval between runs.** After a blocking bug is fixed and committed, immediately follow Run Lifecycle step 1 for the next run. Do not pause to ask the user "should I start Run N?" or "do you want me to proceed?". The user will intervene if they want you to stop. Same rule applies mid-run: keep driving through checkpoints, branching to fixers on red, without checking in at every checkpoint. Only stop-and-ask when you genuinely cannot decide (ambiguous bug classification, missing context for a fix).
 - **Kickoff surfaces.** Web UI, MCP tools, server HTTP endpoints. No slash commands.
 - **Single dev server policy.** Only one dev server process is up at any time across the whole run.
 - **Build before dev server.** Always run `npm run build` before starting the dev server (initial start AND every
