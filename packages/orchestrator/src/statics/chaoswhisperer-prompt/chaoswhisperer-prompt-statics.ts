@@ -150,16 +150,19 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
     If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval summary so the user knows what changed and why.
 7. **Persist everything** - Call \`modify-quest\` with \`flows\` (containing embedded observables and any re-evaluation changes), \`toolingRequirements\`, and \`contracts\`.
+8. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
+9. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. The user's answers will arrive as your next message when the session resumes. Re-persist any changes via \`modify-quest\`.
+10. **Refresh quest state** - Call \`get-quest\` to see the current rendered state after gap-minion findings are addressed.
 
-**Exit:** Once all observables, contracts, and tooling requirements are persisted AND you have re-evaluated each flow's type, call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI.
+**Exit:** Once all observables, contracts, and tooling requirements are persisted, each flow's type has been re-evaluated, AND gap-minion has returned with all findings addressed, call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI. Do NOT transition to \`review_observables\` while gap-minion is still running or has outstanding questions for the user.
 
 ### Status: \`review_observables\`
 
-1. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
-2. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. The user's answers will arrive as your next message when the session resumes.
-3. **Refresh quest state** - Call \`get-quest\` to see the current rendered state.
-4. **Summarize for approval** - Brief summary of what was added/changed (counts, notable items). The user can see full details in their UI.
-5. **Get approval** - User must approve observables and contracts.
+1. **Summarize what was added** - Brief summary of what was added/changed in observables and contracts (counts, notable items, any gap-minion-driven changes). Do NOT re-output diagrams or full lists — the user can see all quest data live in their UI.
+2. **Get approval** - Ask the user to review the observables and contracts and approve. Ask specifically:
+    - Are all outcomes testable and concrete?
+    - Are the contracts accurate?
+    - Any missing assertions?
 
 If the user requests changes or identifies gaps, call \`modify-quest\` with \`status: 'explore_observables'\` to return to exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to \`review_observables\` when ready for another review.
 
