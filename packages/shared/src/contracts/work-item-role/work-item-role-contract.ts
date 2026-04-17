@@ -17,6 +17,7 @@ export const workItemRoleContract = z.enum([
   'spiritmender',
   'siegemaster',
   'lawbringer',
+  'blightwarden',
 ]);
 
 export type WorkItemRole = z.infer<typeof workItemRoleContract>;

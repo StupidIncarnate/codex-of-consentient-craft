@@ -388,6 +388,9 @@ export * from './src/contracts/planning-scope-classification/planning-scope-clas
 export * from './src/contracts/planning-surface-report/planning-surface-report-contract';
 export * from './src/contracts/planning-surface-report/planning-surface-report.stub';
 
+export * from './src/contracts/planning-blight-report/planning-blight-report-contract';
+export * from './src/contracts/planning-blight-report/planning-blight-report.stub';
+
 export * from './src/contracts/planning-synthesis/planning-synthesis-contract';
 export * from './src/contracts/planning-synthesis/planning-synthesis.stub';
 

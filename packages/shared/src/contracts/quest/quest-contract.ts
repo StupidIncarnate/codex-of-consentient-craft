@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
+import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { planningReviewReportContract } from '../planning-review-report/planning-review-report-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
@@ -79,13 +80,14 @@ export const questContract = z.object({
     .object({
       scopeClassification: planningScopeClassificationContract.optional(),
       surfaceReports: z.array(planningSurfaceReportContract).default([]),
+      blightReports: z.array(planningBlightReportContract).default([]),
       synthesis: planningSynthesisContract.optional(),
       walkFindings: planningWalkFindingsContract.optional(),
       reviewReport: planningReviewReportContract.optional(),
     })
-    .default({ surfaceReports: [] })
+    .default({ surfaceReports: [], blightReports: [] })
     .describe(
-      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings, review report) persisted between seek_* statuses',
+      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings, review report) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings)',
     ),
 });
 

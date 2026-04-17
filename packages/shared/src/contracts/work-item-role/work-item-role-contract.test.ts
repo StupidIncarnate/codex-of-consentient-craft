@@ -67,6 +67,14 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('lawbringer');
     });
 
+    it('VALID: blightwarden => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden');
+    });
+
     it('VALID: {default} => defaults to codeweaver', () => {
       const role = WorkItemRoleStub();
 

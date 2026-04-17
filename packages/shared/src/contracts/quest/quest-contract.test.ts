@@ -1,5 +1,6 @@
 import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
+import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { WardResultStub } from '../ward-result/ward-result.stub';
@@ -29,7 +30,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [] },
       });
     });
 
@@ -57,7 +58,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [] },
       });
     });
 
@@ -85,7 +86,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [] },
       });
     });
 
@@ -173,7 +174,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [] },
       });
     });
 
@@ -259,7 +260,30 @@ describe('questContract', () => {
       expect(result.wardResults).toStrictEqual([]);
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to {surfaceReports: []}', () => {
+    it('VALID: quest with populated blightReports => parses successfully', () => {
+      const firstReport = PlanningBlightReportStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        minion: 'security',
+        status: 'active',
+      });
+      const secondReport = PlanningBlightReportStub({
+        id: 'aabbccdd-58cc-4372-a567-0e02b2c3d479',
+        minion: 'dedup',
+        status: 'resolved',
+      });
+      const quest = QuestStub({
+        planningNotes: { surfaceReports: [], blightReports: [firstReport, secondReport] },
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        blightReports: [firstReport, secondReport],
+      });
+    });
+
+    it('VALID: quest without planningNotes field => backward compat defaults to {surfaceReports: [], blightReports: []}', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -271,7 +295,7 @@ describe('questContract', () => {
         toolingRequirements: [],
       });
 
-      expect(result.planningNotes).toStrictEqual({ surfaceReports: [] });
+      expect(result.planningNotes).toStrictEqual({ surfaceReports: [], blightReports: [] });
     });
   });
 

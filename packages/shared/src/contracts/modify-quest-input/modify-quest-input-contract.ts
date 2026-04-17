@@ -18,6 +18,7 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { planningReviewReportContract } from '../planning-review-report/planning-review-report-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
@@ -126,6 +127,14 @@ export const modifyQuestInputContract = z
             z.union([
               planningSurfaceReportContract.extend({ _delete: z.boolean().optional() }),
               z.object({ id: planningSurfaceReportContract.shape.id, _delete: deleteMarker }),
+            ]),
+          )
+          .optional(),
+        blightReports: z
+          .array(
+            z.union([
+              planningBlightReportContract.extend({ _delete: z.boolean().optional() }),
+              z.object({ id: planningBlightReportContract.shape.id, _delete: deleteMarker }),
             ]),
           )
           .optional(),
