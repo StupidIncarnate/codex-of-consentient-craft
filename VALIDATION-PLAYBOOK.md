@@ -32,20 +32,29 @@ each run, in order:
 
 1. **Prep the tree.** Ensure no uncommitted quest-generated artifacts are sitting around (see *Rules for Fixes* below).
    The working tree should contain only committed bug fixes and pre-validation state.
-2. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs.
-3. **Start dev server.** Single process only. Leave it up for the whole run.
-4. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
+2. **Kill all background processes and running commands from prior runs.** Before (re)starting the dev server or
+   kicking off a new run, terminate:
+  - Any leftover `npm run dev` / vite / tsx server processes (ports 4750, 4751, or whatever your `.env` assigns).
+  - Any orchestrator-owned background `Bash` tool tasks (polling loops, dev server bg processes).
+  - Any child Claude CLI processes still running from prior orchestration (`pgrep -af claude`).
+  - Any leftover test dev servers started by a prior siege run.
+    Use `npm run dev:kill` for the primary server; use `jobs` / `kill %N` for orchestrator-owned bg bash; use
+    `pkill -f <pattern>` as a last resort. A stale background process will hold ports, file locks, or keep emitting
+    output that confuses the next run.
+3. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs.
+4. **Start dev server.** Single process only. Leave it up for the whole run.
+5. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
-5. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4751/codex/session) → "New Chat" → describe the trivial
+6. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4751/codex/session) → "New Chat" → describe the trivial
    2-flow feature.
-6. **Record the run.** As soon as the session URL appears (`/codex/session/<uuid>`), add a `## Run N` heading to
+7. **Record the run.** As soon as the session URL appears (`/codex/session/<uuid>`), add a `## Run N` heading to
    `/tmp/validation-notes.md` with the URL. One entry per run, every run.
-7. **Drive the smoke flow** through the phase's checkpoints.
-8. **Record the outcome** under the `## Run N` heading when the run ends:
+8. **Drive the smoke flow** through the phase's checkpoints.
+9. **Record the outcome** under the `## Run N` heading when the run ends:
     - **success** — reached `complete`, all checkpoints green.
     - **blocked** — note the checkpoint and link to the bug entry.
-9. **If blocked:** follow *Blocking Bug Procedure* below, then loop back to step 1 for a new run.
-   **If success:** proceed to the next phase (or declare validation done if this was the final phase).
+10. **If blocked:** follow *Blocking Bug Procedure* below, then loop back to step 1 for a new run.
+    **If success:** proceed to the next phase (or declare validation done if this was the final phase).
 
 ---
 
@@ -104,8 +113,55 @@ When driving the Web UI via `mcp__claude-in-chrome__*`, sending a chat message p
   internal state stays empty, so a subsequent click on the Send button submits an empty form (observed: no session
   created, URL unchanged).
 - **Workaround:** focus the textarea with `computer.left_click`, use `computer.type` to type the real keystrokes (fires
-  native input events that React hooks into), then `computer.key Return` to submit. Confirmed round-trip: URL
-  transitions to `/codex/session/<uuid>` and ChaosWhisperer responds.
+  native input events that React hooks into), then `computer.key Return` to submit. Confirmed round-trip: ChaosWhisperer
+  responds, and after a couple of minutes the UI will auto-navigate the URL to `/codex/session/<uuid>`.
+
+## Never Manually Navigate the Session URL
+
+**Do NOT manually navigate the browser to `/codex/session/<uuid>` by grabbing the session id via MCP `list-quests` and
+calling `navigate`.** The UI owns the URL transition. It will auto-navigate on its own — but the session id takes a
+couple of minutes to surface after ChaosWhisperer finishes its first turn. Be patient. Manually navigating corrupts the
+session state and the run will need to be restarted.
+
+**Procedure:**
+
+- After submitting the first chat message, stay on `/codex/session` (no uuid) in the browser.
+- Poll quest status via MCP `list-quests` / `get-quest` and/or watch the on-page chat stream to observe ChaosWhisperer's
+  progress.
+- The URL will transition to `/codex/session/<uuid>` on its own within ~2 minutes of the first turn completing.
+- Known non-blocking issue: the transition takes a couple of minutes; fix is out of scope for the smoke test.
+
+## Polling for Quest Status Transitions
+
+Use the MCP tool `mcp__dungeonmaster__get-quest` (passing the quest id) to check status. Do NOT write a bash background
+loop that greps the on-disk `quest.json` — the pre-bash hook can block inner searches, and the file layout has subtle
+multi-line escaping that makes `grep -oE '"status":"..."'` silently match empty strings (observed during Run 3, which
+then idled for 2+ minutes with no STOP trigger and no notification). If you need a timer, set one for a fixed short
+interval (e.g. 60–120 seconds), then re-call `get-quest` in the main thread.
+
+**Gate states to stop at:** `review_flows`, `review_observables`, `approved`, `seek_scope`, `seek_synth`, `seek_walk`,
+`seek_plan`, `in_progress`, `complete`, `blocked`, `abandoned`. The first three require a user action (approve /
+begin-quest). The rest are pipeline status changes.
+
+## Clarification Questions (Blocking) — ChaosWhisperer only
+
+**Only ChaosWhisperer emits clarification questions. PathSeeker is autonomous and never asks.**
+
+During the spec phase, ChaosWhisperer may surface clarification questions in a dedicated CLARIFICATION panel in the
+Web UI. Each question has multiple pre-written answer options plus an "Other..." free-text option. ChaosWhisperer is
+**blocked** until the orchestrator (me) picks an answer — it will not proceed to the next question, the next phase,
+or any gate until the answer is selected.
+
+**Procedure during spec phase (between "New Chat" and Gate #2 approve):**
+
+- While watching the chat, also watch for a CLARIFICATION panel appearing in the Web UI.
+- Each question shows "Question N of M". Answer them in order.
+- For smoke tests, pick the **most testable / unambiguous** option (usually the first DOM-order / exact-text option).
+  If no option fits, use "Other..." with a terse literal assertion the Siegemaster can check.
+- Only after every question is answered will ChaosWhisperer move to the next status.
+
+**After Gate #2 (approved / seek_scope onward):** ignore any leftover CLARIFICATION panel — PathSeeker is autonomous
+and will not emit new questions.
 
 ---
 
@@ -173,13 +229,25 @@ total.
 **→ FAIL:** fix chat/spec layer. Restart 1.1.
 **→ PASS:** continue.
 
-### 1.2 — Execution kickoff
+### 1.2 — Execution kickoff (MUST go through the UI, not MCP)
 
-- **Action:** Web UI "Start" (or `mcp__dungeonmaster__start-quest`).
+**Critical:** After approving observables at Gate #2, a "Begin Quest" popup/modal surfaces in the Web UI. Click it. Do
+NOT bypass by calling `mcp__dungeonmaster__start-quest` directly — that skips the UI-side state transition that tells
+the web session to switch from chat-view to execution-panel-view. If you bypass, the UI may get stuck on the chat view
+even though orchestration is running, and refreshing the session URL can send you back to chat view instead of the
+execution panel.
+
+- **Action:** In the Web UI, click the "Begin Quest" button in the popup that appears after Gate #2.
 - **Assert:**
-    - Status → `seek_scope`
+  - Status → `seek_scope` (or further)
     - PathSeeker work item dispatched by orchestration loop
+  - Web UI switches to the execution panel
+  - **Refresh test:** refresh the session URL `/codex/session/<uuid>`. Execution panel MUST still render (not fall back
+    to chat view).
 
+**→ FAIL refresh falls back to chat view:** UI bug in the execution-panel guard or quest-chat responder routing. File
+it, fix, restart.
+**→ FAIL no "Begin Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
 **→ PASS:** continue.
 
 ### 1.3 — PathSeeker phased planning
