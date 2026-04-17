@@ -14,7 +14,7 @@ const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
 
 describe('stepsToWorkItemsTransformer', () => {
   describe('basic chain generation', () => {
-    it('VALID: {1 step, 1 flow} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer + 1 final-ward', () => {
+    it('VALID: {1 step, 1 flow} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer + 1 blightwarden + 1 final-ward', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -23,6 +23,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000003',
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
         ],
       });
 
@@ -88,11 +89,22 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: '00000000-0000-4000-8000-000000000005',
+          role: 'blightwarden',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000006',
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
           relatedDataItems: [],
-          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          dependsOn: ['00000000-0000-4000-8000-000000000005'],
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
@@ -114,6 +126,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
           '00000000-0000-4000-8000-000000000007',
+          '00000000-0000-4000-8000-000000000008',
         ],
       });
 
@@ -209,14 +222,25 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: '00000000-0000-4000-8000-000000000007',
-          role: 'ward',
+          role: 'blightwarden',
           status: 'pending',
-          spawnerType: 'command',
+          spawnerType: 'agent',
           relatedDataItems: [],
           dependsOn: [
             '00000000-0000-4000-8000-000000000005',
             '00000000-0000-4000-8000-000000000006',
           ],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000008',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000007'],
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
@@ -227,7 +251,7 @@ describe('stepsToWorkItemsTransformer', () => {
   });
 
   describe('multi-flow siege chain', () => {
-    it('VALID: {1 step, 3 flows} => 3 siege items chained, lawbringer depends on all 3, final ward depends on lawbringer', () => {
+    it('VALID: {1 step, 3 flows} => 3 siege items chained, lawbringer depends on all 3, blightwarden depends on lawbringer, final ward depends on blightwarden', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -238,6 +262,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
           '00000000-0000-4000-8000-000000000007',
+          '00000000-0000-4000-8000-000000000008',
         ],
       });
 
@@ -339,11 +364,22 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: '00000000-0000-4000-8000-000000000007',
+          role: 'blightwarden',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000006'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000008',
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
           relatedDataItems: [],
-          dependsOn: ['00000000-0000-4000-8000-000000000006'],
+          dependsOn: ['00000000-0000-4000-8000-000000000007'],
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
@@ -354,7 +390,7 @@ describe('stepsToWorkItemsTransformer', () => {
   });
 
   describe('empty flows guard', () => {
-    it('VALID: {1 step, 0 flows} => 0 siege items, lawbringer depends on wardItem, final ward depends on lawbringer', () => {
+    it('VALID: {1 step, 0 flows} => 0 siege items, lawbringer depends on wardItem, blightwarden depends on lawbringer, final ward depends on blightwarden', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -362,6 +398,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000002',
           '00000000-0000-4000-8000-000000000003',
           '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
         ],
       });
 
@@ -415,11 +452,22 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: '00000000-0000-4000-8000-000000000004',
+          role: 'blightwarden',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000003'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000005',
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
           relatedDataItems: [],
-          dependsOn: ['00000000-0000-4000-8000-000000000003'],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
@@ -430,7 +478,7 @@ describe('stepsToWorkItemsTransformer', () => {
   });
 
   describe('final ward deps fallback', () => {
-    it('VALID: {0 steps, 2 flows} => final ward depends on all siege items (no law items exist)', () => {
+    it('VALID: {0 steps, 2 flows} => blightwarden depends on all siege items (no law items exist), final ward depends on blightwarden', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -438,6 +486,7 @@ describe('stepsToWorkItemsTransformer', () => {
           '00000000-0000-4000-8000-000000000002',
           '00000000-0000-4000-8000-000000000003',
           '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
         ],
       });
 
@@ -494,20 +543,135 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: '00000000-0000-4000-8000-000000000004',
-          role: 'ward',
+          role: 'blightwarden',
           status: 'pending',
-          spawnerType: 'command',
+          spawnerType: 'agent',
           relatedDataItems: [],
           dependsOn: [
             '00000000-0000-4000-8000-000000000002',
             '00000000-0000-4000-8000-000000000003',
           ],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000005',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 3,
           attempt: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
       ]);
+    });
+  });
+
+  describe('blightwarden dependency wiring', () => {
+    it('VALID: {1 step, 1 flow} => blightwardenItem depends on allLawIds; finalWard depends on [blightwardenItem.id]', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+        ],
+      });
+
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const step = DependencyStepStub({ id: stepId, dependsOn: [] });
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [step],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      const [, , , , blightwardenItem, finalWardItem] = result;
+
+      expect(blightwardenItem?.role).toBe('blightwarden');
+      expect(blightwardenItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000004']);
+      expect(finalWardItem?.role).toBe('ward');
+      expect(finalWardItem?.wardMode).toBe('full');
+      expect(finalWardItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000005']);
+    });
+
+    it('VALID: {0 steps, 1 flow} => blightwardenItem depends on allSiegeIds; finalWard depends on [blightwardenItem.id]', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+        ],
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      const [, , blightwardenItem, finalWardItem] = result;
+
+      expect(blightwardenItem?.role).toBe('blightwarden');
+      expect(blightwardenItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000002']);
+      expect(finalWardItem?.role).toBe('ward');
+      expect(finalWardItem?.wardMode).toBe('full');
+      expect(finalWardItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000003']);
+    });
+
+    it('VALID: {1 step, 0 flows} => blightwardenItem depends on allLawIds; finalWard depends on [blightwardenItem.id]', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+        ],
+      });
+
+      const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const step = DependencyStepStub({ id: stepId, dependsOn: [] });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [step],
+        flows: [],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      const [, , , blightwardenItem, finalWardItem] = result;
+
+      expect(blightwardenItem?.role).toBe('blightwarden');
+      expect(blightwardenItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000003']);
+      expect(finalWardItem?.role).toBe('ward');
+      expect(finalWardItem?.wardMode).toBe('full');
+      expect(finalWardItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000004']);
     });
   });
 });

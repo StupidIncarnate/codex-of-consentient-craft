@@ -1,6 +1,6 @@
 /**
  * PURPOSE: After PathSeeker creates steps, generate the full work item chain
- *          (codeweaver -> ward -> siegemaster[per flow, chained] -> lawbringer -> final-ward)
+ *          (codeweaver -> ward -> siegemaster[per flow, chained] -> lawbringer -> blightwarden -> final-ward)
  *
  * USAGE:
  * stepsToWorkItemsTransformer({ steps, flows, pathseekerWorkItemId, now });
@@ -111,19 +111,32 @@ export const stepsToWorkItemsTransformer = ({
   );
 
   const allLawIds = lawItems.map((item) => item.id);
-  const finalWardDeps: QuestWorkItemId[] =
+
+  // Blightwarden runs once per quest on the final diff, between lawbringers and the final ward.
+  // Depends on all laws if any; otherwise all sieges; otherwise the ward (empty-flows edge).
+  const blightwardenDependsOn: QuestWorkItemId[] =
     allLawIds.length > 0 ? allLawIds : allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
+
+  const blightwardenItem = workItemContract.parse({
+    id: crypto.randomUUID(),
+    role: 'blightwarden',
+    status: 'pending',
+    spawnerType: 'agent',
+    dependsOn: blightwardenDependsOn,
+    maxAttempts: 1,
+    createdAt: now,
+  });
 
   const finalWardItem = workItemContract.parse({
     id: crypto.randomUUID(),
     role: 'ward',
     status: 'pending',
     spawnerType: 'command',
-    dependsOn: finalWardDeps,
+    dependsOn: [blightwardenItem.id],
     maxAttempts: slotManagerStatics.ward.maxRetries,
     createdAt: now,
     wardMode: 'full',
   });
 
-  return [...cwItems, wardItem, ...siegeItems, ...lawItems, finalWardItem];
+  return [...cwItems, wardItem, ...siegeItems, ...lawItems, blightwardenItem, finalWardItem];
 };
