@@ -186,7 +186,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('action bar', () => {
-    it('VALID: {blocked quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
+    it('VALID: {blocked quest with onStatusChange} => does not show action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onStatusChange = jest.fn();
@@ -195,11 +195,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
-      expect(proxy.hasActionBar()).toBe(true);
-
-      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
-
-      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+      expect(proxy.hasActionBar()).toBe(false);
     });
 
     it('VALID: {paused quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
@@ -284,7 +280,7 @@ describe('ExecutionPanelWidget', () => {
 
     it('VALID: {no onStatusChange prop} => does not show action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'blocked' });
+      const quest: Quest = QuestStub({ status: 'paused' });
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} />,
@@ -295,7 +291,7 @@ describe('ExecutionPanelWidget', () => {
 
     it('VALID: {click RESUME QUEST} => calls onStatusChange with in_progress', async () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'blocked' });
+      const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
 
       mantineRenderAdapter({
@@ -340,7 +336,7 @@ describe('ExecutionPanelWidget', () => {
 
     it('VALID: {click CANCEL after ABANDON QUEST} => returns to normal buttons', async () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'blocked' });
+      const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
 
       mantineRenderAdapter({
@@ -356,9 +352,9 @@ describe('ExecutionPanelWidget', () => {
       expect(onStatusChange.mock.calls).toStrictEqual([]);
     });
 
-    it('VALID: {blocked quest confirming abandon} => hides RESUME QUEST button', async () => {
+    it('VALID: {paused quest confirming abandon} => hides RESUME QUEST button', async () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'blocked' });
+      const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
 
       mantineRenderAdapter({
@@ -2251,6 +2247,137 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = proxy.getStepRows();
 
       expect(stepRows.some((row) => row.textContent?.includes('CHAOSWHISPERER'))).toBe(true);
+    });
+  });
+
+  describe('pause/resume button visibility matrix', () => {
+    describe('PAUSE button visible (seek_* and in_progress)', () => {
+      it.each([
+        { status: 'seek_scope' },
+        { status: 'seek_synth' },
+        { status: 'seek_walk' },
+        { status: 'seek_plan' },
+        { status: 'in_progress' },
+      ] as const)(
+        'VALID: {status: $status} => PAUSE button visible, RESUME button not visible',
+        ({ status }) => {
+          const proxy = ExecutionPanelWidgetProxy();
+          const quest: Quest = QuestStub({ status });
+          const onStatusChange = jest.fn();
+          const onPause = jest.fn();
+
+          mantineRenderAdapter({
+            ui: (
+              <ExecutionPanelWidget
+                quest={quest}
+                onStatusChange={onStatusChange}
+                onPause={onPause}
+              />
+            ),
+          });
+
+          expect(proxy.hasPauseButton()).toBe(true);
+          expect(proxy.hasResumeButton()).toBe(false);
+        },
+      );
+    });
+
+    describe('RESUME button visible (paused only)', () => {
+      it('VALID: {status: paused} => RESUME button visible, PAUSE button not visible', () => {
+        const proxy = ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status: 'paused' });
+        const onStatusChange = jest.fn();
+        const onPause = jest.fn();
+
+        mantineRenderAdapter({
+          ui: (
+            <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
+          ),
+        });
+
+        expect(proxy.hasResumeButton()).toBe(true);
+        expect(proxy.hasPauseButton()).toBe(false);
+      });
+    });
+
+    describe('no pause/resume buttons (pre-execution, blocked, terminal)', () => {
+      it.each([
+        { status: 'pending' },
+        { status: 'created' },
+        { status: 'explore_flows' },
+        { status: 'review_flows' },
+        { status: 'flows_approved' },
+        { status: 'explore_observables' },
+        { status: 'review_observables' },
+        { status: 'approved' },
+        { status: 'explore_design' },
+        { status: 'review_design' },
+        { status: 'design_approved' },
+        { status: 'blocked' },
+        { status: 'complete' },
+        { status: 'abandoned' },
+      ] as const)(
+        'EMPTY: {status: $status} => neither PAUSE nor RESUME button visible',
+        ({ status }) => {
+          const proxy = ExecutionPanelWidgetProxy();
+          const quest: Quest = QuestStub({ status });
+          const onStatusChange = jest.fn();
+          const onPause = jest.fn();
+
+          mantineRenderAdapter({
+            ui: (
+              <ExecutionPanelWidget
+                quest={quest}
+                onStatusChange={onStatusChange}
+                onPause={onPause}
+              />
+            ),
+          });
+
+          expect(proxy.hasPauseButton()).toBe(false);
+          expect(proxy.hasResumeButton()).toBe(false);
+        },
+      );
+    });
+
+    describe('click behavior', () => {
+      it('VALID: {click PAUSE button on seek_walk} => calls onPause once', async () => {
+        const proxy = ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status: 'seek_walk' });
+        const onStatusChange = jest.fn();
+        const onPause = jest.fn();
+
+        mantineRenderAdapter({
+          ui: (
+            <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
+          ),
+        });
+
+        await proxy.clickPauseButton();
+
+        expect(onPause).toHaveBeenCalledTimes(1);
+        expect(onPause).toHaveBeenCalledWith();
+        expect(onStatusChange.mock.calls).toStrictEqual([]);
+      });
+
+      it('VALID: {click RESUME button on paused} => calls onStatusChange with in_progress', async () => {
+        const proxy = ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status: 'paused' });
+        const onStatusChange = jest.fn();
+        const onPause = jest.fn();
+
+        mantineRenderAdapter({
+          ui: (
+            <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
+          ),
+        });
+
+        await proxy.clickResumeButton();
+
+        expect(onStatusChange).toHaveBeenCalledTimes(1);
+        expect(onStatusChange).toHaveBeenCalledWith({ status: 'in_progress' });
+        expect(onPause.mock.calls).toStrictEqual([]);
+      });
     });
   });
 });

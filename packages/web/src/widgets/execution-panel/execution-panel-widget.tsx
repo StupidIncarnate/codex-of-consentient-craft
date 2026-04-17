@@ -472,8 +472,11 @@ export const ExecutionPanelWidget = ({
             )}
           </AutoScrollContainerWidget>
           {(quest.status === 'paused' ||
-            quest.status === 'blocked' ||
-            quest.status === 'in_progress') &&
+            quest.status === 'in_progress' ||
+            quest.status === 'seek_scope' ||
+            quest.status === 'seek_synth' ||
+            quest.status === 'seek_walk' ||
+            quest.status === 'seek_plan') &&
             onStatusChange && (
               <Box
                 data-testid="execution-panel-action-bar"
@@ -484,23 +487,32 @@ export const ExecutionPanelWidget = ({
                 }}
               >
                 <Group gap="xs">
-                  {quest.status === 'in_progress' && !confirmingAbandon && onPause && (
-                    <PixelBtnWidget
-                      label={PAUSE_LABEL}
-                      onClick={() => {
-                        onPause();
-                      }}
-                    />
-                  )}
-                  {(quest.status === 'paused' || quest.status === 'blocked') &&
-                    !confirmingAbandon && (
+                  {(quest.status === 'in_progress' ||
+                    quest.status === 'seek_scope' ||
+                    quest.status === 'seek_synth' ||
+                    quest.status === 'seek_walk' ||
+                    quest.status === 'seek_plan') &&
+                    !confirmingAbandon &&
+                    onPause && (
+                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
+                        <PixelBtnWidget
+                          label={PAUSE_LABEL}
+                          onClick={() => {
+                            onPause();
+                          }}
+                        />
+                      </Box>
+                    )}
+                  {quest.status === 'paused' && !confirmingAbandon && (
+                    <Box data-testid="EXECUTION_RESUME_BUTTON">
                       <PixelBtnWidget
                         label={RESUME_LABEL}
                         onClick={() => {
                           onStatusChange({ status: 'in_progress' as QuestStatus });
                         }}
                       />
-                    )}
+                    </Box>
+                  )}
                   {confirmingAbandon ? (
                     <>
                       <PixelBtnWidget
