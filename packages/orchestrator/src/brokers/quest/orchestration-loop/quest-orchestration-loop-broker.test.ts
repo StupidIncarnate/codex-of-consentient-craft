@@ -1632,6 +1632,54 @@ describe('questOrchestrationLoopBroker', () => {
       expect(proxy.wasOnAgentEntryPassedTo({ role: 'lawbringer' })).toBe(true);
     });
 
+    it('VALID: {onAgentEntry provided, blightwarden dispatches} => blightwarden layer receives onAgentEntry', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const bwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: bwId,
+            role: 'blightwarden',
+            status: 'pending',
+            spawnerType: 'agent',
+          }),
+        ],
+      });
+      // Recursion plumbing: blightwarden complete → all terminal → loop exits
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [WorkItemStub({ id: bwId, role: 'blightwarden', status: 'complete' })],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupNonChatGroupReady({ quest, terminalQuest });
+
+      const onAgentEntry = jest.fn();
+
+      await questOrchestrationLoopBroker({
+        processId: ProcessIdStub({ value: 'proc-on-agent-bw' }),
+        questId,
+        startPath: FilePathStub({ value: '/project/src' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      const quests = proxy.getAllPersistedQuests();
+
+      expect(quests[0]!.workItems).toStrictEqual([
+        WorkItemStub({
+          id: bwId,
+          role: 'blightwarden',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          startedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      ]);
+      expect(proxy.wasOnAgentEntryPassedTo({ role: 'blightwarden' })).toBe(true);
+    });
+
     it('VALID: {onAgentEntry provided, spiritmender dispatches} => spiritmender layer receives onAgentEntry', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const spId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });

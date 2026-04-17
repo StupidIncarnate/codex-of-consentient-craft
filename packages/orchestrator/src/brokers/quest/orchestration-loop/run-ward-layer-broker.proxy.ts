@@ -215,7 +215,7 @@ export const runWardLayerBrokerProxy = (): {
       setupModify({ quest });
       // 7. modify(failed)
       setupModify({ quest });
-      // 8. get(for insert)
+      // 8. get(for postBlightwarden detection + later insert)
       setupGet({ quest });
       // 9. modify(insert via questWorkItemInsertBroker)
       setupModify({ quest });
@@ -251,11 +251,11 @@ export const runWardLayerBrokerProxy = (): {
       setupModify({ quest });
       // 7. modify(failed)
       setupModify({ quest });
-      // 8. findQuestPath (direct call for batch writes) + batch pathJoins
+      // 8. get(for postBlightwarden detection + later insert)
+      setupGet({ quest });
+      // 9. findQuestPath (direct call for batch writes) + batch pathJoins
       setupDirectFindPath({ quest });
       queueBatchPathJoins({ batchCount: 1 });
-      // 9. get(for insert)
-      setupGet({ quest });
       // 10. modify(insert via questWorkItemInsertBroker)
       setupModify({ quest });
     },
@@ -306,7 +306,7 @@ export const runWardLayerBrokerProxy = (): {
       setupModify({ quest });
       // 4. modify(failed)
       setupModify({ quest });
-      // 5. get(for insert)
+      // 5. get(for postBlightwarden detection + later insert)
       setupGet({ quest });
       // 6. modify(insert via questWorkItemInsertBroker)
       setupModify({ quest });
@@ -335,9 +335,9 @@ export const runWardLayerBrokerProxy = (): {
       setupModify({ quest });
       // 7. modify(failed)
       setupModify({ quest });
-      // No batches (empty checks → no filePaths), no batch pathJoins
-      // 8. get(for insert)
+      // 8. get(for postBlightwarden detection + later insert)
       setupGet({ quest });
+      // No batches (empty checks → no filePaths), no batch pathJoins
       // 9. modify(insert via questWorkItemInsertBroker)
       setupModify({ quest });
     },

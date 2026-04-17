@@ -19,6 +19,10 @@ The dev server failed to start. No specific files are listed — you must invest
         instructions: `## Instructions
 A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run npm run ward on the files to verify.`,
       },
+      postBlightwardenFailure: {
+        instructions: `## Instructions
+Blightwarden may have intentionally removed code; check \`git log\` before re-adding deletions. You are fixing ward failures (lint, type-check, or test errors) in specific files AFTER a Blightwarden pass that may have deleted dead exports, consolidated duplicates, or removed unreachable branches. Before reverting any deletion, inspect recent commits to confirm the removal was intentional. Fix the underlying issue (update call sites, adjust tests, etc.) rather than restoring deleted code. Run the verification command after each fix to confirm resolution.`,
+      },
     });
   });
 
@@ -47,6 +51,13 @@ The dev server failed to start. No specific files are listed — you must invest
     expect(spiritmenderContextStatics.lawbringerFailure.instructions).toBe(
       `## Instructions
 A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run npm run ward on the files to verify.`,
+    );
+  });
+
+  it('VALID: postBlightwardenFailure => instructions has expected content', () => {
+    expect(spiritmenderContextStatics.postBlightwardenFailure.instructions).toBe(
+      `## Instructions
+Blightwarden may have intentionally removed code; check \`git log\` before re-adding deletions. You are fixing ward failures (lint, type-check, or test errors) in specific files AFTER a Blightwarden pass that may have deleted dead exports, consolidated duplicates, or removed unreachable branches. Before reverting any deletion, inspect recent commits to confirm the removal was intentional. Fix the underlying issue (update call sites, adjust tests, etc.) rather than restoring deleted code. Run the verification command after each fix to confirm resolution.`,
     );
   });
 });

@@ -213,6 +213,22 @@ export const runWardLayerBroker = async ({
     };
   });
 
+  // Fetch quest state BEFORE writing batch files so we can select the correct
+  // spiritmender context preamble. If Blightwarden already ran successfully,
+  // spiritmenders need the post-Blightwarden warning (don't re-add intentionally
+  // deleted code) instead of the default ward-failure preamble.
+  const questInput = getQuestInputContract.parse({ questId });
+  const questResult = await questGetBroker({ input: questInput });
+  const blightwardenRan =
+    questResult.success && questResult.quest
+      ? questResult.quest.workItems.some(
+          (wi) => wi.role === 'blightwarden' && wi.status === 'complete',
+        )
+      : false;
+  const contextInstructions = blightwardenRan
+    ? spiritmenderContextStatics.postBlightwardenFailure.instructions
+    : spiritmenderContextStatics.wardFailure.instructions;
+
   // Write batch files for each spiritmender (keyed by work item ID)
   if (spiritItems.length > 0) {
     const { questPath } = await questFindQuestPathBroker({ questId });
@@ -230,7 +246,7 @@ export const runWardLayerBroker = async ({
           filePaths: spiritItem.batch.filePaths,
           errors: spiritItem.batch.errors,
           verificationCommand,
-          contextInstructions: spiritmenderContextStatics.wardFailure.instructions,
+          contextInstructions,
         });
 
         return fsWriteFileAdapter({
@@ -260,8 +276,6 @@ export const runWardLayerBroker = async ({
   // Update downstream (siege) to depend on wardRetry instead of this ward
   const replacementMapping = [{ oldId: workItem.id, newId: wardRetry.id }];
 
-  const questInput = getQuestInputContract.parse({ questId });
-  const questResult = await questGetBroker({ input: questInput });
   if (questResult.success && questResult.quest) {
     await questWorkItemInsertBroker({
       questId,

@@ -11,6 +11,8 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { runBlightwardenLayerBroker as bwLayer } from './run-blightwarden-layer-broker';
+import { runBlightwardenLayerBrokerProxy } from './run-blightwarden-layer-broker.proxy';
 import { runChatLayerBroker as chatLayer } from './run-chat-layer-broker';
 import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
 import { runCodeweaverLayerBroker as cwLayer } from './run-codeweaver-layer-broker';
@@ -29,6 +31,7 @@ import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
 type QuestParam = ReturnType<typeof QuestStub>;
 
 const createLayerMocks = (): {
+  bwHandle: MockHandle;
   chatHandle: MockHandle;
   cwHandle: MockHandle;
   lbHandle: MockHandle;
@@ -37,6 +40,7 @@ const createLayerMocks = (): {
   spHandle: MockHandle;
   wardHandle: MockHandle;
 } => {
+  const bwHandle = registerMock({ fn: bwLayer });
   const chatHandle = registerMock({ fn: chatLayer });
   const cwHandle = registerMock({ fn: cwLayer });
   const lbHandle = registerMock({ fn: lbLayer });
@@ -45,6 +49,7 @@ const createLayerMocks = (): {
   const spHandle = registerMock({ fn: spLayer });
   const wardHandle = registerMock({ fn: wardLayer });
 
+  bwHandle.mockResolvedValue(undefined);
   chatHandle.mockResolvedValue(undefined);
   cwHandle.mockResolvedValue(undefined);
   lbHandle.mockResolvedValue(undefined);
@@ -53,7 +58,7 @@ const createLayerMocks = (): {
   spHandle.mockResolvedValue(undefined);
   wardHandle.mockResolvedValue(undefined);
 
-  return { chatHandle, cwHandle, lbHandle, psHandle, smHandle, spHandle, wardHandle };
+  return { bwHandle, chatHandle, cwHandle, lbHandle, psHandle, smHandle, spHandle, wardHandle };
 };
 
 const parsePersistedQuests = ({
@@ -109,6 +114,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
       | 'ward'
       | 'siegemaster'
       | 'lawbringer'
+      | 'blightwarden'
       | 'spiritmender';
   }) => boolean;
 } => {
@@ -120,6 +126,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   runWardLayerBrokerProxy();
   runSiegemasterLayerBrokerProxy();
   runLawbringerLayerBrokerProxy();
+  runBlightwardenLayerBrokerProxy();
   runSpiritmenderLayerBrokerProxy();
 
   const handles = createLayerMocks();
@@ -359,6 +366,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
         | 'ward'
         | 'siegemaster'
         | 'lawbringer'
+        | 'blightwarden'
         | 'spiritmender';
     }): boolean => {
       const getCalls = (): readonly unknown[][] => {
@@ -368,6 +376,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
         if (role === 'ward') return handles.wardHandle.mock.calls;
         if (role === 'siegemaster') return handles.smHandle.mock.calls;
         if (role === 'lawbringer') return handles.lbHandle.mock.calls;
+        if (role === 'blightwarden') return handles.bwHandle.mock.calls;
         return handles.spHandle.mock.calls;
       };
       const calls = getCalls();

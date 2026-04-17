@@ -24,6 +24,7 @@ import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { runBlightwardenLayerBroker } from './run-blightwarden-layer-broker';
 import { runChatLayerBroker } from './run-chat-layer-broker';
 import { runCodeweaverLayerBroker } from './run-codeweaver-layer-broker';
 import { runLawbringerLayerBroker } from './run-lawbringer-layer-broker';
@@ -217,6 +218,14 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         slotCount,
         slotOperations,
+        onAgentEntry,
+        abortSignal,
+      });
+    } else if (roleName === 'blightwarden') {
+      await runBlightwardenLayerBroker({
+        questId,
+        workItem: firstItem,
+        startPath,
         onAgentEntry,
         abortSignal,
       });
