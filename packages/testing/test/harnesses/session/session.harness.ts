@@ -15,9 +15,11 @@ import {
   AskUserQuestionToolResultStreamLineStub,
   AssistantAskUserQuestionStreamLineStub,
   AssistantReadToolUseStreamLineStub,
+  AssistantRedactedThinkingStreamLineStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   SuccessfulToolResultStreamLineStub,
+  TaskNotificationUserTextStreamLineStub,
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
@@ -140,6 +142,16 @@ export const sessionHarness = ({
     subagentToolInput: Record<string, unknown>;
     subagentToolResult: string;
   }) => void;
+  createBackgroundAgentSession: (params: {
+    sessionId: string;
+    agentId: string;
+    taskToolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    notificationSummary: string;
+    notificationResult: string;
+  }) => void;
+  createSessionWithRedactedThinking: (params: { sessionId: string; assistantText: string }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
   createSessionWithAssistantText: (params: { sessionId: string; text: string }) => void;
@@ -363,6 +375,122 @@ export const sessionHarness = ({
     );
   };
 
+  const createBackgroundAgentSession = ({
+    sessionId,
+    agentId,
+    taskToolUseId,
+    userMessage,
+    taskDescription,
+    notificationSummary,
+    notificationResult,
+  }: {
+    sessionId: string;
+    agentId: string;
+    taskToolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    notificationSummary: string;
+    notificationResult: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const notificationContent = [
+      '<task-notification>',
+      `<task-id>${agentId}</task-id>`,
+      `<tool-use-id>${taskToolUseId}</tool-use-id>`,
+      '<status>completed</status>',
+      `<summary>${notificationSummary}</summary>`,
+      `<result>${notificationResult}</result>`,
+      '<usage><total_tokens>28054</total_tokens><tool_uses>3</tool_uses><duration_ms>9033</duration_ms></usage>',
+      '</task-notification>',
+    ].join('\n');
+
+    const mainLines = [
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        timestamp: '2026-04-16T00:00:00.000Z',
+      }),
+      JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: taskToolUseId,
+                name: 'Task',
+                input: { description: taskDescription, prompt: 'Run background work' },
+              },
+            ],
+          },
+        }),
+        timestamp: '2026-04-16T00:00:01.000Z',
+      }),
+      JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: taskToolUseId, content: 'launched' }],
+          },
+          toolUseResult: { agentId },
+        }),
+        timestamp: '2026-04-16T00:00:02.000Z',
+      }),
+      JSON.stringify({
+        ...TaskNotificationUserTextStreamLineStub({
+          message: { role: 'user', content: notificationContent },
+        }),
+        timestamp: '2026-04-16T00:00:30.000Z',
+      }),
+    ];
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+
+    // Stub out the sub-agent JSONL so the replay broker sees the expected sub-agent file
+    // layout, even though we don't care about its internal tool calls for this test.
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+    const subagentLines = [
+      JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Background work body' }],
+          },
+        }),
+      ),
+    ];
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${agentId}.jsonl`),
+      `${subagentLines.join('\n')}\n`,
+    );
+  };
+
+  const createSessionWithRedactedThinking = ({
+    sessionId,
+    assistantText,
+  }: {
+    sessionId: string;
+    assistantText: string;
+  }): void => {
+    createMultiEntrySessionFile({
+      sessionId,
+      lines: [
+        JSON.stringify(
+          UserTextStringStreamLineStub({
+            message: { role: 'user', content: 'Trigger extended-thinking reply' },
+          }),
+        ),
+        JSON.stringify(AssistantRedactedThinkingStreamLineStub()),
+        JSON.stringify(
+          AssistantTextStreamLineStub({
+            message: { role: 'assistant', content: [{ type: 'text', text: assistantText }] },
+          }),
+        ),
+      ],
+    });
+  };
+
   const cleanSessionFiles = (): void => {
     const jsonlDir = getJsonlDir();
     try {
@@ -423,6 +551,8 @@ export const sessionHarness = ({
     createMultiEntrySessionFile,
     createSubagentSessionFiles,
     createSubagentSessionWithInternalTool,
+    createBackgroundAgentSession,
+    createSessionWithRedactedThinking,
     cleanSessionFiles,
     cleanSessionDirectory,
     createSessionWithAssistantText,

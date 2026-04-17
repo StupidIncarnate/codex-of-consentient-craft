@@ -280,6 +280,93 @@ test.describe('Unified JSONL Pipeline', () => {
     ).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
+  test('VALID: background-agent task-notification renders as TASK REPORT inside its chain, not a raw YOU box', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Background Agent Guild',
+      path: GUILD_PATH,
+    });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
+
+    const sessionId = 'e2e-bg-agent-001';
+    const agentId = 'e2e-bg-agent-corr-001';
+    const taskToolUseId = 'toolu_e2e_bg_task_001';
+
+    sessions.createBackgroundAgentSession({
+      sessionId,
+      agentId,
+      taskToolUseId,
+      userMessage: 'Launch a background agent',
+      taskDescription: 'E2E background agent test',
+      notificationSummary: 'Agent "E2E background agent test" completed',
+      notificationResult: 'BACKGROUND_AGENT_RESULT_MARKER_xyz',
+    });
+
+    await page.goto(`/${guildId}/session/${sessionId}`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await expect(page.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    // Assertion 1 — the raw <task-notification> XML must NOT leak to the page as a YOU chat
+    // message. The orchestrator's chat-line processor parses the XML and attaches a structured
+    // `taskNotification` field so the web can build a task_notification ChatEntry directly.
+    // Bug symptom: before the server-side parse, the XML rendered as a YOU box with the raw
+    // `<task-notification>...` content visible.
+    await expect(page.getByText('<task-notification>', { exact: false })).toHaveCount(0);
+
+    // Assertion 2 — the parsed notification must attach to its sub-agent chain via taskId ===
+    // agentId. When the chain is expanded, a TASK REPORT box appears inside it carrying the
+    // agent's result. Scope to SUBAGENT_CHAIN so we're not catching a root-level fallback.
+    await page.getByTestId('SUBAGENT_CHAIN_HEADER').click();
+    const chainScope = page.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chainScope.getByText('TASK REPORT', { exact: true })).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainScope.getByText('BACKGROUND_AGENT_RESULT_MARKER_xyz')).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+  });
+
+  test('VALID: redacted (empty) thinking blocks are stripped by the server and never render', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Redacted Thinking Guild',
+      path: GUILD_PATH,
+    });
+    const guilds = guildHarness({ request });
+    const guildId = guilds.extractGuildId({ guild });
+
+    const sessionId = 'e2e-redacted-thinking-001';
+    const assistantText = 'REDACTED_THINKING_ASSISTANT_TEXT_MARKER_xyz';
+
+    sessions.createSessionWithRedactedThinking({ sessionId, assistantText });
+
+    await page.goto(`/${guildId}/session/${sessionId}`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    // Wait for replay to settle — the assistant text must be present.
+    await expect(page.getByText(assistantText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    // Assertion — an extended-thinking block with empty `thinking` text carries only a
+    // cryptographic signature. The orchestrator filters these empty items out of the
+    // assistant's content array so the renderer never produces an empty "THINKING" label.
+    // Bug symptom: bare "THINKING" boxes appeared throughout the chat because the raw
+    // redacted thinking items reached the ChatMessageWidget unfiltered.
+    await expect(page.getByText('THINKING', { exact: true })).toHaveCount(0);
+  });
+
   test('ERROR: old HTTP chat history endpoint returns 404', async ({ request }) => {
     const response = await request.get('/api/sessions/fake-session-id/chat/history');
 
