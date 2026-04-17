@@ -270,10 +270,19 @@ export const QuestSpecPanelWidget = ({
                     if (!nextApproval) {
                       return null;
                     }
+                    const hasPendingChaoswhisperer = quest.workItems.some(
+                      (wi) =>
+                        wi.role === 'chaoswhisperer' &&
+                        wi.status !== 'complete' &&
+                        wi.status !== 'skipped',
+                    );
+                    const approveDisabled =
+                      !hasQuestGateContentGuard({ quest, nextStatus: nextApproval }) ||
+                      (nextApproval === 'approved' && hasPendingChaoswhisperer);
                     return (
                       <PixelBtnWidget
                         label={APPROVE_LABEL}
-                        disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
+                        disabled={approveDisabled}
                         onClick={() => {
                           if (onModify) {
                             onModify({

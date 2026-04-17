@@ -209,6 +209,21 @@ export const questModifyBroker = async ({
               error: `Missing required content for transition to ${validated.status}`,
             });
           }
+
+          if (validated.status === 'approved') {
+            const pendingChaoswhisperer = quest.workItems.filter(
+              (workItem) =>
+                workItem.role === 'chaoswhisperer' &&
+                workItem.status !== 'complete' &&
+                workItem.status !== 'skipped',
+            );
+            if (pendingChaoswhisperer.length > 0) {
+              return modifyQuestResultContract.parse({
+                success: false,
+                error: `Cannot transition to approved: chaoswhisperer work item(s) still in progress. Wait for ChaosWhisperer (and gap-minion) to finish.`,
+              });
+            }
+          }
         }
 
         // Re-parse mutated quest through questContract so defaults (e.g., flow nodes'
