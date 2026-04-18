@@ -21,7 +21,10 @@ import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestrati
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { recoverableQuestStatusesStatics } from '../../../statics/recoverable-quest-statuses/recoverable-quest-statuses-statics';
+import {
+  isAnyAgentRunningQuestStatusGuard,
+  isRecoverableQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const RecoverGuildLayerResponder = async ({
@@ -41,8 +44,7 @@ export const RecoverGuildLayerResponder = async ({
     const startPath = filePathContract.parse(guild.path);
 
     const recoverableQuests = quests.filter((quest) => {
-      const isRecoverable = recoverableQuestStatusesStatics.some((s) => s === quest.status);
-      if (!isRecoverable) {
+      if (!isRecoverableQuestStatusGuard({ status: quest.status })) {
         return false;
       }
       const existingProcess = orchestrationProcessesState.findByQuestId({ questId: quest.id });
@@ -66,11 +68,14 @@ export const RecoverGuildLayerResponder = async ({
 
     await Promise.all(orphanResets);
 
-    // Insert pathseeker work items for in_progress quests that are missing them
+    // Insert pathseeker work items for any-agent-running quests (seek_* + in_progress)
+    // that are missing them — intent: quest has progressed past pathseeker spawn but is
+    // missing its pathseeker item — repair.
     const pathseekerInsertions = recoverableQuests
       .filter(
         (quest) =>
-          quest.status === 'in_progress' && !quest.workItems.some((wi) => wi.role === 'pathseeker'),
+          isAnyAgentRunningQuestStatusGuard({ status: quest.status }) &&
+          !quest.workItems.some((wi) => wi.role === 'pathseeker'),
       )
       .map(async (quest) => {
         const chatItemIds = quest.workItems

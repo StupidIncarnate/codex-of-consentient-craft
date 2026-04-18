@@ -7,19 +7,10 @@
  */
 
 import type { QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
-
-const PRE_EXECUTION_STATUSES = new Set<QuestStatus>([
-  'created',
-  'explore_flows',
-  'review_flows',
-  'flows_approved',
-  'explore_observables',
-  'review_observables',
-  'approved',
-  'explore_design',
-  'review_design',
-  'design_approved',
-]);
+import {
+  isPathseekerRunningQuestStatusGuard,
+  isPreExecutionQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 export const workItemsToQuestStatusTransformer = ({
   workItems,
@@ -28,11 +19,11 @@ export const workItemsToQuestStatusTransformer = ({
   workItems: WorkItem[];
   currentStatus: QuestStatus;
 }): QuestStatus => {
-  if (currentStatus.startsWith('seek_')) {
+  if (isPathseekerRunningQuestStatusGuard({ status: currentStatus })) {
     return currentStatus;
   }
 
-  if (PRE_EXECUTION_STATUSES.has(currentStatus)) {
+  if (isPreExecutionQuestStatusGuard({ status: currentStatus })) {
     return currentStatus;
   }
 

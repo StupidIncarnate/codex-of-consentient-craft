@@ -23,7 +23,7 @@ import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
+import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const OrchestrationStartResponder = async ({
@@ -40,8 +40,7 @@ export const OrchestrationStartResponder = async ({
 
   const { quest } = result;
 
-  const statusAllowed = startableQuestStatusesStatics.some((s) => s === quest.status);
-  if (!statusAllowed) {
+  if (!isStartableQuestStatusGuard({ status: quest.status })) {
     throw new Error(`Quest must be approved before starting. Current status: ${quest.status}`);
   }
 

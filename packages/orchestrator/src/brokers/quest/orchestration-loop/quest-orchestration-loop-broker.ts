@@ -19,6 +19,7 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -74,7 +75,7 @@ export const questOrchestrationLoopBroker = async ({
 
   // Paused quests must not spawn agents. User explicitly stopped execution;
   // resume happens via a status flip to 'in_progress' (auto-resume in quest-modify-responder).
-  if (quest.status === 'paused') {
+  if (isUserPausedQuestStatusGuard({ status: quest.status })) {
     return;
   }
 
