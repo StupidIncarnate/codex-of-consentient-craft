@@ -33,6 +33,7 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
+import { isQuestPauseableOrResumableGuard } from '../../guards/is-quest-pauseable-or-resumable/is-quest-pauseable-or-resumable-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
@@ -471,78 +472,66 @@ export const ExecutionPanelWidget = ({
               </>
             )}
           </AutoScrollContainerWidget>
-          {(quest.status === 'paused' ||
-            quest.status === 'in_progress' ||
-            quest.status === 'seek_scope' ||
-            quest.status === 'seek_synth' ||
-            quest.status === 'seek_walk' ||
-            quest.status === 'seek_plan') &&
-            onStatusChange && (
-              <Box
-                data-testid="execution-panel-action-bar"
-                style={{
-                  padding: ACTION_BAR_PADDING,
-                  borderTop: `1px solid ${colors.border}`,
-                  flexShrink: 0,
-                }}
-              >
-                <Group gap="xs">
-                  {(quest.status === 'in_progress' ||
-                    quest.status === 'seek_scope' ||
-                    quest.status === 'seek_synth' ||
-                    quest.status === 'seek_walk' ||
-                    quest.status === 'seek_plan') &&
-                    !confirmingAbandon &&
-                    onPause && (
-                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
-                        <PixelBtnWidget
-                          label={PAUSE_LABEL}
-                          onClick={() => {
-                            onPause();
-                          }}
-                        />
-                      </Box>
-                    )}
-                  {quest.status === 'paused' && !confirmingAbandon && (
-                    <Box data-testid="EXECUTION_RESUME_BUTTON">
-                      <PixelBtnWidget
-                        label={RESUME_LABEL}
-                        onClick={() => {
-                          onStatusChange({ status: 'in_progress' as QuestStatus });
-                        }}
-                      />
-                    </Box>
-                  )}
-                  {confirmingAbandon ? (
-                    <>
-                      <PixelBtnWidget
-                        label={CONFIRM_ABANDON_LABEL}
-                        variant={DANGER_VARIANT}
-                        onClick={() => {
-                          setConfirmingAbandon(false);
-                          onStatusChange({ status: 'abandoned' as QuestStatus });
-                        }}
-                      />
-                      <PixelBtnWidget
-                        label={CANCEL_LABEL}
-                        variant={GHOST_VARIANT}
-                        onClick={() => {
-                          setConfirmingAbandon(false);
-                        }}
-                      />
-                    </>
-                  ) : (
+          {isQuestPauseableOrResumableGuard({ status: quest.status }) && onStatusChange && (
+            <Box
+              data-testid="execution-panel-action-bar"
+              style={{
+                padding: ACTION_BAR_PADDING,
+                borderTop: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="xs">
+                {quest.status !== 'paused' && !confirmingAbandon && onPause && (
+                  <Box data-testid="EXECUTION_PAUSE_BUTTON">
                     <PixelBtnWidget
-                      label={ABANDON_LABEL}
-                      variant={GHOST_VARIANT}
+                      label={PAUSE_LABEL}
                       onClick={() => {
-                        setConfirmingAbandon(true);
+                        onPause();
                       }}
                     />
-                  )}
-                </Group>
-              </Box>
-            )}
+                  </Box>
+                )}
+                {quest.status === 'paused' && !confirmingAbandon && (
+                  <Box data-testid="EXECUTION_RESUME_BUTTON">
+                    <PixelBtnWidget
+                      label={RESUME_LABEL}
+                      onClick={() => {
+                        onStatusChange({ status: 'in_progress' as QuestStatus });
+                      }}
+                    />
+                  </Box>
+                )}
+                {confirmingAbandon ? (
+                  <>
+                    <PixelBtnWidget
+                      label={CONFIRM_ABANDON_LABEL}
+                      variant={DANGER_VARIANT}
+                      onClick={() => {
+                        setConfirmingAbandon(false);
+                        onStatusChange({ status: 'abandoned' as QuestStatus });
+                      }}
+                    />
+                    <PixelBtnWidget
+                      label={CANCEL_LABEL}
+                      variant={GHOST_VARIANT}
+                      onClick={() => {
+                        setConfirmingAbandon(false);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <PixelBtnWidget
+                    label={ABANDON_LABEL}
+                    variant={GHOST_VARIANT}
+                    onClick={() => {
+                      setConfirmingAbandon(true);
+                    }}
+                  />
+                )}
+              </Group>
+            </Box>
+          )}
         </Box>
       )}
     </Stack>
