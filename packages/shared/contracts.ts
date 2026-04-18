@@ -407,3 +407,15 @@ export * from './src/contracts/chat-entry/chat-entry.stub';
 // Ask User Question Contracts
 export * from './src/contracts/ask-user-question/ask-user-question-contract';
 export * from './src/contracts/ask-user-question/ask-user-question.stub';
+
+// Display Header Contracts
+export * from './src/contracts/display-header/display-header-contract';
+export * from './src/contracts/display-header/display-header.stub';
+
+// Quest Status Metadata Contracts
+export * from './src/contracts/quest-status-metadata/quest-status-metadata-contract';
+export * from './src/contracts/quest-status-metadata/quest-status-metadata.stub';
+
+// Work Item Status Metadata Contracts
+export * from './src/contracts/work-item-status-metadata/work-item-status-metadata-contract';
+export * from './src/contracts/work-item-status-metadata/work-item-status-metadata.stub';

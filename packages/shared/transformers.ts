@@ -63,3 +63,9 @@ export * from './src/transformers/inflate-xml-strings/inflate-xml-strings-transf
 
 // Safe JSON Parse
 export * from './src/transformers/safe-json-parse/safe-json-parse-transformer';
+
+// Next Approval Quest Status
+export * from './src/transformers/next-approval-quest-status/next-approval-quest-status-transformer';
+
+// Display Header Quest Status
+export * from './src/transformers/display-header-quest-status/display-header-quest-status-transformer';

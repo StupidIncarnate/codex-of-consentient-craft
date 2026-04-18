@@ -18,3 +18,5 @@ export * from './src/statics/text-display-symbols/text-display-symbols-statics';
 export * from './src/statics/outcome-type-descriptions/outcome-type-descriptions-statics';
 export * from './src/statics/project-map/project-map-statics';
 export * from './src/statics/session-snippet/session-snippet-statics';
+export * from './src/statics/quest-status-metadata/quest-status-metadata-statics';
+export * from './src/statics/work-item-status-metadata/work-item-status-metadata-statics';
