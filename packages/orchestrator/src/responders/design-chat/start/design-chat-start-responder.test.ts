@@ -82,7 +82,7 @@ describe('DesignChatStartResponder', () => {
 
       await expect(
         proxy.callResponder({ guildId, questId, message: 'Create prototype' }),
-      ).rejects.toThrow(/Quest must be in a design status/u);
+      ).rejects.toThrow(/Quest must be in a design phase/u);
     });
   });
 });

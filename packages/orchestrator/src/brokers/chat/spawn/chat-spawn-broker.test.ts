@@ -707,7 +707,7 @@ describe('chatSpawnBroker', () => {
           onComplete: jest.fn(),
           registerProcess: jest.fn(),
         }),
-      ).rejects.toThrow(/Quest must be in a design status/u);
+      ).rejects.toThrow(/Quest must be in a design phase/u);
     });
 
     it('ERROR: {glyphsmith + quest in created status} => throws', async () => {

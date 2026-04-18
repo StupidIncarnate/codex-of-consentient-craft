@@ -21,6 +21,7 @@ describe('StartEslintPlugin', () => {
         'ban-primitives',
         'ban-silent-catch',
         'ban-startup-branching',
+        'ban-status-string-comparisons',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
         'ban-typeof-assertions',

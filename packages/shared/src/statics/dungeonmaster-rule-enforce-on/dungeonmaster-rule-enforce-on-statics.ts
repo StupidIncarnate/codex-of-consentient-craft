@@ -73,6 +73,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-object-keys-in-expect': 'pre-edit',
   '@dungeonmaster/ban-string-includes-in-expect': 'pre-edit',
   '@dungeonmaster/ban-weak-asymmetric-matchers': 'pre-edit',
+  '@dungeonmaster/ban-status-string-comparisons': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

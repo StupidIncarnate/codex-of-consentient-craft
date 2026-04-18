@@ -273,7 +273,10 @@ Each phase = its own PR; ward green between phases.
    > - `work-items-to-quest-status-transformer.ts:39` (pending filter) → `isPendingWorkItemStatusGuard`
    > - `work-items-to-quest-status-transformer.ts:41` (failed filter) → `isFailureWorkItemStatusGuard`
    > Added a 7th work-item guard (`isFailureWorkItemStatusGuard`) — the `isFailure` metadata flag was already present on every row, so this is a completeness fix not a semantic expansion. Plan's "6 work-item guards" count is now 7.
-8. **Cleanup + Lint rule landing** — delete legacy orchestrator statics (auto-resumable, recoverable, startable), delete legacy web guards (isExecutionPhaseGuard, isQuestPauseableOrResumableGuard), delete Phase-2 consistency test. **Now** land the ESLint rule (see Enforcement §1) — all pre-existing violations are already gone, so the rule lands green.
+8. [x] **Cleanup + Lint rule landing** — delete legacy orchestrator statics (auto-resumable, recoverable, startable), delete legacy web guards (isExecutionPhaseGuard, isQuestPauseableOrResumableGuard), delete Phase-2 consistency test. **Now** land the ESLint rule (see Enforcement §1) — all pre-existing violations are already gone, so the rule lands green.
+   > Note: ESLint rule uncovered 3 more genuine missed migrations when first applied: `orchestration-start-responder` (inline `!== 'complete' && !== 'failed'` → `!isTerminalWorkItemStatusGuard`), `work-items-to-floor-groups-transformer` (`!== 'skipped'` → `!isSkippedWorkItemStatusGuard`), `chat-spawn-broker` (`questStatics.designStatuses.allowed.some(...)` → `isDesignPhaseQuestStatusGuard` + removed the now-empty `designStatuses` static). All fixed as part of landing the rule. Proves the enforcement catches real drift.
+   > Note: Fixed two eslint-plugin integration tests that asserted a hardcoded sorted list of plugin rule names — added `'ban-status-string-comparisons'` alphabetically.
+   > Side find: `npm run ward -- detail <runId>` crashes with `undefined is not an object (evaluating 'H.replace')`. Outside this phase's scope. Worth a separate ward fix.
 
 ---
 

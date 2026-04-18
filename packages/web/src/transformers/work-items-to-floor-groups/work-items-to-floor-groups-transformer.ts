@@ -7,6 +7,7 @@
  */
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import { isSkippedWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { FloorGroup } from '../../contracts/floor-group/floor-group-contract';
 import { floorGroupContract } from '../../contracts/floor-group/floor-group-contract';
@@ -28,7 +29,7 @@ export const workItemsToFloorGroupsTransformer = ({
   allWorkItems?: WorkItem[];
 }): FloorGroup[] => {
   const unfilteredItems = allWorkItems ?? workItems;
-  const filtered = workItems.filter((wi) => wi.status !== 'skipped');
+  const filtered = workItems.filter((wi) => !isSkippedWorkItemStatusGuard({ status: wi.status }));
 
   if (filtered.length === 0) return [];
 

@@ -92,8 +92,47 @@ interface RecursiveNodeOutput {
   elementType?: RecursiveNodeOutput | null | undefined;
   // ArrayExpression properties
   elements?: (RecursiveNodeOutput | null)[] | undefined;
-  // UnaryExpression properties
-  operator?: 'typeof' | 'void' | 'delete' | '!' | '-' | '+' | '~' | undefined;
+  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
+  operator?:
+    | 'typeof'
+    | 'void'
+    | 'delete'
+    | '!'
+    | '-'
+    | '+'
+    | '~'
+    | '=='
+    | '!='
+    | '==='
+    | '!=='
+    | '<'
+    | '<='
+    | '>'
+    | '>='
+    | '<<'
+    | '>>'
+    | '>>>'
+    | '*'
+    | '/'
+    | '%'
+    | '**'
+    | '|'
+    | '^'
+    | '&'
+    | '&&'
+    | '||'
+    | '??'
+    | 'in'
+    | 'instanceof'
+    | undefined;
+  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
+  right?: RecursiveNodeOutput | null | undefined;
+  // SwitchStatement properties
+  discriminant?: RecursiveNodeOutput | null | undefined;
+  cases?: RecursiveNodeOutput[] | undefined;
+  // SwitchCase properties
+  test?: RecursiveNodeOutput | null | undefined;
+  consequent?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
@@ -161,8 +200,47 @@ interface RecursiveNodeInput {
   elementType?: RecursiveNodeInput | null | undefined;
   // ArrayExpression properties
   elements?: (RecursiveNodeInput | null)[] | undefined;
-  // UnaryExpression properties
-  operator?: 'typeof' | 'void' | 'delete' | '!' | '-' | '+' | '~' | undefined;
+  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
+  operator?:
+    | 'typeof'
+    | 'void'
+    | 'delete'
+    | '!'
+    | '-'
+    | '+'
+    | '~'
+    | '=='
+    | '!='
+    | '==='
+    | '!=='
+    | '<'
+    | '<='
+    | '>'
+    | '>='
+    | '<<'
+    | '>>'
+    | '>>>'
+    | '*'
+    | '/'
+    | '%'
+    | '**'
+    | '|'
+    | '^'
+    | '&'
+    | '&&'
+    | '||'
+    | '??'
+    | 'in'
+    | 'instanceof'
+    | undefined;
+  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
+  right?: RecursiveNodeInput | null | undefined;
+  // SwitchStatement properties
+  discriminant?: RecursiveNodeInput | null | undefined;
+  cases?: RecursiveNodeInput[] | undefined;
+  // SwitchCase properties
+  test?: RecursiveNodeInput | null | undefined;
+  consequent?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
@@ -295,8 +373,61 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .optional(),
   // ArrayExpression properties
   elements: z.array(z.lazy(() => recursiveBase).nullable()).optional(),
-  // UnaryExpression properties
-  operator: z.enum(['typeof', 'void', 'delete', '!', '-', '+', '~']).optional(),
+  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
+  operator: z
+    .enum([
+      'typeof',
+      'void',
+      'delete',
+      '!',
+      '-',
+      '+',
+      '~',
+      '==',
+      '!=',
+      '===',
+      '!==',
+      '<',
+      '<=',
+      '>',
+      '>=',
+      '<<',
+      '>>',
+      '>>>',
+      '*',
+      '/',
+      '%',
+      '**',
+      '|',
+      '^',
+      '&',
+      '&&',
+      '||',
+      '??',
+      'in',
+      'instanceof',
+    ])
+    .optional(),
+  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
+  right: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  // SwitchStatement properties
+  discriminant: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  cases: z.array(z.lazy(() => recursiveBase)).optional(),
+  // SwitchCase properties
+  test: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  consequent: z
+    .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
+    .nullable()
+    .optional(),
   // Literal regex properties
   regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
@@ -366,8 +497,52 @@ export const tsestreeContract = z.object({
   elementType: recursiveBase.nullable().optional(),
   // ArrayExpression properties
   elements: z.array(recursiveBase.nullable()).optional(),
-  // UnaryExpression properties
-  operator: z.enum(['typeof', 'void', 'delete', '!', '-', '+', '~']).optional(),
+  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
+  operator: z
+    .enum([
+      'typeof',
+      'void',
+      'delete',
+      '!',
+      '-',
+      '+',
+      '~',
+      '==',
+      '!=',
+      '===',
+      '!==',
+      '<',
+      '<=',
+      '>',
+      '>=',
+      '<<',
+      '>>',
+      '>>>',
+      '*',
+      '/',
+      '%',
+      '**',
+      '|',
+      '^',
+      '&',
+      '&&',
+      '||',
+      '??',
+      'in',
+      'instanceof',
+    ])
+    .optional(),
+  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
+  right: recursiveBase.nullable().optional(),
+  // SwitchStatement properties
+  discriminant: recursiveBase.nullable().optional(),
+  cases: z.array(recursiveBase).optional(),
+  // SwitchCase properties
+  test: recursiveBase.nullable().optional(),
+  consequent: z
+    .union([recursiveBase, z.array(recursiveBase)])
+    .nullable()
+    .optional(),
   // Literal regex properties
   regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
 });
