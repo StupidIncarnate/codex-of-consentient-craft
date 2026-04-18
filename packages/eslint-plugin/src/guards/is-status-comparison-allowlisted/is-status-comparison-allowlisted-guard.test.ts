@@ -24,7 +24,6 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/shared/src/transformers/next-approval-quest-status/next-approval-quest-status-transformer.ts',
       '/repo/packages/shared/src/transformers/display-header-quest-status/display-header-quest-status-transformer.ts',
       '/repo/packages/orchestrator/src/statics/quest-status-transitions/quest-status-transitions-statics.ts',
-      '/repo/packages/web/src/guards/is-design-start-visible/is-design-start-visible-guard.ts',
     ] as const)('VALID: {filename: %s} => returns true', (filename) => {
       expect(isStatusComparisonAllowlistedGuard({ filename })).toBe(true);
     });
@@ -85,6 +84,8 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts',
       '/repo/packages/server/src/responders/quest/get/quest-get-responder.ts',
       '/repo/packages/web/src/guards/is-design-tab-visible/is-design-tab-visible-guard.ts',
+      '/repo/packages/web/src/guards/is-design-start-visible/is-design-start-visible-guard.ts',
+      '/repo/packages/server/src/responders/design/start/design-start-responder.ts',
     ] as const)('EMPTY: {filename: %s} => returns false', (filename) => {
       expect(isStatusComparisonAllowlistedGuard({ filename })).toBe(false);
     });

@@ -70,9 +70,7 @@ describe('statusLiteralStatics', () => {
         '/packages/shared/src/transformers/next-approval-quest-status/',
         '/packages/shared/src/transformers/display-header-quest-status/',
         '/packages/orchestrator/src/statics/quest-status-transitions/',
-        '/packages/web/src/guards/is-design-start-visible/',
         '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
-        '/packages/server/src/responders/design/start/',
       ]);
     });
   });

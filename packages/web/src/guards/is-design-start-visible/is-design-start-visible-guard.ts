@@ -3,10 +3,11 @@
  *
  * USAGE:
  * isDesignStartVisibleGuard({quest: questData});
- * // Returns true when quest is approved and needs design prototyping
+ * // Returns true when quest is in a startable status (approved or design_approved) and needs design prototyping
  */
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
+import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 export const isDesignStartVisibleGuard = ({
   quest,
@@ -17,5 +18,5 @@ export const isDesignStartVisibleGuard = ({
     return false;
   }
 
-  return quest.status === 'approved' && quest.needsDesign;
+  return isStartableQuestStatusGuard({ status: quest.status }) && quest.needsDesign;
 };

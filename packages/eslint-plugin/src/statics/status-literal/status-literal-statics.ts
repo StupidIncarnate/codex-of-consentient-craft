@@ -37,12 +37,8 @@ export const statusLiteralStatics = {
     '/packages/shared/src/transformers/next-approval-quest-status/',
     '/packages/shared/src/transformers/display-header-quest-status/',
     '/packages/orchestrator/src/statics/quest-status-transitions/',
-    // Plan Locked Decision #5: audit confirmed this guard's single-literal 'approved' check is correct post-split.
-    '/packages/web/src/guards/is-design-start-visible/',
     // Plan per-site table (line 215): case-dispatch on nextStatus from explicit source status — not a membership read.
     '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
-    // Design-start gate mirrors is-design-start-visible-guard (Locked Decision #5) — exact 'approved' identity.
-    '/packages/server/src/responders/design/start/',
   ],
   // Path regex fragments — guard matches filenames ending in these forms.
   allowlistPathRegexSources: [
