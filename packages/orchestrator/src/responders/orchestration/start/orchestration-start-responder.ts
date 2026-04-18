@@ -13,6 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -44,7 +45,12 @@ export const OrchestrationStartResponder = async ({
   const { quest } = result;
 
   if (!isStartableQuestStatusGuard({ status: quest.status })) {
-    throw new Error(`Quest must be approved before starting. Current status: ${quest.status}`);
+    const startableStatuses = Object.entries(questStatusMetadataStatics.statuses)
+      .filter(([, meta]) => meta.isStartable)
+      .map(([statusName]) => statusName);
+    throw new Error(
+      `Quest must be in a startable status (${startableStatuses.join(' or ')}). Current status: ${quest.status}`,
+    );
   }
 
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });

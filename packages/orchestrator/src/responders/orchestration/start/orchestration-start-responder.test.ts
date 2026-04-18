@@ -30,14 +30,14 @@ describe('OrchestrationStartResponder', () => {
       );
     });
 
-    it('ERROR: {questId with non-approved quest} => throws status error', async () => {
+    it('ERROR: {questId with non-approved quest} => throws status error listing startable statuses', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'created' });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupQuestNotApproved({ quest });
 
       await expect(proxy.callResponder({ questId })).rejects.toThrow(
-        /Quest must be approved before starting\. Current status: created/u,
+        /Quest must be in a startable status \(approved or design_approved\)\. Current status: created/u,
       );
     });
 
@@ -52,14 +52,14 @@ describe('OrchestrationStartResponder', () => {
       expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
-    it('ERROR: {questId with in_progress quest} => throws status error', async () => {
+    it('ERROR: {questId with in_progress quest} => throws status error listing startable statuses', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupQuestNotApproved({ quest });
 
       await expect(proxy.callResponder({ questId })).rejects.toThrow(
-        /Quest must be approved before starting\. Current status: in_progress/u,
+        /Quest must be in a startable status \(approved or design_approved\)\. Current status: in_progress/u,
       );
     });
   });

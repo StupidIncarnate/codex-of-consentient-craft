@@ -69,7 +69,7 @@ describe('OrchestrationFlow', () => {
       ).rejects.toThrow(/Quest not found: nonexistent-quest-id/u);
     });
 
-    it('ERROR: {non-approved quest} => start throws quest must be approved before starting', async () => {
+    it('ERROR: {non-approved quest} => start throws quest must be in a startable status', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestration-non-approved' }),
       });
@@ -87,7 +87,7 @@ describe('OrchestrationFlow', () => {
       });
 
       await expect(OrchestrationFlow.start({ questId: addResult.questId! })).rejects.toThrow(
-        /Quest must be approved before starting/u,
+        /Quest must be in a startable status \(approved or design_approved\)/u,
       );
 
       testbed.cleanup();
