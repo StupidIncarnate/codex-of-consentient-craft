@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Maps quest and step statuses to Mantine color names for badges and indicators
+ * PURPOSE: Maps quest and work-item statuses to Mantine color names for badges and indicators
  *
  * USAGE:
  * questStatusColorsStatics.status.complete;
  * // Returns 'green'
+ * questStatusColorsStatics.workItemStatus.failed;
+ * // Returns 'red'
  */
 
 export const questStatusColorsStatics = {
@@ -15,7 +17,6 @@ export const questStatusColorsStatics = {
     flows_approved: 'green',
     explore_observables: 'cyan',
     review_observables: 'yellow',
-    proposed: 'yellow',
     explore_design: 'violet',
     review_design: 'yellow',
     design_approved: 'green',
@@ -24,15 +25,18 @@ export const questStatusColorsStatics = {
     seek_synth: 'violet',
     seek_walk: 'grape',
     seek_plan: 'pink',
-    deferred: 'gray',
-    ready: 'blue',
+    in_progress: 'cyan',
+    complete: 'green',
+    paused: 'yellow',
+    blocked: 'orange',
+    abandoned: 'red',
+  },
+  workItemStatus: {
+    pending: 'yellow',
     in_progress: 'cyan',
     complete: 'green',
     failed: 'red',
-    paused: 'yellow',
-    blocked: 'orange',
-    partially_complete: 'teal',
-    abandoned: 'red',
+    skipped: 'gray',
   },
   contractStatus: {
     new: 'blue',

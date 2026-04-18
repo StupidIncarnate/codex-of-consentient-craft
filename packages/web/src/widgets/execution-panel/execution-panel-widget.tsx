@@ -36,6 +36,7 @@ import type { TotalCount } from '../../contracts/total-count/total-count-contrac
 import {
   isQuestPauseableQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
+  isTerminalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
@@ -87,7 +88,7 @@ export const ExecutionPanelWidget = ({
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
-  const isTerminalQuest = quest.status === 'complete' || quest.status === 'abandoned';
+  const isTerminalQuest = isTerminalQuestStatusGuard({ status: quest.status });
   const isPlanning = steps.length === 0 && !isTerminalQuest;
   const hasWorkItemsOnly = steps.length === 0 && isTerminalQuest && quest.workItems.length > 0;
 

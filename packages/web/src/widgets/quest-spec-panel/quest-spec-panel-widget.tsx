@@ -12,6 +12,10 @@ import { Box, Group, Stack, Text } from '@mantine/core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
+import {
+  displayHeaderQuestStatusTransformer,
+  nextApprovalQuestStatusTransformer,
+} from '@dungeonmaster/shared/transformers';
 
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
@@ -22,7 +26,6 @@ import type { FormPlaceholder } from '../../contracts/form-placeholder/form-plac
 import type { GateSectionKey } from '../../contracts/gate-section-key/gate-section-key-contract';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { questGateSectionsStatics } from '../../statics/quest-gate-sections/quest-gate-sections-statics';
 
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -164,7 +167,7 @@ export const QuestSpecPanelWidget = ({
           style={{ color: colors.primary }}
           data-testid="PANEL_HEADER"
         >
-          {editing ? 'EDITING SPEC' : questGateSectionsStatics.headers[quest.status]}
+          {editing ? 'EDITING SPEC' : displayHeaderQuestStatusTransformer({ status: quest.status })}
         </Text>
 
         {quest.userRequest ? (
@@ -266,7 +269,9 @@ export const QuestSpecPanelWidget = ({
               ) : (
                 <>
                   {(() => {
-                    const nextApproval = questGateSectionsStatics.nextApprovalStatus[quest.status];
+                    const nextApproval = nextApprovalQuestStatusTransformer({
+                      status: quest.status,
+                    });
                     if (!nextApproval) {
                       return null;
                     }
