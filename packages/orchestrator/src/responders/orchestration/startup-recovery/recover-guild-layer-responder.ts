@@ -53,7 +53,9 @@ export const RecoverGuildLayerResponder = async ({
       return !existingProcess;
     });
 
-    // Reset orphaned in_progress work items to pending (their processes died on restart)
+    // Reset orphaned active work items to pending across every recoverable quest status
+    // (in_progress AND seek_* planning phases). Their processes died on restart, so the
+    // orchestration loop needs to re-dispatch them.
     const orphanResets = recoverableQuests
       .filter((quest) =>
         quest.workItems.some((wi) => isActiveWorkItemStatusGuard({ status: wi.status })),
