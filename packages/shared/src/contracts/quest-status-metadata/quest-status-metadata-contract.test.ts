@@ -22,6 +22,7 @@ describe('questStatusMetadataContract', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: 'flows_approved',
+        previousReviewStatus: null,
         displayHeader: DisplayHeaderStub({ value: 'FLOWS APPROVED' }),
       });
 
@@ -42,6 +43,7 @@ describe('questStatusMetadataContract', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: 'flows_approved',
+        previousReviewStatus: null,
         displayHeader: 'FLOWS APPROVED',
       });
     });
@@ -64,6 +66,7 @@ describe('questStatusMetadataContract', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: DisplayHeaderStub({ value: 'IN PROGRESS' }),
       });
 
@@ -90,6 +93,7 @@ describe('questStatusMetadataContract', () => {
           isDesignPhase: false,
           shouldRenderExecutionPanel: false,
           nextApprovalStatus: null,
+          previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
       ).toThrow('Required');
@@ -114,6 +118,7 @@ describe('questStatusMetadataContract', () => {
           isDesignPhase: false,
           shouldRenderExecutionPanel: false,
           nextApprovalStatus: null,
+          previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
       ).toThrow('Expected boolean, received string');
@@ -138,6 +143,7 @@ describe('questStatusMetadataContract', () => {
           isDesignPhase: false,
           shouldRenderExecutionPanel: false,
           nextApprovalStatus: 'not_a_real_status',
+          previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
       ).toThrow('Invalid enum value');
@@ -165,6 +171,7 @@ describe('questStatusMetadataContract', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'QUEST CREATED',
       });
     });

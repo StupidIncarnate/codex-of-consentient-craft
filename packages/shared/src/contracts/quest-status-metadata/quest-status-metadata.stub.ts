@@ -26,6 +26,7 @@ export const QuestStatusMetadataStub = ({
     isDesignPhase: false,
     shouldRenderExecutionPanel: false,
     nextApprovalStatus: null,
+    previousReviewStatus: null,
     displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
     ...props,
   });

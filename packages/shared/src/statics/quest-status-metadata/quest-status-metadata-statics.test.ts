@@ -51,6 +51,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'IN PROGRESS',
       });
     });
@@ -73,6 +74,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'SEEK SCOPE',
       });
     });
@@ -95,6 +97,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: 'review_observables',
         displayHeader: 'SPEC APPROVED',
       });
     });
@@ -117,6 +120,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: 'flows_approved',
+        previousReviewStatus: null,
         displayHeader: 'FLOW APPROVAL',
       });
     });
@@ -139,6 +143,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: 'approved',
+        previousReviewStatus: null,
         displayHeader: 'OBSERVABLES APPROVAL',
       });
     });
@@ -161,6 +166,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: true,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: 'design_approved',
+        previousReviewStatus: null,
         displayHeader: 'DESIGN APPROVAL',
       });
     });
@@ -183,6 +189,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXECUTION PAUSED',
       });
     });
@@ -205,6 +212,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXECUTION COMPLETE',
       });
     });
@@ -227,6 +235,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'ABANDONED',
       });
     });
@@ -249,6 +258,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXECUTION BLOCKED',
       });
     });
@@ -271,6 +281,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'QUEST CREATED',
       });
     });
@@ -293,6 +304,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'QUEST CREATED',
       });
     });
@@ -315,6 +327,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXPLORING FLOWS',
       });
     });
@@ -337,6 +350,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: 'review_flows',
         displayHeader: 'FLOWS APPROVED',
       });
     });
@@ -359,6 +373,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXPLORING OBSERVABLES',
       });
     });
@@ -381,6 +396,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: true,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'EXPLORING DESIGN',
       });
     });
@@ -403,6 +419,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: true,
         shouldRenderExecutionPanel: false,
         nextApprovalStatus: null,
+        previousReviewStatus: 'review_design',
         displayHeader: 'DESIGN APPROVED',
       });
     });
@@ -425,6 +442,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'SEEK SYNTH',
       });
     });
@@ -447,6 +465,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'SEEK WALK',
       });
     });
@@ -469,6 +488,7 @@ describe('questStatusMetadataStatics', () => {
         isDesignPhase: false,
         shouldRenderExecutionPanel: true,
         nextApprovalStatus: null,
+        previousReviewStatus: null,
         displayHeader: 'SEEK PLAN',
       });
     });

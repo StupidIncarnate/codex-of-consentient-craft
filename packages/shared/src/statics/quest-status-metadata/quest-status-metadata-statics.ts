@@ -25,6 +25,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'QUEST CREATED',
     },
     pending: {
@@ -44,6 +45,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'QUEST CREATED',
     },
     explore_flows: {
@@ -63,6 +65,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXPLORING FLOWS',
     },
     review_flows: {
@@ -82,6 +85,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: 'flows_approved',
+      previousReviewStatus: null,
       displayHeader: 'FLOW APPROVAL',
     },
     flows_approved: {
@@ -101,6 +105,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: 'review_flows',
       displayHeader: 'FLOWS APPROVED',
     },
     explore_observables: {
@@ -120,6 +125,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXPLORING OBSERVABLES',
     },
     review_observables: {
@@ -139,6 +145,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: 'approved',
+      previousReviewStatus: null,
       displayHeader: 'OBSERVABLES APPROVAL',
     },
     approved: {
@@ -158,6 +165,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: 'review_observables',
       displayHeader: 'SPEC APPROVED',
     },
     explore_design: {
@@ -177,6 +185,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: true,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXPLORING DESIGN',
     },
     review_design: {
@@ -196,6 +205,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: true,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: 'design_approved',
+      previousReviewStatus: null,
       displayHeader: 'DESIGN APPROVAL',
     },
     design_approved: {
@@ -215,6 +225,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: true,
       shouldRenderExecutionPanel: false,
       nextApprovalStatus: null,
+      previousReviewStatus: 'review_design',
       displayHeader: 'DESIGN APPROVED',
     },
     seek_scope: {
@@ -234,6 +245,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'SEEK SCOPE',
     },
     seek_synth: {
@@ -253,6 +265,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'SEEK SYNTH',
     },
     seek_walk: {
@@ -272,6 +285,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'SEEK WALK',
     },
     seek_plan: {
@@ -291,6 +305,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'SEEK PLAN',
     },
     in_progress: {
@@ -310,6 +325,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'IN PROGRESS',
     },
     paused: {
@@ -329,6 +345,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXECUTION PAUSED',
     },
     blocked: {
@@ -348,6 +365,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXECUTION BLOCKED',
     },
     complete: {
@@ -367,6 +385,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'EXECUTION COMPLETE',
     },
     abandoned: {
@@ -386,6 +405,7 @@ export const questStatusMetadataStatics = {
       isDesignPhase: false,
       shouldRenderExecutionPanel: true,
       nextApprovalStatus: null,
+      previousReviewStatus: null,
       displayHeader: 'ABANDONED',
     },
   },

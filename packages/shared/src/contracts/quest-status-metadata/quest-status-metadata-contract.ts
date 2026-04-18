@@ -23,11 +23,19 @@ export const questStatusMetadataContract = z.object({
   isResumable: z.boolean(),
   isStartable: z.boolean(),
   isRecoverable: z.boolean(),
+  /**
+   * On restart, the recovery responder re-launches the orchestration loop for
+   * quests in this status and resets orphaned `in_progress` work items to
+   * `pending`. No quest status transition happens — it's stateless recovery.
+   *
+   * Currently only `in_progress` sets this flag to true.
+   */
   isAutoResumable: z.boolean(),
   isGateApproved: z.boolean(),
   isDesignPhase: z.boolean(),
   shouldRenderExecutionPanel: z.boolean(),
   nextApprovalStatus: questStatusContract.nullable(),
+  previousReviewStatus: questStatusContract.nullable(),
   displayHeader: displayHeaderContract,
 });
 

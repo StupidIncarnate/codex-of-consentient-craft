@@ -38,6 +38,7 @@ import {
   isGateApprovedQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
@@ -287,13 +288,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const questWithContent = questData;
 
   const approvedReviewStatus: QuestStatus | null =
-    questData !== null && isGateApprovedQuestStatusGuard({ status: questData.status })
-      ? questData.status === 'design_approved'
-        ? ('explore_design' as QuestStatus)
-        : questData.status === 'approved'
-          ? ('review_observables' as QuestStatus)
-          : null
-      : null;
+    questData === null ? null : previousReviewQuestStatusTransformer({ status: questData.status });
 
   const sessionEntriesMap = useMemo(() => {
     const map = new Map<SessionId, ChatEntry[]>(workItemSessionEntries);
@@ -555,12 +550,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
                           message:
                             'Flows approved. Proceed to observables and contracts.' as UserInput,
                         });
-                      } else if (nextStatus === 'approved') {
-                        // Do NOT send a chat message on approval. The ChaosWhisperer's response
-                        // can call modify-quest MCP and revert the status before the user clicks
-                        // Begin Quest — causing a silent race condition where the start POST fails.
-                      } else if (nextStatus === 'design_approved') {
-                        // Same as approved — do not trigger a chat response that could revert status.
+                      } else if (
+                        nextStatus !== undefined &&
+                        isGateApprovedQuestStatusGuard({ status: nextStatus as QuestStatus })
+                      ) {
+                        // Other gate-approved statuses (approved, design_approved):
+                        // Do NOT send a chat message. The ChaosWhisperer's response can call
+                        // modify-quest MCP and revert the status before the user clicks Begin
+                        // Quest — causing a silent race condition where the start POST fails.
                       }
                     })
                     .catch((error: unknown) => {
