@@ -65,7 +65,7 @@ describe('QuestFlow', () => {
   });
 
   describe('POST /api/quests/:questId/start', () => {
-    it('VALID: {questId} => delegates to QuestStartResponder and returns response', async () => {
+    it('VALID: {questId without matching quest} => delegates to QuestStartResponder and returns 400 quest-not-found', async () => {
       const app = QuestFlow();
       const questId = QuestIdStub();
 
@@ -74,8 +74,9 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
+      expect(response.status).toBe(400);
       expect(harness.toPlain(body)).toStrictEqual({
-        error: expect.stringMatching(/^Quest not found: add-auth$/u),
+        error: 'Quest not found',
       });
     });
   });
