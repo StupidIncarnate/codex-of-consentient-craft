@@ -186,7 +186,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('action bar', () => {
-    it('VALID: {blocked quest with onStatusChange} => does not show action bar', () => {
+    it('VALID: {blocked quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onStatusChange = jest.fn();
@@ -195,7 +195,11 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
-      expect(proxy.hasActionBar()).toBe(false);
+      expect(proxy.hasActionBar()).toBe(true);
+
+      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+
+      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
     });
 
     it('VALID: {paused quest with onStatusChange} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
@@ -2282,25 +2286,32 @@ describe('ExecutionPanelWidget', () => {
       );
     });
 
-    describe('RESUME button visible (paused only)', () => {
-      it('VALID: {status: paused} => RESUME button visible, PAUSE button not visible', () => {
-        const proxy = ExecutionPanelWidgetProxy();
-        const quest: Quest = QuestStub({ status: 'paused' });
-        const onStatusChange = jest.fn();
-        const onPause = jest.fn();
+    describe('RESUME button visible (paused and blocked)', () => {
+      it.each([{ status: 'paused' }, { status: 'blocked' }] as const)(
+        'VALID: {status: $status} => RESUME button visible, PAUSE button not visible',
+        ({ status }) => {
+          const proxy = ExecutionPanelWidgetProxy();
+          const quest: Quest = QuestStub({ status });
+          const onStatusChange = jest.fn();
+          const onPause = jest.fn();
 
-        mantineRenderAdapter({
-          ui: (
-            <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
-          ),
-        });
+          mantineRenderAdapter({
+            ui: (
+              <ExecutionPanelWidget
+                quest={quest}
+                onStatusChange={onStatusChange}
+                onPause={onPause}
+              />
+            ),
+          });
 
-        expect(proxy.hasResumeButton()).toBe(true);
-        expect(proxy.hasPauseButton()).toBe(false);
-      });
+          expect(proxy.hasResumeButton()).toBe(true);
+          expect(proxy.hasPauseButton()).toBe(false);
+        },
+      );
     });
 
-    describe('no pause/resume buttons (pre-execution, blocked, terminal)', () => {
+    describe('no pause/resume buttons (pre-execution, terminal)', () => {
       it.each([
         { status: 'pending' },
         { status: 'created' },
@@ -2313,7 +2324,6 @@ describe('ExecutionPanelWidget', () => {
         { status: 'explore_design' },
         { status: 'review_design' },
         { status: 'design_approved' },
-        { status: 'blocked' },
         { status: 'complete' },
         { status: 'abandoned' },
       ] as const)(

@@ -262,7 +262,7 @@ Each phase = its own PR; ward green between phases.
 3. [x] **Move existing** — `questStatusTransitionsStatics` + `isRecoverableQuestStatusGuard` → shared; update imports. Rebuild shared before rebuilding orchestrator.
    > Note: ward `--changed` currently crashes on deleted files (non-existent paths leak into ESLint's file-arg list). Not a Phase-3 defect — full `ward -- --only lint` passes. Worth a standalone ward fix before Phase 8's bigger deletion wave.
 4. [x] **Orchestrator reads** — all orchestrator quest-status literal swaps per migration table, including Fix 2 (`recover-guild-layer-responder.ts:73` → `isAnyAgentRunningQuestStatusGuard`).
-5. **Web Fix 4 + Fix 5** — split web's execution-phase + pauseable guards into the two shared guards each; migrate quest-chat-widget + execution-panel callers per the per-line mapping.
+5. [x] **Web Fix 4 + Fix 5** — split web's execution-phase + pauseable guards into the two shared guards each; migrate quest-chat-widget + execution-panel callers per the per-line mapping.
 6. **Remaining web reads + presentation cleanup** — terminal check in execution-panel, design-tab delegation, color statics split, gate-sections headers/nextApprovalStatus deletion (now served by transformers).
 7. **Work-item reads** — swap all `wi.status === …` reads per the per-site table.
 8. **Cleanup + Lint rule landing** — delete legacy orchestrator statics (auto-resumable, recoverable, startable), delete legacy web guards (isExecutionPhaseGuard, isQuestPauseableOrResumableGuard), delete Phase-2 consistency test. **Now** land the ESLint rule (see Enforcement §1) — all pre-existing violations are already gone, so the rule lands green.

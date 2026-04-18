@@ -1200,6 +1200,50 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasExecutionPanel()).toBe(false);
       expect(proxy.hasDumpsterRaccoon()).toBe(false);
     });
+
+    it.each([{ status: 'complete' }, { status: 'abandoned' }] as const)(
+      'VALID: {quest with terminal status: $status} => renders execution panel for audit view',
+      async ({ status }) => {
+        const proxy = QuestChatWidgetProxy();
+        const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+        const quest = QuestStub({
+          id: `chat-terminal-${status}`,
+          status,
+        });
+        const guildDetail = GuildStub({ id: guild.id });
+
+        proxy.setupGuilds({ guilds: [guild] });
+        proxy.setupGuild({ guild: guildDetail });
+
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter
+              initialEntries={[
+                {
+                  pathname: `/test-guild/session/chat-terminal-${status}`,
+                  state: { questId: quest.id },
+                },
+              ]}
+            >
+              <Routes>
+                <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+
+        act(() => {
+          proxy.setupQuest({ quest });
+        });
+
+        await waitFor(() => {
+          expect(proxy.hasExecutionPanel()).toBe(true);
+        });
+
+        expect(proxy.hasChatPanel()).toBe(false);
+        expect(proxy.hasSpecPanel()).toBe(false);
+      },
+    );
   });
 
   describe('live sessionId routing in execution phase', () => {
