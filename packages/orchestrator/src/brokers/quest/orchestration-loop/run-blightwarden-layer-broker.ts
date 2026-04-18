@@ -21,6 +21,7 @@ import {
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
+import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
@@ -130,7 +131,7 @@ export const runBlightwardenLayerBroker = async ({
         : quest.workItems;
 
     const pendingItems = freshWorkItems.filter(
-      (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+      (wi) => isPendingWorkItemStatusGuard({ status: wi.status }) && wi.id !== workItem.id,
     );
 
     const skippedItems = pendingItems.map((wi) => ({

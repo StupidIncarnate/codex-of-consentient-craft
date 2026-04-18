@@ -22,7 +22,9 @@ import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import {
+  isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
+  isCompleteWorkItemStatusGuard,
   isRecoverableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
@@ -53,10 +55,12 @@ export const RecoverGuildLayerResponder = async ({
 
     // Reset orphaned in_progress work items to pending (their processes died on restart)
     const orphanResets = recoverableQuests
-      .filter((quest) => quest.workItems.some((wi) => wi.status === 'in_progress'))
+      .filter((quest) =>
+        quest.workItems.some((wi) => isActiveWorkItemStatusGuard({ status: wi.status })),
+      )
       .map(async (quest) => {
         const orphanedItems = quest.workItems
-          .filter((wi) => wi.status === 'in_progress')
+          .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
           .map((wi) => ({ id: wi.id, status: 'pending' as const }));
 
         const resetInput = modifyQuestInputContract.parse({
@@ -82,7 +86,7 @@ export const RecoverGuildLayerResponder = async ({
           .filter(
             (wi) =>
               (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
-              wi.status === 'complete',
+              isCompleteWorkItemStatusGuard({ status: wi.status }),
           )
           .map((wi) => wi.id);
 

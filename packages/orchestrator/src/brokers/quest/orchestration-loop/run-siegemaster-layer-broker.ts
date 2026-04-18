@@ -17,6 +17,7 @@ import {
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
+import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -111,7 +112,7 @@ export const runSiegemasterLayerBroker = async ({
 
       if (preflightQuestResult.success && preflightQuestResult.quest) {
         const pendingItems = preflightQuestResult.quest.workItems.filter(
-          (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+          (wi) => isPendingWorkItemStatusGuard({ status: wi.status }) && wi.id !== workItem.id,
         );
         const skippedItems = pendingItems.map((wi) => ({
           id: wi.id,
@@ -172,7 +173,7 @@ export const runSiegemasterLayerBroker = async ({
 
       if (serverQuestResult.success && serverQuestResult.quest) {
         const pendingItems = serverQuestResult.quest.workItems.filter(
-          (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+          (wi) => isPendingWorkItemStatusGuard({ status: wi.status }) && wi.id !== workItem.id,
         );
         const skippedItems = pendingItems.map((wi) => ({
           id: wi.id,
@@ -292,7 +293,7 @@ export const runSiegemasterLayerBroker = async ({
         : quest.workItems;
 
     const pendingItems = freshWorkItems.filter(
-      (wi) => wi.status === 'pending' && wi.id !== workItem.id,
+      (wi) => isPendingWorkItemStatusGuard({ status: wi.status }) && wi.id !== workItem.id,
     );
 
     const skippedItems = pendingItems.map((wi) => ({

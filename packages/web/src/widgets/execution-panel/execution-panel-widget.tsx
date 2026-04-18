@@ -34,6 +34,8 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import {
+  isActiveWorkItemStatusGuard,
+  isCompleteWorkItemStatusGuard,
   isQuestPauseableQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
   isTerminalQuestStatusGuard,
@@ -108,8 +110,10 @@ export const ExecutionPanelWidget = ({
   const totalCount = (hasWorkItemsOnly ? quest.workItems.length : steps.length) as TotalCount;
   const completedCount = (
     hasWorkItemsOnly
-      ? quest.workItems.filter((wi) => wi.status === 'complete').length
-      : [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete').length
+      ? quest.workItems.filter((wi) => isCompleteWorkItemStatusGuard({ status: wi.status })).length
+      : [...stepWorkItemMap.values()].filter((wi) =>
+          isCompleteWorkItemStatusGuard({ status: wi.status }),
+        ).length
   ) as CompletedCount;
 
   const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
@@ -144,7 +148,7 @@ export const ExecutionPanelWidget = ({
     let total = slotCountContract.parse(0);
     for (const wi of group.workItems) {
       total = slotCountContract.parse(total + 1);
-      if (wi.status === 'in_progress') {
+      if (isActiveWorkItemStatusGuard({ status: wi.status })) {
         active = slotCountContract.parse(active + 1);
       }
     }

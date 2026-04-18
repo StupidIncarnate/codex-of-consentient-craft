@@ -19,7 +19,10 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isActiveWorkItemStatusGuard,
+  isUserPausedQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -138,7 +141,7 @@ export const questOrchestrationLoopBroker = async ({
   // 6. Enforce single chaos/glyph constraint
   if (CHAT_ROLES.has(roleName)) {
     const anyInProgress = quest.workItems.some(
-      (wi) => CHAT_ROLES.has(wi.role) && wi.status === 'in_progress',
+      (wi) => CHAT_ROLES.has(wi.role) && isActiveWorkItemStatusGuard({ status: wi.status }),
     );
     if (anyInProgress) {
       return;

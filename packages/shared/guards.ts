@@ -35,3 +35,4 @@ export * from './src/guards/is-active-work-item-status/is-active-work-item-statu
 export * from './src/guards/is-pending-work-item-status/is-pending-work-item-status-guard';
 export * from './src/guards/is-complete-work-item-status/is-complete-work-item-status-guard';
 export * from './src/guards/is-skipped-work-item-status/is-skipped-work-item-status-guard';
+export * from './src/guards/is-failure-work-item-status/is-failure-work-item-status-guard';

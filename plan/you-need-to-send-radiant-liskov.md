@@ -265,7 +265,14 @@ Each phase = its own PR; ward green between phases.
 5. [x] **Web Fix 4 + Fix 5** — split web's execution-phase + pauseable guards into the two shared guards each; migrate quest-chat-widget + execution-panel callers per the per-line mapping.
 6. [x] **Remaining web reads + presentation cleanup** — terminal check in execution-panel, design-tab delegation, color statics split, gate-sections headers/nextApprovalStatus deletion (now served by transformers).
    > Note: `questStatusColorsStatics` uses `as const` instead of `satisfies { status: Record<QuestStatus, ColorToken>; workItemStatus: Record<WorkItemStatus, ColorToken> }` for the same Phase-2 folder-config reason: web `statics/` cannot import types from `contracts/`. Runtime shape is enforced by the colocated exhaustive `toStrictEqual` test.
-7. **Work-item reads** — swap all `wi.status === …` reads per the per-site table.
+7. [x] **Work-item reads** — swap all `wi.status === …` reads per the per-site table.
+   > Extension: plan's Phase-7 table missed 6 additional work-item literal reads. Migrated in the same PR:
+   > - `quest-to-list-item-transformer.ts:18` → `isCompleteWorkItemStatusGuard`
+   > - `execution-panel-widget.tsx:112/113` (completedCount) → `isCompleteWorkItemStatusGuard`
+   > - `work-items-to-quest-status-transformer.ts:31` (complete||skipped) → composition `isTerminal && !isFailure`
+   > - `work-items-to-quest-status-transformer.ts:39` (pending filter) → `isPendingWorkItemStatusGuard`
+   > - `work-items-to-quest-status-transformer.ts:41` (failed filter) → `isFailureWorkItemStatusGuard`
+   > Added a 7th work-item guard (`isFailureWorkItemStatusGuard`) — the `isFailure` metadata flag was already present on every row, so this is a completeness fix not a semantic expansion. Plan's "6 work-item guards" count is now 7.
 8. **Cleanup + Lint rule landing** — delete legacy orchestrator statics (auto-resumable, recoverable, startable), delete legacy web guards (isExecutionPhaseGuard, isQuestPauseableOrResumableGuard), delete Phase-2 consistency test. **Now** land the ESLint rule (see Enforcement §1) — all pre-existing violations are already gone, so the rule lands green.
 
 ---

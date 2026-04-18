@@ -8,6 +8,7 @@
 
 import type { Quest, QuestListItem } from '@dungeonmaster/shared/contracts';
 import { questListItemContract } from '@dungeonmaster/shared/contracts';
+import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questActiveSessionTransformer } from '../quest-active-session/quest-active-session-transformer';
 
@@ -15,7 +16,9 @@ export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestLi
   const stepWorkItems = quest.workItems.filter(
     (wi) => wi.role === 'codeweaver' && wi.relatedDataItems.some((ref) => ref.startsWith('steps/')),
   );
-  const completedSteps = stepWorkItems.filter((wi) => wi.status === 'complete').length;
+  const completedSteps = stepWorkItems.filter((wi) =>
+    isCompleteWorkItemStatusGuard({ status: wi.status }),
+  ).length;
   const totalSteps = quest.steps.length;
   const stepProgress = totalSteps > 0 ? `${completedSteps}/${totalSteps}` : undefined;
 
