@@ -6,8 +6,4 @@
  * // Returns true if the quest can be started/restarted
  */
 
-export const startableQuestStatusesStatics = [
-  'approved',
-  'design_approved',
-  'in_progress',
-] as const;
+export const startableQuestStatusesStatics = ['approved', 'design_approved'] as const;

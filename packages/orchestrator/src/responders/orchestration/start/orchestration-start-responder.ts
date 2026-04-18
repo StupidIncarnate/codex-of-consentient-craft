@@ -50,8 +50,6 @@ export const OrchestrationStartResponder = async ({
     return existingProcess.processId;
   }
 
-  const alreadyInProgress = quest.status === 'in_progress';
-
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
   const abortController = new AbortController();
@@ -109,7 +107,7 @@ export const OrchestrationStartResponder = async ({
 
   const modifyInput = modifyQuestInputContract.parse({
     questId,
-    ...(alreadyInProgress ? {} : { status: 'seek_scope' }),
+    status: 'seek_scope',
     ...(workItemsToUpdate.length > 0 ? { workItems: workItemsToUpdate } : {}),
   });
 

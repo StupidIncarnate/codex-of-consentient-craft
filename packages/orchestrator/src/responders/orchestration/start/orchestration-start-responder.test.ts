@@ -52,15 +52,15 @@ describe('OrchestrationStartResponder', () => {
       expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
-    it('VALID: {questId with in_progress quest} => restarts pipeline and returns processId', async () => {
+    it('ERROR: {questId with in_progress quest} => throws status error', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestInProgressRestart({ quest });
+      proxy.setupQuestNotApproved({ quest });
 
-      const result = await proxy.callResponder({ questId });
-
-      expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(
+        /Quest must be approved before starting\. Current status: in_progress/u,
+      );
     });
   });
 
@@ -75,16 +75,31 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('in_progress skips status transition', () => {
-    it('VALID: {quest already in_progress} => skips modify to in_progress and returns processId', async () => {
+  describe('always transitions to seek_scope on start', () => {
+    it('VALID: {approved quest} => persisted status is seek_scope', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
+      const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestInProgressRestart({ quest });
+      proxy.setupQuestApproved({ quest });
 
-      const result = await proxy.callResponder({ questId });
+      await proxy.callResponder({ questId });
 
-      expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      const persistedQuest = proxy.getLastPersistedQuest();
+
+      expect(persistedQuest.status).toBe('seek_scope');
+    });
+
+    it('VALID: {design_approved quest} => persisted status is seek_scope', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'design_approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+
+      expect(persistedQuest.status).toBe('seek_scope');
     });
   });
 
@@ -212,32 +227,6 @@ describe('OrchestrationStartResponder', () => {
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
-    });
-
-    it('VALID: {in_progress quest with no pathseeker} => creates pathseeker before loop', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        workItems: [chaosItem],
-      });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestInProgressRestart({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-
-      expect(pathseekerItems[0]?.role).toBe('pathseeker');
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
     });
   });
 

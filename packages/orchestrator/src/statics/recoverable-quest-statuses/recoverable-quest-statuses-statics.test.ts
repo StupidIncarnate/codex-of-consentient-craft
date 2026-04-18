@@ -9,6 +9,10 @@ describe('recoverableQuestStatusesStatics', () => {
       'flows_approved',
       'explore_observables',
       'explore_design',
+      'seek_scope',
+      'seek_synth',
+      'seek_walk',
+      'seek_plan',
       'in_progress',
     ]);
   });

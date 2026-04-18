@@ -2,100 +2,38 @@ import { isRecoverableQuestStatusGuard } from './is-recoverable-quest-status-gua
 
 describe('isRecoverableQuestStatusGuard', () => {
   describe('recoverable statuses', () => {
-    it('VALID: {status: created} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'created' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: pending} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'pending' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: explore_flows} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'explore_flows' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: flows_approved} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'flows_approved' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: explore_observables} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'explore_observables' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: explore_design} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'explore_design' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {status: in_progress} => returns true', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'in_progress' });
+    it.each([
+      'created',
+      'pending',
+      'explore_flows',
+      'flows_approved',
+      'explore_observables',
+      'explore_design',
+      'seek_scope',
+      'seek_synth',
+      'seek_walk',
+      'seek_plan',
+      'in_progress',
+    ] as const)('VALID: {status: %s} => returns true', (status) => {
+      const result = isRecoverableQuestStatusGuard({ status });
 
       expect(result).toBe(true);
     });
   });
 
   describe('non-recoverable statuses', () => {
-    it('VALID: {status: paused} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'paused' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: blocked} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'blocked' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: review_flows} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'review_flows' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: review_observables} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'review_observables' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: review_design} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'review_design' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: approved} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'approved' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: design_approved} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'design_approved' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: complete} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'complete' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {status: abandoned} => returns false', () => {
-      const result = isRecoverableQuestStatusGuard({ status: 'abandoned' });
+    it.each([
+      'paused',
+      'blocked',
+      'review_flows',
+      'review_observables',
+      'review_design',
+      'approved',
+      'design_approved',
+      'complete',
+      'abandoned',
+    ] as const)('VALID: {status: %s} => returns false', (status) => {
+      const result = isRecoverableQuestStatusGuard({ status });
 
       expect(result).toBe(false);
     });

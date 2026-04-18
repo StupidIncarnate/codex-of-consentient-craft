@@ -2,10 +2,6 @@ import { startableQuestStatusesStatics } from './startable-quest-statuses-static
 
 describe('startableQuestStatusesStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
-    expect(startableQuestStatusesStatics).toStrictEqual([
-      'approved',
-      'design_approved',
-      'in_progress',
-    ]);
+    expect(startableQuestStatusesStatics).toStrictEqual(['approved', 'design_approved']);
   });
 });

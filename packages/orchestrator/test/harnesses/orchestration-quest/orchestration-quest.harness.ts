@@ -6,7 +6,7 @@
  * const { guild, questId } = await quest.createTestQuest({ testbed, observableIds: ['obs-1'], stepCount: 2 });
  * const { quest: result } = await quest.pollForStatus({ questId, targetStatuses: ['complete'] });
  */
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import {
   DependencyStepStub,
@@ -20,7 +20,12 @@ import {
   QuestWorkItemIdStub,
   StepIdStub,
   WorkItemStub,
+  fileContentsContract,
+  filePathContract,
+  processIdContract,
+  workItemContract,
 } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -30,10 +35,14 @@ import { QuestAddResponder } from '../../../src/responders/quest/add/quest-add-r
 import { QuestGetResponder } from '../../../src/responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../../src/responders/quest/modify/quest-modify-responder';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
+import { guildGetBroker } from '../../../src/brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
+import { questOrchestrationLoopBroker } from '../../../src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { orchestrationEventsState } from '../../../src/state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesState } from '../../../src/state/orchestration-processes/orchestration-processes-state';
+import { rawLineToChatEntriesTransformer } from '../../../src/transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 
 const QUEST_FILE_NAME = 'quest.json';
@@ -58,6 +67,7 @@ export const orchestrationQuestHarness = (): {
   }) => ReturnType<typeof DependencyStepStub>[];
   completeChaosWorkItem: (params: { questId: QuestId }) => Promise<void>;
   completeGlyphWorkItem: (params: { questId: QuestId }) => Promise<void>;
+  seedPathseekerWorkItem: (params: { questId: QuestId }) => Promise<void>;
   approveQuest: (params: {
     questId: QuestId;
     observableIds: ReturnType<typeof ObservableIdStub>[];
@@ -79,6 +89,7 @@ export const orchestrationQuestHarness = (): {
     guild: Awaited<ReturnType<typeof GuildAddResponder>>;
     questId: QuestId;
   }>;
+  startLoop: (params: { questId: QuestId }) => Promise<ProcessId>;
   pollForStatus: (params: {
     questId: QuestId;
     targetStatuses: QuestType['status'][];
@@ -165,6 +176,36 @@ export const orchestrationQuestHarness = (): {
       input: ModifyQuestInputStub({
         questId,
         workItems: updatedWorkItems,
+      }),
+    });
+  };
+
+  const seedPathseekerWorkItem = async ({ questId }: { questId: QuestId }): Promise<void> => {
+    // Inject a pathseeker work item (pending, depends on any chaos/glyph items)
+    // mirroring the side effect of OrchestrationStartResponder. Used by tests
+    // that seed a quest at in_progress directly and want the orchestration
+    // loop to pick up where the spec/design phases would have left off.
+    const questResult = await QuestGetResponder({ questId });
+    if (!questResult.success || !questResult.quest) {
+      return;
+    }
+    const chatItemIds = questResult.quest.workItems
+      .filter((wi) => wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith')
+      .map((wi) => wi.id);
+    const pathseekerItem = workItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'pathseeker',
+      status: 'pending',
+      spawnerType: 'agent',
+      dependsOn: chatItemIds,
+      maxAttempts: 3,
+      createdAt: new Date().toISOString(),
+    });
+    await QuestModifyResponder({
+      questId,
+      input: ModifyQuestInputStub({
+        questId,
+        workItems: [pathseekerItem],
       }),
     });
   };
@@ -357,6 +398,7 @@ export const orchestrationQuestHarness = (): {
     buildValidSteps,
     completeChaosWorkItem,
     completeGlyphWorkItem,
+    seedPathseekerWorkItem,
     approveQuest,
     seedQuestState,
     createTestQuest: async ({
@@ -383,11 +425,14 @@ export const orchestrationQuestHarness = (): {
 
       const questId = addResult.questId!;
 
-      // Seed quest directly at 'in_progress' so the orchestration loop can
-      // drive work items to terminal states. Once PathSeeker phased statuses
-      // (seek_scope → seek_synth → seek_walk → seek_plan → in_progress) are
-      // fully implemented, this could step through the seek_* pipeline; for
-      // now the tests exercise the post-start execution path only.
+      // Seed quest directly at 'in_progress' with valid flows + steps via the
+      // disk bypass so the orchestration loop can drive work items to terminal
+      // states without stepping through seek_* phases. OrchestrationStartResponder
+      // now rejects non-{approved,design_approved} statuses (Fix 3), so these
+      // "post-start execution path" tests bypass it: they wire up the quest as
+      // if start() already ran, then kick off the loop via startLoop() (below),
+      // mirroring how recover-guild-layer-responder launches the loop for
+      // already-in-progress quests on server restart.
       await approveQuest({
         questId,
         observableIds,
@@ -404,7 +449,75 @@ export const orchestrationQuestHarness = (): {
 
       await completeChaosWorkItem({ questId });
 
+      // Inject the pathseeker work item that OrchestrationStartResponder would
+      // have created, so the loop has a starting point.
+      await seedPathseekerWorkItem({ questId });
+
       return { guild, questId };
+    },
+    startLoop: async ({ questId }: { questId: QuestId }): Promise<ProcessId> => {
+      // Mirror the process/loop wiring that OrchestrationStartResponder /
+      // RecoverGuildLayerResponder perform, minus the responder's own status
+      // transition + work-item mutation. Used by tests that want to exercise
+      // the orchestration loop against a quest already seeded at in_progress
+      // (see createTestQuest notes above).
+      const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
+      if (existingProcess) {
+        return existingProcess.processId;
+      }
+
+      const { guildId } = await questFindQuestPathBroker({ questId });
+      const guild = await guildGetBroker({ guildId });
+      const startPath = filePathContract.parse(guild.path);
+
+      const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
+      const abortController = new AbortController();
+
+      orchestrationProcessesState.register({
+        orchestrationProcess: {
+          processId,
+          questId,
+          kill: () => {
+            abortController.abort();
+          },
+        },
+      });
+
+      questOrchestrationLoopBroker({
+        processId,
+        questId,
+        startPath,
+        onAgentEntry: ({ slotIndex, entry, sessionId }) => {
+          const rawLine: unknown = Reflect.get(entry, 'raw');
+          if (typeof rawLine !== 'string') {
+            return;
+          }
+          const parsed = claudeLineNormalizeBroker({ rawLine });
+          const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
+          if (entries.length === 0) {
+            return;
+          }
+          orchestrationEventsState.emit({
+            type: 'chat-output',
+            processId,
+            payload: {
+              processId,
+              slotIndex,
+              entries,
+              ...(sessionId === undefined ? {} : { sessionId }),
+            },
+          });
+        },
+        abortSignal: abortController.signal,
+      })
+        .then(() => {
+          orchestrationProcessesState.remove({ processId });
+        })
+        .catch(() => {
+          orchestrationProcessesState.remove({ processId });
+        });
+
+      return processId;
     },
     pollForStatus,
     pollUntilWorkItemsSettled,

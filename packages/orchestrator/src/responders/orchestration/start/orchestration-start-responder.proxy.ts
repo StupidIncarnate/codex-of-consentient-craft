@@ -25,7 +25,6 @@ type Quest = ReturnType<typeof QuestStub>;
 export const OrchestrationStartResponderProxy = (): {
   callResponder: typeof OrchestrationStartResponder;
   setupQuestApproved: (params: { quest: Quest }) => void;
-  setupQuestInProgressRestart: (params: { quest: Quest }) => void;
   setupQuestNotApproved: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
@@ -91,13 +90,6 @@ export const OrchestrationStartResponderProxy = (): {
     callResponder: OrchestrationStartResponder,
 
     setupQuestApproved: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-
-      setupPathResolution({ quest });
-    },
-
-    setupQuestInProgressRestart: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
 
