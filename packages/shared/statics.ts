@@ -19,4 +19,5 @@ export * from './src/statics/outcome-type-descriptions/outcome-type-descriptions
 export * from './src/statics/project-map/project-map-statics';
 export * from './src/statics/session-snippet/session-snippet-statics';
 export * from './src/statics/quest-status-metadata/quest-status-metadata-statics';
+export * from './src/statics/quest-status-transitions/quest-status-transitions-statics';
 export * from './src/statics/work-item-status-metadata/work-item-status-metadata-statics';

@@ -259,7 +259,8 @@ Each phase = its own PR; ward green between phases.
    > Note: `display-header-contract.ts` lives under `contracts/display-header/` (its own folder) rather than nested under `contracts/quest-status-metadata/` — project-structure rule requires file name == folder name.
    > Note: Statics use plain `as const` instead of `as const satisfies Record<QuestStatus, QuestStatusMetadata>` — statics folder cannot import from contracts per folder-config allowed-imports. Runtime coverage is enforced by the consistency test (Phase 2) and will be fully static in Phase 8 when the compile-time lock is revisited.
    > Note: Consistency test is wrapped as a folder `quest-status-metadata-consistency/` + placeholder `-statics.ts` + colocated test to satisfy `enforce-test-colocation`; both deleted together in Phase 8.
-3. **Move existing** — `questStatusTransitionsStatics` + `isRecoverableQuestStatusGuard` → shared; update imports. Rebuild shared before rebuilding orchestrator.
+3. [x] **Move existing** — `questStatusTransitionsStatics` + `isRecoverableQuestStatusGuard` → shared; update imports. Rebuild shared before rebuilding orchestrator.
+   > Note: ward `--changed` currently crashes on deleted files (non-existent paths leak into ESLint's file-arg list). Not a Phase-3 defect — full `ward -- --only lint` passes. Worth a standalone ward fix before Phase 8's bigger deletion wave.
 4. **Orchestrator reads** — all orchestrator quest-status literal swaps per migration table, including Fix 2 (`recover-guild-layer-responder.ts:73` → `isAnyAgentRunningQuestStatusGuard`).
 5. **Web Fix 4 + Fix 5** — split web's execution-phase + pauseable guards into the two shared guards each; migrate quest-chat-widget + execution-panel callers per the per-line mapping.
 6. **Remaining web reads + presentation cleanup** — terminal check in execution-panel, design-tab delegation, color statics split, gate-sections headers/nextApprovalStatus deletion (now served by transformers).
