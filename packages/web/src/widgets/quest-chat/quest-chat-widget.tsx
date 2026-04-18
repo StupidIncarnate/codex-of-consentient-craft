@@ -36,7 +36,6 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import {
   isGateApprovedQuestStatusGuard,
-  isQuestResumableQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
@@ -138,22 +137,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
     prevIsStreamingRef.current = isStreaming;
   }, [isStreaming, refreshGuild, requestRefresh]);
 
-  const pipelineStartedRef = useRef(false);
-
-  useEffect(() => {
-    if (!questData) return;
-    if (isQuestResumableQuestStatusGuard({ status: questData.status })) {
-      pipelineStartedRef.current = false;
-      return;
-    }
-    if (!shouldRenderExecutionPanelQuestStatusGuard({ status: questData.status })) return;
-    if (pipelineStartedRef.current) return;
-
-    pipelineStartedRef.current = true;
-    questStartBroker({ questId: questData.id }).catch((startError: unknown) => {
-      globalThis.console.error('[quest-chat] quest-start failed', startError);
-    });
-  }, [questData]);
+  // Note: no auto-start effect. Starting a quest is always user-driven:
+  // - Spec/design approval: user clicks "Begin Quest" in QuestApprovedModalWidget.
+  // - Server restart recovery: handled by the orchestrator startup-recovery responder.
+  // The widget subscribes to the WS stream for execution-phase quests; it never POSTs /start.
 
   const [workItemSessionEntries, setWorkItemSessionEntries] = useState<Map<SessionId, ChatEntry[]>>(
     new Map(),

@@ -120,7 +120,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await expect(page.getByTestId('EXECUTION_PAUSE_BUTTON')).not.toBeVisible();
   });
 
-  test('VALID: {status: blocked} => neither PAUSE nor RESUME button visible', async ({
+  test('VALID: {status: blocked} => RESUME button visible, PAUSE button not visible', async ({
     page,
     request,
   }) => {
@@ -165,8 +165,10 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
+    await expect(page.getByTestId('EXECUTION_RESUME_BUTTON')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
     await expect(page.getByTestId('EXECUTION_PAUSE_BUTTON')).not.toBeVisible();
-    await expect(page.getByTestId('EXECUTION_RESUME_BUTTON')).not.toBeVisible();
   });
 
   test('VALID: {click PAUSE on seek_walk} => POST /api/quests/:questId/pause fires', async ({

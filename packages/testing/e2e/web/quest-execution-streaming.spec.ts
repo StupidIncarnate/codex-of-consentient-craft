@@ -52,7 +52,7 @@ test.describe('Quest Execution Streaming', () => {
       questId: String(questId),
       questFolder,
       questFilePath,
-      status: 'in_progress',
+      status: 'approved',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',
@@ -69,12 +69,18 @@ test.describe('Quest Execution Streaming', () => {
     response.delayMs = 500;
     claudeMock.queueResponse({ response });
 
+    // Kick orchestration off before navigation so the quest transitions to seek_scope
+    // and the widget's WS execution listener activates immediately on page load.
+    // This avoids the race where fast-executing work items broadcast output before
+    // the browser's WS is connected.
+    await request.post(`/api/quests/${questId}/start`);
+
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
     await nav.navigateToSession({ urlSlug, sessionId });
 
-    // Execution panel should appear since quest is in_progress
+    // Execution panel should appear since quest is in an execution-phase status (seek_scope)
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
