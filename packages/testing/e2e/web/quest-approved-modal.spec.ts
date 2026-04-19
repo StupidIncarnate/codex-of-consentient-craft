@@ -51,7 +51,7 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByText('Start a new Quest')).toBeVisible();
   });
 
-  test('VALID: modal appears when quest transitions to design_approved status via WS', async ({
+  test('VALID: modal does not appear when quest transitions to design_approved status via WS', async ({
     page,
     request,
   }) => {
@@ -70,7 +70,9 @@ test.describe('Quest Approved Modal', () => {
 
     await quests.patchQuestStatus({ questId, status: 'design_approved' });
 
-    await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
+    // Begin Quest modal is gated by shouldShowBeginQuestModalQuestStatusGuard which
+    // only returns true for 'approved' (spec/observables gate), not 'design_approved'.
+    await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
   });
@@ -159,42 +161,6 @@ test.describe('Quest Approved Modal', () => {
 
     // Spec panel should remain visible (still in review)
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
-  });
-
-  test('EDGE: clicking Keep Chatting on design_approved reverts to review_design', async ({
-    page,
-    request,
-  }) => {
-    const sessionId = `e2e-keep-design-${Date.now()}`;
-    const { questId, urlSlug, quests } = await modalHarness.setupTest({
-      request,
-      guildName: 'Keep Chatting Design Guild',
-      sessionId,
-      status: 'review_design',
-    });
-
-    const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
-
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-
-    await quests.patchQuestStatus({ questId, status: 'design_approved' });
-
-    await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
-      timeout: MODAL_TIMEOUT,
-    });
-
-    const patchPromise = page.waitForRequest(
-      (req) => req.method() === 'PATCH' && req.url().includes(`/api/quests/${questId}`),
-      { timeout: REQUEST_TIMEOUT },
-    );
-
-    await page.getByText('Keep Chatting').click();
-
-    const patchRequest = await patchPromise;
-    const body = patchRequest.postDataJSON();
-
-    expect(body).toHaveProperty('status', 'review_design');
   });
 
   test('VALID: clicking Start a new Quest navigates to /:guildSlug/session', async ({

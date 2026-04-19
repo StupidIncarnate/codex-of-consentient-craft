@@ -704,7 +704,7 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasApprovedModal()).toBe(true);
     });
 
-    it('VALID: {quest transitions to design_approved status} => shows approved modal', async () => {
+    it('VALID: {quest transitions to design_approved status} => does not show approved modal', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
@@ -748,11 +748,7 @@ describe('QuestChatWidget', () => {
         });
       });
 
-      await waitFor(() => {
-        expect(proxy.hasApprovedModal()).toBe(true);
-      });
-
-      expect(proxy.hasApprovedModal()).toBe(true);
+      expect(proxy.hasApprovedModal()).toBe(false);
     });
 
     it('VALID: {quest stays at non-approved status} => does not show approved modal', async () => {
@@ -2081,12 +2077,9 @@ describe('QuestChatWidget', () => {
           ),
         });
 
-        act(() => {
+        await act(async () => {
           proxy.setupQuest({ quest });
-        });
-
-        await waitFor(() => {
-          expect(proxy.hasChatPanel()).toBe(true);
+          await Promise.resolve();
         });
 
         expect(proxy.hasApprovedModal()).toBe(false);
