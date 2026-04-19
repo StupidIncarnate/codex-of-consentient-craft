@@ -62,8 +62,16 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^\*\*When to parameterize:\*\*$/mu);
       expect(result).toMatch(/^\*\*When NOT to parameterize \(DAMP wins\):\*\*$/mu);
       expect(result).toMatch(
-        /^describe\.each\(\['seek_scope', 'seek_walk', 'in_progress'\] as const\)\($/mu,
+        /^describe\.each\(PAUSEABLE_STATUSES\)\('pause-capable status: %s', \(status\) => \{$/mu,
       );
+    });
+
+    it('VALID: {} => includes literals-in-expect vs it.each distinction', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^\*\*Literals in `expect\(\.\.\.\)` vs `it\.each\(\.\.\.\)`:\*\*$/mu);
     });
 
     it('VALID: {} => includes test behavior not implementation', () => {

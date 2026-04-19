@@ -68,7 +68,8 @@ test.describe('Quest Begin Transition', () => {
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await quests.patchQuestStatus({ questId, status: 'approved' });
+    // Click APPROVE — drives review_observables → approved through the real UI flow.
+    await page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click();
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -82,7 +83,7 @@ test.describe('Quest Begin Transition', () => {
       { timeout: REQUEST_TIMEOUT },
     );
 
-    await page.getByRole('button', { name: 'Begin Quest' }).click();
+    await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
     const startRequest = await startPromise;
 
@@ -166,8 +167,9 @@ test.describe('Quest Begin Transition', () => {
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // Approve: PATCH quest status to approved — triggers modal via WS
-    await quests.patchQuestStatus({ questId, status: 'approved' });
+    // Click APPROVE — drives review_observables → approved through the real UI flow,
+    // which triggers the quest-modified WS broadcast that surfaces the Begin Quest modal.
+    await page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click();
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
@@ -179,7 +181,7 @@ test.describe('Quest Begin Transition', () => {
       { timeout: REQUEST_TIMEOUT },
     );
 
-    await page.getByRole('button', { name: 'Begin Quest' }).click();
+    await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
     await startPromise;
 
@@ -227,5 +229,4 @@ test.describe('Quest Begin Transition', () => {
     // pathseeker items; we only assert that >=1 exists (the responder's primary effect).
     expect(pathseekerCount >= 1).toBe(true);
   });
-
 });

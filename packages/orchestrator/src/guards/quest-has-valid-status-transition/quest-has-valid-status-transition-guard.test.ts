@@ -1,6 +1,13 @@
 import { QuestStatusStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { questHasValidStatusTransitionGuard } from './quest-has-valid-status-transition-guard';
+
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+
+const NON_TERMINAL_STATUSES = (
+  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+).filter((status) => !questStatusMetadataStatics.statuses[status].isTerminal);
 
 describe('questHasValidStatusTransitionGuard', () => {
   describe('valid transitions', () => {
@@ -184,26 +191,7 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
-    it.each([
-      'created',
-      'pending',
-      'explore_flows',
-      'review_flows',
-      'flows_approved',
-      'explore_observables',
-      'review_observables',
-      'approved',
-      'explore_design',
-      'review_design',
-      'design_approved',
-      'seek_scope',
-      'seek_synth',
-      'seek_walk',
-      'seek_plan',
-      'in_progress',
-      'paused',
-      'blocked',
-    ] as const)('VALID: {%s -> abandoned} => returns true (meta-derived)', (status) => {
+    it.each(NON_TERMINAL_STATUSES)('VALID: {%s -> abandoned} => returns true (meta-derived)', (status) => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: status }),
         nextStatus: QuestStatusStub({ value: 'abandoned' }),

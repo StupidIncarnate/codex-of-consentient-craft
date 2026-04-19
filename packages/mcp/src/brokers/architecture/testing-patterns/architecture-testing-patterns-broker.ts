@@ -92,24 +92,33 @@ it('EMPTY: {status: created} => neither PAUSE nor RESUME button visible', () => 
 it('EMPTY: {status: blocked} => neither PAUSE nor RESUME button visible', () => { /* same body, 'blocked' */ });
 // ...12 more
 
-// ✅ CORRECT - Parameterize the matrix
-it.each([
-  'pending',
-  'created',
-  'blocked',
-  'explore_flows',
-  'review_flows',
-  'flows_approved',
-  'complete',
-  'abandoned',
-] as const)('EMPTY: {status: %s} => neither PAUSE nor RESUME button visible', (status) => {
-  const proxy = ExecutionPanelWidgetProxy();
-  const quest: Quest = QuestStub({ status });
-  mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-  expect(proxy.hasPauseButton()).toBe(false);
-  expect(proxy.hasResumeButton()).toBe(false);
+// ✅ CORRECT - Parameterize the matrix; derive the list from the canonical static.
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+
+const NOT_PAUSE_RESUME_STATUSES = (
+  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+).filter((s) => {
+  const meta = questStatusMetadataStatics.statuses[s];
+  return !meta.isPauseable && !meta.isResumable;
 });
+
+it.each(NOT_PAUSE_RESUME_STATUSES)(
+  'EMPTY: {status: %s} => neither PAUSE nor RESUME button visible',
+  (status) => {
+    const proxy = ExecutionPanelWidgetProxy();
+    const quest: Quest = QuestStub({ status });
+    mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+    expect(proxy.hasPauseButton()).toBe(false);
+    expect(proxy.hasResumeButton()).toBe(false);
+  },
+);
 \`\`\`
+
+**Literals in \`expect(...)\` vs \`it.each(...)\`:**
+- \`expect(x).toBe('pending')\` — hardcoded string literals in assertions are fine. The expected value is the *specific output* for the *specific input* of that test case; it shouldn't change as the union grows.
+- \`it.each(['pending', 'created', ...])\` — **NEVER hardcode the list of cases.** If the input set is a finite list (every status in a union, every enum member, every role), import it from its \`*-statics.ts\` / Zod \`.options\` / exported readonly array and \`.filter()\`/\`.map()\` to derive the subset. A hardcoded \`it.each\` array silently goes stale the moment someone adds a new member to the union — the new member is quietly skipped and "covers every status" becomes a lie.
 
 **When to parameterize:**
 - 3 or more cases with identical test body shape
@@ -123,16 +132,17 @@ it.each([
 - Each case has distinct semantic meaning that deserves its own sentence-length name
 - Only 2 cases — just write them inline
 
-**Grouping related variants:** Use \`describe.each\` when multiple \`it\` blocks share the same parameterization (e.g., "for each pause-capable status, [PAUSE is visible] and [click PAUSE fires onPause]").
+**Grouping related variants:** Use \`describe.each\` when multiple \`it\` blocks share the same parameterization (e.g., "for each pause-capable status, [PAUSE is visible] and [click PAUSE fires onPause]"). The same list-derivation rule applies — derive from a static.
 
 \`\`\`typescript
-describe.each(['seek_scope', 'seek_walk', 'in_progress'] as const)(
-  'pause-capable status: %s',
-  (status) => {
-    it('VALID: {status} => PAUSE button visible', () => { /* ... */ });
-    it('VALID: {click PAUSE} => calls onPause once', () => { /* ... */ });
-  },
-);
+const PAUSEABLE_STATUSES = (
+  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+).filter((s) => questStatusMetadataStatics.statuses[s].isPauseable);
+
+describe.each(PAUSEABLE_STATUSES)('pause-capable status: %s', (status) => {
+  it('VALID: {status} => PAUSE button visible', () => { /* ... */ });
+  it('VALID: {click PAUSE} => calls onPause once', () => { /* ... */ });
+});
 \`\`\`
 
 **Name template rules:**
