@@ -7,11 +7,11 @@
  */
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
+import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 export const isDesignTabVisibleGuard = ({ status }: { status?: QuestStatus }): boolean => {
-  if (!status) {
+  if (status === undefined) {
     return false;
   }
-
-  return status === 'explore_design' || status === 'review_design' || status === 'design_approved';
+  return isDesignPhaseQuestStatusGuard({ status });
 };

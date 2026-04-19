@@ -207,16 +207,18 @@ describe('QuestFlow', () => {
         finalStatus: 'seek_plan',
       });
 
-      // seek_walk gate requires scopeClassification + synthesis — pre-commit both.
-      await QuestFlow.modify({
+      // seek_walk gate requires scopeClassification + synthesis — seed directly via harness
+      // (bypasses validators; writing those sub-fields via modify-quest at seek_plan is
+      // correctly rejected by the per-sub-field allowlist).
+      await questHelper.seedQuestState({
         questId,
-        input: ModifyQuestInputStub({
-          questId,
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-            synthesis: PlanningSynthesisStub(),
-          },
-        }),
+        finalStatus: 'seek_plan',
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          synthesis: PlanningSynthesisStub(),
+          surfaceReports: [],
+          blightReports: [],
+        },
       });
 
       const result = await QuestFlow.modify({
@@ -246,26 +248,26 @@ describe('QuestFlow', () => {
       });
       const questId = addResult.questId!;
 
-      // Seed at seek_plan to commit planningNotes (allowed field there), then
-      // re-seed to in_progress via harness (bypasses validators) so the seek_walk
-      // gate-content (scopeClassification + synthesis) is already satisfied.
+      // Seed scopeClassification + synthesis directly via harness (bypasses validators),
+      // then re-seed to in_progress so the seek_walk gate-content is already satisfied.
+      // Writing those planningNotes sub-fields via modify-quest at seek_plan is correctly
+      // rejected by the per-sub-field allowlist (only reviewReport is writable at seek_plan).
       await questHelper.approveQuest({
         questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
         finalStatus: 'seek_plan',
       });
-      await QuestFlow.modify({
+      await questHelper.seedQuestState({
         questId,
-        input: ModifyQuestInputStub({
-          questId,
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-            synthesis: PlanningSynthesisStub(),
-          },
-        }),
+        finalStatus: 'in_progress',
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          synthesis: PlanningSynthesisStub(),
+          surfaceReports: [],
+          blightReports: [],
+        },
       });
-      await questHelper.seedQuestState({ questId, finalStatus: 'in_progress' });
 
       const result = await QuestFlow.modify({
         questId,
@@ -530,27 +532,29 @@ describe('QuestFlow', () => {
       });
       const questId = addResult.questId!;
 
+      const scope = PlanningScopeClassificationStub();
+      const synthesis = PlanningSynthesisStub();
+      const report = PlanningSurfaceReportStub({ sliceName: 'auth-slice' });
+
+      // Seed partial planningNotes directly via harness — the sub-field allowlist correctly
+      // rejects writing scopeClassification/synthesis/surfaceReports via modify-quest at
+      // seek_walk (only walkFindings is a valid sub-field at that phase), so infrastructure
+      // setup bypasses validators.
       await questHelper.approveQuest({
         questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
         finalStatus: 'seek_walk',
       });
-
-      const scope = PlanningScopeClassificationStub();
-      const synthesis = PlanningSynthesisStub();
-      const report = PlanningSurfaceReportStub({ sliceName: 'auth-slice' });
-
-      await QuestFlow.modify({
+      await questHelper.seedQuestState({
         questId,
-        input: ModifyQuestInputStub({
-          questId,
-          planningNotes: {
-            scopeClassification: scope,
-            synthesis,
-            surfaceReports: [report],
-          },
-        }),
+        finalStatus: 'seek_walk',
+        planningNotes: {
+          scopeClassification: scope,
+          synthesis,
+          surfaceReports: [report],
+          blightReports: [],
+        },
       });
 
       const fullResult = await QuestFlow.getPlanningNotes({ questId });

@@ -1,45 +1,33 @@
 import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { isDesignStartVisibleGuard } from './is-design-start-visible-guard';
 
+const STATUSES = Object.keys(
+  questStatusMetadataStatics.statuses,
+) as readonly (keyof typeof questStatusMetadataStatics.statuses)[];
+
+const DESIGN_START_VISIBLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> =
+  new Set(['approved', 'design_approved']);
+
 describe('isDesignStartVisibleGuard', () => {
-  describe('visible conditions', () => {
-    it('VALID: {status: approved, needsDesign: true} => returns true', () => {
-      const quest = QuestStub({ status: 'approved', needsDesign: true });
+  describe('state matrix with needsDesign true', () => {
+    it.each(STATUSES)(
+      'VALID: {status: %s, needsDesign: true} => returns expected flag',
+      (status) => {
+        const expected = DESIGN_START_VISIBLE_STATUSES.has(status);
+        const quest = QuestStub({ status, needsDesign: true });
 
-      const result = isDesignStartVisibleGuard({ quest });
+        const result = isDesignStartVisibleGuard({ quest });
 
-      expect(result).toBe(true);
-    });
+        expect(result).toBe(expected);
+      },
+    );
   });
 
-  describe('hidden conditions', () => {
-    it('INVALID: {status: approved, needsDesign: false} => returns false', () => {
-      const quest = QuestStub({ status: 'approved', needsDesign: false });
-
-      const result = isDesignStartVisibleGuard({ quest });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID: {status: created, needsDesign: true} => returns false', () => {
-      const quest = QuestStub({ status: 'created', needsDesign: true });
-
-      const result = isDesignStartVisibleGuard({ quest });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID: {status: in_progress, needsDesign: true} => returns false', () => {
-      const quest = QuestStub({ status: 'in_progress', needsDesign: true });
-
-      const result = isDesignStartVisibleGuard({ quest });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID: {status: explore_design, needsDesign: true} => returns false', () => {
-      const quest = QuestStub({ status: 'explore_design', needsDesign: true });
+  describe('state matrix with needsDesign false', () => {
+    it.each(STATUSES)('VALID: {status: %s, needsDesign: false} => returns false', (status) => {
+      const quest = QuestStub({ status, needsDesign: false });
 
       const result = isDesignStartVisibleGuard({ quest });
 

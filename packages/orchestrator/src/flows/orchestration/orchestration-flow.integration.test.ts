@@ -12,14 +12,11 @@ import {
   QuestIdStub,
   SessionIdStub,
   StepIdStub,
-  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
-import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
-import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationFlow } from './orchestration-flow';
 import { orchestrationQueueHarness } from '../../../test/harnesses/orchestration-queue/orchestration-queue.harness';
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
@@ -72,7 +69,7 @@ describe('OrchestrationFlow', () => {
       ).rejects.toThrow(/Quest not found: nonexistent-quest-id/u);
     });
 
-    it('ERROR: {non-approved quest} => start throws quest must be approved before starting', async () => {
+    it('ERROR: {non-approved quest} => start throws quest must be in a startable status', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'orchestration-non-approved' }),
       });
@@ -90,7 +87,7 @@ describe('OrchestrationFlow', () => {
       });
 
       await expect(OrchestrationFlow.start({ questId: addResult.questId! })).rejects.toThrow(
-        /Quest must be approved before starting/u,
+        /Quest must be in a startable status \(approved or design_approved\)/u,
       );
 
       testbed.cleanup();
@@ -218,13 +215,21 @@ describe('OrchestrationFlow', () => {
           questId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
-          // Seeded at in_progress so the orchestration loop can reach 'complete'
-          // via work-item-derived status. Start() still promotes chat items.
+          // Seed at in_progress so the orchestration loop can reach 'complete'
+          // via work-item-derived status. Fix 3 disallows starting an
+          // in_progress quest via OrchestrationStartResponder, so this test
+          // simulates the responder's post-start side effects (complete chaos,
+          // inject pathseeker) via harness helpers and kicks off the loop via
+          // startLoop() — mirroring how recover-guild-layer-responder handles
+          // already-in-progress quests on server restart. Chat-item promotion
+          // is covered by the "approved quest, chaos never manually completed"
+          // test above.
           finalStatus: 'in_progress',
         });
 
-        // Deliberately NOT calling completeChaosWorkItem — chaos stays 'pending'.
-        // OrchestrationStartResponder must promote it, then full pipeline runs.
+        // Simulate OrchestrationStartResponder's promotion side effects.
+        await questHelper.completeChaosWorkItem({ questId });
+        await questHelper.seedPathseekerWorkItem({ questId });
 
         // pathseeker
         queue.enqueue({
@@ -256,7 +261,7 @@ describe('OrchestrationFlow', () => {
         // final ward (pass)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -299,9 +304,11 @@ describe('OrchestrationFlow', () => {
 
       const questId = addResult.questId!;
 
-      // Seed quest directly at in_progress so the orchestration loop can reach
-      // 'complete' via work-item-derived status. Start() still promotes chat
-      // items (chaos + glyph) regardless of the starting status.
+      // Seed quest directly at in_progress; Fix 3 disallows starting an
+      // in_progress quest via OrchestrationStartResponder, so simulate the
+      // responder's post-start side effects (complete chaos + glyph, inject
+      // pathseeker with combined dependsOn) and kick off the loop via
+      // startLoop() — mirroring recovery-responder behavior.
       await questHelper.approveQuest({
         questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
@@ -309,27 +316,10 @@ describe('OrchestrationFlow', () => {
         finalStatus: 'in_progress',
       });
 
-      // Add a glyphsmith work item (pending) alongside the existing chaos work item
-      const currentQuest = await QuestGetResponder({ questId });
-      const glyphItem = WorkItemStub({
-        id: crypto.randomUUID(),
-        role: 'glyphsmith',
-        status: 'pending',
-        spawnerType: 'agent',
-        relatedDataItems: [],
-        dependsOn: [],
-        createdAt: new Date().toISOString(),
-        attempt: 0,
-        maxAttempts: 1,
-      });
-
-      await QuestModifyResponder({
-        questId,
-        input: ModifyQuestInputStub({
-          questId,
-          workItems: [...currentQuest.quest!.workItems, glyphItem],
-        }),
-      });
+      // Add a glyphsmith work item (complete) alongside the chaos work item.
+      await questHelper.completeChaosWorkItem({ questId });
+      await questHelper.completeGlyphWorkItem({ questId });
+      await questHelper.seedPathseekerWorkItem({ questId });
 
       // Queue responses for full pipeline (1-step happy path)
       // pathseeker
@@ -362,7 +352,7 @@ describe('OrchestrationFlow', () => {
       // final ward (pass)
       queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-      await OrchestrationFlow.start({ questId });
+      await questHelper.startLoop({ questId });
 
       const { quest: result } = await questHelper.pollForStatus({
         questId,
@@ -440,9 +430,7 @@ describe('OrchestrationFlow', () => {
         // Queue: final ward (pass)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -560,9 +548,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         // All items settle: chaos(complete) + pathseeker(complete) + 2 codeweavers
         // + ward + siege + 2 lawbringers + final ward + pathseeker replan = ~10 items.
@@ -663,9 +649,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -772,7 +756,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -850,9 +834,7 @@ describe('OrchestrationFlow', () => {
         // final ward (after lawbringers)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         // Ward failure leaves a 'failed' work item. workItemsToQuestStatusTransformer
         // doesn't transition to 'complete' when any item is failed, so quest stays
@@ -934,9 +916,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('ps-replan') }),
         });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         // Quest will eventually reach 'blocked' after new codeweavers exhaust crash retries
         const { quest: result } = await questHelper.pollForStatus({
@@ -1010,9 +990,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('ps-replan') }),
         });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1089,9 +1067,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('sm-lb') }),
         });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         // With the final ward depending on lawbringer IDs, a lawbringer failure
         // leaves the final ward pending with unsatisfied deps → quest blocked.
@@ -1166,9 +1142,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('sm-lb') }),
         });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         // With the final ward depending on lawbringer IDs, a lawbringer failure
         // leaves the final ward pending with unsatisfied deps → quest blocked.
@@ -1257,9 +1231,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1325,9 +1297,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1398,7 +1368,7 @@ describe('OrchestrationFlow', () => {
         // final ward (full mode)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1522,7 +1492,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1606,11 +1576,15 @@ describe('OrchestrationFlow', () => {
           questId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
-          // Seeded at in_progress so the orchestration loop reaches 'complete'
-          // via work-item-derived status. Start() still creates pathseeker etc.
+          // Seed at in_progress so the orchestration loop can reach 'complete'
+          // via work-item-derived status. Fix 3 disallows starting an
+          // in_progress quest via OrchestrationStartResponder, so simulate the
+          // responder's side effects (complete chaos, inject pathseeker) via
+          // harness helpers and kick off the loop via startLoop().
           finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
+        await questHelper.seedPathseekerWorkItem({ questId });
 
         // Queue all responses for the full flow
         queue.enqueue({
@@ -1636,9 +1610,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1685,12 +1657,14 @@ describe('OrchestrationFlow', () => {
           questId: typedQuestId,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 1,
-          // Seeded at in_progress so the orchestration loop reaches 'complete'
-          // via work-item-derived status.
+          // Seed at in_progress; simulate OrchestrationStartResponder's post-
+          // start effects (complete chaos + glyph, inject pathseeker) and kick
+          // the loop off via startLoop.
           finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
         await questHelper.completeGlyphWorkItem({ questId });
+        await questHelper.seedPathseekerWorkItem({ questId });
 
         // Queue full flow: pathseeker + codeweaver + ward + siege + lawbringer + blightwarden + final ward
         queue.enqueue({
@@ -1716,9 +1690,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({
-          questId: typedQuestId,
-        });
+        await questHelper.startLoop({ questId: typedQuestId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1792,9 +1764,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('sm-ok-1') }),
         });
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -1866,9 +1836,7 @@ describe('OrchestrationFlow', () => {
           });
         }
 
-        await OrchestrationFlow.start({
-          questId,
-        });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -2034,6 +2002,7 @@ describe('OrchestrationFlow', () => {
         });
 
         await questHelper.completeChaosWorkItem({ questId });
+        await questHelper.seedPathseekerWorkItem({ questId });
 
         // pathseeker succeeds — verify passes (no observables to violate), 0 steps
         // With 0 flows, stepsToWorkItemsTransformer creates ward + blightwarden + finalWard
@@ -2052,7 +2021,7 @@ describe('OrchestrationFlow', () => {
         // final ward (depends on blightwarden)
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId: typedQuestId });
+        await questHelper.startLoop({ questId: typedQuestId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -2114,7 +2083,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -2252,11 +2221,13 @@ describe('OrchestrationFlow', () => {
           questId: typedQuestId,
           flows,
           steps,
-          // Seeded at in_progress so the orchestration loop reaches 'complete'
-          // via work-item-derived status.
+          // Seed at in_progress; simulate OrchestrationStartResponder's post-
+          // start effects (complete chaos, inject pathseeker) and kick the loop
+          // off via startLoop.
           finalStatus: 'in_progress',
         });
         await questHelper.completeChaosWorkItem({ questId });
+        await questHelper.seedPathseekerWorkItem({ questId });
 
         // pathseeker
         queue.enqueue({
@@ -2304,7 +2275,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -2397,7 +2368,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -2481,7 +2452,7 @@ describe('OrchestrationFlow', () => {
         // final ward retry passes
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         // chaos + PS + CW + ward(pass) + siege + LB + blightwarden + final-ward(fail) + SM + final-ward-retry(pass)
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
@@ -2568,7 +2539,7 @@ describe('OrchestrationFlow', () => {
         // final ward
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         // chaos + PS + CW + ward(fail) + SM + ward-retry(pass) + siege + LB + blightwarden + final-ward
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
@@ -2645,7 +2616,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -2698,7 +2669,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('ps-replan-crf') }),
         });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -2774,7 +2745,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -2914,7 +2885,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,
@@ -3047,7 +3018,7 @@ describe('OrchestrationFlow', () => {
         });
         queue.enqueue({ queueDir: env.wardQueueDir, response: wardPassResponse() });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollUntilWorkItemsSettled({
           questId,
@@ -3132,7 +3103,7 @@ describe('OrchestrationFlow', () => {
           response: agentSuccessResponse({ sessionId: sid('ps-replan-sf') }),
         });
 
-        await OrchestrationFlow.start({ questId });
+        await questHelper.startLoop({ questId });
 
         const { quest: result } = await questHelper.pollForStatus({
           questId,

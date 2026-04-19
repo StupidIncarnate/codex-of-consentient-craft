@@ -58,6 +58,7 @@ import { ruleBanTautologicalAssertionsBroker } from '../../../brokers/rule/ban-t
 import { ruleBanObjectKeysInExpectBroker } from '../../../brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker';
 import { ruleBanStringIncludesInExpectBroker } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker';
 import { ruleBanWeakAsymmetricMatchersBroker } from '../../../brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker';
+import { ruleBanStatusStringComparisonsBroker } from '../../../brokers/rule/ban-status-string-comparisons/rule-ban-status-string-comparisons-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -116,6 +117,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-object-keys-in-expect': EslintRule;
     readonly 'ban-string-includes-in-expect': EslintRule;
     readonly 'ban-weak-asymmetric-matchers': EslintRule;
+    readonly 'ban-status-string-comparisons': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -177,6 +179,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-object-keys-in-expect': ruleBanObjectKeysInExpectBroker(),
       'ban-string-includes-in-expect': ruleBanStringIncludesInExpectBroker(),
       'ban-weak-asymmetric-matchers': ruleBanWeakAsymmetricMatchersBroker(),
+      'ban-status-string-comparisons': ruleBanStatusStringComparisonsBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

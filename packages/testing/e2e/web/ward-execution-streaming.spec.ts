@@ -55,14 +55,16 @@ test.describe('Ward Execution Streaming', () => {
     const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
     const now = new Date().toISOString();
 
-    // Overwrite quest.json with in_progress status and work items including a pending ward
+    // Seed quest with approved status + prior work items complete + pending ward.
+    // POST /start transitions the quest to seek_scope and kicks the orchestration loop,
+    // which skips the already-complete pathseeker and picks up the pending ward directly.
     const quests = questHarness({ request });
     quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
       title: 'E2E Ward mini-boss Streaming',
-      status: 'in_progress',
+      status: 'approved',
       userRequest: 'Test ward streaming',
       workItems: [
         {
@@ -124,21 +126,22 @@ test.describe('Ward Execution Streaming', () => {
       },
     });
 
+    // Kick orchestration off before navigation so the quest is already in an
+    // execution-phase status (seek_scope) by the time the browser renders —
+    // the WS execution listener activates on first paint and no ward output is lost.
+    await request.post(`/api/quests/${questId}/start`);
+
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    // Navigate — quest is already in_progress so execution panel + WS listener activate immediately.
-    // The widget auto-starts the orchestration loop, which picks up the pending ward.
-    // Because the WS listener is set up BEFORE the HTTP POST reaches the server,
-    // ward output lines arrive on an already-connected socket.
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await guildsResponsePromise;
 
-    // Execution panel renders immediately since quest is in_progress
+    // Execution panel renders immediately since quest status is seek_scope
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
@@ -195,14 +198,16 @@ test.describe('Ward Execution Streaming', () => {
     const wardFloorBossId = 'e2e00000-0000-4000-8000-000000000007';
     const now = new Date().toISOString();
 
-    // Overwrite quest.json with in_progress status and work items including a pending floor boss ward
+    // Seed quest with approved status + full prior chain complete + pending floor-boss ward.
+    // POST /start transitions to seek_scope; the loop skips the complete pathseeker and
+    // other satisfied items and dispatches the ready floor-boss ward.
     const quests = questHarness({ request });
     quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
       title: 'E2E Ward floor-boss Streaming',
-      status: 'in_progress',
+      status: 'approved',
       userRequest: 'Test ward streaming',
       workItems: [
         {
@@ -296,19 +301,21 @@ test.describe('Ward Execution Streaming', () => {
       },
     });
 
+    // Kick orchestration off before navigation so the widget lands on an execution-phase
+    // quest with the WS execution listener active from the first render.
+    await request.post(`/api/quests/${questId}/start`);
+
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    // Navigate — quest is already in_progress so execution panel + WS listener activate immediately.
-    // The widget auto-starts the orchestration loop, which picks up the pending ward.
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
     await page.goto(`/${urlSlug}/session/${sessionId}`);
     await guildsResponsePromise;
 
-    // Execution panel renders immediately since quest is in_progress
+    // Execution panel renders immediately since quest status is seek_scope
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });

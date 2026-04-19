@@ -138,14 +138,23 @@ See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patte
   will show "Awaiting quest activity..." instead of rendering. Always include a chaoswhisperer work item with the
   session's `sessionId` in test quest data.
 - **Quest status determines when the WS execution listener activates** — the browser's WebSocket listener for execution
-  streaming (`quest-chat-widget.tsx`) is gated by `isExecutionPhaseGuard`, which only returns `true` for `in_progress`,
-  `blocked`, `complete`, or `abandoned`. If a test creates a quest with `status: 'approved'` and then POSTs to start it,
-  the browser won't have a WS connection until it receives the `quest-modified` event with `status: 'in_progress'`
-  (delivered via the file outbox — slower than the in-memory event bus). Fast-executing work items (like the fake ward
-  binary) will broadcast their output before the browser's WS is connected, and those events are lost with no replay.
-  **For tests that need to observe streamed output, create the quest with `status: 'in_progress'`** so the WS listener
-  activates immediately on navigation. The widget auto-starts the orchestration loop when it detects an `in_progress`
-  quest. Tests that only need to verify the start API response (not streamed output) can use `status: 'approved'`.
+  streaming (`quest-chat-widget.tsx`) is gated by `shouldRenderExecutionPanelQuestStatusGuard`, which returns `true` for
+  every execution-phase status (`seek_*`, `in_progress`, `paused`, `blocked`, `complete`, `abandoned`). The widget
+  auto-starts orchestration **only** for startable statuses (`approved` / `design_approved`) — quests past the start gate
+  never retrigger `/start` from the browser. Starting a quest directly at `in_progress` via `writeQuestFile` will NOT
+  kick off the orchestration loop: the loop is registered either by the `/api/quests/:id/start` endpoint (normal flow)
+  or by the server's startup-recovery responder (which only runs at boot). Tests that need the orchestration loop
+  running against a seeded quest must:
+    1. Write the quest file with `status: 'approved'` (or `'design_approved'`) plus any prior-phase work items marked
+       `complete`.
+    2. POST `/api/quests/:questId/start` **before** `page.goto(...)`. This transitions the quest to `seek_scope` on
+       the server, so the browser lands on an execution-phase status and the WS execution listener is active on the
+       first render — no race where fast work items (like the fake ward binary) broadcast output before the browser
+       connects.
+    3. Leave the already-complete pathseeker in the seeded work items if you want the loop to skip straight to a
+       downstream role — `orchestration-start-responder` detects `hasPathseeker` and won't insert a duplicate.
+  Tests that only need to verify the start API response (not streamed output) can POST `/api/quests/:id/start`
+  against an `approved` quest and assert on the response alone — no page navigation required.
 - **Step IDs must be kebab-case** — `stepIdContract` validates against `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`. Do NOT use
   `crypto.randomUUID()` for step IDs in test quest data — UUIDs starting with a digit fail silently during
   `questContract.parse()`, making the quest invisible to `questFindQuestPathBroker`.

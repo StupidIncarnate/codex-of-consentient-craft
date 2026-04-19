@@ -6,9 +6,6 @@ describe('questStatics', () => {
       json: {
         indentSpaces: 2,
       },
-      designStatuses: {
-        allowed: ['explore_design', 'review_design', 'design_approved'],
-      },
     });
   });
 });

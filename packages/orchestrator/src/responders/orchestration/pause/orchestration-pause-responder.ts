@@ -10,6 +10,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -35,7 +36,7 @@ export const OrchestrationPauseResponder = async ({
   const { quest } = result;
 
   const orphanedItems = quest.workItems
-    .filter((wi) => wi.status === 'in_progress')
+    .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
     .map((wi) => ({ id: wi.id, status: 'pending' as const }));
 
   await questModifyBroker({

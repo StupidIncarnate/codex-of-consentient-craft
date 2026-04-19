@@ -1079,13 +1079,14 @@ describe('QuestChatWidget', () => {
     });
   });
 
-  describe('pipeline restart after paused', () => {
-    it('VALID: {quest transitions from in_progress to paused to in_progress} => calls questStartBroker again on resume', async () => {
+  describe('no widget-driven auto-start', () => {
+    it('VALID: {quest transitions approved → seek_scope → paused → in_progress} => widget never POSTs /start (user-driven via Begin Quest modal only)', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });
       const quest = QuestStub({
         id: 'chat-resume-1',
-        status: 'in_progress',
+        status: 'approved',
+        flows: [FlowStub()],
       });
       const guildDetail = GuildStub({ id: guild.id });
 
@@ -1111,12 +1112,10 @@ describe('QuestChatWidget', () => {
         proxy.setupQuest({ quest });
       });
 
-      await waitFor(() => {
-        expect(proxy.hasExecutionPanel()).toBe(true);
-      });
-
-      await waitFor(() => {
-        expect(proxy.getQuestStartRequestCount()).toBe(1);
+      act(() => {
+        proxy.setupQuest({
+          quest: QuestStub({ id: 'chat-resume-1', status: 'seek_scope' }),
+        });
       });
 
       act(() => {
@@ -1131,11 +1130,17 @@ describe('QuestChatWidget', () => {
         });
       });
 
+      // Wait for any pending effects to settle — the widget renders and may subscribe
+      // to a chat session, but it must NOT auto-POST /start for any of these statuses.
       await waitFor(() => {
-        expect(proxy.getQuestStartRequestCount()).toBe(2);
+        expect(proxy.hasExecutionPanel()).toBe(true);
       });
 
-      expect(proxy.getQuestStartRequestCount()).toBe(2);
+      // Widget never POSTs /start itself — all quest starts flow through either
+      //   (a) the QuestApprovedModalWidget "Begin Quest" button (user-driven), or
+      //   (b) the orchestrator startup-recovery responder (server-boot).
+      // Resume from paused is handled server-side via `isAutoResumable`.
+      expect(proxy.getQuestStartRequestCount()).toBe(0);
     });
   });
 
@@ -1278,6 +1283,50 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasExecutionPanel()).toBe(false);
       expect(proxy.hasDumpsterRaccoon()).toBe(false);
     });
+
+    it.each([{ status: 'complete' }, { status: 'abandoned' }] as const)(
+      'VALID: {quest with terminal status: $status} => renders execution panel for audit view',
+      async ({ status }) => {
+        const proxy = QuestChatWidgetProxy();
+        const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+        const quest = QuestStub({
+          id: `chat-terminal-${status}`,
+          status,
+        });
+        const guildDetail = GuildStub({ id: guild.id });
+
+        proxy.setupGuilds({ guilds: [guild] });
+        proxy.setupGuild({ guild: guildDetail });
+
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter
+              initialEntries={[
+                {
+                  pathname: `/test-guild/session/chat-terminal-${status}`,
+                  state: { questId: quest.id },
+                },
+              ]}
+            >
+              <Routes>
+                <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+
+        act(() => {
+          proxy.setupQuest({ quest });
+        });
+
+        await waitFor(() => {
+          expect(proxy.hasExecutionPanel()).toBe(true);
+        });
+
+        expect(proxy.hasChatPanel()).toBe(false);
+        expect(proxy.hasSpecPanel()).toBe(false);
+      },
+    );
   });
 
   describe('live sessionId routing in execution phase', () => {
@@ -1714,56 +1763,6 @@ describe('QuestChatWidget', () => {
   });
 
   describe('error logging in catch handlers', () => {
-    it('ERROR: {questStartBroker rejects in execution phase} => logs error to console.error', async () => {
-      const proxy = QuestChatWidgetProxy();
-      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
-      const quest = QuestStub({
-        id: 'chat-err-start',
-        status: 'in_progress',
-      });
-      const guildDetail = GuildStub({ id: guild.id });
-      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
-
-      proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupGuild({ guild: guildDetail });
-      proxy.setupQuestStartError();
-
-      mantineRenderAdapter({
-        ui: (
-          <MemoryRouter
-            initialEntries={[
-              {
-                pathname: '/test-guild/session/chat-err-start',
-                state: { questId: quest.id },
-              },
-            ]}
-          >
-            <Routes>
-              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
-            </Routes>
-          </MemoryRouter>
-        ),
-      });
-
-      act(() => {
-        proxy.setupQuest({ quest });
-      });
-
-      await waitFor(() => {
-        expect(proxy.hasExecutionPanel()).toBe(true);
-      });
-
-      await waitFor(() => {
-        expect(
-          consoleErrorSpy.mock.calls.some((c) => c[0] === '[quest-chat] quest-start failed'),
-        ).toBe(true);
-      });
-
-      expect(
-        consoleErrorSpy.mock.calls.some((c) => c[0] === '[quest-chat] quest-start failed'),
-      ).toBe(true);
-    });
-
     it('ERROR: {questModifyBroker rejects via keep chatting} => logs error to console.error', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'test-guild' });

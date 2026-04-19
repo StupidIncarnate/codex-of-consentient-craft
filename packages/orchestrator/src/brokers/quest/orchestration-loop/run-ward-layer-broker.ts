@@ -22,6 +22,10 @@ import {
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import {
+  isCompleteWorkItemStatusGuard,
+  isPendingWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
@@ -151,7 +155,7 @@ export const runWardLayerBroker = async ({
     const exhaustedResult = await questGetBroker({ input: questInput });
     if (exhaustedResult.success && exhaustedResult.quest) {
       const pendingSkips = exhaustedResult.quest.workItems
-        .filter((item) => item.status === 'pending')
+        .filter((item) => isPendingWorkItemStatusGuard({ status: item.status }))
         .map((item) => ({ id: item.id, status: 'skipped' as const, completedAt }));
 
       if (pendingSkips.length > 0) {
@@ -222,7 +226,8 @@ export const runWardLayerBroker = async ({
   const blightwardenRan =
     questResult.success && questResult.quest
       ? questResult.quest.workItems.some(
-          (wi) => wi.role === 'blightwarden' && wi.status === 'complete',
+          (wi) =>
+            wi.role === 'blightwarden' && isCompleteWorkItemStatusGuard({ status: wi.status }),
         )
       : false;
   const contextInstructions = blightwardenRan

@@ -7,7 +7,9 @@
  */
 
 import { guildIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
+import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorStartDesignChatAdapter } from '../../../adapters/orchestrator/start-design-chat/orchestrator-start-design-chat-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -62,6 +64,25 @@ export const DesignSessionResponder = async ({
 
     const questId = questIdContract.parse(questIdRaw);
     const guildId = guildIdContract.parse(rawGuildId);
+
+    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    if (!questResult.success || !questResult.quest) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'Quest not found' },
+      });
+    }
+
+    const { quest } = questResult;
+    if (!isDesignPhaseQuestStatusGuard({ status: quest.status })) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: {
+          error:
+            'Quest must be in a design-phase status (explore_design, review_design, or design_approved) to use the design chat',
+        },
+      });
+    }
 
     const { chatProcessId } = await orchestratorStartDesignChatAdapter({
       questId,

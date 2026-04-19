@@ -175,13 +175,14 @@ test.describe('Session ID Routing', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    // Create quest with in_progress status and only chaoswhisperer complete.
-    // The orchestrator will auto-create and run a pathseeker.
+    // Create quest with approved status and only chaoswhisperer complete.
+    // POST /start will transition to seek_scope and insert a pathseeker item,
+    // which the orchestrator will then run.
     quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
-      status: 'in_progress',
+      status: 'approved',
       workItems: [
         {
           id: crypto.randomUUID(),
@@ -196,6 +197,10 @@ test.describe('Session ID Routing', () => {
     const response = SimpleTextResponseStub({ text: pathseekerText });
     response.delayMs = 500;
     claudeMock.queueResponse({ response });
+
+    // Kick orchestration off before navigation so the widget lands on an
+    // execution-phase quest with the WS listener active from the first render.
+    await request.post(`/api/quests/${created.questId}/start`);
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()

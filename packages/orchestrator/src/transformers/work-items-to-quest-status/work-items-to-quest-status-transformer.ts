@@ -7,19 +7,14 @@
  */
 
 import type { QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
-
-const PRE_EXECUTION_STATUSES = new Set<QuestStatus>([
-  'created',
-  'explore_flows',
-  'review_flows',
-  'flows_approved',
-  'explore_observables',
-  'review_observables',
-  'approved',
-  'explore_design',
-  'review_design',
-  'design_approved',
-]);
+import {
+  isActiveWorkItemStatusGuard,
+  isFailureWorkItemStatusGuard,
+  isPathseekerRunningQuestStatusGuard,
+  isPendingWorkItemStatusGuard,
+  isPreExecutionQuestStatusGuard,
+  isTerminalWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 export const workItemsToQuestStatusTransformer = ({
   workItems,
@@ -28,25 +23,35 @@ export const workItemsToQuestStatusTransformer = ({
   workItems: WorkItem[];
   currentStatus: QuestStatus;
 }): QuestStatus => {
-  if (currentStatus.startsWith('seek_')) {
+  if (isPathseekerRunningQuestStatusGuard({ status: currentStatus })) {
     return currentStatus;
   }
 
-  if (PRE_EXECUTION_STATUSES.has(currentStatus)) {
+  if (isPreExecutionQuestStatusGuard({ status: currentStatus })) {
     return currentStatus;
   }
 
-  if (workItems.every((item) => item.status === 'complete' || item.status === 'skipped')) {
+  if (
+    workItems.every(
+      (item) =>
+        isTerminalWorkItemStatusGuard({ status: item.status }) &&
+        !isFailureWorkItemStatusGuard({ status: item.status }),
+    )
+  ) {
     return 'complete';
   }
 
-  if (workItems.some((item) => item.status === 'in_progress')) {
+  if (workItems.some((item) => isActiveWorkItemStatusGuard({ status: item.status }))) {
     return 'in_progress';
   }
 
-  const pendingItems = workItems.filter((item) => item.status === 'pending');
+  const pendingItems = workItems.filter((item) =>
+    isPendingWorkItemStatusGuard({ status: item.status }),
+  );
   const failedIds = new Set(
-    workItems.filter((item) => item.status === 'failed').map((item) => item.id),
+    workItems
+      .filter((item) => isFailureWorkItemStatusGuard({ status: item.status }))
+      .map((item) => item.id),
   );
 
   const blocked =

@@ -22,6 +22,10 @@ export const ExecutionPanelWidgetProxy = (): {
   hasPlanningText: () => boolean;
   hasStreamingBar: () => boolean;
   getExecutionMessages: () => HTMLElement[];
+  hasPauseButton: () => boolean;
+  hasResumeButton: () => boolean;
+  clickPauseButton: () => Promise<void>;
+  clickResumeButton: () => Promise<void>;
 } => {
   AutoScrollContainerWidgetProxy();
   ExecutionRowLayerWidgetProxy();
@@ -65,5 +69,27 @@ export const ExecutionPanelWidgetProxy = (): {
     hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
     hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
     getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('CHAT_MESSAGE'),
+    hasPauseButton: (): boolean => screen.queryByTestId('EXECUTION_PAUSE_BUTTON') !== null,
+    hasResumeButton: (): boolean => screen.queryByTestId('EXECUTION_RESUME_BUTTON') !== null,
+    clickPauseButton: async (): Promise<void> => {
+      const container = screen.queryByTestId('EXECUTION_PAUSE_BUTTON');
+      if (!container) {
+        return;
+      }
+      const btn = container.querySelector('[data-testid="PIXEL_BTN"]');
+      if (btn) {
+        await userEvent.click(btn);
+      }
+    },
+    clickResumeButton: async (): Promise<void> => {
+      const container = screen.queryByTestId('EXECUTION_RESUME_BUTTON');
+      if (!container) {
+        return;
+      }
+      const btn = container.querySelector('[data-testid="PIXEL_BTN"]');
+      if (btn) {
+        await userEvent.click(btn);
+      }
+    },
   };
 };

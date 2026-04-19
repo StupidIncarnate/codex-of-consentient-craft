@@ -13,6 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -23,7 +24,10 @@ import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { startableQuestStatusesStatics } from '../../../statics/startable-quest-statuses/startable-quest-statuses-statics';
+import {
+  isStartableQuestStatusGuard,
+  isTerminalWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const OrchestrationStartResponder = async ({
@@ -40,17 +44,19 @@ export const OrchestrationStartResponder = async ({
 
   const { quest } = result;
 
-  const statusAllowed = startableQuestStatusesStatics.some((s) => s === quest.status);
-  if (!statusAllowed) {
-    throw new Error(`Quest must be approved before starting. Current status: ${quest.status}`);
+  if (!isStartableQuestStatusGuard({ status: quest.status })) {
+    const startableStatuses = Object.entries(questStatusMetadataStatics.statuses)
+      .filter(([, meta]) => meta.isStartable)
+      .map(([statusName]) => statusName);
+    throw new Error(
+      `Quest must be in a startable status (${startableStatuses.join(' or ')}). Current status: ${quest.status}`,
+    );
   }
 
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
   if (existingProcess) {
     return existingProcess.processId;
   }
-
-  const alreadyInProgress = quest.status === 'in_progress';
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
@@ -75,8 +81,7 @@ export const OrchestrationStartResponder = async ({
     .filter(
       (wi) =>
         (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
-        wi.status !== 'complete' &&
-        wi.status !== 'failed',
+        !isTerminalWorkItemStatusGuard({ status: wi.status }),
     )
     .map((wi) =>
       workItemContract.parse({
@@ -109,7 +114,7 @@ export const OrchestrationStartResponder = async ({
 
   const modifyInput = modifyQuestInputContract.parse({
     questId,
-    ...(alreadyInProgress ? {} : { status: 'seek_scope' }),
+    status: 'seek_scope',
     ...(workItemsToUpdate.length > 0 ? { workItems: workItemsToUpdate } : {}),
   });
 

@@ -11,6 +11,10 @@
  * - Nested-path carveout: `planningNotes` containing ONLY `blightReports` is permitted when the status's
  *   blightReportsRule is `'full'`, even if `planningNotes` itself is not in allowedFields. This lets Blightwarden
  *   write to `planningNotes.blightReports[]` during `in_progress` without unlocking the rest of `planningNotes`.
+ * - Sub-field allowlist for planningNotes: when `planningNotes` is present in the input (permitted via either the
+ *   top-level allowedFields entry OR the blight-only carveout), every sub-field present must appear in the
+ *   per-status `allowedPlanningNotesFields` array. Any sub-field outside that list is rejected. This closes the
+ *   gap where seek_scope/seek_synth/seek_walk/seek_plan used to accept any planningNotes.* sub-field.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
@@ -83,6 +87,29 @@ export const questInputForbiddenFieldsTransformer = ({
       offenders.push(
         errorMessageContract.parse(`Field '${field}' not allowed in status '${currentStatus}'`),
       );
+    }
+  }
+
+  // Sub-field allowlist for planningNotes: applies whenever planningNotes was accepted at the top
+  // level (either via allowedFields OR via the blight-only carveout). Every sub-field being written
+  // must appear in `allowedPlanningNotesFields`. This blocks a seek_walk writer from stamping
+  // `scopeClassification`, a seek_plan writer from writing `walkFindings`, etc.
+  if (
+    inputPlanningNotes !== undefined &&
+    (allowedSet.has('planningNotes') || planningNotesBlightOnly)
+  ) {
+    const allowedPlanningNotesSet = new Set<unknown>(entry.allowedPlanningNotesFields);
+    for (const subField of Object.keys(inputPlanningNotes)) {
+      if (Reflect.get(inputPlanningNotes, subField) === undefined) {
+        continue;
+      }
+      if (!allowedPlanningNotesSet.has(subField)) {
+        offenders.push(
+          errorMessageContract.parse(
+            `Sub-field 'planningNotes.${subField}' not allowed in status '${currentStatus}'`,
+          ),
+        );
+      }
     }
   }
 

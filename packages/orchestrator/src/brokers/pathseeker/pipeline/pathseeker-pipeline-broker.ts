@@ -13,6 +13,10 @@ import { killableProcessContract } from '../../../contracts/killable-process/kil
 import type { KillableProcess } from '../../../contracts/killable-process/killable-process-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import {
+  isActivelyExecutingQuestStatusGuard,
+  isPathseekerRunningQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { pathseekerPipelineStatics } from '../../../statics/pathseeker-pipeline/pathseeker-pipeline-statics';
 import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -51,7 +55,11 @@ export const pathseekerPipelineBroker = async ({
   const getInput = getQuestInputContract.parse({ questId });
   const postResult = await questGetBroker({ input: getInput });
 
-  if (postResult.success && postResult.quest && postResult.quest.status === 'in_progress') {
+  if (
+    postResult.success &&
+    postResult.quest &&
+    isActivelyExecutingQuestStatusGuard({ status: postResult.quest.status })
+  ) {
     onVerifySuccess();
     return;
   }
@@ -62,7 +70,7 @@ export const pathseekerPipelineBroker = async ({
     postResult.success && postResult.quest ? postResult.quest.status : 'seek_scope';
 
   const statusLine = `Current status: ${currentStatus}.`;
-  const seekGuidance = currentStatus.startsWith('seek_')
+  const seekGuidance = isPathseekerRunningQuestStatusGuard({ status: currentStatus })
     ? '\nPrior planningNotes may exist — call get-planning-notes to load before starting work. Do NOT redo any phase whose artifact is already committed.'
     : '';
 

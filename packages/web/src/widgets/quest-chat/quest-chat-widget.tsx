@@ -34,7 +34,11 @@ import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/
 import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-design-tab-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
-import { isExecutionPhaseGuard } from '../../guards/is-execution-phase/is-execution-phase-guard';
+import {
+  isGateApprovedQuestStatusGuard,
+  shouldRenderExecutionPanelQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
+import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
@@ -99,9 +103,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   useEffect(() => {
     const currentStatus = questData?.status ?? null;
-    const isApprovedPhase = currentStatus === 'approved' || currentStatus === 'design_approved';
+    const isApprovedPhase =
+      currentStatus !== null && isGateApprovedQuestStatusGuard({ status: currentStatus });
+    const prevStatus = prevQuestStatusRef.current;
     const wasApprovedPhase =
-      prevQuestStatusRef.current === 'approved' || prevQuestStatusRef.current === 'design_approved';
+      prevStatus !== null && isGateApprovedQuestStatusGuard({ status: prevStatus });
 
     if (isApprovedPhase && !wasApprovedPhase) {
       setApprovedModalOpen(true);
@@ -131,22 +137,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
     prevIsStreamingRef.current = isStreaming;
   }, [isStreaming, refreshGuild, requestRefresh]);
 
-  const pipelineStartedRef = useRef(false);
-
-  useEffect(() => {
-    if (questData?.status === 'paused' || questData?.status === 'blocked') {
-      pipelineStartedRef.current = false;
-      return;
-    }
-    if (!questData) return;
-    if (!isExecutionPhaseGuard({ status: questData.status })) return;
-    if (pipelineStartedRef.current) return;
-
-    pipelineStartedRef.current = true;
-    questStartBroker({ questId: questData.id }).catch((startError: unknown) => {
-      globalThis.console.error('[quest-chat] quest-start failed', startError);
-    });
-  }, [questData]);
+  // Note: no auto-start effect. Starting a quest is always user-driven:
+  // - Spec/design approval: user clicks "Begin Quest" in QuestApprovedModalWidget.
+  // - Server restart recovery: handled by the orchestrator startup-recovery responder.
+  // The widget subscribes to the WS stream for execution-phase quests; it never POSTs /start.
 
   const [workItemSessionEntries, setWorkItemSessionEntries] = useState<Map<SessionId, ChatEntry[]>>(
     new Map(),
@@ -156,7 +150,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const executionWsRef = useRef<ReturnType<typeof websocketConnectAdapter> | null>(null);
   const executionWsOpenRef = useRef(false);
   const isExecutionPhase =
-    questData !== null && isExecutionPhaseGuard({ status: questData.status });
+    questData !== null && shouldRenderExecutionPanelQuestStatusGuard({ status: questData.status });
 
   const questDataRef = useRef(questData);
   const resolvedGuildIdRef = useRef(resolvedGuildId);
@@ -293,11 +287,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const questWithContent = questData;
 
   const approvedReviewStatus: QuestStatus | null =
-    questData?.status === 'approved'
-      ? ('review_observables' as QuestStatus)
-      : questData?.status === 'design_approved'
-        ? ('explore_design' as QuestStatus)
-        : null;
+    questData === null ? null : previousReviewQuestStatusTransformer({ status: questData.status });
 
   const sessionEntriesMap = useMemo(() => {
     const map = new Map<SessionId, ChatEntry[]>(workItemSessionEntries);
@@ -345,7 +335,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     );
   }
 
-  if (questData && isExecutionPhaseGuard({ status: questData.status })) {
+  if (questData && shouldRenderExecutionPanelQuestStatusGuard({ status: questData.status })) {
     return (
       <Box
         data-testid="QUEST_CHAT"
@@ -559,12 +549,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
                           message:
                             'Flows approved. Proceed to observables and contracts.' as UserInput,
                         });
-                      } else if (nextStatus === 'approved') {
-                        // Do NOT send a chat message on approval. The ChaosWhisperer's response
-                        // can call modify-quest MCP and revert the status before the user clicks
-                        // Begin Quest — causing a silent race condition where the start POST fails.
-                      } else if (nextStatus === 'design_approved') {
-                        // Same as approved — do not trigger a chat response that could revert status.
+                      } else if (
+                        nextStatus !== undefined &&
+                        isGateApprovedQuestStatusGuard({ status: nextStatus as QuestStatus })
+                      ) {
+                        // Other gate-approved statuses (approved, design_approved):
+                        // Do NOT send a chat message. The ChaosWhisperer's response can call
+                        // modify-quest MCP and revert the status before the user clicks Begin
+                        // Quest — causing a silent race condition where the start POST fails.
                       }
                     })
                     .catch((error: unknown) => {

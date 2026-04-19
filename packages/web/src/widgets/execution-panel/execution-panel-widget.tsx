@@ -33,6 +33,13 @@ import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
+import {
+  isActiveWorkItemStatusGuard,
+  isCompleteWorkItemStatusGuard,
+  isQuestPauseableQuestStatusGuard,
+  isQuestResumableQuestStatusGuard,
+  isTerminalQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
@@ -83,7 +90,7 @@ export const ExecutionPanelWidget = ({
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
-  const isTerminalQuest = quest.status === 'complete' || quest.status === 'abandoned';
+  const isTerminalQuest = isTerminalQuestStatusGuard({ status: quest.status });
   const isPlanning = steps.length === 0 && !isTerminalQuest;
   const hasWorkItemsOnly = steps.length === 0 && isTerminalQuest && quest.workItems.length > 0;
 
@@ -103,8 +110,10 @@ export const ExecutionPanelWidget = ({
   const totalCount = (hasWorkItemsOnly ? quest.workItems.length : steps.length) as TotalCount;
   const completedCount = (
     hasWorkItemsOnly
-      ? quest.workItems.filter((wi) => wi.status === 'complete').length
-      : [...stepWorkItemMap.values()].filter((wi) => wi.status === 'complete').length
+      ? quest.workItems.filter((wi) => isCompleteWorkItemStatusGuard({ status: wi.status })).length
+      : [...stepWorkItemMap.values()].filter((wi) =>
+          isCompleteWorkItemStatusGuard({ status: wi.status }),
+        ).length
   ) as CompletedCount;
 
   const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
@@ -139,7 +148,7 @@ export const ExecutionPanelWidget = ({
     let total = slotCountContract.parse(0);
     for (const wi of group.workItems) {
       total = slotCountContract.parse(total + 1);
-      if (wi.status === 'in_progress') {
+      if (isActiveWorkItemStatusGuard({ status: wi.status })) {
         active = slotCountContract.parse(active + 1);
       }
     }
@@ -471,9 +480,8 @@ export const ExecutionPanelWidget = ({
               </>
             )}
           </AutoScrollContainerWidget>
-          {(quest.status === 'paused' ||
-            quest.status === 'blocked' ||
-            quest.status === 'in_progress') &&
+          {(isQuestPauseableQuestStatusGuard({ status: quest.status }) ||
+            isQuestResumableQuestStatusGuard({ status: quest.status })) &&
             onStatusChange && (
               <Box
                 data-testid="execution-panel-action-bar"
@@ -484,22 +492,28 @@ export const ExecutionPanelWidget = ({
                 }}
               >
                 <Group gap="xs">
-                  {quest.status === 'in_progress' && !confirmingAbandon && onPause && (
-                    <PixelBtnWidget
-                      label={PAUSE_LABEL}
-                      onClick={() => {
-                        onPause();
-                      }}
-                    />
-                  )}
-                  {(quest.status === 'paused' || quest.status === 'blocked') &&
+                  {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
+                    !confirmingAbandon &&
+                    onPause && (
+                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
+                        <PixelBtnWidget
+                          label={PAUSE_LABEL}
+                          onClick={() => {
+                            onPause();
+                          }}
+                        />
+                      </Box>
+                    )}
+                  {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
                     !confirmingAbandon && (
-                      <PixelBtnWidget
-                        label={RESUME_LABEL}
-                        onClick={() => {
-                          onStatusChange({ status: 'in_progress' as QuestStatus });
-                        }}
-                      />
+                      <Box data-testid="EXECUTION_RESUME_BUTTON">
+                        <PixelBtnWidget
+                          label={RESUME_LABEL}
+                          onClick={() => {
+                            onStatusChange({ status: 'in_progress' as QuestStatus });
+                          }}
+                        />
+                      </Box>
                     )}
                   {confirmingAbandon ? (
                     <>

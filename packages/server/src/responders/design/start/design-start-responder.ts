@@ -11,6 +11,7 @@ import {
   guildIdContract,
   questIdContract,
 } from '@dungeonmaster/shared/contracts';
+import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -73,10 +74,13 @@ export const DesignStartResponder = async ({
     }
 
     const { quest } = questResult;
-    if (quest.status !== 'approved' || !quest.needsDesign) {
+    if (!isStartableQuestStatusGuard({ status: quest.status }) || !quest.needsDesign) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest must be approved with needsDesign=true to start design' },
+        data: {
+          error:
+            'Quest must be in an approved status (approved or design_approved) with needsDesign=true to start design',
+        },
       });
     }
 

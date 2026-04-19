@@ -465,4 +465,154 @@ describe('RecoverGuildLayerResponder', () => {
       expect(wardItem?.status).toBe('pending');
     });
   });
+
+  describe('orphaned pathseeker work items during seek_* phases', () => {
+    it.each([
+      ['seek_scope' as const, '001-seek-scope-orphan-ps-quest', 'quest-seek-scope-orphan-ps'],
+      ['seek_synth' as const, '001-seek-synth-orphan-ps-quest', 'quest-seek-synth-orphan-ps'],
+      ['seek_walk' as const, '001-seek-walk-orphan-ps-quest', 'quest-seek-walk-orphan-ps'],
+      ['seek_plan' as const, '001-seek-plan-orphan-ps-quest', 'quest-seek-plan-orphan-ps'],
+    ])(
+      'VALID: {quest status: %s, pathseeker in_progress, no running process} => resets pathseeker item to pending and launches loop',
+      async (questStatus, folder, questIdValue) => {
+        const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+        const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+        const questId = QuestIdStub({ value: questIdValue });
+        const pathseekerItemId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+        const pathseekerWorkItem = WorkItemStub({
+          id: pathseekerItemId as never,
+          role: 'pathseeker',
+          status: 'in_progress',
+          spawnerType: 'agent',
+          startedAt: '2026-03-21T19:31:34.754Z',
+        });
+        const quest = QuestStub({
+          id: questId,
+          folder,
+          status: questStatus,
+          workItems: [pathseekerWorkItem],
+        });
+        const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+        const proxy = RecoverGuildLayerResponderProxy();
+        proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+        await RecoverGuildLayerResponder({ guildItem });
+
+        const persisted = proxy.getAllPersistedContents();
+        const persistedQuests = persisted.map(
+          (content) => JSON.parse(content as never) as Record<PropertyKey, unknown>,
+        );
+
+        const resetQuest = persistedQuests.find((q) => q.id === questId);
+
+        expect(resetQuest?.id).toBe(questId);
+
+        const workItems = resetQuest!.workItems as Record<PropertyKey, unknown>[];
+        const pathseekerItem = workItems.find((wi) => wi.id === pathseekerItemId);
+
+        expect(pathseekerItem?.status).toBe('pending');
+
+        const processIds = proxy.getRegisteredProcessIds();
+
+        expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+      },
+    );
+
+    it('VALID: {quest status: seek_scope, pathseeker pending, no running process} => does not re-reset pending item', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-seek-scope-pending-ps' });
+      const pathseekerItemId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+      const pathseekerWorkItem = WorkItemStub({
+        id: pathseekerItemId as never,
+        role: 'pathseeker',
+        status: 'pending',
+        spawnerType: 'agent',
+      });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-seek-scope-pending-ps-quest',
+        status: 'seek_scope',
+        workItems: [pathseekerWorkItem],
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      await RecoverGuildLayerResponder({ guildItem });
+
+      const persisted = proxy.getAllPersistedContents();
+
+      // No reset should have been written — quest already has pathseeker pending and no orphan to fix
+      expect(persisted).toStrictEqual([]);
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+    });
+  });
+
+  describe('pathseeker insertion for any-agent-running quests missing pathseeker (Fix 2)', () => {
+    it('VALID: {seek_plan quest missing pathseeker work item} => inserts pathseeker work item', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-seek-plan-missing-ps' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-seek-plan-missing-ps-quest',
+        status: 'seek_plan',
+        workItems: [],
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      await RecoverGuildLayerResponder({ guildItem });
+
+      const persisted = proxy.getAllPersistedContents();
+      const persistedQuests = persisted.map(
+        (content) => JSON.parse(content as never) as Record<PropertyKey, unknown>,
+      );
+
+      const insertedPathseekerRoles = persistedQuests
+        .filter((q) => q.id === questId)
+        .flatMap((q) => (q.workItems as Record<PropertyKey, unknown>[]).map((wi) => wi.role))
+        .filter((role) => role === 'pathseeker');
+
+      expect(insertedPathseekerRoles).toStrictEqual(['pathseeker']);
+    });
+
+    it('VALID: {pending quest missing pathseeker work item} => does not insert pathseeker work item', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-pending-missing-ps' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-pending-missing-ps-quest',
+        status: 'pending',
+        workItems: [],
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      await RecoverGuildLayerResponder({ guildItem });
+
+      const persisted = proxy.getAllPersistedContents();
+      const persistedQuests = persisted.map(
+        (content) => JSON.parse(content as never) as Record<PropertyKey, unknown>,
+      );
+
+      const insertedPathseekerRoles = persistedQuests
+        .filter((q) => q.id === questId)
+        .flatMap((q) => (q.workItems as Record<PropertyKey, unknown>[]).map((wi) => wi.role))
+        .filter((role) => role === 'pathseeker');
+
+      expect(insertedPathseekerRoles).toStrictEqual([]);
+    });
+  });
 });

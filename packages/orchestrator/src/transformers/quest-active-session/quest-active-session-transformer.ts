@@ -7,6 +7,7 @@
  */
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { ActiveSessionResult } from '../../contracts/active-session-result/active-session-result-contract';
 
@@ -18,7 +19,10 @@ export const questActiveSessionTransformer = ({
   workItems: WorkItem[];
 }): ActiveSessionResult => {
   const activeChat = workItems.find(
-    (wi) => CHAT_ROLES.has(wi.role) && wi.status === 'in_progress' && wi.sessionId !== undefined,
+    (wi) =>
+      CHAT_ROLES.has(wi.role) &&
+      isActiveWorkItemStatusGuard({ status: wi.status }) &&
+      wi.sessionId !== undefined,
   );
 
   if (activeChat) {

@@ -18,7 +18,7 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { autoResumableQuestStatusesStatics } from '../../../statics/auto-resumable-quest-statuses/auto-resumable-quest-statuses-statics';
+import { isAutoResumableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const QuestModifyResponder = async ({
@@ -31,9 +31,7 @@ export const QuestModifyResponder = async ({
   const result = await questModifyBroker({ input: { ...input, questId } as ModifyQuestInput });
 
   if (result.success && input.status) {
-    const shouldAutoResume = autoResumableQuestStatusesStatics.some((s) => s === input.status);
-
-    if (shouldAutoResume) {
+    if (isAutoResumableQuestStatusGuard({ status: input.status })) {
       const typedQuestId = questId as QuestId;
 
       const existingProcess = orchestrationProcessesState.findByQuestId({

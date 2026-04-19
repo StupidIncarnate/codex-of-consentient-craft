@@ -7,6 +7,8 @@
  */
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { isQuestPauseableQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorPauseQuestAdapter } from '../../../adapters/orchestrator/pause-quest/orchestrator-pause-quest-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -32,6 +34,26 @@ export const QuestPauseResponder = async ({
       });
     }
     const questId = questIdContract.parse(questIdRaw);
+
+    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    if (!questResult.success || !questResult.quest) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'Quest not found' },
+      });
+    }
+
+    const { quest } = questResult;
+    if (!isQuestPauseableQuestStatusGuard({ status: quest.status })) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: {
+          error:
+            'Quest must be in a pauseable status (in_progress, seek_scope, seek_synth, seek_walk, or seek_plan) to pause',
+        },
+      });
+    }
+
     const result = await orchestratorPauseQuestAdapter({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

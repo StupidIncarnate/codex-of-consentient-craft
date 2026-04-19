@@ -7,8 +7,7 @@
  */
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
-
-import { questStatusTransitionsStatics } from '../../statics/quest-status-transitions/quest-status-transitions-statics';
+import { questStatusTransitionsStatics } from '@dungeonmaster/shared/statics';
 
 export const questHasValidStatusTransitionGuard = ({
   currentStatus,

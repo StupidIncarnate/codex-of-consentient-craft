@@ -15,6 +15,7 @@ import type {
   QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -111,10 +112,11 @@ export const RecoverGuildLayerResponderProxy = (): {
         }
       }
 
-      // Step 6: questModifyBroker for pathseeker insertion (in_progress quests without pathseeker)
+      // Step 6: questModifyBroker for pathseeker insertion (any-agent-running quests without pathseeker)
       for (const quest of quests) {
         const needsPathseeker =
-          quest.status === 'in_progress' && !quest.workItems.some((wi) => wi.role === 'pathseeker');
+          isAnyAgentRunningQuestStatusGuard({ status: quest.status }) &&
+          !quest.workItems.some((wi) => wi.role === 'pathseeker');
         if (needsPathseeker) {
           modifyProxy.setupQuestFound({ quest });
         }

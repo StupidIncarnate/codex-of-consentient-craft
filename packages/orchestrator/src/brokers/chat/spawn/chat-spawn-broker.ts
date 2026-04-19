@@ -34,7 +34,7 @@ import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/c
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
-import { questStatics } from '../../../statics/quest/quest-statics';
+import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
@@ -100,11 +100,9 @@ export const chatSpawnBroker = async ({
       throw new Error(`Quest not found: ${questId}`);
     }
     const questStatus = result.quest.status;
-    const allowedStatuses = questStatics.designStatuses.allowed;
-    const isValidStatus = allowedStatuses.some((status) => status === questStatus);
-    if (!isValidStatus) {
+    if (!isDesignPhaseQuestStatusGuard({ status: questStatus })) {
       throw new Error(
-        `Quest must be in a design status (${allowedStatuses.join(', ')}) to start design chat. Current status: ${questStatus}`,
+        `Quest must be in a design phase (explore_design, review_design, or design_approved) to start design chat. Current status: ${questStatus}`,
       );
     }
     resolvedQuestId = questId;
