@@ -508,70 +508,70 @@ export const ExecutionPanelWidget = ({
             ((isQuestPauseableQuestStatusGuard({ status: quest.status }) && onPause) ||
               (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange) ||
               onAbandon) && (
-            <Box
-              data-testid="execution-panel-action-bar"
-              style={{
-                padding: ACTION_BAR_PADDING,
-                borderTop: `1px solid ${colors.border}`,
-                flexShrink: 0,
-              }}
-            >
-              <Group gap="xs">
-                {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
-                  !confirmingAbandon &&
-                  onPause && (
-                    <Box data-testid="EXECUTION_PAUSE_BUTTON">
+              <Box
+                data-testid="execution-panel-action-bar"
+                style={{
+                  padding: ACTION_BAR_PADDING,
+                  borderTop: `1px solid ${colors.border}`,
+                  flexShrink: 0,
+                }}
+              >
+                <Group gap="xs">
+                  {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
+                    !confirmingAbandon &&
+                    onPause && (
+                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
+                        <PixelBtnWidget
+                          label={PAUSE_LABEL}
+                          onClick={() => {
+                            onPause();
+                          }}
+                        />
+                      </Box>
+                    )}
+                  {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
+                    !confirmingAbandon &&
+                    onStatusChange && (
+                      <Box data-testid="EXECUTION_RESUME_BUTTON">
+                        <PixelBtnWidget
+                          label={RESUME_LABEL}
+                          onClick={() => {
+                            onStatusChange({ status: 'in_progress' as QuestStatus });
+                          }}
+                        />
+                      </Box>
+                    )}
+                  {onAbandon &&
+                    (confirmingAbandon ? (
+                      <>
+                        <PixelBtnWidget
+                          label={CONFIRM_ABANDON_LABEL}
+                          variant={DANGER_VARIANT}
+                          onClick={() => {
+                            setConfirmingAbandon(false);
+                            onAbandon();
+                          }}
+                        />
+                        <PixelBtnWidget
+                          label={CANCEL_LABEL}
+                          variant={GHOST_VARIANT}
+                          onClick={() => {
+                            setConfirmingAbandon(false);
+                          }}
+                        />
+                      </>
+                    ) : (
                       <PixelBtnWidget
-                        label={PAUSE_LABEL}
-                        onClick={() => {
-                          onPause();
-                        }}
-                      />
-                    </Box>
-                  )}
-                {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
-                  !confirmingAbandon &&
-                  onStatusChange && (
-                    <Box data-testid="EXECUTION_RESUME_BUTTON">
-                      <PixelBtnWidget
-                        label={RESUME_LABEL}
-                        onClick={() => {
-                          onStatusChange({ status: 'in_progress' as QuestStatus });
-                        }}
-                      />
-                    </Box>
-                  )}
-                {onAbandon &&
-                  (confirmingAbandon ? (
-                    <>
-                      <PixelBtnWidget
-                        label={CONFIRM_ABANDON_LABEL}
-                        variant={DANGER_VARIANT}
-                        onClick={() => {
-                          setConfirmingAbandon(false);
-                          onAbandon();
-                        }}
-                      />
-                      <PixelBtnWidget
-                        label={CANCEL_LABEL}
+                        label={ABANDON_LABEL}
                         variant={GHOST_VARIANT}
                         onClick={() => {
-                          setConfirmingAbandon(false);
+                          setConfirmingAbandon(true);
                         }}
                       />
-                    </>
-                  ) : (
-                    <PixelBtnWidget
-                      label={ABANDON_LABEL}
-                      variant={GHOST_VARIANT}
-                      onClick={() => {
-                        setConfirmingAbandon(true);
-                      }}
-                    />
-                  ))}
-              </Group>
-            </Box>
-          )}
+                    ))}
+                </Group>
+              </Box>
+            )}
         </Box>
       )}
     </Stack>

@@ -9,11 +9,7 @@
 import type { QuestStatus } from '../../contracts/quest-status/quest-status-contract';
 import { questStatusMetadataStatics } from '../../statics/quest-status-metadata/quest-status-metadata-statics';
 
-export const isAbandonableQuestStatusGuard = ({
-  status,
-}: {
-  status?: QuestStatus;
-}): boolean => {
+export const isAbandonableQuestStatusGuard = ({ status }: { status?: QuestStatus }): boolean => {
   if (status === undefined) {
     return false;
   }
