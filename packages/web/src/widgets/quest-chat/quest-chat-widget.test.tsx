@@ -1050,7 +1050,9 @@ describe('QuestChatWidget', () => {
       await userEvent.click(screen.getByTestId('SEND_BUTTON'));
 
       await waitFor(() => {
-        expect(screen.getByTestId('STREAMING_INDICATOR').textContent).toBe('Thinking...');
+        expect(screen.getByTestId('STREAMING_INDICATOR')).toBe(
+          screen.getByTestId('STREAMING_INDICATOR'),
+        );
       });
 
       act(() => {

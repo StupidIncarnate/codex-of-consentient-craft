@@ -5,8 +5,8 @@ import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-sc
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
-import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
+import { StreamingIndicatorWidgetProxy } from '../streaming-indicator/streaming-indicator-widget.proxy';
 import { SubagentChainWidgetProxy } from '../subagent-chain/subagent-chain-widget.proxy';
 import { ToolGroupWidgetProxy } from '../tool-group/tool-group-widget.proxy';
 
@@ -27,8 +27,8 @@ export const ChatPanelWidgetProxy = (): {
   const inputProxy = ChatInputWidgetProxy();
   inputProxy.clearStorage();
   ChatMessageWidgetProxy();
-  PixelBtnWidgetProxy();
   PixelSpriteWidgetProxy();
+  StreamingIndicatorWidgetProxy();
   ToolGroupWidgetProxy();
   ContextDividerWidgetProxy();
   SubagentChainWidgetProxy();

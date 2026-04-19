@@ -15,9 +15,13 @@ export const QuestSpecPanelWidgetProxy = (): {
   clickCancel: () => Promise<void>;
   clickReload: () => Promise<void>;
   clickKeepEditing: () => Promise<void>;
+  clickAbandon: () => Promise<void>;
+  clickConfirmAbandon: () => Promise<void>;
+  clickCancelAbandon: () => Promise<void>;
   hasBanner: () => boolean;
   hasClarifyPanel: () => boolean;
   hasActionButtons: () => boolean;
+  hasAbandonButton: () => boolean;
 } => {
   FormInputWidgetProxy();
   PixelBtnWidgetProxy();
@@ -77,12 +81,52 @@ export const QuestSpecPanelWidgetProxy = (): {
         }
       }
     },
+    clickAbandon: async (): Promise<void> => {
+      const abandonBar = screen.queryByTestId('ABANDON_BAR');
+      if (abandonBar) {
+        const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
+        const abandonButton = Array.from(buttons).find(
+          (button) => button.textContent === 'ABANDON QUEST',
+        );
+        if (abandonButton) {
+          await userEvent.click(abandonButton);
+        }
+      }
+    },
+    clickConfirmAbandon: async (): Promise<void> => {
+      const abandonBar = screen.queryByTestId('ABANDON_BAR');
+      if (abandonBar) {
+        const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
+        const confirmButton = Array.from(buttons).find(
+          (button) => button.textContent === 'CONFIRM ABANDON',
+        );
+        if (confirmButton) {
+          await userEvent.click(confirmButton);
+        }
+      }
+    },
+    clickCancelAbandon: async (): Promise<void> => {
+      const abandonBar = screen.queryByTestId('ABANDON_BAR');
+      if (abandonBar) {
+        const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
+        const cancelButton = Array.from(buttons).find((button) => button.textContent === 'CANCEL');
+        if (cancelButton) {
+          await userEvent.click(cancelButton);
+        }
+      }
+    },
     hasBanner: (): boolean => screen.queryByTestId('EXTERNAL_UPDATE_BANNER') !== null,
     hasClarifyPanel: (): boolean => screen.queryByTestId('QUEST_CLARIFY_PANEL') !== null,
     hasActionButtons: (): boolean => {
       const actionBar = screen.queryByTestId('ACTION_BAR');
       if (!actionBar) return false;
       return actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]').length > 0;
+    },
+    hasAbandonButton: (): boolean => {
+      const abandonBar = screen.queryByTestId('ABANDON_BAR');
+      if (!abandonBar) return false;
+      const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
+      return Array.from(buttons).some((button) => button.textContent === 'ABANDON QUEST');
     },
   };
 };

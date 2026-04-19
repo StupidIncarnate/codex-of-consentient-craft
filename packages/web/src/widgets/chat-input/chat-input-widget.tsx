@@ -6,7 +6,7 @@
  * // Renders textarea with send or stop button, restores draft on mount
  */
 
-import { Box, Text, UnstyledButton } from '@mantine/core';
+import { Box, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
@@ -148,17 +148,6 @@ export const ChatInputWidget = ({
           </UnstyledButton>
         )}
       </div>
-      {isStreaming ? (
-        <Text
-          ff="monospace"
-          size="xs"
-          mt={4}
-          data-testid="STREAMING_INDICATOR"
-          style={{ color: colors['text-dim'] }}
-        >
-          Thinking...
-        </Text>
-      ) : null}
     </Box>
   );
 };

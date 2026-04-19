@@ -424,18 +424,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
           isStreaming={isStreaming}
           onSendMessage={sendMessage}
           onStopChat={stopChat}
-          {...(questWithContent &&
-          isAbandonableQuestStatusGuard({ status: questWithContent.status })
-            ? {
-                onAbandon: (): void => {
-                  questAbandonBroker({ questId: questWithContent.id }).catch(
-                    (abandonError: unknown) => {
-                      globalThis.console.error('[quest-chat] abandon failed', abandonError);
-                    },
-                  );
-                },
-              }
-            : {})}
         />
       </Box>
 
@@ -606,6 +594,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
                     questions: pendingQuestion?.questions ?? [],
                   });
                 }}
+                {...(isAbandonableQuestStatusGuard({ status: questWithContent.status })
+                  ? {
+                      onAbandon: (): void => {
+                        questAbandonBroker({ questId: questWithContent.id }).catch(
+                          (abandonError: unknown) => {
+                            globalThis.console.error('[quest-chat] abandon failed', abandonError);
+                          },
+                        );
+                      },
+                    }
+                  : {})}
               />
             )}
           </Box>

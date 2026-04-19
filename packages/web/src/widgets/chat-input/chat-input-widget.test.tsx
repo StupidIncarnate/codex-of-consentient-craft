@@ -27,10 +27,9 @@ describe('ChatInputWidget', () => {
       expect(screen.getByTestId('CHAT_INPUT')).toBe(screen.getByTestId('CHAT_INPUT'));
       expect(screen.getByTestId('SEND_BUTTON')).toBe(screen.getByTestId('SEND_BUTTON'));
       expect(screen.queryByTestId('STOP_BUTTON')).toBe(null);
-      expect(screen.queryByTestId('STREAMING_INDICATOR')).toBe(null);
     });
 
-    it('VALID: {isStreaming: true} => renders stop button and streaming indicator', () => {
+    it('VALID: {isStreaming: true} => renders stop button', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
       const onSendMessage = jest.fn();
@@ -47,9 +46,6 @@ describe('ChatInputWidget', () => {
       });
 
       expect(screen.getByTestId('STOP_BUTTON')).toBe(screen.getByTestId('STOP_BUTTON'));
-      expect(screen.getByTestId('STREAMING_INDICATOR')).toBe(
-        screen.getByTestId('STREAMING_INDICATOR'),
-      );
       expect(screen.queryByTestId('SEND_BUTTON')).toBe(null);
     });
 

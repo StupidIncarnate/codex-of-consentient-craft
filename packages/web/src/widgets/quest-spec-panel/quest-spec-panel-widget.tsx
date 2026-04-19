@@ -38,7 +38,10 @@ const APPROVE_LABEL = 'APPROVE' as ButtonLabel;
 const MODIFY_LABEL = 'MODIFY' as ButtonLabel;
 const SUBMIT_LABEL = 'SUBMIT' as ButtonLabel;
 const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
+const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
+const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
 const GHOST_VARIANT = 'ghost' as ButtonVariant;
+const DANGER_VARIANT = 'danger' as ButtonVariant;
 const TITLE_PLACEHOLDER = 'Quest title' as FormPlaceholder;
 const TITLE_COLOR = emberDepthsThemeStatics.colors['loot-gold'] as CssColorOverride;
 const SCROLLABLE_STYLE = { flex: 1, overflowY: 'auto' as const, padding: 16 };
@@ -68,6 +71,7 @@ export interface QuestSpecPanelWidgetProps {
       label: string;
     }[];
   }) => void;
+  onAbandon?: () => void;
 }
 
 export const QuestSpecPanelWidget = ({
@@ -78,9 +82,11 @@ export const QuestSpecPanelWidget = ({
   readOnly,
   pendingQuestion,
   onSubmitAnswers,
+  onAbandon,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const [editing, setEditing] = useState(false);
   const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
+  const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
   useEffect(() => {
@@ -97,30 +103,71 @@ export const QuestSpecPanelWidget = ({
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
-      <Box style={{ ...TITLE_BAR_STYLE_BASE, borderBottom: `1px solid ${colors.border}` }}>
-        {editing ? (
-          <FormInputWidget
-            value={draftTitle as unknown as FormInputValue}
-            onChange={(value) => {
-              setDraftModifications((prev) => ({
-                ...prev,
-                title: value as unknown as Quest['title'],
-              }));
-            }}
-            placeholder={TITLE_PLACEHOLDER}
-            color={TITLE_COLOR}
-          />
-        ) : (
-          <Text
-            ff="monospace"
-            size={HEADER_FONT_SIZE}
-            fw={600}
-            style={{ color: colors['loot-gold'] }}
-            data-testid="QUEST_TITLE"
-          >
-            {quest.title}
-          </Text>
-        )}
+      <Box
+        style={{
+          ...TITLE_BAR_STYLE_BASE,
+          borderBottom: `1px solid ${colors.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          {editing ? (
+            <FormInputWidget
+              value={draftTitle as unknown as FormInputValue}
+              onChange={(value) => {
+                setDraftModifications((prev) => ({
+                  ...prev,
+                  title: value as unknown as Quest['title'],
+                }));
+              }}
+              placeholder={TITLE_PLACEHOLDER}
+              color={TITLE_COLOR}
+            />
+          ) : (
+            <Text
+              ff="monospace"
+              size={HEADER_FONT_SIZE}
+              fw={600}
+              style={{ color: colors['loot-gold'] }}
+              data-testid="QUEST_TITLE"
+            >
+              {quest.title}
+            </Text>
+          )}
+        </Box>
+        {onAbandon && !editing ? (
+          <Group gap="xs" data-testid="ABANDON_BAR">
+            {confirmingAbandon ? (
+              <>
+                <PixelBtnWidget
+                  label={CONFIRM_ABANDON_LABEL}
+                  variant={DANGER_VARIANT}
+                  onClick={() => {
+                    setConfirmingAbandon(false);
+                    onAbandon();
+                  }}
+                />
+                <PixelBtnWidget
+                  label={CANCEL_LABEL}
+                  variant={GHOST_VARIANT}
+                  onClick={() => {
+                    setConfirmingAbandon(false);
+                  }}
+                />
+              </>
+            ) : (
+              <PixelBtnWidget
+                label={ABANDON_LABEL}
+                variant={GHOST_VARIANT}
+                onClick={() => {
+                  setConfirmingAbandon(true);
+                }}
+              />
+            )}
+          </Group>
+        ) : null}
       </Box>
       <Box style={SCROLLABLE_STYLE}>
         {editing && externalUpdatePending ? (

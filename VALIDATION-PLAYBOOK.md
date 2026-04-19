@@ -98,6 +98,50 @@ each run, in order:
 
 ---
 
+## Spec Snapshot — Reuse Clean Spec Across Runs
+
+ChaosWhisperer's spec phase (flow exploration, observable embedding, gap-minion, clarifications) is expensive and
+deterministic in outcome for a fixed prompt. A bug encountered later in the pipeline (Phase 1.2+) does not invalidate a
+good spec. Snapshot the quest the moment Phase 1.1 reaches a clean Gate #2 so the next run can skip straight to the
+Begin Quest click.
+
+**When to snapshot:** Phase 1.1 has reached status `review_observables` with the APPROVE button visible, all
+clarifications resolved, observables embedded, contracts populated. ChaosWhisperer is idle. No pending spec work.
+
+**Snapshot procedure (run once per clean Gate #2, before clicking APPROVE):**
+
+Copy the entire quest folder (named by UUID, containing `quest.json`) into `tmp/smoke-test-quest/`, preserving the
+folder name so restore is a one-shot copy back into the guild's `quests/` dir.
+
+```
+rm -rf tmp/smoke-test-quest/*
+cp -r .dungeonmaster-home/.dungeonmaster-dev/guilds/<guildId>/quests/<questId> tmp/smoke-test-quest/
+```
+
+After snapshot, `tmp/smoke-test-quest/<questId>/quest.json` exists.
+
+- **Always overwrite.** The newest clean spec wins — no snapshot history.
+- **Keep the UUID-named folder.** Restore is `cp -r tmp/smoke-test-quest/<questId> .dungeonmaster-home/...quests/` with
+  no path surgery.
+- **Snapshot goes in `<repoRoot>/tmp/smoke-test-quest/`**, not `~/tmp` (permission issues) and not `/tmp` (outside repo
+  permission scope; survives wipes). The `tmp/` dir is already git-ignored.
+
+**How to restore (on a blocked-run restart that wants to skip spec):**
+
+1. With the dev server stopped, copy the snapshotted folder back:
+   ```
+   cp -r tmp/smoke-test-quest/<questId> .dungeonmaster-home/.dungeonmaster-dev/guilds/<guildId>/quests/
+   ```
+2. Start the dev server — startup recovery picks up the quest.
+3. Navigate to the quest's bound `activeSessionId` URL (from the snapshotted `quest.json`). The UI should land on
+   `review_observables` with APPROVE visible. Click APPROVE, then Begin Quest — resumes at Phase 1.2 with zero
+   ChaosWhisperer re-work.
+
+**Cleanup:** delete `tmp/smoke-test-quest/` contents once Phase 1 is declared done (no longer needed, and a stale
+snapshot is worse than no snapshot).
+
+---
+
 ## Fix Agent Launch Protocol (MANDATORY)
 
 Fix agents without these rules scope-creep, patch symptoms instead of roots, and justify messes as "pre-existing" or

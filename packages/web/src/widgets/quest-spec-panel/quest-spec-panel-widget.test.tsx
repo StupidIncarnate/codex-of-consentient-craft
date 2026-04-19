@@ -839,4 +839,91 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
     });
   });
+
+  describe('abandon button', () => {
+    it('VALID: {onAbandon provided} => renders ABANDON QUEST button in title bar', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={jest.fn()} />,
+      });
+
+      expect(proxy.hasAbandonButton()).toBe(true);
+    });
+
+    it('VALID: {no onAbandon} => does not render ABANDON QUEST button', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(proxy.hasAbandonButton()).toBe(false);
+    });
+
+    it('VALID: {click ABANDON QUEST} => shows CONFIRM ABANDON and CANCEL buttons', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+      const onAbandon = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+      });
+
+      await proxy.clickAbandon();
+
+      const abandonBar = screen.getByTestId('ABANDON_BAR');
+      const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
+      const buttonTexts = Array.from(buttons).map((button) => button.textContent);
+
+      expect(buttonTexts).toStrictEqual(['CONFIRM ABANDON', 'CANCEL']);
+      expect(onAbandon).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {click CONFIRM ABANDON} => calls onAbandon', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+      const onAbandon = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+      });
+
+      await proxy.clickAbandon();
+      await proxy.clickConfirmAbandon();
+
+      expect(onAbandon).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {click CANCEL after ABANDON} => returns to ABANDON QUEST button, does not call onAbandon', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+      const onAbandon = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+      });
+
+      await proxy.clickAbandon();
+      await proxy.clickCancelAbandon();
+
+      expect(proxy.hasAbandonButton()).toBe(true);
+      expect(onAbandon).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {editing mode + onAbandon} => does not render ABANDON QUEST button', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub();
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={jest.fn()} />,
+      });
+
+      await proxy.clickModify();
+
+      expect(proxy.hasAbandonButton()).toBe(false);
+    });
+  });
 });
