@@ -239,52 +239,6 @@ and will not emit new questions.
 
 ---
 
-## Phase 0 — Static Pre-Flight
-
-All checks via Read / discover / grep. No spawning.
-
-### 0.A — Per-Flow Siegemaster landed
-
-| #      | Check                                        | Pass criteria                                                                                                      |
-|--------|----------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| 0.A.1  | `relatedDataItemContract` regex              | includes `flows` alternation                                                                                       |
-| 0.A.2  | `resolvedRelatedDataItem` flows variant      | discriminated `{ collection: 'flows', id, item: Flow }`                                                            |
-| 0.A.3  | Dead plumbing deleted                        | `siegemaster-phase-result/`, `work-units-to-failed-observable-ids/`, `failed-observables-to-step-ids/` → 0 results |
-| 0.A.4  | `siegemasterWorkUnitContract` new shape      | singular `flow`; no `relatedFlows`/`relatedObservables`                                                            |
-| 0.A.5  | `stepsToWorkItems` per-flow                  | loop over `flows`; each siege has `relatedDataItems: ['flows/<id>']`; chained `dependsOn`                          |
-| 0.A.6  | `buildWorkUnitForRole` discriminated input   | siegemaster branch live; lawbringer/spiritmender drop `quest`                                                      |
-| 0.A.7  | `work-unit-to-arguments` flow-centric render | `Flow:` / `flowType` / `entryPoint` / `Nodes:` / `Edges:` / obs IDs                                                |
-| 0.A.8  | `run-siegemaster-layer-broker` no flatten    | `quest.flows.flatMap` → 0 hits                                                                                     |
-| 0.A.9  | `FAILURE_MARKER` sniff gone                  | zero occurrences outside fixture cleanup                                                                           |
-| 0.A.10 | Prompt Phase 3 rewritten                     | `git diff main...HEAD --name-only` mentioned; skip-detection wording present                                       |
-
-### 0.B — Blightwarden landed
-
-| #      | Check                                          | Pass criteria                                                                                  |
-|--------|------------------------------------------------|------------------------------------------------------------------------------------------------|
-| 0.B.1  | `agentRoleContract` + `workItemRoleContract`   | `'blightwarden'` in both enums                                                                 |
-| 0.B.2  | `signal-back-input` enum                       | `'failed-replan'` added                                                                        |
-| 0.B.3  | `planningBlightReportContract` exists          | contract + test + stub; `minion` enum has 6 values                                             |
-| 0.B.4  | `quest-contract` `blightReports[]`             | field + default `[]`                                                                           |
-| 0.B.5  | `get-planning-notes` `'blight'` section        | enum + broker + responder + MCP adapter all include it                                         |
-| 0.B.6  | `steps-to-work-items` blightwardenItem         | inserted between lawItems and finalWardItem; `finalWardItem.dependsOn = [blightwardenItem.id]` |
-| 0.B.7  | Orchestration loop dispatch                    | `else if (roleName === 'blightwarden')` branch in loop broker                                  |
-| 0.B.8  | `run-blightwarden-layer-broker` exists         | broker + proxy + test                                                                          |
-| 0.B.9  | 6 prompt statics folders                       | synthesizer + 5 minions                                                                        |
-| 0.B.10 | 5 minion names in `agent-prompt-name-contract` | present in enum                                                                                |
-| 0.B.11 | `agent-name-to-prompt-transformer`             | 5 minion cases                                                                                 |
-| 0.B.12 | `quest-status-input-allowlist` `in_progress`   | `blightReportsRule` scoped to `planningNotes.blightReports`                                    |
-| 0.B.13 | `spiritmender-context` post-Blight             | `postBlightwardenFailure` entry present                                                        |
-
-### 0.C — Ward fully green
-
-`npm run ward` (timeout 600000). Zero failures. No live-quest work until this is green.
-
-**→ FAIL Phase 0:** dispatch fixers; restart Phase 0.
-**→ PASS:** proceed to Phase 1.
-
----
-
 ## Phase 1 — Happy Path Smoke Test
 
 One quest, one clean run, from Web UI new chat to `complete`. Two flows (one runtime UI, one operational CLI), ~3 steps
