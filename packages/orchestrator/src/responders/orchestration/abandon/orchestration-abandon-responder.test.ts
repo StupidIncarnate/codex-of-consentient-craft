@@ -1,6 +1,16 @@
-import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestIdStub,
+  QuestStub,
+  QuestWorkItemIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
+import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { OrchestrationAbandonResponderProxy } from './orchestration-abandon-responder.proxy';
+
+const WORK_ITEM_STATUSES = Object.keys(
+  workItemStatusMetadataStatics.statuses,
+) as readonly (keyof typeof workItemStatusMetadataStatics.statuses)[];
 
 describe('OrchestrationAbandonResponder', () => {
   describe('successful abandon', () => {
@@ -56,6 +66,68 @@ describe('OrchestrationAbandonResponder', () => {
 
       expect(kill).toHaveBeenCalledTimes(1);
     });
+  });
+
+  describe('work item state matrix - terminal stays', () => {
+    const TERMINAL_WORK_ITEM_STATUSES = WORK_ITEM_STATUSES.filter(
+      (s) => workItemStatusMetadataStatics.statuses[s].isTerminal,
+    );
+
+    it.each(TERMINAL_WORK_ITEM_STATUSES)(
+      'VALID: {work item status: %s} => terminal item unchanged after abandon',
+      async (wiStatus) => {
+        const questId = QuestIdStub({ value: 'abandon-terminal-wi' });
+        const wiId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
+        const workItem = WorkItemStub({ id: wiId, role: 'codeweaver', status: wiStatus });
+        const quest = QuestStub({
+          id: questId,
+          status: 'in_progress',
+          workItems: [workItem],
+        });
+        const proxy = OrchestrationAbandonResponderProxy();
+        proxy.setupQuestFound({ quest });
+
+        await proxy.callResponder({ questId });
+
+        const { status, workItems } = proxy.getLastPersistedQuest();
+
+        expect(status).toBe('abandoned');
+        expect(workItems).toStrictEqual([
+          WorkItemStub({ id: wiId, role: 'codeweaver', status: wiStatus }),
+        ]);
+      },
+    );
+  });
+
+  describe('work item state matrix - non-terminal skipped', () => {
+    const NON_TERMINAL_WORK_ITEM_STATUSES = WORK_ITEM_STATUSES.filter(
+      (s) => !workItemStatusMetadataStatics.statuses[s].isTerminal,
+    );
+
+    it.each(NON_TERMINAL_WORK_ITEM_STATUSES)(
+      'VALID: {work item status: %s} => non-terminal item becomes skipped after abandon',
+      async (wiStatus) => {
+        const questId = QuestIdStub({ value: 'abandon-nonterminal-wi' });
+        const wiId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+        const workItem = WorkItemStub({ id: wiId, role: 'codeweaver', status: wiStatus });
+        const quest = QuestStub({
+          id: questId,
+          status: 'in_progress',
+          workItems: [workItem],
+        });
+        const proxy = OrchestrationAbandonResponderProxy();
+        proxy.setupQuestFound({ quest });
+
+        await proxy.callResponder({ questId });
+
+        const { status, workItems } = proxy.getLastPersistedQuest();
+
+        expect(status).toBe('abandoned');
+        expect(workItems).toStrictEqual([
+          WorkItemStub({ id: wiId, role: 'codeweaver', status: 'skipped' }),
+        ]);
+      },
+    );
   });
 
   describe('error cases', () => {

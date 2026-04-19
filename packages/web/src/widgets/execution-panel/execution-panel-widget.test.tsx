@@ -11,6 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
@@ -600,7 +601,7 @@ describe('ExecutionPanelWidget', () => {
       expect(firstRowText).toBe('\u25B801[CHAOSWHISPERER]ChaoswhispererDONE');
     });
 
-    it('VALID: {complete quest with work items} => shows completion count in status bar', () => {
+    it('VALID: {complete quest with work items} => shows terminal banner instead of status bar', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -618,8 +619,9 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTION1/1 COMPLETE',
+      expect(screen.queryByTestId('execution-status-bar-layer-widget')).toBe(null);
+      expect(screen.getByTestId('execution-panel-terminal-banner').textContent).toBe(
+        questStatusMetadataStatics.statuses.complete.displayHeader,
       );
     });
 
@@ -2423,5 +2425,63 @@ describe('ExecutionPanelWidget', () => {
         expect(onPause.mock.calls).toStrictEqual([]);
       });
     });
+  });
+
+  describe('terminal banner', () => {
+    type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+    const PANEL_STATUSES = (
+      Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+    ).filter((s) => questStatusMetadataStatics.statuses[s].shouldRenderExecutionPanel);
+    const TERMINAL_PANEL_STATUSES = PANEL_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].isTerminal,
+    );
+    const NON_TERMINAL_PANEL_STATUSES = PANEL_STATUSES.filter(
+      (s) => !questStatusMetadataStatics.statuses[s].isTerminal,
+    );
+
+    it.each(TERMINAL_PANEL_STATUSES)(
+      'VALID: {status: %s} => terminal banner visible with displayHeader text',
+      (status) => {
+        ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status });
+
+        mantineRenderAdapter({
+          ui: <ExecutionPanelWidget quest={quest} />,
+        });
+
+        const banner = screen.getByTestId('execution-panel-terminal-banner');
+        const { displayHeader } = questStatusMetadataStatics.statuses[status];
+
+        expect(banner.textContent).toBe(displayHeader);
+      },
+    );
+
+    it.each(TERMINAL_PANEL_STATUSES)(
+      'VALID: {status: %s} => status bar progress count suppressed when terminal',
+      (status) => {
+        ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status });
+
+        mantineRenderAdapter({
+          ui: <ExecutionPanelWidget quest={quest} />,
+        });
+
+        expect(screen.queryByTestId('execution-status-bar-layer-widget')).toBe(null);
+      },
+    );
+
+    it.each(NON_TERMINAL_PANEL_STATUSES)(
+      'VALID: {status: %s} => terminal banner hidden when quest is non-terminal',
+      (status) => {
+        ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status });
+
+        mantineRenderAdapter({
+          ui: <ExecutionPanelWidget quest={quest} />,
+        });
+
+        expect(screen.queryByTestId('execution-panel-terminal-banner')).toBe(null);
+      },
+    );
   });
 });

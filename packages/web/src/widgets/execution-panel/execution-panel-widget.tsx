@@ -41,6 +41,7 @@ import {
   isQuestResumableQuestStatusGuard,
   isTerminalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
@@ -209,11 +210,31 @@ export const ExecutionPanelWidget = ({
           >
             {quest.title}
           </Text>
-          <ExecutionStatusBarLayerWidget
-            completedCount={completedCount}
-            totalCount={totalCount}
-            isPlanning={isPlanning}
-          />
+          {isTerminalQuestStatusGuard({ status: quest.status }) ? (
+            <Box
+              data-testid="execution-panel-terminal-banner"
+              style={{
+                padding: '8px 12px',
+                textAlign: 'center',
+                backgroundColor: colors['bg-raised'],
+                borderBottom: `1px solid ${colors.border}`,
+                color: colors.danger,
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: '0.1em',
+                flexShrink: 0,
+              }}
+            >
+              {displayHeaderQuestStatusTransformer({ status: quest.status })}
+            </Box>
+          ) : (
+            <ExecutionStatusBarLayerWidget
+              completedCount={completedCount}
+              totalCount={totalCount}
+              isPlanning={isPlanning}
+            />
+          )}
           <AutoScrollContainerWidget
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px' }}

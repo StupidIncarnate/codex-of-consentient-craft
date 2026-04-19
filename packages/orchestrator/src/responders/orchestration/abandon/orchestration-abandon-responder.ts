@@ -10,6 +10,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -32,10 +33,17 @@ export const OrchestrationAbandonResponder = async ({
     throw new Error(`Quest not found: ${questId}`);
   }
 
+  const { quest } = result;
+
+  const itemsToSkip = quest.workItems
+    .filter((wi) => !isTerminalWorkItemStatusGuard({ status: wi.status }))
+    .map((wi) => ({ id: wi.id, status: 'skipped' as const }));
+
   const modifyResult = await questModifyBroker({
     input: {
       questId,
       status: 'abandoned',
+      ...(itemsToSkip.length > 0 ? { workItems: itemsToSkip } : {}),
     } as ModifyQuestInput,
   });
 
