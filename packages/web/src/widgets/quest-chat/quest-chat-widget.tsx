@@ -37,6 +37,7 @@ import { extractAskUserQuestionTransformer } from '../../transformers/extract-as
 import {
   isGateApprovedQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
+  shouldShowBeginQuestModalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
@@ -103,13 +104,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   useEffect(() => {
     const currentStatus = questData?.status ?? null;
-    const isApprovedPhase =
-      currentStatus !== null && isGateApprovedQuestStatusGuard({ status: currentStatus });
+    const shouldShowModal =
+      currentStatus !== null &&
+      shouldShowBeginQuestModalQuestStatusGuard({ status: currentStatus });
     const prevStatus = prevQuestStatusRef.current;
-    const wasApprovedPhase =
-      prevStatus !== null && isGateApprovedQuestStatusGuard({ status: prevStatus });
+    const wasShowingModal =
+      prevStatus !== null && shouldShowBeginQuestModalQuestStatusGuard({ status: prevStatus });
 
-    if (isApprovedPhase && !wasApprovedPhase) {
+    if (shouldShowModal && !wasShowingModal) {
       setApprovedModalOpen(true);
     }
     prevQuestStatusRef.current = currentStatus;
@@ -586,7 +588,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
       </Box>
       {questWithContent ? (
         <QuestApprovedModalWidget
-          opened={approvedModalOpen}
+          opened={
+            approvedModalOpen &&
+            shouldShowBeginQuestModalQuestStatusGuard({ status: questWithContent.status })
+          }
           onKeepChatting={() => {
             setApprovedModalOpen(false);
             if (approvedReviewStatus) {

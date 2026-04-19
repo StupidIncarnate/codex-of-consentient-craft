@@ -27,6 +27,7 @@ export * from './src/guards/is-auto-resumable-quest-status/is-auto-resumable-que
 export * from './src/guards/is-gate-approved-quest-status/is-gate-approved-quest-status-guard';
 export * from './src/guards/is-design-phase-quest-status/is-design-phase-quest-status-guard';
 export * from './src/guards/should-render-execution-panel-quest-status/should-render-execution-panel-quest-status-guard';
+export * from './src/guards/should-show-begin-quest-modal-quest-status/should-show-begin-quest-modal-quest-status-guard';
 
 // Work Item Status Guards
 export * from './src/guards/is-terminal-work-item-status/is-terminal-work-item-status-guard';

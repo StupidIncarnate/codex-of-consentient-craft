@@ -639,7 +639,27 @@ export const exitCodeContract = z
   .min(0)
   .max(exitCodeStatics.limits.max)
   .brand<'ExitCode'>();
-\`\`\``;
+\`\`\`
+
+**Same principle applies to lists and enumerations.** When a test iterates over a finite set of values (every status in a union, every enum member, every kind of minion), it MUST import the canonical list from its single source of truth — a \`*-statics.ts\`, a Zod schema's \`.options\`, or an exported readonly array — and filter/partition from it. Never re-type the members inline. Hardcoded arrays rot the moment someone adds a new member: the new member is silently omitted from the test, and "100% coverage" becomes a lie.
+
+\`\`\`typescript
+// ❌ WRONG — duplicates the status list in the test; silently stale when a new status is added
+it.each(['pending', 'created', 'blocked', 'complete'] as const)(
+  'popup hidden for %s',
+  (status) => { /* ... */ },
+);
+
+// ✅ CORRECT — derives from canonical list; picks up new members automatically
+import { questStatusList } from '@dungeonmaster/shared/statics/quest-status';
+
+const nonApprovedStatuses = questStatusList.filter((s) => s !== 'approved');
+
+it.each(nonApprovedStatuses)('popup hidden for %s', (status) => { /* ... */ });
+it('popup visible for approved', () => { /* ... */ });
+\`\`\`
+
+**If the canonical list doesn't exist yet, promote it first.** A test that enumerates a finite set of values and has no existing single-source-of-truth is a signal to move the array into a \`*-statics.ts\` (or lean on the Zod schema's \`.options\` for enums), then import it from both the test and the production code. "What are all the possible values?" becomes a single grep, and future additions automatically flow to every consumer that imports the list.`;
 
   // EndpointMock (StartEndpointMock)
   const endpointMock = `### When to Use \`StartEndpointMock\`

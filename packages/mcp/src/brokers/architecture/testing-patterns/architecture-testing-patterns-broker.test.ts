@@ -290,6 +290,19 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => no-magic-numbers section covers lists and enumerations too', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\*\*Same principle applies to lists and enumerations\.\*\* When a test iterates over a finite set of values \(every status in a union, every enum member, every kind of minion\), it MUST import the canonical list from its single source of truth — a `\*-statics\.ts`, a Zod schema's `\.options`, or an exported readonly array — and filter\/partition from it\. Never re-type the members inline\. Hardcoded arrays rot the moment someone adds a new member: the new member is silently omitted from the test, and "100% coverage" becomes a lie\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*If the canonical list doesn't exist yet, promote it first\.\*\* A test that enumerates a finite set of values and has no existing single-source-of-truth is a signal to move the array into a `\*-statics\.ts` \(or lean on the Zod schema's `\.options` for enums\), then import it from both the test and the production code\. "What are all the possible values\?" becomes a single grep, and future additions automatically flow to every consumer that imports the list\.$/mu,
+      );
+    });
+
     it('VALID: {} => includes endpoint mock section', () => {
       architectureTestingPatternsBrokerProxy();
 

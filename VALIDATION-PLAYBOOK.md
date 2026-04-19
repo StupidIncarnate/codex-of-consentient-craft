@@ -29,8 +29,10 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
   quest, per Run Lifecycle).
 - If the last run was `in_progress` with no blocker filed, the prior session may have just stopped mid-run — restart
   with a new quest on the same phase.
-- Do NOT abandon or delete the prior run's quest unless it's blocking your ability to proceed. Just park it and
-  create a new one.
+- **Abandon any non-terminal quests from prior runs before starting a new run.** Leftover in-flight quests dilute
+  the repo: on dev-server restart, orchestration recovers them and their agents resume writing codeweaver outputs
+  / blight reports / ward artifacts into the working tree, contaminating the new run. Abandon them via
+  `mcp__dungeonmaster__modify-quest` (set `status: 'abandoned'`) — do not just park them.
 
 ---
 
@@ -74,20 +76,83 @@ each run, in order:
     Use `npm run dev:kill` for the primary server; use `jobs` / `kill %N` for orchestrator-owned bg bash; use
     `pkill -f <pattern>` as a last resort. A stale background process will hold ports, file locks, or keep emitting
     output that confuses the next run.
-3. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs.
-4. **Start dev server.** Single process only. Leave it up for the whole run.
-5. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
+
+3. **Abandon any non-terminal prior-run quests.** Enumerate with `mcp__dungeonmaster__list-quests` and abandon every
+   quest whose status is not already `complete` / `abandoned` / `blocked` via `mcp__dungeonmaster__modify-quest`
+   (set `status: 'abandoned'`). Without this, dev-server startup recovery will re-register those quests and their
+   agents will resume writing codeweaver outputs / blight reports into the working tree during the new run.
+4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs.
+5. **Start dev server.** Single process only. Leave it up for the whole run.
+6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
-6. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4751/codex/session) → "New Chat" → describe the trivial
+7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4751/codex/session) → "New Chat" → describe the trivial
    2-flow feature.
-7. **Record the run.** As soon as the session URL appears (`/codex/session/<uuid>`), add a `## Run N` heading to
+8. **Record the run.** As soon as the session URL appears (`/codex/session/<uuid>`), add a `## Run N` heading to
    `/tmp/validation-notes.md` with the URL. One entry per run, every run.
-8. **Drive the smoke flow** through the phase's checkpoints.
-9. **Record the outcome** under the `## Run N` heading when the run ends:
+9. **Drive the smoke flow** through the phase's checkpoints.
+10. **Record the outcome** under the `## Run N` heading when the run ends:
     - **success** — reached `complete`, all checkpoints green.
     - **blocked** — note the checkpoint and link to the bug entry.
-10. **If blocked:** follow *Blocking Bug Procedure* below, then loop back to step 1 for a new run.
+11. **If blocked:** follow *Blocking Bug Procedure* below, then loop back to step 1 for a new run.
     **If success:** proceed to the next phase (or declare validation done if this was the final phase).
+
+---
+
+## Fix Agent Launch Protocol (MANDATORY)
+
+Fix agents without these rules scope-creep, patch symptoms instead of roots, and justify messes as "pre-existing" or
+"unrelated." These rules are NON-NEGOTIABLE and must be present verbatim in every fix-agent prompt. If a rule is
+missing from the prompt, the agent WILL violate it — this has been empirically demonstrated.
+
+### Orchestrator duties when launching a fix agent
+
+1. **Default to `isolation: "worktree"`.** Every fix agent runs in a throwaway worktree unless the fix is docs-only or
+   you can name the exact ≤1 file it'll touch. Scope creep in a worktree is cleanup-by-`rm`; scope creep in the main
+   tree is what happened in Run 7 (25 modified + 15 new files, 512 insertions).
+2. **Pre-declare the allowlist.** Before dispatching, read the bug site yourself enough to name the specific file(s)
+   the fix should touch, and put that list in the prompt as a hard ceiling. Don't outsource *understanding* — "find
+   the guard that…" invites the agent to substitute its own target.
+3. **Verify the diff before accepting the report.** Run `git diff --stat HEAD` yourself after the agent returns. If
+   the delta exceeds the allowlist or the line count looks wrong, reject the work, do not try to salvage — revert and
+   redispatch with a tighter prompt.
+4. **Include the Fix Agent Prompt Requirements below verbatim** in every fix-agent prompt.
+
+### Fix Agent Prompt Requirements (paste into every fix-agent prompt)
+
+```
+You are a fix agent. The following rules are NON-NEGOTIABLE. Violating any of them means your work is rejected.
+
+1. ROOT CAUSE, NOT SYMPTOM. Trace the bug to the FIRST line of code that caused the bad state, not to the most
+   convenient read-site. Your report MUST include a one-sentence "Root cause:" line naming a specific file:line.
+   - Render/UI bug: find the MUTATOR (useState setter, useEffect, reducer, WS handler) that caused the bad state.
+     Gating the render is a band-aid; fix the mutator. If you can't explain which mutator fires and why, you haven't
+     diagnosed yet.
+   - API/network bug: find the PRODUCER of the bad payload, not the consumer.
+   - Test failure: find the PRODUCTION-CODE change that broke the assertion, not the assertion itself.
+
+2. ASSUME NOTHING.
+   - Dependencies don't exist until proved. If a symbol/file you need seems missing, `grep` / `discover` to confirm
+     absence, then STOP and report back. DO NOT build the missing dependency to unblock yourself.
+   - Run `git status` and `git diff --stat HEAD` at the START of your work and quote the output in your final report.
+     No "already there before I started" claims allowed — they will be fact-checked.
+   - "Pre-existing" / "unrelated" ward failures are rejected by default. If you want to call a failure pre-existing,
+     include `git log -S '<failing symbol>'` output proving the failure exists on master at HEAD before your session.
+
+3. HARD SCOPE ALLOWLIST. You may edit ONLY the files the orchestrator pre-declared in the prompt. Anything else is
+   scope creep. If the fix requires editing a file not in the allowlist, STOP and report back with the reason — do
+   NOT edit it. "My tests needed a broker that doesn't exist, so I built it" is the exact failure mode this rule
+   prevents.
+
+4. DIFF SUMMARY BEFORE DONE. Before claiming completion, run `git diff --stat HEAD` and paste the output verbatim into
+   your report. Also list every untracked file (`git status --porcelain | grep '^??'`). This catches silent scope
+   creep.
+
+5. FULL-REPO WARD. Run `npm run ward` from the repo root with no path scoping, `timeout: 600000`. A scoped ward
+   passes while the repo is broken. If any package fails, it is YOUR problem until you prove otherwise per rule #2.
+
+6. TDD-FIRST (see "TDD-First Fix Process" below). Failing tests land BEFORE source edits. Your report names the
+   tests, the failing assertion messages before the fix, and the passing assertions after.
+```
 
 ---
 
@@ -139,6 +204,44 @@ The moment something is off, regardless of blocking status:
   batched fix pass AFTER a clean smoke run.
 - **Unsure** — notate the ambiguity, make a defensible call, flag it for user review.
 
+### Root Cause Analysis (required before any fix agent dispatch)
+
+**Rule:** The orchestrator MUST fully understand a bug — to the level of naming the causal file:line — BEFORE
+dispatching a fix agent. Fix agents given a symptom description instead of a root-cause pointer balloon their scope,
+patch the wrong layer, and rationalize the mess (see Run 7: agent was asked "find the guard that opens the modal,"
+substituted its own target, built an entire abandon-quest feature, and patched a render symptom while leaving the
+causal `useEffect` untouched).
+
+**When the bug was REPORTED BY THE USER (symptom-only description):**
+
+1. **Dispatch an RCA sub-agent — research only, NO source edits.** The agent's job is to trace the user's reported
+   symptom back to the first line of code that produces the bad state. Prompt must forbid all file edits; permitted
+   actions are `discover`, `Read`, `git log -S`, `git blame`. Report must include:
+    - The exact causal file:line (e.g., `quest-chat-widget.tsx:108 — useEffect uses isGateApprovedQuestStatusGuard
+      which matches flows_approved, causing setApprovedModalOpen(true) to fire at the wrong gate`).
+    - The mutator chain (which state changes, driven by which effect/handler/broker).
+    - What the correct behavior should be, with evidence from adjacent code / contract / status machine.
+    - Any ambiguities the orchestrator needs to resolve before a fix can be scoped.
+      Use `isolation: "worktree"` so the agent can't accidentally edit; scope to exploration-only in the prompt.
+2. **Review the RCA report.** The orchestrator must be able to answer, in one sentence each: (a) where does this bug
+   originate? (b) what's the mutator? (c) what's the minimal fix? (d) what files should the fix touch? If any of
+   these answers is "I'm not sure," the RCA is incomplete — either redispatch with a tighter question, or go to step 3.
+3. **If ambiguities remain, question the USER before dispatching a fix agent.** Do NOT guess. Examples of ambiguities
+   that warrant asking:
+    - Multiple plausible root causes — ask which one matches the user's observation.
+    - Expected behavior is disputed or undocumented — ask for the correct semantics.
+    - Scope is uncertain — ask what should/shouldn't change.
+    - The fix implies a contract change — ask for approval before proceeding.
+      Ask direct questions with concrete options. Do not proceed until the user resolves each ambiguity.
+4. **Only after full understanding, dispatch the fix agent** per the Fix Agent Launch Protocol with a tight allowlist
+   derived from the RCA findings. The fix-agent prompt must cite the causal file:line from the RCA — NOT just restate
+   the symptom.
+
+**When the orchestrator DIRECTLY OBSERVED the bug and can cite the causal file:line already:** the orchestrator's own
+observation IS the RCA. Skip the RCA agent. Proceed to ambiguity-check (step 3) and then fix dispatch (step 4). The
+test: if you can't write down "Root cause: path/to/file.ts:<line> — <one-sentence explanation>" from your own context,
+you do NOT have the RCA yet and must use the agent.
+
 ### Blocking Bug Procedure
 
 1. Stop the current phase.
@@ -148,12 +251,21 @@ The moment something is off, regardless of blocking status:
 4. **Revert quest-generated artifacts.** Any uncommitted working-tree changes are almost certainly from smoke-test
    agents (codeweaver/blightwarden outputs), not the bug itself. Revert BEFORE dispatching fixers so agents work from a
    clean base.
-5. **Dispatch fix agents.** One bug per agent, ≤3 files each. Rebuild `@dungeonmaster/shared` if touched.
-6. **Dispatch a ward-runner agent** to run `npm run ward` (timeout 600000) and fix any failures it finds. Orchestrator
-   does NOT run ward directly — keep output and fix iteration off main context. Ward-runner reports back only when ward
-   is fully green.
-7. **Commit the fix** — one focused commit per bug, message references phase/checkpoint.
-8. Mark the current run's outcome as **blocked** in notes, then return to *Run Lifecycle* step 1.
+5. **Do Root Cause Analysis first** (see that section above). No fix agent is dispatched until the orchestrator can
+   cite the causal file:line from its own observation or from an RCA sub-agent's report, AND every material ambiguity
+   has been resolved with the user. Skip this step only if you directly observed the bug and can write
+   `Root cause: path/to/file.ts:<line> — <one-sentence explanation>` from your own context.
+6. **Dispatch fix agents per the Fix Agent Launch Protocol** (see that section above). One bug per agent, hard file
+   allowlist pre-declared by the orchestrator (derived from the RCA), `isolation: "worktree"` by default, Fix Agent
+   Prompt Requirements pasted verbatim into the prompt. Rebuild `@dungeonmaster/shared` if touched.
+7. **Verify the diff before accepting the report.** Run `git diff --stat HEAD` after the agent returns. If the delta
+   exceeds the pre-declared allowlist or contains untracked files outside it, REJECT the work — `git reset --hard` +
+   `git clean -fd`, then redispatch with a tighter prompt. Do NOT try to salvage a ballooned agent response.
+8. **Dispatch a ward-runner agent** to run `npm run ward` (timeout 600000, full repo, no path scoping) and fix any
+   failures it finds. Orchestrator does NOT run ward directly — keep output and fix iteration off main context.
+   Ward-runner reports back only when ward is fully green.
+9. **Commit the fix** — one focused commit per bug, message references phase/checkpoint.
+10. Mark the current run's outcome as **blocked** in notes, then return to *Run Lifecycle* step 1.
 
 ---
 
