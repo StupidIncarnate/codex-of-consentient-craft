@@ -191,14 +191,17 @@ describe('questHasValidStatusTransitionGuard', () => {
       expect(result).toBe(true);
     });
 
-    it.each(NON_TERMINAL_STATUSES)('VALID: {%s -> abandoned} => returns true (meta-derived)', (status) => {
-      const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: status }),
-        nextStatus: QuestStatusStub({ value: 'abandoned' }),
-      });
+    it.each(NON_TERMINAL_STATUSES)(
+      'VALID: {%s -> abandoned} => returns true (meta-derived)',
+      (status) => {
+        const result = questHasValidStatusTransitionGuard({
+          currentStatus: QuestStatusStub({ value: status }),
+          nextStatus: QuestStatusStub({ value: 'abandoned' }),
+        });
 
-      expect(result).toBe(true);
-    });
+        expect(result).toBe(true);
+      },
+    );
   });
 
   describe('invalid transitions', () => {

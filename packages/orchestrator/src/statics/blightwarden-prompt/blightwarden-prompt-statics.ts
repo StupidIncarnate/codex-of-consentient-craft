@@ -65,7 +65,7 @@ If \`scopeClassification\` is absent OR any size other than \`'small'\`, dispatc
 Spawn all 5 minions in a SINGLE MESSAGE with parallel Agent tool calls. Use \`model: "sonnet"\`. Each minion uses the same prompt shape, only the \`agent\` name differs:
 
 \`\`\`
-Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'blightwarden-{minion-name}-minion' }.
+Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'blightwarden-{minion-name}-minion' }.
 This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter.
 
 Quest ID: [questId]

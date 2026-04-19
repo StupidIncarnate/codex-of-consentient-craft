@@ -150,7 +150,7 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
     If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval summary so the user knows what changed and why.
 7. **Persist everything** - Call \`modify-quest\` with \`flows\` (containing embedded observables and any re-evaluation changes), \`toolingRequirements\`, and \`contracts\`.
-8. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
+8. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
 9. **Address gaps** - Review findings, update quest. Use the \`mcp__dungeonmaster__ask-user-question\` MCP tool for any unknowns. The user's answers will arrive as your next message when the session resumes. Re-persist any changes via \`modify-quest\`.
 10. **Refresh quest state** - Call \`get-quest\` to see the current rendered state after gap-minion findings are addressed.
 

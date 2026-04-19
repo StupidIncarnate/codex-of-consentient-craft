@@ -132,7 +132,7 @@ If scope is small, skip dispatch and immediately write an empty/trivial \`planni
 For each slice, launch an agent in a SINGLE MESSAGE with multiple Agent tool calls so all minions run in parallel. Use \`model: "sonnet"\` and exactly this prompt format (fill in the bracketed fields):
 
 \`\`\`
-Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'pathseeker-surface-scope-minion' }.
+Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'pathseeker-surface-scope-minion' }.
 This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter.
 
 Quest ID: [questId]
@@ -354,7 +354,7 @@ Commit the full \`steps[]\` array with a single \`modify-quest\` call. Do NOT tr
 
 Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt:
 
-"Your FIRST action: call the get-agent-prompt MCP tool with { agent: 'pathseeker-quest-review-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"
+"Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'pathseeker-quest-review-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"
 
 The Pathseeker Quest Review Minion performs both structural and semantic review. It writes its report to \`planningNotes.reviewReport\` itself and signal-backs a brief confirmation.
 
