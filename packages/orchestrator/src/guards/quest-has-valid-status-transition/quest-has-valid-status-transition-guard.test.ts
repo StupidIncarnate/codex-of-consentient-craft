@@ -183,6 +183,34 @@ describe('questHasValidStatusTransitionGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it.each([
+      'created',
+      'pending',
+      'explore_flows',
+      'review_flows',
+      'flows_approved',
+      'explore_observables',
+      'review_observables',
+      'approved',
+      'explore_design',
+      'review_design',
+      'design_approved',
+      'seek_scope',
+      'seek_synth',
+      'seek_walk',
+      'seek_plan',
+      'in_progress',
+      'paused',
+      'blocked',
+    ] as const)('VALID: {%s -> abandoned} => returns true (meta-derived)', (status) => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: status }),
+        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('invalid transitions', () => {
@@ -253,6 +281,24 @@ describe('questHasValidStatusTransitionGuard', () => {
       const result = questHasValidStatusTransitionGuard({
         currentStatus: QuestStatusStub({ value: 'abandoned' }),
         nextStatus: QuestStatusStub({ value: 'created' }),
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {complete -> abandoned} => returns false (terminal state)', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'complete' }),
+        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {abandoned -> abandoned} => returns false (terminal state)', () => {
+      const result = questHasValidStatusTransitionGuard({
+        currentStatus: QuestStatusStub({ value: 'abandoned' }),
+        nextStatus: QuestStatusStub({ value: 'abandoned' }),
       });
 
       expect(result).toBe(false);

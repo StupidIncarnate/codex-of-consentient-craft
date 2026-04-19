@@ -34,6 +34,7 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import {
+  isAbandonableQuestStatusGuard,
   isActiveWorkItemStatusGuard,
   isCompleteWorkItemStatusGuard,
   isQuestPauseableQuestStatusGuard,
@@ -55,6 +56,7 @@ export interface ExecutionPanelWidgetProps {
   sessionEntries?: Map<SessionId, ChatEntry[]>;
   onStatusChange?: (params: { status: QuestStatus }) => void;
   onPause?: () => void;
+  onAbandon?: () => void;
 }
 
 const TABS = [
@@ -84,6 +86,7 @@ export const ExecutionPanelWidget = ({
   sessionEntries = new Map(),
   onStatusChange,
   onPause,
+  onAbandon,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
@@ -480,49 +483,52 @@ export const ExecutionPanelWidget = ({
               </>
             )}
           </AutoScrollContainerWidget>
-          {(isQuestPauseableQuestStatusGuard({ status: quest.status }) ||
-            isQuestResumableQuestStatusGuard({ status: quest.status })) &&
-            onStatusChange && (
-              <Box
-                data-testid="execution-panel-action-bar"
-                style={{
-                  padding: ACTION_BAR_PADDING,
-                  borderTop: `1px solid ${colors.border}`,
-                  flexShrink: 0,
-                }}
-              >
-                <Group gap="xs">
-                  {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
-                    !confirmingAbandon &&
-                    onPause && (
-                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
-                        <PixelBtnWidget
-                          label={PAUSE_LABEL}
-                          onClick={() => {
-                            onPause();
-                          }}
-                        />
-                      </Box>
-                    )}
-                  {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
-                    !confirmingAbandon && (
-                      <Box data-testid="EXECUTION_RESUME_BUTTON">
-                        <PixelBtnWidget
-                          label={RESUME_LABEL}
-                          onClick={() => {
-                            onStatusChange({ status: 'in_progress' as QuestStatus });
-                          }}
-                        />
-                      </Box>
-                    )}
-                  {confirmingAbandon ? (
+          {isAbandonableQuestStatusGuard({ status: quest.status }) &&
+            ((isQuestPauseableQuestStatusGuard({ status: quest.status }) && onPause) ||
+              (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange) ||
+              onAbandon) && (
+            <Box
+              data-testid="execution-panel-action-bar"
+              style={{
+                padding: ACTION_BAR_PADDING,
+                borderTop: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="xs">
+                {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
+                  !confirmingAbandon &&
+                  onPause && (
+                    <Box data-testid="EXECUTION_PAUSE_BUTTON">
+                      <PixelBtnWidget
+                        label={PAUSE_LABEL}
+                        onClick={() => {
+                          onPause();
+                        }}
+                      />
+                    </Box>
+                  )}
+                {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
+                  !confirmingAbandon &&
+                  onStatusChange && (
+                    <Box data-testid="EXECUTION_RESUME_BUTTON">
+                      <PixelBtnWidget
+                        label={RESUME_LABEL}
+                        onClick={() => {
+                          onStatusChange({ status: 'in_progress' as QuestStatus });
+                        }}
+                      />
+                    </Box>
+                  )}
+                {onAbandon &&
+                  (confirmingAbandon ? (
                     <>
                       <PixelBtnWidget
                         label={CONFIRM_ABANDON_LABEL}
                         variant={DANGER_VARIANT}
                         onClick={() => {
                           setConfirmingAbandon(false);
-                          onStatusChange({ status: 'abandoned' as QuestStatus });
+                          onAbandon();
                         }}
                       />
                       <PixelBtnWidget
@@ -541,10 +547,10 @@ export const ExecutionPanelWidget = ({
                         setConfirmingAbandon(true);
                       }}
                     />
-                  )}
-                </Group>
-              </Box>
-            )}
+                  ))}
+              </Group>
+            </Box>
+          )}
         </Box>
       )}
     </Stack>

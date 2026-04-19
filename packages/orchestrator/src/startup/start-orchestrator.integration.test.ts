@@ -63,6 +63,23 @@ describe('StartOrchestrator', () => {
       expect(thrownError).toBeInstanceOf(Error);
       expect((thrownError as Error).message).toBe('Quest not found: nonexistent-quest-id');
     });
+
+    it('ERROR: {nonexistent questId} => abandonQuest delegates to OrchestrationFlow.abandon and throws', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-abandon' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+      const questId = QuestIdStub({ value: 'nonexistent-quest-id' });
+
+      const thrownError = await StartOrchestrator.abandonQuest({ questId }).catch(
+        (error: unknown) => error,
+      );
+
+      restore();
+
+      expect(thrownError).toBeInstanceOf(Error);
+      expect((thrownError as Error).message).toBe('Quest not found: nonexistent-quest-id');
+    });
   });
 
   describe('chat wiring', () => {

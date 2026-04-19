@@ -89,6 +89,9 @@ export const StartOrchestrator = {
   pauseQuest: async ({ questId }: { questId: QuestId }): Promise<{ paused: boolean }> =>
     OrchestrationFlow.pause({ questId }),
 
+  abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
+    OrchestrationFlow.abandon({ questId }),
+
   getQuestStatus: ({ processId }: { processId: ProcessId }): OrchestrationStatus =>
     OrchestrationFlow.getStatus({ processId }),
 

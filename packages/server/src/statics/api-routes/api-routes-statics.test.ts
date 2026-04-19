@@ -11,6 +11,7 @@ describe('apiRoutesStatics', () => {
         byId: '/api/quests/:questId',
         start: '/api/quests/:questId/start',
         pause: '/api/quests/:questId/pause',
+        abandon: '/api/quests/:questId/abandon',
       },
       process: {
         status: '/api/process/:processId',

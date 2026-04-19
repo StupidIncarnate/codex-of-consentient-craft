@@ -23,6 +23,7 @@ registerModuleMock({
       loadQuest: jest.fn(),
       modifyQuest: jest.fn(),
       pauseQuest: jest.fn(),
+      abandonQuest: jest.fn(),
       recoverActiveQuests: jest.fn(),
       removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),

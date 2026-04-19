@@ -8,6 +8,7 @@
  */
 
 import { ChatStopAllResponder } from '../../responders/chat/stop-all/chat-stop-all-responder';
+import { OrchestrationAbandonResponder } from '../../responders/orchestration/abandon/orchestration-abandon-responder';
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
 import { OrchestrationPauseResponder } from '../../responders/orchestration/pause/orchestration-pause-responder';
 import { OrchestrationStartResponder } from '../../responders/orchestration/start/orchestration-start-responder';
@@ -18,6 +19,9 @@ type StartResult = Awaited<ReturnType<typeof OrchestrationStartResponder>>;
 
 type PauseParams = Parameters<typeof OrchestrationPauseResponder>[0];
 type PauseResult = Awaited<ReturnType<typeof OrchestrationPauseResponder>>;
+
+type AbandonParams = Parameters<typeof OrchestrationAbandonResponder>[0];
+type AbandonResult = Awaited<ReturnType<typeof OrchestrationAbandonResponder>>;
 
 type GetStatusParams = Parameters<typeof OrchestrationGetStatusResponder>[0];
 type GetStatusResult = ReturnType<typeof OrchestrationGetStatusResponder>;
@@ -31,6 +35,9 @@ export const OrchestrationFlow = {
 
   pause: async ({ questId }: PauseParams): Promise<PauseResult> =>
     OrchestrationPauseResponder({ questId }),
+
+  abandon: async ({ questId }: AbandonParams): Promise<AbandonResult> =>
+    OrchestrationAbandonResponder({ questId }),
 
   getStatus: ({ processId }: GetStatusParams): GetStatusResult =>
     OrchestrationGetStatusResponder({ processId }),

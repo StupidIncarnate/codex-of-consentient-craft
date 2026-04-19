@@ -7,6 +7,7 @@
  */
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
+import { isAbandonableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { questStatusTransitionsStatics } from '@dungeonmaster/shared/statics';
 
 export const questHasValidStatusTransitionGuard = ({
@@ -18,6 +19,10 @@ export const questHasValidStatusTransitionGuard = ({
 }): boolean => {
   if (!currentStatus || !nextStatus) {
     return false;
+  }
+
+  if (nextStatus === 'abandoned') {
+    return isAbandonableQuestStatusGuard({ status: currentStatus });
   }
 
   const allowedTransitions = questStatusTransitionsStatics[currentStatus];

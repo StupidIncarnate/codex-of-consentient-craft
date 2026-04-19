@@ -30,6 +30,7 @@ import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
 import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
+import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
@@ -86,6 +87,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupQuestStartError: () => void;
   setupQuestModifyError: () => void;
   setupQuestPauseError: () => void;
+  setupQuestAbandonError: () => void;
 } => {
   websocketConnectAdapterProxy({ deferOpen });
   useAgentOutputBindingProxy();
@@ -97,6 +99,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
+  const abandonProxy = questAbandonBrokerProxy();
   const startProxy = questStartBrokerProxy();
   const designStartProxy = designStartBrokerProxy();
   const designSessionProxy = designSessionBrokerProxy();
@@ -237,6 +240,9 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupQuestPauseError: (): void => {
       pauseProxy.setupError();
+    },
+    setupQuestAbandonError: (): void => {
+      abandonProxy.setupError();
     },
   };
 };

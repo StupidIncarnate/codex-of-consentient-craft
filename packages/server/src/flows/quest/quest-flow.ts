@@ -12,6 +12,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
@@ -54,6 +55,11 @@ export const QuestFlow = (): Hono => {
 
   app.post(apiRoutesStatics.quests.pause, async (c) => {
     const result = await QuestPauseResponder({ params: { questId: c.req.param('questId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.abandon, async (c) => {
+    const result = await QuestAbandonResponder({ params: { questId: c.req.param('questId') } });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

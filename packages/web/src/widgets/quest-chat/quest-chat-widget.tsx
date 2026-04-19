@@ -26,6 +26,7 @@ import { useSessionChatBinding } from '../../bindings/use-session-chat/use-sessi
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
+import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
@@ -35,6 +36,7 @@ import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-d
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import {
+  isAbandonableQuestStatusGuard,
   isGateApprovedQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
   shouldShowBeginQuestModalQuestStatusGuard,
@@ -367,6 +369,17 @@ export const QuestChatWidget = (): React.JSX.Element => {
                   globalThis.console.error('[quest-chat] pause failed', pauseError);
                 });
               }}
+              {...(isAbandonableQuestStatusGuard({ status: questWithContent.status })
+                ? {
+                    onAbandon: (): void => {
+                      questAbandonBroker({ questId: questWithContent.id }).catch(
+                        (abandonError: unknown) => {
+                          globalThis.console.error('[quest-chat] abandon failed', abandonError);
+                        },
+                      );
+                    },
+                  }
+                : {})}
             />
           ) : null}
         </Box>
@@ -411,6 +424,18 @@ export const QuestChatWidget = (): React.JSX.Element => {
           isStreaming={isStreaming}
           onSendMessage={sendMessage}
           onStopChat={stopChat}
+          {...(questWithContent &&
+          isAbandonableQuestStatusGuard({ status: questWithContent.status })
+            ? {
+                onAbandon: (): void => {
+                  questAbandonBroker({ questId: questWithContent.id }).catch(
+                    (abandonError: unknown) => {
+                      globalThis.console.error('[quest-chat] abandon failed', abandonError);
+                    },
+                  );
+                },
+              }
+            : {})}
         />
       </Box>
 
