@@ -297,6 +297,32 @@ describe('questContract', () => {
 
       expect(result.planningNotes).toStrictEqual({ surfaceReports: [], blightReports: [] });
     });
+
+    it('VALID: quest with pausedAtStatus => parses successfully', () => {
+      const quest = QuestStub({
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.pausedAtStatus).toBe('seek_scope');
+    });
+
+    it('VALID: quest without pausedAtStatus field => backward compat leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.pausedAtStatus).toBe(undefined);
+    });
   });
 
   describe('invalid quests', () => {

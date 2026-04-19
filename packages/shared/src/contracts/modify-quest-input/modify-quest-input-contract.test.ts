@@ -32,6 +32,15 @@ describe('modifyQuestInputContract', () => {
     }).toThrow(/Unrecognized key/u);
   });
 
+  it('INVALID: {pausedAtStatus} => throws Unrecognized key error (orchestrator-only field)', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        pausedAtStatus: 'seek_scope',
+      } as never);
+    }).toThrow(/Unrecognized key/u);
+  });
+
   it('VALID: {planningNotes with blightReports upsert} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',

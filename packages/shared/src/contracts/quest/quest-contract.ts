@@ -68,6 +68,11 @@ export const questContract = z.object({
     .describe('Port of per-quest Vite design sandbox'),
   userRequest: z.string().min(1).brand<'UserRequest'>(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
+  pausedAtStatus: questStatusContract
+    .optional()
+    .describe(
+      'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused.',
+    ),
   workItems: z
     .array(workItemContract)
     .default([])
