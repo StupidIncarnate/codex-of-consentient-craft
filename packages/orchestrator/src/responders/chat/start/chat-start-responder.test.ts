@@ -400,4 +400,50 @@ describe('ChatStartResponder', () => {
       expect(chatOutputs).toStrictEqual([]);
     });
   });
+
+  describe('chat-session-started event', () => {
+    it('VALID: {new session, sessionId extracted} => emits chat-session-started BEFORE chat-complete', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+      const sessionLine = JSON.stringify({ session_id: 'new-session-abc' });
+
+      proxy.setupNewSession({ exitCode, stdoutLines: [sessionLine] });
+      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailLines({ lines: [] });
+
+      const capture = proxy.setupEventCapture();
+
+      await proxy.callResponder({
+        guildId,
+        message: 'Fresh chat session',
+      });
+
+      await flushAsync();
+
+      const events = capture.getEmittedEvents();
+      const sessionStartedEvents = events.filter((event) => event.type === 'chat-session-started');
+
+      expect(sessionStartedEvents).toStrictEqual([
+        {
+          type: 'chat-session-started',
+          processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          payload: {
+            chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            sessionId: 'new-session-abc',
+          },
+        },
+      ]);
+
+      const eventTypes = events.map((event) => event.type);
+
+      expect(eventTypes).toStrictEqual([
+        'quest-session-linked',
+        'chat-session-started',
+        'chat-complete',
+      ]);
+    });
+  });
 });

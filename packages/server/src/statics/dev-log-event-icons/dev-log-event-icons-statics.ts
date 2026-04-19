@@ -11,6 +11,7 @@ export const devLogEventIconsStatics = {
     'chat-output': '◂ ',
     'chat-complete': '✓ ',
     'chat-history-complete': '✓ ',
+    'chat-session-started': '🔗',
     'quest-session-linked': '🔗',
     'clarification-request': '? ',
     'chat-patch': '⚡',

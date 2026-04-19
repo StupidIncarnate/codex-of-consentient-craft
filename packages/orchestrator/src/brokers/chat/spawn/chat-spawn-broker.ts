@@ -11,6 +11,7 @@
  *   onPatch: ({ chatProcessId, toolUseId, agentId }) => {},
  *   onAgentDetected: ({ chatProcessId, toolUseId, agentId, sessionId }) => {},
  *   onComplete: ({ chatProcessId, exitCode, sessionId }) => {},
+ *   onSessionIdExtracted: ({ chatProcessId, sessionId }) => {},
  *   registerProcess: ({ processId, kill }) => {},
  * });
  * // Spawns Claude CLI with role-specific prompt, streams output via callbacks, returns chatProcessId
@@ -55,6 +56,7 @@ export const chatSpawnBroker = async ({
   onComplete,
   onQuestCreated,
   onDesignSessionLinked,
+  onSessionIdExtracted,
   registerProcess,
 }: {
   role: WorkItemRole;
@@ -78,6 +80,7 @@ export const chatSpawnBroker = async ({
   }) => void;
   onQuestCreated?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   onDesignSessionLinked?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
   registerProcess: (params: { processId: ProcessId; kill: () => void }) => void;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const prefix = role === 'chaoswhisperer' ? 'chat' : 'design';
@@ -183,10 +186,14 @@ export const chatSpawnBroker = async ({
   // Stamp sessionId onto the chat work item as soon as it's extracted from the CLI init line.
   // This ensures the quest's work item has a sessionId before onComplete fires, so the
   // frontend's quest-modified WS filter can correlate events by sessionId.
-  if (resolvedQuestId && !sessionId) {
+  // Also surface the sessionId to callers (for web URL update) via onSessionIdExtracted.
+  if (!sessionId) {
     sessionId$
       .then(async (extractedSid) => {
         if (!extractedSid) return;
+        const parsedSessionId = sessionIdContract.parse(extractedSid);
+        onSessionIdExtracted?.({ chatProcessId, sessionId: parsedSessionId });
+        if (!resolvedQuestId) return;
         const getResult = await questGetBroker({
           input: getQuestInputContract.parse({ questId: resolvedQuestId }),
         });
@@ -198,7 +205,7 @@ export const chatSpawnBroker = async ({
         await questModifyBroker({
           input: {
             questId: resolvedQuestId,
-            workItems: [{ id: chatItem.id, sessionId: sessionIdContract.parse(extractedSid) }],
+            workItems: [{ id: chatItem.id, sessionId: parsedSessionId }],
           } as ModifyQuestInput,
         });
       })

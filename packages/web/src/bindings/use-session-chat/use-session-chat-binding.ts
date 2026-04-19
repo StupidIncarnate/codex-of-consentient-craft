@@ -111,6 +111,19 @@ export const useSessionChatBinding = ({
       }
     }
 
+    if (parsed.data.type === 'chat-session-started') {
+      const { payload } = parsed.data;
+      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+
+      if (rawChatProcessId !== chatProcessIdRef.current) return;
+
+      const rawSessionId: unknown = Reflect.get(payload, 'sessionId');
+      if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
+        sessionIdRef.current = rawSessionId as SessionId;
+        setCurrentSessionId(rawSessionId as SessionId);
+      }
+    }
+
     if (parsed.data.type === 'chat-complete') {
       const { payload } = parsed.data;
       const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');

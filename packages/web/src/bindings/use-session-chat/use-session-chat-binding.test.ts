@@ -557,6 +557,106 @@ describe('useSessionChatBinding', () => {
     });
   });
 
+  describe('WebSocket chat-session-started handling', () => {
+    it('VALID: {chat-session-started with matching chatProcessId} => sets currentSessionId while isStreaming=true', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-session-started',
+              payload: {
+                chatProcessId: 'chat-proc-1',
+                sessionId: 'early-session-abc',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Hello' }],
+        isStreaming: true,
+        currentSessionId: 'early-session-abc',
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+
+    it('EDGE: {chat-session-started with non-matching chatProcessId} => does not update currentSessionId', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-1' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionNew({ chatProcessId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-session-started',
+              payload: {
+                chatProcessId: 'different-proc',
+                sessionId: 'ignored-session',
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entries: [{ role: 'user', content: 'Hello' }],
+        isStreaming: true,
+        currentSessionId: null,
+        chatProcessId: 'chat-proc-1',
+        pendingClarification: null,
+        sessionNotFound: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+  });
+
   describe('WebSocket chat-complete handling', () => {
     it('VALID: {chat-complete with matching chatProcessId} => sets isStreaming to false', async () => {
       const proxy = useSessionChatBindingProxy();

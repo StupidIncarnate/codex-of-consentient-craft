@@ -4,7 +4,7 @@
 
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import {
   FlowStub,
@@ -998,6 +998,84 @@ describe('QuestChatWidget', () => {
       });
 
       expect(proxy.hasChatPanel()).toBe(true);
+    });
+
+    it('VALID: {chat-session-started arrives while streaming} => navigates to session URL with replace', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'my-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupChat({ chatProcessId: 'chat-proc-early' as never });
+
+      const LocationDisplay = (): React.JSX.Element => {
+        const location = useLocation();
+        return <span data-testid="LOCATION_PATHNAME">{location.pathname}</span>;
+      };
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/my-guild/session']}>
+            <Routes>
+              <Route
+                path="/:guildSlug/session"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+              <Route
+                path="/:guildSlug/session/:sessionId"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe('/my-guild/session');
+      });
+
+      // Send a message so the binding tracks the chatProcessId, enabling WS routing
+      const textarea = screen.getByTestId('CHAT_INPUT');
+      await userEvent.type(textarea, 'Help me build auth');
+      await userEvent.click(screen.getByTestId('SEND_BUTTON'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('STREAMING_INDICATOR').textContent).toBe('Thinking...');
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-session-started',
+            payload: {
+              chatProcessId: 'chat-proc-early',
+              sessionId: 'new-session-xyz',
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+          '/my-guild/session/new-session-xyz',
+        );
+      });
+
+      expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+        '/my-guild/session/new-session-xyz',
+      );
     });
   });
 
