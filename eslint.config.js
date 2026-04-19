@@ -11,6 +11,8 @@ const dungeonmasterPlugin = require('./packages/eslint-plugin/src/index.ts').def
 const {
   configDungeonmasterBroker,
 } = require('./packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts');
+// Import repo-private local-eslint plugin (never shipped) from TypeScript source
+const dungeonmasterLocalPlugin = require('./packages/local-eslint/src/index.ts').default;
 
 // Get the dungeonmaster configs (returns object with typescript, test, fileOverrides)
 const dungeonmasterConfigs = configDungeonmasterBroker();
@@ -71,6 +73,7 @@ module.exports = [
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       '@dungeonmaster': dungeonmasterPlugin,
+      '@dungeonmaster-local': dungeonmasterLocalPlugin,
     },
     rules: {
       ...dungeonmasterConfigs.typescript.rules,
@@ -78,6 +81,7 @@ module.exports = [
       'prettier/prettier': 'error',
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': 'error',
+      '@dungeonmaster-local/ban-quest-status-literals': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -104,6 +108,7 @@ module.exports = [
       prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
       jest: jestPlugin,
+      '@dungeonmaster-local': dungeonmasterLocalPlugin,
     },
     rules: {
       ...dungeonmasterTestConfigs.test.rules,
@@ -118,6 +123,7 @@ module.exports = [
       'max-nested-callbacks': 'off',
       'jest/unbound-method': 'off',
       'jest/prefer-to-be': 'off',
+      '@dungeonmaster-local/ban-quest-status-literals': 'error',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)
@@ -141,8 +147,24 @@ module.exports = [
       '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
     },
   },
+  // local-eslint is a workspace-internal ESLint plugin (never shipped).
+  // Rule-broker tests use RuleTester (like eslint-plugin's own rule tests).
   {
-    files: ['packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts'],
+    files: ['packages/local-eslint/src/brokers/rule/**'],
+    ignores: ['**/*-layer-*.test.ts'],
+    rules: {
+      'jest/require-hook': 'off',
+      'jest/require-top-level-describe': 'off',
+      'jest/no-hooks': 'off',
+      '@dungeonmaster/ban-contract-in-tests': 'off',
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+    },
+  },
+  {
+    files: [
+      'packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts',
+      'packages/local-eslint/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts',
+    ],
     rules: {
       '@dungeonmaster/require-contract-validation': 'off',
     },

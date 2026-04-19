@@ -131,7 +131,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-object-keys-in-expect': 'error',
     '@dungeonmaster/ban-string-includes-in-expect': 'error',
     '@dungeonmaster/ban-weak-asymmetric-matchers': 'error',
-    '@dungeonmaster/ban-status-string-comparisons': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

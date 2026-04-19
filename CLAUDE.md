@@ -94,6 +94,53 @@ them by hand. They are generated/merged by package `StartInstall` functions (hoo
 If you're tempted to hand-edit `.claude/settings.json` to add/remove an entry, stop — fix the install logic so the entry
 is produced the next time someone runs `npm run init`.
 
+## Status Comparison Discipline (local-only)
+
+Enforced by `@dungeonmaster-local/ban-quest-status-literals` in this repo's `eslint.config.js`. Defined in `packages/local-eslint` (not shipped to consumers of the `dungeonmaster` npm package).
+
+**Rule:** Never compare `.status` against string literals — use shared guards from `@dungeonmaster/shared/guards`.
+
+**Rationale:** The quest-status vocabulary was split into phased pathseeker statuses (`seek_scope`/`seek_synth`/`seek_walk`/`seek_plan`). Literal comparisons and `.startsWith("seek_"|"explore_"|"review_")` encode pre-split assumptions and silently misbehave under post-split semantics. The same discipline applies to work-item-status reads (work items live under quests).
+
+**Shared quest-status guards:**
+- `isActivelyExecutingQuestStatusGuard`
+- `isPathseekerRunningQuestStatusGuard`
+- `isAnyAgentRunningQuestStatusGuard`
+- `isPreExecutionQuestStatusGuard`
+- `isTerminalQuestStatusGuard`
+- `isQuestPauseableQuestStatusGuard`
+- `isQuestResumableQuestStatusGuard`
+- `isStartableQuestStatusGuard`
+- `isRecoverableQuestStatusGuard`
+- `isAutoResumableQuestStatusGuard`
+- `isGateApprovedQuestStatusGuard`
+- `isDesignPhaseQuestStatusGuard`
+- `shouldRenderExecutionPanelQuestStatusGuard`
+
+**Shared work-item-status guards:**
+- `isTerminalWorkItemStatusGuard`
+- `isActiveWorkItemStatusGuard`
+- `isPendingWorkItemStatusGuard`
+- `isCompleteWorkItemStatusGuard`
+- `isSkippedWorkItemStatusGuard`
+- `isFailureWorkItemStatusGuard`
+- `satisfiesDependencyWorkItemStatusGuard`
+
+**LLM training violation:** LLM instinct is to write `quest.status === "in_progress"` or `wi.status === "complete"` inline. Resist this — literal comparisons on `.status` hide the post-split semantics and drift from the metadata-driven source of truth.
+
+**Enforcement:** The rule flags `===`/`!==` between `.status` and a known status literal, `switch` statements on `.status` with literal cases, `.startsWith("seek_"|"explore_"|"review_")` calls, and inline `Set`/array of status literals. Writes (`status: "seek_scope"`) and case-dispatch on `nextStatus` are allowed.
+
+**Allowed:**
+- `if (isActivelyExecutingQuestStatusGuard({ status: quest.status })) { /* exactly in_progress */ }`
+- `if (isPathseekerRunningQuestStatusGuard({ status: quest.status })) { /* any seek_* */ }`
+- `if (isTerminalWorkItemStatusGuard({ status: wi.status })) { /* complete, failed, or skipped */ }`
+
+**Violations:**
+- `if (quest.status === "in_progress")` → use `isActivelyExecutingQuestStatusGuard`
+- `if (quest.status.startsWith("seek_"))` → use `isPathseekerRunningQuestStatusGuard`
+- `new Set(["complete","failed","skipped"])` with `TERMINAL.has(wi.status)` → use `isTerminalWorkItemStatusGuard`
+- `switch (quest.status) { case "approved": … }` → use `isStartableQuestStatusGuard` or a transformer
+
 ## Ward Invocation Rules (MANDATORY)
 
 **Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
