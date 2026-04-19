@@ -21,19 +21,6 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 4. **`~/.claude/plans/we-need-to-add-generic-dream.md`** and **`~/.claude/plans/lets-do-this-as-misty-gray.md`** — only
    if you need context on WHY Siegemaster is per-flow or WHY Blightwarden exists. Both plans' progress trackers are
    fully checked (Plan A: 9 groups, Plan B: 10 groups); both features are merged to `master`.
-5. **`VALIDATION-PLAYBOOK.md` Phase 0** — re-confirm all 23 static checkpoints still pass before kicking off a live
-   run. A failed Phase 0 means a prior commit regressed a landed feature; file as blocking.
-
-**Known state (as of last handoff):**
-
-- All 24+ bug-fix commits since session start are on branch `master`, NOT pushed. Use `git log origin/master..HEAD`
-  to see them. Do NOT push unless the user explicitly says so.
-- Working tree should be clean at handoff time (only `VALIDATION-PLAYBOOK.md` or `FOLLOWUP-ISSUES.md` may be dirty
-  if the user is mid-edit). If anything else is dirty, check the last run's "Bug Procedure" notes — quest-generated
-  artifacts must be reverted before restarting a run.
-- Dev server is probably NOT running across a session handoff — start fresh per Run Lifecycle step 4.
-- Known non-blocking issue: session URL auto-nav from `/codex/session` → `/codex/session/<uuid>` takes ~2 minutes
-  after ChaosWhisperer's first turn. Be patient. Never manually navigate the session URL.
 
 **Resumption rules:**
 
