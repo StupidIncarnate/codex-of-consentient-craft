@@ -768,15 +768,41 @@ await page.waitForTimeout(3000);
 await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000});
 \`\`\`
 
-### Drive State via the Real API
+### Drive State via the Real API — but ONLY for preconditions
+
+Use \`request.patch\`/\`request.post\` to put the system into the *starting state* for the test. Never use it to perform a
+transition the test is actually exercising. If the UI has a button for the transition, the test MUST click the button.
+PATCHing a status that a user would click a button for skips the whole point of an E2E: you never verify the button
+wires up, the handler fires, and the resulting request body/URL are correct.
 
 \`\`\`typescript
 // ❌ WRONG — intercepting server responses
 await page.route('/api/items/*', (route) => route.fulfill({body: '{}'}));
 
-// ✅ CORRECT — use the real server
-await request.patch(\`/api/items/\${itemId}\`, {data: {status: 'approved'}});
+// ❌ WRONG — the test's whole purpose is to verify the APPROVE button transitions the quest;
+// PATCHing skips the button entirely. Silently passes while the button is broken.
+await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
+await expect(page.getByText('Begin Quest modal')).toBeVisible();
+
+// ✅ CORRECT — click the real button so the test verifies the actual user path
+await page.getByTestId('PIXEL_BTN').filter({hasText: 'APPROVE'}).click();
+await expect(page.getByText('Begin Quest modal')).toBeVisible();
+
+// ✅ CORRECT — PATCHing is OK when it's a precondition the user would reach through a
+// *different* flow that isn't in scope for this test (e.g. seeding a guild, fast-forwarding
+// through a spec phase the test isn't exercising). The test's scope here is "Begin Quest",
+// so seeding "approved" via PATCH is fine IF there's another test that covers the APPROVE
+// button click itself.
+await quests.writeQuestFile({questId, status: 'approved', /* ... */});
 \`\`\`
+
+**Rule of thumb:**
+
+- ✅ OK to PATCH: setting up state the test doesn't care about (seeded guild, prior phase results, fixture data)
+- ❌ NOT OK to PATCH: any transition the test name or scope is about — that MUST go through the UI
+
+**Locators:** use \`page.getByTestId('<testid>').filter({hasText: '<label>'})\`, not \`getByRole\`. All interactive elements
+have stable testids (\`PIXEL_BTN\`, \`CHAT_INPUT\`, etc.); filter by text when multiple elements share a testid.
 
 ### Observe Requests, Don't Intercept
 

@@ -111,8 +111,23 @@ test('example', async ({page, request}) => {
 assert
 that the frontend sent the correct HTTP method, URL, and body to the real server.
 
-**Driving state via the API is fine** — calling `request.patch('/api/quests/:id', { data })` to change quest status is
-not mocking; it's using the real server to produce real WS events that the frontend reacts to.
+**Driving *precondition* state via the API is fine** — calling `request.patch('/api/quests/:id', { data })` to put the
+system into the starting state for the test is not mocking; it's using the real server to produce real WS events that
+the frontend reacts to.
+
+**BUT if a button in the UI performs that transition, the test MUST click the button — never PATCH.** The whole point of
+an E2E test is to exercise the real user path. If the test's scope is "click APPROVE → modal appears" and you PATCH
+`status: 'approved'` instead of clicking, you never verify the button wires up, never catch regressions in its handler,
+and the test silently passes while the button is broken.
+
+- ✅ OK to PATCH: setting a precondition the user would never reach manually in this test (e.g. seeding a guild, fast-
+  forwarding through a phase the test isn't about).
+- ❌ NOT OK to PATCH: any transition the test is actually supposed to exercise. If the UI has a button for it, click
+  the button. If there's no button (purely server-driven state change), PATCH is the only option.
+
+Use `page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click()` — not `getByRole`. All interactive elements
+have a stable testid; Playwright's `filter({ hasText })` narrows among testid matches without coupling tests to
+Mantine/accessibility-library internals.
 
 ### Assert the Full Transition
 
