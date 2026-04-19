@@ -50,8 +50,11 @@ const STATUS_COLORS = {
   in_progress: colors.primary,
   complete: colors.success,
   blocked: colors.danger,
-  abandoned: colors.danger,
+  abandoned: colors['text-dim'],
 } as const;
+
+const TERMINAL_ROW_OPACITY = 0.5;
+const TERMINAL_STATUSES = new Set(['abandoned']);
 
 export const GuildSessionListWidget = ({
   sessions,
@@ -101,53 +104,61 @@ export const GuildSessionListWidget = ({
         </Text>
       )}
       {!loading &&
-        filtered.map((session) => (
-          <UnstyledButton
-            key={session.sessionId}
-            onClick={() => {
-              onSelect({ sessionId: session.sessionId });
-            }}
-            px="xs"
-            py={3}
-            data-testid={`SESSION_ITEM_${session.sessionId}`}
-            style={{
-              fontFamily: 'monospace',
-              fontSize: ITEM_FONT_SIZE,
-              color: colors.text,
-              borderRadius: 2,
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <span>{session.questTitle ?? session.summary ?? 'Untitled session'}</span>
-            <Group gap={6}>
-              {session.questTitle ? (
-                <Badge
-                  size="xs"
-                  variant="outline"
-                  data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
-                >
-                  QUEST
-                </Badge>
-              ) : null}
-              {session.questStatus ? (
-                <span
-                  data-testid={`SESSION_STATUS_${session.sessionId}`}
-                  style={{
-                    color:
-                      (Reflect.get(STATUS_COLORS, session.questStatus) as
-                        | (typeof colors)['text-dim']
-                        | undefined) ?? colors['text-dim'],
-                    fontSize: STATUS_FONT_SIZE,
-                  }}
-                >
-                  {session.questStatus.toUpperCase().split('_').join(' ')}
-                </span>
-              ) : null}
-            </Group>
-          </UnstyledButton>
-        ))}
+        filtered.map((session) => {
+          const isTerminal =
+            session.questStatus !== undefined && TERMINAL_STATUSES.has(session.questStatus);
+          return (
+            <UnstyledButton
+              key={session.sessionId}
+              onClick={() => {
+                onSelect({ sessionId: session.sessionId });
+              }}
+              px="xs"
+              py={3}
+              data-testid={`SESSION_ITEM_${session.sessionId}`}
+              style={{
+                fontFamily: 'monospace',
+                fontSize: ITEM_FONT_SIZE,
+                color: colors.text,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1,
+              }}
+            >
+              <span style={{ flex: 1, minWidth: 0 }}>
+                {session.questTitle ?? session.summary ?? 'Untitled session'}
+              </span>
+              <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
+                {session.questTitle ? (
+                  <Badge
+                    size="xs"
+                    variant="outline"
+                    data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
+                  >
+                    QUEST
+                  </Badge>
+                ) : null}
+                {session.questStatus ? (
+                  <span
+                    data-testid={`SESSION_STATUS_${session.sessionId}`}
+                    style={{
+                      color:
+                        (Reflect.get(STATUS_COLORS, session.questStatus) as
+                          | (typeof colors)['text-dim']
+                          | undefined) ?? colors['text-dim'],
+                      fontSize: STATUS_FONT_SIZE,
+                    }}
+                  >
+                    {session.questStatus.toUpperCase().split('_').join(' ')}
+                  </span>
+                ) : null}
+              </Group>
+            </UnstyledButton>
+          );
+        })}
     </Stack>
   );
 };
