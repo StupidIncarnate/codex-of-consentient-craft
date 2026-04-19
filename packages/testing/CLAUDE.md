@@ -111,19 +111,22 @@ test('example', async ({page, request}) => {
 assert
 that the frontend sent the correct HTTP method, URL, and body to the real server.
 
-**Driving *precondition* state via the API is fine** — calling `request.patch('/api/quests/:id', { data })` to put the
-system into the starting state for the test is not mocking; it's using the real server to produce real WS events that
-the frontend reacts to.
+**Driving *precondition* state via any server-mutating call is fine** — `request.patch`, `request.post`,
+`request.delete`, `writeQuestFile`, direct file writes, harness helpers that call these, anything that changes server
+or filesystem state. This is not mocking; it's using the real server/filesystem to produce real events that the
+frontend reacts to.
 
-**BUT if a button in the UI performs that transition, the test MUST click the button — never PATCH.** The whole point of
-an E2E test is to exercise the real user path. If the test's scope is "click APPROVE → modal appears" and you PATCH
-`status: 'approved'` instead of clicking, you never verify the button wires up, never catch regressions in its handler,
-and the test silently passes while the button is broken.
+**BUT if the UI has a control that performs that mutation, the test MUST drive it through the UI — never via a write
+call.** The whole point of an E2E test is to exercise the real user path. If the test's scope is "click APPROVE → modal
+appears" and you PATCH `status: 'approved'` instead of clicking, you never verify the button wires up, never catch
+regressions in its handler, and the test silently passes while the button is broken. Same rule applies to POST-
+backed buttons (Begin Quest, Start Chat), DELETE-backed buttons (Remove Guild), file-backed form submissions, etc.
 
-- ✅ OK to PATCH: setting a precondition the user would never reach manually in this test (e.g. seeding a guild, fast-
-  forwarding through a phase the test isn't about).
-- ❌ NOT OK to PATCH: any transition the test is actually supposed to exercise. If the UI has a button for it, click
-  the button. If there's no button (purely server-driven state change), PATCH is the only option.
+- ✅ OK via API/write: setting up state the user would never reach manually in this test (seeding a guild, fast-
+  forwarding through a phase the test isn't about, populating fixture data).
+- ❌ NOT OK via API/write: any mutation the test is actually supposed to exercise. If the UI has a button/form/input
+  for it, drive it through the UI. Only bypass the UI when the mutation is a pure server-side effect with no user-
+  facing control (e.g. a cron-driven transition, a webhook-triggered event).
 
 Use `page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click()` — not `getByRole`. All interactive elements
 have a stable testid; Playwright's `filter({ hasText })` narrows among testid matches without coupling tests to
