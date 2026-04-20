@@ -159,8 +159,8 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
     // covers the scenario where main JSONL includes the Task line.
     await expect(chainHeader).toContainText('1 entries', { timeout: CHAT_TIMEOUT });
 
-    // Expand and confirm the inner marker text lives inside the chain.
-    await chainHeader.click();
+    // The chain renders expanded on mount — confirm the inner marker text lives inside
+    // the chain body.
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
     await expect(chainScope.getByText(SUBAGENT_MARKER).first()).toBeVisible({

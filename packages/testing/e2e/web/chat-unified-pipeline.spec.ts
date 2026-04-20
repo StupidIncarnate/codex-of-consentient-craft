@@ -196,15 +196,12 @@ test.describe('Unified JSONL Pipeline', () => {
       timeout: CHAT_TIMEOUT,
     });
 
-    // Sub-agent chain header should appear (collapsed by default)
+    // Sub-agent chain header should appear (the chain renders expanded on mount)
     await expect(page.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
 
-    // Expand the sub-agent chain to see inner content
-    await page.getByTestId('SUBAGENT_CHAIN_HEADER').click();
-
-    // Sub-agent text should now be visible
+    // Sub-agent text is rendered inside the expanded chain on mount — no click needed
     await expect(page.getByText('Sub-agent output text')).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
 
@@ -241,7 +238,7 @@ test.describe('Unified JSONL Pipeline', () => {
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );
 
-    // Sub-agent chain header should appear (collapsed by default).
+    // Sub-agent chain header should appear (the chain renders expanded on mount).
     await expect(page.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
@@ -251,11 +248,11 @@ test.describe('Unified JSONL Pipeline', () => {
     // entries. Before that fix, tool_result leaked out of the chain and entryCount was 1.
     await expect(page.getByText('(2 entries)')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // Assertion 2 — while the chain is collapsed, NO sub-agent content bleeds into the
-    // page-level DOM. The collapsed chain hides its inner entries entirely.
+    // Assertion 2 — while the paired TOOL_ROW is still collapsed (TOOL_ROW_HEADER not
+    // yet clicked), the inner result marker has not been rendered into the DOM. The
+    // chain itself renders expanded on mount, but its paired tool_use/tool_result row
+    // is a TOOL_ROW whose TOOL_ROW_RESULT body only mounts after its header is clicked.
     await expect(page.getByText('SUBAGENT_READ_RESULT_MARKER_xyz')).toHaveCount(0);
-
-    await page.getByTestId('SUBAGENT_CHAIN_HEADER').click();
 
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
@@ -322,9 +319,9 @@ test.describe('Unified JSONL Pipeline', () => {
     await expect(page.getByText('<task-notification>', { exact: false })).toHaveCount(0);
 
     // Assertion 2 — the parsed notification must attach to its sub-agent chain via taskId ===
-    // agentId. When the chain is expanded, a TASK REPORT box appears inside it carrying the
-    // agent's result. Scope to SUBAGENT_CHAIN so we're not catching a root-level fallback.
-    await page.getByTestId('SUBAGENT_CHAIN_HEADER').click();
+    // agentId. The chain renders expanded on mount, so a TASK REPORT box appears inside it
+    // carrying the agent's result. Scope to SUBAGENT_CHAIN so we're not catching a
+    // root-level fallback.
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
     await expect(chainScope.getByText('TASK REPORT', { exact: true })).toBeVisible({

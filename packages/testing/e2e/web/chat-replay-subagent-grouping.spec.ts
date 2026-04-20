@@ -83,14 +83,13 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
     // sub-agent entries keyed on realAgentId, and the two never matching.
     await expect(chainHeader).toContainText('1 entries', { timeout: CHAT_TIMEOUT });
 
-    // Expanding the chain must reveal the sub-agent marker text nested inside it —
-    // confirming the sub-agent JSONL was correctly grouped under the Task header rather
-    // than appearing as a top-level sibling. The entry count + scoped marker together
-    // prove grouping works; we don't additionally assert the marker isn't also a
-    // top-level sibling (that would need `.not.toBeVisible`, which is banned by
-    // `ban-negated-matchers`), because entryCount === 1 already implies it's consumed
-    // by the chain and not rendered elsewhere.
-    await chainHeader.click();
+    // The sub-agent chain renders expanded on mount, so the marker text nested inside it
+    // must be visible immediately — confirming the sub-agent JSONL was correctly grouped
+    // under the Task header rather than appearing as a top-level sibling. The entry count
+    // + scoped marker together prove grouping works; we don't additionally assert the
+    // marker isn't also a top-level sibling (that would need `.not.toBeVisible`, which is
+    // banned by `ban-negated-matchers`), because entryCount === 1 already implies it's
+    // consumed by the chain and not rendered elsewhere.
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
     await expect(chainScope.getByText(SUBAGENT_MARKER).first()).toBeVisible({
