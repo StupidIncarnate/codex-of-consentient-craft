@@ -30,11 +30,18 @@ export const stepsToWorkItemsTransformer = ({
   pathseekerWorkItemId: QuestWorkItemId;
   now: IsoTimestamp;
 }): WorkItem[] => {
+  // Pass 1: assign a workItem id for every step so forward refs (a step depending on
+  // another step declared later in the array) can be resolved in pass 2.
   const stepIdToCwId = new Map<StepId, QuestWorkItemId>();
+  const assignedCwIds: QuestWorkItemId[] = steps.map((step) => {
+    const cwId = workItemContract.shape.id.parse(crypto.randomUUID());
+    stepIdToCwId.set(step.id, cwId);
+    return cwId;
+  });
 
-  const cwItems: WorkItem[] = steps.map((step) => {
-    const cwId = crypto.randomUUID();
-    stepIdToCwId.set(step.id, workItemContract.shape.id.parse(cwId));
+  // Pass 2: build each codeweaver work item, resolving every step dep via the id map.
+  const cwItems: WorkItem[] = steps.map((step, index) => {
+    const cwId = assignedCwIds[index];
 
     const dependsOn: QuestWorkItemId[] = [pathseekerWorkItemId];
     for (const depStepId of step.dependsOn) {
