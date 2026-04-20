@@ -11,137 +11,15 @@ import { writeFileSync } from 'fs';
 import type { APIRequestContext } from '@playwright/test';
 
 import type { QuestId, FilePath } from '@dungeonmaster/shared/contracts';
-import {
-  FlowObservableStub,
-  PlanningReviewReportStub,
-  PlanningScopeClassificationStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
-} from '@dungeonmaster/shared/contracts';
+
+import { questFlowObservableSeedTransformer } from '../../../src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer';
+import { questGateContentSeedTransformer } from '../../../src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer';
 
 const JSON_INDENT = 2;
 const CREATED_AT_INTERVAL_MS = 1000;
 
-// Statuses that need planningNotes.scopeClassification seeded.
-const SCOPE_CLASSIFICATION_STATUSES = new Set([
-  'seek_synth',
-  'seek_walk',
-  'seek_plan',
-  'in_progress',
-]);
-// Statuses that need planningNotes.synthesis seeded (cumulative with above).
-const SYNTHESIS_STATUSES = new Set(['seek_walk', 'seek_plan', 'in_progress']);
-// Statuses that need planningNotes.walkFindings seeded (cumulative).
-const WALK_FINDINGS_STATUSES = new Set(['seek_plan', 'in_progress']);
-// Statuses that need planningNotes.reviewReport seeded (cumulative).
-const REVIEW_REPORT_STATUSES = new Set(['in_progress']);
-// Statuses where flows must have at least one observable on a terminal node
-// (so the quest-completeness "terminal observable coverage" check passes).
-const REQUIRES_TERMINAL_OBSERVABLE_STATUSES = new Set(['review_observables']);
-
 type PlanningNotesInput = Record<PropertyKey, unknown>;
 type FlowInput = Record<PropertyKey, unknown>;
-
-const buildSeededPlanningNotes = ({
-  status,
-  override,
-}: {
-  status: string;
-  override?: PlanningNotesInput;
-}): PlanningNotesInput => {
-  const seeded: Record<PropertyKey, unknown> = { ...(override ?? {}) };
-  if (seeded.surfaceReports === undefined) {
-    seeded.surfaceReports = [];
-  }
-  if (seeded.blightReports === undefined) {
-    seeded.blightReports = [];
-  }
-  if (SCOPE_CLASSIFICATION_STATUSES.has(status) && seeded.scopeClassification === undefined) {
-    seeded.scopeClassification = PlanningScopeClassificationStub();
-  }
-  if (SYNTHESIS_STATUSES.has(status) && seeded.synthesis === undefined) {
-    seeded.synthesis = PlanningSynthesisStub();
-  }
-  if (WALK_FINDINGS_STATUSES.has(status) && seeded.walkFindings === undefined) {
-    seeded.walkFindings = PlanningWalkFindingsStub();
-  }
-  if (REVIEW_REPORT_STATUSES.has(status) && seeded.reviewReport === undefined) {
-    seeded.reviewReport = PlanningReviewReportStub();
-  }
-  return seeded;
-};
-
-const isTerminalNodeWithObservable = (node: unknown): boolean => {
-  if (typeof node !== 'object' || node === null) {
-    return false;
-  }
-  const nodeType = Reflect.get(node, 'type');
-  const observables = Reflect.get(node, 'observables');
-  return nodeType === 'terminal' && Array.isArray(observables) && observables.length > 0;
-};
-
-const flowHasTerminalWithObservable = (flow: unknown): boolean => {
-  if (typeof flow !== 'object' || flow === null) {
-    return false;
-  }
-  const nodes = Reflect.get(flow, 'nodes');
-  if (!Array.isArray(nodes)) {
-    return false;
-  }
-  return nodes.some(isTerminalNodeWithObservable);
-};
-
-const hasTerminalWithObservable = ({ flows }: { flows: FlowInput[] }): boolean =>
-  flows.some(flowHasTerminalWithObservable);
-
-const injectObservableIntoNode = ({
-  node,
-  alreadyInjected,
-}: {
-  node: unknown;
-  alreadyInjected: { value: boolean };
-}): unknown => {
-  if (alreadyInjected.value) {
-    return node;
-  }
-  if (typeof node !== 'object' || node === null) {
-    return node;
-  }
-  if (Reflect.get(node, 'type') !== 'terminal') {
-    return node;
-  }
-  alreadyInjected.value = true;
-  const existingObservables = Reflect.get(node, 'observables');
-  const existing = Array.isArray(existingObservables) ? existingObservables : [];
-  return {
-    ...node,
-    observables: [
-      ...existing,
-      FlowObservableStub({
-        id: 'harness-terminal-observable' as never,
-        description: 'harness-seeded observable' as never,
-      }),
-    ],
-  };
-};
-
-const seedTerminalObservables = ({ flows }: { flows: FlowInput[] }): FlowInput[] => {
-  if (hasTerminalWithObservable({ flows })) {
-    return flows;
-  }
-  // Add a stub observable to the FIRST terminal node found across all flows.
-  const alreadyInjected = { value: false };
-  return flows.map((flow) => {
-    const nodes = Reflect.get(flow, 'nodes');
-    if (!Array.isArray(nodes)) {
-      return flow;
-    }
-    const newNodes = nodes.map((node: unknown) =>
-      injectObservableIntoNode({ node, alreadyInjected }),
-    );
-    return { ...flow, nodes: newNodes };
-  });
-};
 
 const DEFAULT_FLOWS: FlowInput[] = [
   {
@@ -270,14 +148,15 @@ export const questHarness = ({
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
   }): void => {
-    const seededPlanningNotes = buildSeededPlanningNotes({
+    const seededPlanningNotes = questGateContentSeedTransformer({
       status,
       ...(planningNotes === undefined ? {} : { override: planningNotes }),
     });
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
-    const seededFlows: FlowInput[] = REQUIRES_TERMINAL_OBSERVABLE_STATUSES.has(status)
-      ? seedTerminalObservables({ flows: baseFlows })
-      : baseFlows;
+    const seededFlows: FlowInput[] = questFlowObservableSeedTransformer({
+      flows: baseFlows,
+      status,
+    });
     const quest = {
       id: questId,
       folder: questFolder,
