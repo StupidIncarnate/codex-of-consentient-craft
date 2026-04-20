@@ -187,78 +187,55 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('action bar', () => {
-    it('VALID: {blocked quest with onStatusChange and onAbandon} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
+    it('VALID: {blocked quest with onStatusChange} => shows RESUME QUEST in action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onStatusChange = jest.fn();
-      const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: (
-          <ExecutionPanelWidget
-            quest={quest}
-            onStatusChange={onStatusChange}
-            onAbandon={onAbandon}
-          />
-        ),
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
       expect(proxy.hasActionBar()).toBe(true);
 
       const labels = proxy.getActionButtons().map((btn) => btn.textContent);
 
-      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+      expect(labels).toStrictEqual(['RESUME QUEST']);
     });
 
-    it('VALID: {paused quest with onStatusChange and onAbandon} => shows RESUME QUEST and ABANDON QUEST buttons', () => {
+    it('VALID: {paused quest with onStatusChange} => shows RESUME QUEST in action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
-      const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: (
-          <ExecutionPanelWidget
-            quest={quest}
-            onStatusChange={onStatusChange}
-            onAbandon={onAbandon}
-          />
-        ),
+        ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
       expect(proxy.hasActionBar()).toBe(true);
 
       const labels = proxy.getActionButtons().map((btn) => btn.textContent);
 
-      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+      expect(labels).toStrictEqual(['RESUME QUEST']);
     });
 
-    it('VALID: {in_progress quest with onPause and onAbandon} => shows PAUSE QUEST and ABANDON QUEST buttons', () => {
+    it('VALID: {in_progress quest with onPause} => shows PAUSE QUEST in action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
-      const onStatusChange = jest.fn();
       const onPause = jest.fn();
-      const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: (
-          <ExecutionPanelWidget
-            quest={quest}
-            onStatusChange={onStatusChange}
-            onPause={onPause}
-            onAbandon={onAbandon}
-          />
-        ),
+        ui: <ExecutionPanelWidget quest={quest} onPause={onPause} />,
       });
 
       expect(proxy.hasActionBar()).toBe(true);
 
       const labels = proxy.getActionButtons().map((btn) => btn.textContent);
 
-      expect(labels).toStrictEqual(['PAUSE QUEST', 'ABANDON QUEST']);
+      expect(labels).toStrictEqual(['PAUSE QUEST']);
     });
 
-    it('VALID: {in_progress quest with onAbandon only} => shows ABANDON QUEST button only', () => {
+    it('VALID: {in_progress quest with onAbandon only} => does not show action bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
@@ -267,11 +244,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
-      expect(proxy.hasActionBar()).toBe(true);
-
-      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
-
-      expect(labels).toStrictEqual(['ABANDON QUEST']);
+      expect(proxy.hasActionBar()).toBe(false);
     });
 
     it('VALID: {click PAUSE QUEST} => calls onPause', async () => {
@@ -327,8 +300,10 @@ describe('ExecutionPanelWidget', () => {
 
       expect(onStatusChange).toHaveBeenCalledWith({ status: 'in_progress' });
     });
+  });
 
-    it('VALID: {click ABANDON QUEST} => shows confirmation buttons', async () => {
+  describe('abandon button in title bar', () => {
+    it('VALID: {onAbandon provided} => renders ABANDON QUEST button in title bar', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
@@ -337,9 +312,32 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
-      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+      expect(proxy.hasAbandonButton()).toBe(true);
+    });
 
-      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+    it('VALID: {no onAbandon} => does not render ABANDON QUEST button', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasAbandonButton()).toBe(false);
+    });
+
+    it('VALID: {click ABANDON QUEST} => shows CONFIRM ABANDON and CANCEL buttons', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onAbandon = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
+      });
+
+      await proxy.clickAbandon();
+
+      const labels = proxy.getAbandonButtons().map((btn) => btn.textContent);
 
       expect(labels).toStrictEqual(['CONFIRM ABANDON', 'CANCEL']);
     });
@@ -353,13 +351,13 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
-      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
-      await proxy.clickButtonByLabel({ label: 'CONFIRM ABANDON' });
+      await proxy.clickAbandon();
+      await proxy.clickConfirmAbandon();
 
       expect(onAbandon).toHaveBeenCalledTimes(1);
     });
 
-    it('VALID: {click CANCEL after ABANDON QUEST} => returns to normal buttons', async () => {
+    it('VALID: {click CANCEL after ABANDON QUEST} => returns to ABANDON QUEST button', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
@@ -375,16 +373,16 @@ describe('ExecutionPanelWidget', () => {
         ),
       });
 
-      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
-      await proxy.clickButtonByLabel({ label: 'CANCEL' });
+      await proxy.clickAbandon();
+      await proxy.clickCancelAbandon();
 
-      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+      const labels = proxy.getAbandonButtons().map((btn) => btn.textContent);
 
-      expect(labels).toStrictEqual(['RESUME QUEST', 'ABANDON QUEST']);
+      expect(labels).toStrictEqual(['ABANDON QUEST']);
       expect(onAbandon.mock.calls).toStrictEqual([]);
     });
 
-    it('VALID: {paused quest confirming abandon} => hides RESUME QUEST button', async () => {
+    it('VALID: {paused quest confirming abandon} => action bar still shows RESUME QUEST', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
@@ -400,11 +398,11 @@ describe('ExecutionPanelWidget', () => {
         ),
       });
 
-      await proxy.clickButtonByLabel({ label: 'ABANDON QUEST' });
+      await proxy.clickAbandon();
 
-      const labels = proxy.getActionButtons().map((btn) => btn.textContent);
+      const actionLabels = proxy.getActionButtons().map((btn) => btn.textContent);
 
-      expect(labels).toStrictEqual(['CONFIRM ABANDON', 'CANCEL']);
+      expect(actionLabels).toStrictEqual(['RESUME QUEST']);
     });
   });
 
@@ -1611,9 +1609,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-panel-quest-title').textContent).toBe(
-        'Implement Auth Flow',
-      );
+      expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Implement Auth Flow');
     });
   });
 
