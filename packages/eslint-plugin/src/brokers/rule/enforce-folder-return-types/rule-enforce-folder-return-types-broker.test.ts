@@ -5,103 +5,216 @@ const ruleTester = eslintRuleTesterAdapter();
 
 ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker(), {
   valid: [
-    // Adapter returning Promise<string> — valid
     {
       code: `export const fetchDataAdapter = (): Promise<string> => Promise.resolve('data');`,
-      filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
     },
-    // Adapter returning Promise<{ success: boolean }> — valid
     {
       code: `export const writeFileAdapter = (): Promise<{ success: boolean }> => Promise.resolve({ success: true });`,
       filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
     },
-    // Adapter returning AdapterResult — valid
     {
       code: `export const readFileAdapter = (): AdapterResult => ({ data: 'ok' });`,
       filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
     },
-    // Guard returning boolean — valid
+    {
+      code: `export const useGuildsBinding = (): { data: Guild[]; loading: boolean } => ({ data: [], loading: false });`,
+      filename: '/project/src/bindings/use-guilds/use-guilds-binding.ts',
+    },
+    {
+      code: `export const fetchUserBroker = (): Promise<User> => Promise.resolve({} as User);`,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: `export const CliFlow = (): Promise<number> => Promise.resolve(0);`,
+      filename: '/project/src/flows/cli/cli-flow.ts',
+    },
     {
       code: `export const isValidGuard = (): boolean => true;`,
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
     },
-    // Guard returning type predicate — valid
     {
       code: `export const isStringGuard = (value: unknown): value is string => typeof value === 'string';`,
       filename: '/project/src/guards/is-string/is-string-guard.ts',
     },
-    // Broker returning Promise<void> — NOT in adapters/ folder, should pass
     {
-      code: `export const fetchUserBroker = (): Promise<void> => Promise.resolve();`,
-      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      code: `export const authMiddleware = (): AuthResult => ({ allowed: true });`,
+      filename: '/project/src/middleware/auth/auth-middleware.ts',
     },
-    // Transformer returning string — NOT in guards/ folder, should pass
+    {
+      code: `export const HandleResponder = (): Promise<ResponderResult> => Promise.resolve({} as ResponderResult);`,
+      filename: '/project/src/responders/chat/start/chat-start-responder.ts',
+    },
+    {
+      code: `export const sessionsState = (): SessionStore => ({ sessions: [] });`,
+      filename: '/project/src/state/sessions/sessions-state.ts',
+    },
     {
       code: `export const formatTransformer = (): string => 'formatted';`,
       filename: '/project/src/transformers/format/format-transformer.ts',
     },
-    // Adapter without return type annotation — skipped (explicit-return-types handles this)
     {
-      code: `export const noReturnTypeAdapter = () => Promise.resolve();`,
-      filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
+      code: `export const PixelBtnWidget = (): React.JSX.Element => null as unknown as React.JSX.Element;`,
+      filename: '/project/src/widgets/pixel-btn/pixel-btn-widget.tsx',
     },
-    // Guard without return type annotation — skipped (explicit-return-types handles this)
     {
-      code: `export const noReturnTypeGuard = () => true;`,
-      filename: '/project/src/guards/is-valid/is-valid-guard.ts',
+      code: `export const StartServer = (): Promise<ServerHandle> => Promise.resolve({} as ServerHandle);`,
+      filename: '/project/src/startup/start-server.ts',
     },
-    // Adapter function declaration without return type — skipped
-    {
-      code: `export function writeFileAdapter() { return Promise.resolve(); }`,
-      filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
-    },
-    // Guard function declaration without return type — skipped
-    {
-      code: `export function isValidGuard() { return true; }`,
-      filename: '/project/src/guards/is-valid/is-valid-guard.ts',
-    },
-    // Non-exported function returning void in adapter file — not matched by selectors
+    // Non-exported functions are not inspected by either phase
     {
       code: `const internalHelper = (): void => {};`,
       filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
     },
+    // Outside function-exporting folders: annotated void is fine (phase 2 does not apply)
+    {
+      code: `export const helperContract = (): void => {};`,
+      filename: '/project/src/contracts/helper/helper-contract.ts',
+    },
+    // Contract stub factory: annotated non-void is valid everywhere
+    {
+      code: `export const UserStub = ({ value }: { value: string }): { name: string } => ({ name: value });`,
+      filename: '/project/src/contracts/user/user.stub.ts',
+    },
+    // Class export — not a function expression; phase 1 selectors don't match
+    {
+      code: `export class ValidationError extends Error { constructor(message: string) { super(message); } }`,
+      filename: '/project/src/errors/validation/validation-error.ts',
+    },
+    // Code examples inside comments should not trigger
+    {
+      code: `// Example: export const foo = () => "bar"\nexport const good = (): string => "bar";`,
+      filename: '/project/src/transformers/format/format-transformer.ts',
+    },
   ],
   invalid: [
-    // Adapter returning void
+    // Phase 1 — missingReturnType — applies to any exported function anywhere
+    {
+      code: 'export const foo = () => "bar"',
+      filename: '/project/src/contracts/user/user-contract.ts',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export function foo() { return "bar"; }',
+      filename: '/project/src/transformers/format/format-transformer.ts',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export default function foo() { return "bar"; }',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export default () => "bar"',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    {
+      code: 'export const foo = async () => "bar"',
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
+      errors: [{ messageId: 'missingReturnType' }],
+    },
+    // Phase 2 — void rejection per folder
     {
       code: `export const writeFileAdapter = (): void => {};`,
       filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
-      errors: [{ messageId: 'adapterVoidReturn' }],
+      errors: [{ messageId: 'folderVoidReturn' }],
     },
-    // Adapter returning Promise<void>
+    {
+      code: `export const useGuildsBinding = (): void => {};`,
+      filename: '/project/src/bindings/use-guilds/use-guilds-binding.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const fetchUserBroker = (): void => {};`,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const CliFlow = (): void => {};`,
+      filename: '/project/src/flows/cli/cli-flow.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const authMiddleware = (): void => {};`,
+      filename: '/project/src/middleware/auth/auth-middleware.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const HandleResponder = (): void => {};`,
+      filename: '/project/src/responders/chat/start/chat-start-responder.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const sessionsState = (): void => {};`,
+      filename: '/project/src/state/sessions/sessions-state.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const formatTransformer = (): void => {};`,
+      filename: '/project/src/transformers/format/format-transformer.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const PixelBtnWidget = (): void => {};`,
+      filename: '/project/src/widgets/pixel-btn/pixel-btn-widget.tsx',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    {
+      code: `export const StartServer = (): void => {};`,
+      filename: '/project/src/startup/start-server.ts',
+      errors: [{ messageId: 'folderVoidReturn' }],
+    },
+    // Phase 3 — Promise<void> rejection per folder
     {
       code: `export const writeFileAdapter = (): Promise<void> => Promise.resolve();`,
       filename: '/project/src/adapters/fs/write-file/fs-write-file-adapter.ts',
-      errors: [{ messageId: 'adapterPromiseVoidReturn' }],
+      errors: [{ messageId: 'folderPromiseVoidReturn' }],
     },
-    // Guard returning void
+    {
+      code: `export const fetchUserBroker = (): Promise<void> => Promise.resolve();`,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'folderPromiseVoidReturn' }],
+    },
+    {
+      code: `export const HandleResponder = (): Promise<void> => Promise.resolve();`,
+      filename: '/project/src/responders/chat/start/chat-start-responder.ts',
+      errors: [{ messageId: 'folderPromiseVoidReturn' }],
+    },
+    {
+      code: `export const StartServer = (): Promise<void> => Promise.resolve();`,
+      filename: '/project/src/startup/start-server.ts',
+      errors: [{ messageId: 'folderPromiseVoidReturn' }],
+    },
+    // Phase 4 — guards-specific checks
     {
       code: `export const isValidGuard = (): void => {};`,
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
-      errors: [{ messageId: 'guardMustReturnBoolean' }],
+      errors: [{ messageId: 'folderVoidReturn' }],
     },
-    // Guard returning string
     {
       code: `export const isValidGuard = (): string => 'yes';`,
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
       errors: [{ messageId: 'guardMustReturnBoolean' }],
     },
-    // Guard returning Promise<boolean>
     {
       code: `export const isValidGuard = (): Promise<boolean> => Promise.resolve(true);`,
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
       errors: [{ messageId: 'guardMustReturnBoolean' }],
     },
-    // Guard returning number
     {
       code: `export const isValidGuard = (): number => 1;`,
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
       errors: [{ messageId: 'guardMustReturnBoolean' }],
+    },
+    // Multiple violations in one file
+    {
+      code: `
+        export const fooBroker = () => "bar";
+        export function bazBroker() { return 42; }
+      `,
+      filename: '/project/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'missingReturnType' }, { messageId: 'missingReturnType' }],
     },
   ],
 });

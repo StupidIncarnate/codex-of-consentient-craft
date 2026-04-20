@@ -99,7 +99,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-test-colocation': 'error',
     '@dungeonmaster/enforce-test-creation-of-proxy': 'error',
     '@dungeonmaster/enforce-test-proxy-imports': 'error',
-    '@dungeonmaster/explicit-return-types': 'error',
     '@dungeonmaster/forbid-non-exported-functions': 'error',
     '@dungeonmaster/forbid-todo-skip': 'error',
     '@dungeonmaster/forbid-type-reexport': 'error',

@@ -51,7 +51,6 @@ describe('EslintPluginFlow', () => {
         'enforce-test-name-prefix',
         'enforce-test-proxy-imports',
         'enforce-testid-queries',
-        'explicit-return-types',
         'forbid-non-exported-functions',
         'forbid-todo-skip',
         'forbid-type-reexport',
