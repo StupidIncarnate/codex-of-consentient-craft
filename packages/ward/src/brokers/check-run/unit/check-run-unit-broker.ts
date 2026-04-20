@@ -37,6 +37,7 @@ import {
 } from '../../../contracts/file-timing/file-timing-contract';
 import { isUnitTestPathGuard } from '../../../guards/is-unit-test-path/is-unit-test-path-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import { tsExtensionsStatics } from '../../../statics/ts-extensions/ts-extensions-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
@@ -84,7 +85,33 @@ export const checkRunUnitBroker = async ({
     });
   }
 
-  const unitFiles = fileList.filter((f) => isUnitTestPathGuard({ filePath: String(f) }));
+  const unitFiles = fileList
+    .filter((f) => isUnitTestPathGuard({ filePath: String(f) }))
+    .filter((f) => {
+      const relativePath = String(f);
+      // Directory paths (no extension) handled by the discoveredFiles check below
+      if (!relativePath.includes('.')) {
+        return true;
+      }
+      // Unit test files themselves are always kept
+      const isTestFile = tsExtensionsStatics.allExtensions.some((ext) =>
+        relativePath.endsWith(`.test.${ext}`),
+      );
+      if (isTestFile) {
+        return true;
+      }
+      // Source files are kept only when a colocated unit test companion exists on disk
+      const lastDot = relativePath.lastIndexOf('.');
+      if (lastDot < 0) {
+        return true;
+      }
+      const base = relativePath.slice(0, lastDot);
+      return tsExtensionsStatics.allExtensions.some((ext) =>
+        fsExistsSyncAdapter({
+          filePath: filePathContract.parse(`${String(cwd)}/${base}.test.${ext}`),
+        }),
+      );
+    });
 
   if (fileList.length > 0 && unitFiles.length === 0) {
     return projectResultContract.parse({

@@ -16,6 +16,7 @@ export const checkRunUnitBrokerProxy = (): {
   setupFailWithStderr: (params: { stdout: string; stderr: string }) => void;
   setupNoTestFiles: () => void;
   setDiscoveredFiles: (params: { files: string[] }) => void;
+  queueFsExists: (params: { result: boolean }) => void;
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
@@ -97,6 +98,10 @@ export const checkRunUnitBrokerProxy = (): {
     setDiscoveredFiles: ({ files }: { files: string[] }): void => {
       existsProxy.returns({ result: true });
       globProxy.returnsFiles({ files });
+    },
+
+    queueFsExists: ({ result }: { result: boolean }): void => {
+      existsProxy.returns({ result });
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),

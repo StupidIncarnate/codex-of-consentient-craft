@@ -627,6 +627,221 @@ describe('checkRunUnitBroker', () => {
     });
   });
 
+  describe('unit test companion filtering', () => {
+    it('VALID: {source file src/foo/foo.ts with .test.ts companion on disk} => keeps file and passes --findRelatedTests to jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.queueFsExists({ result: true }); // jest.config.js present
+      proxy.queueFsExists({ result: true }); // src/foo/foo.test.ts present
+      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/foo/foo.ts' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/foo/foo.ts',
+      ]);
+    });
+
+    it('VALID: {source file with only .integration.test.ts companion on disk} => drops file, returns skip, does not spawn jest', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.queueFsExists({ result: true }); // jest.config.js present
+      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.ts missing
+      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.tsx missing
+      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.js missing
+      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.jsx missing
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/flows/cli/cli-flow.ts' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 4,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+
+    it('VALID: {unit test file src/foo/foo.test.ts passed directly} => kept without companion check, passes to --findRelatedTests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/foo/foo.test.ts' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/foo/foo.test.ts',
+      ]);
+    });
+
+    it('VALID: {mix of source with companion and source without companion} => only the file with companion reaches --findRelatedTests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.queueFsExists({ result: true }); // jest.config.js present
+      proxy.queueFsExists({ result: true }); // src/a/a.test.ts present
+      proxy.queueFsExists({ result: false }); // src/b/b.test.ts missing
+      proxy.queueFsExists({ result: false }); // src/b/b.test.tsx missing
+      proxy.queueFsExists({ result: false }); // src/b/b.test.js missing
+      proxy.queueFsExists({ result: false }); // src/b/b.test.jsx missing
+      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [
+          GitRelativePathStub({ value: 'src/a/a.ts' }),
+          GitRelativePathStub({ value: 'src/b/b.ts' }),
+        ],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/a/a.ts',
+      ]);
+    });
+
+    it('VALID: {source file src/widgets/app.tsx with .test.tsx companion on disk} => keeps file and passes to --findRelatedTests', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.queueFsExists({ result: true }); // jest.config.js present
+      proxy.queueFsExists({ result: false }); // src/widgets/app.test.ts missing
+      proxy.queueFsExists({ result: true }); // src/widgets/app.test.tsx present
+      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/widgets/app.tsx' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/widgets/app.tsx',
+      ]);
+    });
+
+    it('VALID: {proxy file foo.proxy.ts with no foo.proxy.test.ts companion} => drops file, returns skip', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.queueFsExists({ result: true }); // jest.config.js present
+      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.ts missing
+      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.tsx missing
+      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.js missing
+      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.jsx missing
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/foo/foo.proxy.ts' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 4,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no matching unit test files in passthrough',
+            exitCode: 0,
+          }),
+        }),
+      );
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+    });
+
+    it('EDGE: {orphan unit test src/orphan.test.ts passed with no src/orphan.ts source} => still kept because it is a test file', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/orphan.test.ts' })],
+      });
+
+      const spawnedArgs: unknown = proxy.getSpawnedArgs();
+
+      expect(spawnedArgs).toStrictEqual([
+        '--json',
+        '--no-color',
+        '--forceExit',
+        '--detectOpenHandles',
+        '--testPathIgnorePatterns',
+        '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
+        '--runInBand',
+        '--findRelatedTests',
+        'src/orphan.test.ts',
+      ]);
+    });
+  });
+
   describe('fileTimings', () => {
     it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
       const proxy = checkRunUnitBrokerProxy();
