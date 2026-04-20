@@ -410,6 +410,66 @@ describe('OrchestrationPauseResponder', () => {
     });
   });
 
+  describe('pausedAtStatus snapshot', () => {
+    it('VALID: {quest at in_progress} => modify input sets pausedAtStatus to "in_progress" + status "paused"', async () => {
+      const questId = QuestIdStub({ value: 'pause-at-in-progress' });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
+      const proxy = OrchestrationPauseResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const lastInput = proxy.getLastModifyInput();
+
+      expect(lastInput).toStrictEqual({
+        questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+      });
+    });
+
+    it('VALID: {quest at seek_scope} => modify input sets pausedAtStatus to "seek_scope" + status "paused"', async () => {
+      const questId = QuestIdStub({ value: 'pause-at-seek-scope' });
+      const quest = QuestStub({ id: questId, status: 'seek_scope' });
+      const proxy = OrchestrationPauseResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const lastInput = proxy.getLastModifyInput();
+
+      expect(lastInput).toStrictEqual({
+        questId,
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+    });
+
+    it('VALID: {quest has in_progress work items} => resets those to pending in same modify call', async () => {
+      const questId = QuestIdStub({ value: 'pause-with-wi-and-snapshot' });
+      const wiId = QuestWorkItemIdStub({ value: 'ac000000-0000-0000-0000-000000000001' });
+      const workItem = WorkItemStub({
+        id: wiId,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
+      const proxy = OrchestrationPauseResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const lastInput = proxy.getLastModifyInput();
+
+      expect(lastInput).toStrictEqual({
+        questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        workItems: [{ id: wiId, status: 'pending' }],
+      });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {quest not found} => throws error', async () => {
       const questId = QuestIdStub({ value: 'nonexistent' });
@@ -417,6 +477,20 @@ describe('OrchestrationPauseResponder', () => {
       proxy.setupQuestNotFound();
 
       await expect(proxy.callResponder({ questId })).rejects.toThrow(/Quest not found/u);
+    });
+
+    it('ERROR: {broker returns success: false} => throws with broker error', async () => {
+      const questId = QuestIdStub({ value: 'pause-broker-fail' });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
+      const proxy = OrchestrationPauseResponderProxy();
+      proxy.setupModifyReturnsFailure({
+        quest,
+        error: 'Invalid status transition: in_progress -> paused',
+      });
+
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(
+        /Invalid status transition: in_progress -> paused/u,
+      );
     });
   });
 });

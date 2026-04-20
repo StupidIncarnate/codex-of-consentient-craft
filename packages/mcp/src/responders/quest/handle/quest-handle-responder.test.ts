@@ -178,6 +178,26 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('EDGE: {pausedAtStatus in args} => strips pausedAtStatus before passing to adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ result: modifyResult });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          pausedAtStatus: 'seek_scope',
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput();
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
     it('EDGE: {designPort in args} => strips designPort before passing to adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();

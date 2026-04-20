@@ -103,6 +103,11 @@ export const modifyQuestInputContract = z
       .describe('Flows to upsert (existing ID updates, new ID adds)')
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
+    pausedAtStatus: questStatusContract
+      .describe(
+        'Orchestrator-only: snapshots the pre-pause status so resume can restore it. Stripped by the MCP layer so LLM callers cannot set it; set internally by the pause responder.',
+      )
+      .optional(),
     title: z.string().min(1).describe('New title for the quest').optional(),
     designPort: z
       .number()

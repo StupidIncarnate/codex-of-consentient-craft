@@ -39,13 +39,18 @@ export const OrchestrationPauseResponder = async ({
     .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
     .map((wi) => ({ id: wi.id, status: 'pending' as const }));
 
-  await questModifyBroker({
+  const modifyResult = await questModifyBroker({
     input: {
       questId,
       status: 'paused',
+      pausedAtStatus: quest.status,
       ...(orphanedItems.length > 0 ? { workItems: orphanedItems } : {}),
     } as ModifyQuestInput,
   });
+
+  if (!modifyResult.success) {
+    throw new Error(modifyResult.error ?? 'Failed to pause quest');
+  }
 
   return { paused: true };
 };

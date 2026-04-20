@@ -1167,6 +1167,87 @@ describe('questModifyBroker', () => {
     });
   });
 
+  describe('pausedAtStatus handling (orchestrator-only field)', () => {
+    it('VALID: {pausedAtStatus: "seek_scope"} => sets quest.pausedAtStatus to "seek_scope"', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        pausedAtStatus: 'seek_scope',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.pausedAtStatus).toBe('seek_scope');
+    });
+
+    it('VALID: {pausedAtStatus: "in_progress", status: "paused"} => sets pausedAtStatus and transitions status', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect({
+        status: persisted.status,
+        pausedAtStatus: persisted.pausedAtStatus,
+      }).toStrictEqual({
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+      });
+    });
+
+    it('VALID: {no pausedAtStatus in input} => leaves quest.pausedAtStatus unchanged', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.pausedAtStatus).toBe('seek_scope');
+    });
+  });
+
   describe('valid transition passes all tiers', () => {
     it('VALID: {explore_flows -> review_flows with connected non-orphan flow} => transitions and persists', async () => {
       const proxy = questModifyBrokerProxy();

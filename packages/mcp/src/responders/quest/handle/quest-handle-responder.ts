@@ -87,6 +87,7 @@ export const QuestHandleResponder = async ({
     Reflect.deleteProperty(sanitized, 'workItems');
     Reflect.deleteProperty(sanitized, 'wardResults');
     Reflect.deleteProperty(sanitized, 'designPort');
+    Reflect.deleteProperty(sanitized, 'pausedAtStatus');
 
     try {
       const result = await orchestratorModifyQuestAdapter({

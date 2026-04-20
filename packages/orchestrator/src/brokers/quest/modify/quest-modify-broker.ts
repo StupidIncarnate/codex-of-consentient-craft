@@ -254,6 +254,10 @@ export const questModifyBroker = async ({
           quest.status = validated.status;
         }
 
+        if (validated.pausedAtStatus !== undefined) {
+          quest.pausedAtStatus = validated.pausedAtStatus;
+        }
+
         quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
         // Write updated quest back to quest.json (atomic temp+rename via questPersistBroker)

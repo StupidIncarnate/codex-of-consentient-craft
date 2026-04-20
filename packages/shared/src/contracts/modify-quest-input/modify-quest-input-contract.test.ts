@@ -32,13 +32,16 @@ describe('modifyQuestInputContract', () => {
     }).toThrow(/Unrecognized key/u);
   });
 
-  it('INVALID: {pausedAtStatus} => throws Unrecognized key error (orchestrator-only field)', () => {
-    expect(() => {
-      return modifyQuestInputContract.parse({
-        questId: 'add-auth',
-        pausedAtStatus: 'seek_scope',
-      } as never);
-    }).toThrow(/Unrecognized key/u);
+  it('VALID: {pausedAtStatus} => parses with pausedAtStatus field (orchestrator-only, stripped at MCP layer)', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      pausedAtStatus: 'seek_scope',
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      pausedAtStatus: 'seek_scope',
+    });
   });
 
   it('VALID: {planningNotes with blightReports upsert} => parses successfully', () => {
