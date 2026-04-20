@@ -66,6 +66,19 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes subset-membership expected values guidance', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\*\*Subset-membership expected values:\*\* When `it\.each` iterates the full list and each case's expected value is "is this member in a subset\?" \(e\.g\., "is this status pauseable\?"\), derive the subset by filtering the same statics source\. One statics source drives BOTH the iteration list AND the expected-subset set — don't hand-maintain a second hardcoded copy\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\s*expect\(isQuestPauseableQuestStatusGuard\(\{ status \}\)\)\.toBe\(PAUSEABLE_STATUSES\.has\(status\)\);$/mu,
+      );
+    });
+
     it('VALID: {} => includes literals-in-expect vs it.each distinction', () => {
       architectureTestingPatternsBrokerProxy();
 

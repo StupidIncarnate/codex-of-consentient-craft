@@ -145,6 +145,19 @@ describe.each(PAUSEABLE_STATUSES)('pause-capable status: %s', (status) => {
 });
 \`\`\`
 
+**Subset-membership expected values:** When \`it.each\` iterates the full list and each case's expected value is "is this member in a subset?" (e.g., "is this status pauseable?"), derive the subset by filtering the same statics source. One statics source drives BOTH the iteration list AND the expected-subset set — don't hand-maintain a second hardcoded copy.
+
+\`\`\`typescript
+const STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
+const PAUSEABLE_STATUSES = new Set(
+  STATUSES.filter((s) => questStatusMetadataStatics.statuses[s].isPauseable),
+);
+
+it.each(STATUSES)('VALID: {status: %s} => returns expected flag', (status) => {
+  expect(isQuestPauseableQuestStatusGuard({ status })).toBe(PAUSEABLE_STATUSES.has(status));
+});
+\`\`\`
+
 **Name template rules:**
 - Use \`%s\` for the positional case value in the title template
 - Keep the \`VALID:\`/\`INVALID:\`/\`EMPTY:\` prefix — \`enforce-test-name-prefix\` validates the substituted name
