@@ -54,23 +54,26 @@ Static policies. These hold for every run.
   that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
   (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
   immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
-- **Two dev servers: dev (manual) and prod (siege-spawned).** The validation orchestrator (you) runs `npm run dev` on
-  ports 4750/4751 for the UI you drive. Siegemaster spawns its OWN test server via `npm run prod` on ports 4800/4801
-  per `.dungeonmaster.json`. The two MUST NOT overlap; `devServerStartBroker` kills whatever is on its configured
-  ports before binding, so a misaligned config would murder the main dev server mid-quest. Current config is correct
-  out of the box.
+- **Two servers: smoke test (prod, manual) and siege-spawned (dev).** Only siegemaster spawns a dev server during the
+  pipeline — no other role (codeweaver, lawbringer, ward, pathseeker, orchestration loop itself) touches the dev-server
+  lifecycle. The validation orchestrator (you) runs `npm run prod` on ports 4800/4801 for the smoke-test UI you drive —
+  the compiled server from `dist/`, exercising the same code a real user would hit. Siegemaster spawns its OWN test
+  server via `npm run dev` on ports 4750/4751 per `.dungeonmaster.json`. The two MUST NOT overlap;
+  `devServerStartBroker` kills whatever is on its configured ports before binding, so a misaligned config (e.g. siege
+  pointed at 4800) would murder the smoke-test server mid-quest. Current config is correct out of the box.
 - **MANDATORY: `npm run build` before every `npm run prod`.** Unlike `npm run dev` which uses `tsx watch` and runs from
   source, `npm run prod` runs the compiled server from `dist/` and serves the built web bundle via `vite preview`.
   ANY source change — contracts, statics, prompts, responders, brokers, widgets — is invisible to prod until `npm run
   build` is re-run. This applies to:
-  - Your own edits between validation runs
-  - Every fix-agent patch before the next siege phase can exercise it
-  - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) — confirmed on spawn,
-    but if you ever trigger prod manually for debugging, run `npm run build` first or stale behavior WILL confuse you.
+    - Your own edits between validation runs — the smoke-test server runs from dist/
+    - Every fix-agent patch before the next run can exercise it
+    - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) still runs — it
+      builds the orchestrator code that spawns siegemaster, even though siege's own dev server runs from source via tsx.
   Shortcut: `npm run prod:build-and-serve` does both in order. Use it whenever unsure whether dist is current.
-- **Ports:** dev = 4750/4751 (manual, `.env` sourced). prod = 4800/4801 (siege + manual prod, `.env.prod` sourced).
-  `DUNGEONMASTER_HOME` is shared across both modes; the subdirectory split comes from `DUNGEONMASTER_ENV`
-  (`dev` → `.dungeonmaster-home/.dungeonmaster-dev/`, `production` → `.dungeonmaster-home/.dungeonmaster/`).
+- **Ports:** prod = 4800/4801 (smoke-test orchestrator, `.env.prod` sourced). dev = 4750/4751 (siege-spawned,
+  `.env` sourced). `DUNGEONMASTER_HOME` is shared across both modes; the subdirectory split comes from
+  `DUNGEONMASTER_ENV` (`dev` → `.dungeonmaster-home/.dungeonmaster-dev/`,
+  `production` → `.dungeonmaster-home/.dungeonmaster/`).
 - **Blightwarden crash mid-run.** Relaunch the same role fresh (same pattern as pathseeker). No special resume protocol.
   Carry-over handling still applies only to the `failed-replan` → pathseeker path.
 - **Ward invocation.** Orchestrator does NOT run ward directly — always delegate to a ward-runner agent. Agents use
@@ -90,25 +93,29 @@ each run, in order:
 
 1. **Prep the tree.** Ensure no uncommitted quest-generated artifacts are sitting around (see *Rules for Fixes* below).
    The working tree should contain only committed bug fixes and pre-validation state.
-2. **Kill all background processes and running commands from prior runs.** Before (re)starting the dev server or
-   kicking off a new run, terminate:
-  - Any leftover `npm run dev` / vite / tsx server processes (ports 4750, 4751, or whatever your `.env` assigns).
-  - Any orchestrator-owned background `Bash` tool tasks (polling loops, dev server bg processes).
+2. **Kill all background processes and running commands from prior runs.** Before (re)starting the smoke-test server
+   or kicking off a new run, terminate:
+
+- Any leftover `npm run prod` / `npm run dev` / vite / tsx / node server processes on ports 4800, 4801 (smoke test)
+  or 4750, 4751 (siege-spawned).
+- Any orchestrator-owned background `Bash` tool tasks (polling loops, server bg processes).
   - Any child Claude CLI processes still running from prior orchestration (`pgrep -af claude`).
   - Any leftover test dev servers started by a prior siege run.
-    Use `npm run dev:kill` for the primary server; use `jobs` / `kill %N` for orchestrator-owned bg bash; use
-    `pkill -f <pattern>` as a last resort. A stale background process will hold ports, file locks, or keep emitting
-    output that confuses the next run.
+    Use `npm run prod:kill` for the primary smoke-test server; `npm run dev:kill` for any leftover siege-spawned
+    dev processes; use `jobs` / `kill %N` for orchestrator-owned bg bash; use `pkill -f <pattern>` as a last resort. A
+    stale background process will hold ports, file locks, or keep emitting output that confuses the next run.
 
 3. **Abandon any non-terminal prior-run quests.** Enumerate with `mcp__dungeonmaster__list-quests` and abandon every
    quest whose status is not already `complete` / `abandoned` / `blocked` via `mcp__dungeonmaster__modify-quest`
    (set `status: 'abandoned'`). Without this, dev-server startup recovery will re-register those quests and their
    agents will resume writing codeweaver outputs / blight reports into the working tree during the new run.
-4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs.
-5. **Start dev server.** Single process only. Leave it up for the whole run.
+4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs. The smoke-test server
+   (prod) runs from `dist/` too, so this is mandatory before every server (re)start.
+5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run.
+   Do NOT run `npm run dev` — that port range is reserved for the siegemaster-spawned dev server during the siege phase.
 6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
-7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4751/codex/session) → "New Chat" → describe the trivial
+7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4801/codex/session) → "New Chat" → describe the trivial
    2-flow feature.
 8. **Record the run.** As soon as the session URL appears (`/codex/session/<uuid>`), add a `## Run N` heading to
    `/tmp/validation-notes.md` with the URL. One entry per run, every run.
@@ -412,7 +419,8 @@ total.
 
 ### 1.1 — Spec creation (ChaosWhisperer)
 
-- **Action:** `npm run build` then `npm run dev`. Web UI → "New Chat". Describe a trivial 2-flow feature.
+- **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800; `npm run dev` is reserved for
+  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature.
 - **Assert:**
     - Status walk: `created` → `explore_flows` → `review_flows` → (approve) → `flows_approved` → `explore_observables` →
       `review_observables` → (approve) → `approved`
