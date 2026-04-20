@@ -187,6 +187,7 @@ describe('checkRunUnitBroker', () => {
       const proxy = checkRunUnitBrokerProxy();
       const stderrText = 'ts-jest[ts-compiler] (WARN) Unable to process file';
       const jestOutput = JSON.stringify({
+        numTotalTestSuites: 1,
         testResults: [
           {
             name: 'src/index.test.ts',
@@ -226,6 +227,7 @@ describe('checkRunUnitBroker', () => {
               message: 'Expected true to be false',
             }),
           ],
+          filesCount: 1,
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/index.test.ts'],
           rawOutput: RawOutputStub({

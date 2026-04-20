@@ -266,6 +266,7 @@ describe('jestJsonParseTransformer', () => {
   describe('mixed output', () => {
     it('VALID: {JSON with trailing stderr text} => extracts JSON and parses failures', () => {
       const json = JSON.stringify({
+        numTotalTestSuites: 1,
         testResults: [
           {
             name: '/path/file.test.ts',
@@ -298,6 +299,7 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {human-readable text before JSON} => extracts JSON and parses failures', () => {
       const json = JSON.stringify({
+        numTotalTestSuites: 1,
         testResults: [
           {
             name: '/path/file.test.ts',
