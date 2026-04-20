@@ -2,13 +2,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
+import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
-import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
-import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
-import { StreamingIndicatorWidgetProxy } from '../streaming-indicator/streaming-indicator-widget.proxy';
-import { SubagentChainWidgetProxy } from '../subagent-chain/subagent-chain-widget.proxy';
-import { ToolGroupWidgetProxy } from '../tool-group/tool-group-widget.proxy';
 
 export const ChatPanelWidgetProxy = (): {
   typeMessage: (params: { text: string }) => Promise<void>;
@@ -26,12 +22,8 @@ export const ChatPanelWidgetProxy = (): {
   AutoScrollContainerWidgetProxy();
   const inputProxy = ChatInputWidgetProxy();
   inputProxy.clearStorage();
-  ChatMessageWidgetProxy();
+  ChatEntryListWidgetProxy();
   PixelSpriteWidgetProxy();
-  StreamingIndicatorWidgetProxy();
-  ToolGroupWidgetProxy();
-  ContextDividerWidgetProxy();
-  SubagentChainWidgetProxy();
 
   return {
     typeMessage: async ({ text }: { text: string }): Promise<void> => {

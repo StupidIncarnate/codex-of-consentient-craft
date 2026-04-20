@@ -18,18 +18,11 @@ import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { raccoonWizardPixelsStatics } from '../../statics/raccoon-wizard-pixels/raccoon-wizard-pixels-statics';
-import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
-import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
-import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { raccoonAnimationIntervalTransformer } from '../../transformers/raccoon-animation-interval/raccoon-animation-interval-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
-import { ChatMessageWidget } from '../chat-message/chat-message-widget';
-import { ContextDividerWidget } from '../context-divider/context-divider-widget';
+import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
 import { ChatInputWidget } from '../chat-input/chat-input-widget';
-import { StreamingIndicatorWidget } from '../streaming-indicator/streaming-indicator-widget';
-import { SubagentChainWidget } from '../subagent-chain/subagent-chain-widget';
-import { ToolGroupWidget } from '../tool-group/tool-group-widget';
 
 import type { UserInput } from '@dungeonmaster/shared/contracts';
 
@@ -117,80 +110,12 @@ export const ChatPanelWidget = ({
         style={{ flex: 1, padding: 16 }}
         contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
       >
-        {(() => {
-          const groupedEntries = collectSubagentChainsTransformer({ entries });
-
-          const singleItems = groupedEntries
-            .filter((g) => g.kind === 'single')
-            .map((g) => mergedChatItemContract.parse({ kind: 'entry', entry: g.entry }));
-          const singleAnnotations = computeTokenAnnotationsTransformer({ items: singleItems });
-
-          let singleIndex = 0;
-          const elements: React.JSX.Element[] = [];
-
-          for (let i = 0; i < groupedEntries.length; i++) {
-            const group = groupedEntries[i];
-            if (group === undefined) continue;
-
-            if (group.kind === 'tool-group') {
-              elements.push(
-                <ToolGroupWidget
-                  key={`group-${String(i)}`}
-                  group={group}
-                  isLastGroup={i === groupedEntries.length - 1}
-                  isStreaming={isStreaming}
-                />,
-              );
-            } else if (group.kind === 'subagent-chain') {
-              elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
-            } else {
-              const { entry } = group;
-              const annotation = singleAnnotations[singleIndex];
-              singleIndex += 1;
-
-              if (
-                annotation?.cumulativeContext !== null &&
-                annotation?.cumulativeContext !== undefined
-              ) {
-                elements.push(
-                  <ChatMessageWidget
-                    key={`single-${String(i)}`}
-                    entry={entry}
-                    {...(annotation.tokenBadgeLabel === null
-                      ? {}
-                      : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
-                  />,
-                );
-
-                elements.push(
-                  <ContextDividerWidget
-                    key={`divider-${String(i)}`}
-                    contextTokens={annotation.cumulativeContext}
-                    delta={annotation.contextDelta}
-                    source={annotation.source}
-                  />,
-                );
-              } else {
-                elements.push(<ChatMessageWidget key={`single-${String(i)}`} entry={entry} />);
-              }
-            }
-          }
-
-          if (isStreaming) {
-            const lastEntry = entries.at(-1);
-            const isSubagentStreaming =
-              lastEntry !== undefined && 'source' in lastEntry && lastEntry.source === 'subagent';
-
-            elements.push(
-              <StreamingIndicatorWidget
-                key="streaming-indicator"
-                isSubagent={isSubagentStreaming}
-              />,
-            );
-          }
-
-          return elements;
-        })()}
+        <ChatEntryListWidget
+          entries={entries}
+          isStreaming={isStreaming}
+          showContextDividers={true}
+          showEndStreamingIndicator={true}
+        />
       </AutoScrollContainerWidget>
 
       <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />

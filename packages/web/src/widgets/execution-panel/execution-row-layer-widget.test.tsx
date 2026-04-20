@@ -11,6 +11,7 @@ import {
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import {
   AssistantTextChatEntryStub,
+  AssistantThinkingChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
@@ -568,6 +569,27 @@ describe('ExecutionRowLayerWidget', () => {
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
       expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeInTheDocument();
+    });
+
+    it('VALID: {collapseToLast wiring, multiple thinking entries} => only last thinking renders', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantThinkingChatEntryStub({ content: 'first' }),
+              AssistantThinkingChatEntryStub({ content: 'final' }),
+            ]}
+          />
+        ),
+      });
+
+      const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
+
+      expect(contents).toStrictEqual(['final']);
     });
   });
 
