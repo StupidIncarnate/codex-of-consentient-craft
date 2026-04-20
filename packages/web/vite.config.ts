@@ -28,6 +28,17 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: webPort,
+    host: hostname,
+    proxy: {
+      '/api': `http://${hostname}:${basePort}`,
+      '^/ws$': {
+        target: `ws://${hostname}:${basePort}`,
+        ws: true,
+      },
+    },
+  },
   cacheDir: `node_modules/.vite-${basePort}`,
   optimizeDeps: {
     include: [...sharedSubpaths, 'mermaid'],

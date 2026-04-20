@@ -1,0 +1,9 @@
+{
+  "devServer": {
+    "buildCommand": "npm run build",
+    "devCommand": "npm run prod",
+    "port": 4800,
+    "readinessPath": "/",
+    "readinessTimeoutMs": 45000
+  }
+}

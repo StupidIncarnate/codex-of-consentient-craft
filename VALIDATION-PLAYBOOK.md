@@ -54,6 +54,23 @@ Static policies. These hold for every run.
   that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
   (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
   immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
+- **Two dev servers: dev (manual) and prod (siege-spawned).** The validation orchestrator (you) runs `npm run dev` on
+  ports 4750/4751 for the UI you drive. Siegemaster spawns its OWN test server via `npm run prod` on ports 4800/4801
+  per `.dungeonmaster.json`. The two MUST NOT overlap; `devServerStartBroker` kills whatever is on its configured
+  ports before binding, so a misaligned config would murder the main dev server mid-quest. Current config is correct
+  out of the box.
+- **MANDATORY: `npm run build` before every `npm run prod`.** Unlike `npm run dev` which uses `tsx watch` and runs from
+  source, `npm run prod` runs the compiled server from `dist/` and serves the built web bundle via `vite preview`.
+  ANY source change — contracts, statics, prompts, responders, brokers, widgets — is invisible to prod until `npm run
+  build` is re-run. This applies to:
+  - Your own edits between validation runs
+  - Every fix-agent patch before the next siege phase can exercise it
+  - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) — confirmed on spawn,
+    but if you ever trigger prod manually for debugging, run `npm run build` first or stale behavior WILL confuse you.
+  Shortcut: `npm run prod:build-and-serve` does both in order. Use it whenever unsure whether dist is current.
+- **Ports:** dev = 4750/4751 (manual, `.env` sourced). prod = 4800/4801 (siege + manual prod, `.env.prod` sourced).
+  `DUNGEONMASTER_HOME` is shared across both modes; the subdirectory split comes from `DUNGEONMASTER_ENV`
+  (`dev` → `.dungeonmaster-home/.dungeonmaster-dev/`, `production` → `.dungeonmaster-home/.dungeonmaster/`).
 - **Blightwarden crash mid-run.** Relaunch the same role fresh (same pattern as pathseeker). No special resume protocol.
   Carry-over handling still applies only to the `failed-replan` → pathseeker path.
 - **Ward invocation.** Orchestrator does NOT run ward directly — always delegate to a ward-runner agent. Agents use

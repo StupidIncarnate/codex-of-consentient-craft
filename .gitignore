@@ -11,6 +11,7 @@ spike-tmp/
 .playwright-ward-report.json
 
 .env
+.env.prod
 
 # dependencies
 node_modules
