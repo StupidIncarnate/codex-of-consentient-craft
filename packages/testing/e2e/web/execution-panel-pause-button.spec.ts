@@ -232,7 +232,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     expect(pauseReq.url()).toContain(`/api/quests/${questId}/pause`);
   });
 
-  test('VALID: {click RESUME on paused} => PATCH /api/quests/:questId fires with status in_progress', async ({
+  test('VALID: {click RESUME on paused} => POST /api/quests/:questId/resume fires and restores in_progress', async ({
     page,
     request,
   }) => {
@@ -271,6 +271,11 @@ test.describe('Execution Panel Pause/Resume Button', () => {
       ],
     });
 
+    // Seed pausedAtStatus via PATCH precondition so the resume responder can restore to in_progress.
+    await request.patch(`/api/quests/${questId}`, {
+      data: { pausedAtStatus: 'in_progress' },
+    });
+
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToSession({ urlSlug, sessionId });
 
@@ -282,17 +287,20 @@ test.describe('Execution Panel Pause/Resume Button', () => {
 
     await expect(resumeButton).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    const resumePromise = page.waitForRequest(
-      (req) =>
-        req.method() === 'PATCH' &&
-        req.url().includes(`/api/quests/${questId}`) &&
-        !req.url().includes('/pause'),
+    const resumeResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/resume`),
     );
 
     await resumeButton.click();
 
-    const resumeReq = await resumePromise;
+    const resumeResponse = await resumeResponsePromise;
 
-    expect(resumeReq.postDataJSON()).toHaveProperty('status', 'in_progress');
+    expect(resumeResponse.url()).toContain(`/api/quests/${questId}/resume`);
+    expect(resumeResponse.status()).toBe(200);
+    expect(await resumeResponse.json()).toStrictEqual({
+      resumed: true,
+      restoredStatus: 'in_progress',
+    });
   });
 });
