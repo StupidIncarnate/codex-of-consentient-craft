@@ -11,6 +11,8 @@
  *
  * WHEN-TO-USE: When TypeScript ESLint or other plugins override base ESLint rules
  */
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintRules } from '../../contracts/eslint-rules/eslint-rules-contract';
 
 export const eslintRulesDisableConflictsTransformer = ({
@@ -19,16 +21,16 @@ export const eslintRulesDisableConflictsTransformer = ({
 }: {
   mergedRules: EslintRules;
   overrideRules: EslintRules;
-}): void => {
+}): AdapterResult => {
   for (const ruleKey of Object.keys(overrideRules)) {
     const slashIndex = ruleKey.indexOf('/');
     if (slashIndex !== -1) {
       const baseRuleName = ruleKey.substring(slashIndex + 1);
 
-      // If reference has this base rule, turn it off
       if (baseRuleName in mergedRules) {
         mergedRules[baseRuleName] = 'off';
       }
     }
   }
+  return adapterResultContract.parse({ success: true });
 };

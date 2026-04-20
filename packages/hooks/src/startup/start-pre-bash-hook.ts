@@ -7,9 +7,11 @@
  * // Reads JSON from stdin, validates, checks if command is blocked, exits with code 2 if blocked
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookPreBashFlow } from '../flows/hook-pre-bash/hook-pre-bash-flow';
 
-export const StartPreBashHook = ({ inputData }: { inputData: string }): void => {
+export const StartPreBashHook = ({ inputData }: { inputData: string }): AdapterResult => {
   const result = HookPreBashFlow({ inputData });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);

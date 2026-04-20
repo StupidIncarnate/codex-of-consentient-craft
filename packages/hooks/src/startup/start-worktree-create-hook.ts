@@ -7,9 +7,11 @@
  * // Creates worktree, runs npm build, outputs worktree path to stdout
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookWorktreeCreateFlow } from '../flows/hook-worktree-create/hook-worktree-create-flow';
 
-export const StartWorktreeCreateHook = ({ inputData }: { inputData: string }): void => {
+export const StartWorktreeCreateHook = ({ inputData }: { inputData: string }): AdapterResult => {
   const result = HookWorktreeCreateFlow({ inputData });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);

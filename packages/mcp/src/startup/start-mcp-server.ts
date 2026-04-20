@@ -6,12 +6,11 @@
  * // Starts MCP server listening on stdio with all tools registered
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { ArchitectureFlow } from '../flows/architecture/architecture-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { InteractionFlow } from '../flows/interaction/interaction-flow';
 import { McpServerFlow } from '../flows/mcp-server/mcp-server-flow';
 
-export const StartMcpServer = async (): Promise<void> => {
-  const registrations = [...ArchitectureFlow(), ...QuestFlow(), ...InteractionFlow()];
-  await McpServerFlow({ registrations });
-};
+export const StartMcpServer = async (): Promise<AdapterResult> =>
+  McpServerFlow({ registrations: [...ArchitectureFlow(), ...QuestFlow(), ...InteractionFlow()] });

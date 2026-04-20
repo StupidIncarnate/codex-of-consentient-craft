@@ -5,10 +5,11 @@
  * validateExportLayerBroker({node, context, filename, firstFolder, folderConfig, collectedExports});
  * // Reports all export naming violations found; no return value (terminal layer)
  */
+import type { AdapterResult, Identifier } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
@@ -30,7 +31,8 @@ export const validateExportLayerBroker = ({
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   collectedExports: CollectedExport[];
-}): void => {
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
   const isProxy = hasFileSuffixGuard({ filename, suffix: 'proxy' });
   const fileExtension = getFileExtensionTransformer({ filename, includesDot: true });
   const proxySuffix = fileExtension === '.tsx' ? '.proxy.tsx' : '.proxy.ts';
@@ -56,7 +58,7 @@ export const validateExportLayerBroker = ({
         data: { expectedName: expectedExportName, actualCount: '0' },
       });
     }
-    return;
+    return result;
   }
 
   if (valueExports.length > 1) {
@@ -70,11 +72,11 @@ export const validateExportLayerBroker = ({
         exportNames,
       },
     });
-    return;
+    return result;
   }
 
   const [singleExport] = valueExports;
-  if (!singleExport) return;
+  if (!singleExport) return result;
   const exportName = singleExport.name ?? '';
 
   const hasSuffixError = exportSuffix !== '' && !exportName.endsWith(exportSuffix);
@@ -110,4 +112,5 @@ export const validateExportLayerBroker = ({
       data: { exportName, expectedName: expectedExportName },
     });
   }
+  return result;
 };

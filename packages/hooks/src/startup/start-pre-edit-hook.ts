@@ -7,9 +7,15 @@
  * // Reads JSON from stdin, validates, checks violations, exits with code 2 if blocked
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookPreEditFlow } from '../flows/hook-pre-edit/hook-pre-edit-flow';
 
-export const StartPreEditHook = async ({ inputData }: { inputData: string }): Promise<void> => {
+export const StartPreEditHook = async ({
+  inputData,
+}: {
+  inputData: string;
+}): Promise<AdapterResult> => {
   const result = await HookPreEditFlow({ inputData });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);

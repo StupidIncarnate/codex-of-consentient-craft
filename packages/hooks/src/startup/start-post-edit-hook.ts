@@ -7,9 +7,15 @@
  * // Reads JSON from stdin, runs auto-fix, reports remaining error-level violations, exits with code 0
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookPostEditFlow } from '../flows/hook-post-edit/hook-post-edit-flow';
 
-export const StartPostEditHook = async ({ inputData }: { inputData: string }): Promise<void> => {
+export const StartPostEditHook = async ({
+  inputData,
+}: {
+  inputData: string;
+}): Promise<AdapterResult> => {
   const result = await HookPostEditFlow({ inputData });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);

@@ -5,6 +5,8 @@
  * validateProxyConstructorSideEffectsLayerBroker({ functionNode, context });
  * // Reports error if proxy constructor has side effects like API calls, database operations, etc. before return
  */
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
@@ -15,21 +17,19 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
 }: {
   functionNode: Tsestree;
   context: EslintContext;
-}): void => {
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
   const { body } = functionNode;
 
-  if (!body) return;
+  if (!body) return result;
 
-  // Handle union type - body can be single node or array
-  if (Array.isArray(body)) return;
+  if (Array.isArray(body)) return result;
 
-  // Only check BlockStatement functions (not direct returns)
-  if (body.type !== 'BlockStatement') return;
+  if (body.type !== 'BlockStatement') return result;
 
-  if (!body.body || !Array.isArray(body.body)) return;
+  if (!body.body || !Array.isArray(body.body)) return result;
   const statements = body.body;
 
-  // Find return statement position
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
@@ -39,7 +39,7 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
     }
   }
 
-  if (returnStatementIndex === -1) return;
+  if (returnStatementIndex === -1) return result;
 
   // Check statements before return for side effects
   for (let i = 0; i < returnStatementIndex; i++) {
@@ -90,4 +90,5 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
       }
     }
   }
+  return result;
 };

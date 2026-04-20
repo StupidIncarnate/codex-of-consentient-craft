@@ -7,9 +7,11 @@
  * // Reads JSON from stdin, validates, blocks search tools with exit code 2
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookPreSearchFlow } from '../flows/hook-pre-search/hook-pre-search-flow';
 
-export const StartPreSearchHook = ({ inputData }: { inputData: string }): void => {
+export const StartPreSearchHook = ({ inputData }: { inputData: string }): AdapterResult => {
   const result = HookPreSearchFlow({ inputData });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);
