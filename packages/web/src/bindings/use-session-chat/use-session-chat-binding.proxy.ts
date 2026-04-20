@@ -1,4 +1,4 @@
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
 import { sessionChatBrokerProxy } from '../../brokers/session/chat/session-chat-broker.proxy';
@@ -9,12 +9,14 @@ export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: 
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupSessionChat: (params: { chatProcessId: ProcessId }) => void;
   setupSessionNew: (params: { chatProcessId: ProcessId }) => void;
+  setupQuestResume: (params: { restoredStatus: QuestStatus }) => void;
   setupChatError: () => void;
   setupStop: () => void;
   setupStopError: () => void;
   receiveWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
   triggerWsOpen: () => void;
+  getOrderedEndpointCalls: () => ('sessionChat' | 'sessionNew' | 'questResume')[];
 } => {
   const chatProxy = sessionChatBrokerProxy();
   sessionClarifyBrokerProxy();
@@ -32,6 +34,9 @@ export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: 
     setupSessionNew: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
       chatProxy.setupSessionNew({ chatProcessId });
     },
+    setupQuestResume: ({ restoredStatus }: { restoredStatus: QuestStatus }): void => {
+      chatProxy.setupQuestResume({ restoredStatus });
+    },
     setupChatError: (): void => {
       chatProxy.setupError();
     },
@@ -48,5 +53,7 @@ export const useSessionChatBindingProxy = ({ deferOpen = false }: { deferOpen?: 
     triggerWsOpen: (): void => {
       wsProxy.triggerOpen();
     },
+    getOrderedEndpointCalls: (): ('sessionChat' | 'sessionNew' | 'questResume')[] =>
+      chatProxy.getOrderedEndpointCalls(),
   };
 };

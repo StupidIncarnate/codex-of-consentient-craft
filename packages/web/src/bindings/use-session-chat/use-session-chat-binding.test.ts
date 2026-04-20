@@ -1,6 +1,7 @@
 import {
   GuildIdStub,
   ProcessIdStub,
+  QuestIdStub,
   SessionIdStub,
   UserInputStub,
 } from '@dungeonmaster/shared/contracts';
@@ -32,6 +33,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -68,6 +70,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -103,6 +106,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -133,6 +137,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -187,6 +192,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -333,6 +339,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -604,6 +611,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -653,6 +661,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -749,6 +758,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -798,6 +808,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -847,6 +858,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -1215,6 +1227,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -1246,6 +1259,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
   });
@@ -1349,6 +1363,7 @@ describe('useSessionChatBinding', () => {
         sendMessage: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+        setQuestContext: expect.any(Function),
       });
     });
 
@@ -1419,6 +1434,74 @@ describe('useSessionChatBinding', () => {
       });
 
       expect(result.current.currentSessionId).toBe('session-init-id');
+    });
+  });
+
+  describe('paused quest auto-resume on send', () => {
+    it('VALID: {quest paused on send via setQuestContext} => resume POST fires before session chat POST', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-paused-send' });
+      const questId = QuestIdStub({ value: 'quest-paused-send' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-paused-send' });
+      const message = UserInputStub({ value: 'Unpause me' });
+
+      proxy.setupSessionChat({ chatProcessId });
+      proxy.setupQuestResume({ restoredStatus: 'explore_flows' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.setQuestContext({ questId, questStatus: 'paused' });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(proxy.getOrderedEndpointCalls()).toStrictEqual(['questResume', 'sessionChat']);
+    });
+
+    it('VALID: {quest in_progress on send via setQuestContext} => does not call questResumeBroker', async () => {
+      const proxy = useSessionChatBindingProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'session-running-send' });
+      const questId = QuestIdStub({ value: 'quest-running-send' });
+      const chatProcessId = ProcessIdStub({ value: 'chat-proc-running-send' });
+      const message = UserInputStub({ value: 'Hello' });
+
+      proxy.setupSessionChat({ chatProcessId });
+      proxy.setupQuestResume({ restoredStatus: 'explore_flows' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionChatBinding({ guildId, sessionId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.setQuestContext({ questId, questStatus: 'in_progress' });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(proxy.getOrderedEndpointCalls()).toStrictEqual(['sessionChat']);
     });
   });
 });

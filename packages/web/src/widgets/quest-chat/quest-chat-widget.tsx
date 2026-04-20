@@ -78,6 +78,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     sendMessage,
     submitClarifyAnswers,
     stopChat,
+    setQuestContext,
   } = useSessionChatBinding({
     guildId: resolvedGuildId,
     sessionId,
@@ -87,6 +88,16 @@ export const QuestChatWidget = (): React.JSX.Element => {
     sessionId: currentSessionId ?? sessionId,
     guildId: resolvedGuildId,
   });
+
+  // Push quest id + status into the chat binding whenever quest data changes.
+  // sessionChatBroker uses these to auto-resume a paused quest before sending
+  // the user's next message, so the reply lands in a live (not paused) session.
+  useEffect(() => {
+    setQuestContext({
+      ...(questData?.id ? { questId: questData.id } : {}),
+      ...(questData?.status ? { questStatus: questData.status } : {}),
+    });
+  }, [questData?.id, questData?.status, setQuestContext]);
 
   const { slotEntries, handleAgentOutput } = useAgentOutputBinding();
 
@@ -433,7 +444,20 @@ export const QuestChatWidget = (): React.JSX.Element => {
           entries={entries}
           isStreaming={isStreaming}
           onSendMessage={sendMessage}
-          onStopChat={stopChat}
+          onStopChat={(): void => {
+            // For quest-bound chat sessions, STOP pauses the quest (which also
+            // kills the running CLI process on the server). This preserves the
+            // pausedAtStatus snapshot so the next user message can auto-resume.
+            // Non-quest-bound chat (e.g. design sessions before quest data exists)
+            // falls back to the CLI-only stop broker.
+            if (questWithContent) {
+              questPauseBroker({ questId: questWithContent.id }).catch((pauseError: unknown) => {
+                globalThis.console.error('[quest-chat] stop-pause failed', pauseError);
+              });
+              return;
+            }
+            stopChat();
+          }}
         />
       </Box>
 

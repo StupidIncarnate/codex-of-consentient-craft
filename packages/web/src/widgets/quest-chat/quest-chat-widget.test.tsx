@@ -2217,4 +2217,46 @@ describe('QuestChatWidget', () => {
       expect(proxy.hasApprovedModal()).toBe(false);
     });
   });
+
+  describe('stop button wiring', () => {
+    it('VALID: {STOP clicked in chat view on quest-bound session} => calls questPauseBroker once with the quest id', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'chat-stop-pause', status: 'pending' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupChat({ chatProcessId: 'chat-stop-proc' as never });
+      proxy.setupQuestPause();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/chat-stop-pause']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      await proxy.typeChatPanelMessage({ text: 'stop-test' });
+      await proxy.clickChatPanelSendButton();
+      await proxy.clickChatPanelStopButton();
+
+      await waitFor(() => {
+        expect(proxy.getQuestPauseRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getQuestPauseRequestCount()).toBe(1);
+    });
+  });
 });

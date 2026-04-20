@@ -11,6 +11,7 @@ import type {
   GuildId,
   ProcessId,
   QuestId,
+  QuestStatus,
   SessionId,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
@@ -32,6 +33,7 @@ export const useSessionChatBinding = ({
   guildId: GuildId | null;
   sessionId?: SessionId | null;
 }): {
+  setQuestContext: (params: { questId?: QuestId; questStatus?: QuestStatus }) => void;
   entries: ChatEntry[];
   isStreaming: boolean;
   currentSessionId: SessionId | null;
@@ -67,6 +69,8 @@ export const useSessionChatBinding = ({
   const initialSessionIdRef = useRef(initialSessionId);
   const pendingChatProcessIdRef = useRef(false);
   const wsBufferRef = useRef<unknown[]>([]);
+  const questIdRef = useRef<QuestId | undefined>(undefined);
+  const questStatusRef = useRef<QuestStatus | undefined>(undefined);
   guildIdRef.current = guildId;
   initialSessionIdRef.current = initialSessionId;
 
@@ -261,10 +265,15 @@ export const useSessionChatBinding = ({
       pendingChatProcessIdRef.current = true;
       wsBufferRef.current = [];
 
+      const activeQuestId = questIdRef.current;
+      const activeQuestStatus = questStatusRef.current;
+
       sessionChatBroker({
         guildId,
         message,
         ...(activeSessionId ? { sessionId: activeSessionId } : {}),
+        ...(activeQuestId ? { questId: activeQuestId } : {}),
+        ...(activeQuestStatus ? { questStatus: activeQuestStatus } : {}),
       })
         .then(({ chatProcessId }) => {
           chatProcessIdRef.current = chatProcessId;
@@ -365,7 +374,22 @@ export const useSessionChatBinding = ({
     });
   }, []);
 
+  const setQuestContext = useCallback(
+    ({
+      questId: nextQuestId,
+      questStatus: nextQuestStatus,
+    }: {
+      questId?: QuestId;
+      questStatus?: QuestStatus;
+    }): void => {
+      questIdRef.current = nextQuestId;
+      questStatusRef.current = nextQuestStatus;
+    },
+    [],
+  );
+
   return {
+    setQuestContext,
     entries,
     isStreaming,
     currentSessionId,

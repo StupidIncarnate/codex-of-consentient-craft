@@ -89,10 +89,15 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupConsoleErrorCapture: () => SpyOnHandle;
   setupQuestStartError: () => void;
   setupQuestModifyError: () => void;
+  setupQuestPause: () => void;
   setupQuestPauseError: () => void;
+  getQuestPauseRequestCount: () => RequestCount;
   setupQuestResume: (params: { restoredStatus: Quest['status'] }) => void;
   setupQuestResumeError: () => void;
   setupQuestAbandonError: () => void;
+  typeChatPanelMessage: (params: { text: string }) => Promise<void>;
+  clickChatPanelSendButton: () => Promise<void>;
+  clickChatPanelStopButton: () => Promise<void>;
 } => {
   websocketConnectAdapterProxy({ deferOpen });
   useAgentOutputBindingProxy();
@@ -100,7 +105,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
-  ChatPanelWidgetProxy();
+  const chatPanelProxy = ChatPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
@@ -248,9 +253,13 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     setupQuestModifyError: (): void => {
       modifyProxy.setupError();
     },
+    setupQuestPause: (): void => {
+      pauseProxy.setupPause();
+    },
     setupQuestPauseError: (): void => {
       pauseProxy.setupError();
     },
+    getQuestPauseRequestCount: (): RequestCount => pauseProxy.getRequestCount(),
     setupQuestResume: ({ restoredStatus }: { restoredStatus: Quest['status'] }): void => {
       resumeProxy.setupResume({ restoredStatus });
     },
@@ -259,6 +268,15 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupQuestAbandonError: (): void => {
       abandonProxy.setupError();
+    },
+    typeChatPanelMessage: async ({ text }: { text: string }): Promise<void> => {
+      await chatPanelProxy.typeMessage({ text });
+    },
+    clickChatPanelSendButton: async (): Promise<void> => {
+      await chatPanelProxy.clickSend();
+    },
+    clickChatPanelStopButton: async (): Promise<void> => {
+      await chatPanelProxy.clickStop();
     },
   };
 };
