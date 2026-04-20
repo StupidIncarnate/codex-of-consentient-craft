@@ -7,6 +7,8 @@
  */
 
 import {
+  adapterResultContract,
+  type AdapterResult,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -47,7 +49,7 @@ export const runLawbringerLayerBroker = async ({
   slotOperations: SlotOperations;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const maxFollowupDepth = followupDepthContract.parse(
     slotManagerStatics.lawbringer.maxFollowupDepth,
   );
@@ -130,9 +132,8 @@ export const runLawbringerLayerBroker = async ({
     },
   });
 
-  // If aborted (paused), bail out without writing status — pause responder resets items to pending
   if (abortSignal.aborted) {
-    return;
+    return adapterResultContract.parse({ success: true });
   }
 
   // Map results back to quest work items
@@ -173,4 +174,5 @@ export const runLawbringerLayerBroker = async ({
       workItems: workItemUpdates,
     } as ModifyQuestInput,
   });
+  return adapterResultContract.parse({ success: true });
 };

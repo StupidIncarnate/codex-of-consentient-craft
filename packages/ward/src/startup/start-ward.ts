@@ -6,11 +6,12 @@
  * // Delegates to WardFlow for command routing
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { WardFlow } from '../flows/ward/ward-flow';
 
-export const StartWard = async ({ args }: { args: readonly string[] }): Promise<void> => {
+export const StartWard = async ({ args }: { args: readonly string[] }): Promise<AdapterResult> => {
   const rootPath = absoluteFilePathContract.parse(process.cwd());
-  await WardFlow({ args, rootPath });
+  return WardFlow({ args, rootPath });
 };

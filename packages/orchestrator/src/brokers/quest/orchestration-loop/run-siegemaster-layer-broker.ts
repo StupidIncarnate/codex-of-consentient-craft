@@ -10,7 +10,9 @@
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
+  adapterResultContract,
   errorMessageContract,
+  type AdapterResult,
   type FilePath,
   type QuestId,
   type SessionId,
@@ -52,7 +54,8 @@ export const runSiegemasterLayerBroker = async ({
   startPath: FilePath;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const questInput = getQuestInputContract.parse({ questId });
   const questResult = await questGetBroker({ input: questInput });
   if (!questResult.success || !questResult.quest) {
@@ -103,7 +106,7 @@ export const runSiegemasterLayerBroker = async ({
 
     if (!buildResult.success) {
       if (abortSignal.aborted) {
-        return;
+        return result;
       }
       // Exhausted retries — mark failed and replan
       const preflightQuestInput = getQuestInputContract.parse({ questId });
@@ -145,7 +148,7 @@ export const runSiegemasterLayerBroker = async ({
           } as ModifyQuestInput,
         });
       }
-      return;
+      return result;
     }
 
     // START DEV SERVER — recursive retry loop with spiritmender between attempts
@@ -164,7 +167,7 @@ export const runSiegemasterLayerBroker = async ({
 
     if (!serverResult.success) {
       if (abortSignal.aborted) {
-        return;
+        return result;
       }
       // Exhausted retries — mark failed and replan
       const serverQuestInput = getQuestInputContract.parse({ questId });
@@ -206,7 +209,7 @@ export const runSiegemasterLayerBroker = async ({
           } as ModifyQuestInput,
         });
       }
-      return;
+      return result;
     }
 
     devServerProcess = serverResult.process;
@@ -248,9 +251,8 @@ export const runSiegemasterLayerBroker = async ({
       },
     });
 
-    // If aborted (paused), bail out without creating follow-up items
     if (abortSignal.aborted) {
-      return;
+      return result;
     }
 
     const agentSummary = spawnResult.signal?.summary ?? undefined;
@@ -273,7 +275,7 @@ export const runSiegemasterLayerBroker = async ({
           ],
         } as ModifyQuestInput,
       });
-      return;
+      return result;
     }
 
     // Siegemaster reported failures or crashed — mark as failed, skip pending, spawn pathseeker replan
@@ -335,4 +337,5 @@ export const runSiegemasterLayerBroker = async ({
       await devServerStopBroker({ process: devServerProcess });
     }
   }
+  return result;
 };

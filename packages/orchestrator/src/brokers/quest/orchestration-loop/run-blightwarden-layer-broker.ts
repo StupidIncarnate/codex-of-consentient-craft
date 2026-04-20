@@ -12,8 +12,10 @@
  */
 
 import {
+  adapterResultContract,
   errorMessageContract,
   getQuestInputContract,
+  type AdapterResult,
   type FilePath,
   type ModifyQuestInput,
   type QuestId,
@@ -42,7 +44,8 @@ export const runBlightwardenLayerBroker = async ({
   startPath: FilePath;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const questInput = getQuestInputContract.parse({ questId });
   const questResult = await questGetBroker({ input: questInput });
   if (!questResult.success || !questResult.quest) {
@@ -86,9 +89,8 @@ export const runBlightwardenLayerBroker = async ({
     },
   });
 
-  // If aborted (paused), bail out without mutating quest state
   if (abortSignal.aborted) {
-    return;
+    return result;
   }
 
   const agentSummary = spawnResult.signal?.summary ?? undefined;
@@ -110,7 +112,7 @@ export const runBlightwardenLayerBroker = async ({
         ],
       } as ModifyQuestInput,
     });
-    return;
+    return result;
   }
 
   if (signal === 'failed-replan') {
@@ -168,7 +170,7 @@ export const runBlightwardenLayerBroker = async ({
         ],
       } as ModifyQuestInput,
     });
-    return;
+    return result;
   }
 
   // signal === 'failed' OR no signal at all (crash / timeout) — mark failed only.
@@ -196,4 +198,5 @@ export const runBlightwardenLayerBroker = async ({
       ],
     } as ModifyQuestInput,
   });
+  return result;
 };

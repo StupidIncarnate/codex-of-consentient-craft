@@ -8,15 +8,19 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
 
 const OUTBOX_FILE_NAME = 'event-outbox.jsonl';
 
-export const questOutboxAppendBroker = async ({ questId }: { questId: QuestId }): Promise<void> => {
+export const questOutboxAppendBroker = async ({
+  questId,
+}: {
+  questId: QuestId;
+}): Promise<AdapterResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const outboxFilePath = pathJoinAdapter({ paths: [homePath, OUTBOX_FILE_NAME] });
@@ -29,4 +33,5 @@ export const questOutboxAppendBroker = async ({ questId }: { questId: QuestId })
   const serialized = fileContentsContract.parse(`${JSON.stringify(outboxLine)}\n`);
 
   await fsAppendFileAdapter({ filePath: outboxFilePath, contents: serialized });
+  return adapterResultContract.parse({ success: true });
 };
