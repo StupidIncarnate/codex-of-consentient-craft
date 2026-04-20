@@ -62,17 +62,23 @@ export const runLawbringerLayerBroker = async ({
   // Resolve relatedDataItems -> steps, build mapping
   const slotToQuestMap = new Map<WorkItemId, QuestWorkItemId>();
   const workUnits = workItems.map((wi, i) => {
-    const [ref] = wi.relatedDataItems;
-    if (!ref) {
+    const refs = wi.relatedDataItems;
+    if (refs.length === 0) {
       throw new Error(`Work item ${wi.id} has no relatedDataItems`);
     }
-    const resolved = resolveRelatedDataItemTransformer({ ref, quest });
-    if (resolved.collection !== 'steps') {
-      throw new Error(`Expected steps reference, got ${resolved.collection}`);
-    }
+    const resolvedSteps = refs.map((ref) => {
+      const resolved = resolveRelatedDataItemTransformer({ ref, quest });
+      if (resolved.collection !== 'steps') {
+        throw new Error(`Expected steps reference, got ${resolved.collection}`);
+      }
+      return resolved.item;
+    });
     const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
     slotToQuestMap.set(slotId, wi.id);
-    return buildWorkUnitForRoleTransformer({ role: 'lawbringer', step: resolved.item });
+    return buildWorkUnitForRoleTransformer({
+      role: 'lawbringer',
+      steps: resolvedSteps,
+    });
   });
 
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });

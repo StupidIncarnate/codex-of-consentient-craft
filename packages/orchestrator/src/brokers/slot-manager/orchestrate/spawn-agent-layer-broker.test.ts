@@ -15,7 +15,7 @@ describe('spawnAgentLayerBroker', () => {
     it('VALID: {workUnit} => returns monitor result from spawn-by-role broker', async () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
 
       proxy.setupSpawnAndMonitor({
         lines: [],
@@ -43,7 +43,7 @@ describe('spawnAgentLayerBroker', () => {
     it('VALID: {with continuationContext} => forwards continuationContext to spawn-by-role', async () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const continuationContext = ContinuationContextStub({ value: 'Resume from gate 3' });
 
       proxy.setupSpawnAndMonitor({
@@ -73,7 +73,7 @@ describe('spawnAgentLayerBroker', () => {
     it('VALID: {with resumeSessionId} => forwards resumeSessionId to spawn-by-role', async () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
       proxy.setupSpawnAndMonitor({
@@ -103,7 +103,7 @@ describe('spawnAgentLayerBroker', () => {
     it('ERROR: {spawn throws} => returns crashed result', async () => {
       const proxy = spawnAgentLayerBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
 
       proxy.setupSpawnFailure();
 

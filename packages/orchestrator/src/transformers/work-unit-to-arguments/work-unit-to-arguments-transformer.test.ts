@@ -25,11 +25,13 @@ describe('workUnitToArgumentsTransformer', () => {
   describe('codeweaver role', () => {
     it('VALID: {codeweaver with minimal step} => returns step name and focus file', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Auth Broker',
-          focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Auth Broker',
+            focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -44,12 +46,14 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with exportName} => includes export name', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Auth Broker',
-          exportName: 'authBroker',
-          focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Auth Broker',
+            exportName: 'authBroker',
+            focusFile: { path: 'src/brokers/auth/auth-broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -62,11 +66,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with accompanyingFiles} => includes accompanying files list', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [{ path: 'src/broker.test.ts' }],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Broker',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [{ path: 'src/broker.test.ts' }],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -79,12 +85,14 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with assertions} => includes assertions list', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-          assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Broker',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -97,11 +105,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with related contracts} => includes contract details', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Step',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [
           QuestContractEntryStub({
@@ -122,11 +132,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with related observables} => includes assertions format', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Step',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [
@@ -152,11 +164,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with empty relatedObservables} => omits observables section', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Step',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -171,12 +185,14 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with uses} => includes uses list', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-          uses: ['authGuard', 'sessionBroker'],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Broker',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+            uses: ['authGuard', 'sessionBroker'],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -189,11 +205,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with design decisions} => includes design decisions', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Broker',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -215,11 +233,13 @@ describe('workUnitToArgumentsTransformer', () => {
     it('VALID: {codeweaver with flows} => includes flows with relevant nodes', () => {
       const observable = FlowObservableStub({ id: 'obs-1' });
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Create Broker',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Create Broker',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -240,11 +260,13 @@ describe('workUnitToArgumentsTransformer', () => {
 
     it('VALID: {codeweaver with empty design decisions and flows} => omits those sections', () => {
       const workUnit = CodeweaverWorkUnitStub({
-        step: DependencyStepStub({
-          name: 'Step',
-          focusFile: { path: 'src/broker.ts' },
-          accompanyingFiles: [],
-        }),
+        steps: [
+          DependencyStepStub({
+            name: 'Step',
+            focusFile: { path: 'src/broker.ts' },
+            accompanyingFiles: [],
+          }),
+        ],
         questId: QuestIdStub({ value: 'quest-1' }),
         relatedContracts: [],
         relatedObservables: [],

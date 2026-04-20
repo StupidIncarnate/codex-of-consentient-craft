@@ -30,7 +30,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {codeweaver workUnit} => returns result with session ID', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
 
       proxy.setupSpawnAndMonitor({
@@ -150,7 +150,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {continuationContext provided} => appends continuation context to prompt', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const continuationContext = ContinuationContextStub({ value: 'Resume from gate 3' });
 
       proxy.setupSpawnAndMonitor({
@@ -180,7 +180,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {resumeSessionId provided} => passes session ID to spawn', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
       proxy.setupSpawnAndMonitor({
@@ -210,7 +210,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('ERROR: {spawn throws} => returns crashed result', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
 
       proxy.setupSpawnFailure();
 
@@ -232,7 +232,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {process exits with code 1} => returns crashed true', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const startPath = FilePathStub({ value: '/project/src' });
 
       proxy.setupSpawnAndMonitor({
@@ -256,7 +256,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {stdout emits signal-back tool use line} => returns signal in result', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const startPath = FilePathStub({ value: '/project/src' });
       const stepId = StepIdStub();
 
@@ -301,7 +301,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {stdout emits assistant text line} => returns capturedOutput with text', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const startPath = FilePathStub({ value: '/project/src' });
 
       const textLine = JSON.stringify(AssistantTextStreamLineStub());
@@ -327,7 +327,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('ERROR: {onSessionId throws} => writes error to stderr', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const startPath = FilePathStub({ value: '/project/src' });
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
       const stderrSpy = proxy.setupStderrCapture();
@@ -358,7 +358,7 @@ describe('agentSpawnByRoleBroker', () => {
     it('VALID: {onLine callback provided, stdout emits lines} => callback receives lines', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ step });
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
       const startPath = FilePathStub({ value: '/project/src' });
       const onLine = jest.fn();
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });

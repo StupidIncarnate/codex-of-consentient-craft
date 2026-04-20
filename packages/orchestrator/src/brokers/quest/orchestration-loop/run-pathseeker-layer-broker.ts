@@ -8,6 +8,7 @@
 
 import {
   type FilePath,
+  type FolderTypeGroups,
   type QuestId,
   type SessionId,
   type WorkItem,
@@ -33,12 +34,14 @@ export const runPathseekerLayerBroker = async ({
   startPath,
   onAgentEntry,
   abortSignal,
+  batchGroups,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
+  batchGroups: FolderTypeGroups;
 }): Promise<void> => {
   // Fetch quest upfront to resolve PathSeeker sessionId and reuse for post-completion paths
   const questInput = getQuestInputContract.parse({ questId });
@@ -128,6 +131,7 @@ export const runPathseekerLayerBroker = async ({
       flows: postQuestResult.quest.flows,
       pathseekerWorkItemId: workItem.id,
       now,
+      batchGroups,
     });
     if (newItems.length > 0) {
       await questModifyBroker({

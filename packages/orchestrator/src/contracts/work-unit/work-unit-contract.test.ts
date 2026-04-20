@@ -86,7 +86,7 @@ describe('workUnitContract', () => {
   });
 
   describe('codeweaver work unit', () => {
-    it('VALID: {role: codeweaver, step, questId, relatedContracts, relatedObservables} => parses successfully', () => {
+    it('VALID: {role: codeweaver, steps, questId, relatedContracts, relatedObservables} => parses successfully', () => {
       const step = DependencyStepStub();
       const questId = QuestIdStub({ value: 'add-auth' });
       const relatedContracts = [QuestContractEntryStub()];
@@ -94,7 +94,8 @@ describe('workUnitContract', () => {
 
       const result = workUnitContract.parse({
         role: 'codeweaver',
-        step,
+        steps: [step],
+        folderTypes: ['brokers'],
         questId,
         relatedContracts,
         relatedObservables,
@@ -102,7 +103,8 @@ describe('workUnitContract', () => {
 
       expect(result).toStrictEqual({
         role: 'codeweaver',
-        step,
+        steps: [step],
+        folderTypes: ['brokers'],
         questId,
         relatedContracts,
         relatedObservables,
@@ -116,7 +118,8 @@ describe('workUnitContract', () => {
 
       expect(stub).toStrictEqual({
         role: 'codeweaver',
-        step: DependencyStepStub(),
+        steps: [DependencyStepStub()],
+        folderTypes: ['brokers'],
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [QuestContractEntryStub()],
         relatedObservables: [FlowObservableStub()],
@@ -133,7 +136,8 @@ describe('workUnitContract', () => {
 
       expect(stub).toStrictEqual({
         role: 'codeweaver',
-        step: DependencyStepStub(),
+        steps: [DependencyStepStub()],
+        folderTypes: ['brokers'],
         questId: QuestIdStub({ value: 'add-auth' }),
         relatedContracts: [],
         relatedObservables: [],
@@ -264,17 +268,22 @@ describe('workUnitContract', () => {
   });
 
   describe('lawbringer work unit', () => {
-    it('VALID: {role: lawbringer, filePaths} => parses successfully', () => {
+    it('VALID: {role: lawbringer, filePaths, folderTypes, stepBoundaries} => parses successfully', () => {
+      const step = DependencyStepStub();
       const filePaths = [AbsoluteFilePathStub({ value: '/src/broker.ts' })];
 
       const result = workUnitContract.parse({
         role: 'lawbringer',
         filePaths,
+        folderTypes: ['brokers'],
+        stepBoundaries: [{ stepId: step.id, filePaths }],
       });
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
         filePaths,
+        folderTypes: ['brokers'],
+        stepBoundaries: [{ stepId: step.id, filePaths }],
       });
     });
 
@@ -284,18 +293,30 @@ describe('workUnitContract', () => {
       expect(stub).toStrictEqual({
         role: 'lawbringer',
         filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
+        folderTypes: ['brokers'],
+        stepBoundaries: [
+          {
+            stepId: DependencyStepStub().id,
+            filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
+          },
+        ],
       });
     });
 
-    it('EDGE: {lawbringer with empty filePaths} => parses successfully', () => {
+    it('EDGE: {lawbringer with empty filePaths and single stepBoundary} => parses successfully', () => {
+      const step = DependencyStepStub();
       const result = workUnitContract.parse({
         role: 'lawbringer',
         filePaths: [],
+        folderTypes: [],
+        stepBoundaries: [{ stepId: step.id, filePaths: [] }],
       });
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
         filePaths: [],
+        folderTypes: [],
+        stepBoundaries: [{ stepId: step.id, filePaths: [] }],
       });
     });
   });
@@ -477,11 +498,11 @@ describe('workUnitContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID: {lawbringer fields with codeweaver step} => throws validation error', () => {
+    it('INVALID: {lawbringer fields with codeweaver steps} => throws validation error', () => {
       expect(() =>
         workUnitContract.parse({
           role: 'lawbringer',
-          step: DependencyStepStub(),
+          steps: [DependencyStepStub()],
         } as never),
       ).toThrow(/required/iu);
     });

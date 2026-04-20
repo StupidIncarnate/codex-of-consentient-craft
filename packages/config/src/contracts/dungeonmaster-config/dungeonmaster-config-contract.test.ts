@@ -2,6 +2,57 @@ import { dungeonmasterConfigContract } from './dungeonmaster-config-contract';
 import { DungeonmasterConfigStub } from './dungeonmaster-config.stub';
 
 describe('dungeonmaster-config-contract', () => {
+  describe('agents.batchGroups', () => {
+    it('VALID: config without agents => agents is undefined', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+      });
+
+      expect(config.agents).toBe(undefined);
+    });
+
+    it('VALID: config with agents: {} => batchGroups is undefined (caller applies default)', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: {},
+      });
+
+      expect(config.agents?.batchGroups).toBe(undefined);
+    });
+
+    it('VALID: config with explicit batchGroups: [] => grouping disabled', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [] },
+      });
+
+      expect(config.agents?.batchGroups).toStrictEqual([]);
+    });
+
+    it('VALID: config with explicit batchGroups: [[adapters]] => parses to user groups', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['adapters']] },
+      });
+
+      expect(config.agents?.batchGroups).toStrictEqual([['adapters']]);
+    });
+
+    it('INVALID: duplicate folder type across groups => throws refine error', () => {
+      expect(() =>
+        DungeonmasterConfigStub({
+          framework: 'react',
+          schema: 'zod',
+          agents: { batchGroups: [['contracts'], ['contracts']] },
+        }),
+      ).toThrow('folder types may appear in at most one batch group');
+    });
+  });
+
   describe('minimal valid configurations', () => {
     it('VALID: minimal React app config => parses successfully', () => {
       const config = DungeonmasterConfigStub({

@@ -8,12 +8,14 @@
 
 import type {
   FilePath,
+  FolderTypeGroups,
   ProcessId,
   QuestId,
   UserInput,
   WorkItem,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import { folderTypeGroupsContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -23,6 +25,7 @@ import {
   isActiveWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -51,6 +54,7 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry,
   abortSignal,
   userMessage,
+  batchGroups: providedBatchGroups,
 }: {
   processId: ProcessId;
   questId: QuestId;
@@ -58,6 +62,7 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   userMessage?: UserInput;
+  batchGroups?: FolderTypeGroups;
 }): Promise<void> => {
   if (abortSignal.aborted) {
     return;
@@ -65,6 +70,21 @@ export const questOrchestrationLoopBroker = async ({
 
   const slotCount = slotCountContract.parse(SLOT_COUNT);
   const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+
+  // Resolve batchGroups from project config ONCE per quest run, then propagate
+  // through the recursive loop. A missing `.dungeonmaster` file (end-user installs,
+  // temp environments) is not an error — fall back to the curated default the
+  // contract would have produced.
+  const batchGroups: FolderTypeGroups =
+    providedBatchGroups ??
+    (await (async (): Promise<FolderTypeGroups> => {
+      try {
+        const config = await dungeonmasterConfigResolveAdapter({ startPath });
+        return config.agents?.batchGroups ?? folderTypeGroupsContract.parse(undefined);
+      } catch {
+        return folderTypeGroupsContract.parse(undefined);
+      }
+    })());
 
   // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
@@ -188,6 +208,7 @@ export const questOrchestrationLoopBroker = async ({
         startPath,
         onAgentEntry,
         abortSignal,
+        batchGroups,
       });
     } else if (roleName === 'codeweaver') {
       await runCodeweaverLayerBroker({
@@ -288,12 +309,13 @@ export const questOrchestrationLoopBroker = async ({
     throw error;
   }
 
-  // 9. Recurse
+  // 9. Recurse — pass batchGroups through so we only resolve config once per quest run
   return questOrchestrationLoopBroker({
     processId,
     questId,
     startPath,
     onAgentEntry,
     abortSignal,
+    batchGroups,
   });
 };

@@ -2,6 +2,7 @@ import {
   DependencyStepStub,
   FlowIdStub,
   FlowStub,
+  FolderTypeGroupsStub,
   QuestWorkItemIdStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -39,6 +40,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -147,6 +149,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -282,6 +285,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flowA, flowB, flowC],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -413,6 +417,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -501,6 +506,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flowA, flowB],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -597,6 +603,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const [, , , , blightwardenItem, finalWardItem] = result;
@@ -629,6 +636,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const [, , blightwardenItem, finalWardItem] = result;
@@ -663,6 +671,7 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [],
         pathseekerWorkItemId,
         now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const [, , , blightwardenItem, finalWardItem] = result;

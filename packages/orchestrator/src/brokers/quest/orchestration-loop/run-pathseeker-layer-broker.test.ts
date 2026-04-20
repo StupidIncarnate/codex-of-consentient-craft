@@ -6,6 +6,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  FolderTypeGroupsStub,
   ObservableIdStub,
   QuestContractEntryStub,
   QuestContractPropertyStub,
@@ -172,6 +173,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -207,6 +209,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -248,6 +251,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -279,6 +283,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const allWorkItems = proxy
@@ -311,6 +316,7 @@ describe('runPathseekerLayerBroker', () => {
           startPath: '/project/src' as never,
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
+          batchGroups: FolderTypeGroupsStub({ value: [] }),
         }),
       ).rejects.toThrow('Quest not found: nonexistent-quest');
 
@@ -346,6 +352,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getPersistedQuestJsons().length).toBeGreaterThan(0);
@@ -388,6 +395,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -435,6 +443,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -484,6 +493,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project/src' as never,
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const stderrOutput = proxy.getStderrWrites();
@@ -519,6 +529,7 @@ describe('runPathseekerLayerBroker', () => {
         startPath: '/project' as never,
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const persisted = proxy.getPersistedQuestJsons();

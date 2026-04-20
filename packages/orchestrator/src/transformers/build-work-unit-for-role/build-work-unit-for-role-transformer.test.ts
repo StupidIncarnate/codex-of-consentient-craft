@@ -44,13 +44,14 @@ describe('buildWorkUnitForRoleTransformer', () => {
 
       const result = buildWorkUnitForRoleTransformer({
         role: 'codeweaver',
-        step,
+        steps: [step],
         quest,
       });
 
       expect(result).toStrictEqual({
         role: 'codeweaver',
-        step,
+        steps: [step],
+        folderTypes: ['brokers'],
         questId: quest.id,
         relatedContracts: [contractEntry],
         relatedObservables: [observable],
@@ -93,13 +94,14 @@ describe('buildWorkUnitForRoleTransformer', () => {
 
       const result = buildWorkUnitForRoleTransformer({
         role: 'codeweaver',
-        step,
+        steps: [step],
         quest,
       });
 
       expect(result).toStrictEqual({
         role: 'codeweaver',
-        step,
+        steps: [step],
+        folderTypes: ['brokers'],
         questId: quest.id,
         relatedContracts: [],
         relatedObservables: [],
@@ -190,12 +192,19 @@ describe('buildWorkUnitForRoleTransformer', () => {
 
       const result = buildWorkUnitForRoleTransformer({
         role: 'lawbringer',
-        step,
+        steps: [step],
       });
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
         filePaths: ['/src/brokers/user/user-broker.ts', '/src/brokers/index.ts'],
+        folderTypes: ['brokers'],
+        stepBoundaries: [
+          {
+            stepId: step.id,
+            filePaths: ['/src/brokers/user/user-broker.ts', '/src/brokers/index.ts'],
+          },
+        ],
       });
     });
   });

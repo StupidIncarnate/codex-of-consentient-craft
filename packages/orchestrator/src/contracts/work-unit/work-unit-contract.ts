@@ -13,10 +13,12 @@ import {
   errorMessageContract,
   flowContract,
   flowObservableContract,
+  folderTypeContract,
   planningScopeClassificationContract,
   questContractEntryContract,
   questIdContract,
   stepFileReferenceContract,
+  stepIdContract,
 } from '@dungeonmaster/shared/contracts';
 
 const stepFilePathContract = stepFileReferenceContract.shape.path;
@@ -29,7 +31,8 @@ const pathseekerWorkUnitContract = z.object({
 
 const codeweaverWorkUnitContract = z.object({
   role: z.literal('codeweaver'),
-  step: dependencyStepContract,
+  steps: z.array(dependencyStepContract).min(1),
+  folderTypes: z.array(folderTypeContract).default([]),
   questId: questIdContract,
   relatedContracts: z.array(questContractEntryContract),
   relatedObservables: z.array(flowObservableContract),
@@ -53,9 +56,16 @@ const siegemasterWorkUnitContract = z.object({
   devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
 });
 
+const lawbringerStepBoundaryContract = z.object({
+  stepId: stepIdContract,
+  filePaths: z.array(stepFilePathContract),
+});
+
 const lawbringerWorkUnitContract = z.object({
   role: z.literal('lawbringer'),
   filePaths: z.array(stepFilePathContract),
+  folderTypes: z.array(folderTypeContract).default([]),
+  stepBoundaries: z.array(lawbringerStepBoundaryContract).min(1),
 });
 
 const blightwardenWorkUnitContract = z.object({
