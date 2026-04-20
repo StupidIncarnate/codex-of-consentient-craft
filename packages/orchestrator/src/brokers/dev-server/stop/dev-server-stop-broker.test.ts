@@ -36,7 +36,9 @@ describe('devServerStopBroker', () => {
       const proxy = devServerStopBrokerProxy();
       const proc = proxy.makeProcessWhereKillThrows();
 
-      await expect(devServerStopBroker({ process: proc })).resolves.toBe(undefined);
+      await expect(devServerStopBroker({ process: proc })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 });

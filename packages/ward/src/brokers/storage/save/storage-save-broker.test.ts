@@ -26,7 +26,9 @@ describe('storageSaveBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = failingWardResult();
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toBe(undefined);
+      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 
@@ -38,7 +40,9 @@ describe('storageSaveBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = WardResultStub();
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toBe(undefined);
+      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
+        success: true,
+      });
     });
   });
 

@@ -13,6 +13,7 @@
  */
 
 import type {
+  AdapterResult,
   AddQuestResult,
   AgentPromptResult,
   DirectoryEntry,
@@ -71,7 +72,7 @@ export const StartOrchestrator = {
       ...(path !== undefined && { path }),
     }),
 
-  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> =>
+  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<AdapterResult> =>
     GuildFlow.remove({ guildId }),
 
   browseDirectories: ({ path }: { path?: GuildPath }): DirectoryEntry[] =>
@@ -180,7 +181,7 @@ export const StartOrchestrator = {
     sessionId: SessionId;
     guildId: GuildId;
     chatProcessId?: ProcessId;
-  }): Promise<void> =>
+  }): Promise<AdapterResult> =>
     ChatReplayFlow({ sessionId, guildId, ...(chatProcessId && { chatProcessId }) }),
 
   // Design chat methods
