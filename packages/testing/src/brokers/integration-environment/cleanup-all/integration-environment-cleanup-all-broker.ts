@@ -6,9 +6,11 @@
  * // Calls cleanup() on all tracked projects and clears the tracking list
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 
-export const integrationEnvironmentCleanupAllBroker = (): void => {
+export const integrationEnvironmentCleanupAllBroker = (): AdapterResult => {
   const environments = integrationEnvironmentTrackingBroker.getAll();
 
   for (const env of environments) {
@@ -16,4 +18,5 @@ export const integrationEnvironmentCleanupAllBroker = (): void => {
   }
 
   integrationEnvironmentTrackingBroker.clear();
+  return adapterResultContract.parse({ success: true });
 };
