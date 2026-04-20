@@ -9,7 +9,6 @@ import { ChatReplayResponder } from './chat-replay-responder';
 
 const EVENT_TYPES: readonly OrchestrationEventType[] = [
   'chat-output',
-  'chat-patch',
   'quest-session-linked',
   'chat-history-complete',
 ] as const;

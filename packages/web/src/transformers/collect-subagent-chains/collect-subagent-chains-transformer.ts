@@ -46,6 +46,15 @@ export const collectSubagentChainsTransformer = ({
         consumed.add(subEntry);
       }
 
+      // Match the task_notification by either:
+      //   (a) its `taskId` matching the Task's wire-level agentId — legacy path where the Task
+      //       entry's agentId was the real internal agentId (same as the notification's
+      //       `<task-id>` XML tag); or
+      //   (b) its `agentId` matching the Task's wire-level agentId — after the two-source
+      //       convergence, the Task entry carries `agentId = toolUseId`, and the orchestrator
+      //       stamps the notification's `agentId` from its `<tool-use-id>` XML tag (same
+      //       toolUseId). This fallback pins the notification to the chain under the converged
+      //       wire key.
       const taskNotification =
         entries.find(
           (e) =>
@@ -53,14 +62,21 @@ export const collectSubagentChainsTransformer = ({
             e.role === 'system' &&
             'type' in e &&
             e.type === 'task_notification' &&
-            'taskId' in e &&
-            String(e.taskId) === agentId,
+            (('taskId' in e && String(e.taskId) === agentId) ||
+              ('agentId' in e && e.agentId !== undefined && String(e.agentId) === agentId)),
         ) ?? null;
 
       if (taskNotification !== null) {
         consumed.add(taskNotification);
       }
 
+      // Match the Task's completion tool_result by either:
+      //   (a) its `agentId` matching the Task's wire-level agentId (toolUseId), for entries
+      //       whose source carried `parent_tool_use_id` (streaming); or
+      //   (b) its `toolName` matching the Task's toolUseId — user tool_result content items
+      //       store the tool_use_id in `toolName`, and for Task completions the tool_result
+      //       line itself has `parent_tool_use_id: null` so it never gets stamped. This
+      //       fallback pins it to the chain anyway.
       const toolResult =
         entries.find(
           (e) =>
@@ -68,9 +84,9 @@ export const collectSubagentChainsTransformer = ({
             e.role === 'assistant' &&
             'type' in e &&
             e.type === 'tool_result' &&
-            'agentId' in e &&
-            String(e.agentId) === agentId &&
-            !('source' in e && e.source === 'subagent'),
+            !('source' in e && e.source === 'subagent') &&
+            (('agentId' in e && String(e.agentId) === agentId) ||
+              ('toolName' in e && String(e.toolName) === agentId)),
         ) ?? null;
 
       if (toolResult !== null) {

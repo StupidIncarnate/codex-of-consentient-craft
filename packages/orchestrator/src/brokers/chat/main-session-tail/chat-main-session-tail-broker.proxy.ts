@@ -11,7 +11,9 @@ type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfi
 export const chatMainSessionTailBrokerProxy = (): {
   setupGuild: (params: { config: GuildConfig; homeDir: string }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
+  setupExistingFileWithContent: () => void;
   triggerChange: () => void;
+  lastStartPositionWasFromFileEnd: () => boolean;
 } => {
   claudeLineNormalizeBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
@@ -26,8 +28,12 @@ export const chatMainSessionTailBrokerProxy = (): {
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
       tailProxy.setupLines({ lines });
     },
+    setupExistingFileWithContent: (): void => {
+      tailProxy.setupExistingFileWithContent();
+    },
     triggerChange: (): void => {
       tailProxy.triggerChange();
     },
+    lastStartPositionWasFromFileEnd: (): boolean => tailProxy.lastStartPositionWasFromFileEnd(),
   };
 };

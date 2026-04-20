@@ -277,7 +277,15 @@ export const sessionHarness = ({
       ),
     ];
 
-    fs.writeFileSync(path.join(subagentDir, `${agentId}.jsonl`), `${subagentLines.join('\n')}\n`);
+    // Real Claude CLI writes sub-agent JSONLs as `agent-<realAgentId>.jsonl`. The replay
+    // broker's `stripAgentFilenamePrefixTransformer` expects that prefix. Keep the filename
+    // consistent with the other harness helpers (createSubagentTailOnly,
+    // createSubagentSessionWithInternalTool, createBackgroundAgentSession) so E2E specs
+    // exercise the real shape.
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${agentId}.jsonl`),
+      `${subagentLines.join('\n')}\n`,
+    );
   };
 
   const createSubagentSessionWithInternalTool = ({

@@ -18,7 +18,6 @@ type ExitCode = ReturnType<typeof ExitCodeStub>;
 
 const EVENT_TYPES: readonly OrchestrationEventType[] = [
   'chat-output',
-  'chat-patch',
   'chat-complete',
   'chat-session-started',
   'quest-session-linked',

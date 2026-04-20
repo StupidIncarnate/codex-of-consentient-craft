@@ -353,6 +353,7 @@ describe('ChatStartResponder', () => {
                 status: 'completed',
                 summary: 'BG done',
                 result: 'ok',
+                source: 'session',
               },
             ],
           },

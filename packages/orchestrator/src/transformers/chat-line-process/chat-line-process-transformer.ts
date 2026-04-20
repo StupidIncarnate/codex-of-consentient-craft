@@ -1,10 +1,24 @@
 /**
- * PURPOSE: Factory that creates a stateful per-session processor for pre-normalized Claude line objects, correlating agentIds between tool_result and Task tool_use entries, lifting inflated <task-notification> XML, and emitting fully-parsed ChatEntry arrays and patches
+ * PURPOSE: Factory that creates a stateful per-session processor for pre-normalized Claude line objects, reconciling the two Claude CLI sub-agent source formats (streaming stdout with `parent_tool_use_id`, and JSONL files keyed by real internal agentId) into a single `ChatEntry[]` shape where the Task toolUseId is the wire-level chain key. Also lifts inflated <task-notification> XML and emits `agent-detected` signals so the sub-agent JSONL tail can bootstrap itself.
  *
  * USAGE:
  * const processor = chatLineProcessTransformer();
  * const outputs = processor.processLine({ parsed: normalizedObject, source: chatLineSourceContract.parse('session') });
- * // Returns array of ChatLineOutput (entries and/or patches)
+ * // Returns array of ChatLineOutput (entries and/or agent-detected)
+ *
+ * TWO-SOURCE CONVERGENCE:
+ * Sub-agent correlation arrives in two incompatible shapes depending on where the line came from:
+ *   - STREAMING (stdout): every sub-agent line has `parent_tool_use_id` = the Task's toolUseId.
+ *   - FILE (sub-agent JSONL on disk): lines have `agentId` = the "real" internal id Claude CLI
+ *     assigned (= the JSONL filename). No `parent_tool_use_id` field at all.
+ * The translation between the two lives in the MAIN session JSONL's user tool_result lines,
+ * which carry `tool_use_result.agentId` (real id) beside the Task's `tool_use_id`.
+ *
+ * Convergence strategy: normalize everything to the streaming wire shape (`parent_tool_use_id`)
+ * BEFORE entry parsing. For file-sourced lines, resolve the Task toolUseId via the realAgentId
+ * translation map (populated as user tool_results are seen, and pre-seeded by the replay path
+ * to cover lines that arrive before their completion tool_result in timestamp order). After
+ * that normalization step, downstream code never has to know the source format.
  */
 
 import { agentIdContract } from '../../contracts/agent-id/agent-id-contract';
@@ -21,10 +35,28 @@ import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/t
 const NUMERIC_TASK_NOTIFICATION_KEYS = new Set(['totalTokens', 'toolUses', 'durationMs']);
 
 export const chatLineProcessTransformer = (): ChatLineProcessor => {
+  // Forward map: toolUseId → realAgentId, populated as user tool_result lines are processed.
   const agentIdMap = new Map<ToolUseId, AgentId>();
-  const emittedToolUseIds = new Set<ToolUseId>();
+  // Reverse map: realAgentId → toolUseId, kept in sync so file-sourced sub-agent lines
+  // (tagged with realAgentId) can resolve back to the Task toolUseId in O(1).
+  const reverseAgentIdMap = new Map<AgentId, ToolUseId>();
 
   return {
+    resolveToolUseIdForAgent: ({
+      agentId: realAgentId,
+    }: {
+      agentId: AgentId;
+    }): ToolUseId | undefined => reverseAgentIdMap.get(realAgentId),
+    registerAgentTranslation: ({
+      agentId: realAgentId,
+      toolUseId,
+    }: {
+      agentId: AgentId;
+      toolUseId: ToolUseId;
+    }): void => {
+      agentIdMap.set(toolUseId, realAgentId);
+      reverseAgentIdMap.set(realAgentId, toolUseId);
+    },
     processLine: ({
       parsed,
       source,
@@ -48,7 +80,41 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
 
       Reflect.set(parsed, 'source', source);
 
+      // STEP 1: normalize to the streaming wire shape.
+      //
+      // Streaming path: line already has `parent_tool_use_id` — use it directly.
+      // File path: line has no `parent_tool_use_id` but the caller passed an `agentId` param
+      // (the real internal id from the subagent JSONL filename). Resolve that to the Task's
+      // toolUseId via the reverse map and stamp `parent_tool_use_id` synthetically so the
+      // rest of this function is source-agnostic.
+      let parentToolUseIdVal: unknown = Reflect.get(parsed, 'parentToolUseId');
+      if (
+        (typeof parentToolUseIdVal !== 'string' || parentToolUseIdVal.length === 0) &&
+        agentId !== undefined
+      ) {
+        const translated = reverseAgentIdMap.get(agentId);
+        if (translated !== undefined) {
+          parentToolUseIdVal = translated;
+          Reflect.set(parsed, 'parentToolUseId', translated);
+        }
+      }
+
+      const isSubagentByParent =
+        typeof parentToolUseIdVal === 'string' && parentToolUseIdVal.length > 0;
+      if (isSubagentByParent) {
+        Reflect.set(parsed, 'source', 'subagent');
+        Reflect.set(parsed, 'agentId', parentToolUseIdVal);
+      }
+
       if (entryType === 'user') {
+        // tool_use_result.agentId is the "real" internal sub-agent id Claude CLI assigns.
+        // We do NOT use it as the wire-level correlation key for the web — parent_tool_use_id
+        // (handled above) is stable and known from the first streamed line. Instead, we emit
+        // `agent-detected` outputs so chat-spawn-broker can start tailing the sub-agent's
+        // JSONL file (needed to bridge the streaming ↔ file gap for resumed sessions and
+        // background task-notifications). We also record the realAgentId↔toolUseId mapping
+        // in agentIdMap so the history replay path can translate sub-agent JSONL lines
+        // (tagged with realAgentId) into the same `parent_tool_use_id` wire shape.
         const toolUseResult: unknown = Reflect.get(parsed, 'toolUseResult');
         if (typeof toolUseResult === 'object' && toolUseResult !== null) {
           const resultAgentId: unknown = Reflect.get(toolUseResult, 'agentId');
@@ -57,19 +123,19 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
             const entry = parsed as Parameters<typeof toolUseIdsFromContentTransformer>[0]['entry'];
             const toolUseIds = toolUseIdsFromContentTransformer({ entry });
             for (const toolUseId of toolUseIds) {
+              // Update BOTH maps — the reverse map is the hot path for sub-agent lines
+              // arriving from the file source (tagged with realAgentId from the JSONL
+              // filename) that need translation back to the Task toolUseId.
               agentIdMap.set(toolUseId, parsedAgentId);
-
-              if (emittedToolUseIds.has(toolUseId)) {
-                outputs.push(
-                  chatLineOutputContract.parse({
-                    type: 'patch',
-                    toolUseId,
-                    agentId: parsedAgentId,
-                  }),
-                );
-              }
+              reverseAgentIdMap.set(parsedAgentId, toolUseId);
+              outputs.push(
+                chatLineOutputContract.parse({
+                  type: 'agent-detected',
+                  toolUseId,
+                  agentId: parsedAgentId,
+                }),
+              );
             }
-            Reflect.set(parsed, 'agentId', parsedAgentId);
           }
         }
 
@@ -107,15 +173,12 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
       }
 
       if (entryType === 'assistant') {
+        // Calling this transformer has a side effect: it eagerly stamps `agentId = item.id`
+        // on every Task/Agent tool_use content item. That's the wire-level correlation key
+        // the web uses to group the chain — matching sub-agent lines tagged via
+        // parent_tool_use_id (streaming) or the agentId translation map (file replay).
         const entry = parsed as Parameters<typeof taskToolUseIdsFromContentTransformer>[0]['entry'];
-        const taskToolUseIds = taskToolUseIdsFromContentTransformer({ entry });
-        for (const toolUseId of taskToolUseIds) {
-          const knownAgentId = agentIdMap.get(toolUseId);
-          if (knownAgentId !== undefined) {
-            Reflect.set(parsed, 'agentId', knownAgentId);
-          }
-          emittedToolUseIds.add(toolUseId);
-        }
+        taskToolUseIdsFromContentTransformer({ entry });
 
         if (agentId !== undefined && Reflect.get(parsed, 'agentId') === undefined) {
           Reflect.set(parsed, 'agentId', agentId);

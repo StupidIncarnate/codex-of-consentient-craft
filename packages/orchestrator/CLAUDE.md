@@ -19,9 +19,126 @@ chatLineProcessTransformer() → processor.processLine({ line, source, agentId? 
 `ChatLineOutput` has two variants:
 
 - `{ type: 'entries', entries: ChatEntry[] }` — one or more ready-to-render entries
-- `{ type: 'patch', toolUseId, agentId }` — a late-arriving correlation patch for an entry
-  that already shipped (e.g. a Task tool_use whose agentId wasn't known when the assistant
-  message was emitted)
+- `{ type: 'agent-detected', toolUseId, agentId }` — fired when the processor learns the
+  "real" internal sub-agent id from `tool_use_result.agentId`. Consumers (chat-spawn-broker)
+  use this to start `chatSubagentTailBroker` with the correct JSONL filename key. **NOT
+  broadcast to the web** — the web's chain grouping uses `toolUseId` (eagerly stamped on the
+  Task entry and on all sub-agent lines via the convergence below), not the real agentId.
+  Wire-level correlation is complete the moment each entry ships, so the web never receives
+  follow-up patches.
+
+### Two-source sub-agent correlation (READ THIS IF YOU ARE TOUCHING SUB-AGENT CODE)
+
+Claude CLI emits sub-agent activity in TWO incompatible shapes depending on the source:
+
+| Source | What links sub-agent to parent Task? | Where the link lives |
+|--------|---------------------------------------|----------------------|
+| **Streaming (stdout)** | `parent_tool_use_id` field (top-level) | On **every** sub-agent line |
+| **File (JSONL on disk)** | `agentId` = real internal id | Sub-agent's JSONL filename (`subagents/agent-<realAgentId>.jsonl`) + inside each line |
+
+The translation between the two lives in ONE place: the main session JSONL's `user` tool_result
+line, where `tool_use_result.agentId` (real id) sits alongside the content item's `tool_use_id`
+(Task's id). If you don't converge them before they enter the funnel, downstream code ends up
+with Task entries keyed by `toolUseId` and sub-agent entries keyed by real agentId — and the
+web's chain grouping shows `(0 entries)` because those two keys never match.
+
+Convergence strategy (`chat-line-process-transformer.ts`):
+
+1. On every assistant line with a Task/Agent tool_use content item, **eagerly stamp the item
+   with `agentId = item.id`** (the toolUseId). This is the wire-level correlation key.
+2. On every line, check for `parent_tool_use_id`. If present (streaming source), stamp
+   `source = 'subagent'` + `agentId = parentToolUseId`.
+3. For file-sourced lines with NO `parent_tool_use_id` but an `agentId` param (= real
+   internal id from the JSONL filename), look up the Task's toolUseId in the processor's
+   reverse map and synthesize `parent_tool_use_id` before proceeding. The reverse map is
+   populated two ways: (a) as tool_use_result lines flow through the processor live, and
+   (b) via a pre-scan in `chat-history-replay-broker` before it iterates timestamp-sorted
+   lines — because sub-agent lines sort earlier than their own completion tool_result and
+   wouldn't otherwise find a translation when they arrive.
+4. After the two preceding steps, the emitted `ChatEntry` shape is identical regardless of
+   source. Everything downstream (the web, collect-subagent-chains, etc.) operates on one
+   uniform wire contract.
+
+**Tests that protect this convergence:**
+
+- `chat-streaming-subagent-grouping.spec.ts` — streaming path via fake Claude CLI stdout.
+- `chat-replay-subagent-grouping.spec.ts` — file-replay path via pre-seeded JSONL on disk.
+
+If you touch sub-agent correlation, BOTH tests must stay green. If one passes and the other
+fails, the two sources are drifting apart again — do NOT "fix" by adjusting web-side lookup
+logic; go back to the processor and restore the invariant that both paths produce identical
+ChatEntry shapes.
+
+### Line-shape cheat sheet
+
+The stream-line contracts in `@dungeonmaster/shared/contracts/*-stream-line/` (plus their
+stubs) capture the common assistant/user message shape. They do NOT capture the fields
+involved in sub-agent correlation — zod strips unknown keys; raw line normalization keeps
+them. Below are the sub-agent-specific keys, verbatim from captured Claude CLI output.
+
+**Streaming (stdout) — sub-agent lines carry `parent_tool_use_id` at the top level:**
+```json
+{
+  "type": "assistant",
+  "message": { "role": "assistant", "content": [ /* tool_use or text */ ] },
+  "parent_tool_use_id": "toolu_01K6qfGEd8bFzkPvY8nHt1Ts",
+  "session_id": "8bd90844-...",
+  "uuid": "6257d359-..."
+}
+```
+`parent_tool_use_id` is `null` on parent lines and the Task's own `tool_use_id` on
+sub-agent lines. After `claudeLineNormalizeBroker` runs, the key is `parentToolUseId`.
+
+**Streaming (stdout) — Task completion user tool_result carries `tool_use_result.agentId`
+— the real internal agentId Claude CLI assigned to the sub-agent run:**
+```json
+{
+  "type": "user",
+  "parent_tool_use_id": null,
+  "message": { "role": "user", "content": [ { "type": "tool_result", "tool_use_id": "toolu_01K6...", "content": "..." } ] },
+  "tool_use_result": { "agentId": "a750c8bc", "status": "completed", ... }
+}
+```
+This line is the ONLY place where `toolUseId` (Task's id) and `agentId` (real internal id)
+co-occur. The reverse map is populated from here.
+
+**File (main session JSONL on disk) — `<sessionId>.jsonl`:**
+```json
+{
+  "parentUuid": "dd4198e9-...",
+  "isSidechain": false,
+  "message": { "role": "assistant", "content": [ { "type": "tool_use", "id": "toolu_...", "name": "Agent", "input": {...} } ] },
+  "type": "assistant"
+}
+```
+No `parent_tool_use_id` field. The completion `user` line carries `toolUseResult.agentId`
+(camelCase — different from streaming's `tool_use_result`); this is the translation key
+the replay pre-scan reads.
+
+**File (sub-agent JSONL on disk) — `subagents/agent-<realAgentId>.jsonl`:**
+```json
+{
+  "parentUuid": "4191db7e-...",
+  "isSidechain": true,
+  "agentId": "a0a7f82d9619a1800",
+  "message": { "role": "assistant", "content": [...] }
+}
+```
+`agentId` appears as a top-level field on EVERY line. `isSidechain: true` marks this as
+sub-agent activity. The filename itself (`agent-${realAgentId}.jsonl`) is the primary key
+the replay broker uses to tag lines when feeding them into the processor.
+
+Field-presence matrix (post-normalization, camelCase):
+
+| Field | Streaming parent | Streaming sub-agent | File main | File sub-agent |
+|---|:-:|:-:|:-:|:-:|
+| `parentToolUseId` | null | **set** | — | — |
+| `toolUseResult.agentId` | set on Task completion | — | set on Task completion | — |
+| `parentUuid` | — | — | set | set |
+| `isSidechain` | — | — | `false` | `true` |
+| top-level `agentId` | — | — | — | **set** |
+| `sessionId` | set | set | — | — |
+| `timestamp` | sometimes | sometimes | set | set |
 
 The four entry points that feed the processor:
 

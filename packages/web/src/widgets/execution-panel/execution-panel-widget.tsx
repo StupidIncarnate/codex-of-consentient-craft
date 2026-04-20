@@ -36,8 +36,8 @@ import type { TotalCount } from '../../contracts/total-count/total-count-contrac
 import {
   isAbandonableQuestStatusGuard,
   isActiveWorkItemStatusGuard,
+  isAnyAgentRunningQuestStatusGuard,
   isCompleteWorkItemStatusGuard,
-  isQuestPauseableQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
   isTerminalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
@@ -505,7 +505,7 @@ export const ExecutionPanelWidget = ({
             )}
           </AutoScrollContainerWidget>
           {isAbandonableQuestStatusGuard({ status: quest.status }) &&
-            ((isQuestPauseableQuestStatusGuard({ status: quest.status }) && onPause) ||
+            ((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
               (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange) ||
               onAbandon) && (
               <Box
@@ -517,7 +517,7 @@ export const ExecutionPanelWidget = ({
                 }}
               >
                 <Group gap="xs">
-                  {isQuestPauseableQuestStatusGuard({ status: quest.status }) &&
+                  {isAnyAgentRunningQuestStatusGuard({ status: quest.status }) &&
                     !confirmingAbandon &&
                     onPause && (
                       <Box data-testid="EXECUTION_PAUSE_BUTTON">

@@ -51,13 +51,6 @@ export const DesignChatStartResponder = async ({
         payload: { chatProcessId, entries },
       });
     },
-    onPatch: ({ chatProcessId, toolUseId, agentId }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-patch',
-        processId: chatProcessId,
-        payload: { chatProcessId, toolUseId, agentId },
-      });
-    },
     onSessionIdExtracted: ({ chatProcessId, sessionId: sid }) => {
       orchestrationEventsState.emit({
         type: 'chat-session-started',

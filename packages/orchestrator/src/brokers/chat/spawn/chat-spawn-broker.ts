@@ -8,7 +8,6 @@
  *   message: 'Help me build auth',
  *   processor,
  *   onEntries: ({ chatProcessId, entries }) => {},
- *   onPatch: ({ chatProcessId, toolUseId, agentId }) => {},
  *   onAgentDetected: ({ chatProcessId, toolUseId, agentId, sessionId }) => {},
  *   onComplete: ({ chatProcessId, exitCode, sessionId }) => {},
  *   onSessionIdExtracted: ({ chatProcessId, sessionId }) => {},
@@ -26,7 +25,6 @@ import {
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
-import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
@@ -51,7 +49,6 @@ export const chatSpawnBroker = async ({
   sessionId,
   processor,
   onEntries,
-  onPatch,
   onAgentDetected,
   onComplete,
   onQuestCreated,
@@ -66,7 +63,6 @@ export const chatSpawnBroker = async ({
   sessionId?: SessionId;
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
-  onPatch: (params: { chatProcessId: ProcessId; toolUseId: ToolUseId; agentId: AgentId }) => void;
   onAgentDetected: (params: {
     chatProcessId: ProcessId;
     toolUseId: ToolUseId;
@@ -132,6 +128,10 @@ export const chatSpawnBroker = async ({
     cwd: guildAbsolutePath,
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
     onLine: ({ line }) => {
+      const subagentDebug = process.env.SUBAGENT_DEBUG === '1';
+      if (subagentDebug) {
+        process.stderr.write(`[SUBAGENT-TRACE][STDOUT-RAW] ${line}\n`);
+      }
       const parsed = claudeLineNormalizeBroker({ rawLine: line });
 
       const outputs = processor.processLine({
@@ -143,24 +143,32 @@ export const chatSpawnBroker = async ({
         if (output.type === 'entries') {
           onEntries({ chatProcessId, entries: output.entries });
 
-          for (const entry of output.entries) {
-            if (entry.role !== 'assistant' || entry.type !== 'tool_use') continue;
-            if (entry.toolName !== 'Task' && entry.toolName !== 'Agent') continue;
-            const { toolUseId, agentId: entryAgentId } = entry;
-            if (toolUseId !== undefined && entryAgentId !== undefined && sessionId) {
-              onAgentDetected({
-                chatProcessId,
-                toolUseId,
-                agentId: agentIdContract.parse(entryAgentId),
-                sessionId,
-              });
+          if (subagentDebug) {
+            for (const entry of output.entries) {
+              const entryRole = entry.role;
+              const entryType = 'type' in entry ? entry.type : 'n/a';
+              const entryToolName = 'toolName' in entry ? entry.toolName : 'n/a';
+              const entryToolUseId = 'toolUseId' in entry ? entry.toolUseId : 'n/a';
+              const entryAgentIdVal = 'agentId' in entry ? entry.agentId : 'n/a';
+              const entrySource = 'source' in entry ? entry.source : 'n/a';
+              process.stderr.write(
+                `[SUBAGENT-TRACE][STDOUT-ENTRY] role=${entryRole} type=${entryType} toolName=${entryToolName} toolUseId=${entryToolUseId} agentId=${entryAgentIdVal} source=${entrySource}\n`,
+              );
             }
           }
         }
 
-        if (output.type === 'patch') {
-          onPatch({ chatProcessId, toolUseId: output.toolUseId, agentId: output.agentId });
-
+        // `agent-detected` is emitted when the processor learns the "real" internal agentId
+        // from tool_use_result.agentId on the parent stream. That's the JSONL-filename key
+        // we need to start `chatSubagentTailBroker`. The wire-level `agentId` on ChatEntries
+        // is kept as `toolUseId` — sub-agent tail lines arrive without `parent_tool_use_id`
+        // but the processor translates them into the same shape via its internal reverse map.
+        if (output.type === 'agent-detected') {
+          if (subagentDebug) {
+            process.stderr.write(
+              `[SUBAGENT-TRACE][STDOUT-AGENT-DETECTED] toolUseId=${String(output.toolUseId)} realAgentId=${String(output.agentId)} sessionId=${String(sessionId)}\n`,
+            );
+          }
           if (sessionId) {
             onAgentDetected({
               chatProcessId,

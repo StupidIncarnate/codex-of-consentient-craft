@@ -1,5 +1,5 @@
 import { chatLineOutputContract } from './chat-line-output-contract';
-import { ChatLineEntriesStub, ChatLinePatchStub } from './chat-line-output.stub';
+import { ChatLineAgentDetectedStub, ChatLineEntriesStub } from './chat-line-output.stub';
 
 describe('chatLineOutputContract', () => {
   describe('entries variant', () => {
@@ -13,12 +13,12 @@ describe('chatLineOutputContract', () => {
     });
   });
 
-  describe('patch variant', () => {
-    it('VALID: {type: "patch", toolUseId, agentId} => parses successfully', () => {
-      const result = ChatLinePatchStub();
+  describe('agent-detected variant', () => {
+    it('VALID: {type: "agent-detected", toolUseId, agentId} => parses successfully', () => {
+      const result = ChatLineAgentDetectedStub();
 
       expect(chatLineOutputContract.parse(result)).toStrictEqual({
-        type: 'patch',
+        type: 'agent-detected',
         toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
         agentId: 'agent-abc',
       });
@@ -36,16 +36,16 @@ describe('chatLineOutputContract', () => {
       expect(() => chatLineOutputContract.parse({ type: 'entries' })).toThrow(/Required/u);
     });
 
-    it('INVALID: {type: "patch" without toolUseId} => throws validation error', () => {
-      expect(() => chatLineOutputContract.parse({ type: 'patch', agentId: 'agent-abc' })).toThrow(
-        /Required/u,
-      );
+    it('INVALID: {type: "agent-detected" without toolUseId} => throws validation error', () => {
+      expect(() =>
+        chatLineOutputContract.parse({ type: 'agent-detected', agentId: 'agent-abc' }),
+      ).toThrow(/Required/u);
     });
 
-    it('INVALID: {type: "patch" without agentId} => throws validation error', () => {
+    it('INVALID: {type: "agent-detected" without agentId} => throws validation error', () => {
       expect(() =>
         chatLineOutputContract.parse({
-          type: 'patch',
+          type: 'agent-detected',
           toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
         }),
       ).toThrow(/Required/u);

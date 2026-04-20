@@ -25,6 +25,12 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
   // If the orchestrator already parsed <task-notification> XML on the server side, it attaches
   // the structured fields as `taskNotification` on the line. Build the task_notification
   // ChatEntry directly from those fields — no XML parsing on the web.
+  //
+  // The inflated taskNotification carries a `toolUseId` (from the XML's <tool-use-id>) which IS
+  // the Task's wire-level agentId after convergence. Stamp it on the entry as `agentId` so the
+  // web's chain grouping can pin this notification to its Task by the same key every other
+  // sub-agent entry uses. Without this, the entry's `taskId` holds the real internal agentId
+  // (from <task-id>) which never matches the chain's toolUseId-based agentId.
   const rawTaskNotification: unknown =
     'taskNotification' in parsed ? Reflect.get(parsed, 'taskNotification') : undefined;
   if (typeof rawTaskNotification === 'object' && rawTaskNotification !== null) {
@@ -36,6 +42,11 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
       const totalTokens: unknown = Reflect.get(rawTaskNotification, 'totalTokens');
       const toolUses: unknown = Reflect.get(rawTaskNotification, 'toolUses');
       const durationMs: unknown = Reflect.get(rawTaskNotification, 'durationMs');
+      const notificationToolUseId: unknown = Reflect.get(rawTaskNotification, 'toolUseId');
+      const notificationAgentId =
+        typeof notificationToolUseId === 'string' && notificationToolUseId.length > 0
+          ? notificationToolUseId
+          : validAgentId;
       const taskEntry = chatEntryContract.safeParse({
         role: 'system',
         type: 'task_notification',
@@ -46,6 +57,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
         ...(typeof totalTokens === 'number' ? { totalTokens } : {}),
         ...(typeof toolUses === 'number' ? { toolUses } : {}),
         ...(typeof durationMs === 'number' ? { durationMs } : {}),
+        ...(validSource ? { source: validSource } : {}),
+        ...(notificationAgentId === undefined ? {} : { agentId: notificationAgentId }),
       });
       if (taskEntry.success) {
         return [taskEntry.data];

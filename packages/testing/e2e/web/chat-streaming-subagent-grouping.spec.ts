@@ -137,18 +137,27 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
     // Wait for the streamed parent-level assistant text so we know processing finished.
     await expect(page.getByText('All done')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // The Agent tool_use creates a sub-agent chain group. Without the fix, this
-    // group exists but has `agentId = ''` and `entryCount = 0` (no sub-agent entries
-    // tagged). With the fix, the patch stamps the real agentId, the sub-agent tail
-    // reads agent-{agentId}.jsonl, and the chain inner groups contain the marker.
+    // PARITY: keep the chain-header assertion shape in sync with
+    // chat-replay-subagent-grouping.spec.ts — description visible, positive entry count,
+    // marker scoped to the chain body. If one spec asserts something the other doesn't,
+    // the two-source convergence invariant is not symmetrically tested.
     const chainHeader = page.getByTestId('SUBAGENT_CHAIN_HEADER');
 
     await expect(chainHeader).toBeVisible({ timeout: CHAT_TIMEOUT });
+    // Task description from the streamed tool_use input must render on the header —
+    // proves the Task ChatEntry itself was parsed and stamped, not dropped.
+    await expect(chainHeader).toContainText('Sub-agent does MCP calls', {
+      timeout: CHAT_TIMEOUT,
+    });
 
-    // Sub-agent grouping working: the chain header shows the entries from the
-    // subagent tail. Before the snake_case fix it was "(0 entries)"; now both
-    // replay-history and live chat surface the marker entry, so the chain shows 2.
-    await expect(chainHeader).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
+    // Expected count is 1. The seeded main JSONL contains only the initial user text
+    // (no Task tool_use), so the replay pre-scan cannot register a realAgentId → toolUseId
+    // translation for the pre-seeded subagent file — that subagent-file-sourced marker
+    // entry is orphaned from the chain. The streaming-sourced marker, which arrives after
+    // the processor sees the live tool_use + tool_use_result on stdout, is translated via
+    // the reverse map and grouped under the chain. chat-replay-subagent-grouping.spec.ts
+    // covers the scenario where main JSONL includes the Task line.
+    await expect(chainHeader).toContainText('1 entries', { timeout: CHAT_TIMEOUT });
 
     // Expand and confirm the inner marker text lives inside the chain.
     await chainHeader.click();

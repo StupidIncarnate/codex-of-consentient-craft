@@ -39,12 +39,27 @@ See `packages/orchestrator/CLAUDE.md` for the full translation funnel.
 
 ```
 chat-output   { chatProcessId, entries: ChatEntry[] }
-chat-patch    { chatProcessId, toolUseId, agentId }
 chat-complete { chatProcessId, exitCode, sessionId }
 ```
 
 The binding (`useSessionChatBinding`) appends `entries` directly to React state — there's
 no transformation layer between WS and the renderer.
+
+**Sub-agent correlation arrives pre-converged.** The orchestrator stamps the Task's
+`toolUseId` as the wire-level `agentId` on the Task's ChatEntry AND on every sub-agent
+line (streaming via `parent_tool_use_id`, file via a realAgentId → toolUseId translation
+map in the processor — see `packages/orchestrator/CLAUDE.md` → "Two-source sub-agent
+correlation"). The web just renders: do NOT reconcile agentIds after delivery, do NOT
+add special-case logic for "real" internal sub-agent agentIds (the orchestrator would be
+leaking a shape the web is not supposed to see), do NOT add a `chat-patch` WS handler.
+
+### Sub-agent chain grouping uses toolUseId as the wire key
+
+`collectSubagentChainsTransformer` and `indexSubagentEntriesTransformer` key on the
+Task's `toolUseId`. The Task's `tool_result` entry is pinned to its chain by matching
+either `e.agentId === task.agentId` or `e.toolName === task.agentId` — the latter path
+covers the completion tool_result line where no parent_tool_use_id exists to stamp
+agentId via the convergence.
 
 ### If you need a new field or variant
 

@@ -7,6 +7,13 @@ thus won't trigger eslint at all.
 the root of this repo). This keeps scratch files inside the repo's permission scope and, for eslint work, inside the
 folder that actually triggers the linter.
 
+**Critical:** Do not document historical state. CLAUDE.md files, code comments, JSDoc, and
+test descriptions should describe what the code does NOW — never "used to do", "previously",
+"historically", or "before the X fix". Git is the history. If the current design needs
+rationale, state the rationale in present tense ("keys on toolUseId because…") not as a
+contrast with a deleted implementation. When you remove code, remove every comment that
+refers to what was removed.
+
 ## What This Repo Is
 
 This is a **published npm package** (`dungeonmaster`). When users install it in their projects and run
@@ -107,8 +114,15 @@ is produced the next time someone runs `npm run init`.
    cd packages/orchestrator && npm run ward
    ```
 
-2. **NEVER sleep-poll for results.** If you need to wait for a long-running command, use `run_in_background: true` on
-   the Bash tool and wait for the notification. Do NOT use `sleep N && cat` loops to check output files.
+2. **NEVER sleep-poll for results.** Pick ONE of two modes and stick with it:
+   - **Foreground** — call Bash without `run_in_background`; it blocks until the command finishes (use
+     `timeout: 600000` so ward has room to complete).
+   - **Background** — call Bash with `run_in_background: true` and wait for the task-notification to
+     fire; then read the output file once.
+
+   Do NOT combine them: no `sleep N && tail ...` loops, no "spawn in background then poll the output
+   file while waiting." That pattern wastes wall-clock, burns context on partial output, and races
+   with the real completion event.
 
 3. **Run ward ONCE, not redundantly.** Pick the right flags and run it once. Do not run the same checks multiple ways
    (e.g., `--onlyTests "name"` AND `-- path/to/file.test.ts` separately). Do not run scoped ward per-package and then
@@ -116,3 +130,18 @@ is produced the next time someone runs `npm run init`.
 
 4. **Always use `timeout: 600000`** on all ward Bash calls. Ward takes 3-4 minutes across the monorepo; the default
    2-minute timeout kills it.
+
+5. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
+   failures you think your changes caused — every single red test, lint error, and typecheck error. This
+   is non-negotiable:
+
+   - ❌ "That failure is pre-existing / from master / unrelated to my changes." → **NO**. Fix it.
+   - ❌ "A different session caused that, not mine." → **NO**. Fix it.
+   - ❌ "That test is wrong but I didn't write it." → **NO**. Fix the test OR the code; make it green.
+   - ❌ "Git stash shows it fails without my changes too." → **Useful diagnostic, not an excuse**. Fix it.
+   - ✅ "Ward is red. I need to make it green before handing back to the user." → YES. Do that.
+
+   The user's smoke-testing loop is blocked while ward is red. Diagnose however you want, but the only
+   acceptable outcome is `npm run ward` exits 0. If a fix would have broad blast radius or requires
+   product decisions, surface that to the user BEFORE stopping — don't just report "out of scope" and
+   walk away from a red ward.

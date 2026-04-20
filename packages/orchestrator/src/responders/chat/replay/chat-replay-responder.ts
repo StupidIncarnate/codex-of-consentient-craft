@@ -36,13 +36,6 @@ export const ChatReplayResponder = async ({
           payload: { chatProcessId, entries },
         });
       },
-      onPatch: ({ toolUseId, agentId }) => {
-        orchestrationEventsState.emit({
-          type: 'chat-patch',
-          processId: chatProcessId,
-          payload: { chatProcessId, toolUseId, agentId },
-        });
-      },
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message.includes('Guild not found')) {

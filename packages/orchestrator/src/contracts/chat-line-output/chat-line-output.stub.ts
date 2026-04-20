@@ -12,11 +12,11 @@ export const ChatLineEntriesStub = ({
     ...props,
   });
 
-export const ChatLinePatchStub = ({
+export const ChatLineAgentDetectedStub = ({
   ...props
 }: StubArgument<ChatLineOutput> = {}): ChatLineOutput =>
   chatLineOutputContract.parse({
-    type: 'patch',
+    type: 'agent-detected',
     toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
     agentId: 'agent-abc',
     ...props,

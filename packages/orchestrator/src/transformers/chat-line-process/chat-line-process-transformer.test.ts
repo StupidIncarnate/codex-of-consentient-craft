@@ -102,14 +102,17 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'Task',
               toolInput: '{}',
               source: 'session',
-              agentId: 'agent-abc',
+              // Wire-level agentId is the Task's own toolUseId (eager stamping). The "real"
+              // internal agentId from tool_use_result is NOT used as the web-side chain key
+              // any more — it surfaces via the `agent-detected` output for internal routing.
+              agentId: 'toolu_task_01',
             },
           ],
         },
       ]);
     });
 
-    it('VALID: {assistant Task tool_use emitted first, then user tool_result with agentId} => emits patch then entries', () => {
+    it('VALID: {assistant Task tool_use emitted first, then user tool_result with agentId} => emits agent-detected then entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_02' });
       const agentId = AgentIdStub({ value: 'agent-xyz' });
@@ -139,7 +142,7 @@ describe('chatLineProcessTransformer', () => {
 
       expect(userResult).toStrictEqual([
         {
-          type: 'patch',
+          type: 'agent-detected',
           toolUseId: 'toolu_task_02',
           agentId: 'agent-xyz',
         },
@@ -152,7 +155,6 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_task_02',
               content: 'done',
               source: 'session',
-              agentId: 'agent-xyz',
             },
           ],
         },
@@ -177,7 +179,16 @@ describe('chatLineProcessTransformer', () => {
 
       const result = processor.processLine({ parsed: userParsed, source });
 
+      // Processing a user tool_result with tool_use_result.agentId emits BOTH an
+      // agent-detected signal (so chat-spawn-broker can bootstrap the sub-agent tail) AND
+      // the tool_result ChatEntry. The tool_result carries no agentId; collect-subagent-chains
+      // pins it to the chain via `toolName` (= the tool_use_id).
       expect(result).toStrictEqual([
+        {
+          type: 'agent-detected',
+          toolUseId: 'toolu_task_03',
+          agentId: 'agent-123',
+        },
         {
           type: 'entries',
           entries: [
@@ -187,7 +198,6 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_task_03',
               content: 'done',
               source: 'session',
-              agentId: 'agent-123',
             },
           ],
         },
@@ -196,7 +206,7 @@ describe('chatLineProcessTransformer', () => {
   });
 
   describe('agent ID correlation with Agent tool name', () => {
-    it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits patch then entries', () => {
+    it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits agent-detected then entries', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_04' });
       const agentId = AgentIdStub({ value: 'agent-new-cli' });
@@ -226,7 +236,7 @@ describe('chatLineProcessTransformer', () => {
 
       expect(userResult).toStrictEqual([
         {
-          type: 'patch',
+          type: 'agent-detected',
           toolUseId: 'toolu_agent_04',
           agentId: 'agent-new-cli',
         },
@@ -239,7 +249,6 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_agent_04',
               content: 'done',
               source: 'session',
-              agentId: 'agent-new-cli',
             },
           ],
         },
@@ -285,7 +294,9 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'Agent',
               toolInput: '{}',
               source: 'session',
-              agentId: 'agent-forward',
+              // Eager stamp: agentId = toolUseId. The real internal agentId from the prior
+              // tool_use_result surfaces via the agent-detected output, not on the entry.
+              agentId: 'toolu_agent_05',
             },
           ],
         },
@@ -414,12 +425,15 @@ describe('chatLineProcessTransformer', () => {
     });
   });
 
-  describe('explicit agentId param skipped when map has agentId', () => {
-    it('VALID: {assistant entry already has agentId from map, explicit agentId param given} => uses map agentId', () => {
+  describe('file-path sub-agent translation via the reverse agentId map', () => {
+    it('VALID: {sub-agent line arrives with real agentId param after user tool_result registered that agentId} => translates to parent_tool_use_id shape and sets source=subagent', () => {
+      // This is the file-replay path: the sub-agent JSONL line is tagged with the real
+      // internal agentId from its filename. The processor should translate that to the
+      // Task's toolUseId so the emitted entry has the SAME agentId as streaming-sourced
+      // entries — making chain grouping on the web identical regardless of source.
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_map_wins' });
-      const mapAgentId = AgentIdStub({ value: 'agent-from-map' });
-      const explicitAgentId = AgentIdStub({ value: 'agent-explicit-param' });
+      const realAgentId = AgentIdStub({ value: 'agent-from-map' });
       const source = ChatLineSourceStub({ value: 'subagent' });
 
       const userParsed = normalize({
@@ -429,10 +443,13 @@ describe('chatLineProcessTransformer', () => {
             content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
           },
         } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-        toolUseResult: { agentId: mapAgentId },
+        toolUseResult: { agentId: realAgentId },
       });
 
-      processor.processLine({ parsed: userParsed, source });
+      processor.processLine({
+        parsed: userParsed,
+        source: ChatLineSourceStub({ value: 'session' }),
+      });
 
       const assistantParsed = normalize(
         AssistantToolUseStreamLineStub({
@@ -446,7 +463,7 @@ describe('chatLineProcessTransformer', () => {
       const result = processor.processLine({
         parsed: assistantParsed,
         source,
-        agentId: explicitAgentId,
+        agentId: realAgentId,
       });
 
       expect(result).toStrictEqual([
@@ -460,7 +477,289 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'Task',
               toolInput: '{}',
               source: 'subagent',
-              agentId: 'agent-from-map',
+              // The realAgentId was translated via the reverse map to toolUseId, so the
+              // wire-level agentId is the same as the streaming-sourced variant.
+              agentId: 'toolu_task_map_wins',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {sub-agent file line with agentId param and EMPTY reverse map} => falls back to agentId param unchanged (orphan sub-agent file)', () => {
+      // When the reverse map has NO translation seeded for this realAgentId (e.g. the
+      // sub-agent JSONL file survived but its parent session's tool_use_result was never
+      // processed — orphan case), the processor must not stamp a bogus parent_tool_use_id.
+      // Instead, the explicit agentId param falls through unchanged so the entry still
+      // ships, just without being grouped under a parent Task.
+      const processor = chatLineProcessTransformer();
+      const orphanAgentId = AgentIdStub({ value: 'agent-orphan-subagent' });
+      const source = ChatLineSourceStub({ value: 'subagent' });
+
+      const assistantParsed = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'orphan line' }],
+          },
+        } as Parameters<typeof AssistantTextStreamLineStub>[0]),
+      );
+
+      const result = processor.processLine({
+        parsed: assistantParsed,
+        source,
+        agentId: orphanAgentId,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'orphan line',
+              source: 'subagent',
+              // Reverse-map lookup missed, so parent_tool_use_id was NOT synthesized.
+              // The agentId param falls through as the raw real internal id.
+              agentId: 'agent-orphan-subagent',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('streaming sub-agent line with parent_tool_use_id (step 2 of convergence)', () => {
+    it('VALID: {streaming assistant text line with parent_tool_use_id, source: session} => forces source=subagent and stamps agentId=parentToolUseId', () => {
+      // The streaming path: a sub-agent line arrives on parent stdout carrying
+      // `parent_tool_use_id` (snake_case from Claude CLI). Even though the caller passes
+      // source='session', the processor MUST override to 'subagent' and stamp the Task's
+      // toolUseId as agentId — that's the wire-level correlation key the web uses to
+      // group the chain.
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const parsed = normalize({
+        type: 'assistant',
+        parent_tool_use_id: 'toolu_stream_parent_01',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'I am the sub-agent speaking.' }],
+        },
+      });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'I am the sub-agent speaking.',
+              // parent_tool_use_id forces source to 'subagent' regardless of caller's value.
+              source: 'subagent',
+              // Eager stamp: agentId is the parent Task's toolUseId, not the real
+              // internal agentId.
+              agentId: 'toolu_stream_parent_01',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {streaming user tool_result line with parent_tool_use_id} => forces source=subagent and stamps agentId=parentToolUseId', () => {
+      // Streaming sub-agent lines can also be user tool_result lines (the sub-agent
+      // reports its own tool results on parent stdout with parent_tool_use_id).
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const parsed = normalize({
+        type: 'user',
+        parent_tool_use_id: 'toolu_stream_parent_02',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_subagent_inner_call',
+              content: 'inner sub-agent result',
+            },
+          ],
+        },
+      });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_subagent_inner_call',
+              content: 'inner sub-agent result',
+              source: 'subagent',
+              agentId: 'toolu_stream_parent_02',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('registerAgentTranslation pre-seeding (replay pre-scan path)', () => {
+    it('VALID: {pre-seed translation, then feed sub-agent file line with matching real agentId} => emits entry with pre-seeded toolUseId as agentId', () => {
+      // The replay broker pre-scans the main JSONL and calls registerAgentTranslation
+      // for every realAgentId↔toolUseId mapping BEFORE it iterates lines in timestamp
+      // order. This is required because sub-agent file lines sort earlier than their own
+      // completion tool_result; without the pre-seeding, they'd fail reverse-map lookup.
+      const processor = chatLineProcessTransformer();
+      const preSeededToolUseId = ToolUseIdStub({ value: 'toolu_preseed_01' });
+      const realAgentId = AgentIdStub({ value: 'agent-preseeded' });
+      const source = ChatLineSourceStub({ value: 'subagent' });
+
+      processor.registerAgentTranslation({
+        agentId: realAgentId,
+        toolUseId: preSeededToolUseId,
+      });
+
+      const parsed = normalize(
+        AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'hello from replay' }],
+          },
+        } as Parameters<typeof AssistantTextStreamLineStub>[0]),
+      );
+
+      const result = processor.processLine({ parsed, source, agentId: realAgentId });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'hello from replay',
+              // The pre-seeded translation resolved realAgentId → toolUseId, so the
+              // emitted entry's agentId is the parent Task's toolUseId.
+              source: 'subagent',
+              agentId: 'toolu_preseed_01',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('resolveToolUseIdForAgent lookup API', () => {
+    it('VALID: {registerAgentTranslation then resolveToolUseIdForAgent with same agentId} => returns the registered toolUseId', () => {
+      const processor = chatLineProcessTransformer();
+      const toolUseId = ToolUseIdStub({ value: 'toolu_resolve_01' });
+      const realAgentId = AgentIdStub({ value: 'agent-resolve' });
+
+      processor.registerAgentTranslation({ agentId: realAgentId, toolUseId });
+
+      const resolved = processor.resolveToolUseIdForAgent({ agentId: realAgentId });
+
+      expect(resolved).toBe('toolu_resolve_01');
+    });
+
+    it('VALID: {resolveToolUseIdForAgent on empty map} => returns undefined', () => {
+      const processor = chatLineProcessTransformer();
+      const unknownAgentId = AgentIdStub({ value: 'agent-never-seen' });
+
+      const resolved = processor.resolveToolUseIdForAgent({ agentId: unknownAgentId });
+
+      expect(resolved).toBe(undefined);
+    });
+
+    it('VALID: {user tool_result with toolUseResult.agentId populates the map, then resolveToolUseIdForAgent} => returns the live-populated toolUseId', () => {
+      // Live population path: as tool_use_result lines flow through processLine, the
+      // reverse map is populated. resolveToolUseIdForAgent must reflect that state.
+      const processor = chatLineProcessTransformer();
+      const toolUseId = ToolUseIdStub({ value: 'toolu_live_populated' });
+      const realAgentId = AgentIdStub({ value: 'agent-live' });
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const userParsed = normalize({
+        ...SuccessfulToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
+          },
+        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+        toolUseResult: { agentId: realAgentId },
+      });
+
+      processor.processLine({ parsed: userParsed, source });
+
+      const resolved = processor.resolveToolUseIdForAgent({ agentId: realAgentId });
+
+      expect(resolved).toBe('toolu_live_populated');
+    });
+  });
+
+  describe('streaming vs file source shape parity', () => {
+    it('VALID: {same assistant text payload via streaming parent_tool_use_id vs file source with pre-seeded map} => emits identical ChatEntry shape', () => {
+      // The whole point of the convergence: both source paths must produce the SAME
+      // ChatEntry on the wire so collect-subagent-chains on the web can key on agentId
+      // without caring which source the line came from. If this invariant ever breaks,
+      // chain grouping silently shows (0 entries) for one of the two paths.
+      const toolUseId = ToolUseIdStub({ value: 'toolu_parity_01' });
+      const realAgentId = AgentIdStub({ value: 'agent-parity' });
+
+      // Path A: streaming — line already has parent_tool_use_id
+      const streamingProcessor = chatLineProcessTransformer();
+      const streamingParsed = normalize({
+        type: 'assistant',
+        parent_tool_use_id: toolUseId,
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Hello, I can help with that.' }],
+        },
+      });
+      const streamingResult = streamingProcessor.processLine({
+        parsed: streamingParsed,
+        source: ChatLineSourceStub({ value: 'session' }),
+      });
+
+      // Path B: file source with pre-seeded map — caller passes realAgentId param,
+      // processor looks up toolUseId in the reverse map and synthesizes parent_tool_use_id.
+      const fileProcessor = chatLineProcessTransformer();
+      fileProcessor.registerAgentTranslation({ agentId: realAgentId, toolUseId });
+      const fileParsed = normalize({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Hello, I can help with that.' }],
+        },
+      });
+      const fileResult = fileProcessor.processLine({
+        parsed: fileParsed,
+        source: ChatLineSourceStub({ value: 'subagent' }),
+        agentId: realAgentId,
+      });
+
+      // Both paths produce the SAME ChatEntry[] output. The agentId is the parent
+      // Task's toolUseId (the wire-level correlation key), source is 'subagent', and
+      // content/role/type all match.
+      expect(streamingResult).toStrictEqual(fileResult);
+      expect(streamingResult).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'subagent',
+              agentId: 'toolu_parity_01',
             },
           ],
         },
@@ -533,6 +832,7 @@ describe('chatLineProcessTransformer', () => {
               totalTokens: 28054,
               toolUses: 3,
               durationMs: 9033,
+              source: 'session',
             },
           ],
         },

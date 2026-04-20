@@ -8,7 +8,6 @@
  *   processor: <same processor instance used during streaming>,
  *   chatProcessId: ProcessIdStub({ value: 'proc-123' }),
  *   onEntries: ({ chatProcessId, entries }) => { },
- *   onPatch: ({ chatProcessId, toolUseId, agentId }) => { },
  * });
  * // Returns a stop function. Call it on session teardown.
  *
@@ -29,7 +28,6 @@ import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
-import type { ChatLinePatch } from '../../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
@@ -39,18 +37,12 @@ export const chatMainSessionTailBroker = async ({
   guildId,
   processor,
   onEntries,
-  onPatch,
   chatProcessId,
 }: {
   sessionId: SessionId;
   guildId: GuildId;
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
-  onPatch: (params: {
-    chatProcessId: ProcessId;
-    toolUseId: ChatLinePatch['toolUseId'];
-    agentId: ChatLinePatch['agentId'];
-  }) => void;
   chatProcessId: ProcessId;
 }): Promise<() => void> => {
   const guild = await guildGetBroker({ guildId });
@@ -81,13 +73,6 @@ export const chatMainSessionTailBroker = async ({
       for (const output of outputs) {
         if (output.type === 'entries') {
           onEntries({ chatProcessId, entries: output.entries });
-        }
-        if (output.type === 'patch') {
-          onPatch({
-            chatProcessId,
-            toolUseId: output.toolUseId,
-            agentId: output.agentId,
-          });
         }
       }
     },

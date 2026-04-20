@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the output types emitted by the chat line processor: fully-parsed ChatEntry arrays and agent ID patches
+ * PURPOSE: Defines the output types emitted by the chat line processor: fully-parsed ChatEntry arrays and sub-agent spawn signals
  *
  * USAGE:
  * chatLineOutputContract.parse({ type: 'entries', entries: [{ role: 'assistant', type: 'text', content: 'hi' }] });
@@ -17,17 +17,22 @@ const chatLineEntriesContract = z.object({
   entries: z.array(chatEntryContract),
 });
 
-const chatLinePatchContract = z.object({
-  type: z.literal('patch'),
+// Emitted when the processor learns the "real" internal agentId Claude CLI assigned to a
+// sub-agent — via `tool_use_result.agentId` on the parent stream's user tool_result line.
+// Consumers (chat-spawn-broker) use this to start tailing the sub-agent's JSONL file so
+// background activity also reaches the web. Not broadcast to the web — the web's chain
+// grouping keys on `toolUseId`, not on the real internal agentId.
+const chatLineAgentDetectedContract = z.object({
+  type: z.literal('agent-detected'),
   toolUseId: toolUseIdContract,
   agentId: agentIdContract,
 });
 
 export const chatLineOutputContract = z.discriminatedUnion('type', [
   chatLineEntriesContract,
-  chatLinePatchContract,
+  chatLineAgentDetectedContract,
 ]);
 
 export type ChatLineOutput = z.infer<typeof chatLineOutputContract>;
 export type ChatLineEntries = z.infer<typeof chatLineEntriesContract>;
-export type ChatLinePatch = z.infer<typeof chatLinePatchContract>;
+export type ChatLineAgentDetected = z.infer<typeof chatLineAgentDetectedContract>;

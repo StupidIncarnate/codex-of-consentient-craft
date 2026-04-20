@@ -124,13 +124,6 @@ export const ChatStartResponder = async ({
         }
       }
     },
-    onPatch: ({ chatProcessId, toolUseId, agentId }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-patch',
-        processId: chatProcessId,
-        payload: { chatProcessId, toolUseId, agentId },
-      });
-    },
     onSessionIdExtracted: ({ chatProcessId, sessionId: sid }) => {
       orchestrationEventsState.emit({
         type: 'chat-session-started',
@@ -150,13 +143,6 @@ export const ChatStartResponder = async ({
             type: 'chat-output',
             processId: cpid,
             payload: { chatProcessId: cpid, entries },
-          });
-        },
-        onPatch: ({ chatProcessId: cpid, toolUseId: tuId, agentId: aId }) => {
-          orchestrationEventsState.emit({
-            type: 'chat-patch',
-            processId: cpid,
-            payload: { chatProcessId: cpid, toolUseId: tuId, agentId: aId },
           });
         },
       })
@@ -197,13 +183,6 @@ export const ChatStartResponder = async ({
               type: 'chat-output',
               processId: cpid,
               payload: { chatProcessId: cpid, entries },
-            });
-          },
-          onPatch: ({ chatProcessId: cpid, toolUseId: tuId, agentId: aId }) => {
-            orchestrationEventsState.emit({
-              type: 'chat-patch',
-              processId: cpid,
-              payload: { chatProcessId: cpid, toolUseId: tuId, agentId: aId },
             });
           },
         })

@@ -14,12 +14,17 @@ turns a raw line into a structured shape — stop. That belongs in the orchestra
 
 ```
 chat-output   { chatProcessId, entries: ChatEntry[] }
-chat-patch    { chatProcessId, toolUseId, agentId }
 chat-complete { chatProcessId, exitCode, sessionId }
 ```
 
 The `entries` array is already fully-structured `ChatEntry` objects from
 `@dungeonmaster/shared/contracts`. No further parsing is needed or allowed on the wire.
+
+**Do NOT add a `chat-patch` message type** for late sub-agent agentId correlation. The
+orchestrator converges streaming and file sources to produce identical ChatEntry shapes
+before they ship (see `packages/orchestrator/CLAUDE.md` → "Two-source sub-agent
+correlation"). If a new divergence appears, fix convergence at the orchestrator — not by
+patching entries after delivery.
 
 ### What the server IS responsible for
 
