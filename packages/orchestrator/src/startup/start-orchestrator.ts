@@ -29,6 +29,7 @@ import type {
   Quest,
   QuestId,
   QuestListItem,
+  QuestStatus,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
@@ -88,6 +89,13 @@ export const StartOrchestrator = {
 
   pauseQuest: async ({ questId }: { questId: QuestId }): Promise<{ paused: boolean }> =>
     OrchestrationFlow.pause({ questId }),
+
+  resumeQuest: async ({
+    questId,
+  }: {
+    questId: QuestId;
+  }): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> =>
+    OrchestrationFlow.resume({ questId }),
 
   abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
     OrchestrationFlow.abandon({ questId }),

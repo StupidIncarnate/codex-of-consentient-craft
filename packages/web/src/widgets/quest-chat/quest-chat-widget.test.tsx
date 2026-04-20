@@ -1330,6 +1330,57 @@ describe('QuestChatWidget', () => {
     );
   });
 
+  describe('resume button wiring', () => {
+    it('VALID: {RESUME clicked on paused quest} => calls questResumeBroker (not questModifyBroker)', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const pausedQuest = QuestStub({
+        id: 'chat-resume-click',
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestResume({ restoredStatus: 'seek_scope' });
+      proxy.setupModify();
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-resume-click',
+                state: { questId: pausedQuest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest: pausedQuest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      await proxy.clickExecutionResumeButton();
+
+      await waitFor(() => {
+        expect(proxy.getQuestResumeRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getQuestResumeRequestCount()).toBe(1);
+    });
+  });
+
   describe('live sessionId routing in execution phase', () => {
     it('VALID: {chat-output WS message with slotIndex and sessionId} => routes entries to work item panel by sessionId', async () => {
       const proxy = QuestChatWidgetProxy();

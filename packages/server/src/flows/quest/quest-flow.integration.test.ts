@@ -80,4 +80,21 @@ describe('QuestFlow', () => {
       });
     });
   });
+
+  describe('POST /api/quests/:questId/resume', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestResumeResponder and returns 400 quest-not-found', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/resume`, {
+        method: 'POST',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'Quest not found',
+      });
+    });
+  });
 });

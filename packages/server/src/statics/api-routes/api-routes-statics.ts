@@ -15,6 +15,7 @@ export const apiRoutesStatics = {
     byId: '/api/quests/:questId',
     start: '/api/quests/:questId/start',
     pause: '/api/quests/:questId/pause',
+    resume: '/api/quests/:questId/resume',
     abandon: '/api/quests/:questId/abandon',
   },
   process: {

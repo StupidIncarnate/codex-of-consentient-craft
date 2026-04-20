@@ -33,6 +33,7 @@ import { designStartBrokerProxy } from '../../brokers/design/start/design-start-
 import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
+import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
@@ -76,6 +77,8 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupDesignStart: (params: { port: Quest['designPort'] }) => void;
   setupDesignSession: (params: { chatProcessId: ProcessId }) => void;
   hasExecutionPanel: () => boolean;
+  clickExecutionResumeButton: () => Promise<void>;
+  getQuestResumeRequestCount: () => RequestCount;
   hasDumpsterRaccoon: () => boolean;
   hasApprovedModal: () => boolean;
   clickApprovedModalBeginQuest: () => Promise<void>;
@@ -87,6 +90,8 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupQuestStartError: () => void;
   setupQuestModifyError: () => void;
   setupQuestPauseError: () => void;
+  setupQuestResume: (params: { restoredStatus: Quest['status'] }) => void;
+  setupQuestResumeError: () => void;
   setupQuestAbandonError: () => void;
 } => {
   websocketConnectAdapterProxy({ deferOpen });
@@ -99,6 +104,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
+  const resumeProxy = questResumeBrokerProxy();
   const abandonProxy = questAbandonBrokerProxy();
   const startProxy = questStartBrokerProxy();
   const designStartProxy = designStartBrokerProxy();
@@ -106,7 +112,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const approvedModalProxy = QuestApprovedModalWidgetProxy();
   DesignPanelWidgetProxy();
   DumpsterRaccoonWidgetProxy();
-  ExecutionPanelWidgetProxy();
+  const executionPanelProxy = ExecutionPanelWidgetProxy();
 
   return {
     setupChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
@@ -212,6 +218,10 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
       designSessionProxy.setupSession({ chatProcessId });
     },
     hasExecutionPanel: (): boolean => screen.queryByTestId('execution-panel-widget') !== null,
+    clickExecutionResumeButton: async (): Promise<void> => {
+      await executionPanelProxy.clickResumeButton();
+    },
+    getQuestResumeRequestCount: (): RequestCount => resumeProxy.getRequestCount(),
     hasDumpsterRaccoon: (): boolean => screen.queryByTestId('dumpster-raccoon-widget') !== null,
     hasApprovedModal: (): boolean => approvedModalProxy.hasModal(),
     clickApprovedModalBeginQuest: async (): Promise<void> => {
@@ -240,6 +250,12 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupQuestPauseError: (): void => {
       pauseProxy.setupError();
+    },
+    setupQuestResume: ({ restoredStatus }: { restoredStatus: Quest['status'] }): void => {
+      resumeProxy.setupResume({ restoredStatus });
+    },
+    setupQuestResumeError: (): void => {
+      resumeProxy.setupError();
     },
     setupQuestAbandonError: (): void => {
       abandonProxy.setupError();

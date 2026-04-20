@@ -29,6 +29,7 @@ import { designStartBroker } from '../../brokers/design/start/design-start-broke
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
+import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/is-design-start-visible-guard';
@@ -38,6 +39,7 @@ import { extractAskUserQuestionTransformer } from '../../transformers/extract-as
 import {
   isAbandonableQuestStatusGuard,
   isGateApprovedQuestStatusGuard,
+  isUserPausedQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
   shouldShowBeginQuestModalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
@@ -357,6 +359,14 @@ export const QuestChatWidget = (): React.JSX.Element => {
               slotEntries={slotEntries}
               sessionEntries={sessionEntriesMap}
               onStatusChange={({ status }): void => {
+                if (isUserPausedQuestStatusGuard({ status: questWithContent.status })) {
+                  questResumeBroker({ questId: questWithContent.id }).catch(
+                    (resumeError: unknown) => {
+                      globalThis.console.error('[quest-chat] resume failed', resumeError);
+                    },
+                  );
+                  return;
+                }
                 questModifyBroker({
                   questId: questWithContent.id,
                   modifications: { status },

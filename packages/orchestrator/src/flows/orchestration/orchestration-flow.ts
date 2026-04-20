@@ -11,6 +11,7 @@ import { ChatStopAllResponder } from '../../responders/chat/stop-all/chat-stop-a
 import { OrchestrationAbandonResponder } from '../../responders/orchestration/abandon/orchestration-abandon-responder';
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
 import { OrchestrationPauseResponder } from '../../responders/orchestration/pause/orchestration-pause-responder';
+import { OrchestrationResumeResponder } from '../../responders/orchestration/resume/orchestration-resume-responder';
 import { OrchestrationStartResponder } from '../../responders/orchestration/start/orchestration-start-responder';
 import { OrchestrationStartupRecoveryResponder } from '../../responders/orchestration/startup-recovery/orchestration-startup-recovery-responder';
 
@@ -19,6 +20,9 @@ type StartResult = Awaited<ReturnType<typeof OrchestrationStartResponder>>;
 
 type PauseParams = Parameters<typeof OrchestrationPauseResponder>[0];
 type PauseResult = Awaited<ReturnType<typeof OrchestrationPauseResponder>>;
+
+type ResumeParams = Parameters<typeof OrchestrationResumeResponder>[0];
+type ResumeResult = Awaited<ReturnType<typeof OrchestrationResumeResponder>>;
 
 type AbandonParams = Parameters<typeof OrchestrationAbandonResponder>[0];
 type AbandonResult = Awaited<ReturnType<typeof OrchestrationAbandonResponder>>;
@@ -35,6 +39,9 @@ export const OrchestrationFlow = {
 
   pause: async ({ questId }: PauseParams): Promise<PauseResult> =>
     OrchestrationPauseResponder({ questId }),
+
+  resume: async ({ questId }: ResumeParams): Promise<ResumeResult> =>
+    OrchestrationResumeResponder({ questId }),
 
   abandon: async ({ questId }: AbandonParams): Promise<AbandonResult> =>
     OrchestrationAbandonResponder({ questId }),

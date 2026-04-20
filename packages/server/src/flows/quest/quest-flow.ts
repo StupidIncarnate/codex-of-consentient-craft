@@ -16,6 +16,7 @@ import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-aban
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
+import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
@@ -55,6 +56,11 @@ export const QuestFlow = (): Hono => {
 
   app.post(apiRoutesStatics.quests.pause, async (c) => {
     const result = await QuestPauseResponder({ params: { questId: c.req.param('questId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.resume, async (c) => {
+    const result = await QuestResumeResponder({ params: { questId: c.req.param('questId') } });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

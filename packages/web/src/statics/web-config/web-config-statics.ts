@@ -23,6 +23,7 @@ export const webConfigStatics = {
       processStatus: '/api/process/:processId',
       questStart: '/api/quests/:questId/start',
       questPause: '/api/quests/:questId/pause',
+      questResume: '/api/quests/:questId/resume',
       questAbandon: '/api/quests/:questId/abandon',
       designStart: '/api/quests/:questId/design/start',
       designStop: '/api/quests/:questId/design/stop',
