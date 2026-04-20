@@ -166,8 +166,16 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const replayedSessionsRef = useRef<Set<SessionId>>(new Set());
   const executionWsRef = useRef<ReturnType<typeof websocketConnectAdapter> | null>(null);
   const executionWsOpenRef = useRef(false);
+  // While paused, render as if at pausedAtStatus so the user keeps seeing the pre-pause view
+  // (no flicker on resume). Defensive fallback to raw status when pausedAtStatus is missing.
+  const displayStatus: QuestStatus | null =
+    questData === null
+      ? null
+      : questData.status === 'paused' && questData.pausedAtStatus !== undefined
+        ? questData.pausedAtStatus
+        : questData.status;
   const isExecutionPhase =
-    questData !== null && shouldRenderExecutionPanelQuestStatusGuard({ status: questData.status });
+    displayStatus !== null && shouldRenderExecutionPanelQuestStatusGuard({ status: displayStatus });
 
   const questDataRef = useRef(questData);
   const resolvedGuildIdRef = useRef(resolvedGuildId);
@@ -352,7 +360,11 @@ export const QuestChatWidget = (): React.JSX.Element => {
     );
   }
 
-  if (questData && shouldRenderExecutionPanelQuestStatusGuard({ status: questData.status })) {
+  if (
+    questData &&
+    displayStatus !== null &&
+    shouldRenderExecutionPanelQuestStatusGuard({ status: displayStatus })
+  ) {
     return (
       <Box
         data-testid="QUEST_CHAT"

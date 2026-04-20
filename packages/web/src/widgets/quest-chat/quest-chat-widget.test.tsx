@@ -1330,6 +1330,215 @@ describe('QuestChatWidget', () => {
     );
   });
 
+  describe('paused display status', () => {
+    it('VALID: {status: paused, pausedAtStatus: explore_flows} => renders chat panel, NOT execution panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const pausedQuest = QuestStub({
+        id: 'chat-paused-chaoswhisperer',
+        status: 'paused',
+        pausedAtStatus: 'explore_flows',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-paused-chaoswhisperer',
+                state: { questId: pausedQuest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest: pausedQuest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
+      expect(proxy.hasExecutionPanel()).toBe(false);
+    });
+
+    it('VALID: {status: paused, pausedAtStatus: seek_synth} => renders execution panel, NOT chat panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const pausedQuest = QuestStub({
+        id: 'chat-paused-seek-synth',
+        status: 'paused',
+        pausedAtStatus: 'seek_synth',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-paused-seek-synth',
+                state: { questId: pausedQuest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest: pausedQuest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.hasExecutionPanel()).toBe(true);
+      expect(proxy.hasChatPanel()).toBe(false);
+    });
+
+    it('VALID: {status: paused, pausedAtStatus: undefined} => falls back to raw paused behavior (execution panel)', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const pausedQuest = QuestStub({
+        id: 'chat-paused-nofallback',
+        status: 'paused',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-paused-nofallback',
+                state: { questId: pausedQuest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest: pausedQuest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.hasExecutionPanel()).toBe(true);
+      expect(proxy.hasChatPanel()).toBe(false);
+    });
+
+    it('VALID: {status: in_progress} => renders execution panel (regression)', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-inprogress-regress',
+        status: 'in_progress',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-inprogress-regress',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.hasExecutionPanel()).toBe(true);
+      expect(proxy.hasChatPanel()).toBe(false);
+    });
+
+    it('VALID: {status: explore_flows} => renders chat panel (regression)', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-explore-regress',
+        status: 'explore_flows',
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-explore-regress',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
+      expect(proxy.hasExecutionPanel()).toBe(false);
+    });
+  });
+
   describe('resume button wiring', () => {
     it('VALID: {RESUME clicked on paused quest} => calls questResumeBroker (not questModifyBroker)', async () => {
       const proxy = QuestChatWidgetProxy();
