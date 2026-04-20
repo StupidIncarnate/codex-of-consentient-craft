@@ -29,7 +29,7 @@ export const SubagentChainWidget = ({
   group,
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   if (group.kind !== 'subagent-chain') return null;
 
