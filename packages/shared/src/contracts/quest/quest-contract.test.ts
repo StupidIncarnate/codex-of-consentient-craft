@@ -323,6 +323,22 @@ describe('questContract', () => {
 
       expect(result.pausedAtStatus).toBe(undefined);
     });
+
+    it('VALID: {pausedAtStatus: null} => parses with pausedAtStatus as null (clear marker)', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+        pausedAtStatus: null,
+      });
+
+      expect(result.pausedAtStatus).toBe(null);
+    });
   });
 
   describe('invalid quests', () => {

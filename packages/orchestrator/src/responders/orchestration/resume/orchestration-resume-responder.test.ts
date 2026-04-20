@@ -109,5 +109,64 @@ describe('OrchestrationResumeResponder', () => {
 
       await expect(proxy.callResponder({ questId })).rejects.toThrow(/write denied/u);
     });
+
+    it('ERROR: {paused quest, modify fails} => throws and does NOT register recovery process', async () => {
+      const questId = QuestIdStub({ value: 'modify-fails-no-launch' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupModifyReject({ error: new Error('write denied') });
+
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(/write denied/u);
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual([]);
+    });
+  });
+
+  describe('pausedAtStatus clearing + recovery launch', () => {
+    it('VALID: {paused quest} => modify persists restoredStatus and strips pausedAtStatus from record', async () => {
+      const questId = QuestIdStub({ value: 'resume-clear-paused-at' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'seek_scope' });
+
+      const persistedContents = proxy.getAllPersistedContents();
+      const [firstWrite] = persistedContents;
+      const parsedFirst = JSON.parse(String(firstWrite)) as Record<PropertyKey, unknown>;
+
+      expect(parsedFirst.status).toBe('seek_scope');
+      expect('pausedAtStatus' in parsedFirst).toBe(false);
+    });
+
+    it('VALID: {paused quest} => registers recovery process after successful modify', async () => {
+      const questId = QuestIdStub({ value: 'resume-launches-loop' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+    });
   });
 });

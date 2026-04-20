@@ -44,6 +44,18 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('VALID: {pausedAtStatus: null} => parses with null (clear marker for resume)', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      pausedAtStatus: null,
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      pausedAtStatus: null,
+    });
+  });
+
   it('VALID: {planningNotes with blightReports upsert} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',

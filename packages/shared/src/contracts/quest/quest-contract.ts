@@ -69,9 +69,10 @@ export const questContract = z.object({
   userRequest: z.string().min(1).brand<'UserRequest'>(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
   pausedAtStatus: questStatusContract
+    .nullable()
     .optional()
     .describe(
-      'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused.',
+      'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused. Null is the wire-level clear marker written by the resume responder before the field is stripped from the persisted JSON.',
     ),
   workItems: z
     .array(workItemContract)

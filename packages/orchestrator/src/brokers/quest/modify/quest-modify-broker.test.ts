@@ -1246,6 +1246,35 @@ describe('questModifyBroker', () => {
 
       expect(persisted.pausedAtStatus).toBe('seek_scope');
     });
+
+    it('VALID: {pausedAtStatus: null, status: "seek_scope"} => clears quest.pausedAtStatus from the record', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'paused',
+        pausedAtStatus: 'seek_scope',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'seek_scope',
+        pausedAtStatus: null,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persistedContents = proxy.getAllPersistedContents();
+      const latestRaw = persistedContents[persistedContents.length - 1];
+      const parsedRaw = JSON.parse(String(latestRaw)) as Record<PropertyKey, unknown>;
+
+      expect('pausedAtStatus' in parsedRaw).toBe(false);
+      expect(parsedRaw.status).toBe('seek_scope');
+    });
   });
 
   describe('valid transition passes all tiers', () => {

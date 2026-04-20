@@ -254,7 +254,9 @@ export const questModifyBroker = async ({
           quest.status = validated.status;
         }
 
-        if (validated.pausedAtStatus !== undefined) {
+        if (validated.pausedAtStatus === null) {
+          Reflect.deleteProperty(quest, 'pausedAtStatus');
+        } else if (validated.pausedAtStatus !== undefined) {
           quest.pausedAtStatus = validated.pausedAtStatus;
         }
 
