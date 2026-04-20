@@ -19,7 +19,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
@@ -34,7 +33,6 @@ import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import {
-  isAbandonableQuestStatusGuard,
   isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
   isCompleteWorkItemStatusGuard,
@@ -47,6 +45,7 @@ import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
+import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
@@ -71,11 +70,6 @@ const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
 const PAUSE_LABEL = 'PAUSE QUEST' as ButtonLabel;
 const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
-const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
-const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
-const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
-const DANGER_VARIANT = 'danger' as ButtonVariant;
-const GHOST_VARIANT = 'ghost' as ButtonVariant;
 const ACTION_BAR_PADDING = 12;
 const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
 const STEPS_PREFIX = 'steps/';
@@ -90,7 +84,6 @@ export const ExecutionPanelWidget = ({
   onAbandon,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
-  const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
   const { steps } = quest;
@@ -197,19 +190,7 @@ export const ExecutionPanelWidget = ({
         <QuestSpecPanelWidget quest={quest} readOnly={true} />
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-          <Text
-            ff="monospace"
-            data-testid="execution-panel-quest-title"
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: colors['loot-gold'],
-              padding: '8px 12px',
-              borderBottom: `1px solid ${colors.border}`,
-            }}
-          >
-            {quest.title}
-          </Text>
+          <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
           {isTerminalQuestStatusGuard({ status: quest.status }) ? (
             <Box
               data-testid="execution-panel-terminal-banner"
@@ -504,74 +485,40 @@ export const ExecutionPanelWidget = ({
               </>
             )}
           </AutoScrollContainerWidget>
-          {isAbandonableQuestStatusGuard({ status: quest.status }) &&
-            ((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
-              (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange) ||
-              onAbandon) && (
-              <Box
-                data-testid="execution-panel-action-bar"
-                style={{
-                  padding: ACTION_BAR_PADDING,
-                  borderTop: `1px solid ${colors.border}`,
-                  flexShrink: 0,
-                }}
-              >
-                <Group gap="xs">
-                  {isAnyAgentRunningQuestStatusGuard({ status: quest.status }) &&
-                    !confirmingAbandon &&
-                    onPause && (
-                      <Box data-testid="EXECUTION_PAUSE_BUTTON">
-                        <PixelBtnWidget
-                          label={PAUSE_LABEL}
-                          onClick={() => {
-                            onPause();
-                          }}
-                        />
-                      </Box>
-                    )}
-                  {isQuestResumableQuestStatusGuard({ status: quest.status }) &&
-                    !confirmingAbandon &&
-                    onStatusChange && (
-                      <Box data-testid="EXECUTION_RESUME_BUTTON">
-                        <PixelBtnWidget
-                          label={RESUME_LABEL}
-                          onClick={() => {
-                            onStatusChange({ status: 'in_progress' as QuestStatus });
-                          }}
-                        />
-                      </Box>
-                    )}
-                  {onAbandon &&
-                    (confirmingAbandon ? (
-                      <>
-                        <PixelBtnWidget
-                          label={CONFIRM_ABANDON_LABEL}
-                          variant={DANGER_VARIANT}
-                          onClick={() => {
-                            setConfirmingAbandon(false);
-                            onAbandon();
-                          }}
-                        />
-                        <PixelBtnWidget
-                          label={CANCEL_LABEL}
-                          variant={GHOST_VARIANT}
-                          onClick={() => {
-                            setConfirmingAbandon(false);
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <PixelBtnWidget
-                        label={ABANDON_LABEL}
-                        variant={GHOST_VARIANT}
-                        onClick={() => {
-                          setConfirmingAbandon(true);
-                        }}
-                      />
-                    ))}
-                </Group>
-              </Box>
-            )}
+          {((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
+            (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange)) && (
+            <Box
+              data-testid="execution-panel-action-bar"
+              style={{
+                padding: ACTION_BAR_PADDING,
+                borderTop: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="xs">
+                {isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause && (
+                  <Box data-testid="EXECUTION_PAUSE_BUTTON">
+                    <PixelBtnWidget
+                      label={PAUSE_LABEL}
+                      onClick={() => {
+                        onPause();
+                      }}
+                    />
+                  </Box>
+                )}
+                {isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange && (
+                  <Box data-testid="EXECUTION_RESUME_BUTTON">
+                    <PixelBtnWidget
+                      label={RESUME_LABEL}
+                      onClick={() => {
+                        onStatusChange({ status: 'in_progress' as QuestStatus });
+                      }}
+                    />
+                  </Box>
+                )}
+              </Group>
+            </Box>
+          )}
         </Box>
       )}
     </Stack>

@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
+import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
@@ -23,9 +23,9 @@ export const QuestSpecPanelWidgetProxy = (): {
   hasActionButtons: () => boolean;
   hasAbandonButton: () => boolean;
 } => {
-  FormInputWidgetProxy();
   PixelBtnWidgetProxy();
   QuestClarifyPanelWidgetProxy();
+  QuestTitleBarWidgetProxy();
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   FlowsLayerWidgetProxy();

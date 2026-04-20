@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
+import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 import { FloorHeaderLayerWidgetProxy } from './floor-header-layer-widget.proxy';
@@ -15,10 +16,15 @@ export const ExecutionPanelWidgetProxy = (): {
   hasFloorContent: () => boolean;
   hasSpecPanel: () => boolean;
   hasActionBar: () => boolean;
+  hasAbandonButton: () => boolean;
   getStepRows: () => HTMLElement[];
   getFloorHeaders: () => HTMLElement[];
   getActionButtons: () => HTMLElement[];
+  getAbandonButtons: () => HTMLElement[];
   clickButtonByLabel: (params: { label: string }) => Promise<void>;
+  clickAbandon: () => Promise<void>;
+  clickConfirmAbandon: () => Promise<void>;
+  clickCancelAbandon: () => Promise<void>;
   hasPlanningText: () => boolean;
   hasStreamingBar: () => boolean;
   getExecutionMessages: () => HTMLElement[];
@@ -33,6 +39,22 @@ export const ExecutionPanelWidgetProxy = (): {
   FloorHeaderLayerWidgetProxy();
   PixelBtnWidgetProxy();
   QuestSpecPanelWidgetProxy();
+  QuestTitleBarWidgetProxy();
+
+  const getAbandonBarButtons = (): HTMLElement[] => {
+    const abandonBar = screen.queryByTestId('ABANDON_BAR');
+    if (!abandonBar) {
+      return [];
+    }
+    return Array.from(abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]'));
+  };
+
+  const clickAbandonBarButton = async ({ label }: { label: string }): Promise<void> => {
+    const target = getAbandonBarButtons().find((btn) => btn.textContent === label);
+    if (target) {
+      await userEvent.click(target);
+    }
+  };
 
   return {
     clickTab: async ({ tabId }: { tabId: 'execution' | 'spec' }): Promise<void> => {
@@ -46,6 +68,8 @@ export const ExecutionPanelWidgetProxy = (): {
     hasFloorContent: (): boolean => screen.queryByTestId('execution-panel-floor-content') !== null,
     hasSpecPanel: (): boolean => screen.queryByTestId('QUEST_SPEC_PANEL') !== null,
     hasActionBar: (): boolean => screen.queryByTestId('execution-panel-action-bar') !== null,
+    hasAbandonButton: (): boolean =>
+      getAbandonBarButtons().some((btn) => btn.textContent === 'ABANDON QUEST'),
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
     getFloorHeaders: (): HTMLElement[] => screen.queryAllByTestId('floor-header-layer-widget'),
     getActionButtons: (): HTMLElement[] => {
@@ -55,6 +79,7 @@ export const ExecutionPanelWidgetProxy = (): {
       }
       return Array.from(actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]'));
     },
+    getAbandonButtons: (): HTMLElement[] => getAbandonBarButtons(),
     clickButtonByLabel: async ({ label }: { label: string }): Promise<void> => {
       const actionBar = screen.queryByTestId('execution-panel-action-bar');
       if (!actionBar) {
@@ -65,6 +90,15 @@ export const ExecutionPanelWidgetProxy = (): {
       if (target) {
         await userEvent.click(target);
       }
+    },
+    clickAbandon: async (): Promise<void> => {
+      await clickAbandonBarButton({ label: 'ABANDON QUEST' });
+    },
+    clickConfirmAbandon: async (): Promise<void> => {
+      await clickAbandonBarButton({ label: 'CONFIRM ABANDON' });
+    },
+    clickCancelAbandon: async (): Promise<void> => {
+      await clickAbandonBarButton({ label: 'CANCEL' });
     },
     hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
     hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
