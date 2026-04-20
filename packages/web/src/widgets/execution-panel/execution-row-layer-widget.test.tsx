@@ -502,7 +502,7 @@ describe('ExecutionRowLayerWidget', () => {
       ).toStrictEqual(['CHAT_MESSAGE']);
     });
 
-    it('VALID: {isStreaming true} => renders streaming bar', () => {
+    it('VALID: {isStreaming true} => renders streaming indicator', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -516,7 +516,7 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('streaming-bar-layer-widget')).toBeInTheDocument();
+      expect(screen.getByTestId('STREAMING_INDICATOR')).toBeInTheDocument();
     });
 
     it('VALID: {ad-hoc with spiritmender entries} => renders with dashed border, AD-HOC tag, and messages', () => {

@@ -67,7 +67,7 @@ export const ExecutionPanelWidgetProxy = (): {
       }
     },
     hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
-    hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
+    hasStreamingBar: (): boolean => screen.queryByTestId('STREAMING_INDICATOR') !== null,
     getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('CHAT_MESSAGE'),
     hasPauseButton: (): boolean => screen.queryByTestId('EXECUTION_PAUSE_BUTTON') !== null,
     hasResumeButton: (): boolean => screen.queryByTestId('EXECUTION_RESUME_BUTTON') !== null,

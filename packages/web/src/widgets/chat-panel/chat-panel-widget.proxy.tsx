@@ -2,13 +2,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
+import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
-import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
-import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
-import { StreamingIndicatorWidgetProxy } from '../streaming-indicator/streaming-indicator-widget.proxy';
-import { SubagentChainWidgetProxy } from '../subagent-chain/subagent-chain-widget.proxy';
-import { ToolGroupWidgetProxy } from '../tool-group/tool-group-widget.proxy';
 
 export const ChatPanelWidgetProxy = (): {
   typeMessage: (params: { text: string }) => Promise<void>;
@@ -18,20 +14,12 @@ export const ChatPanelWidgetProxy = (): {
   isStreamingVisible: () => boolean;
   isStopButtonVisible: () => boolean;
   isSendButtonVisible: () => boolean;
-  hasMessageCount: (params: { count: number }) => boolean;
-  hasToolGroupCount: (params: { count: number }) => boolean;
-  hasDividerCount: (params: { count: number }) => boolean;
-  hasSubagentChainCount: (params: { count: number }) => boolean;
 } => {
   AutoScrollContainerWidgetProxy();
   const inputProxy = ChatInputWidgetProxy();
   inputProxy.clearStorage();
-  ChatMessageWidgetProxy();
+  ChatEntryListWidgetProxy();
   PixelSpriteWidgetProxy();
-  StreamingIndicatorWidgetProxy();
-  ToolGroupWidgetProxy();
-  ContextDividerWidgetProxy();
-  SubagentChainWidgetProxy();
 
   return {
     typeMessage: async ({ text }: { text: string }): Promise<void> => {
@@ -50,13 +38,5 @@ export const ChatPanelWidgetProxy = (): {
     isStreamingVisible: (): boolean => screen.queryByTestId('STREAMING_INDICATOR') !== null,
     isStopButtonVisible: (): boolean => screen.queryByTestId('STOP_BUTTON') !== null,
     isSendButtonVisible: (): boolean => screen.queryByTestId('SEND_BUTTON') !== null,
-    hasMessageCount: ({ count }: { count: number }): boolean =>
-      screen.queryAllByTestId('CHAT_MESSAGE').length === count,
-    hasToolGroupCount: ({ count }: { count: number }): boolean =>
-      screen.queryAllByTestId('TOOL_GROUP_HEADER').length === count,
-    hasDividerCount: ({ count }: { count: number }): boolean =>
-      screen.queryAllByTestId('CONTEXT_DIVIDER').length === count,
-    hasSubagentChainCount: ({ count }: { count: number }): boolean =>
-      screen.queryAllByTestId('SUBAGENT_CHAIN_HEADER').length === count,
   };
 };
