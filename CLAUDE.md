@@ -105,7 +105,19 @@ is produced the next time someone runs `npm run init`.
 
 **Ward is a root-level monorepo script.** These rules apply to ALL agents, including sub-agents in worktrees.
 
-1. **NEVER `cd` into a package to run ward.** Ward runs from the repo root. To scope to a package, pass paths after
+1. **ALWAYS `npm run build` before ward.** Ward resolves cross-package types and imports through each
+   package's `dist/`. A stale build surfaces as TS2339 "property X does not exist" on cross-package APIs
+   even when the source is correct — e.g. a fix that added `StartOrchestrator.resumeQuest` in the
+   orchestrator package will break the server package's typecheck until the orchestrator's `dist/` is
+   rebuilt. Build FIRST, then ward:
+   ```bash
+   npm run build
+   npm run ward
+   ```
+   This applies to scoped ward too (`npm run ward -- --only unit -- packages/X`). The build is
+   fast (~7s); the time lost to re-diagnosing a stale-dist failure is much larger.
+
+2. **NEVER `cd` into a package to run ward.** Ward runs from the repo root. To scope to a package, pass paths after
    `--`:
    ```bash
    # ✅ CORRECT
@@ -114,7 +126,7 @@ is produced the next time someone runs `npm run init`.
    cd packages/orchestrator && npm run ward
    ```
 
-2. **NEVER sleep-poll for results.** Pick ONE of two modes and stick with it:
+3. **NEVER sleep-poll for results.** Pick ONE of two modes and stick with it:
    - **Foreground** — call Bash without `run_in_background`; it blocks until the command finishes (use
      `timeout: 600000` so ward has room to complete).
    - **Background** — call Bash with `run_in_background: true` and wait for the task-notification to
@@ -124,14 +136,14 @@ is produced the next time someone runs `npm run init`.
    file while waiting." That pattern wastes wall-clock, burns context on partial output, and races
    with the real completion event.
 
-3. **Run ward ONCE, not redundantly.** Pick the right flags and run it once. Do not run the same checks multiple ways
+4. **Run ward ONCE, not redundantly.** Pick the right flags and run it once. Do not run the same checks multiple ways
    (e.g., `--onlyTests "name"` AND `-- path/to/file.test.ts` separately). Do not run scoped ward per-package and then
    full ward again.
 
-4. **Always use `timeout: 600000`** on all ward Bash calls. Ward takes 3-4 minutes across the monorepo; the default
+5. **Always use `timeout: 600000`** on all ward Bash calls. Ward takes 3-4 minutes across the monorepo; the default
    2-minute timeout kills it.
 
-5. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
+6. **When the user asks for full ward (`npm run ward`) to pass, YOU OWN EVERY FAILURE.** Not just the
    failures you think your changes caused — every single red test, lint error, and typecheck error. This
    is non-negotiable:
 

@@ -48,6 +48,12 @@ Static policies. These hold for every run.
 - **Build before dev server.** Always run `npm run build` before starting the dev server (initial start AND every
   restart after a fix). All packages run from `dist/`, so a stale build will mask or create bugs that don't reflect the
   source tree.
+- **Build before ward.** The orchestrator MUST run `npm run build` before every ward invocation (scoped or full). Ward
+  resolves cross-package types and imports through each package's `dist/`, so a stale build surfaces as TS2339
+  "property X does not exist" on cross-package APIs even when the source is correct. This is NOT optional — a fix agent
+  that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
+  (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
+  immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
 - **Blightwarden crash mid-run.** Relaunch the same role fresh (same pattern as pathseeker). No special resume protocol.
   Carry-over handling still applies only to the `failed-replan` → pathseeker path.
 - **Ward invocation.** Orchestrator does NOT run ward directly — always delegate to a ward-runner agent. Agents use
