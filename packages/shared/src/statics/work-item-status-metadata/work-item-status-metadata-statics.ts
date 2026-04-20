@@ -17,6 +17,19 @@ export const workItemStatusMetadataStatics = {
       isSkipped: false,
       isFailure: false,
     },
+    queued: {
+      // queued = deps satisfied, committed to a role group, but awaiting slot dispatch.
+      // isActive=true so pause resets these along with in_progress items, and chat-role
+      // dedup treats a queued chat-role the same as an executing one.
+      // satisfiesDependency=false because the work hasn't produced output yet.
+      isTerminal: false,
+      satisfiesDependency: false,
+      isActive: true,
+      isPending: false,
+      isComplete: false,
+      isSkipped: false,
+      isFailure: false,
+    },
     in_progress: {
       isTerminal: false,
       satisfiesDependency: false,

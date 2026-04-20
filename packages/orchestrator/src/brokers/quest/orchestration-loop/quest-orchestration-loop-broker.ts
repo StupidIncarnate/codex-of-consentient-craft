@@ -44,6 +44,16 @@ const CHAT_ROLES = new Set<WorkItemRole>([
   'glyphsmith' as WorkItemRole,
 ]);
 
+// Roles whose layer brokers fan work out through slot-manager-orchestrate-broker.
+// For these, only the first SLOT_COUNT items actually dispatch immediately — the rest
+// are held by the slot manager and should be surfaced as `queued` instead of `in_progress`
+// so the UI can distinguish "ready, waiting for slot" from "actually running".
+const SLOT_MANAGED_ROLES = new Set<WorkItemRole>([
+  'codeweaver' as WorkItemRole,
+  'lawbringer' as WorkItemRole,
+  'spiritmender' as WorkItemRole,
+]);
+
 export const questOrchestrationLoopBroker = async ({
   processId,
   questId,
@@ -158,16 +168,22 @@ export const questOrchestrationLoopBroker = async ({
     return;
   }
 
-  // 7. Mark all items in this role group as in_progress
+  // 7. Mark items that will actually dispatch now as in_progress, and any overflow
+  // (for slot-managed roles with more items than slots) as queued. The layer broker's
+  // slot-manager will work through the queued ones as slots free up, and its terminal
+  // write will transition them directly to complete/failed.
   const now = new Date().toISOString();
+  const isSlotManagedRole = SLOT_MANAGED_ROLES.has(roleName);
+  const immediateCount = isSlotManagedRole ? SLOT_COUNT : roleItems.length;
+  const workItemStatusUpdates = roleItems.map((wi, index) => ({
+    id: wi.id,
+    status: index < immediateCount ? 'in_progress' : 'queued',
+    startedAt: now,
+  }));
   await questModifyBroker({
     input: {
       questId,
-      workItems: roleItems.map((wi) => ({
-        id: wi.id,
-        status: 'in_progress' as const,
-        startedAt: now,
-      })),
+      workItems: workItemStatusUpdates,
     } as ModifyQuestInput,
   });
 

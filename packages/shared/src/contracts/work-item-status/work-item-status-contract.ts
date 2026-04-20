@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 export const workItemStatusContract = z.enum([
   'pending',
+  'queued',
   'in_progress',
   'complete',
   'failed',

@@ -11,6 +11,14 @@ describe('workItemStatusContract', () => {
       expect(result).toBe('pending');
     });
 
+    it('VALID: queued => parses successfully', () => {
+      const status = WorkItemStatusStub({ value: 'queued' });
+
+      const result = workItemStatusContract.parse(status);
+
+      expect(result).toBe('queued');
+    });
+
     it('VALID: in_progress => parses successfully', () => {
       const status = WorkItemStatusStub({ value: 'in_progress' });
 

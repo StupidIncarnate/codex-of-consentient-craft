@@ -6,6 +6,7 @@ const STATUSES = Object.keys(
 ) as readonly (keyof typeof workItemStatusMetadataStatics.statuses)[];
 
 const ACTIVE_STATUSES: ReadonlySet<keyof typeof workItemStatusMetadataStatics.statuses> = new Set([
+  'queued',
   'in_progress',
 ]);
 
