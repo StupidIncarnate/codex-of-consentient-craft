@@ -73,14 +73,19 @@ export const runSiegemasterLayerBroker = async ({
   }
   const { item: flow } = resolved;
 
-  // Load project config to check for devServer
-  // Config resolution may fail if no .dungeonmaster.json exists — treat as "no devServer config"
+  // Load project config to check for devServer.
+  // Absence of a config file (ConfigNotFoundError) is a legitimate "no devServer" state.
+  // Any other error (malformed JSON, zod validation, fs permission, etc.) MUST surface —
+  // silent fallback hides real problems.
   const config: Awaited<ReturnType<typeof dungeonmasterConfigResolveAdapter>> | null =
     await (async () => {
       try {
         return await dungeonmasterConfigResolveAdapter({ startPath });
-      } catch {
-        return null;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'ConfigNotFoundError') {
+          return null;
+        }
+        throw error;
       }
     })();
 

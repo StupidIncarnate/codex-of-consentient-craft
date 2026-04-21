@@ -874,4 +874,69 @@ describe('runSiegemasterLayerBroker', () => {
       expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
     });
   });
+
+  describe('config resolution error handling', () => {
+    it('VALID: {ConfigNotFoundError} => treats missing config as null, runs siege without devServer', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupConfigNotFoundThenSpawnWithSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+      });
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry: jest.fn(),
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(proxy.getPersistedWorkItemStatus({ workItemId: siegeWorkItemId })).toBe('complete');
+    });
+
+    it('INVALID: {config file malformed JSON} => broker throws with original error (no silent fallback)', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      proxy.setupConfigResolveRejects({
+        quest,
+        error: new Error('Failed to load config file: Unexpected token } in JSON'),
+      });
+
+      await expect(
+        runSiegemasterLayerBroker({
+          questId: quest.id,
+          workItem,
+          startPath: FilePathStub({ value: '/project' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(/Failed to load config file/u);
+    });
+  });
 });

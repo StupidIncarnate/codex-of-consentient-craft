@@ -126,6 +126,12 @@ export const runSiegemasterLayerBrokerProxy = (): {
     exitCode: ExitCode;
     signal: StreamSignal;
   }) => ChildProcess;
+  setupConfigNotFoundThenSpawnWithSignal: (params: {
+    quest: Quest;
+    exitCode: ExitCode;
+    signal: StreamSignal;
+  }) => void;
+  setupConfigResolveRejects: (params: { quest: Quest; error: Error }) => void;
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -364,6 +370,32 @@ export const runSiegemasterLayerBrokerProxy = (): {
       spawnProxy.setupSpawnAutoLines({ lines: buildSignalLine({ signal }), exitCode });
 
       return [proc1, proc2] as const;
+    },
+
+    setupConfigNotFoundThenSpawnWithSignal: ({
+      quest,
+      exitCode,
+      signal,
+    }: {
+      quest: Quest;
+      exitCode: ExitCode;
+      signal: StreamSignal;
+    }): void => {
+      const configNotFoundError = new Error('No config file');
+      configNotFoundError.name = 'ConfigNotFoundError';
+      configProxy.setupConfigResolveError({ error: configNotFoundError });
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      spawnProxy.setupSpawnOnce({
+        lines: buildSignalLine({ signal }),
+        exitCode,
+      });
+    },
+
+    setupConfigResolveRejects: ({ quest, error }: { quest: Quest; error: Error }): void => {
+      configProxy.setupConfigResolveError({ error });
+      getProxy.setupQuestFound({ quest });
     },
 
     setupDevServerWithFirstFailSecondSucceeds: ({
