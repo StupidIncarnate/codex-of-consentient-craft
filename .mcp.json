@@ -5,7 +5,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "[ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=dev exec npx tsx packages/mcp/src/index.ts"
+        "[ -f .env ] && set -a && . ./.env && set +a; DUNGEONMASTER_ENV=${DUNGEONMASTER_ENV:-dev} exec npx tsx packages/mcp/src/index.ts"
       ],
       "env": {}
     }
