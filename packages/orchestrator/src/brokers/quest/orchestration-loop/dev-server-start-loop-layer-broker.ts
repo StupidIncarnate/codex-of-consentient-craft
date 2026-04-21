@@ -58,10 +58,18 @@ export const devServerStartLoopLayerBroker = async ({
     return { success: true, process: serverResult.process };
   } catch (error: unknown) {
     const nextAttempt = attempt + 1;
+    const errorText = error instanceof Error ? error.message : String(error);
 
     if (nextAttempt >= maxAttempts) {
+      process.stderr.write(
+        `[dev-server-start] exhausted ${String(maxAttempts)} attempts on ${hostname}:${String(port)}${readinessPath} (readinessTimeoutMs=${String(readinessTimeoutMs)}); last error: ${errorText}\n`,
+      );
       return { success: false };
     }
+
+    process.stderr.write(
+      `[dev-server-start] attempt ${String(nextAttempt)} of ${String(maxAttempts)} failed on ${hostname}:${String(port)}${readinessPath}: ${errorText}\n`,
+    );
 
     const spiritmenderWorkUnit = workUnitContract.parse({
       role: 'spiritmender',

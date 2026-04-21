@@ -87,6 +87,7 @@ describe('devServerStartLoopLayerBroker', () => {
   describe('server exhausts all attempts', () => {
     it('VALID: {server fails with maxAttempts: 1} => returns { success: false } without spawning spiritmender', async () => {
       const proxy = devServerStartLoopLayerBrokerProxy();
+      proxy.setupStderrCapture();
       proxy.setupServerExitsBeforeReady({ exitCode: 1 });
 
       const result = await devServerStartLoopLayerBroker({
@@ -103,6 +104,42 @@ describe('devServerStartLoopLayerBroker', () => {
       });
 
       expect(result.success).toBe(false);
+    });
+
+    it('VALID: {exhausts all attempts} => writes loud stderr log with hostname, port, readinessPath, timeout, and last error', async () => {
+      const proxy = devServerStartLoopLayerBrokerProxy();
+      proxy.setupStderrCapture();
+      proxy.setupServerExitsBeforeReady({ exitCode: 1 });
+
+      await devServerStartLoopLayerBroker({
+        devCommand: DEV_COMMAND,
+        port: PORT,
+        hostname: HOSTNAME,
+        readinessPath: READINESS_PATH,
+        readinessTimeoutMs: READINESS_TIMEOUT_MS,
+        cwd: CWD,
+        startPath: START_PATH,
+        abortSignal: new AbortController().signal,
+        attempt: 0,
+        maxAttempts: 1,
+      });
+
+      const stderrOutput = proxy.getStderrWrites();
+      const hasExhaustedLog = stderrOutput.some((line) =>
+        String(line).includes('[dev-server-start] exhausted 1 attempts'),
+      );
+      const hasHostPortPath = stderrOutput.some((line) => String(line).includes('localhost:3000/'));
+      const hasTimeout = stderrOutput.some((line) =>
+        String(line).includes('readinessTimeoutMs=5000'),
+      );
+      const hasLastError = stderrOutput.some((line) =>
+        String(line).includes('exited before becoming ready'),
+      );
+
+      expect(hasExhaustedLog).toBe(true);
+      expect(hasHostPortPath).toBe(true);
+      expect(hasTimeout).toBe(true);
+      expect(hasLastError).toBe(true);
     });
   });
 
