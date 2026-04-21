@@ -3,6 +3,7 @@ import { CheckResultStub } from '../../contracts/check-result/check-result.stub'
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
+import { PassingTestStub } from '../../contracts/passing-test/passing-test.stub';
 import { WardFileDetailStub } from '../../contracts/ward-file-detail/ward-file-detail.stub';
 import { resultToDetailTransformer } from './result-to-detail-transformer';
 
@@ -605,6 +606,217 @@ describe('resultToDetailTransformer', () => {
             'src/app.ts\n  lint no-unused-vars (line 5, col 1)\n    Unused\n  lint no-any (line 10, col 2)\n    No any',
         }),
       );
+    });
+  });
+
+  describe('passing tests (no filePath)', () => {
+    it('VALID: {passing project with passingTests} => emits pass block per project', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+                status: 'pass',
+                filesCount: 1,
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'src/foo.test.ts',
+                    testName: 'VALID: {a} => b',
+                    durationMs: 15,
+                  }),
+                  PassingTestStub({
+                    suitePath: 'src/foo.test.ts',
+                    testName: 'VALID: {c} => d',
+                    durationMs: 7,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'ward',
+            '  unit  PASS  (1 files, 2 tests)',
+            '    ✓ src/foo.test.ts › VALID: {a} => b (15ms)',
+            '    ✓ src/foo.test.ts › VALID: {c} => d (7ms)',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('VALID: {passing project with no passingTests} => omits pass block', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+                status: 'pass',
+                passingTests: [],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(WardFileDetailStub({ value: 'No errors found' }));
+    });
+
+    it('VALID: {e2e pass with single file and cumulative duration} => reports total duration', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'e2e',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'testing', path: '/repo/packages/testing' },
+                status: 'pass',
+                filesCount: 1,
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'e2e/web/echo-badge.spec.ts',
+                    testName: 'Echo Badge › renders',
+                    durationMs: 6000,
+                  }),
+                  PassingTestStub({
+                    suitePath: 'e2e/web/echo-badge.spec.ts',
+                    testName: 'Echo Badge › does something else',
+                    durationMs: 1000,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: [
+            'testing',
+            '  e2e  PASS  (1 files, 2 tests, 7.0s)',
+            '    ✓ e2e/web/echo-badge.spec.ts › Echo Badge › renders (6000ms)',
+            '    ✓ e2e/web/echo-badge.spec.ts › Echo Badge › does something else (1000ms)',
+          ].join('\n'),
+        }),
+      );
+    });
+
+    it('VALID: {fail project also has passingTests} => pass block omitted on fail', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/repo/packages/ward' },
+                status: 'fail',
+                testFailures: [
+                  TestFailureStub({
+                    suitePath: 'src/app.test.ts',
+                    testName: 'fails',
+                    message: 'boom',
+                  }),
+                ],
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'src/app.test.ts',
+                    testName: 'passes',
+                    durationMs: 10,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: 'src/app.test.ts\n  FAIL  "fails"\n    boom',
+        }),
+      );
+    });
+  });
+
+  describe('passing tests (with filePath)', () => {
+    it('VALID: {passingTests matching filePath} => includes PASS entries in file detail', () => {
+      const { filePath } = ErrorEntryStub({ filePath: 'src/foo.test.ts' });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                status: 'pass',
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'src/foo.test.ts',
+                    testName: 'VALID: {a} => b',
+                    durationMs: 15,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath });
+
+      expect(result).toBe(
+        WardFileDetailStub({
+          value: 'src/foo.test.ts\n  PASS  "VALID: {a} => b" (15ms)',
+        }),
+      );
+    });
+
+    it('VALID: {passingTests in different file} => file path only', () => {
+      const { filePath } = ErrorEntryStub({ filePath: 'src/target.test.ts' });
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                status: 'pass',
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'src/other.test.ts',
+                    testName: 'ok',
+                    durationMs: 1,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailTransformer({ wardResult, filePath });
+
+      expect(result).toBe(WardFileDetailStub({ value: String(filePath) }));
     });
   });
 });

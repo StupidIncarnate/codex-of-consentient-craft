@@ -3,6 +3,7 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
+import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
 import { checkRunE2eBroker } from './check-run-e2e-broker';
 import { checkRunE2eBrokerProxy } from './check-run-e2e-broker.proxy';
@@ -185,7 +186,7 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', 'e2e/login.spec.ts']);
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/login.spec.ts']);
     });
 
     it('VALID: {fileList with no e2e files} => returns skip result', async () => {
@@ -234,7 +235,72 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', 'e2e/web/smoke.spec.ts']);
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/web/smoke.spec.ts']);
+    });
+  });
+
+  describe('passingTests from json report', () => {
+    it('VALID: {playwright writes json report with passing specs} => returns passingTests populated', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      const jsonContent = JSON.stringify({
+        suites: [
+          {
+            title: 'e2e/web/smoke.spec.ts',
+            specs: [
+              {
+                title: 'loads',
+                file: 'e2e/web/smoke.spec.ts',
+                tests: [{ results: [{ status: 'passed', duration: 1234 }] }],
+              },
+            ],
+          },
+        ],
+      });
+      proxy.setupPassWithJsonReport({ jsonContent });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 2,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
+          passingTests: [
+            PassingTestStub({
+              suitePath: 'e2e/web/smoke.spec.ts',
+              testName: 'e2e/web/smoke.spec.ts › loads',
+              durationMs: 1234,
+            }),
+          ],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: '',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {json report missing} => returns empty passingTests', async () => {
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass();
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result.passingTests).toStrictEqual([]);
     });
   });
 
@@ -253,7 +319,7 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line', '--grep', 'login']);
+      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', '--grep', 'login']);
     });
   });
 });

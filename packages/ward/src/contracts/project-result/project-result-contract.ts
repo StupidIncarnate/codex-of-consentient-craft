@@ -14,6 +14,7 @@ import { testFailureContract } from '../test-failure/test-failure-contract';
 import { rawOutputContract } from '../raw-output/raw-output-contract';
 import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { fileTimingContract } from '../file-timing/file-timing-contract';
+import { passingTestContract } from '../passing-test/passing-test-contract';
 
 export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
@@ -26,6 +27,7 @@ export const projectResultContract = z.object({
   onlyDiscovered: z.array(gitRelativePathContract).default([]),
   onlyProcessed: z.array(gitRelativePathContract).default([]),
   fileTimings: z.array(fileTimingContract).default([]),
+  passingTests: z.array(passingTestContract).default([]),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

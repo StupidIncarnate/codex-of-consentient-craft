@@ -79,7 +79,7 @@ describe('checkCommandsStatics', () => {
       },
       e2e: {
         bin: 'playwright',
-        args: ['test', '--reporter=line'],
+        args: ['test', '--reporter=line,json'],
         discoverPatterns: ['tests/e2e/**/*.spec.ts', 'e2e/**/*.spec.ts'],
       },
     });

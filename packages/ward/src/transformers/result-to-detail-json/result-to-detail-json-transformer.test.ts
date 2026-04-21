@@ -3,6 +3,7 @@ import { CheckResultStub } from '../../contracts/check-result/check-result.stub'
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
+import { PassingTestStub } from '../../contracts/passing-test/passing-test.stub';
 import { resultToDetailJsonTransformer } from './result-to-detail-json-transformer';
 
 describe('resultToDetailJsonTransformer', () => {
@@ -56,6 +57,7 @@ describe('resultToDetailJsonTransformer', () => {
                 status: 'pass',
                 errors: [],
                 testFailures: [],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -114,6 +116,7 @@ describe('resultToDetailJsonTransformer', () => {
                   },
                 ],
                 testFailures: [],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -171,6 +174,7 @@ describe('resultToDetailJsonTransformer', () => {
                     stackTrace: 'at Object.<anonymous> (src/app.test.ts:5:10)',
                   },
                 ],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -244,6 +248,7 @@ describe('resultToDetailJsonTransformer', () => {
                     stackTrace: 'at line 2',
                   },
                 ],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -299,6 +304,7 @@ describe('resultToDetailJsonTransformer', () => {
                 status: 'pass',
                 errors: [],
                 testFailures: [],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -320,6 +326,7 @@ describe('resultToDetailJsonTransformer', () => {
                     stackTrace: 'at line 1',
                   },
                 ],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -375,6 +382,7 @@ describe('resultToDetailJsonTransformer', () => {
                 status: 'pass',
                 errors: [],
                 testFailures: [],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -391,6 +399,63 @@ describe('resultToDetailJsonTransformer', () => {
                   },
                 ],
                 testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 0,
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('preserves passingTests', () => {
+    it('VALID: {wardResult: project with passingTests} => includes passingTests in JSON', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                status: 'pass',
+                passingTests: [
+                  PassingTestStub({
+                    suitePath: 'src/foo.test.ts',
+                    testName: 'VALID: {a} => b',
+                    durationMs: 15,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                passingTests: [
+                  {
+                    suitePath: 'src/foo.test.ts',
+                    testName: 'VALID: {a} => b',
+                    durationMs: 15,
+                  },
+                ],
                 filesCount: 0,
                 discoveredCount: 0,
               },
@@ -435,6 +500,7 @@ describe('resultToDetailJsonTransformer', () => {
                 status: 'pass',
                 errors: [],
                 testFailures: [],
+                passingTests: [],
                 filesCount: 42,
                 discoveredCount: 7,
               },

@@ -39,6 +39,7 @@ import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-te
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
+import { jestJsonParsePassingTransformer } from '../../../transformers/jest-json-parse-passing/jest-json-parse-passing-transformer';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
@@ -172,6 +173,8 @@ export const checkRunIntegrationBroker = async ({
     }
   }
 
+  const passingTests = jestJsonParsePassingTransformer({ jsonOutput: result.output });
+
   try {
     const jsonSlice = extractJsonObjectTransformer({ output: result.output });
     const parsed: unknown = JSON.parse(jsonSlice);
@@ -245,6 +248,7 @@ export const checkRunIntegrationBroker = async ({
     onlyDiscovered,
     onlyProcessed,
     fileTimings,
+    passingTests,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',

@@ -17,6 +17,7 @@ describe('projectResultContract', () => {
         onlyDiscovered: [],
         onlyProcessed: [],
         fileTimings: [],
+        passingTests: [],
       });
     });
 
@@ -56,6 +57,7 @@ describe('projectResultContract', () => {
         onlyDiscovered: [],
         onlyProcessed: [],
         fileTimings: [],
+        passingTests: [],
       });
     });
 
@@ -90,6 +92,7 @@ describe('projectResultContract', () => {
         onlyDiscovered: [],
         onlyProcessed: [],
         fileTimings: [],
+        passingTests: [],
       });
     });
 
@@ -107,6 +110,7 @@ describe('projectResultContract', () => {
         onlyDiscovered: [],
         onlyProcessed: [],
         fileTimings: [],
+        passingTests: [],
       });
     });
   });
@@ -221,6 +225,7 @@ describe('projectResultContract', () => {
         onlyDiscovered: [],
         onlyProcessed: [],
         fileTimings: [],
+        passingTests: [],
       });
     });
   });
@@ -244,6 +249,34 @@ describe('projectResultContract', () => {
       );
 
       expect(result.onlyDiscovered).toStrictEqual(['src/extra.ts']);
+    });
+  });
+
+  describe('passingTests defaults', () => {
+    it('VALID: {passingTests omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0 },
+      });
+
+      expect(result.passingTests).toStrictEqual([]);
+    });
+
+    it('VALID: {passingTests provided} => preserves value', () => {
+      const result = projectResultContract.parse(
+        ProjectResultStub({
+          passingTests: [
+            { suitePath: 'src/foo.test.ts', testName: 'VALID: {x} => y', durationMs: 12 },
+          ],
+        }),
+      );
+
+      expect(result.passingTests).toStrictEqual([
+        { suitePath: 'src/foo.test.ts', testName: 'VALID: {x} => y', durationMs: 12 },
+      ]);
     });
   });
 
