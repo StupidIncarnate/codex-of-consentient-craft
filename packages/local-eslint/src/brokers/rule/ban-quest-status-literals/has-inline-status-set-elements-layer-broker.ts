@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule should call this (for `new Set([...])` and inline array-literal flags).
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { Tsestree } from '@dungeonmaster/eslint-plugin/contracts/tsestree';
 import { isClassifiedStatusLiteralElementGuard } from '../../../guards/is-classified-status-literal-element/is-classified-status-literal-element-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 

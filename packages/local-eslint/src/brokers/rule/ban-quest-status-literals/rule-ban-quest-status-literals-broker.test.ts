@@ -1,5 +1,5 @@
 import { ruleBanQuestStatusLiteralsBroker } from './rule-ban-quest-status-literals-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin/adapters/eslint/rule-tester';
 
 const ruleTester = eslintRuleTesterAdapter();
 

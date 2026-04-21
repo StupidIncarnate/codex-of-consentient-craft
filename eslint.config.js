@@ -47,6 +47,11 @@ module.exports = [
       '*.md',
       '**/*.md',
       '**/ts-jest/**',
+      // Subpath-barrel re-exports for @dungeonmaster/eslint-plugin/{contracts,adapters,statics}/*
+      // — pure re-export plumbing, sits outside the package's tsconfig rootDir.
+      'packages/eslint-plugin/contracts/**',
+      'packages/eslint-plugin/adapters/**',
+      'packages/eslint-plugin/statics/**',
     ],
   },
   // Configuration for TypeScript files
@@ -137,21 +142,8 @@ module.exports = [
   },
   // These are eslint tests so different structure
   {
-    files: ['packages/eslint-plugin/src/brokers/rule/**'],
+    files: ['packages/{eslint-plugin,local-eslint}/src/brokers/rule/**'],
     ignores: ['**/*-layer-*.test.ts'], // Layer brokers are real brokers that need proxies
-    rules: {
-      'jest/require-hook': 'off',
-      'jest/require-top-level-describe': 'off',
-      'jest/no-hooks': 'off',
-      '@dungeonmaster/ban-contract-in-tests': 'off',
-      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
-    },
-  },
-  // local-eslint is a workspace-internal ESLint plugin (never shipped).
-  // Rule-broker tests use RuleTester (like eslint-plugin's own rule tests).
-  {
-    files: ['packages/local-eslint/src/brokers/rule/**'],
-    ignores: ['**/*-layer-*.test.ts'],
     rules: {
       'jest/require-hook': 'off',
       'jest/require-top-level-describe': 'off',
@@ -163,10 +155,16 @@ module.exports = [
   {
     files: [
       'packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts',
-      'packages/local-eslint/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts',
     ],
     rules: {
       '@dungeonmaster/require-contract-validation': 'off',
+    },
+  },
+  // Narrow escape hatch: local-eslint is a workspace-internal ESLint plugin that imports ESLint primitives from @dungeonmaster/eslint-plugin subpaths, which aren't in the default allowed-import list.
+  {
+    files: ['packages/local-eslint/src/**'],
+    rules: {
+      '@dungeonmaster/enforce-import-dependencies': 'off',
     },
   },
   {

@@ -22,6 +22,7 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
+    "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
   },

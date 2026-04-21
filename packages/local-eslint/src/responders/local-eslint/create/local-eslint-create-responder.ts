@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: Internal to the dungeonmaster monorepo only — this plugin is never published to npm.
  */
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin/contracts/eslint-rule';
 import { ruleBanQuestStatusLiteralsBroker } from '../../../brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker';
 
 export const LocalEslintCreateResponder = (): {
