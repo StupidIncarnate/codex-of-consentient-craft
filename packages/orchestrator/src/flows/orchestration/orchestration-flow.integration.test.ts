@@ -1117,7 +1117,7 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('ps-sess') }),
         });
-        // 6 codeweavers (dispatched sequentially by slot manager)
+        // 6 codeweavers (3 concurrent slots, 2 waves)
         for (let i = 0; i < 6; i++) {
           queue.enqueue({
             queueDir: env.claudeQueueDir,
@@ -1131,10 +1131,20 @@ describe('OrchestrationFlow', () => {
           queueDir: env.claudeQueueDir,
           response: agentSuccessResponse({ sessionId: sid('siege-sess') }),
         });
-        // lb-0 fails → skipAllPending skips remaining → spiritmender followup spawned
+        // First wave of 3 lawbringers dispatches concurrently — lb-0 fails, lb-1/lb-2
+        // succeed. Drain on lb-0's failure marks the remaining 3 pending lawbringers
+        // as skipped; the 2 successes stay complete. Then spiritmender followup spawns.
         queue.enqueue({
           queueDir: env.claudeQueueDir,
           response: agentFailedResponse({ sessionId: sid('lb-fail-0') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-1') }),
+        });
+        queue.enqueue({
+          queueDir: env.claudeQueueDir,
+          response: agentSuccessResponse({ sessionId: sid('lb-2') }),
         });
         // Consumed by slot-manager's spiritmender followup
         queue.enqueue({
@@ -1159,8 +1169,10 @@ describe('OrchestrationFlow', () => {
       const failedLb = lawbringerItems.filter((wi) => wi.status === 'failed');
       const completedLb = lawbringerItems.filter((wi) => wi.status === 'complete');
 
-      // At the quest level, lb-0 is 'failed'. The rest are mapped to 'complete'
-      // by the layer broker (slot-manager-internal skips are not visible at quest level).
+      // At the quest level, lb-0 is 'failed'. The 2 concurrent siblings that completed
+      // before the drain fired are 'complete'. The 3 remaining pending lawbringers were
+      // still pending when drain+skip ran, so the layer broker maps them to 'complete'
+      // at quest level (slot-manager-internal skips are not visible at quest level).
       expect(quest.status).toBe('blocked');
       expect(failedLb.map((wi) => wi.status)).toStrictEqual(['failed']);
       expect(completedLb.map((wi) => wi.status)).toStrictEqual([

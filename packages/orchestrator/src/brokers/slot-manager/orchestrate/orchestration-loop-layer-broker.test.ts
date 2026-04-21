@@ -2217,4 +2217,184 @@ describe('orchestrationLoopLayerBroker', () => {
       });
     });
   });
+
+  describe('concurrent dispatch within single iteration', () => {
+    const COMPLETE_SIGNAL_LINE = JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [
+          {
+            type: 'tool_use',
+            name: 'mcp__dungeonmaster__signal-back',
+            input: { signal: 'complete', summary: 'Done' },
+          },
+        ],
+      },
+    });
+
+    it('VALID: {2 ready items, slotCount=3, no active agents} => markStarted called for BOTH in a single invocation', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+      const workItemId1 = WorkItemIdStub({ value: 'work-item-0' });
+      const workItemId2 = WorkItemIdStub({ value: 'work-item-1' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const startedIds = new Set<ReturnType<typeof WorkItemIdStub>>();
+      const mockMarkStarted = jest
+        .fn()
+        .mockImplementation(({ workItemId }: { workItemId: ReturnType<typeof WorkItemIdStub> }) => {
+          startedIds.add(workItemId);
+          return undefined;
+        });
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [workItemId1, workItemId2].filter((id) => !startedIds.has(id)),
+        getIncompleteIds: () => [workItemId1, workItemId2],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: mockMarkStarted,
+      });
+
+      const slotIndex0 = SlotIndexStub({ value: 0 });
+      const slotIndex1 = SlotIndexStub({ value: 1 });
+      const slotOperations = SlotOperationsStub({
+        getAvailableSlot: jest
+          .fn()
+          .mockReturnValueOnce(slotIndex0)
+          .mockReturnValueOnce(slotIndex1)
+          .mockReturnValue(undefined),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 3 }),
+        slotOperations,
+        activeAgents: [],
+        sessionIds: {},
+      });
+
+      const calledIds = mockMarkStarted.mock.calls.map(
+        (call: readonly [{ workItemId: ReturnType<typeof WorkItemIdStub> }]) => call[0].workItemId,
+      );
+
+      expect(calledIds).toStrictEqual([workItemId1, workItemId2]);
+    });
+
+    it('VALID: {1 ready item, slotCount=3, no active agents} => markStarted called exactly once (regression guard)', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+      const workItemId = WorkItemIdStub({ value: 'work-item-0' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const startedIds = new Set<ReturnType<typeof WorkItemIdStub>>();
+      const mockMarkStarted = jest
+        .fn()
+        .mockImplementation(
+          ({ workItemId: id }: { workItemId: ReturnType<typeof WorkItemIdStub> }) => {
+            startedIds.add(id);
+            return undefined;
+          },
+        );
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () => [workItemId].filter((id) => !startedIds.has(id)),
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: mockMarkStarted,
+      });
+
+      const slotIndex0 = SlotIndexStub({ value: 0 });
+      const slotOperations = SlotOperationsStub({
+        getAvailableSlot: jest.fn().mockReturnValueOnce(slotIndex0).mockReturnValue(undefined),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 3 }),
+        slotOperations,
+        activeAgents: [],
+        sessionIds: {},
+      });
+
+      const calledIds = mockMarkStarted.mock.calls.map(
+        (call: readonly [{ workItemId: ReturnType<typeof WorkItemIdStub> }]) => call[0].workItemId,
+      );
+
+      expect(calledIds).toStrictEqual([workItemId]);
+    });
+
+    it('VALID: {3 ready items, slotCount=2, no active agents} => markStarted called only twice (slot cap respected)', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupSpawnAutoLines({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+      const workItemId1 = WorkItemIdStub({ value: 'work-item-0' });
+      const workItemId2 = WorkItemIdStub({ value: 'work-item-1' });
+      const workItemId3 = WorkItemIdStub({ value: 'work-item-2' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const startedIds = new Set<ReturnType<typeof WorkItemIdStub>>();
+      const mockMarkStarted = jest
+        .fn()
+        .mockImplementation(
+          ({ workItemId: id }: { workItemId: ReturnType<typeof WorkItemIdStub> }) => {
+            startedIds.add(id);
+            return undefined;
+          },
+        );
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        isAllTerminal: () => false,
+        getReadyWorkIds: () =>
+          [workItemId1, workItemId2, workItemId3].filter((id) => !startedIds.has(id)),
+        getIncompleteIds: () => [workItemId1, workItemId2, workItemId3],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: mockMarkStarted,
+      });
+
+      const slotIndex0 = SlotIndexStub({ value: 0 });
+      const slotIndex1 = SlotIndexStub({ value: 1 });
+      const slotOperations = SlotOperationsStub({
+        getAvailableSlot: jest
+          .fn()
+          .mockReturnValueOnce(slotIndex0)
+          .mockReturnValueOnce(slotIndex1)
+          .mockReturnValue(undefined),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations,
+        activeAgents: [],
+        sessionIds: {},
+      });
+
+      const calledIds = mockMarkStarted.mock.calls.map(
+        (call: readonly [{ workItemId: ReturnType<typeof WorkItemIdStub> }]) => call[0].workItemId,
+      );
+
+      expect(calledIds).toStrictEqual([workItemId1, workItemId2]);
+    });
+  });
 });

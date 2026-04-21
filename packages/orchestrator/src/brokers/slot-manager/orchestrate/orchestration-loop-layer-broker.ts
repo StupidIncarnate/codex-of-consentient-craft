@@ -82,12 +82,22 @@ export const orchestrationLoopLayerBroker = async ({
     return { done: true, result: { completed: true, sessionIds } };
   }
 
+  // Dispatch all ready items into available slots in a single iteration so parallel
+  // work (e.g. multiple codeweavers with independent deps) spawns concurrently rather
+  // than being serialized one-per-iteration through Promise.race below. Concurrency
+  // is gated by activeAgents.length < slotCount, since slotOperations.getAvailableSlot
+  // is advisory and is not paired with an assignSlot call here.
   const readyIds = workTracker.getReadyWorkIds();
+  const freeSlotCount = Math.max(0, slotCount - activeAgents.length);
+  const dispatchCount = Math.min(readyIds.length, freeSlotCount);
+  const dispatchIds = readyIds.slice(0, dispatchCount);
 
-  const availableSlotIndex = slotOperations.getAvailableSlot({ slotCount });
-  if (availableSlotIndex !== undefined && readyIds.length > 0) {
-    const [workItemId] = readyIds;
-    if (workItemId) {
+  await Promise.all(
+    dispatchIds.map(async (workItemId) => {
+      const slotIndex = slotOperations.getAvailableSlot({ slotCount });
+      if (slotIndex === undefined) {
+        return;
+      }
       await workTracker.markStarted({ workItemId });
 
       const workUnit = workTracker.getWorkUnit({ workItemId });
@@ -101,7 +111,7 @@ export const orchestrationLoopLayerBroker = async ({
               onLine: ({ line }: { line: string }) => {
                 const knownSessionId = Reflect.get(sessionIds, workItemId) as SessionId | undefined;
                 onAgentEntry({
-                  slotIndex: availableSlotIndex,
+                  slotIndex,
                   entry: { raw: line },
                   ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                 });
@@ -119,15 +129,15 @@ export const orchestrationLoopLayerBroker = async ({
       });
 
       activeAgents.push({
-        slotIndex: availableSlotIndex,
+        slotIndex,
         workItemId,
         sessionId: null,
         followupDepth: ZERO_DEPTH,
         crashRetries: ZERO_CRASH_RETRIES,
         promise: agentPromise,
       });
-    }
-  }
+    }),
+  );
 
   if (activeAgents.length === 0 && readyIds.length === 0) {
     const incompleteIds = workTracker.getIncompleteIds();

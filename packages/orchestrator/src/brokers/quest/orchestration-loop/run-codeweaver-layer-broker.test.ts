@@ -285,7 +285,7 @@ describe('runCodeweaverLayerBroker', () => {
       expect(status).toBe('failed');
     });
 
-    it('VALID: {3 codeweavers, first completes rest fail} => maps failedIds to failed quest work items', async () => {
+    it('VALID: {3 codeweavers, all concurrent, shared signal line} => all mapped to complete quest work items', async () => {
       const step1 = DependencyStepStub({ id: 'step-1' });
       const step2 = DependencyStepStub({ id: 'step-2' });
       const step3 = DependencyStepStub({ id: 'step-3' });
@@ -328,10 +328,10 @@ describe('runCodeweaverLayerBroker', () => {
       const proxy = runCodeweaverLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
 
-      // Signal lines reach only the first spawn (readline mock timing).
-      // First spawn gets complete signal, subsequent spawns get null signal.
-      // This creates partial failure: work-item-0 completes, work-item-1/2 fail.
-      // Exercises the failedIds→quest work item mapping at impl lines 87-101.
+      // With concurrent dispatch, all 3 spawn readline interfaces exist before the
+      // shared setImmediate fires, so the broadcast signal line reaches every callback
+      // and every codeweaver completes. Exercises the completed→quest work item
+      // mapping path for multi-item parallel success.
       proxy.setupSpawnAndMonitor({
         lines: [COMPLETE_SIGNAL_LINE],
         exitCode: ExitCodeStub({ value: 0 }),
@@ -352,11 +352,11 @@ describe('runCodeweaverLayerBroker', () => {
       const status3 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId3 });
 
       expect(status1).toBe('complete');
-      expect(status2).toBe('failed');
-      expect(status3).toBe('failed');
+      expect(status2).toBe('complete');
+      expect(status3).toBe('complete');
     });
 
-    it('VALID: {5 codeweavers with slotCount 3, first completes rest fail} => maps failedIds correctly', async () => {
+    it('VALID: {5 codeweavers with slotCount 3, all share one broadcast line} => first 3 complete, overflow 2 fail', async () => {
       const step1 = DependencyStepStub({ id: 'step-1' });
       const step2 = DependencyStepStub({ id: 'step-2' });
       const step3 = DependencyStepStub({ id: 'step-3' });
@@ -419,8 +419,12 @@ describe('runCodeweaverLayerBroker', () => {
       const proxy = runCodeweaverLayerBrokerProxy();
       proxy.setupQuestFound({ quest });
 
-      // Same readline timing: only first spawn gets complete signal.
-      // With 5 items and slotCount 3, verifies overflow with partial failure.
+      // setupSpawnAndMonitor fires setImmediate once at setup. With slotCount=3, the
+      // first 3 spawn readline callbacks are registered before setImmediate fires, so
+      // they all receive the complete signal. Items 4 and 5 spawn later (as slots
+      // free up), register their callbacks after the setImmediate already ran, and
+      // therefore receive no lines → null signal → failed. Verifies slot cap +
+      // overflow dispatch correctly map mixed complete/failed ids back to quest items.
       proxy.setupSpawnAndMonitor({
         lines: [COMPLETE_SIGNAL_LINE],
         exitCode: ExitCodeStub({ value: 0 }),
@@ -442,10 +446,9 @@ describe('runCodeweaverLayerBroker', () => {
       const status4 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId4 });
       const status5 = proxy.getLastPersistedWorkItemStatus({ workItemId: workItemId5 });
 
-      // First item completes (got signal), rest fail (null signal due to readline timing)
       expect(status1).toBe('complete');
-      expect(status2).toBe('failed');
-      expect(status3).toBe('failed');
+      expect(status2).toBe('complete');
+      expect(status3).toBe('complete');
       expect(status4).toBe('failed');
       expect(status5).toBe('failed');
     });
