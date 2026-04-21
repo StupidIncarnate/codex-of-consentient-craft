@@ -7,9 +7,11 @@
  */
 
 import {
+  adapterResultContract,
   fileContentsContract,
   filePathContract,
   type AbsoluteFilePath,
+  type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
 
 import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
@@ -22,7 +24,7 @@ export const storageSaveBroker = async ({
 }: {
   rootPath: AbsoluteFilePath;
   wardResult: WardResult;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
   await fsMkdirAdapter({ dirPath: wardDir });
 
@@ -30,4 +32,5 @@ export const storageSaveBroker = async ({
   const contents = fileContentsContract.parse(JSON.stringify(wardResult));
 
   await fsWriteFileAdapter({ filePath, contents });
+  return adapterResultContract.parse({ success: true });
 };

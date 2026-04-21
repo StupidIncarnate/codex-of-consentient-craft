@@ -8,7 +8,9 @@
 
 import {
   absoluteFilePathContract,
+  adapterResultContract,
   sessionIdContract,
+  type AdapterResult,
   type ExitCode,
   type FilePath,
   type QuestId,
@@ -38,7 +40,7 @@ export const runChatLayerBroker = async ({
   startPath: FilePath;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const slotIndex = slotIndexContract.parse(0);
 
   const prompt = chatPromptBuildTransformer({
@@ -94,7 +96,6 @@ export const runChatLayerBroker = async ({
       });
     }
 
-    // Mark complete
     await questModifyBroker({
       input: {
         questId,
@@ -107,6 +108,7 @@ export const runChatLayerBroker = async ({
         ],
       } as ModifyQuestInput,
     });
+    return adapterResultContract.parse({ success: true });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     await questModifyBroker({

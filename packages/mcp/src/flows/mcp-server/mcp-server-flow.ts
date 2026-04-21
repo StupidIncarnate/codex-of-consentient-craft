@@ -14,6 +14,8 @@ import {
   type CallToolRequest,
 } from '@modelcontextprotocol/sdk/types';
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 
@@ -21,7 +23,7 @@ export const McpServerFlow = async ({
   registrations,
 }: {
   registrations: ToolRegistration[];
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await ServerInitResponder();
 
   const server = new Server(
@@ -49,4 +51,5 @@ export const McpServerFlow = async ({
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  return adapterResultContract.parse({ success: true });
 };

@@ -10,6 +10,8 @@
  *
  * WHEN-TO-USE: Within ESLint rule implementations to enforce object destructuring for function parameters
  */
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
 
@@ -19,20 +21,17 @@ export const validateFunctionParamsUseObjectDestructuringTransformer = ({
 }: {
   node: Tsestree;
   context: EslintContext;
-}): void => {
-  // No params is fine
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
   if (!node.params || node.params.length === 0) {
-    return;
+    return result;
   }
 
-  // Skip validation for type predicates (TypeScript limitation: type predicates cannot reference destructured parameters)
   if (node.returnType?.typeAnnotation?.type === 'TSTypePredicate') {
-    return;
+    return result;
   }
 
-  // Check each parameter - all must use object destructuring
   for (const param of node.params) {
-    // Check if parameter uses object destructuring
     const isObjectDestructuring =
       param.type === 'ObjectPattern' ||
       (param.type === 'AssignmentPattern' && param.left?.type === 'ObjectPattern');
@@ -44,4 +43,5 @@ export const validateFunctionParamsUseObjectDestructuringTransformer = ({
       });
     }
   }
+  return result;
 };

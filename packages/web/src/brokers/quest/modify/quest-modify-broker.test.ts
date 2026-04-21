@@ -16,7 +16,7 @@ describe('questModifyBroker', () => {
           questId,
           modifications: { title: 'Updated Title' },
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
   });
 

@@ -57,7 +57,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -98,7 +98,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -148,7 +148,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Quest should not be marked complete — status stays in_progress because failed items exist
       const quests = proxy.getAllPersistedQuests();
@@ -180,7 +180,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Pre-execution status should be preserved (not overwritten to complete or blocked)
       const quests = proxy.getAllPersistedQuests();
@@ -218,7 +218,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // No items should be dispatched — returns at ready.length === 0 with in_progress items
       expect(proxy.wasCodeweaverLayerCalled()).toBe(false);
@@ -254,7 +254,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Chat layer should not have been called
       expect(proxy.wasChatLayerCalled()).toBe(false);
@@ -293,7 +293,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       expect(proxy.wasChatLayerCalled()).toBe(false);
 
@@ -343,7 +343,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: abortController.signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
   });
 
@@ -374,7 +374,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
   });
 
@@ -406,7 +406,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       expect(proxy.wasOnAgentEntryPassedTo({ role: 'pathseeker' })).toBe(false);
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
@@ -611,7 +611,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Glyphsmith should NOT have been dispatched
       expect(proxy.wasChatLayerCalled()).toBe(false);
@@ -659,7 +659,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (only first chat marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -754,7 +754,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (CW-1 and CW-2 in_progress, CW-3 stays pending)
       const quests = proxy.getAllPersistedQuests();
@@ -827,7 +827,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (only codeweaver group dispatched)
       const quests = proxy.getAllPersistedQuests();
@@ -904,7 +904,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (only first chaos marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -960,7 +960,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -1022,7 +1022,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       const quests = proxy.getAllPersistedQuests();
 
@@ -1064,7 +1064,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // When pathseeker is never inserted, the loop sees only chaos=complete
       // → all terminal → quest=complete. This documents the observed failure.
@@ -1122,7 +1122,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Ward should not be dispatched — cw2 is still in_progress
       const wardDispatched = proxy.findPersistedWorkItem({
@@ -1167,7 +1167,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // Quest should be marked blocked, ward stays pending
       const quests = proxy.getAllPersistedQuests();
@@ -1258,7 +1258,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (siege marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -1355,7 +1355,7 @@ describe('questOrchestrationLoopBroker', () => {
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       // First persist = dispatch write (retry pathseeker marked in_progress)
       const quests = proxy.getAllPersistedQuests();
@@ -1886,7 +1886,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         // ASSERT: dispatch write — cw1+cw2 flipped to in_progress + startedAt, everything else unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -1980,7 +1980,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         // ASSERT: dispatch write — cw1+cw2 flipped to in_progress + startedAt, cw3+cw4 unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -2078,7 +2078,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         // ASSERT: dispatch write — ps-retry flipped to in_progress + startedAt, others unchanged
         const quests = proxy.getAllPersistedQuests();
@@ -2160,7 +2160,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         // ASSERT: dispatch write — ps-retry flipped to in_progress + startedAt
         const quests = proxy.getAllPersistedQuests();
@@ -2259,7 +2259,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
         const { status, workItems } = quests[0]!;
@@ -2376,7 +2376,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2471,7 +2471,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2597,7 +2597,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2725,7 +2725,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2836,7 +2836,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -2964,7 +2964,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3058,7 +3058,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3129,7 +3129,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3195,7 +3195,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3263,7 +3263,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3356,7 +3356,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3471,7 +3471,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3608,7 +3608,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3741,7 +3741,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3864,7 +3864,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -3970,7 +3970,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4111,7 +4111,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4240,7 +4240,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4395,7 +4395,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4576,7 +4576,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4692,7 +4692,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4819,7 +4819,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -4972,7 +4972,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5063,7 +5063,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
       });
 
       it('VALID: {2 spiritmenders complete, ward-retry pending} => ward-retry in_progress, siege + lb + final-ward stay pending, quest stays in_progress', async () => {
@@ -5177,7 +5177,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5337,7 +5337,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5528,7 +5528,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5646,7 +5646,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5744,7 +5744,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5849,7 +5849,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -5953,7 +5953,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6076,7 +6076,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6147,7 +6147,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6236,7 +6236,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6309,7 +6309,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6358,7 +6358,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
       });
 
       it('VALID: {2 lb complete, final-ward pending dependsOn [lb-1, lb-2]} => final-ward in_progress with wardMode full, quest stays in_progress', async () => {
@@ -6408,7 +6408,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6503,7 +6503,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6600,7 +6600,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6732,7 +6732,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -6888,7 +6888,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7076,7 +7076,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7217,7 +7217,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7324,7 +7324,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7460,7 +7460,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7541,7 +7541,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7637,7 +7637,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7765,7 +7765,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7886,7 +7886,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -7982,7 +7982,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8099,7 +8099,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8253,7 +8253,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 
@@ -8353,7 +8353,7 @@ describe('questOrchestrationLoopBroker', () => {
             onAgentEntry: jest.fn(),
             abortSignal: new AbortController().signal,
           }),
-        ).resolves.toBe(undefined);
+        ).resolves.toStrictEqual({ success: true });
 
         const quests = proxy.getAllPersistedQuests();
 

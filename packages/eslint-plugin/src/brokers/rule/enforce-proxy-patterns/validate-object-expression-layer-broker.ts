@@ -5,6 +5,8 @@
  * validateObjectExpressionLayerBroker({ objectNode, context });
  * // Reports error if object has 'bootstrap' property or helper names contain 'mock', 'spy', etc.
  */
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
@@ -15,10 +17,11 @@ export const validateObjectExpressionLayerBroker = ({
 }: {
   objectNode: Tsestree;
   context: EslintContext;
-}): void => {
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
   const { properties } = objectNode;
 
-  if (!properties) return;
+  if (!properties) return result;
 
   // Check for bootstrap property and mock in helper names
   for (const property of properties) {
@@ -49,4 +52,5 @@ export const validateObjectExpressionLayerBroker = ({
       }
     }
   }
+  return result;
 };

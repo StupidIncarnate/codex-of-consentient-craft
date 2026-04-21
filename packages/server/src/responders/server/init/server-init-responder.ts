@@ -6,7 +6,9 @@
  * // Sets up WebSocket routes, starts serving, subscribes to orchestration events, handles shutdown
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
+  adapterResultContract,
   guildIdContract,
   orchestrationEventTypeContract,
   processIdContract,
@@ -41,7 +43,7 @@ type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
 
-export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
+export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult => {
   const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
   const { upgradeWebSocket } = nodeWebSocket;
   const clients = new Set<WsClient>();
@@ -318,4 +320,5 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): void => {
     designProcessState.stopAll();
     process.exit(0);
   });
+  return adapterResultContract.parse({ success: true });
 };

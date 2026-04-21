@@ -6,7 +6,8 @@
  * // Transforms structured answers into design decisions and upserts them to the quest
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -20,7 +21,7 @@ export const ClarifyAnswerResponder = async ({
   questId: QuestId;
   answers: { header: string; label: string }[];
   questions: ClarificationQuestion[];
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const decisions = clarificationAnswersToDesignDecisionsTransformer({ answers, questions });
 
   if (decisions.length > 0) {
@@ -30,4 +31,5 @@ export const ClarifyAnswerResponder = async ({
       >[0]['input'],
     });
   }
+  return adapterResultContract.parse({ success: true });
 };

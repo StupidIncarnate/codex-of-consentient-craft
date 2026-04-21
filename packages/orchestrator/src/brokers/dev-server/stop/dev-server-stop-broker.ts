@@ -6,6 +6,8 @@
  * // Sends SIGTERM, waits up to 5s, sends SIGKILL if still alive. Fire-and-forget — catches all errors.
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { childProcessSpawnAdapter } from '../../../adapters/child-process/spawn/child-process-spawn-adapter';
 
 type DevServerProcess = ReturnType<typeof childProcessSpawnAdapter>;
@@ -16,7 +18,7 @@ export const devServerStopBroker = async ({
   process: childProcess,
 }: {
   process: DevServerProcess;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   await new Promise<void>((resolve) => {
     const killTimer = setTimeout(() => {
       childProcess.removeAllListeners('close');
@@ -49,4 +51,5 @@ export const devServerStopBroker = async ({
       resolve();
     }
   });
+  return adapterResultContract.parse({ success: true });
 };

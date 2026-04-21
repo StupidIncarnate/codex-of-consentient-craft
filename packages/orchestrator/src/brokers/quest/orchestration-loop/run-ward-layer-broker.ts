@@ -9,11 +9,13 @@
 import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
+  adapterResultContract,
   fileContentsContract,
   filePathContract,
   sessionIdContract,
   wardResultContract,
   workItemContract,
+  type AdapterResult,
   type FilePath,
   type QuestId,
   type WorkItem,
@@ -56,7 +58,8 @@ export const runWardLayerBroker = async ({
   startPath: FilePath;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const absoluteStartPath = absoluteFilePathContract.parse(startPath);
 
   // Generate synthetic session ID for ward output streaming
@@ -93,9 +96,8 @@ export const runWardLayerBroker = async ({
     `[dev] ward:complete exitCode=${String(exitCode)} runId=${String(runId)} workItemId=${workItem.id} aborted=${String(abortSignal.aborted)}\n`,
   );
 
-  // If aborted (paused), bail out without creating follow-up items
   if (abortSignal.aborted) {
-    return;
+    return result;
   }
 
   // Fetch and persist ward detail (pass or fail)
@@ -129,14 +131,13 @@ export const runWardLayerBroker = async ({
   });
 
   if (exitCode === 0) {
-    // Ward passed — mark complete
     await questModifyBroker({
       input: {
         questId,
         workItems: [{ id: workItem.id, status: 'complete', completedAt: new Date().toISOString() }],
       } as ModifyQuestInput,
     });
-    return;
+    return result;
   }
 
   // Ward failed — mark as failed
@@ -188,7 +189,7 @@ export const runWardLayerBroker = async ({
         });
       }
     }
-    return;
+    return result;
   }
 
   // Create batched spiritmender work items
@@ -292,4 +293,5 @@ export const runWardLayerBroker = async ({
       })),
     });
   }
+  return result;
 };

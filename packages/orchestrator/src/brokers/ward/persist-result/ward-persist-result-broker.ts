@@ -8,7 +8,9 @@
 
 import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
+  adapterResultContract,
   fileContentsContract,
+  type AdapterResult,
   type ErrorMessage,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
@@ -26,7 +28,7 @@ export const wardPersistResultBroker = async ({
   questFolderPath: FilePath;
   wardResultId: string;
   detailJson: ErrorMessage;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const wardResultsDir = pathJoinAdapter({
     paths: [questFolderPath, WARD_RESULTS_DIR],
   });
@@ -40,4 +42,5 @@ export const wardPersistResultBroker = async ({
   const contents = fileContentsContract.parse(detailJson);
 
   await fsWriteFileAdapter({ filePath, contents });
+  return adapterResultContract.parse({ success: true });
 };

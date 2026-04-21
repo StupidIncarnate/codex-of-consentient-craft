@@ -6,6 +6,7 @@
  * // Starts HTTP server with guild, quest, process, session, directory, health endpoints and WebSocket event relay
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { DesignFlow } from '../flows/design/design-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
@@ -15,7 +16,7 @@ import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
 import { ServerFlow } from '../flows/server/server-flow';
 
-export const StartServer = (): void => {
+export const StartServer = (): AdapterResult =>
   ServerFlow({
     subApps: [
       GuildFlow(),
@@ -27,4 +28,3 @@ export const StartServer = (): void => {
       DesignFlow(),
     ],
   });
-};

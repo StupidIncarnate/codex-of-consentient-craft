@@ -20,8 +20,8 @@
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -51,7 +51,8 @@ export const chatHistoryReplayBroker = async ({
   sessionId: SessionId;
   guildId: GuildId;
   onEntries: (params: { entries: ChatEntry[] }) => void;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const guild = await guildGetBroker({ guildId });
   const projectPath = absoluteFilePathContract.parse(guild.path);
   const homeDir = osUserHomedirAdapter();
@@ -181,4 +182,5 @@ export const chatHistoryReplayBroker = async ({
       }
     }
   }
+  return result;
 };

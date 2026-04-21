@@ -23,7 +23,6 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/require-contract-validation': 'pre-edit',
       '@dungeonmaster/enforce-object-destructuring-params': 'pre-edit',
       '@dungeonmaster/enforce-optional-guard-params': 'pre-edit',
-      '@dungeonmaster/explicit-return-types': 'pre-edit',
       '@dungeonmaster/enforce-stub-patterns': 'pre-edit',
       '@dungeonmaster/enforce-stub-usage': 'pre-edit',
       '@dungeonmaster/enforce-project-structure': 'pre-edit',

@@ -8,9 +8,11 @@
 
 import { Hono } from 'hono';
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 
-export const ServerFlow = ({ subApps }: { subApps: Hono[] }): void => {
+export const ServerFlow = ({ subApps }: { subApps: Hono[] }): AdapterResult => {
   const app = new Hono();
 
   for (const sub of subApps) {
@@ -18,4 +20,5 @@ export const ServerFlow = ({ subApps }: { subApps: Hono[] }): void => {
   }
 
   ServerInitResponder({ app });
+  return adapterResultContract.parse({ success: true });
 };

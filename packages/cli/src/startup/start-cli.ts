@@ -6,7 +6,7 @@
  * // Delegates to CliFlow for command routing with install context
  */
 
-import type { InstallContext } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
 
 import { CliFlow } from '../flows/cli/cli-flow';
 
@@ -16,4 +16,4 @@ export const StartCli = async ({
 }: {
   command: string | undefined;
   context: InstallContext;
-}): Promise<void> => CliFlow({ command, context });
+}): Promise<AdapterResult> => CliFlow({ command, context });

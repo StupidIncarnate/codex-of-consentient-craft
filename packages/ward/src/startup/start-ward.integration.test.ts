@@ -18,8 +18,8 @@ describe('StartWard', () => {
 
   describe('delegation to ward flow', () => {
     it('VALID: {args: ["node", "ward", "unknown-command"]} => completes without throwing for unknown command', async () => {
-      await expect(StartWard({ args: ['node', 'ward', 'unknown-command'] })).resolves.toBe(
-        undefined,
+      await expect(StartWard({ args: ['node', 'ward', 'unknown-command'] })).resolves.toStrictEqual(
+        { success: true },
       );
     });
   });
@@ -58,7 +58,9 @@ describe('StartWard', () => {
     });
 
     it('VALID: {args: ["node", "ward", "detail"]} with missing runId => prints usage and completes', async () => {
-      await expect(StartWard({ args: ['node', 'ward', 'detail'] })).resolves.toBe(undefined);
+      await expect(StartWard({ args: ['node', 'ward', 'detail'] })).resolves.toStrictEqual({
+        success: true,
+      });
     });
 
     it('VALID: {args: ["node", "ward", "detail", runId, "--json"]} => completes without throwing', async () => {

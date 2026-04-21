@@ -15,7 +15,7 @@ describe('wardPersistResultBroker', () => {
 
       await expect(
         wardPersistResultBroker({ questFolderPath, wardResultId, detailJson }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
 
     it('VALID: {different inputs} => writes to correct path', async () => {
@@ -28,7 +28,7 @@ describe('wardPersistResultBroker', () => {
 
       await expect(
         wardPersistResultBroker({ questFolderPath, wardResultId, detailJson }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
 
       expect(proxy.getWrittenContent()).toBe('{"checks":[{"checkType":"lint"}]}');
     });

@@ -10,7 +10,6 @@ import { ruleBanPrimitivesBroker } from '../../../brokers/rule/ban-primitives/ru
 import { ruleEnforceContractUsageInTestsBroker } from '../../../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker';
 import { ruleBanJestMockInTestsBroker } from '../../../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker';
 import { ruleRequireZodOnPrimitivesBroker } from '../../../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
-import { ruleExplicitReturnTypesBroker } from '../../../brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
 import { ruleEnforceProjectStructureBroker } from '../../../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker';
 import { ruleEnforceImportDependenciesBroker } from '../../../brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker';
 import { ruleEnforceJestMockedUsageBroker } from '../../../brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker';
@@ -68,7 +67,6 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-contract-usage-in-tests': EslintRule;
     readonly 'ban-jest-mock-in-tests': EslintRule;
     readonly 'require-zod-on-primitives': EslintRule;
-    readonly 'explicit-return-types': EslintRule;
     readonly 'enforce-project-structure': EslintRule;
     readonly 'enforce-import-dependencies': EslintRule;
     readonly 'enforce-jest-mocked-usage': EslintRule;
@@ -129,7 +127,6 @@ export const EslintPluginCreateResponder = (): {
       'enforce-contract-usage-in-tests': ruleEnforceContractUsageInTestsBroker(),
       'ban-jest-mock-in-tests': ruleBanJestMockInTestsBroker(),
       'require-zod-on-primitives': ruleRequireZodOnPrimitivesBroker(),
-      'explicit-return-types': ruleExplicitReturnTypesBroker(),
       'enforce-project-structure': ruleEnforceProjectStructureBroker(),
       'enforce-import-dependencies': ruleEnforceImportDependenciesBroker(),
       'enforce-jest-mocked-usage': ruleEnforceJestMockedUsageBroker(),

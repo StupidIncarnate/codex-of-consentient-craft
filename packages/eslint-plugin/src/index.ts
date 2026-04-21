@@ -30,7 +30,6 @@ export { eslintRuleTesterAdapter } from './adapters/eslint/rule-tester/eslint-ru
 export { ruleBanPrimitivesBroker } from './brokers/rule/ban-primitives/rule-ban-primitives-broker';
 export { ruleEnforceContractUsageInTestsBroker } from './brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker';
 export { ruleRequireZodOnPrimitivesBroker } from './brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
-export { ruleExplicitReturnTypesBroker } from './brokers/rule/explicit-return-types/rule-explicit-return-types-broker';
 export { ruleRequireContractValidationBroker } from './brokers/rule/require-contract-validation/rule-require-contract-validation-broker';
 export { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config-dungeonmaster-broker';
 export {

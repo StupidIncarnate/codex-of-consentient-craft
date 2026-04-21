@@ -7,6 +7,7 @@
  */
 
 import type {
+  AdapterResult,
   FilePath,
   ProcessId,
   QuestId,
@@ -14,6 +15,7 @@ import type {
   WorkItem,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -68,9 +70,10 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   userMessage?: UserInput;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   if (abortSignal.aborted) {
-    return;
+    return result;
   }
 
   const slotCount = slotCountContract.parse(SLOT_COUNT);
@@ -78,18 +81,18 @@ export const questOrchestrationLoopBroker = async ({
 
   // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
-  const result = await questGetBroker({ input });
+  const questResult = await questGetBroker({ input });
 
-  if (!result.success || !result.quest) {
+  if (!questResult.success || !questResult.quest) {
     throw new Error(`Quest not found: ${questId}`);
   }
 
-  const { quest } = result;
+  const { quest } = questResult;
 
   // Paused quests must not spawn agents. User explicitly stopped execution;
   // resume happens via a status flip to 'in_progress' (auto-resume in quest-modify-responder).
   if (isUserPausedQuestStatusGuard({ status: quest.status })) {
-    return;
+    return result;
   }
 
   // 2. Find ready work items
@@ -111,17 +114,17 @@ export const questOrchestrationLoopBroker = async ({
     if (newStatus !== quest.status) {
       await questModifyBroker({ input: { questId, status: newStatus } as ModifyQuestInput });
     }
-    return;
+    return result;
   }
 
   if (questBlocked) {
     await questModifyBroker({ input: { questId, status: 'blocked' } as ModifyQuestInput });
-    return;
+    return result;
   }
 
   if (ready.length === 0) {
     process.stderr.write(`[dev] orchestration-loop questId=${questId} no ready items, exiting\n`);
-    return; // items in_progress elsewhere, or waiting for user
+    return result;
   }
 
   // 4. Single-role concurrency: group ready items by role, pick first group
@@ -137,35 +140,33 @@ export const questOrchestrationLoopBroker = async ({
 
   const firstEntry = roleGroupMap.entries().next().value;
   if (!firstEntry) {
-    return;
+    return result;
   }
 
   const [roleName, roleItemsRaw] = firstEntry;
   let roleItems = roleItemsRaw;
 
-  // 5. Skip chaos/glyph on auto-recovery (no connected user providing userMessage)
   if (CHAT_ROLES.has(roleName) && userMessage === undefined) {
-    return;
+    return result;
   }
 
-  // 6. Enforce single chaos/glyph constraint
   if (CHAT_ROLES.has(roleName)) {
     const anyInProgress = quest.workItems.some(
       (wi) => CHAT_ROLES.has(wi.role) && isActiveWorkItemStatusGuard({ status: wi.status }),
     );
     if (anyInProgress) {
-      return;
+      return result;
     }
     const [singleItem] = roleItems;
     if (!singleItem) {
-      return;
+      return result;
     }
     roleItems = [singleItem];
   }
 
   const [firstItem] = roleItems;
   if (!firstItem) {
-    return;
+    return result;
   }
 
   // 7. Mark items that will actually dispatch now as in_progress, and any overflow
@@ -262,10 +263,8 @@ export const questOrchestrationLoopBroker = async ({
       });
     }
   } catch (error: unknown) {
-    // If aborted (paused), do not mark items failed — pause responder resets them to pending
-    // Re-read .aborted as a live getter — TS narrows it to false from the early check, but it changes at runtime
     if (Reflect.get(abortSignal, 'aborted')) {
-      return;
+      return result;
     }
 
     // On unhandled error: mark all in_progress items as failed to prevent zombies

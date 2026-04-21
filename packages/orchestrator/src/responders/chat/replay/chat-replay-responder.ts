@@ -6,8 +6,8 @@
  * // Replays JSONL history via callbacks and emits quest-session-linked if a quest is found
  */
 
-import type { GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -21,7 +21,7 @@ export const ChatReplayResponder = async ({
   sessionId: SessionId;
   guildId: GuildId;
   chatProcessId?: ProcessId;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const chatProcessId =
     clientChatProcessId ?? processIdContract.parse(`replay-${crypto.randomUUID()}`);
 
@@ -71,4 +71,5 @@ export const ChatReplayResponder = async ({
     processId: chatProcessId,
     payload: { chatProcessId, sessionId },
   });
+  return adapterResultContract.parse({ success: true });
 };
