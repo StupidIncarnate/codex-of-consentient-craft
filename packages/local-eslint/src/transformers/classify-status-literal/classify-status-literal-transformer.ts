@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Classifies a string literal as a quest-status, work-item-status, ambiguous (both), or unrelated literal. Drives the ban-status-string-comparisons rule's diagnostic routing.
+ * PURPOSE: Classifies a string literal as a quest-status, work-item-status, ambiguous (both), or unrelated literal. Drives the ban-quest-status-literals rule's diagnostic routing.
  *
  * USAGE:
  * classifyStatusLiteralTransformer({ literal: 'in_progress' });
@@ -11,7 +11,7 @@
  * classifyStatusLiteralTransformer({ literal: 'not_a_status' });
  * // Returns null
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule / its helpers should call this.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule / its helpers should call this.
  */
 import {
   questStatusContract,

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Determines if an identifier name qualifies as a quest/work-item "status holder" per the ban-status-string-comparisons allowlist (default holders + /Quest$|Item$/ + rule-option extras).
+ * PURPOSE: Determines if an identifier name qualifies as a quest/work-item "status holder" per the ban-quest-status-literals allowlist (default holders + /Quest$|Item$/ + rule-option extras).
  *
  * USAGE:
  * matchesStatusHolderIdentifierGuard({ identifierName: 'quest', extraAllowlist: [] });
@@ -11,7 +11,7 @@
  * matchesStatusHolderIdentifierGuard({ identifierName: 'random', extraAllowlist: [] });
  * // Returns false
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule / its helpers should call this.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule / its helpers should call this.
  */
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { statusLiteralStatics } from '../../statics/status-literal/status-literal-statics';

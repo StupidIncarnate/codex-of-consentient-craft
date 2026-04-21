@@ -2,17 +2,15 @@
  * PURPOSE: Bans syntactic quest-status and work-item-status string-literal comparisons — forces callers to use shared status guards instead.
  *
  * USAGE:
- * const rule = ruleBanStatusStringComparisonsBroker();
+ * const rule = ruleBanQuestStatusLiteralsBroker();
  * // Returns ESLint rule that flags `.status === 'in_progress'`, `.startsWith('seek_')`, status switch/case, and inline membership sets.
  *
- * WHEN-TO-USE: Registered in @dungeonmaster/eslint-plugin to prevent regression of the pre-split pathseeker status-literal pattern (see plan/you-need-to-send-radiant-liskov.md Locked Decision #8).
+ * WHEN-TO-USE: Registered in @dungeonmaster-local/local-eslint (this repo only, never shipped) to prevent regression of the pre-split pathseeker status-literal pattern.
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
+import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 import { classifyStatusLiteralTransformer } from '../../../transformers/classify-status-literal/classify-status-literal-transformer';
@@ -20,7 +18,7 @@ import { statusLiteralMessageIdTransformer } from '../../../transformers/status-
 import { isStatusMemberExpressionLayerBroker } from './is-status-member-expression-layer-broker';
 import { hasInlineStatusSetElementsLayerBroker } from './has-inline-status-set-elements-layer-broker';
 
-export const ruleBanStatusStringComparisonsBroker = (): EslintRule => ({
+export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
     meta: {
       type: 'problem',

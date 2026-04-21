@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Maps a StatusLiteralKind (quest/workItem/ambiguous) to the ban-status-string-comparisons rule's messageId string.
+ * PURPOSE: Maps a StatusLiteralKind (quest/workItem/ambiguous) to the ban-quest-status-literals rule's messageId string.
  *
  * USAGE:
  * statusLiteralMessageIdTransformer({ kind: 'quest' });
@@ -9,7 +9,7 @@
  * statusLiteralMessageIdTransformer({ kind: 'ambiguous' });
  * // Returns 'ambiguousStatusLiteral'
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule broker should call this.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule broker should call this.
  */
 import type { StatusLiteralKind } from '../classify-status-literal/classify-status-literal-transformer';
 

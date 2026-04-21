@@ -62,7 +62,6 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/ban-object-keys-in-expect': 'pre-edit',
       '@dungeonmaster/ban-string-includes-in-expect': 'pre-edit',
       '@dungeonmaster/ban-weak-asymmetric-matchers': 'pre-edit',
-      '@dungeonmaster/ban-status-string-comparisons': 'pre-edit',
       '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',

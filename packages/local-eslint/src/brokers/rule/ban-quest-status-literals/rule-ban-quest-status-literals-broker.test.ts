@@ -1,14 +1,14 @@
-import { ruleBanStatusStringComparisonsBroker } from './rule-ban-status-string-comparisons-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleBanQuestStatusLiteralsBroker } from './rule-ban-quest-status-literals-broker';
+import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin';
 
 const ruleTester = eslintRuleTesterAdapter();
 
-// Fixture paths live inside packages/eslint-plugin/src/fixtures/ so RuleTester parses them
-// with the real tsconfig (see CLAUDE.md — /tmp would fall outside include paths).
+// Virtual fixture paths — RuleTester does NOT read these off disk; it only uses them as the
+// "filename" key on each test case so path-based allowlist logic works.
 const productionFixture =
-  '/repo/packages/eslint-plugin/src/fixtures/ban-status-string-comparisons/production-sample.ts';
+  '/repo/packages/local-eslint/src/fixtures/ban-quest-status-literals/production-sample.ts';
 const allowlistedTestFixture =
-  '/repo/packages/eslint-plugin/src/fixtures/ban-status-string-comparisons/sample.test.ts';
+  '/repo/packages/local-eslint/src/fixtures/ban-quest-status-literals/sample.test.ts';
 const allowlistedMetadataFixture =
   '/repo/packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts';
 const allowlistedGuardFixture =
@@ -16,7 +16,7 @@ const allowlistedGuardFixture =
 const promptStaticsFixture =
   '/repo/packages/orchestrator/src/statics/pathseeker-prompt/pathseeker-prompt-statics.ts';
 
-ruleTester.run('ban-status-string-comparisons', ruleBanStatusStringComparisonsBroker(), {
+ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), {
   valid: [
     // === ALLOWLIST: metadata statics can compare raw literals ===
     {

@@ -1,18 +1,18 @@
 /**
- * PURPOSE: Configuration knobs for the ban-status-string-comparisons rule — path allowlists, default identifier allowlist, and banned prefix checks
+ * PURPOSE: Configuration knobs for the ban-quest-status-literals rule — path allowlists, default identifier allowlist, and banned prefix checks
  *
  * USAGE:
  * import { statusLiteralStatics } from './statics/status-literal/status-literal-statics';
  * statusLiteralStatics.bannedStartsWithPrefixes.includes('seek_');
  * // Returns true
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule should consume this. Status-aware application code uses the shared guards instead.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule should consume this. Status-aware application code uses the shared guards instead.
  *
  * NOTE: The live status literal sets are read from
  *   packages/shared/src/contracts/quest-status/quest-status-contract.ts
  * and
  *   packages/shared/src/contracts/work-item-status/work-item-status-contract.ts
- * at rule-module load time (see rule-ban-status-string-comparisons-broker.ts).
+ * at rule-module load time (see rule-ban-quest-status-literals-broker.ts).
  * That avoids drift if a new status is added to the contract.
  */
 export const statusLiteralStatics = {

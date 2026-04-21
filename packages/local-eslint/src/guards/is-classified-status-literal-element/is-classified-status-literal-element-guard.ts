@@ -5,9 +5,9 @@
  * isClassifiedStatusLiteralElementGuard({ element });
  * // Returns true when element is a Literal with a string value in the status enums.
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule / helpers should call this.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule / helpers should call this.
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { Tsestree } from '@dungeonmaster/eslint-plugin';
 import { classifyStatusLiteralTransformer } from '../../transformers/classify-status-literal/classify-status-literal-transformer';
 
 export const isClassifiedStatusLiteralElementGuard = ({

@@ -1,6 +1,6 @@
 import { IdentifierStub } from '@dungeonmaster/shared/contracts';
 import { isStatusMemberExpressionLayerBrokerProxy } from './is-status-member-expression-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
+import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
 
 describe('isStatusMemberExpressionLayerBroker', () => {
   describe('missing node', () => {

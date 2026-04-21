@@ -5,11 +5,11 @@
  * isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] });
  * // Returns true if node is `quest.status` or a dotted holder (`postResult.quest.status`).
  *
- * WHEN-TO-USE: Only the ban-status-string-comparisons rule should call this.
+ * WHEN-TO-USE: Only the ban-quest-status-literals rule should call this.
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { Tsestree } from '@dungeonmaster/eslint-plugin';
 import { matchesStatusHolderIdentifierGuard } from '../../../guards/matches-status-holder-identifier/matches-status-holder-identifier-guard';
 
 export const isStatusMemberExpressionLayerBroker = ({

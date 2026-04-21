@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 54 rule names', () => {
+    it('VALID: {} => returns plugin with all 53 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -22,7 +22,6 @@ describe('EslintPluginCreateResponder', () => {
         'ban-primitives',
         'ban-silent-catch',
         'ban-startup-branching',
-        'ban-status-string-comparisons',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
         'ban-typeof-assertions',

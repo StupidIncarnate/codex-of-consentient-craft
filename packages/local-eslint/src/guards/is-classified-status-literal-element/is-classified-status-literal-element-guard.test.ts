@@ -1,5 +1,5 @@
 import { isClassifiedStatusLiteralElementGuard } from './is-classified-status-literal-element-guard';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
+import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
 
 describe('isClassifiedStatusLiteralElementGuard', () => {
   describe('missing element', () => {

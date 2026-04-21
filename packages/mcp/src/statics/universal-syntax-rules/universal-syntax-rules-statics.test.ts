@@ -235,49 +235,6 @@ describe('universalSyntaxRulesStatics', () => {
         ],
       },
 
-      statusComparisons: {
-        rule: 'Never compare `.status` against string literals — use shared guards from @dungeonmaster/shared/guards',
-        rationale:
-          'The quest-status vocabulary was split into phased pathseeker statuses (seek_scope/seek_synth/seek_walk/seek_plan). Literal comparisons and .startsWith("seek_"|"explore_"|"review_") encode pre-split assumptions and silently misbehave under post-split semantics. The same discipline applies to work-item-status reads.',
-        sharedGuards: [
-          'isActivelyExecutingQuestStatusGuard',
-          'isPathseekerRunningQuestStatusGuard',
-          'isAnyAgentRunningQuestStatusGuard',
-          'isPreExecutionQuestStatusGuard',
-          'isTerminalQuestStatusGuard',
-          'isQuestPauseableQuestStatusGuard',
-          'isQuestResumableQuestStatusGuard',
-          'isStartableQuestStatusGuard',
-          'isRecoverableQuestStatusGuard',
-          'isAutoResumableQuestStatusGuard',
-          'isGateApprovedQuestStatusGuard',
-          'isDesignPhaseQuestStatusGuard',
-          'shouldRenderExecutionPanelQuestStatusGuard',
-          'isTerminalWorkItemStatusGuard',
-          'isActiveWorkItemStatusGuard',
-          'isPendingWorkItemStatusGuard',
-          'isCompleteWorkItemStatusGuard',
-          'isSkippedWorkItemStatusGuard',
-          'isFailureWorkItemStatusGuard',
-          'satisfiesDependencyWorkItemStatusGuard',
-        ],
-        llmTrainingViolation:
-          'LLM training instinct: Write quest.status === "in_progress" or wi.status === "complete" inline. Resist this - literal comparisons on .status hide the post-split semantics and drift from the metadata-driven source of truth.',
-        enforcement:
-          'The ESLint rule @dungeonmaster/ban-status-string-comparisons flags: === / !== comparisons between .status and a known status literal, switch statements on .status with literal cases, .startsWith("seek_"|"explore_"|"review_") calls, and inline Sets/arrays of status literals. Writes (status: "seek_scope") and case-dispatch on nextStatus are allowed.',
-        examples: [
-          'if (isActivelyExecutingQuestStatusGuard({ status: quest.status })) { /* only exactly in_progress */ }',
-          'if (isPathseekerRunningQuestStatusGuard({ status: quest.status })) { /* any seek_* */ }',
-          'if (isTerminalWorkItemStatusGuard({ status: wi.status })) { /* complete, failed, or skipped */ }',
-        ],
-        violations: [
-          'if (quest.status === "in_progress") { /* use isActivelyExecutingQuestStatusGuard */ }',
-          'if (quest.status.startsWith("seek_")) { /* use isPathseekerRunningQuestStatusGuard */ }',
-          'const TERMINAL = new Set(["complete", "failed", "skipped"]); if (TERMINAL.has(wi.status)) { /* use isTerminalWorkItemStatusGuard */ }',
-          'switch (quest.status) { case "approved": /* ... */ } // use isStartableQuestStatusGuard or a transformer',
-        ],
-      },
-
       errorHandling: {
         rule: 'Handle errors explicitly for every operation that can fail',
         neverSilentlySwallow:

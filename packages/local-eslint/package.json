@@ -1,0 +1,33 @@
+{
+  "name": "@dungeonmaster/local-eslint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private ESLint plugin for the dungeonmaster monorepo itself (never shipped to consumers). Houses repo-local lint rules that only make sense inside this codebase.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "dependencies": {
+    "@dungeonmaster/eslint-plugin": "*",
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@typescript-eslint/parser": "^8.45.0"
+  }
+}
