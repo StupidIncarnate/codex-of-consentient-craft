@@ -12,7 +12,9 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
+  adapterResultContract,
   filePathContract,
+  type AdapterResult,
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
@@ -55,7 +57,7 @@ export const runSpiritmenderLayerBroker = async ({
   slotOperations: SlotOperations;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const maxFollowupDepth = followupDepthContract.parse(MAX_FOLLOWUP_DEPTH);
 
   // Build slot mapping for result tracking
@@ -128,9 +130,8 @@ export const runSpiritmenderLayerBroker = async ({
     },
   });
 
-  // If aborted (paused), bail out without writing status — pause responder resets items to pending
   if (abortSignal.aborted) {
-    return;
+    return adapterResultContract.parse({ success: true });
   }
 
   // Map results back to quest work items
@@ -169,4 +170,5 @@ export const runSpiritmenderLayerBroker = async ({
       workItems: workItemUpdates,
     } as ModifyQuestInput,
   });
+  return adapterResultContract.parse({ success: true });
 };

@@ -6,7 +6,14 @@
  * // Modifies workItems in quest with replacement mapping, appends new items, recalculates status, persists
  */
 
-import type { DependencyStep, Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  DependencyStep,
+  Quest,
+  QuestId,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
@@ -25,7 +32,7 @@ export const questWorkItemInsertBroker = async ({
   newWorkItems: WorkItem[];
   replacementMapping?: ReplacementEntry[];
   tackOnSteps?: DependencyStep[];
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const updatedWorkItems = [...quest.workItems];
 
   if (replacementMapping) {
@@ -53,4 +60,5 @@ export const questWorkItemInsertBroker = async ({
       ...(tackOnSteps ? { steps: [...quest.steps, ...tackOnSteps] } : {}),
     } as ModifyQuestInput,
   });
+  return adapterResultContract.parse({ success: true });
 };

@@ -6,7 +6,8 @@
  * // Starts server module, writes URL to stdout, opens browser with platform-appropriate command
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
@@ -14,9 +15,9 @@ import { childProcessExecAdapter } from '../../../adapters/child-process/exec/ch
 
 const SERVER_MODULE_NAME = '@dungeonmaster/server';
 
-export const CliServeResponder = async (): Promise<void> => {
+export const CliServeResponder = async (): Promise<AdapterResult> => {
   const serverPath = filePathContract.parse(require.resolve(SERVER_MODULE_NAME));
-  const serverModule = await runtimeDynamicImportAdapter<{ StartServer: () => void }>({
+  const serverModule = await runtimeDynamicImportAdapter<{ StartServer: () => AdapterResult }>({
     path: serverPath,
   });
 
@@ -32,4 +33,5 @@ export const CliServeResponder = async (): Promise<void> => {
         ? `start ${serverUrl}`
         : `xdg-open ${serverUrl}`;
   childProcessExecAdapter({ command: cmd });
+  return adapterResultContract.parse({ success: true });
 };

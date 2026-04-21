@@ -6,7 +6,11 @@
  * // Delegates to WardRunResponder, WardListResponder, WardDetailResponder, or WardRawResponder
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import {
+  adapterResultContract,
+  type AbsoluteFilePath,
+  type AdapterResult,
+} from '@dungeonmaster/shared/contracts';
 
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
 import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';
@@ -26,7 +30,8 @@ export const WardFlow = async ({
 }: {
   args: readonly string[];
   rootPath: AbsoluteFilePath;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const rawCommand = args[COMMAND_ARG_INDEX];
   const isImplicitRun = !rawCommand || rawCommand.startsWith('-');
   const command = isImplicitRun ? COMMANDS.run : rawCommand;
@@ -36,19 +41,20 @@ export const WardFlow = async ({
       ? [...args.slice(0, COMMAND_ARG_INDEX), COMMANDS.run, ...args.slice(COMMAND_ARG_INDEX)]
       : args;
     await WardRunResponder({ args: normalizedArgs, rootPath });
-    return;
+    return result;
   }
 
   if (command === COMMANDS.detail) {
     await WardDetailResponder({ args, rootPath });
-    return;
+    return result;
   }
 
   if (command === COMMANDS.raw) {
     await WardRawResponder({ args, rootPath });
-    return;
+    return result;
   }
 
   process.stderr.write(`Unknown command: ${command}\n`);
   process.stderr.write('Available commands: run, detail, raw\n');
+  return result;
 };

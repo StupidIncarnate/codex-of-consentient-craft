@@ -38,7 +38,7 @@ describe('questWorkItemInsertBroker', () => {
           quest,
           newWorkItems: [newItem],
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
   });
 
@@ -82,7 +82,7 @@ describe('questWorkItemInsertBroker', () => {
           newWorkItems: [newItem],
           replacementMapping: [{ oldId: oldItemId, newId: newSiegeId }],
         }),
-      ).resolves.toBe(undefined);
+      ).resolves.toStrictEqual({ success: true });
     });
   });
 });

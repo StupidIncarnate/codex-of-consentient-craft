@@ -6,7 +6,8 @@
  * // Delegates to CliInitResponder for init, CliServeResponder otherwise
  */
 
-import type { InstallContext } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { CliInitResponder } from '../../responders/cli/init/cli-init-responder';
 import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responder';
@@ -21,11 +22,12 @@ export const CliFlow = async ({
 }: {
   command: string | undefined;
   context: InstallContext;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   if (command === COMMANDS.init) {
     await CliInitResponder({ context });
-    return;
+    return adapterResultContract.parse({ success: true });
   }
 
   await CliServeResponder();
+  return adapterResultContract.parse({ success: true });
 };

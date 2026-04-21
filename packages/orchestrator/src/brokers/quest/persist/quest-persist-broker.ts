@@ -6,8 +6,13 @@
  * // Writes file atomically (quest.json.tmp -> rename to quest.json) then appends outbox entry
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  FileContents,
+  FilePath,
+  QuestId,
+} from '@dungeonmaster/shared/contracts';
 
 import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -23,10 +28,11 @@ export const questPersistBroker = async ({
   questFilePath: FilePath;
   contents: FileContents;
   questId: QuestId;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const tmpPath = filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
 
   await fsWriteFileAdapter({ filePath: tmpPath, contents });
   await fsRenameAdapter({ from: tmpPath, to: questFilePath });
   await questOutboxAppendBroker({ questId });
+  return adapterResultContract.parse({ success: true });
 };

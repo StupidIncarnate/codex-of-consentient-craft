@@ -6,9 +6,13 @@
  * // Mounts the React app with AppFlow as content
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+
 import { AppFlow } from '../app/app-flow';
 import { AppMountResponder } from '../../responders/app/mount/app-mount-responder';
 
-export const AppMountFlow = (): void => {
+export const AppMountFlow = (): AdapterResult => {
   AppMountResponder({ content: <AppFlow /> });
+  return adapterResultContract.parse({ success: true });
 };

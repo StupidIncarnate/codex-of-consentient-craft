@@ -6,11 +6,16 @@
  * // Writes [OK] or [FAIL] status lines for each package to stdout
  */
 
-import type { InstallContext } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { installRunBroker } from '../../../brokers/install/run/install-run-broker';
 
-export const CliInitResponder = async ({ context }: { context: InstallContext }): Promise<void> => {
+export const CliInitResponder = async ({
+  context,
+}: {
+  context: InstallContext;
+}): Promise<AdapterResult> => {
   const results = await installRunBroker({
     context,
   });
@@ -19,4 +24,5 @@ export const CliInitResponder = async ({ context }: { context: InstallContext })
     const status = result.success ? 'OK' : 'FAIL';
     process.stdout.write(`[${status}] ${result.packageName}: ${result.message}\n`);
   }
+  return adapterResultContract.parse({ success: true });
 };

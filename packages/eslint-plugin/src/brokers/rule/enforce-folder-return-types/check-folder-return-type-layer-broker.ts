@@ -1,65 +1,64 @@
 /**
- * PURPOSE: Validates return type annotations against folder type constraints for adapters and guards
+ * PURPOSE: Validates return type annotations against folder type constraints for function-exporting folders
  *
  * USAGE:
- * checkFolderReturnTypeLayerBroker({ node, ctx, isAdapter: true, isGuard: false });
- * // Reports lint error if adapter returns void or Promise<void>
+ * checkFolderReturnTypeLayerBroker({ node, ctx, folderType: FolderTypeStub({value: 'brokers'}) });
+ * // Returns AdapterResult; reports lint error if annotation is void, Promise<void>, or (for guards) not boolean/predicate
  */
+import type { AdapterResult, FolderType } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 
 export const checkFolderReturnTypeLayerBroker = ({
   node,
   ctx,
-  isAdapter,
-  isGuard,
+  folderType,
 }: {
   node?: Tsestree;
   ctx?: EslintContext;
-  isAdapter?: boolean;
-  isGuard?: boolean;
-}): void => {
-  if (!node || !ctx) {
-    return;
+  folderType?: FolderType | undefined;
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
+
+  if (!node || !ctx || !folderType) {
+    return result;
   }
 
   const { returnType } = node;
   if (!returnType) {
-    return;
+    return result;
   }
 
   const { typeAnnotation } = returnType;
   if (!typeAnnotation) {
-    return;
+    return result;
   }
 
-  if (isAdapter === true) {
-    // Adapter must NOT return void
-    if (typeAnnotation.type === 'TSVoidKeyword') {
-      ctx.report({
-        node,
-        messageId: 'adapterVoidReturn',
-      });
-      return;
-    }
-
-    // Adapter must NOT return Promise<void>
-    // @typescript-eslint v6+ uses typeArguments instead of typeParameters
-    const typeArgs = typeAnnotation.typeArguments ?? typeAnnotation.typeParameters;
-    if (
-      typeAnnotation.type === 'TSTypeReference' &&
-      typeAnnotation.typeName?.name === 'Promise' &&
-      typeArgs?.params?.[0]?.type === 'TSVoidKeyword'
-    ) {
-      ctx.report({
-        node,
-        messageId: 'adapterPromiseVoidReturn',
-      });
-    }
+  if (typeAnnotation.type === 'TSVoidKeyword') {
+    ctx.report({
+      node,
+      messageId: 'folderVoidReturn',
+      data: { folderType },
+    });
+    return result;
   }
 
-  if (isGuard === true) {
-    // Guard must return boolean or type predicate (x is T)
+  const typeArgs = typeAnnotation.typeArguments ?? typeAnnotation.typeParameters;
+  if (
+    typeAnnotation.type === 'TSTypeReference' &&
+    typeAnnotation.typeName?.name === 'Promise' &&
+    typeArgs?.params?.[0]?.type === 'TSVoidKeyword'
+  ) {
+    ctx.report({
+      node,
+      messageId: 'folderPromiseVoidReturn',
+      data: { folderType },
+    });
+    return result;
+  }
+
+  if (folderType === 'guards') {
     if (typeAnnotation.type !== 'TSBooleanKeyword' && typeAnnotation.type !== 'TSTypePredicate') {
       ctx.report({
         node,
@@ -67,4 +66,5 @@ export const checkFolderReturnTypeLayerBroker = ({
       });
     }
   }
+  return result;
 };

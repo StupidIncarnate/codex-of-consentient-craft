@@ -5,8 +5,8 @@
  * await questModifyBroker({questId, modifications: {title: 'New Title'}});
  * // Returns void on success, throws on failure
  */
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -17,7 +17,7 @@ export const questModifyBroker = async ({
 }: {
   questId: QuestId;
   modifications: Record<string, unknown>;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const response = await fetchPatchAdapter<unknown>({
     url: webConfigStatics.api.routes.questById.replace(':questId', questId),
     body: modifications,
@@ -36,4 +36,5 @@ export const questModifyBroker = async ({
       ),
     );
   }
+  return adapterResultContract.parse({ success: true });
 };

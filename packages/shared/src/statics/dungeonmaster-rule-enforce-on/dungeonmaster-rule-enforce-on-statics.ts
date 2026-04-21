@@ -34,7 +34,6 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/require-contract-validation': 'pre-edit',
   '@dungeonmaster/enforce-object-destructuring-params': 'pre-edit',
   '@dungeonmaster/enforce-optional-guard-params': 'pre-edit',
-  '@dungeonmaster/explicit-return-types': 'pre-edit',
   '@dungeonmaster/enforce-stub-patterns': 'pre-edit',
   '@dungeonmaster/enforce-stub-usage': 'pre-edit',
   '@dungeonmaster/enforce-project-structure': 'pre-edit',
@@ -73,7 +72,6 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-object-keys-in-expect': 'pre-edit',
   '@dungeonmaster/ban-string-includes-in-expect': 'pre-edit',
   '@dungeonmaster/ban-weak-asymmetric-matchers': 'pre-edit',
-  '@dungeonmaster/ban-status-string-comparisons': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

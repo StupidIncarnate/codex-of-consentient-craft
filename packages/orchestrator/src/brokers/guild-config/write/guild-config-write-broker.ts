@@ -8,8 +8,8 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { GuildConfig } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -19,7 +19,7 @@ export const guildConfigWriteBroker = async ({
   config,
 }: {
   config: GuildConfig;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const configFilePath = pathJoinAdapter({
@@ -31,4 +31,5 @@ export const guildConfigWriteBroker = async ({
   );
 
   await fsWriteFileAdapter({ filePath: configFilePath, contents });
+  return adapterResultContract.parse({ success: true });
 };

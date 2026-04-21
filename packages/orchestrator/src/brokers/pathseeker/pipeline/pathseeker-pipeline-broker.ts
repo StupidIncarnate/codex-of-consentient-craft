@@ -6,7 +6,8 @@
  * // Waits for PathSeeker exit, re-loads quest, succeeds if status is in_progress, otherwise re-spawns
  */
 
-import type { FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { killableProcessContract } from '../../../contracts/killable-process/killable-process-contract';
@@ -41,9 +42,10 @@ export const pathseekerPipelineBroker = async ({
   attempt: number;
   onVerifySuccess: () => void;
   onProcessUpdate: (params: { process: KillableProcess }) => void;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   if (attempt >= pathseekerPipelineStatics.limits.maxAttempts) {
-    return;
+    return result;
   }
 
   await killableProcess.waitForExit();
@@ -61,7 +63,7 @@ export const pathseekerPipelineBroker = async ({
     isActivelyExecutingQuestStatusGuard({ status: postResult.quest.status })
   ) {
     onVerifySuccess();
-    return;
+    return result;
   }
 
   // Agent either failed, crashed, or signaled complete without transitioning to

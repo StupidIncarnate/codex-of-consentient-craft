@@ -6,7 +6,8 @@
  * // Writes file detail to stdout
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { ErrorEntry } from '../../../contracts/error-entry/error-entry-contract';
@@ -25,18 +26,19 @@ export const commandDetailBroker = async ({
   runId: RunId;
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
   json?: boolean;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const wardResult = await storageLoadBroker({ rootPath, runId });
 
   if (!wardResult) {
     process.stderr.write(`No ward result found for run ${runId}\n`);
-    return;
+    return result;
   }
 
   if (json) {
     const detail = resultToDetailJsonTransformer({ wardResult });
     process.stdout.write(`${detail}\n`);
-    return;
+    return result;
   }
 
   const detail = filePath
@@ -44,4 +46,5 @@ export const commandDetailBroker = async ({
     : resultToDetailTransformer({ wardResult });
 
   process.stdout.write(`${detail}\n`);
+  return result;
 };

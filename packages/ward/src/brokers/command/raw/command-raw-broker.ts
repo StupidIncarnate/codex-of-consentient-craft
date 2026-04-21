@@ -6,7 +6,8 @@
  * // Writes raw process output to stdout
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
@@ -20,19 +21,20 @@ export const commandRawBroker = async ({
   rootPath: AbsoluteFilePath;
   runId: RunId;
   checkType: CheckType;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const wardResult = await storageLoadBroker({ rootPath, runId });
 
   if (!wardResult) {
     process.stderr.write(`No ward result found for run ${runId}\n`);
-    return;
+    return result;
   }
 
   const matchingCheck = wardResult.checks.find((check) => check.checkType === checkType);
 
   if (!matchingCheck) {
     process.stderr.write(`No ${checkType} check found in run ${runId}\n`);
-    return;
+    return result;
   }
 
   for (const project of matchingCheck.projectResults) {
@@ -43,4 +45,5 @@ export const commandRawBroker = async ({
       process.stdout.write(`${project.rawOutput.stderr}\n`);
     }
   }
+  return result;
 };

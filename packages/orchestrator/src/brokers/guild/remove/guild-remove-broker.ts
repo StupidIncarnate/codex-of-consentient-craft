@@ -7,12 +7,17 @@
  * // Throws if guild not found
  */
 
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
-export const guildRemoveBroker = async ({ guildId }: { guildId: GuildId }): Promise<void> => {
+export const guildRemoveBroker = async ({
+  guildId,
+}: {
+  guildId: GuildId;
+}): Promise<AdapterResult> => {
   const config = await guildConfigReadBroker();
 
   const exists = config.guilds.some((g) => g.id === guildId);
@@ -24,4 +29,5 @@ export const guildRemoveBroker = async ({ guildId }: { guildId: GuildId }): Prom
   const updatedGuilds = config.guilds.filter((g) => g.id !== guildId);
 
   await guildConfigWriteBroker({ config: { guilds: updatedGuilds } });
+  return adapterResultContract.parse({ success: true });
 };

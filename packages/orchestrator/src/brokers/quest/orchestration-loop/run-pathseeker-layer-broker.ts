@@ -7,6 +7,8 @@
  */
 
 import {
+  adapterResultContract,
+  type AdapterResult,
   type FilePath,
   type FolderTypeGroups,
   type QuestId,
@@ -42,7 +44,8 @@ export const runPathseekerLayerBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   batchGroups: FolderTypeGroups;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   // Fetch quest upfront to resolve PathSeeker sessionId and reuse for post-completion paths
   const questInput = getQuestInputContract.parse({ questId });
   const initialQuestResult = await questGetBroker({ input: questInput });
@@ -90,9 +93,8 @@ export const runPathseekerLayerBroker = async ({
 
   const agentSummary = spawnResult.signal?.summary ?? undefined;
 
-  // If aborted (paused), bail out without creating follow-up items
   if (abortSignal.aborted) {
-    return;
+    return result;
   }
 
   // Completeness checks are now enforced inside modify-quest's Tier 4 transition
@@ -195,4 +197,5 @@ export const runPathseekerLayerBroker = async ({
       } as ModifyQuestInput,
     });
   }
+  return result;
 };

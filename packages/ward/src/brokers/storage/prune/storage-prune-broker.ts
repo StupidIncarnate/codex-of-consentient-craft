@@ -6,7 +6,12 @@
  * // Removes run files older than 1 hour from .ward directory
  */
 
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import {
+  adapterResultContract,
+  filePathContract,
+  type AbsoluteFilePath,
+  type AdapterResult,
+} from '@dungeonmaster/shared/contracts';
 
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
@@ -18,7 +23,8 @@ export const storagePruneBroker = async ({
   rootPath,
 }: {
   rootPath: AbsoluteFilePath;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
 
   try {
@@ -47,4 +53,5 @@ export const storagePruneBroker = async ({
   } catch {
     // .ward directory may not exist yet - safe to ignore
   }
+  return result;
 };

@@ -17,7 +17,6 @@ import { ruleBanPrimitivesBrokerProxy } from '../../../brokers/rule/ban-primitiv
 import { ruleEnforceContractUsageInTestsBrokerProxy } from '../../../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker.proxy';
 import { ruleBanJestMockInTestsBrokerProxy } from '../../../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker.proxy';
 import { ruleRequireZodOnPrimitivesBrokerProxy } from '../../../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker.proxy';
-import { ruleExplicitReturnTypesBrokerProxy } from '../../../brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy';
 import { ruleEnforceProjectStructureBrokerProxy } from '../../../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.proxy';
 import { ruleEnforceImportDependenciesBrokerProxy } from '../../../brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker.proxy';
 import { ruleEnforceJestMockedUsageBrokerProxy } from '../../../brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker.proxy';
@@ -65,7 +64,6 @@ import { ruleBanTautologicalAssertionsBrokerProxy } from '../../../brokers/rule/
 import { ruleBanObjectKeysInExpectBrokerProxy } from '../../../brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.proxy';
 import { ruleBanStringIncludesInExpectBrokerProxy } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.proxy';
 import { ruleBanWeakAsymmetricMatchersBrokerProxy } from '../../../brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.proxy';
-import { ruleBanStatusStringComparisonsBrokerProxy } from '../../../brokers/rule/ban-status-string-comparisons/rule-ban-status-string-comparisons-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -77,7 +75,6 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceContractUsageInTestsBrokerProxy();
   ruleBanJestMockInTestsBrokerProxy();
   ruleRequireZodOnPrimitivesBrokerProxy();
-  ruleExplicitReturnTypesBrokerProxy();
   ruleEnforceProjectStructureBrokerProxy();
   ruleEnforceImportDependenciesBrokerProxy();
   ruleEnforceJestMockedUsageBrokerProxy();
@@ -125,7 +122,6 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanObjectKeysInExpectBrokerProxy();
   ruleBanStringIncludesInExpectBrokerProxy();
   ruleBanWeakAsymmetricMatchersBrokerProxy();
-  ruleBanStatusStringComparisonsBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

@@ -13,7 +13,8 @@
 import { configFileFindBroker } from '../../config-file/find/config-file-find-broker';
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBroker = async ({
@@ -24,31 +25,29 @@ export const findParentConfigsLayerBroker = async ({
   currentPath: FilePath;
   originalConfigPath: FilePath;
   configs: DungeonmasterConfig[];
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
+  const result = adapterResultContract.parse({ success: true });
   try {
     const parentConfigPath = await configFileFindBroker({ startPath: currentPath });
 
-    // Stop if we found the same config (no parent)
     if (parentConfigPath === originalConfigPath) {
-      return;
+      return result;
     }
 
     const parentConfig = await configFileLoadBroker({
       configPath: parentConfigPath,
     });
 
-    // Add parent config to the front of the array (for proper merging order)
     configs.unshift(parentConfig);
 
-    // If parent is monorepo root, stop looking
     if (parentConfig.framework === 'monorepo') {
-      return;
+      return result;
     }
 
-    // Continue searching up the tree
     const nextPath = pathDirnameAdapter({ path: parentConfigPath });
     await findParentConfigsLayerBroker({ currentPath: nextPath, originalConfigPath, configs });
   } catch {
     // No more parent configs found
   }
+  return result;
 };

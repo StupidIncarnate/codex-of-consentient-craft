@@ -99,7 +99,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-test-colocation': 'error',
     '@dungeonmaster/enforce-test-creation-of-proxy': 'error',
     '@dungeonmaster/enforce-test-proxy-imports': 'error',
-    '@dungeonmaster/explicit-return-types': 'error',
     '@dungeonmaster/forbid-non-exported-functions': 'error',
     '@dungeonmaster/forbid-todo-skip': 'error',
     '@dungeonmaster/forbid-type-reexport': 'error',
@@ -131,7 +130,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-object-keys-in-expect': 'error',
     '@dungeonmaster/ban-string-includes-in-expect': 'error',
     '@dungeonmaster/ban-weak-asymmetric-matchers': 'error',
-    '@dungeonmaster/ban-status-string-comparisons': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

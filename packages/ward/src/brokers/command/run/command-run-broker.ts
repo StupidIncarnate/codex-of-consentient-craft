@@ -6,7 +6,8 @@
  * // Runs all checks, prints summary, exits 0 on pass or 1 on failure
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
@@ -23,7 +24,7 @@ export const commandRunBroker = async ({
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
-}): Promise<void> => {
+}): Promise<AdapterResult> => {
   const resolvedConfig = config.changed
     ? await (async (): Promise<WardConfig> => {
         const changedFiles = await gitDiffFilesBroker({ cwd: rootPath });
@@ -67,4 +68,5 @@ export const commandRunBroker = async ({
     );
     process.exitCode = 1;
   }
+  return adapterResultContract.parse({ success: true });
 };

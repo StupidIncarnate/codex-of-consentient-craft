@@ -5,9 +5,10 @@
  * validateNoExposedChildProxiesLayerBroker({ objectNode, proxyVariables, context });
  * // Reports error if return object exposes child proxy via shorthand { childProxy } or explicit { child: childProxy }
  */
+import type { AdapterResult, Identifier } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const validateNoExposedChildProxiesLayerBroker = ({
   objectNode,
@@ -17,10 +18,11 @@ export const validateNoExposedChildProxiesLayerBroker = ({
   objectNode: Tsestree;
   proxyVariables: Map<Identifier, Identifier>;
   context: EslintContext;
-}): void => {
+}): AdapterResult => {
+  const result = adapterResultContract.parse({ success: true });
   const { properties } = objectNode;
 
-  if (!properties) return;
+  if (!properties) return result;
 
   for (const property of properties) {
     if (property.type !== 'Property') continue;
@@ -59,4 +61,5 @@ export const validateNoExposedChildProxiesLayerBroker = ({
       }
     }
   }
+  return result;
 };
