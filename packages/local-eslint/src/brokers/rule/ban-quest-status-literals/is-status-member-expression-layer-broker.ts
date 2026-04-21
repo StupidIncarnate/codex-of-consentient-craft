@@ -9,7 +9,7 @@
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '@dungeonmaster/eslint-plugin/contracts/tsestree';
+import type { Tsestree } from '@dungeonmaster/eslint-plugin';
 import { matchesStatusHolderIdentifierGuard } from '../../../guards/matches-status-holder-identifier/matches-status-holder-identifier-guard';
 
 export const isStatusMemberExpressionLayerBroker = ({

@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule / helpers should call this.
  */
-import type { Tsestree } from '@dungeonmaster/eslint-plugin/contracts/tsestree';
+import type { Tsestree } from '@dungeonmaster/eslint-plugin';
 import { classifyStatusLiteralTransformer } from '../../transformers/classify-status-literal/classify-status-literal-transformer';
 
 export const isClassifiedStatusLiteralElementGuard = ({

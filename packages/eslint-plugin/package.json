@@ -4,18 +4,6 @@
   "description": "ESLint plugin enforcing Dungeonmaster architecture standards with custom rules for Zod contracts, folder structure, and type safety",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "contracts/eslint-rule": ["dist/contracts/eslint-rule/eslint-rule-contract.d.ts"],
-      "contracts/eslint-rule.stub": ["dist/contracts/eslint-rule/eslint-rule.stub.d.ts"],
-      "contracts/eslint-context": ["dist/contracts/eslint-context/eslint-context-contract.d.ts"],
-      "contracts/eslint-context.stub": ["dist/contracts/eslint-context/eslint-context.stub.d.ts"],
-      "contracts/tsestree": ["dist/contracts/tsestree/tsestree-contract.d.ts"],
-      "contracts/tsestree.stub": ["dist/contracts/tsestree/tsestree.stub.d.ts"],
-      "statics/tsestree-node-type": ["dist/statics/tsestree-node-type/tsestree-node-type-statics.d.ts"],
-      "adapters/eslint/rule-tester": ["dist/adapters/eslint/rule-tester/eslint-rule-tester-adapter.d.ts"]
-    }
-  },
   "files": [
     "dist/**/*",
     "configs/**/*"
@@ -23,55 +11,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./tsconfig": "./configs/tsconfig.json",
-    "./config": "./configs/eslint.dungeonmaster.js",
-    "./contracts/eslint-rule": {
-      "source": "./src/contracts/eslint-rule/eslint-rule-contract.ts",
-      "import": "./dist/contracts/eslint-rule/eslint-rule-contract.js",
-      "require": "./dist/contracts/eslint-rule/eslint-rule-contract.js",
-      "types": "./dist/contracts/eslint-rule/eslint-rule-contract.d.ts"
-    },
-    "./contracts/eslint-rule.stub": {
-      "source": "./src/contracts/eslint-rule/eslint-rule.stub.ts",
-      "import": "./dist/contracts/eslint-rule/eslint-rule.stub.js",
-      "require": "./dist/contracts/eslint-rule/eslint-rule.stub.js",
-      "types": "./dist/contracts/eslint-rule/eslint-rule.stub.d.ts"
-    },
-    "./contracts/eslint-context": {
-      "source": "./src/contracts/eslint-context/eslint-context-contract.ts",
-      "import": "./dist/contracts/eslint-context/eslint-context-contract.js",
-      "require": "./dist/contracts/eslint-context/eslint-context-contract.js",
-      "types": "./dist/contracts/eslint-context/eslint-context-contract.d.ts"
-    },
-    "./contracts/eslint-context.stub": {
-      "source": "./src/contracts/eslint-context/eslint-context.stub.ts",
-      "import": "./dist/contracts/eslint-context/eslint-context.stub.js",
-      "require": "./dist/contracts/eslint-context/eslint-context.stub.js",
-      "types": "./dist/contracts/eslint-context/eslint-context.stub.d.ts"
-    },
-    "./contracts/tsestree": {
-      "source": "./src/contracts/tsestree/tsestree-contract.ts",
-      "import": "./dist/contracts/tsestree/tsestree-contract.js",
-      "require": "./dist/contracts/tsestree/tsestree-contract.js",
-      "types": "./dist/contracts/tsestree/tsestree-contract.d.ts"
-    },
-    "./contracts/tsestree.stub": {
-      "source": "./src/contracts/tsestree/tsestree.stub.ts",
-      "import": "./dist/contracts/tsestree/tsestree.stub.js",
-      "require": "./dist/contracts/tsestree/tsestree.stub.js",
-      "types": "./dist/contracts/tsestree/tsestree.stub.d.ts"
-    },
-    "./statics/tsestree-node-type": {
-      "source": "./src/statics/tsestree-node-type/tsestree-node-type-statics.ts",
-      "import": "./dist/statics/tsestree-node-type/tsestree-node-type-statics.js",
-      "require": "./dist/statics/tsestree-node-type/tsestree-node-type-statics.js",
-      "types": "./dist/statics/tsestree-node-type/tsestree-node-type-statics.d.ts"
-    },
-    "./adapters/eslint/rule-tester": {
-      "source": "./src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts",
-      "import": "./dist/adapters/eslint/rule-tester/eslint-rule-tester-adapter.js",
-      "require": "./dist/adapters/eslint/rule-tester/eslint-rule-tester-adapter.js",
-      "types": "./dist/adapters/eslint/rule-tester/eslint-rule-tester-adapter.d.ts"
-    }
+    "./config": "./configs/eslint.dungeonmaster.js"
   },
   "scripts": {
     "build": "tsc",

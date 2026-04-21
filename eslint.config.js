@@ -47,11 +47,6 @@ module.exports = [
       '*.md',
       '**/*.md',
       '**/ts-jest/**',
-      // Subpath-barrel re-exports for @dungeonmaster/eslint-plugin/{contracts,adapters,statics}/*
-      // — pure re-export plumbing, sits outside the package's tsconfig rootDir.
-      'packages/eslint-plugin/contracts/**',
-      'packages/eslint-plugin/adapters/**',
-      'packages/eslint-plugin/statics/**',
     ],
   },
   // Configuration for TypeScript files

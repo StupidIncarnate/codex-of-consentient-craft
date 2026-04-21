@@ -9,10 +9,8 @@
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin/contracts/eslint-rule';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin/contracts/eslint-rule';
-import type { EslintContext } from '@dungeonmaster/eslint-plugin/contracts/eslint-context';
-import type { Tsestree } from '@dungeonmaster/eslint-plugin/contracts/tsestree';
+import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
+import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 import { classifyStatusLiteralTransformer } from '../../../transformers/classify-status-literal/classify-status-literal-transformer';

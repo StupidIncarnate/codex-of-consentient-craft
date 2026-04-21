@@ -9,10 +9,22 @@ export { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Export contracts for advanced usage
 export type { EslintRule } from './contracts/eslint-rule/eslint-rule-contract';
+export { eslintRuleContract } from './contracts/eslint-rule/eslint-rule-contract';
 export type { EslintConfig } from './contracts/eslint-config/eslint-config-contract';
 export type { TsconfigOptions } from './contracts/tsconfig-options/tsconfig-options-contract';
 export type { AstNode } from './contracts/ast-node/ast-node-contract';
 export type { RuleViolation } from './contracts/rule-violation/rule-violation-contract';
+export type {
+  EslintContext,
+  EslintScope,
+  EslintSourceCode,
+} from './contracts/eslint-context/eslint-context-contract';
+export type { Tsestree } from './contracts/tsestree/tsestree-contract';
+export { tsestreeContract } from './contracts/tsestree/tsestree-contract';
+export { TsestreeStub, TsestreeNodeType } from './contracts/tsestree/tsestree.stub';
+
+// Export adapters for writing custom rule tests
+export { eslintRuleTesterAdapter } from './adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 
 // Export brokers for custom configurations
 export { ruleBanPrimitivesBroker } from './brokers/rule/ban-primitives/rule-ban-primitives-broker';
