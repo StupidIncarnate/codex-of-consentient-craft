@@ -5,6 +5,7 @@ import { TestFailureStub } from '../../../contracts/test-failure/test-failure.st
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
+import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
 import { checkRunUnitBroker } from './check-run-unit-broker';
 import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
@@ -841,6 +842,60 @@ describe('checkRunUnitBroker', () => {
         '--findRelatedTests',
         'src/orphan.test.ts',
       ]);
+    });
+  });
+
+  describe('passingTests', () => {
+    it('VALID: {jest output with passed assertionResults} => returns passingTests populated', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      const jestOutput = JSON.stringify({
+        testResults: [
+          {
+            name: 'src/foo.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 15 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: 7 },
+            ],
+          },
+        ],
+        numTotalTestSuites: 1,
+        numPassedTests: 2,
+        success: true,
+      });
+      proxy.setupPassWithOutput({ stdout: jestOutput });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 4,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/foo.test.ts'],
+          passingTests: [
+            PassingTestStub({
+              suitePath: 'src/foo.test.ts',
+              testName: 'VALID: {a} => b',
+              durationMs: 15,
+            }),
+            PassingTestStub({
+              suitePath: 'src/foo.test.ts',
+              testName: 'VALID: {c} => d',
+              durationMs: 7,
+            }),
+          ],
+          rawOutput: RawOutputStub({ stdout: jestOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
     });
   });
 

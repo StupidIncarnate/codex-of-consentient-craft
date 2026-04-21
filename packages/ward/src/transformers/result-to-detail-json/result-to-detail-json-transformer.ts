@@ -29,6 +29,7 @@ export const resultToDetailJsonTransformer = ({
         status: project.status,
         errors: project.errors,
         testFailures: project.testFailures,
+        passingTests: project.passingTests,
         filesCount: project.filesCount,
         discoveredCount: project.discoveredCount,
       })),

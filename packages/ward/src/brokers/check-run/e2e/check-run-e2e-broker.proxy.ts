@@ -7,11 +7,14 @@ import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts'
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 
 export const checkRunE2eBrokerProxy = (): {
   setupPass: () => void;
   setupPassWithOutput: (params: { stdout: string }) => void;
+  setupPassWithJsonReport: (params: { jsonContent: string }) => void;
   setupFail: (params: { stdout: string }) => void;
   setupFailWithEmptyOutput: () => void;
   setupNoPlaywrightConfig: () => void;
@@ -23,6 +26,8 @@ export const checkRunE2eBrokerProxy = (): {
   const freePortProxy = netFreePortAdapterProxy();
   fsGlobSyncAdapterProxy();
   netKillPortAdapterProxy();
+  const readFileProxy = fsReadFileAdapterProxy();
+  fsUnlinkAdapterProxy();
   const binProxy = binResolveBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
@@ -57,6 +62,18 @@ export const checkRunE2eBrokerProxy = (): {
         stdout: ErrorMessageStub({ value: stdout }),
         stderr: emptyMessage,
       });
+    },
+
+    setupPassWithJsonReport: ({ jsonContent }: { jsonContent: string }): void => {
+      setupPlaywrightConfigExists();
+      binProxy.setupFound();
+      queueFreePorts();
+      captureProxy.setupSuccess({
+        exitCode: successCode,
+        stdout: emptyMessage,
+        stderr: emptyMessage,
+      });
+      readFileProxy.returns({ content: jsonContent });
     },
 
     setupFail: ({ stdout }: { stdout: string }): void => {

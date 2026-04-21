@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Transforms a WardResult into a detailed error view for a specific file path showing full untruncated output
+ * PURPOSE: Transforms a WardResult into a detailed view showing errors, failures, crashes, and per-project passing test lists
  *
  * USAGE:
- * resultToDetailTransformer({wardResult: WardResultStub(), filePath: ErrorEntryStub().filePath});
- * // Returns: WardFileDetail with all errors and test failures for that file
+ * resultToDetailTransformer({wardResult: WardResultStub()});
+ * // Returns: WardFileDetail with failure details and passing-test blocks per project
  */
 
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
@@ -16,6 +16,8 @@ import { wardFileDetailContract } from '../../contracts/ward-file-detail/ward-fi
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
+
+const MS_PER_SECOND = 1000;
 
 export const resultToDetailTransformer = ({
   wardResult,
@@ -43,6 +45,14 @@ export const resultToDetailTransformer = ({
           if (isPathSuffixMatchGuard({ storedPath: failure.suitePath, queryPath: filePath })) {
             entries.push(`  FAIL  "${failure.testName}"` as ErrorEntry['message']);
             entries.push(`    ${failure.message}` as ErrorEntry['message']);
+          }
+        }
+
+        for (const passing of project.passingTests) {
+          if (isPathSuffixMatchGuard({ storedPath: passing.suitePath, queryPath: filePath })) {
+            const durationPart =
+              Number(passing.durationMs) > 0 ? ` (${String(passing.durationMs)}ms)` : '';
+            entries.push(`  PASS  "${passing.testName}"${durationPart}` as ErrorEntry['message']);
           }
         }
 
@@ -111,6 +121,26 @@ export const resultToDetailTransformer = ({
             ),
           );
         }
+      }
+
+      if (project.status === 'pass' && project.passingTests.length > 0) {
+        const totalDurationMs = project.passingTests.reduce(
+          (sum, t) => sum + Number(t.durationMs),
+          0,
+        );
+        const durationPart =
+          totalDurationMs >= MS_PER_SECOND
+            ? `, ${(totalDurationMs / MS_PER_SECOND).toFixed(1)}s`
+            : '';
+        const filesPart =
+          Number(project.filesCount) > 0 ? `${String(project.filesCount)} files, ` : '';
+        const header = `${project.projectFolder.name}\n  ${check.checkType}  PASS  (${filesPart}${String(project.passingTests.length)} tests${durationPart})`;
+        const testLines = project.passingTests.map((passing) => {
+          const testDurationPart =
+            Number(passing.durationMs) > 0 ? ` (${String(passing.durationMs)}ms)` : '';
+          return `    ✓ ${passing.suitePath} › ${passing.testName}${testDurationPart}`;
+        });
+        sections.push(errorMessageContract.parse([header, ...testLines].join('\n')));
       }
 
       if (project.onlyDiscovered.length > 0) {

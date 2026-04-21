@@ -33,10 +33,13 @@ import type { GitRelativePath } from '../../../contracts/git-relative-path/git-r
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { extractPlaywrightLineFilesTransformer } from '../../../transformers/extract-playwright-line-files/extract-playwright-line-files-transformer';
 import { parsePlaywrightCrashOutputTransformer } from '../../../transformers/parse-playwright-crash-output/parse-playwright-crash-output-transformer';
+import { playwrightJsonReportToPassingTransformer } from '../../../transformers/playwright-json-report-to-passing/playwright-json-report-to-passing-transformer';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 export const checkRunE2eBroker = async ({
   projectFolder,
@@ -97,6 +100,10 @@ export const checkRunE2eBroker = async ({
   const serverPort = await netFreePortAdapter();
   const webPort = networkPortContract.parse(serverPort + 1);
 
+  const jsonReportPath = filePathContract.parse(
+    `${projectFolder.path}/.ward-playwright-report.json`,
+  );
+
   const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
     command,
@@ -106,6 +113,7 @@ export const checkRunE2eBroker = async ({
     env: {
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
+      PLAYWRIGHT_JSON_OUTPUT_NAME: String(jsonReportPath),
     },
   });
 
@@ -127,6 +135,23 @@ export const checkRunE2eBroker = async ({
     } catch {
       testFailures = [];
     }
+  }
+
+  const passingTests = await (async (): Promise<
+    ReturnType<typeof playwrightJsonReportToPassingTransformer>
+  > => {
+    try {
+      const jsonContent = await fsReadFileAdapter({ filePath: jsonReportPath });
+      return playwrightJsonReportToPassingTransformer({ jsonContent });
+    } catch {
+      return [];
+    }
+  })();
+
+  try {
+    await fsUnlinkAdapter({ filePath: jsonReportPath });
+  } catch {
+    // report file may not exist if playwright crashed early; ignore
   }
 
   const processedFiles: GitRelativePath[] = [];
@@ -154,6 +179,7 @@ export const checkRunE2eBroker = async ({
     discoveredCount,
     onlyDiscovered,
     onlyProcessed,
+    passingTests,
     rawOutput: rawOutputContract.parse({
       stdout: result.output,
       stderr: '',
