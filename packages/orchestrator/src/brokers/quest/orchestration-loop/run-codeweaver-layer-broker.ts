@@ -62,17 +62,24 @@ export const runCodeweaverLayerBroker = async ({
   // Resolve relatedDataItems -> steps, build mapping: slotManagerWorkItemId -> questWorkItemId
   const slotToQuestMap = new Map<WorkItemId, QuestWorkItemId>();
   const workUnits = workItems.map((wi, i) => {
-    const [ref] = wi.relatedDataItems;
-    if (!ref) {
+    const refs = wi.relatedDataItems;
+    if (refs.length === 0) {
       throw new Error(`Work item ${wi.id} has no relatedDataItems`);
     }
-    const resolved = resolveRelatedDataItemTransformer({ ref, quest });
-    if (resolved.collection !== 'steps') {
-      throw new Error(`Expected steps reference, got ${resolved.collection}`);
-    }
+    const resolvedSteps = refs.map((ref) => {
+      const resolved = resolveRelatedDataItemTransformer({ ref, quest });
+      if (resolved.collection !== 'steps') {
+        throw new Error(`Expected steps reference, got ${resolved.collection}`);
+      }
+      return resolved.item;
+    });
     const slotId = workItemIdContract.parse(`work-item-${String(i)}`);
     slotToQuestMap.set(slotId, wi.id);
-    return buildWorkUnitForRoleTransformer({ role: 'codeweaver', step: resolved.item, quest });
+    return buildWorkUnitForRoleTransformer({
+      role: 'codeweaver',
+      steps: resolvedSteps,
+      quest,
+    });
   });
 
   const workTracker = workUnitsToWorkTrackerTransformer({ workUnits });

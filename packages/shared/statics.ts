@@ -21,3 +21,4 @@ export * from './src/statics/session-snippet/session-snippet-statics';
 export * from './src/statics/quest-status-metadata/quest-status-metadata-statics';
 export * from './src/statics/quest-status-transitions/quest-status-transitions-statics';
 export * from './src/statics/work-item-status-metadata/work-item-status-metadata-statics';
+export * from './src/statics/default-batch-groups/default-batch-groups-statics';

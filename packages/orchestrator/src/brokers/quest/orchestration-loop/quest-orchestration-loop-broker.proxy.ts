@@ -9,6 +9,7 @@ import {
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
+import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { runBlightwardenLayerBroker as bwLayer } from './run-blightwarden-layer-broker';
@@ -120,6 +121,8 @@ export const questOrchestrationLoopBrokerProxy = (): {
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const configProxy = dungeonmasterConfigResolveAdapterProxy();
+  configProxy.setupConfigResolved({ config: configProxy.makeRealConfig() });
   runChatLayerBrokerProxy();
   runPathseekerLayerBrokerProxy();
   runCodeweaverLayerBrokerProxy();

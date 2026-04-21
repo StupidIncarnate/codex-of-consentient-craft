@@ -11,6 +11,7 @@ import { workItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   DependencyStep,
   Flow,
+  FolderTypeGroups,
   QuestWorkItemId,
   StepId,
   WorkItem,
@@ -18,36 +19,45 @@ import type {
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
+import { stepsToBatchChunksTransformer } from '../steps-to-batch-chunks/steps-to-batch-chunks-transformer';
 
 export const stepsToWorkItemsTransformer = ({
   steps,
   flows,
   pathseekerWorkItemId,
   now,
+  batchGroups,
 }: {
   steps: DependencyStep[];
   flows: Flow[];
   pathseekerWorkItemId: QuestWorkItemId;
   now: IsoTimestamp;
+  batchGroups: FolderTypeGroups;
 }): WorkItem[] => {
-  // Pass 1: assign a workItem id for every step so forward refs (a step depending on
-  // another step declared later in the array) can be resolved in pass 2.
+  // Pass 1: chunk the steps AND pre-populate stepIdToCwId for every step across
+  // every chunk BEFORE pass 2 reads it. This is required because a step in
+  // chunk N may depend on a step in chunk M where M > N.
+  const cwChunks = stepsToBatchChunksTransformer({ steps, batchGroups });
   const stepIdToCwId = new Map<StepId, QuestWorkItemId>();
-  const assignedCwIds: QuestWorkItemId[] = steps.map((step) => {
+  const assignedCwIds: QuestWorkItemId[] = cwChunks.map((chunk) => {
     const cwId = workItemContract.shape.id.parse(crypto.randomUUID());
-    stepIdToCwId.set(step.id, cwId);
+    for (const step of chunk) {
+      stepIdToCwId.set(step.id, cwId);
+    }
     return cwId;
   });
 
   // Pass 2: build each codeweaver work item, resolving every step dep via the id map.
-  const cwItems: WorkItem[] = steps.map((step, index) => {
+  const cwItems: WorkItem[] = cwChunks.map((chunk, index) => {
     const cwId = assignedCwIds[index];
 
-    const dependsOn: QuestWorkItemId[] = [pathseekerWorkItemId];
-    for (const depStepId of step.dependsOn) {
-      const depCwId = stepIdToCwId.get(depStepId);
-      if (depCwId) {
-        dependsOn.push(depCwId);
+    const dependsOnSet = new Set<QuestWorkItemId>([pathseekerWorkItemId]);
+    for (const step of chunk) {
+      for (const depStepId of step.dependsOn) {
+        const depCwId = stepIdToCwId.get(depStepId);
+        if (depCwId !== undefined && depCwId !== cwId) {
+          dependsOnSet.add(depCwId);
+        }
       }
     }
 
@@ -56,8 +66,8 @@ export const stepsToWorkItemsTransformer = ({
       role: 'codeweaver',
       status: 'pending',
       spawnerType: 'agent',
-      relatedDataItems: [`steps/${String(step.id)}`],
-      dependsOn,
+      relatedDataItems: chunk.map((step) => `steps/${String(step.id)}`),
+      dependsOn: [...dependsOnSet],
       maxAttempts: 1,
       createdAt: now,
     });
@@ -104,13 +114,14 @@ export const stepsToWorkItemsTransformer = ({
   const lawbringerDependsOn: QuestWorkItemId[] =
     allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
 
-  const lawItems: WorkItem[] = steps.map((step) =>
+  const lawChunks = stepsToBatchChunksTransformer({ steps, batchGroups });
+  const lawItems: WorkItem[] = lawChunks.map((chunk) =>
     workItemContract.parse({
       id: crypto.randomUUID(),
       role: 'lawbringer',
       status: 'pending',
       spawnerType: 'agent',
-      relatedDataItems: [`steps/${String(step.id)}`],
+      relatedDataItems: chunk.map((step) => `steps/${String(step.id)}`),
       dependsOn: lawbringerDependsOn,
       maxAttempts: 1,
       createdAt: now,

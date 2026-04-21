@@ -20,48 +20,72 @@ export const workUnitToArgumentsTransformer = ({
   switch (workUnit.role) {
     case 'codeweaver': {
       const {
-        step,
+        steps,
+        folderTypes,
         questId,
         relatedContracts,
         relatedObservables,
         relatedDesignDecisions,
         relatedFlows,
       } = workUnit;
-      const focusLine =
-        step.focusFile === undefined
-          ? step.focusAction === undefined
-            ? 'Focus: (none)'
-            : `Focus Action: [${step.focusAction.kind}] ${String(step.focusAction.description)}`
-          : `Focus File: ${String(step.focusFile.path)}`;
-      const parts: ContentText[] = [
-        contentTextContract.parse(`Step: ${step.name}`),
-        contentTextContract.parse(focusLine),
-      ];
+      const totalSteps = steps.length;
+      const isMultiStep = totalSteps > 1;
+      const parts: ContentText[] = [];
 
-      if (step.exportName !== undefined) {
-        parts.push(contentTextContract.parse(`Export Name: ${step.exportName}`));
+      if (isMultiStep) {
+        const folderTypesLabel = folderTypes.join(', ');
+        parts.push(
+          contentTextContract.parse(
+            `# Batch: ${String(totalSteps)} step(s), folder types: [${folderTypesLabel}]`,
+          ),
+        );
       }
 
-      if (step.accompanyingFiles.length > 0) {
-        parts.push(contentTextContract.parse('Accompanying Files:'));
-        for (const file of step.accompanyingFiles) {
-          parts.push(contentTextContract.parse(`  - ${file.path}`));
+      steps.forEach((step, index) => {
+        const focusLine =
+          step.focusFile === undefined
+            ? step.focusAction === undefined
+              ? 'Focus: (none)'
+              : `Focus Action: [${step.focusAction.kind}] ${String(step.focusAction.description)}`
+            : `Focus File: ${String(step.focusFile.path)}`;
+
+        if (isMultiStep) {
+          const stepNumber = index + 1;
+          parts.push(
+            contentTextContract.parse(
+              `\n=== Step ${String(stepNumber)} of ${String(totalSteps)}: ${step.name} ===`,
+            ),
+          );
+        } else {
+          parts.push(contentTextContract.parse(`Step: ${step.name}`));
         }
-      }
+        parts.push(contentTextContract.parse(focusLine));
 
-      if (step.assertions.length > 0) {
-        parts.push(contentTextContract.parse('Assertions:'));
-        for (const assertion of step.assertions) {
-          parts.push(contentTextContract.parse(`  - ${assertion.prefix}: ${assertion.expected}`));
+        if (step.exportName !== undefined) {
+          parts.push(contentTextContract.parse(`Export Name: ${step.exportName}`));
         }
-      }
 
-      if (step.uses.length > 0) {
-        parts.push(contentTextContract.parse('Uses:'));
-        for (const ref of step.uses) {
-          parts.push(contentTextContract.parse(`  - ${ref}`));
+        if (step.accompanyingFiles.length > 0) {
+          parts.push(contentTextContract.parse('Accompanying Files:'));
+          for (const file of step.accompanyingFiles) {
+            parts.push(contentTextContract.parse(`  - ${file.path}`));
+          }
         }
-      }
+
+        if (step.assertions.length > 0) {
+          parts.push(contentTextContract.parse('Assertions:'));
+          for (const assertion of step.assertions) {
+            parts.push(contentTextContract.parse(`  - ${assertion.prefix}: ${assertion.expected}`));
+          }
+        }
+
+        if (step.uses.length > 0) {
+          parts.push(contentTextContract.parse('Uses:'));
+          for (const ref of step.uses) {
+            parts.push(contentTextContract.parse(`  - ${ref}`));
+          }
+        }
+      });
 
       if (relatedContracts.length > 0) {
         parts.push(contentTextContract.parse('Related Contracts:'));
@@ -169,11 +193,34 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'lawbringer': {
-      const { filePaths: lawbringerPaths } = workUnit;
-      const lawParts: ContentText[] = [contentTextContract.parse('Files to Review:')];
-      for (const fp of lawbringerPaths) {
-        lawParts.push(contentTextContract.parse(`  - ${fp}`));
+      const { filePaths: lawbringerPaths, stepBoundaries, folderTypes: lawFolderTypes } = workUnit;
+      const totalPairs = stepBoundaries.length;
+      const isMultiPair = totalPairs > 1;
+
+      if (!isMultiPair) {
+        const lawParts: ContentText[] = [contentTextContract.parse('Files to Review:')];
+        for (const fp of lawbringerPaths) {
+          lawParts.push(contentTextContract.parse(`  - ${fp}`));
+        }
+        return contentTextContract.parse(lawParts.join('\n'));
       }
+
+      const lawParts: ContentText[] = [
+        contentTextContract.parse(
+          `# Batch: ${String(totalPairs)} file pair(s), folder types: [${lawFolderTypes.join(', ')}]`,
+        ),
+      ];
+      stepBoundaries.forEach((boundary, index) => {
+        const pairNumber = index + 1;
+        lawParts.push(
+          contentTextContract.parse(
+            `\n--- Pair ${String(pairNumber)} of ${String(totalPairs)} (step: ${String(boundary.stepId)}) ---`,
+          ),
+        );
+        for (const fp of boundary.filePaths) {
+          lawParts.push(contentTextContract.parse(`  - ${fp}`));
+        }
+      });
       return contentTextContract.parse(lawParts.join('\n'));
     }
 

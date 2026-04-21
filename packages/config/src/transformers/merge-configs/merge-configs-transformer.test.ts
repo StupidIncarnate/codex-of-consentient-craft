@@ -427,6 +427,86 @@ describe('mergeConfigsTransformer', () => {
     });
   });
 
+  describe('agents.batchGroups merging', () => {
+    it('VALID: base with agents + package without agents => base agents preserved', () => {
+      const baseConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['contracts', 'statics']] },
+      });
+
+      const packageConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+      });
+
+      const result = mergeConfigsTransformer({
+        configs: [baseConfig, packageConfig],
+      });
+
+      expect(result.agents).toStrictEqual({ batchGroups: [['contracts', 'statics']] });
+    });
+
+    it('VALID: base without agents + package with agents => package agents added', () => {
+      const baseConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+      });
+
+      const packageConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['guards', 'transformers']] },
+      });
+
+      const result = mergeConfigsTransformer({
+        configs: [baseConfig, packageConfig],
+      });
+
+      expect(result.agents).toStrictEqual({ batchGroups: [['guards', 'transformers']] });
+    });
+
+    it('VALID: both configs with agents => package replaces base wholesale', () => {
+      const baseConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['contracts', 'statics']] },
+      });
+
+      const packageConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['guards']] },
+      });
+
+      const result = mergeConfigsTransformer({
+        configs: [baseConfig, packageConfig],
+      });
+
+      expect(result.agents).toStrictEqual({ batchGroups: [['guards']] });
+    });
+
+    it('VALID: base with agents + package with explicit empty batchGroups => package empty wins', () => {
+      const baseConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [['contracts', 'statics']] },
+      });
+
+      const packageConfig = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        agents: { batchGroups: [] },
+      });
+
+      const result = mergeConfigsTransformer({
+        configs: [baseConfig, packageConfig],
+      });
+
+      expect(result.agents).toStrictEqual({ batchGroups: [] });
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: multiple configs with undefined schema => last undefined preserved', () => {
       const config1 = DungeonmasterConfigStub({

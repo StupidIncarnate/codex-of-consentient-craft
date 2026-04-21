@@ -63,6 +63,13 @@ export const mergeConfigsTransformer = ({
         merged.architecture.booleanFunctionPrefixes = config.architecture.booleanFunctionPrefixes;
       }
     }
+
+    // Agents batchGroups — package replaces root's wholesale when set.
+    // Folder-type groups are semantic units (duplicates across groups are a parse error),
+    // so array-level merging is unsafe.
+    if (config.agents) {
+      merged.agents = config.agents;
+    }
   }
 
   return merged;

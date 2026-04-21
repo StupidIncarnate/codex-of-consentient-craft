@@ -52,6 +52,10 @@ export * from './src/contracts/folder-type/folder-type.stub';
 export * from './src/contracts/folder-config/folder-config-contract';
 export * from './src/contracts/folder-config/folder-config.stub';
 
+// Folder Type Groups Contracts
+export * from './src/contracts/folder-type-groups/folder-type-groups-contract';
+export * from './src/contracts/folder-type-groups/folder-type-groups.stub';
+
 // Content Text Contracts
 export * from './src/contracts/content-text/content-text-contract';
 export * from './src/contracts/content-text/content-text.stub';

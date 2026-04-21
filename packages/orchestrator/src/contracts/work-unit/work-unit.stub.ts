@@ -21,7 +21,8 @@ export const PathseekerWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}
 export const CodeweaverWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
   workUnitContract.parse({
     role: 'codeweaver',
-    step: DependencyStepStub(),
+    steps: [DependencyStepStub()],
+    folderTypes: ['brokers'],
     questId: QuestIdStub({ value: 'add-auth' }),
     relatedContracts: [QuestContractEntryStub()],
     relatedObservables: [FlowObservableStub()],
@@ -41,6 +42,13 @@ export const LawbringerWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}
   workUnitContract.parse({
     role: 'lawbringer',
     filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
+    folderTypes: ['brokers'],
+    stepBoundaries: [
+      {
+        stepId: DependencyStepStub().id,
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
+      },
+    ],
     ...props,
   });
 
