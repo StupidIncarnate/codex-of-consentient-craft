@@ -571,7 +571,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeInTheDocument();
     });
 
-    it('VALID: {collapseToLast wiring, multiple thinking entries} => only last thinking renders', () => {
+    it('VALID: {multiple thinking entries} => all thinking rows render in order', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -589,7 +589,40 @@ describe('ExecutionRowLayerWidget', () => {
 
       const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
 
-      expect(contents).toStrictEqual(['final']);
+      expect(contents).toStrictEqual(['first', 'final']);
+    });
+
+    it('VALID: {multiple tool groups separated by text} => all tool groups render when expanded', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantTextChatEntryStub({ content: 'thinking about next step' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_2', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
+              AssistantTextChatEntryStub({ content: 'one more' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_3', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_3' }),
+            ]}
+          />
+        ),
+      });
+
+      const toolGroupIds = screen
+        .queryAllByTestId('TOOL_GROUP_HEADER')
+        .map((h) => h.getAttribute('data-testid'));
+
+      expect(toolGroupIds).toStrictEqual([
+        'TOOL_GROUP_HEADER',
+        'TOOL_GROUP_HEADER',
+        'TOOL_GROUP_HEADER',
+      ]);
     });
   });
 

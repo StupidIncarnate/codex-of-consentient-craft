@@ -366,7 +366,7 @@ export const ExecutionRowLayerWidget = ({
               entries={entries}
               isStreaming={isStreaming ?? false}
               roleLabel={role}
-              collapseToLast={true}
+              swapTrailingEmptyThinkingForIndicator={true}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

@@ -176,8 +176,8 @@ describe('ChatEntryListWidget', () => {
     });
   });
 
-  describe('collapseToLast', () => {
-    it('VALID: {multiple thinking entries} => only last thinking content renders', () => {
+  describe('swapTrailingEmptyThinkingForIndicator', () => {
+    it('VALID: {multiple thinking entries} => all thinking contents render', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -189,17 +189,17 @@ describe('ChatEntryListWidget', () => {
               AssistantThinkingChatEntryStub({ content: 'final thought' }),
             ]}
             isStreaming={false}
-            collapseToLast={true}
+            swapTrailingEmptyThinkingForIndicator={true}
           />
         ),
       });
 
       const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
 
-      expect(contents).toStrictEqual(['final thought']);
+      expect(contents).toStrictEqual(['first thought', 'second thought', 'final thought']);
     });
 
-    it('VALID: {multiple tool groups separated by text} => only last tool group renders', () => {
+    it('VALID: {multiple tool groups separated by text} => all tool groups render', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -213,7 +213,7 @@ describe('ChatEntryListWidget', () => {
               AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
             ]}
             isStreaming={false}
-            collapseToLast={true}
+            swapTrailingEmptyThinkingForIndicator={true}
           />
         ),
       });
@@ -222,10 +222,77 @@ describe('ChatEntryListWidget', () => {
         .queryAllByTestId('TOOL_GROUP_HEADER')
         .map((h) => h.getAttribute('data-testid'));
 
+      expect(toolGroupIds).toStrictEqual(['TOOL_GROUP_HEADER', 'TOOL_GROUP_HEADER']);
+    });
+
+    it('VALID: {interleaved thinking + tool groups + text} => all sections render in order', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantThinkingChatEntryStub({ content: 'thinking a' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantTextChatEntryStub({ content: 'between a' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_2', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
+              AssistantThinkingChatEntryStub({ content: 'thinking b' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_3', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_3' }),
+              AssistantTextChatEntryStub({ content: 'between b' }),
+            ]}
+            isStreaming={false}
+            swapTrailingEmptyThinkingForIndicator={true}
+          />
+        ),
+      });
+
+      const thinkingContents = screen
+        .queryAllByTestId('THINKING_ROW_CONTENT')
+        .map((c) => c.textContent);
+      const toolGroupIds = screen
+        .queryAllByTestId('TOOL_GROUP_HEADER')
+        .map((h) => h.getAttribute('data-testid'));
+
+      expect(thinkingContents).toStrictEqual(['thinking a', 'thinking b']);
+      expect(toolGroupIds).toStrictEqual([
+        'TOOL_GROUP_HEADER',
+        'TOOL_GROUP_HEADER',
+        'TOOL_GROUP_HEADER',
+      ]);
+    });
+
+    it('EDGE: {single tool group, single thinking} => both render', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantThinkingChatEntryStub({ content: 'only thought' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+            ]}
+            isStreaming={false}
+            swapTrailingEmptyThinkingForIndicator={true}
+          />
+        ),
+      });
+
+      const thinkingContents = screen
+        .queryAllByTestId('THINKING_ROW_CONTENT')
+        .map((c) => c.textContent);
+      const toolGroupIds = screen
+        .queryAllByTestId('TOOL_GROUP_HEADER')
+        .map((h) => h.getAttribute('data-testid'));
+
+      expect(thinkingContents).toStrictEqual(['only thought']);
       expect(toolGroupIds).toStrictEqual(['TOOL_GROUP_HEADER']);
     });
 
-    it('VALID: {last thinking has empty content} => renders streaming indicator instead of thinking row', () => {
+    it('VALID: {last thinking has empty content} => renders streaming indicator in place of empty thinking row', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -236,12 +303,16 @@ describe('ChatEntryListWidget', () => {
               AssistantThinkingChatEntryStub({ content: '' }),
             ]}
             isStreaming={false}
-            collapseToLast={true}
+            swapTrailingEmptyThinkingForIndicator={true}
           />
         ),
       });
 
-      expect(screen.queryByTestId('THINKING_ROW')).toBe(null);
+      const thinkingContents = screen
+        .queryAllByTestId('THINKING_ROW_CONTENT')
+        .map((c) => c.textContent);
+
+      expect(thinkingContents).toStrictEqual(['earlier']);
       expect(screen.getByTestId('STREAMING_INDICATOR')).toBeInTheDocument();
     });
 

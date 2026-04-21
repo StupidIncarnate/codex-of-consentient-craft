@@ -5,8 +5,8 @@
  * <ChatEntryListWidget entries={entries} isStreaming={true} showContextDividers showEndStreamingIndicator />
  * // Chat variant: renders with context dividers and a streaming indicator at the tail
  *
- * <ChatEntryListWidget entries={entries} isStreaming={true} roleLabel={role} collapseToLast />
- * // Execution variant: collapses to last thinking + last tool group, swaps empty last thinking for streaming indicator
+ * <ChatEntryListWidget entries={entries} isStreaming={true} roleLabel={role} swapTrailingEmptyThinkingForIndicator />
+ * // Execution variant: renders the full transcript; swaps a trailing empty-content thinking entry for a streaming indicator
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
@@ -27,7 +27,7 @@ export interface ChatEntryListWidgetProps {
   roleLabel?: ExecutionRole;
   showContextDividers?: boolean;
   showEndStreamingIndicator?: boolean;
-  collapseToLast?: boolean;
+  swapTrailingEmptyThinkingForIndicator?: boolean;
 }
 
 export const ChatEntryListWidget = ({
@@ -36,7 +36,7 @@ export const ChatEntryListWidget = ({
   roleLabel,
   showContextDividers = false,
   showEndStreamingIndicator = false,
-  collapseToLast = false,
+  swapTrailingEmptyThinkingForIndicator = false,
 }: ChatEntryListWidgetProps): React.JSX.Element => {
   const groupedEntries = collectSubagentChainsTransformer({ entries });
 
@@ -45,23 +45,18 @@ export const ChatEntryListWidget = ({
     .map((g) => mergedChatItemContract.parse({ kind: 'entry', entry: g.entry }));
   const singleAnnotations = computeTokenAnnotationsTransformer({ items: singleItems });
 
-  let lastThinkingIndex = -1;
-  let lastToolGroupIndex = -1;
-  if (collapseToLast) {
-    for (let i = 0; i < groupedEntries.length; i++) {
-      const g = groupedEntries[i];
-      if (g === undefined) continue;
-      if (g.kind === 'tool-group') {
-        lastToolGroupIndex = i;
-      }
-      if (
-        g.kind === 'single' &&
-        g.entry.role === 'assistant' &&
-        'type' in g.entry &&
-        g.entry.type === 'thinking'
-      ) {
-        lastThinkingIndex = i;
-      }
+  let trailingEmptyThinkingIndex = -1;
+  if (swapTrailingEmptyThinkingForIndicator) {
+    const lastGroup = groupedEntries.at(-1);
+    if (
+      lastGroup !== undefined &&
+      lastGroup.kind === 'single' &&
+      lastGroup.entry.role === 'assistant' &&
+      'type' in lastGroup.entry &&
+      lastGroup.entry.type === 'thinking' &&
+      lastGroup.entry.content.length === 0
+    ) {
+      trailingEmptyThinkingIndex = groupedEntries.length - 1;
     }
   }
 
@@ -73,12 +68,11 @@ export const ChatEntryListWidget = ({
     if (group === undefined) continue;
 
     if (group.kind === 'tool-group') {
-      if (collapseToLast && i !== lastToolGroupIndex) continue;
       elements.push(
         <ToolGroupWidget
           key={`group-${String(i)}`}
           group={group}
-          isLastGroup={collapseToLast ? true : i === groupedEntries.length - 1}
+          isLastGroup={i === groupedEntries.length - 1}
           isStreaming={isStreaming}
         />,
       );
@@ -94,12 +88,7 @@ export const ChatEntryListWidget = ({
     const annotation = singleAnnotations[singleIndex];
     singleIndex += 1;
 
-    const isThinkingEntry =
-      entry.role === 'assistant' && 'type' in entry && entry.type === 'thinking';
-
-    if (collapseToLast && isThinkingEntry && i !== lastThinkingIndex) continue;
-
-    if (collapseToLast && isThinkingEntry && entry.content.length === 0) {
+    if (i === trailingEmptyThinkingIndex) {
       const isSubagent = 'source' in entry && entry.source === 'subagent';
       elements.push(
         <StreamingIndicatorWidget key={`thinking-${String(i)}`} isSubagent={isSubagent} />,
