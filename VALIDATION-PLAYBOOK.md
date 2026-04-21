@@ -457,7 +457,19 @@ These came out of smoke runs and belong on every checkpoint unless explicitly ov
 ### 1.1 — Spec creation (ChaosWhisperer)
 
 - **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800; `npm run dev` is reserved for
-  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature.
+  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature that will produce a mix of batchable AND
+  solo steps (see "Feature shape — exercise batching" below). If the quest's step list lands entirely in one batch
+  group OR entirely in solo folder types, re-prompt ChaosWhisperer: the smoke does not cover the optimization.
+- **Feature shape — exercise batching:** Codeweaver and lawbringer now collapse steps whose focusFile folder types
+  fall in the same batch group (default groups:
+  `[contracts, statics, errors]`, `[guards, transformers]`, `[state, middleware]`). To cover both paths in one
+  quest, the feature must produce:
+    - **At least 2 steps in the same batch group** (e.g. 2 new contracts, or 1 guard + 1 transformer) — so the
+      batched codeweaver path runs. A batched work item carries `workUnit.steps.length > 1` and its prompt args
+      render `=== Step N of M ===` separators.
+    - **At least 1 step in a folder type outside every batch group** (e.g. a `responders/` file or a
+      `widgets/` file) — so the 1-step-per-agent fallback still runs. Those work items carry
+      `workUnit.steps.length === 1` and render the flat prompt shape.
 - **Assert:**
     - Status walk: `created` → `explore_flows` → `review_flows` → (approve) → `flows_approved` → `explore_observables` →
       `review_observables` → (approve) → `approved`
@@ -506,11 +518,11 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 
 - **Assert via `mcp__dungeonmaster__get-quest({stage: 'implementation'})`:**
   ```
-  cw1..cwN                                       (one per step)
+  cw1..cwM                                       (M = # batch chunks, M ≤ N steps)
     → ward(changed)
-      → siege-flow-1 → siege-flow-2              (NEW: per-flow chained)
-                           → law1..lawN          (dependsOn: ALL siegeIds)
-                               → blightwarden    (NEW: dependsOn: allLawIds)
+      → siege-flow-1 → siege-flow-2              (per-flow chained)
+                           → law1..lawM          (dependsOn: ALL siegeIds)
+                               → blightwarden    (dependsOn: allLawIds)
                                    → ward(full)
   ```
     - 2 siegeItems, each `relatedDataItems: ['flows/<id>']`
@@ -518,22 +530,33 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
     - Each lawbringer's `dependsOn` contains BOTH siegeIds
     - `blightwardenItem.dependsOn = allLawIds`
     - `finalWardItem.dependsOn = [blightwardenItem.id]`
+  - **Codeweaver/lawbringer batching.** Number of codeweaver work items M is not 1-per-step. Default batch groups
+    are `[contracts, statics, errors]`, `[guards, transformers]`, `[state, middleware]`; steps whose focusFile
+    folder types fall in the same group collapse into a single work item. Folder types outside every group
+    stay 1-step-per-agent. Lawbringers use the identical chunking.
+    - Each codeweaver work item has `relatedDataItems: ['steps/<id>', ...]` — **array, not single**. A batched
+      item has length > 1. A solo-folder item has length 1.
+    - Batched work item `dependsOn` is the **union** of every batched step's resolved step dependencies (dedupe'd),
+      excluding the work item's own id. A codeweaver chunk containing step A+B where A depends on a step in
+      chunk X and B depends on a step in chunk Y must have `dependsOn = [pathseekerId, chunkXId, chunkYId]`.
+    - If the quest's steps include 0 batchable steps, M should equal N (full fallback behavior). If all steps
+      collapse into one group, M should be 1. Mixed quests should land somewhere in between.
   - **Forward step refs resolve correctly.** If a step declared earlier in the quest's `steps[]` array depends on
     a step declared LATER (e.g. step #1 deps on step #5), the codeweaver workItem for step #1 MUST include step
     #5's workItem id in its `dependsOn`. Historically the transformer walked in order and dropped forward refs —
     both the cli-responder-needs-cli-contract and widget-needs-render-contract chains broke because of this. Read
     quest.json's `workItems[]` directly (MCP strips them from `get-quest`) to verify.
 
-**→ FAIL:** fix `steps-to-work-items-transformer`. Restart 1.3.
+**→ FAIL:** fix `steps-to-work-items-transformer` or `steps-to-batch-chunks-transformer`. Restart 1.3.
 **→ PASS:** continue.
 
 ### 1.5 — Codeweavers
 
 - **Assert:**
     - Up to SLOT_COUNT (3) concurrent via slot manager — verify by reading `quest.json.workItems[]` during run and
-      confirming that N codeweavers have `status: 'in_progress'` with a non-empty `sessionId` each. A codeweaver marked
-      `in_progress` but missing a sessionId was historically the "2nd-item-never-spawned" dispatch bug — verify every
-      in_progress item has a session within ~30s of dispatch.
+      confirming that up to 3 codeweavers have `status: 'in_progress'` with a non-empty `sessionId` each. A codeweaver
+      marked `in_progress` but missing a sessionId was historically the "2nd-item-never-spawned" dispatch bug — verify
+      every in_progress item has a session within ~30s of dispatch.
     - **True concurrency, not serial.** The orchestration-loop's slot manager must dispatch up to
       `slotCount - activeAgents.length`
       items per iteration in parallel, not one per iteration serialized behind `Promise.race`. With 2 ready codeweavers
@@ -549,7 +572,24 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
       contract codeweavers.
     - Each codeweaver signals `complete` via `signal-back`.
     - Each work item has its own `sessionId`.
+    - **Batching actually ran.** At least one codeweaver in the quest must have `relatedDataItems.length > 1`.
+      Capture that work item's session JSONL and verify its `$ARGUMENTS` prompt contains a batch header line
+      (role expected to say something like "BATCH: N steps") followed by `=== Step 1 of N ===`, `=== Step 2 of N ===`
+      … separators, one block per step. Solo-folder codeweavers in the same quest must render the flat shape
+      (no separators, no batch header) — confirm by spot-checking one of those sessions.
+    - **Batch work unit aggregates context.** For a batched work item, the siegemaster/lawbringer/codeweaver
+      `workUnit.relatedContracts`, `relatedObservables`, `relatedDesignDecisions`, `relatedFlows` must be the
+      **dedupe'd union** of every batched step's context — not just the first step's. Cannot observe this directly
+      from quest.json; verify by reading the codeweaver session and confirming the prompt mentions contracts /
+      observables from ALL batched steps, not just one.
+    - **Config resolution happens once per quest run.** `.dungeonmaster.json` is read by the orchestration loop
+      once and propagated through recursion. A missing config falls back to the curated default
+      (`[contracts, statics, errors], [guards, transformers], [state, middleware]`). The only evidence of this
+      at runtime is that chunk shape matches config — not a live-observable metric.
 
+**→ FAIL no batched items in the quest:** the feature produced 0 batchable steps. ChaosWhisperer needs re-prompting
+to include at least 2 steps in the same batch group — abort Phase 1 and start a new run.
+**→ FAIL batched prompt missing separators:** fix `work-unit-to-arguments-transformer` codeweaver branch. Restart 1.5.
 **→ PASS:** continue.
 
 ### 1.6 — Ward (changed mode)
@@ -647,8 +687,19 @@ be 4750.
     - Up to SLOT_COUNT (3) concurrent — same slot-manager semantics as codeweavers. Items past the cap show `queued`,
       not `in_progress`. Each in_progress item must have a sessionId within ~30s of dispatch; the dispatch-loop
       single-item bug would manifest here the same way.
+    - **Batching mirrors codeweavers.** Lawbringer work items apply the same batch-chunking transform over steps —
+      the count and shape of lawbringer chunks must equal the count and shape of codeweaver chunks. A batched
+      lawbringer has `relatedDataItems.length > 1`, and its `workUnit.stepBoundaries[]` holds one
+      `{ stepId, filePaths[] }` per batched step so the prompt renders per-pair sections. Confirm by capturing one
+      batched lawbringer's session JSONL and checking that the `$ARGUMENTS` enumerates each step's file pair
+      separately.
     - All signal `complete`.
 
+**→ FAIL lawbringer chunk count != codeweaver chunk count:** the two sides of the batching walk are diverging —
+likely a regression in `steps-to-batch-chunks-transformer` or one of the two callers drifting out of sync. Fix
+before continuing.
+**→ FAIL batched lawbringer prompt missing per-pair rendering:** fix `work-unit-to-arguments-transformer` lawbringer
+branch. Restart 1.9.
 **→ PASS:** continue.
 
 ### 1.10 — Blightwarden (NEW)
