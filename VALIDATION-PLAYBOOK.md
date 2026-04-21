@@ -135,7 +135,23 @@ deterministic in outcome for a fixed prompt. A bug encountered later in the pipe
 good spec. Snapshot the quest the moment Phase 1.1 reaches a clean Gate #2 so the next run can skip straight to the
 Begin Quest click.
 
-**When to snapshot:** Phase 1.1 has reached status `review_observables` with the APPROVE button visible, all
+**Two snapshot windows exist; only the first is reliable for LLM orchestration:**
+
+1. **Pre-Gate-#2 (RELIABLE — do this one).** Phase 1.1 has reached status `review_observables` with the APPROVE button
+   visible, all clarifications resolved, observables embedded, contracts populated. ChaosWhisperer is idle. The quest
+   is paused by the gate itself — nothing is dispatching downstream yet. Snapshot now; restore skips ChaosWhisperer
+   entirely.
+2. **Post-PathSeeker-start (THEORETICALLY USEFUL, PRACTICALLY NOT VIABLE FOR LLMs).** After the Begin Quest click
+   takes the quest through `seek_scope → seek_synth → seek_walk → seek_plan → in_progress`, PathSeeker's own work is
+   done but no codeweaver has dispatched yet. Snapshotting here would skip both ChaosWhisperer AND PathSeeker
+   (saving ~20 minutes on restore). BUT — the orchestration loop dispatches the first ready codeweavers within
+   milliseconds of the `in_progress` transition, and once a codeweaver writes a file you no longer have a clean
+   pre-implementation state to restore to. An LLM orchestrator polling at second-or-minute cadence cannot reliably
+   catch that window; you'd need to PAUSE the quest immediately on the `in_progress` transition, which no orchestrator
+   prompt is currently wired to do. Human snapshotting at this window is possible if you click PAUSE fast enough.
+   Recommended: skip this one for LLM runs, stick to Window 1.
+
+**When to snapshot (Window 1):** Phase 1.1 has reached status `review_observables` with the APPROVE button visible, all
 clarifications resolved, observables embedded, contracts populated. ChaosWhisperer is idle. No pending spec work.
 
 **Snapshot procedure (run once per clean Gate #2, before clicking APPROVE):**
@@ -417,6 +433,27 @@ and will not emit new questions.
 One quest, one clean run, from Web UI new chat to `complete`. Two flows (one runtime UI, one operational CLI), ~3 steps
 total.
 
+### Cross-cutting expectations (apply to every checkpoint below)
+
+These came out of smoke runs and belong on every checkpoint unless explicitly overridden.
+
+- **WebSocket-driven UI updates, no refresh required.** Every quest state change (work-item status flip, sessionId
+  assignment, tool-call arrival) must reflect in the UI within seconds of the persist. If the UI lags or drifts from
+  server truth, that is a bug to file — NOT a reason to refresh the browser. Refresh is destructive on live runs.
+- **Tool-group rendering shows ALL tool calls.** When a codeweaver/siege/etc. row is expanded, every tool_use entry for
+  that agent must render (`N Tools` groups, each expandable). If only the latest tool shows, the chat-entry-list's
+  `collapseToLast` / companion filters are over-filtering — file the rendering bug.
+- **PAUSE / RESUME buttons key off REAL `quest.status`, not `displayStatus`.** `displayStatus` is a derived label that
+  shows the pre-pause status when paused (so users see "RUNNING" dim'd out rather than "PAUSED"). Button visibility
+  must use `quest.status` directly: `paused` → RESUME visible, PAUSE hidden; `in_progress`/`seek_*`/etc. → PAUSE
+  visible, RESUME hidden. If the button logic leaks through `displayStatus` you get a paused quest stuck with only the
+  PAUSE button — file as a blocker.
+- **Server restart does NOT re-hydrate the browser's in-memory React state.** If you kill and restart the orchestrator
+  server (snapshot restore, crash recovery, whatever), the browser's accumulated WebSocket state stays stale — it was
+  never designed to re-fetch on WS reconnect. A single full page load fixes it. Since WS is the only in-flight
+  transport, a load when the quest is paused is safe (no agents to kill). Note this as a product concern — the UI
+  *should* re-fetch on reconnect, but currently doesn't.
+
 ### 1.1 — Spec creation (ChaosWhisperer)
 
 - **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800; `npm run dev` is reserved for
@@ -434,10 +471,9 @@ total.
 ### 1.2 — Execution kickoff (MUST go through the UI, not MCP)
 
 **Critical:** After approving observables at Gate #2, a "Begin Quest" popup/modal surfaces in the Web UI. Click it. Do
-NOT bypass by calling `mcp__dungeonmaster__start-quest` directly — that skips the UI-side state transition that tells
-the web session to switch from chat-view to execution-panel-view. If you bypass, the UI may get stuck on the chat view
-even though orchestration is running, and refreshing the session URL can send you back to chat view instead of the
-execution panel.
+NOT bypass by calling `mcp__dungeonmaster__start-quest` — the smoke test's whole purpose is to exercise the UI path a
+real user takes. A quest started via MCP may land in the same orchestrator state, but the UI flow (modal → click →
+state swap → WS broadcast → execution panel render) has not been tested, so the run proves nothing about that path.
 
 - **Action:** In the Web UI, click the "Begin Quest" button in the popup that appears after Gate #2.
 - **Assert (in order, screenshot each — DO NOT REFRESH between checks):**
@@ -482,6 +518,11 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
     - Each lawbringer's `dependsOn` contains BOTH siegeIds
     - `blightwardenItem.dependsOn = allLawIds`
     - `finalWardItem.dependsOn = [blightwardenItem.id]`
+  - **Forward step refs resolve correctly.** If a step declared earlier in the quest's `steps[]` array depends on
+    a step declared LATER (e.g. step #1 deps on step #5), the codeweaver workItem for step #1 MUST include step
+    #5's workItem id in its `dependsOn`. Historically the transformer walked in order and dropped forward refs —
+    both the cli-responder-needs-cli-contract and widget-needs-render-contract chains broke because of this. Read
+    quest.json's `workItems[]` directly (MCP strips them from `get-quest`) to verify.
 
 **→ FAIL:** fix `steps-to-work-items-transformer`. Restart 1.3.
 **→ PASS:** continue.
@@ -489,9 +530,25 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 ### 1.5 — Codeweavers
 
 - **Assert:**
-    - Up to 3 concurrent via slot manager
-    - Each signals `complete`
-    - Each work item has its own `sessionId`
+    - Up to SLOT_COUNT (3) concurrent via slot manager — verify by reading `quest.json.workItems[]` during run and
+      confirming that N codeweavers have `status: 'in_progress'` with a non-empty `sessionId` each. A codeweaver marked
+      `in_progress` but missing a sessionId was historically the "2nd-item-never-spawned" dispatch bug — verify every
+      in_progress item has a session within ~30s of dispatch.
+    - **True concurrency, not serial.** The orchestration-loop's slot manager must dispatch up to
+      `slotCount - activeAgents.length`
+      items per iteration in parallel, not one per iteration serialized behind `Promise.race`. With 2 ready codeweavers
+      and slotCount=3 you should see 2 parallel Claude CLI processes (pgrep -af claude), not 1 running while the other
+      sits in_progress without a session.
+    - **Items past the slot cap show status `queued`, NOT `in_progress`.** If PathSeeker emits more ready codeweavers
+      than the slot cap allows (e.g. 5 ready, cap 3), the orchestration loop's initial write marks the first 3
+      `in_progress` and the remaining 2 `queued`. In the UI they render as QUEUED. `queued` items satisfy
+      `dependsOn` exactly like `in_progress` does (isActive=true, satisfiesDependency=false).
+    - **Step-level dependencies are honored.** A codeweaver whose step deps on another step must NOT dispatch until the
+      upstream codeweaver completes. E.g. cli-responder (deps on cli-contract) must stay `pending` while cli-contract
+      is `in_progress`. Watch quest.json across time — a correctly-wired DAG has source codeweavers gated behind
+      contract codeweavers.
+    - Each codeweaver signals `complete` via `signal-back`.
+    - Each work item has its own `sessionId`.
 
 **→ PASS:** continue.
 
@@ -501,6 +558,11 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
     - `wardMode: 'changed'`
     - Green
     - Output streams to Web UI
+  - **Unit broker drops source files whose only colocated test is integration.** When codeweavers write a source file
+    like `cli-flow.ts` whose companion is `cli-flow.integration.test.ts` (no `cli-flow.test.ts`), the unit broker must
+    skip that source file rather than running `jest --findRelatedTests` and erroring with "0 matches". Verify by
+    checking the ward run file (`.ward/run-<id>.json`): the unit check should pass even when changed files include
+    sources with only integration tests. This was the Phase 1.5 → 1.6 cascade that blocked the smoke for a while.
 
 **→ FAIL (red):** if ward fails here, this is no longer a smoke test — abort and re-seed a clean happy path.
 **→ PASS:** continue.
@@ -514,23 +576,65 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
     - `Edges:` rendered
     - Observable Type Reference block present
     - No `steps` block
-    - `Dev Server URL:` present
+  - **`Dev Server URL:` present for runtime flows.** If `flow.flowType === 'runtime'`, the args block MUST include
+    a `Dev Server URL: http://dungeonmaster.localhost:<port>` line. Operational flows don't get this line (they
+    don't need a dev server). If a runtime flow siege run has no Dev Server URL in args, either:
+    (a) `.dungeonmaster.json` failed to resolve (the finder looking for wrong filename),
+    (b) the config resolver threw and siege broker's catch swallowed it silently,
+    (c) dev-server-start-loop-layer-broker failed but didn't propagate.
+    All three were real bugs we hit — file it loudly rather than letting siege proceed.
 - **Assert behavior:**
-    - Dev server starts → tests run → dev server stops (zero live dev servers after signal)
-    - Signals `complete`
-    - `siege-flow-2` still `pending`
+    - **`.dungeonmaster.json` resolves successfully.** `configRootFindBroker` probes for `.dungeonmaster.json` (via
+      `dungeonmasterHomeStatics.paths.projectConfigFile`) with a fallback to legacy `.dungeonmaster`. Both the config-
+      find and config-file-find brokers must land on `.dungeonmaster.json` first. If an old `.dungeonmaster` file is
+      still lying around at the repo root, delete it — otherwise the finder matches it first and the new config is
+      silently unreachable.
+    - **Siege broker DOES spawn `npm run dev` when flow is runtime.** Verify with `lsof -i :4750` during siege run —
+      port 4750 must be LISTEN. If it isn't, the broker's `if (config?.devServer !== undefined)` block is being
+      skipped; the config didn't load.
+    - **Prod server on 4800/4801 stays alive throughout.** Siege's `devServerStartBroker` kills processes on its
+      CONFIGURED port (4750) before binding. If `.dungeonmaster.json` had port=4800 (misconfigured), siege would kill
+      our orchestrator. After siege-1 completes, confirm prod at 4800/4801 is still LISTEN.
+    - Dev server starts → tests run → dev server stops (zero live dev servers on 4750 after signal).
+    - Signals `complete`.
+    - `siege-flow-2` still `pending`.
+    - **Siege broker rethrows on non-absence config errors.** Malformed `.dungeonmaster.json` (bad JSON, schema
+      violation) must crash siege loudly — the broker's config-resolution catch block should distinguish
+      `ConfigNotFoundError` (legitimate "no siege config, skip dev-server") from any other error (rethrow). Silent
+      `catch { return null }` hid the config-path-mismatch bug for weeks; don't let it come back.
+    - **Dev-server-start failures write loud stderr.** When spawn, readiness-probe, or timeout fails during siege's
+      dev-server-start-loop, the broker must write a structured stderr line with hostname, port, readinessPath,
+      readinessTimeoutMs, and the last error seen — not silently return `{success: false}` which marks siege failed
+      with no visible reason.
+- **[OPEN] Env isolation bug.** Siege's child processes (including the Playwright runner and the CLI being tested)
+  inherit the orchestrator's env, including `DUNGEONMASTER_PORT=4800` from `.env.prod`. If siege writes a test that
+  spawns the `dungeonmaster` CLI as a subprocess, the CLI's startup banner will report `:4800` (the orchestrator's
+  port), not `:3737` (default) or `:4750` (siege's own dev port). Any snapshot assertions in existing tests against
+  the CLI banner will fail with the leaked port. Fix direction: the siege broker should strip or override
+  DUNGEONMASTER_PORT before spawning the siege agent — use siege's dev-server port, or leave it unset so the CLI
+  uses its own default. Until fixed, siege may misclassify these as "pre-existing port-drift bug unrelated to
+  this quest" and proceed.
 
-**→ FAIL args:** fix `work-unit-to-arguments-transformer` siegemaster branch. Restart 1.7.
+**→ FAIL args missing Dev Server URL:** `.dungeonmaster.json` didn't resolve OR config loaded but devServer block
+absent OR dev-server-start-loop failed silently. Check `configRootFindBroker` / `configFileFindBroker` targets, then
+siege broker's config catch, then dev-server-start stderr.
+**→ FAIL prod server killed:** `.dungeonmaster.json.devServer.port` is set to 4800 (conflicts with orchestrator). Must
+be 4750.
 **→ FAIL dev server leak:** fix `dev-server-stop-broker` call path. Restart 1.7.
+**→ FAIL args shape:** fix `work-unit-to-arguments-transformer` siegemaster branch. Restart 1.7.
 **→ PASS:** continue.
 
 ### 1.8 — Siege flow 2 (NEW — sequential chain, single dev server)
 
 - **Assert:**
-    - Starts only after 1.7 signals `complete`
-    - Only one dev server process is ever up at once (check OS ps list during transition)
-    - Receives the second flow in its args
-    - Signals `complete`
+    - Starts only after 1.7 signals `complete` (via `dependsOn: [siege-flow-1.id]`).
+    - Only one dev server process is ever up at once (check OS ps list / `lsof -i :4750` during the siege-1 → siege-2
+      handoff — port 4750 must go empty between the two sieges, then come back up when siege-2 starts, not overlap).
+    - Prod orchestrator at 4800/4801 stays LISTEN throughout — siege #2 must not clobber our smoke-test server any
+      more than siege #1 did.
+    - Receives the second flow in its args. For an operational flow (CLI), the args MUST NOT include a Dev Server
+      URL line (operational flows don't need one). For a runtime flow, same requirements as 1.7.
+    - Signals `complete`.
 
 **→ FAIL parallel sieges:** fix `dependsOn` chaining in `steps-to-work-items-transformer`. Restart 1.3.
 **→ FAIL two dev servers:** fix layer broker dev server lifecycle. Restart 1.7.
@@ -539,9 +643,11 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 ### 1.9 — Lawbringers
 
 - **Assert:**
-    - Start only after both sieges complete
-    - Up to 3 concurrent
-    - All signal `complete`
+    - Start only after both sieges complete.
+    - Up to SLOT_COUNT (3) concurrent — same slot-manager semantics as codeweavers. Items past the cap show `queued`,
+      not `in_progress`. Each in_progress item must have a sessionId within ~30s of dispatch; the dispatch-loop
+      single-item bug would manifest here the same way.
+    - All signal `complete`.
 
 **→ PASS:** continue.
 
