@@ -457,19 +457,24 @@ These came out of smoke runs and belong on every checkpoint unless explicitly ov
 ### 1.1 — Spec creation (ChaosWhisperer)
 
 - **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800; `npm run dev` is reserved for
-  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature that will produce a mix of batchable AND
-  solo steps (see "Feature shape — exercise batching" below). If the quest's step list lands entirely in one batch
-  group OR entirely in solo folder types, re-prompt ChaosWhisperer: the smoke does not cover the optimization.
-- **Feature shape — exercise batching:** Codeweaver and lawbringer now collapse steps whose focusFile folder types
-  fall in the same batch group (default groups:
+  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature in natural user language — DO NOT leak
+  implementation details (folder types, batch groups, step counts) into the prompt. The feature should read like
+  something a product owner would ask for.
+- **Feature shape — exercise batching (post-hoc check, not a prompt instruction):** Codeweaver and lawbringer
+  collapse steps whose focusFile folder types fall in the same batch group (default groups:
   `[contracts, statics, errors]`, `[guards, transformers]`, `[state, middleware]`). To cover both paths in one
-  quest, the feature must produce:
-    - **At least 2 steps in the same batch group** (e.g. 2 new contracts, or 1 guard + 1 transformer) — so the
+  quest, the spec PathSeeker produces should end up with:
+    - At least 2 steps in the same batch group (e.g. 2 new contracts, or 1 guard + 1 transformer) — so the
       batched codeweaver path runs. A batched work item carries `workUnit.steps.length > 1` and its prompt args
       render `=== Step N of M ===` separators.
-    - **At least 1 step in a folder type outside every batch group** (e.g. a `responders/` file or a
+    - At least 1 step in a folder type outside every batch group (e.g. a `responders/` file or a
       `widgets/` file) — so the 1-step-per-agent fallback still runs. Those work items carry
       `workUnit.steps.length === 1` and render the flat prompt shape.
+
+  **If the first spec (post Gate #2) lands entirely in one group OR entirely in solo folder types, abandon the
+  quest and restart Run N+1 with a different feature description.** Do NOT reshape the prompt to name folder types
+  directly — a natural feature that happens to need some typed-value plumbing (e.g. "version-display with shared
+  source of truth") will usually produce a contract + static pair without being told to.
 - **Assert:**
     - Status walk: `created` → `explore_flows` → `review_flows` → (approve) → `flows_approved` → `explore_observables` →
       `review_observables` → (approve) → `approved`
