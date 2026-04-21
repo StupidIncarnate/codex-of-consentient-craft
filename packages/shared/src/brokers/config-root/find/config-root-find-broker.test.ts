@@ -19,6 +19,20 @@ describe('configRootFindBroker', () => {
       expect(result).toBe('/project');
     });
 
+    it('VALID: {startPath: "/project"} => finds .dungeonmaster.json in startPath directory (preferred over legacy)', async () => {
+      const proxy = configRootFindBrokerProxy();
+      const startPath = FilePathStub({ value: '/project' });
+
+      proxy.setupConfigRootFoundJson({
+        startPath: '/project',
+        configRootPath: '/project',
+      });
+
+      const result = await configRootFindBroker({ startPath });
+
+      expect(result).toBe('/project');
+    });
+
     it('VALID: {startPath: "/monorepo/packages/web"} => finds .dungeonmaster in parent directory', async () => {
       const proxy = configRootFindBrokerProxy();
       const startPath = FilePathStub({ value: '/monorepo/packages/web' });

@@ -19,6 +19,20 @@ describe('configFileFindBroker', () => {
       expect(result).toBe('/project/src/.dungeonmaster');
     });
 
+    it('VALID: {startPath: "/project/src/file.ts"} => prefers .dungeonmaster.json over .dungeonmaster', async () => {
+      const proxy = configFileFindBrokerProxy();
+      const startPath = FilePathStub({ value: '/project/src/file.ts' });
+
+      proxy.setupConfigFoundJson({
+        startPath: '/project/src/file.ts',
+        configPath: '/project/src/.dungeonmaster.json',
+      });
+
+      const result = await configFileFindBroker({ startPath });
+
+      expect(result).toBe('/project/src/.dungeonmaster.json');
+    });
+
     it('VALID: {startPath: "/project/sub/file.ts"} => finds config in parent directory', async () => {
       const proxy = configFileFindBrokerProxy();
       const startPath = FilePathStub({ value: '/project/sub/file.ts' });

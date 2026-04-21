@@ -1,4 +1,6 @@
 {
+  "framework": "node",
+  "schema": "zod",
   "devServer": {
     "buildCommand": "npm run build",
     "devCommand": "npm run dev",

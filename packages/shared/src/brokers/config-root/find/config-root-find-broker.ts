@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Finds the project config root by searching up the directory tree for a .dungeonmaster file
+ * PURPOSE: Finds the project config root by searching up the directory tree for a .dungeonmaster.json (preferred) or .dungeonmaster (legacy) file
  *
  * USAGE:
  * await configRootFindBroker({startPath: FilePathStub({value: '/project/packages/web/src/file.ts'})});
- * // Returns FilePath to the directory containing .dungeonmaster
+ * // Returns FilePath to the directory containing .dungeonmaster.json or .dungeonmaster
  */
 
 import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
@@ -24,15 +24,26 @@ export const configRootFindBroker = async ({
 }): Promise<FilePath> => {
   const searchPath = currentPath ?? startPath;
 
-  const configPath = pathJoinAdapter({
-    paths: [searchPath, dungeonmasterHomeStatics.paths.configDir],
+  const preferredPath = pathJoinAdapter({
+    paths: [searchPath, dungeonmasterHomeStatics.paths.projectConfigFile],
   });
 
   try {
-    await fsAccessAdapter({ filePath: configPath, mode: R_OK });
+    await fsAccessAdapter({ filePath: preferredPath, mode: R_OK });
     return searchPath;
   } catch {
-    // .dungeonmaster doesn't exist at this level, check parent
+    // .dungeonmaster.json not here — try legacy filename before walking up
+  }
+
+  const legacyPath = pathJoinAdapter({
+    paths: [searchPath, dungeonmasterHomeStatics.paths.legacyProjectConfigFile],
+  });
+
+  try {
+    await fsAccessAdapter({ filePath: legacyPath, mode: R_OK });
+    return searchPath;
+  } catch {
+    // neither filename at this level, check parent
   }
 
   const parentPath = pathDirnameAdapter({ path: searchPath });

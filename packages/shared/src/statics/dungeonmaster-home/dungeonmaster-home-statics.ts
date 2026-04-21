@@ -2,12 +2,14 @@
  * PURPOSE: Path constants for the dungeonmaster home directory structure
  *
  * USAGE:
- * dungeonmasterHomeStatics.paths.configDir;
- * // Returns '.dungeonmaster'
+ * dungeonmasterHomeStatics.paths.projectConfigFile;
+ * // Returns '.dungeonmaster.json'
  */
 
 export const dungeonmasterHomeStatics = {
   paths: {
+    projectConfigFile: '.dungeonmaster.json',
+    legacyProjectConfigFile: '.dungeonmaster',
     configDir: '.dungeonmaster',
     configFile: 'config.json',
     guildsDir: 'guilds',
