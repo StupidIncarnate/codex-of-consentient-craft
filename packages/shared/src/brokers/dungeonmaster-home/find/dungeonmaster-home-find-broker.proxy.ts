@@ -4,8 +4,8 @@ import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const dungeonmasterHomeFindBrokerProxy = (): {
   setupHomePath: (params: { homeDir: string; homePath: FilePath }) => void;
-  setEnv: (params: { key: string; value: string }) => void;
-  clearEnv: () => void;
+  setHomeEnv: (params: { value: string }) => void;
+  clearHomeEnv: () => void;
 } => {
   const homedirProxy = osHomedirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -15,11 +15,11 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
       homedirProxy.returns({ path: homeDir });
       pathJoinProxy.returns({ result: homePath });
     },
-    setEnv: ({ key, value }: { key: string; value: string }): void => {
-      process.env[key] = value;
+    setHomeEnv: ({ value }: { value: string }): void => {
+      process.env.DUNGEONMASTER_HOME = value;
     },
-    clearEnv: (): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_ENV');
+    clearHomeEnv: (): void => {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     },
   };
 };

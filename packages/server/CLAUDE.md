@@ -44,7 +44,7 @@ All runtime observability logging in the server MUST go through the `processDevL
 import { processDevLogAdapter } from '../adapters/process/dev-log/process-dev-log-adapter';
 
 processDevLogAdapter({ message: 'Chat started: questId=abc-123' });
-// Writes "[dev] Chat started: questId=abc-123\n" when DUNGEONMASTER_ENV=dev
+// Writes "[dev] Chat started: questId=abc-123\n" when VERBOSE=1
 // No-ops otherwise
 ```
 
@@ -59,15 +59,16 @@ processDevLogAdapter({ message: 'Chat started: questId=abc-123' });
 
 - Error responses (those are already returned via HTTP status codes)
 - Business logic validation (use guards and contracts)
-- Production logging (this is dev-only, gated behind `DUNGEONMASTER_ENV=dev`)
+- Silent-by-default operation (this is opt-in, gated behind `VERBOSE=1`)
 
 ### Activating Dev Logs
 
 ```bash
-DUNGEONMASTER_PORT=4737 DUNGEONMASTER_ENV=dev npm run dev --workspace=@dungeonmaster/server
+VERBOSE=1 npm run dev --workspace=@dungeonmaster/server
 ```
 
-Without `DUNGEONMASTER_ENV=dev`, no log lines appear.
+This repo's root `npm run dev` and `npm run prod` scripts set `VERBOSE=1` inline, so maintainers get logs in both
+modes. End-users running the published binary do not see `[dev]` lines by default.
 
 ### Log Format
 
@@ -149,7 +150,7 @@ The server uses two different homedir adapters for two distinct storage location
 | Data | Adapter | Resolves to | Why |
 |---|---|---|---|
 | Session JSONL files | `osUserHomedirAdapter` | Real `~/.claude/` (the OS user homedir) | Claude CLI writes session files here. It has no env var to redirect this path, so we must read from the real homedir. |
-| Dungeonmaster data (guilds, quests) | `osHomedirAdapter` | `DUNGEONMASTER_HOME` (falls back to real homedir) | We control this path. In E2E tests and worktrees, `DUNGEONMASTER_HOME` isolates dungeonmaster data per environment. |
+| Dungeonmaster data (guilds, quests) | `osHomedirAdapter` | `DUNGEONMASTER_HOME` verbatim if set, else `os.homedir() + '/.dungeonmaster'` | We control this path. In dev/prod scripts and E2E tests, `DUNGEONMASTER_HOME` isolates dungeonmaster data per scenario. |
 
 In E2E tests, `HOME` is set to the test directory so that `os.homedir()` (used by `osUserHomedirAdapter`) resolves to
 the same isolated temp dir. This way the fake Claude CLI writes session files where the server expects to find them.

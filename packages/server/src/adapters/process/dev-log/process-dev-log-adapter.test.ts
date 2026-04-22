@@ -2,14 +2,14 @@ import { processDevLogAdapter } from './process-dev-log-adapter';
 import { processDevLogAdapterProxy } from './process-dev-log-adapter.proxy';
 
 describe('processDevLogAdapter', () => {
-  describe('dev mode enabled', () => {
+  describe('verbose enabled', () => {
     it('VALID: {message: "WebSocket connected"} => writes prefixed line to stdout', () => {
       const proxy = processDevLogAdapterProxy();
-      proxy.enableDev();
+      proxy.enableVerbose();
 
       processDevLogAdapter({ message: 'WebSocket connected' });
 
-      proxy.disableDev();
+      proxy.disableVerbose();
 
       const spy = proxy.getWrittenLines();
 
@@ -17,10 +17,10 @@ describe('processDevLogAdapter', () => {
     });
   });
 
-  describe('dev mode disabled', () => {
+  describe('verbose disabled', () => {
     it('VALID: {message: "WebSocket connected"} => does not write to stdout', () => {
       const proxy = processDevLogAdapterProxy();
-      proxy.disableDev();
+      proxy.disableVerbose();
 
       processDevLogAdapter({ message: 'WebSocket connected' });
 

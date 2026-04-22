@@ -5,7 +5,6 @@ describe('dungeonmasterHomeStatics', () => {
     expect(dungeonmasterHomeStatics).toStrictEqual({
       paths: {
         projectConfigFile: '.dungeonmaster.json',
-        legacyProjectConfigFile: '.dungeonmaster',
         configDir: '.dungeonmaster',
         configFile: 'config.json',
         guildsDir: 'guilds',

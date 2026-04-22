@@ -12,7 +12,7 @@ the system as a whole by checking quest.json state transitions.
 **Test quest:**
 
 ```
-.dungeonmaster-home/.dungeonmaster-dev/guilds/32d4894c-ea9f-4ab5-8b04-818176c70815/quests/3824318d-d0f1-439b-b5e8-898701dfdc54/quest.json
+.dungeonmaster-dev/guilds/32d4894c-ea9f-4ab5-8b04-818176c70815/quests/3824318d-d0f1-439b-b5e8-898701dfdc54/quest.json
 ```
 
 **Role prompt statics (modify to control LLM behavior):**

@@ -12,7 +12,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import type { GuildPath } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { JsonRpcRequestStub } from '../../../src/contracts/json-rpc-request/json-rpc-request.stub';
@@ -179,14 +178,7 @@ export const mcpServerHarness = (): {
     questFolder: string;
     quest: unknown;
   }): void => {
-    const questDir = path.join(
-      dungeonmasterHome,
-      environmentStatics.testDataDir,
-      'guilds',
-      guildId,
-      'quests',
-      questFolder,
-    );
+    const questDir = path.join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
     fs.mkdirSync(questDir, { recursive: true });
     fs.writeFileSync(
       path.join(questDir, 'quest.json'),

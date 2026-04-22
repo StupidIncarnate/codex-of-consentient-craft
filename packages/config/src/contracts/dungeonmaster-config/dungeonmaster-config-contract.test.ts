@@ -611,4 +611,87 @@ describe('dungeonmaster-config-contract', () => {
       }).toThrow(/invalid_type/u);
     });
   });
+
+  describe('dungeonmaster.port', () => {
+    it('VALID: config without dungeonmaster => dungeonmaster is undefined', () => {
+      const config = DungeonmasterConfigStub({ framework: 'react', schema: 'zod' });
+
+      expect(config.dungeonmaster).toBe(undefined);
+    });
+
+    it('VALID: {dungeonmaster: {port: 4800}} => port is branded value 4800', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        dungeonmaster: { port: 4800 },
+      });
+
+      expect(config.dungeonmaster?.port).toBe(4800);
+    });
+
+    it('INVALID: {dungeonmaster: {port: 0}} => throws validation error (below min)', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          dungeonmaster: { port: 0 },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {dungeonmaster: {port: 70000}} => throws validation error (above max)', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          dungeonmaster: { port: 70000 },
+        });
+      }).toThrow(/too_big/u);
+    });
+  });
+
+  describe('port-collision refine', () => {
+    it('VALID: dungeonmaster.port !== devServer.port => passes', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        dungeonmaster: { port: 4800 },
+        devServer: { devCommand: 'npm run dev', port: 4750 },
+      });
+
+      expect(config.dungeonmaster?.port).toBe(4800);
+      expect(config.devServer?.port).toBe(4750);
+    });
+
+    it('INVALID: dungeonmaster.port === devServer.port => throws port collision error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          dungeonmaster: { port: 4750 },
+          devServer: { devCommand: 'npm run dev', port: 4750 },
+        });
+      }).toThrow(/dungeonmaster\.port and devServer\.port must differ/u);
+    });
+
+    it('VALID: dungeonmaster.port defined without devServer => no collision check', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        dungeonmaster: { port: 4800 },
+      });
+
+      expect(config.dungeonmaster?.port).toBe(4800);
+    });
+
+    it('VALID: devServer.port defined without dungeonmaster => no collision check', () => {
+      const config = DungeonmasterConfigStub({
+        framework: 'react',
+        schema: 'zod',
+        devServer: { devCommand: 'npm run dev', port: 4750 },
+      });
+
+      expect(config.devServer?.port).toBe(4750);
+    });
+  });
 });

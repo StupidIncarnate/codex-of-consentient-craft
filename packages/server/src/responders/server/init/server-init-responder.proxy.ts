@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy, portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -105,6 +105,8 @@ export const ServerInitResponderProxy = (): {
   orchestratorFindQuestPathAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   designProcessStateProxy();
+  const portProxy = portResolveBrokerProxy();
+  portProxy.setEnvPort({ value: '3737' });
 
   return {
     callResponder: (): void => {
@@ -151,7 +153,7 @@ export const ServerInitResponderProxy = (): {
       onError: ((args: { error: unknown }) => void) | undefined;
     } => outboxWatchProxy.getCapturedCallbacks(),
     enableDevLogs: (): void => {
-      devLogProxy.enableDev();
+      devLogProxy.enableVerbose();
     },
     getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
   };

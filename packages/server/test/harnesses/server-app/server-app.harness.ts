@@ -12,8 +12,6 @@ import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { tmpdir } from 'os';
 
-import { environmentStatics } from '@dungeonmaster/shared/statics';
-
 export const serverAppHarness = (): {
   setupTestHome: (params: { baseName: string }) => () => void;
   toPlain: (value: unknown) => unknown;
@@ -22,9 +20,8 @@ export const serverAppHarness = (): {
     const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
     const tempDir = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
     process.env.DUNGEONMASTER_HOME = tempDir;
-    const dmDir = join(tempDir, environmentStatics.testDataDir);
-    mkdirSync(dmDir, { recursive: true });
-    writeFileSync(join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
+    mkdirSync(tempDir, { recursive: true });
+    writeFileSync(join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
 
     return (): void => {
       if (savedDungeonmasterHome === undefined) {

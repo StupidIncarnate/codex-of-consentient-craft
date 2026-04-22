@@ -9,7 +9,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 const JSON_INDENT_SPACES = 2;
 const GUILD_ID = '00000000-0000-0000-0000-000000000001';
@@ -18,14 +17,7 @@ export const questSeedHarness = (): {
   seed: (params: { tempDir: string; quest: ReturnType<typeof QuestStub> }) => void;
 } => ({
   seed: ({ tempDir, quest }: { tempDir: string; quest: ReturnType<typeof QuestStub> }): void => {
-    const questDir = path.join(
-      tempDir,
-      environmentStatics.testDataDir,
-      'guilds',
-      GUILD_ID,
-      'quests',
-      quest.folder,
-    );
+    const questDir = path.join(tempDir, 'guilds', GUILD_ID, 'quests', quest.folder);
     fs.mkdirSync(questDir, { recursive: true });
     fs.writeFileSync(
       path.join(questDir, 'quest.json'),

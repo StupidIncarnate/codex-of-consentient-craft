@@ -4,8 +4,9 @@ import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 const CI_RETRIES = 1;
+const DEFAULT_E2E_PORT = 5737;
 
-const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.testPort;
+const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_E2E_PORT;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
 const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'test/harnesses/claude-mock/bin/claude');
@@ -58,7 +59,6 @@ export default defineConfig({
       env: {
         DUNGEONMASTER_PORT: String(TEST_PORT),
         DUNGEONMASTER_HOME: TEST_HOME,
-        DUNGEONMASTER_ENV: 'test',
         HOME: TEST_HOME,
         CLAUDE_CLI_PATH: FAKE_CLAUDE_CLI,
         FAKE_CLAUDE_QUEUE_DIR,
@@ -72,7 +72,6 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         DUNGEONMASTER_PORT: String(TEST_PORT),
-        DUNGEONMASTER_ENV: 'test',
       },
     },
   ],

@@ -1,14 +1,13 @@
 /**
- * PURPOSE: Creates a Hono sub-app with health check and root redirect routes
+ * PURPOSE: Creates a Hono sub-app with the health check route
  *
  * USAGE:
  * const healthApp = HealthFlow();
  * app.route('', healthApp);
- * // Registers GET /api/health and GET / (redirect to web SPA)
+ * // Registers GET /api/health
  */
 
 import { Hono } from 'hono';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
@@ -21,10 +20,6 @@ export const HealthFlow = (): Hono => {
       timestamp: new Date().toISOString(),
     }),
   );
-
-  const serverPort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
-  const serverHost = environmentStatics.hostname;
-  app.get('/', (c) => c.redirect(`http://${serverHost}:${serverPort + 1}`));
 
   return app;
 };

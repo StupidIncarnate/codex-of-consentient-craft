@@ -2,13 +2,14 @@ import { readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 const sharedSubpaths = readdirSync(resolve(__dirname, '../shared'))
   .filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts') && file !== 'index.ts')
   .map((file) => `@dungeonmaster/shared/${file.replace('.ts', '')}`);
 
-const basePort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+const basePort = Number(portResolveBroker());
 const webPort = basePort + 1;
 const { hostname } = environmentStatics;
 

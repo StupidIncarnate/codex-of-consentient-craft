@@ -1,8 +1,5 @@
 // Global Jest setup for consistent test environment
 
-// Ensure tests use .dungeonmaster-test data directory, not dev or production
-process.env.DUNGEONMASTER_ENV = 'test';
-
 // Wire harness lifecycle hooks — called by the harness-lifecycle-transformer
 // when it wraps *Harness() calls in integration test files
 globalThis.__wireHarnessLifecycle = (harness) => {

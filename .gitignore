@@ -10,8 +10,6 @@ tests/tmp/
 spike-tmp/
 .playwright-ward-report.json
 
-.env
-.env.prod
 
 # dependencies
 node_modules
@@ -75,5 +73,6 @@ dependency-graph.html
 _test-workspace/
 _lint-testbed/
 .ward/
-.dungeonmaster-home
+.dungeonmaster/
+.dungeonmaster-dev/
 .claude/worktrees

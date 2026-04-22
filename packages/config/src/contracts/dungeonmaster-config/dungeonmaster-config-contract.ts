@@ -8,79 +8,98 @@
  */
 
 import { z } from 'zod';
-import { folderTypeGroupsContract } from '@dungeonmaster/shared/contracts';
+import { folderTypeGroupsContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 import { configDefaultsStatics } from '../../statics/config-defaults/config-defaults-statics';
 import { frameworkStatics } from '../../statics/framework/framework-statics';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
 import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 
-export const dungeonmasterConfigContract = z.object({
-  framework: z.enum(frameworkStatics.frameworks.all),
-  routing: z.enum(routingLibraryStatics.libraries.all).optional(),
-  schema: z.union([
-    z.enum(schemaLibraryStatics.libraries.all),
-    z.array(z.enum(schemaLibraryStatics.libraries.all)),
-  ]),
-  architecture: z
-    .object({
-      overrides: z
-        .record(
-          z.string().brand<'FolderName'>(),
-          z.object({ add: z.array(z.string().brand<'PackageName'>()).optional() }),
-        )
-        .optional(),
-      allowedRootFiles: z.array(z.string().brand<'FileName'>()).optional(),
-      booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
-    })
-    .optional(),
-  orchestration: z
-    .object({
-      slotCount: z
-        .number()
-        .int()
-        .min(configDefaultsStatics.orchestration.slotCount.min)
-        .max(configDefaultsStatics.orchestration.slotCount.max)
-        .default(configDefaultsStatics.orchestration.slotCount.default)
-        .brand<'SlotCount'>(),
-      timeoutMs: z
-        .number()
-        .int()
-        .min(configDefaultsStatics.orchestration.timeoutMs.min)
-        .default(configDefaultsStatics.orchestration.timeoutMs.default)
-        .brand<'TimeoutMs'>(),
-    })
-    .optional(),
-  agents: z
-    .object({
-      batchGroups: folderTypeGroupsContract.optional(),
-    })
-    .optional(),
-  devServer: z
-    .object({
-      devCommand: z.string().min(1).brand<'DevCommand'>(),
-      port: z
-        .number()
-        .int()
-        .min(configDefaultsStatics.devServer.port.min)
-        .max(configDefaultsStatics.devServer.port.max)
-        .brand<'DevServerPort'>(),
-      buildCommand: z
-        .string()
-        .min(1)
-        .default(configDefaultsStatics.devServer.buildCommand)
-        .brand<'BuildCommand'>(),
-      readinessPath: z
-        .string()
-        .default(configDefaultsStatics.devServer.readinessPath)
-        .brand<'ReadinessPath'>(),
-      readinessTimeoutMs: z
-        .number()
-        .int()
-        .min(configDefaultsStatics.devServer.readinessTimeoutMs.min)
-        .default(configDefaultsStatics.devServer.readinessTimeoutMs.default)
-        .brand<'ReadinessTimeoutMs'>(),
-    })
-    .optional(),
-});
+export const dungeonmasterConfigContract = z
+  .object({
+    framework: z.enum(frameworkStatics.frameworks.all),
+    routing: z.enum(routingLibraryStatics.libraries.all).optional(),
+    schema: z.union([
+      z.enum(schemaLibraryStatics.libraries.all),
+      z.array(z.enum(schemaLibraryStatics.libraries.all)),
+    ]),
+    architecture: z
+      .object({
+        overrides: z
+          .record(
+            z.string().brand<'FolderName'>(),
+            z.object({ add: z.array(z.string().brand<'PackageName'>()).optional() }),
+          )
+          .optional(),
+        allowedRootFiles: z.array(z.string().brand<'FileName'>()).optional(),
+        booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
+      })
+      .optional(),
+    orchestration: z
+      .object({
+        slotCount: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.orchestration.slotCount.min)
+          .max(configDefaultsStatics.orchestration.slotCount.max)
+          .default(configDefaultsStatics.orchestration.slotCount.default)
+          .brand<'SlotCount'>(),
+        timeoutMs: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.orchestration.timeoutMs.min)
+          .default(configDefaultsStatics.orchestration.timeoutMs.default)
+          .brand<'TimeoutMs'>(),
+      })
+      .optional(),
+    agents: z
+      .object({
+        batchGroups: folderTypeGroupsContract.optional(),
+      })
+      .optional(),
+    dungeonmaster: z
+      .object({
+        port: networkPortContract.optional(),
+      })
+      .optional(),
+    devServer: z
+      .object({
+        devCommand: z.string().min(1).brand<'DevCommand'>(),
+        port: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.devServer.port.min)
+          .max(configDefaultsStatics.devServer.port.max)
+          .brand<'DevServerPort'>(),
+        buildCommand: z
+          .string()
+          .min(1)
+          .default(configDefaultsStatics.devServer.buildCommand)
+          .brand<'BuildCommand'>(),
+        readinessPath: z
+          .string()
+          .default(configDefaultsStatics.devServer.readinessPath)
+          .brand<'ReadinessPath'>(),
+        readinessTimeoutMs: z
+          .number()
+          .int()
+          .min(configDefaultsStatics.devServer.readinessTimeoutMs.min)
+          .default(configDefaultsStatics.devServer.readinessTimeoutMs.default)
+          .brand<'ReadinessTimeoutMs'>(),
+      })
+      .optional(),
+  })
+  .refine(
+    (config) => {
+      const dmPort = config.dungeonmaster?.port;
+      const devPort = config.devServer?.port;
+      if (dmPort === undefined || devPort === undefined) return true;
+      return Number(dmPort) !== Number(devPort);
+    },
+    {
+      message:
+        'dungeonmaster.port and devServer.port must differ — siege will kill the parent server otherwise',
+      path: ['dungeonmaster', 'port'],
+    },
+  );
 
 export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;

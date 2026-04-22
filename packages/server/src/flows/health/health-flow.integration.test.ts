@@ -12,15 +12,4 @@ describe('HealthFlow', () => {
       expect(Reflect.get(body as object, 'status')).toBe('ok');
     });
   });
-
-  describe('GET /', () => {
-    it('VALID: {} => 302 redirect to web SPA port', async () => {
-      const app = HealthFlow();
-
-      const response = await app.request('/', { redirect: 'manual' });
-
-      expect(response.status).toBe(302);
-      expect(response.headers.get('location')).toMatch(/^http:\/\/dungeonmaster\.localhost:\d+$/u);
-    });
-  });
 });

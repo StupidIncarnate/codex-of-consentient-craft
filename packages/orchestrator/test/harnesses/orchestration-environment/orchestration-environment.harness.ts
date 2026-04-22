@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
 
@@ -69,9 +68,8 @@ export const orchestrationEnvironmentHarness = (): {
       const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
       process.env.DUNGEONMASTER_HOME = tempDir;
 
-      const dmDir = path.join(tempDir, environmentStatics.testDataDir);
-      fs.mkdirSync(dmDir, { recursive: true });
-      fs.writeFileSync(path.join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
 
       const restore = (): void => {
         if (savedDungeonmasterHome === undefined) {
@@ -114,9 +112,8 @@ export const orchestrationEnvironmentHarness = (): {
       process.env.WARD_CLI_PATH = FAKE_WARD_CLI;
       process.env.DUNGEONMASTER_HOME = tempDir;
 
-      const dmDir = path.join(tempDir, environmentStatics.testDataDir);
-      fs.mkdirSync(dmDir, { recursive: true });
-      fs.writeFileSync(path.join(dmDir, 'config.json'), JSON.stringify({ guilds: [] }));
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
 
       const restore = (): void => {
         process.env.CLAUDE_CLI_PATH = savedClaudeCliPath;

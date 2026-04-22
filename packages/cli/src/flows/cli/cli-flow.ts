@@ -14,6 +14,7 @@ import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responde
 
 const COMMANDS = {
   init: 'init',
+  start: 'start',
 } as const;
 
 export const CliFlow = async ({

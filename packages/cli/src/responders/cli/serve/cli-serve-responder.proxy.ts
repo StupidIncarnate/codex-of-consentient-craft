@@ -1,4 +1,7 @@
-import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  portResolveBrokerProxy,
+  runtimeDynamicImportAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { childProcessExecAdapterProxy } from '../../../adapters/child-process/exec/child-process-exec-adapter.proxy';
 import { CliServeResponder } from './cli-serve-responder';
@@ -15,6 +18,8 @@ export const CliServeResponderProxy = ({
 } => {
   const execProxy = childProcessExecAdapterProxy();
   runtimeDynamicImportAdapterProxy({ module: { StartServer } });
+  const portProxy = portResolveBrokerProxy();
+  portProxy.setEnvPort({ value: '3737' });
 
   const stdoutWrite = registerSpyOn({ object: process.stdout, method: 'write', passthrough: true });
   stdoutWrite.mockImplementation((): boolean => true);

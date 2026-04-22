@@ -9,6 +9,7 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { childProcessExecAdapter } from '../../../adapters/child-process/exec/child-process-exec-adapter';
@@ -22,7 +23,7 @@ export const CliServeResponder = async (): Promise<AdapterResult> => {
   });
 
   serverModule.StartServer();
-  const port = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+  const port = Number(portResolveBroker());
   const serverUrl = `http://${environmentStatics.hostname}:${port}`;
   process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
 

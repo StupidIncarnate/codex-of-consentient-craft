@@ -27,17 +27,40 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
 discovery/execution).
 
-## Worktree Isolation
+## Runtime Configuration
 
-When the repo is cloned into a `worktrees/` directory alongside sibling worktrees, `npm install` auto-generates a
-`.env` file via `scripts/worktree-env-setup.js` (the `postinstall` hook).
+All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json` at repo root. No `.env` files.
 
-- **Port assignment** is deterministic: sibling folders are sorted by filesystem creation time (`birthtime`) and each
-  gets `4700 + index * 10` (e.g. 4700, 4710, 4720). The 10-step gap leaves room for server port and web port (port+1).
-- **`DUNGEONMASTER_HOME`** points to `.dungeonmaster-home` inside the worktree, keeping data isolated per worktree.
-- The `dev` and `dev:kill` scripts source `.env` automatically if it exists.
-- To manually override: edit `.env` directly. The postinstall script never overwrites an existing `.env`.
-- For non-worktree setups (regular clones, end-user installs) the script is a no-op.
+**Three scenarios:**
+
+| Scenario | Launched via | Home | Port source |
+|---|---|---|---|
+| Dogfood prod in this repo | `npm run prod` | `<repo>/.dungeonmaster/` (repo-local so Claude Code Read/Grep can reach quest files) | `dungeonmaster.port` from `.dungeonmaster.json` |
+| Dogfood dev in this repo | `npm run dev` | `<repo>/.dungeonmaster-dev/` (isolated smoke-test queue) | `devServer.port` from `.dungeonmaster.json` |
+| End-user install | `dungeonmaster start` | `~/.dungeonmaster` (shared user-global queue across every repo they launch from) | `dungeonmaster.port` from their `.dungeonmaster.json`, or `environmentStatics.defaultPort` (3737) |
+
+**Env var surface** (programmatic overrides — not set via files):
+
+- `DUNGEONMASTER_HOME` — complete path to the dungeonmaster data dir. When unset, resolves to `~/.dungeonmaster`.
+- `DUNGEONMASTER_PORT` — trumps config. Used by ward e2e (`netFreePortAdapter` picks a rotating free port per run so
+  parallel e2e agents don't collide).
+- `VERBOSE=1` — gates `[dev]` orchestration event logging. Set inline by this repo's `dev` and `prod` npm scripts.
+
+**Config file surface:** `.dungeonmaster.json` at repo root — ports, `devCommand`, `buildCommand`, framework, schema.
+Validated by `dungeonmasterConfigContract`. A `zod.refine` rejects `dungeonmaster.port === devServer.port` (siege would
+kill the parent server otherwise).
+
+**Dogfood siege case:** when siegemaster spawns `npm run dev` as a child during a quest run, npm's script-inline env
+(`VAR=val cmd` via `sh -c`) overrides inherited env, so the child uses `<repo>/.dungeonmaster-dev` (not the parent's
+prod home). The parent's quest queue is safe.
+
+**Test isolation:** Playwright spins up a real `npm run dev --workspace=@dungeonmaster/server` under
+`DUNGEONMASTER_HOME=/tmp/dm-e2e-{pid}` with a fake Claude CLI. Ward e2e (`check-run-e2e-broker.ts`) grabs a rotating
+free port via `netFreePortAdapter` and passes it via `DUNGEONMASTER_PORT`. Jest integration tests use
+`installTestbedCreateBroker` with their own tmp dirs. Nothing touches `<repo>/.dungeonmaster`,
+`<repo>/.dungeonmaster-dev`, or `~/.dungeonmaster` during tests.
+
+See `playbook/smoke-testing.md` for manual verification steps.
 
 ## Project Info
 

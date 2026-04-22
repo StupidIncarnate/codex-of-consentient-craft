@@ -17,6 +17,7 @@ import {
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -180,14 +181,14 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     })),
   );
 
-  const serverPort = Number(process.env.DUNGEONMASTER_PORT) || environmentStatics.defaultPort;
+  const serverPort = portResolveBroker();
   const serverHost = environmentStatics.hostname;
 
-  app.get('/', (c) => c.redirect(`http://${serverHost}:${serverPort + 1}`));
+  app.get('/', (c) => c.redirect(`http://${serverHost}:${Number(serverPort) + 1}`));
 
   const server = honoServeAdapter({
     fetch: app.fetch,
-    port: serverPort,
+    port: Number(serverPort),
     hostname: serverHost,
     onListen: (info) => {
       process.stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);

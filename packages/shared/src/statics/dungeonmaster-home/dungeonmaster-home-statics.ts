@@ -9,7 +9,6 @@
 export const dungeonmasterHomeStatics = {
   paths: {
     projectConfigFile: '.dungeonmaster.json',
-    legacyProjectConfigFile: '.dungeonmaster',
     configDir: '.dungeonmaster',
     configFile: 'config.json',
     guildsDir: 'guilds',

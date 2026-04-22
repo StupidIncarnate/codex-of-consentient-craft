@@ -5,25 +5,11 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('configFileFindBroker', () => {
   describe('config file found cases', () => {
-    it('VALID: {startPath: "/project/src/file.ts"} => finds config in same directory', async () => {
+    it('VALID: {startPath: "/project/src/file.ts"} => finds .dungeonmaster.json in same directory', async () => {
       const proxy = configFileFindBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
 
       proxy.setupConfigFound({
-        startPath: '/project/src/file.ts',
-        configPath: '/project/src/.dungeonmaster',
-      });
-
-      const result = await configFileFindBroker({ startPath });
-
-      expect(result).toBe('/project/src/.dungeonmaster');
-    });
-
-    it('VALID: {startPath: "/project/src/file.ts"} => prefers .dungeonmaster.json over .dungeonmaster', async () => {
-      const proxy = configFileFindBrokerProxy();
-      const startPath = FilePathStub({ value: '/project/src/file.ts' });
-
-      proxy.setupConfigFoundJson({
         startPath: '/project/src/file.ts',
         configPath: '/project/src/.dungeonmaster.json',
       });
@@ -40,12 +26,12 @@ describe('configFileFindBroker', () => {
       proxy.setupConfigFoundInParent({
         startPath: '/project/sub/file.ts',
         parentPath: '/project',
-        configPath: '/project/.dungeonmaster',
+        configPath: '/project/.dungeonmaster.json',
       });
 
       const result = await configFileFindBroker({ startPath });
 
-      expect(result).toBe('/project/.dungeonmaster');
+      expect(result).toBe('/project/.dungeonmaster.json');
     });
 
     it('VALID: {startPath: "/deep/nested/project/src/file.ts"} => finds config walking up multiple levels', async () => {
@@ -55,12 +41,12 @@ describe('configFileFindBroker', () => {
       proxy.setupConfigFoundInParent({
         startPath: '/deep/nested/project/src/file.ts',
         parentPath: '/deep',
-        configPath: '/deep/.dungeonmaster',
+        configPath: '/deep/.dungeonmaster.json',
       });
 
       const result = await configFileFindBroker({ startPath });
 
-      expect(result).toBe('/deep/.dungeonmaster');
+      expect(result).toBe('/deep/.dungeonmaster.json');
     });
 
     it('VALID: {startPath: "/root-config/file.ts"} => finds config at filesystem root', async () => {
@@ -70,12 +56,12 @@ describe('configFileFindBroker', () => {
       proxy.setupConfigFoundInParent({
         startPath: '/root-config/file.ts',
         parentPath: '/',
-        configPath: '/.dungeonmaster',
+        configPath: '/.dungeonmaster.json',
       });
 
       const result = await configFileFindBroker({ startPath });
 
-      expect(result).toBe('/.dungeonmaster');
+      expect(result).toBe('/.dungeonmaster.json');
     });
   });
 
@@ -115,12 +101,12 @@ describe('configFileFindBroker', () => {
 
       proxy.setupConfigFound({
         startPath: '/single/.hidden',
-        configPath: '/single/.dungeonmaster',
+        configPath: '/single/.dungeonmaster.json',
       });
 
       const result = await configFileFindBroker({ startPath });
 
-      expect(result).toBe('/single/.dungeonmaster');
+      expect(result).toBe('/single/.dungeonmaster.json');
     });
 
     it('EDGE: {startPath: "/path with spaces/file.ts"} => handles paths with spaces', async () => {
@@ -129,12 +115,12 @@ describe('configFileFindBroker', () => {
 
       proxy.setupConfigFound({
         startPath: '/path with spaces/file.ts',
-        configPath: '/path with spaces/.dungeonmaster',
+        configPath: '/path with spaces/.dungeonmaster.json',
       });
 
       const result = await configFileFindBroker({ startPath });
 
-      expect(result).toBe('/path with spaces/.dungeonmaster');
+      expect(result).toBe('/path with spaces/.dungeonmaster.json');
     });
   });
 });
