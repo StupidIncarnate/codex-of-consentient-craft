@@ -39,6 +39,9 @@ export const statusLiteralStatics = {
     '/packages/orchestrator/src/statics/quest-status-transitions/',
     // Plan per-site table (line 215): case-dispatch on nextStatus from explicit source status — not a membership read.
     '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
+    // Hydrator strategy: mirrors the status machine's linear walk from created to in_progress; must
+    // reference each status literal explicitly to drive per-transition modify-quest payloads.
+    '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
   ],
   // Path regex fragments — guard matches filenames ending in these forms.
   allowlistPathRegexSources: [

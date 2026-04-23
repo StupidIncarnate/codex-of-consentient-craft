@@ -46,6 +46,7 @@ import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
+import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
 
 export const StartOrchestrator = {
@@ -201,4 +202,14 @@ export const StartOrchestrator = {
 
   // Recovery methods
   recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),
+
+  // Smoketest methods
+  runSmoketest: async ({
+    suite,
+    startPath,
+  }: Parameters<typeof SmoketestFlow.run>[0]): Promise<
+    Awaited<ReturnType<typeof SmoketestFlow.run>>
+  > => SmoketestFlow.run({ suite, startPath }),
+
+  getSmoketestState: (): ReturnType<typeof SmoketestFlow.getState> => SmoketestFlow.getState(),
 };

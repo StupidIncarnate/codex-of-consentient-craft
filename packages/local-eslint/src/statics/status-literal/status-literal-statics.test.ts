@@ -71,6 +71,7 @@ describe('statusLiteralStatics', () => {
         '/packages/shared/src/transformers/display-header-quest-status/',
         '/packages/orchestrator/src/statics/quest-status-transitions/',
         '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
+        '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
       ]);
     });
   });

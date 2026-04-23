@@ -32,6 +32,7 @@ export const workItemContract = z.object({
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
   wardMode: z.enum(['changed', 'full']).optional(),
+  smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
 });
 
 export type WorkItem = z.infer<typeof workItemContract>;

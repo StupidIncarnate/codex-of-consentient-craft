@@ -81,6 +81,9 @@ export const runCodeweaverLayerBroker = async ({
       role: 'codeweaver',
       steps: resolvedSteps,
       quest,
+      ...(wi.smoketestPromptOverride === undefined
+        ? {}
+        : { smoketestPromptOverride: wi.smoketestPromptOverride }),
     });
   });
 

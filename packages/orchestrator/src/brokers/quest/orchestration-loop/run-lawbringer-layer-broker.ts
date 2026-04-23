@@ -80,6 +80,9 @@ export const runLawbringerLayerBroker = async ({
     return buildWorkUnitForRoleTransformer({
       role: 'lawbringer',
       steps: resolvedSteps,
+      ...(wi.smoketestPromptOverride === undefined
+        ? {}
+        : { smoketestPromptOverride: wi.smoketestPromptOverride }),
     });
   });
 

@@ -23,6 +23,7 @@ import type {
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
+import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import type { WorkUnit } from '../../contracts/work-unit/work-unit-contract';
 import { workUnitContract } from '../../contracts/work-unit/work-unit-contract';
 import { pathToFolderTypeTransformer } from '../path-to-folder-type/path-to-folder-type-transformer';
@@ -32,15 +33,31 @@ import { stepToQuestContextTransformer } from '../step-to-quest-context/step-to-
 type StepFilePath = StepFileReference['path'];
 
 type BuildWorkUnitForRoleInput =
-  | { role: 'codeweaver'; steps: DependencyStep[]; quest: Quest }
-  | { role: 'siegemaster'; flow: Flow; quest: Quest; devServerUrl?: DevServerUrl }
-  | { role: 'lawbringer'; steps: DependencyStep[] }
-  | { role: 'spiritmender'; step: DependencyStep }
-  | { role: 'blightwarden'; quest: Quest };
+  | {
+      role: 'codeweaver';
+      steps: DependencyStep[];
+      quest: Quest;
+      smoketestPromptOverride?: PromptText;
+    }
+  | {
+      role: 'siegemaster';
+      flow: Flow;
+      quest: Quest;
+      devServerUrl?: DevServerUrl;
+      smoketestPromptOverride?: PromptText;
+    }
+  | { role: 'lawbringer'; steps: DependencyStep[]; smoketestPromptOverride?: PromptText }
+  | { role: 'spiritmender'; step: DependencyStep; smoketestPromptOverride?: PromptText }
+  | { role: 'blightwarden'; quest: Quest; smoketestPromptOverride?: PromptText };
 
 export const buildWorkUnitForRoleTransformer = ({
   ...params
 }: BuildWorkUnitForRoleInput): WorkUnit => {
+  const overrideField =
+    params.smoketestPromptOverride === undefined
+      ? {}
+      : { smoketestPromptOverride: params.smoketestPromptOverride };
+
   switch (params.role) {
     case 'codeweaver': {
       const { steps, quest } = params;
@@ -103,6 +120,7 @@ export const buildWorkUnitForRoleTransformer = ({
         relatedObservables,
         relatedDesignDecisions,
         relatedFlows,
+        ...overrideField,
       });
     }
 
@@ -115,6 +133,7 @@ export const buildWorkUnitForRoleTransformer = ({
         flow,
         relatedDesignDecisions: quest.designDecisions,
         ...(devServerUrl === undefined ? {} : { devServerUrl }),
+        ...overrideField,
       });
     }
 
@@ -157,6 +176,7 @@ export const buildWorkUnitForRoleTransformer = ({
         filePaths: aggregateFilePaths,
         folderTypes,
         stepBoundaries,
+        ...overrideField,
       });
     }
 
@@ -167,6 +187,7 @@ export const buildWorkUnitForRoleTransformer = ({
       return workUnitContract.parse({
         role: 'spiritmender',
         filePaths,
+        ...overrideField,
       });
     }
 

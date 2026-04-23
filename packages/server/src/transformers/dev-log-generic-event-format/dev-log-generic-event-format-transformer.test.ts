@@ -51,4 +51,74 @@ describe('devLogGenericEventFormatTransformer', () => {
 
     expect(result).toBe('');
   });
+
+  it('VALID: {smoketest started} => shows suite, phase, total', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        suite: 'mcp',
+        phase: 'started',
+        total: 16,
+      },
+    });
+
+    expect(result).toBe('proc:abc12345  suite:mcp  phase:started  total:16');
+  });
+
+  it('VALID: {smoketest case-started} => shows caseId', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        suite: 'mcp',
+        phase: 'case-started',
+        caseId: 'mcp-discover',
+      },
+    });
+
+    expect(result).toBe('proc:abc12345  suite:mcp  phase:case-started  case:mcp-discover');
+  });
+
+  it('VALID: {smoketest case-complete passed} => shows case + pass flag', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        suite: 'mcp',
+        phase: 'case-complete',
+        caseResult: { caseId: 'mcp-discover', name: 'MCP: discover', passed: true },
+      },
+    });
+
+    expect(result).toBe(
+      'proc:abc12345  suite:mcp  phase:case-complete  case:mcp-discover  verified',
+    );
+  });
+
+  it('VALID: {smoketest case-complete failed} => shows case + FAIL flag', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        suite: 'signals',
+        phase: 'case-complete',
+        caseResult: { caseId: 'signal-failed', name: 'Signal: failed', passed: false },
+      },
+    });
+
+    expect(result).toBe(
+      'proc:abc12345  suite:signals  phase:case-complete  case:signal-failed  FAILED',
+    );
+  });
+
+  it('VALID: {smoketest complete summary} => shows passed/total', () => {
+    const result = devLogGenericEventFormatTransformer({
+      payload: {
+        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        suite: 'mcp',
+        phase: 'complete',
+        total: 16,
+        passed: 15,
+      },
+    });
+
+    expect(result).toBe('proc:abc12345  suite:mcp  phase:complete  passed:15/16');
+  });
 });

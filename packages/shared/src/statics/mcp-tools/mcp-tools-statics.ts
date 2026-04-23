@@ -2,10 +2,10 @@
  * PURPOSE: Single source of truth for MCP tool names and server configuration
  *
  * USAGE:
- * mcpToolsStatics.toolNames;
+ * mcpToolsStatics.tools.names;
  * // Returns readonly array of all MCP tool names: ['discover', 'get-architecture', ...]
  *
- * mcpToolsStatics.serverName;
+ * mcpToolsStatics.server.name;
  * // Returns 'dungeonmaster' - the MCP server name used in permissions
  */
 

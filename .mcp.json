@@ -5,7 +5,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "DUNGEONMASTER_HOME=\"${DUNGEONMASTER_HOME:-$(pwd)/.dungeonmaster-dev}\" exec npx tsx packages/mcp/src/index.ts"
+        "DUNGEONMASTER_HOME=\"${DUNGEONMASTER_HOME:-$(pwd)/.dungeonmaster-dev}\" exec node packages/mcp/dist/src/index.js"
       ],
       "env": {}
     }

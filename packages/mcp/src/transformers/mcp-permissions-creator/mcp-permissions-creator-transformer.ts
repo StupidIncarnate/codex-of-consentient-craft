@@ -10,7 +10,7 @@ import {
   mcpPermissionContract,
   type McpPermission,
 } from '../../contracts/mcp-permission/mcp-permission-contract';
-import { mcpToolsStatics } from '../../statics/mcp-tools/mcp-tools-statics';
+import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
 export const mcpPermissionsCreatorTransformer = (): McpPermission[] => {
   const { server, tools } = mcpToolsStatics;

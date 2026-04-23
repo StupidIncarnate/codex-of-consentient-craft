@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const config = dungeonmasterConfigCreatorTransformer();
- * // Returns: { dungeonmaster: { type: 'stdio', command: 'npx', args: [...] } }
+ * // Returns: { dungeonmaster: { type: 'stdio', command: 'node', args: [...] } }
  *
  * CONTRACTS: Output: Record<McpServerName, McpServerConfig>
  */
@@ -17,7 +17,7 @@ export const dungeonmasterConfigCreatorTransformer = (): Record<McpServerName, M
   ({
     dungeonmaster: {
       type: 'stdio' as const,
-      command: 'npx' as const,
-      args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts'] as const,
+      command: 'node' as const,
+      args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'] as const,
     },
   }) as Record<McpServerName, McpServerConfig>;

@@ -17,6 +17,7 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
+import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 
@@ -24,6 +25,7 @@ export const agentSpawnUnifiedBroker = ({
   prompt,
   cwd,
   resumeSessionId,
+  model,
   onLine,
   onError,
   onComplete,
@@ -31,6 +33,7 @@ export const agentSpawnUnifiedBroker = ({
   prompt: PromptText;
   cwd: AbsoluteFilePath;
   resumeSessionId?: SessionId;
+  model?: ClaudeModel;
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
   onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
@@ -42,6 +45,10 @@ export const agentSpawnUnifiedBroker = ({
 
   if (resumeSessionId) {
     spawnParams.resumeSessionId = resumeSessionId;
+  }
+
+  if (model !== undefined) {
+    spawnParams.model = model;
   }
 
   const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);

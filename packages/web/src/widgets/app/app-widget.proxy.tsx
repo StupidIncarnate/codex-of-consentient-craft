@@ -15,10 +15,13 @@ import type {
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { useSmoketestRunBindingProxy } from '../../bindings/use-smoketest-run/use-smoketest-run-binding.proxy';
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
+import { SmoketestDrawerWidgetProxy } from '../smoketest-drawer/smoketest-drawer-widget.proxy';
+import { ToolingDropdownWidgetProxy } from '../tooling-dropdown/tooling-dropdown-widget.proxy';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
@@ -57,6 +60,9 @@ export const AppWidgetProxy = (): {
   MapFrameWidgetProxy();
   setupQuestChat();
   const homeProxy = setupHomeContent();
+  useSmoketestRunBindingProxy();
+  ToolingDropdownWidgetProxy();
+  SmoketestDrawerWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {

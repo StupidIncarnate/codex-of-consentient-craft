@@ -41,4 +41,8 @@ export const apiRoutesStatics = {
   directories: {
     browse: '/api/directories/browse',
   },
+  tooling: {
+    smoketestRun: '/api/tooling/smoketest/run',
+    smoketestState: '/api/tooling/smoketest/state',
+  },
 } as const;

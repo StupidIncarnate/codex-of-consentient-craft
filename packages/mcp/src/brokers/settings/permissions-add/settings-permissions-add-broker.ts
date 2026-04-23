@@ -17,7 +17,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
-import { mcpToolsStatics } from '../../../statics/mcp-tools/mcp-tools-statics';
+import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import type { McpPermission } from '../../../contracts/mcp-permission/mcp-permission-contract';
 
 const SETTINGS_DIR = '.claude';

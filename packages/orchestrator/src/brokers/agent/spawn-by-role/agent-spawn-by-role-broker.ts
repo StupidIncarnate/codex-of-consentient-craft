@@ -20,6 +20,7 @@ import {
   agentSpawnStreamingResultContract,
   type AgentSpawnStreamingResult,
 } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
+import { claudeModelContract } from '../../../contracts/claude-model/claude-model-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
@@ -30,6 +31,8 @@ import { signalFromStreamTransformer } from '../../../transformers/signal-from-s
 import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 import { workUnitToArgumentsTransformer } from '../../../transformers/work-unit-to-arguments/work-unit-to-arguments-transformer';
 import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-broker';
+
+const SMOKETEST_MODEL = claudeModelContract.parse('haiku');
 
 export const agentSpawnByRoleBroker = async ({
   workUnit,
@@ -48,15 +51,25 @@ export const agentSpawnByRoleBroker = async ({
   onSessionId?: (params: { sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
 }): Promise<AgentSpawnStreamingResult> => {
-  const template = roleToPromptTemplateTransformer({ role: workUnit.role });
-  const args = workUnitToArgumentsTransformer({ workUnit });
-  let promptText = template.replace('$ARGUMENTS', args);
+  const overrideText = workUnit.smoketestPromptOverride;
+  const baseText =
+    overrideText === undefined
+      ? roleToPromptTemplateTransformer({ role: workUnit.role }).replace(
+          '$ARGUMENTS',
+          workUnitToArgumentsTransformer({ workUnit }),
+        )
+      : overrideText;
 
-  if (continuationContext !== undefined) {
-    promptText += `\n\n## Continuation Context\n${continuationContext}`;
-  }
+  const shouldAppendContinuation = overrideText === undefined && continuationContext !== undefined;
+  const promptText = shouldAppendContinuation
+    ? `${baseText}\n\n## Continuation Context\n${continuationContext}`
+    : baseText;
 
   const prompt = promptTextContract.parse(promptText);
+
+  // Smoketest spawns force `--model haiku` for cost/speed. Real roles continue to use
+  // Claude CLI's configured default (no `model` flag passed).
+  const modelOverride = overrideText === undefined ? undefined : SMOKETEST_MODEL;
 
   try {
     let lastSignal: StreamSignal | null = null;
@@ -67,6 +80,7 @@ export const agentSpawnByRoleBroker = async ({
         prompt,
         cwd: absoluteFilePathContract.parse(startPath),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
+        ...(modelOverride === undefined ? {} : { model: modelOverride }),
         onLine: ({ line }) => {
           onLine?.({ line });
 

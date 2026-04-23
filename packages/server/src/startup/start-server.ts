@@ -15,6 +15,7 @@ import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
 import { ServerFlow } from '../flows/server/server-flow';
+import { ToolingFlow } from '../flows/tooling/tooling-flow';
 
 export const StartServer = (): AdapterResult =>
   ServerFlow({
@@ -26,5 +27,6 @@ export const StartServer = (): AdapterResult =>
       DirectoryFlow(),
       HealthFlow(),
       DesignFlow(),
+      ToolingFlow(),
     ],
   });

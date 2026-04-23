@@ -6,8 +6,8 @@
  *   mcpServers: {
  *     dungeonmaster: {
  *       type: 'stdio',
- *       command: 'npx',
- *       args: ['tsx', 'node_modules/@dungeonmaster/mcp/src/index.ts']
+ *       command: 'node',
+ *       args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js']
  *     }
  *   }
  * });

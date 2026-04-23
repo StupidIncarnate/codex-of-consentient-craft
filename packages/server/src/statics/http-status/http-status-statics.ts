@@ -14,6 +14,7 @@ export const httpStatusStatics = {
   clientError: {
     badRequest: 400,
     notFound: 404,
+    conflict: 409,
   },
   serverError: {
     internal: 500,

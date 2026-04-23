@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/src/startup/*.js 2>/dev/null || true",
+    "postbuild": "cp src/statics/folder-constraints/*.md dist/src/statics/folder-constraints/ && chmod +x dist/src/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist && npm run build",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns='\\.integration\\.'",

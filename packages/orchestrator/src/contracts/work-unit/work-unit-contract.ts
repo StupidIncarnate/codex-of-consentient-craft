@@ -23,10 +23,15 @@ import {
 
 const stepFilePathContract = stepFileReferenceContract.shape.path;
 
+const smoketestOverrideField = {
+  smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
+};
+
 const pathseekerWorkUnitContract = z.object({
   role: z.literal('pathseeker'),
   questId: questIdContract,
   failureContext: z.string().min(1).brand<'FailureContext'>().optional(),
+  ...smoketestOverrideField,
 });
 
 const codeweaverWorkUnitContract = z.object({
@@ -38,6 +43,7 @@ const codeweaverWorkUnitContract = z.object({
   relatedObservables: z.array(flowObservableContract),
   relatedDesignDecisions: z.array(designDecisionContract).default([]),
   relatedFlows: z.array(flowContract).default([]),
+  ...smoketestOverrideField,
 });
 
 const spiritmenderWorkUnitContract = z.object({
@@ -46,6 +52,7 @@ const spiritmenderWorkUnitContract = z.object({
   errors: z.array(errorMessageContract).optional(),
   verificationCommand: z.string().min(1).brand<'VerificationCommand'>().optional(),
   contextInstructions: z.string().min(1).brand<'ContextInstructions'>().optional(),
+  ...smoketestOverrideField,
 });
 
 const siegemasterWorkUnitContract = z.object({
@@ -54,6 +61,7 @@ const siegemasterWorkUnitContract = z.object({
   relatedDesignDecisions: z.array(designDecisionContract).default([]),
   flow: flowContract,
   devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
+  ...smoketestOverrideField,
 });
 
 const lawbringerStepBoundaryContract = z.object({
@@ -66,6 +74,7 @@ const lawbringerWorkUnitContract = z.object({
   filePaths: z.array(stepFilePathContract),
   folderTypes: z.array(folderTypeContract).default([]),
   stepBoundaries: z.array(lawbringerStepBoundaryContract).min(1),
+  ...smoketestOverrideField,
 });
 
 const blightwardenWorkUnitContract = z.object({
@@ -73,6 +82,7 @@ const blightwardenWorkUnitContract = z.object({
   questId: questIdContract,
   scopeSize: planningScopeClassificationContract.shape.size.optional(),
   relatedDesignDecisions: z.array(designDecisionContract).default([]),
+  ...smoketestOverrideField,
 });
 
 export const workUnitContract = z.discriminatedUnion('role', [

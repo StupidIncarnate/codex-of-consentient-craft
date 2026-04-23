@@ -95,7 +95,13 @@ export const runSiegemasterLayerBroker = async ({
   let devServerProcess: DevServerProcess | null = null;
   let devServerUrl: ReturnType<typeof devServerUrlContract.parse> | null = null;
 
-  if (config?.devServer !== undefined) {
+  // Smoketest short-circuit: when a canned override prompt is present, the spawned agent does
+  // NOT exercise the integration surface — it only calls signal-back. Running the build preflight
+  // + dev-server lifecycle in that mode is both wasted work and dangerous (the smoketest itself
+  // usually runs inside the very dev-server process siegemaster would otherwise try to restart).
+  const hasSmoketestOverride = workItem.smoketestPromptOverride !== undefined;
+
+  if (!hasSmoketestOverride && config?.devServer !== undefined) {
     const { buildCommand, devCommand, port, readinessPath, readinessTimeoutMs } = config.devServer;
     const absoluteStartPath = absoluteFilePathContract.parse(startPath);
 
@@ -229,6 +235,9 @@ export const runSiegemasterLayerBroker = async ({
     flow,
     quest,
     ...(devServerUrl === null ? {} : { devServerUrl }),
+    ...(workItem.smoketestPromptOverride === undefined
+      ? {}
+      : { smoketestPromptOverride: workItem.smoketestPromptOverride }),
   });
 
   try {

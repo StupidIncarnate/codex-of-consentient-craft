@@ -60,6 +60,9 @@ export const runBlightwardenLayerBroker = async ({
     questId,
     relatedDesignDecisions: quest.designDecisions,
     ...(scopeSize === undefined ? {} : { scopeSize }),
+    ...(workItem.smoketestPromptOverride === undefined
+      ? {}
+      : { smoketestPromptOverride: workItem.smoketestPromptOverride }),
   });
 
   const slotIndex = slotIndexContract.parse(0);

@@ -45,7 +45,36 @@ export const devLogGenericEventFormatTransformer = ({
   const questions = Reflect.get(payload, 'questions');
   const questionsPart = Array.isArray(questions) ? `  questions:${questions.length}` : '';
 
+  const caseId = Reflect.get(payload, 'caseId');
+  const caseIdPart = typeof caseId === 'string' ? `  case:${caseId}` : '';
+
+  const caseResult: unknown = Reflect.get(payload, 'caseResult');
+  const caseResultId: unknown =
+    caseResult !== null && typeof caseResult === 'object'
+      ? Reflect.get(caseResult, 'caseId')
+      : undefined;
+  const caseResultPassed: unknown =
+    caseResult !== null && typeof caseResult === 'object'
+      ? Reflect.get(caseResult, 'passed')
+      : undefined;
+  const caseResultIdPart =
+    typeof caseResultId === 'string' && caseIdPart === '' ? `  case:${caseResultId}` : '';
+  const caseResultPassedPart =
+    typeof caseResultPassed === 'boolean' ? `  ${caseResultPassed ? 'verified' : 'FAILED'}` : '';
+
+  const suite = Reflect.get(payload, 'suite');
+  const suitePart = typeof suite === 'string' ? `  suite:${suite}` : '';
+
+  const total = Reflect.get(payload, 'total');
+  const totalPart = typeof total === 'number' ? `  total:${total}` : '';
+
+  const passed = Reflect.get(payload, 'passed');
+  const passedPart =
+    typeof passed === 'number' && typeof total === 'number' ? `  passed:${passed}/${total}` : '';
+
+  const totalPartEffective = passedPart === '' ? totalPart : '';
+
   return devLogLineContract.parse(
-    `${procLabel}${questPart}${sessionPart}${chatPart}${phasePart}${slotPart}${rolePart}${questionsPart}`.trim(),
+    `${procLabel}${questPart}${sessionPart}${chatPart}${suitePart}${phasePart}${caseIdPart}${caseResultIdPart}${caseResultPassedPart}${slotPart}${rolePart}${questionsPart}${totalPartEffective}${passedPart}`.trim(),
   );
 };

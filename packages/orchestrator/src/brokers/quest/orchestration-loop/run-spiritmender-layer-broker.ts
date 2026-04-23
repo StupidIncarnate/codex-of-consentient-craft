@@ -77,6 +77,11 @@ export const runSpiritmenderLayerBroker = async ({
         paths: [batchesDir, `${String(wi.id)}${JSON_EXTENSION}`],
       });
 
+      const overrideField =
+        wi.smoketestPromptOverride === undefined
+          ? {}
+          : { smoketestPromptOverride: wi.smoketestPromptOverride };
+
       try {
         const batchContents = await fsReadFileAdapter({ filePath: batchFilePath });
         const { filePaths, errors, verificationCommand, contextInstructions } =
@@ -90,10 +95,16 @@ export const runSpiritmenderLayerBroker = async ({
           errors,
           ...(verificationCommand === undefined ? {} : { verificationCommand }),
           ...(contextInstructions === undefined ? {} : { contextInstructions }),
+          ...overrideField,
         });
       } catch {
         // Batch file not found or invalid — create empty work unit
-        return workUnitContract.parse({ role: 'spiritmender', filePaths: [], errors: [] });
+        return workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths: [],
+          errors: [],
+          ...overrideField,
+        });
       }
     }),
   );

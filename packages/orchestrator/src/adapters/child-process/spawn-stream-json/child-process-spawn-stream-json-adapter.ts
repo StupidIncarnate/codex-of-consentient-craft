@@ -12,6 +12,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import path from 'path';
 import type { Readable } from 'stream';
+import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 
@@ -25,11 +26,13 @@ export const childProcessSpawnStreamJsonAdapter = ({
   resumeSessionId,
   cwd,
   stdinMode = 'inherit',
+  model,
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
   cwd?: string;
   stdinMode?: 'inherit' | 'ignore';
+  model?: ClaudeModel;
 }): SpawnStreamJsonResult => {
   const effectiveCwd = cwd ?? process.cwd();
   const settingsFile = path.join(effectiveCwd, '.claude', 'settings.json');
@@ -48,6 +51,10 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   if (resumeSessionId) {
     args.push('--resume', resumeSessionId);
+  }
+
+  if (model !== undefined) {
+    args.push('--model', model);
   }
 
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';

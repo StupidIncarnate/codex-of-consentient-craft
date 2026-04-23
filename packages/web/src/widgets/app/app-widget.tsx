@@ -8,15 +8,18 @@
 
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
-import { Box, Center } from '@mantine/core';
+import { Center } from '@mantine/core';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
+import { useSmoketestRunBinding } from '../../bindings/use-smoketest-run/use-smoketest-run-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { isSessionRouteGuard } from '../../guards/is-session-route/is-session-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
+import { SmoketestDrawerWidget } from '../smoketest-drawer/smoketest-drawer-widget';
+import { ToolingDropdownWidget } from '../tooling-dropdown/tooling-dropdown-widget';
 
 const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
@@ -29,6 +32,7 @@ export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
   const isQuestRoute = isSessionRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
+  const smoketest = useSmoketestRunBinding();
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
 
@@ -52,13 +56,13 @@ export const AppWidget = (): React.JSX.Element => {
       />
 
       {/* Logo: always horizontally centered, links to home */}
-      <Box py="sm">
+      <div style={{ padding: '12px 0' }}>
         <Center>
           <Link to="/" style={{ textDecoration: 'none' }} data-testid="LOGO_LINK">
             <LogoWidget />
           </Link>
         </Center>
-      </Box>
+      </div>
 
       {/* Map frame container: constrained on home, fills remaining space on quest */}
       <div
@@ -98,6 +102,34 @@ export const AppWidget = (): React.JSX.Element => {
           transition,
         }}
       />
+
+      <SmoketestDrawerWidget
+        opened={smoketest.opened}
+        onClose={smoketest.close}
+        runId={smoketest.runId}
+        total={smoketest.total}
+        currentCase={smoketest.currentCase}
+        results={smoketest.results}
+        running={smoketest.running}
+      />
+
+      {!isQuestRoute && (
+        <div
+          data-testid="APP_TOOLING_SLOT"
+          style={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1000,
+          }}
+        >
+          <ToolingDropdownWidget
+            onRun={smoketest.run}
+            onReopen={smoketest.open}
+            running={smoketest.running}
+          />
+        </div>
+      )}
     </div>
   );
 };

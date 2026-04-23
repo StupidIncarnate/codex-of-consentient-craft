@@ -423,3 +423,15 @@ export * from './src/contracts/quest-status-metadata/quest-status-metadata.stub'
 // Work Item Status Metadata Contracts
 export * from './src/contracts/work-item-status-metadata/work-item-status-metadata-contract';
 export * from './src/contracts/work-item-status-metadata/work-item-status-metadata.stub';
+
+// Smoketest Suite Contracts
+export * from './src/contracts/smoketest-suite/smoketest-suite-contract';
+export * from './src/contracts/smoketest-suite/smoketest-suite.stub';
+
+// Smoketest Case Result Contracts
+export * from './src/contracts/smoketest-case-result/smoketest-case-result-contract';
+export * from './src/contracts/smoketest-case-result/smoketest-case-result.stub';
+
+// Smoketest Run ID Contracts
+export * from './src/contracts/smoketest-run-id/smoketest-run-id-contract';
+export * from './src/contracts/smoketest-run-id/smoketest-run-id.stub';

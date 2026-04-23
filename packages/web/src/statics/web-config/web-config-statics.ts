@@ -28,6 +28,8 @@ export const webConfigStatics = {
       designStart: '/api/quests/:questId/design/start',
       designStop: '/api/quests/:questId/design/stop',
       designSession: '/api/quests/:questId/design/session',
+      toolingSmoketestRun: '/api/tooling/smoketest/run',
+      toolingSmoketestState: '/api/tooling/smoketest/state',
     },
   },
   polling: {

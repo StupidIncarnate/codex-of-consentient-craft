@@ -61,6 +61,9 @@ export const runPathseekerLayerBroker = async ({
   const workUnit = workUnitContract.parse({
     role: 'pathseeker',
     questId,
+    ...(workItem.smoketestPromptOverride === undefined
+      ? {}
+      : { smoketestPromptOverride: workItem.smoketestPromptOverride }),
   });
 
   const slotIndex = slotIndexContract.parse(0);

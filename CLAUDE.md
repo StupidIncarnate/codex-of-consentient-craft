@@ -93,7 +93,12 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 ### Common Commands
 
 - **Build**: `npm run build`
-- **Start dev server**: `npm run dev`
+- **Start dev server**: `npm run dev` — **root-only.** Never `npm run dev --workspace=@dungeonmaster/<pkg>` and
+  never `cd packages/<pkg> && npm run dev`. The root script is the canonical entry point: it kills stale
+  instances, resolves ports from `.dungeonmaster.json`, sets `DUNGEONMASTER_HOME` and `DUNGEONMASTER_PORT`,
+  runs `VERBOSE=1`, and spawns the server + web workspaces together under one wait. Running a workspace
+  invocation directly skips all of that and quietly produces bugs (wrong cwd, no env vars, ports colliding
+  with prod, etc.). Same rule for `npm run prod`.
 - **Codebase orientation**: Use `get-project-map` MCP tool for a compact map of all packages, folder types, file counts,
   and domains (~6k tokens). Start here before using `discover` for targeted exploration.
 - **Quality checks (ward)**: See `get-architecture` MCP tool output for full ward usage, check types, flags, and
