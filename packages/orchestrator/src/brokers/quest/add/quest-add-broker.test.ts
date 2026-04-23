@@ -161,6 +161,53 @@ describe('questAddBroker', () => {
     expect(result2.questId).toMatch(UUID_PATTERN);
   });
 
+  it('VALID: {input: {questSource: "smoketest-mcp"}} => persists questSource onto the written quest', async () => {
+    const brokerProxy = questAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+    const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/uuid-folder' });
+    const questFilePath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/uuid-folder/quest.json',
+    });
+
+    brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
+
+    const input = AddQuestInputStub({
+      title: 'Smoketest Quest',
+      userRequest: 'Smoketest user request',
+      questSource: 'smoketest-mcp',
+    });
+
+    await questAddBroker({ input, guildId });
+
+    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+
+    expect(writtenQuest.questSource).toBe('smoketest-mcp');
+  });
+
+  it('VALID: {input without questSource} => written quest omits questSource field', async () => {
+    const brokerProxy = questAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+    const questFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests/uuid-folder' });
+    const questFilePath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/uuid-folder/quest.json',
+    });
+
+    brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
+
+    const input = AddQuestInputStub({
+      title: 'Plain Quest',
+      userRequest: 'Plain user request',
+    });
+
+    await questAddBroker({ input, guildId });
+
+    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+
+    expect(writtenQuest.questSource).toBe(undefined);
+  });
+
   it('ERROR: mkdir fails => returns error result', async () => {
     const brokerProxy = questAddBrokerProxy();
     const guildId = GuildIdStub();

@@ -7,6 +7,8 @@
  */
 import { z } from 'zod';
 
+import { questSourceContract } from '../quest-source/quest-source-contract';
+
 export const addQuestInputContract = z
   .object({
     title: z.string().min(1).describe('The title of the quest').brand<'QuestTitle'>(),
@@ -15,6 +17,11 @@ export const addQuestInputContract = z
       .min(1)
       .describe('The original user request that initiated this quest')
       .brand<'UserRequest'>(),
+    questSource: questSourceContract
+      .optional()
+      .describe(
+        'Optional tag for how this quest was created (real user vs smoketest suite). Persisted onto the quest.',
+      ),
   })
   .brand<'AddQuestInput'>();
 

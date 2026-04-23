@@ -72,6 +72,7 @@ export const questAddBroker = async ({
       toolingRequirements: [],
       userRequest: validated.userRequest,
       workItems: [initialWorkItem],
+      ...(validated.questSource === undefined ? {} : { questSource: validated.questSource }),
     });
 
     // Create quest folder

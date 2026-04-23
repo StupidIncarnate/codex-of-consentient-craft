@@ -92,6 +92,10 @@ export * from './src/contracts/quest-list-item/quest-list-item.stub';
 export * from './src/contracts/quest/quest-contract';
 export * from './src/contracts/quest/quest.stub';
 
+// Quest Source Contracts
+export * from './src/contracts/quest-source/quest-source-contract';
+export * from './src/contracts/quest-source/quest-source.stub';
+
 // Install Contracts
 export * from './src/contracts/package-name/package-name-contract';
 export * from './src/contracts/package-name/package-name.stub';

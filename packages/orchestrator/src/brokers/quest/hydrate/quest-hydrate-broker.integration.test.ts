@@ -43,6 +43,54 @@ describe('questHydrateBroker', () => {
     });
   });
 
+  it('VALID: {questSource: "smoketest-orchestration"} => persists questSource onto the hydrated quest', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-quest-source' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Quest Source Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub({ targetStatus: 'explore_flows' });
+
+    const { questId } = await questHydrateBroker({
+      blueprint,
+      guildId: guild.id,
+      questSource: 'smoketest-orchestration',
+    });
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    expect(loaded.quest?.questSource).toBe('smoketest-orchestration');
+  });
+
+  it('VALID: {no questSource} => hydrated quest has questSource undefined', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-no-quest-source' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'No Quest Source Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub({ targetStatus: 'explore_flows' });
+
+    const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    expect(loaded.quest?.questSource).toBe(undefined);
+  });
+
   it('VALID: {smoketestBlueprintsStatics.minimal} => hydrates to in_progress with work items for every orchestration role', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'hydrate-minimal-in-progress' }),

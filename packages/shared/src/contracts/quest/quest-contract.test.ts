@@ -2,6 +2,7 @@ import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
+import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { WardResultStub } from '../ward-result/ward-result.stub';
 import { WorkItemStub } from '../work-item/work-item.stub';
@@ -339,6 +340,53 @@ describe('questContract', () => {
 
       expect(result.pausedAtStatus).toBe(null);
     });
+
+    it('VALID: quest with questSource => parses successfully', () => {
+      const quest = QuestStub({ questSource: 'smoketest-mcp' });
+
+      const result = questContract.parse(quest);
+
+      expect(result.questSource).toBe('smoketest-mcp');
+    });
+
+    it('VALID: quest without questSource field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.questSource).toBe(undefined);
+    });
+
+    it('VALID: quest with smoketestResults => parses successfully', () => {
+      const caseResult = SmoketestCaseResultStub();
+      const quest = QuestStub({ smoketestResults: [caseResult] });
+
+      const result = questContract.parse(quest);
+
+      expect(result.smoketestResults).toStrictEqual([caseResult]);
+    });
+
+    it('VALID: quest without smoketestResults field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.smoketestResults).toBe(undefined);
+    });
   });
 
   describe('invalid quests', () => {
@@ -379,6 +427,17 @@ describe('questContract', () => {
           createdAt: 'not-a-timestamp',
         });
       }).toThrow(/Invalid datetime/u);
+    });
+
+    it('INVALID: questSource with invalid enum value => throws validation error', () => {
+      const baseQuest = QuestStub();
+
+      expect(() => {
+        questContract.parse({
+          ...baseQuest,
+          questSource: 'not-a-source',
+        });
+      }).toThrow(/Invalid enum value/u);
     });
   });
 });

@@ -18,7 +18,9 @@ import { planningSurfaceReportContract } from '../planning-surface-report/planni
 import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
 import { planningWalkFindingsContract } from '../planning-walk-findings/planning-walk-findings-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
+import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
 import { workItemContract } from '../work-item/work-item-contract';
@@ -94,6 +96,17 @@ export const questContract = z.object({
     .default({ surfaceReports: [], blightReports: [] })
     .describe(
       'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings, review report) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings)',
+    ),
+  questSource: questSourceContract
+    .optional()
+    .describe(
+      'Discriminates how the quest was created: real user vs which smoketest suite hydrated it. Used by smoketest bulk-clear to scope deletions.',
+    ),
+  smoketestResults: z
+    .array(smoketestCaseResultContract)
+    .optional()
+    .describe(
+      'Per-case smoketest assertion results written by smoketestAssertFinalStateBroker after the quest reaches a terminal status.',
     ),
 });
 

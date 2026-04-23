@@ -2,8 +2,8 @@
  * PURPOSE: Produces a persisted quest at a target status by creating it at `created`, walking modify-quest through each hydrator-strategy transition, and overwriting workItems at `in_progress` from the blueprint's steps
  *
  * USAGE:
- * const { questId } = await questHydrateBroker({ blueprint, guildId });
- * // Returns: { questId }; quest.json is on disk under guild/quests/{questId}/quest.json at blueprint.targetStatus (default in_progress)
+ * const { questId } = await questHydrateBroker({ blueprint, guildId, questSource: 'smoketest-orchestration' });
+ * // Returns: { questId }; quest.json is on disk under guild/quests/{questId}/quest.json at blueprint.targetStatus (default in_progress), tagged with the optional questSource
  *
  * WHEN-TO-USE: Smoketests and integration tests that need a quest in a specific status without running the real agent pipeline.
  * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer or PathSeeker run.
@@ -19,7 +19,13 @@ import {
   questWorkItemIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId, QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  QuestId,
+  QuestSource,
+  QuestStatus,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
@@ -38,9 +44,11 @@ const JSON_INDENT_SPACES = 2;
 export const questHydrateBroker = async ({
   blueprint,
   guildId,
+  questSource,
 }: {
   blueprint: QuestBlueprint;
   guildId: GuildId;
+  questSource?: QuestSource;
 }): Promise<{ questId: QuestId }> => {
   const questId = blueprint.fixedQuestId ?? questIdContract.parse(crypto.randomUUID());
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
@@ -71,6 +79,7 @@ export const questHydrateBroker = async ({
     workItems: [],
     wardResults: [],
     planningNotes: { surfaceReports: [], blightReports: [] },
+    ...(questSource === undefined ? {} : { questSource }),
   });
 
   const questFilePath = filePathContract.parse(
