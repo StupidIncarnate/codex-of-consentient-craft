@@ -82,6 +82,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
   describe('no prior quests', () => {
     it('VALID: {empty quests folder} => returns deletedCount 0 without calling fsRmAdapter', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
+      proxy.setupPassthrough();
 
       primeGuildAndQuestsPath({ proxy });
       proxy.setupQuestDirectoryListing({ files: [] });
@@ -101,6 +102,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
   describe('filters by questSource', () => {
     it('VALID: {3 quests, 1 matches questSource} => deletes only the matching quest and returns deletedCount 1', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
+      proxy.setupPassthrough();
 
       const questA = QuestStub({
         id: QuestIdStub({ value: 'quest-a-id' }),
@@ -152,6 +154,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
     it('VALID: {2 quests match questSource} => deletes both and returns deletedCount 2', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
+      proxy.setupPassthrough();
 
       const questA = QuestStub({
         id: QuestIdStub({ value: 'quest-a-id' }),
@@ -199,6 +202,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
     it('VALID: {2 quests, neither matches questSource} => returns deletedCount 0 without calling fsRmAdapter', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
+      proxy.setupPassthrough();
 
       const questA = QuestStub({
         id: QuestIdStub({ value: 'quest-a-id' }),

@@ -54,6 +54,9 @@ import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-
 // Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
 ExecutionQueueFlow.bootstrap();
 
+// Bootstrap the smoketest post-terminal listener on module load. Idempotent.
+SmoketestFlow.bootstrap();
+
 export const StartOrchestrator = {
   // Guild methods
   listGuilds: async (): Promise<GuildListItem[]> => GuildFlow.list(),

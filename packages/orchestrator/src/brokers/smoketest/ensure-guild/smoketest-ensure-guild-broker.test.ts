@@ -10,6 +10,7 @@ describe('smoketestEnsureGuildBroker', () => {
   describe('existing smoketest guild', () => {
     it('VALID: {config already contains guild named __smoketests} => returns the existing guild id without creating a new guild', async () => {
       const proxy = smoketestEnsureGuildBrokerProxy();
+      proxy.setupPassthrough();
 
       const existingSmoketestGuild = GuildStub({
         id: SMOKETEST_GUILD_ID,

@@ -29,7 +29,6 @@ import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/li
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
-import { orchestratorRecoverActiveQuestsAdapter } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter';
 import { orchestratorSetWebPresenceAdapter } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter';
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
@@ -299,21 +298,9 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     processDevLogAdapter({ message: `Outbox watcher failed to start: ${reason}` });
   });
 
-  orchestratorRecoverActiveQuestsAdapter()
-    .then((recoveredIds) => {
-      if (recoveredIds.length > 0) {
-        processDevLogAdapter({
-          message: `Startup recovery: re-registered ${String(recoveredIds.length)} active quest(s)`,
-        });
-      }
-    })
-    .catch((error: unknown) => {
-      const reason =
-        error instanceof Error
-          ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-          : String(error);
-      processDevLogAdapter({ message: `Startup recovery failed: ${reason}` });
-    });
+  // Startup recovery is now gated behind first-WS-connect (first flip of web presence to true).
+  // The execution-queue bootstrap responder runs the recovery sweep lazily so server restarts
+  // without a connected browser don't auto-launch orchestration loops.
 
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });

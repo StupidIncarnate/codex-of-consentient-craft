@@ -1,56 +1,98 @@
-import type { FilePath, GuildConfig, GuildListItem } from '@dungeonmaster/shared/contracts';
-import type { Dirent } from 'fs';
+import type { GuildIdStub, QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts';
 
-import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
+import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
+import { smoketestClearPriorQuestsBrokerProxy } from '../../../brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy';
 import { smoketestEnsureGuildBrokerProxy } from '../../../brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy';
-import { smoketestRunCaseBrokerProxy } from '../../../brokers/smoketest/run-case/smoketest-run-case-broker.proxy';
-import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
-import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { smoketestRunStateProxy } from '../../../state/smoketest-run/smoketest-run-state.proxy';
-import { smoketestScenarioStateProxy } from '../../../state/smoketest-scenario/smoketest-scenario-state.proxy';
+import { EnqueueBundledSuiteLayerResponderProxy } from './enqueue-bundled-suite-layer-responder.proxy';
+import { EnqueueOrchestrationScenarioLayerResponderProxy } from './enqueue-orchestration-scenario-layer-responder.proxy';
+
+type GuildId = ReturnType<typeof GuildIdStub>;
+type QuestId = ReturnType<typeof QuestIdStub>;
+type UrlSlug = ReturnType<typeof UrlSlugStub>;
 
 export const SmoketestRunResponderProxy = (): {
-  setupEnsuredGuildPresent: (params: {
-    config: GuildConfig;
-    homeDir: string;
-    homePath: FilePath;
-    guildEntries: readonly {
-      accessible: boolean;
-      questsDirPath: FilePath;
-      questDirEntries: Dirent[];
-    }[];
+  reset: () => void;
+  setupHappyPath: (params: {
+    guildId: GuildId;
+    guildSlug: UrlSlug;
+    bundledRecord?: { questId: QuestId; guildSlug: UrlSlug } | null;
+    bundledRecords?: readonly ({ questId: QuestId; guildSlug: UrlSlug } | null)[];
+    orchestrationRecords?: readonly { questId: QuestId; guildSlug: UrlSlug }[];
   }) => void;
-  findMatchingGuildByName: (params: {
-    guilds: readonly GuildListItem[];
-    name: string;
-  }) => GuildListItem | undefined;
+  setupOrchestrationLayerRejectsOnce: (params: { error: Error }) => void;
+  getClearPriorCallArgs: () => readonly unknown[][];
+  getEnqueueBundledCallArgs: () => readonly unknown[][];
+  getEnqueueOrchestrationCallArgs: () => readonly unknown[][];
 } => {
-  smoketestRunCaseBrokerProxy();
-  const ensureGuildProxy = smoketestEnsureGuildBrokerProxy();
-  questOrchestrationLoopBrokerProxy();
-  orchestrationEventsStateProxy();
-  orchestrationProcessesStateProxy();
+  const guildGetProxy = guildGetBrokerProxy();
+  const clearProxy = smoketestClearPriorQuestsBrokerProxy();
+  const ensureProxy = smoketestEnsureGuildBrokerProxy();
   smoketestRunStateProxy();
-  smoketestScenarioStateProxy();
+  const bundledProxy = EnqueueBundledSuiteLayerResponderProxy();
+  const orchProxy = EnqueueOrchestrationScenarioLayerResponderProxy();
 
   return {
-    setupEnsuredGuildPresent: ({
-      config,
-      homeDir,
-      homePath,
-      guildEntries,
-    }: {
-      config: GuildConfig;
-      homeDir: string;
-      homePath: FilePath;
-      guildEntries: readonly {
-        accessible: boolean;
-        questsDirPath: FilePath;
-        questDirEntries: Dirent[];
-      }[];
-    }): void => {
-      ensureGuildProxy.setupGuildPresent({ config, homeDir, homePath, guildEntries });
+    reset: (): void => {
+      // Child proxies self-reset via jest.clearAllMocks between tests.
     },
-    findMatchingGuildByName: ensureGuildProxy.findMatchingGuildByName,
+    setupHappyPath: ({
+      guildId,
+      guildSlug,
+      bundledRecord,
+      bundledRecords,
+      orchestrationRecords,
+    }: {
+      guildId: GuildId;
+      guildSlug: UrlSlug;
+      bundledRecord?: { questId: QuestId; guildSlug: UrlSlug } | null;
+      bundledRecords?: readonly ({ questId: QuestId; guildSlug: UrlSlug } | null)[];
+      orchestrationRecords?: readonly { questId: QuestId; guildSlug: UrlSlug }[];
+    }): void => {
+      ensureProxy.setupReturnsGuildId({ guildId });
+      // guildGetBroker is consulted twice (once via responder, once via ensure path indirectly
+      // for slug). Use setupConfig to seed a guild config so guildGetBroker resolves cleanly.
+      const guild = GuildStub({ id: guildId, urlSlug: guildSlug });
+      guildGetProxy.setupConfig({ config: { guilds: [guild] } });
+
+      // Default: every clear call resolves with deletedCount=0.
+      clearProxy.setupSucceeds();
+      clearProxy.setupSucceeds();
+      clearProxy.setupSucceeds();
+
+      const computeBundledList = (): readonly ({
+        questId: QuestId;
+        guildSlug: UrlSlug;
+      } | null)[] => {
+        if (bundledRecords !== undefined) {
+          return bundledRecords;
+        }
+        if (bundledRecord === undefined) {
+          return [];
+        }
+        return [bundledRecord];
+      };
+      const bundledList = computeBundledList();
+      for (const record of bundledList) {
+        if (record === null) {
+          bundledProxy.setupReturnsNull();
+        } else {
+          bundledProxy.setupReturnsRecord({ record });
+        }
+      }
+
+      const orchList: readonly { questId: QuestId; guildSlug: UrlSlug }[] =
+        orchestrationRecords ?? [];
+      for (const record of orchList) {
+        orchProxy.setupReturnsRecord({ record });
+      }
+    },
+    setupOrchestrationLayerRejectsOnce: ({ error }: { error: Error }): void => {
+      orchProxy.setupRejectsOnce({ error });
+    },
+    getClearPriorCallArgs: (): readonly unknown[][] => clearProxy.getCallArgs(),
+    getEnqueueBundledCallArgs: (): readonly unknown[][] => bundledProxy.getCallArgs(),
+    getEnqueueOrchestrationCallArgs: (): readonly unknown[][] => orchProxy.getCallArgs(),
   };
 };

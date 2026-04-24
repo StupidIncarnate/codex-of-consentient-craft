@@ -14,6 +14,7 @@ import { guildIdContract } from '../guild-id/guild-id-contract';
 import { questIdContract } from '../quest-id/quest-id-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { sessionIdContract } from '../session-id/session-id-contract';
 import { urlSlugContract } from '../url-slug/url-slug-contract';
 
 export const questQueueEntryContract = z.object({
@@ -23,6 +24,7 @@ export const questQueueEntryContract = z.object({
   questTitle: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
   questSource: questSourceContract.optional(),
+  activeSessionId: sessionIdContract.optional(),
   enqueuedAt: z.string().datetime().brand<'IsoTimestamp'>(),
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   error: z

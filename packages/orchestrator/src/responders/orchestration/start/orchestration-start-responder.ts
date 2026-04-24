@@ -1,34 +1,31 @@
 /**
- * PURPOSE: Validates a quest is startable, resolves paths, creates a processId, registers the orchestration process, and launches the orchestration loop fire-and-forget
+ * PURPOSE: Validates a quest is startable, promotes chat work items, inserts a pathseeker, transitions the quest to seek_scope, then enqueues it on the cross-guild quest execution queue. Returns a synthetic processId for backwards compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
- * // Returns ProcessId after registering process and starting orchestration loop
+ * // Returns ProcessId after validating + enqueuing; the queue runner drives the loop when the head is eligible.
  */
 
 import {
-  filePathContract,
   processIdContract,
+  questQueueEntryContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
-import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
-import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import {
   isStartableQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -53,24 +50,7 @@ export const OrchestrationStartResponder = async ({
     );
   }
 
-  const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
-  if (existingProcess) {
-    return existingProcess.processId;
-  }
-
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
-
-  const abortController = new AbortController();
-
-  orchestrationProcessesState.register({
-    orchestrationProcess: {
-      processId,
-      questId,
-      kill: () => {
-        abortController.abort();
-      },
-    },
-  });
 
   const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
 
@@ -126,40 +106,23 @@ export const OrchestrationStartResponder = async ({
 
   const { guildId } = await questFindQuestPathBroker({ questId });
   const guild = await guildGetBroker({ guildId });
-  const startPath = filePathContract.parse(guild.path);
+  const guildSlug = guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name });
 
-  questOrchestrationLoopBroker({
-    processId,
+  // Queue entry uses the quest snapshot from before the seek_scope transition — callers using
+  // this to display the queue will re-read the quest through the quest-modified event stream
+  // once the modify broker's outbox append fires, so the exact status captured here is
+  // cosmetic (the runner consults the live quest status, not this snapshot, when driving the loop).
+  const entry = questQueueEntryContract.parse({
     questId,
-    startPath,
-    onAgentEntry: ({ slotIndex, entry, sessionId }) => {
-      const rawLine: unknown = Reflect.get(entry, 'raw');
-      if (typeof rawLine !== 'string') return;
-      const parsed = claudeLineNormalizeBroker({ rawLine });
-      const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
-      if (entries.length === 0) return;
-      orchestrationEventsState.emit({
-        type: 'chat-output',
-        processId,
-        payload: {
-          processId,
-          slotIndex,
-          entries,
-          ...(sessionId === undefined ? {} : { sessionId }),
-        },
-      });
-    },
-    abortSignal: abortController.signal,
-  })
-    .then(() => {
-      orchestrationProcessesState.remove({ processId });
-    })
-    .catch((error: unknown) => {
-      process.stderr.write(
-        `Orchestration loop failed for quest ${questId}: ${error instanceof Error ? error.message : 'Unknown error'}\n`,
-      );
-      orchestrationProcessesState.remove({ processId });
-    });
+    guildId,
+    guildSlug,
+    questTitle: quest.title,
+    status: quest.status,
+    enqueuedAt: new Date().toISOString(),
+    ...(quest.questSource === undefined ? {} : { questSource: quest.questSource }),
+  });
+
+  questExecutionQueueState.enqueue({ entry });
 
   return processId;
 };

@@ -21,12 +21,16 @@ import type { QuestQueueEntry, QuestStatus } from '@dungeonmaster/shared/contrac
 import { isQuestPauseableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { QuestExecutionQueueRunnerController } from '../../../contracts/quest-execution-queue-runner/quest-execution-queue-runner-contract';
+import { questEnqueueRecoverableBroker } from '../../../brokers/quest/enqueue-recoverable/quest-enqueue-recoverable-broker';
 import { questExecutionQueueRunnerBroker } from '../../../brokers/quest/execution-queue-runner/quest-execution-queue-runner-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
+import { executionQueueBootstrapState } from '../../../state/execution-queue-bootstrap/execution-queue-bootstrap-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { webPresenceState } from '../../../state/web-presence/web-presence-state';
 import { PauseActiveHeadLayerResponder } from './pause-active-head-layer-responder';
+import { RunOrchestrationLoopLayerResponder } from './run-orchestration-loop-layer-responder';
 
 const RUNNER_PROCESS_ID = processIdContract.parse('execution-queue-runner');
 
@@ -59,12 +63,15 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
       questExecutionQueueState.offChange(handler);
     },
     isWebPresent: (): boolean => webPresenceState.getIsPresent(),
-    runOrchestrationLoop: async (): Promise<void> =>
-      Promise.reject(
-        new Error(
-          '[execution-queue-runner] runOrchestrationLoop not yet wired — Phase 7 replaces this stub',
-        ),
-      ),
+    runOrchestrationLoop: async ({
+      questId,
+      guildId,
+    }: {
+      questId: QuestQueueEntry['questId'];
+      guildId: QuestQueueEntry['guildId'];
+    }): Promise<void> => {
+      await RunOrchestrationLoopLayerResponder({ questId, guildId });
+    },
     getQuestStatus: async ({
       questId,
     }: {
@@ -100,11 +107,34 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
 
   state.presenceHandler = ({ isPresent }: { isPresent: boolean }): void => {
     if (isPresent) {
-      runner.kick().catch((error: unknown) => {
-        process.stderr.write(
-          `[execution-queue-bootstrap] presence kick failed: ${String(error)}\n`,
-        );
-      });
+      const shouldRecover = !executionQueueBootstrapState.getHasRecoveredOnce();
+      if (shouldRecover) {
+        executionQueueBootstrapState.markRecovered();
+      }
+      const recoveryPromise = shouldRecover
+        ? questEnqueueRecoverableBroker({
+            enqueue: ({ entry }): void => {
+              questExecutionQueueState.enqueue({ entry });
+            },
+            findProcessByQuestId: ({ questId }): unknown =>
+              orchestrationProcessesState.findByQuestId({ questId }),
+          }).then(
+            () => undefined,
+            (error: unknown): undefined => {
+              process.stderr.write(
+                `[execution-queue-bootstrap] recovery sweep failed: ${String(error)}\n`,
+              );
+              return undefined;
+            },
+          )
+        : Promise.resolve();
+      recoveryPromise
+        .then(async () => runner.kick())
+        .catch((error: unknown) => {
+          process.stderr.write(
+            `[execution-queue-bootstrap] presence kick failed: ${String(error)}\n`,
+          );
+        });
       return;
     }
     const head = questExecutionQueueState.getActive();

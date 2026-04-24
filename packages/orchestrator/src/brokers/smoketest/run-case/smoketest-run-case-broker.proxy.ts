@@ -22,8 +22,9 @@ export const smoketestRunCaseBrokerProxy = (): {
   startQuest: (params: { questId: QuestId }) => Promise<ProcessId>;
   getStartQuestCalls: () => readonly { questId: QuestId }[];
   setupStartQuestThrows: (params: { error: Error }) => void;
+  setupHydrateRejects: (params: { error: Error }) => void;
 } => {
-  questHydrateBrokerProxy();
+  const hydrateProxy = questHydrateBrokerProxy();
   smoketestAssertFinalStateBrokerProxy();
   smoketestPollQuestUntilTerminalBrokerProxy();
   smoketestRunTeardownChecksBrokerProxy();
@@ -63,6 +64,9 @@ export const smoketestRunCaseBrokerProxy = (): {
     getStartQuestCalls: (): readonly { questId: QuestId }[] => startQuestCalls.slice(),
     setupStartQuestThrows: ({ error }: { error: Error }): void => {
       startQuestError.value = error;
+    },
+    setupHydrateRejects: ({ error }: { error: Error }): void => {
+      hydrateProxy.setupRejects({ error });
     },
   };
 };

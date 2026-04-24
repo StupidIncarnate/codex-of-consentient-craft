@@ -8,6 +8,7 @@ describe('apiRoutesStatics', () => {
       },
       quests: {
         list: '/api/quests',
+        queue: '/api/quests/queue',
         byId: '/api/quests/:questId',
         start: '/api/quests/:questId/start',
         pause: '/api/quests/:questId/pause',

@@ -5,6 +5,7 @@ import {
   QuestStatusStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { executionQueueBootstrapState } from '../../../state/execution-queue-bootstrap/execution-queue-bootstrap-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { webPresenceState } from '../../../state/web-presence/web-presence-state';
@@ -167,6 +168,61 @@ describe('ExecutionQueueBootstrapResponder', () => {
       webPresenceState.setPresent({ isPresent: false });
 
       expect(freshProxy.getPauseBrokerCalls()).toStrictEqual([]);
+    });
+
+    it('VALID: {first setPresent(true)} => questEnqueueRecoverableBroker is invoked exactly once (recovery sweep fires)', async () => {
+      questExecutionQueueState.clear();
+      webPresenceState.setPresent({ isPresent: false });
+      orchestrationEventsState.removeAllListeners();
+      executionQueueBootstrapState.clear();
+
+      const proxy = ExecutionQueueBootstrapResponderProxy();
+      ExecutionQueueBootstrapResponder();
+
+      webPresenceState.setPresent({ isPresent: true });
+      await flushPromises();
+      await flushPromises();
+
+      // Only the FIRST presence flip in the lifetime of executionQueueBootstrapState fires the
+      // recovery sweep — subsequent flips (or replays) are gated by hasRecoveredOnce.
+      const recoveryCallCount = proxy.getRecoveryBrokerCallArgs().length;
+
+      expect(recoveryCallCount).toBe(1);
+    });
+
+    it('VALID: {presence flip true→false→true after a prior recovery in the same process} => questEnqueueRecoverableBroker NOT re-invoked (hasRecoveredOnce gate)', async () => {
+      questExecutionQueueState.clear();
+      webPresenceState.setPresent({ isPresent: false });
+      orchestrationEventsState.removeAllListeners();
+      executionQueueBootstrapState.clear();
+
+      const proxy = ExecutionQueueBootstrapResponderProxy();
+      ExecutionQueueBootstrapResponder();
+
+      // First sweep — fires (call #1).
+      webPresenceState.setPresent({ isPresent: true });
+      await flushPromises();
+      await flushPromises();
+      const callsAfterFirstFlip = proxy.getRecoveryBrokerCallArgs().length;
+
+      // Bring presence back to false. Pause path runs; recovery broker not touched.
+      webPresenceState.setPresent({ isPresent: false });
+      await flushPromises();
+
+      // Re-flip true. hasRecoveredOnce is still true from step 1 — the gate must skip the
+      // broker. Note: the bootstrap-state proxy resets hasRecoveredOnce in its constructor,
+      // so we MUST NOT re-create the proxy between flips here. Re-mark to be defensive.
+      executionQueueBootstrapState.markRecovered();
+      webPresenceState.setPresent({ isPresent: true });
+      await flushPromises();
+      await flushPromises();
+
+      const callsAfterSecondFlip = proxy.getRecoveryBrokerCallArgs().length;
+
+      // Asserting the count delta is zero proves the second presence-true did NOT trigger a
+      // second sweep. (The first call is expected to be exactly 1.)
+      expect(callsAfterFirstFlip).toBe(1);
+      expect(callsAfterSecondFlip).toBe(callsAfterFirstFlip);
     });
 
     it('VALID: {setPresent(true) when presence already true} => presence handler does NOT re-fire (no second kick)', async () => {

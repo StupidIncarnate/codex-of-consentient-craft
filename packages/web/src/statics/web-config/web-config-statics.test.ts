@@ -10,6 +10,7 @@ describe('webConfigStatics', () => {
           sessionNew: '/api/sessions/new',
           directoriesBrowse: '/api/directories/browse',
           quests: '/api/quests',
+          questsQueue: '/api/quests/queue',
           questById: '/api/quests/:questId',
           guildSessions: '/api/guilds/:guildId/sessions',
           sessionChat: '/api/sessions/:sessionId/chat',

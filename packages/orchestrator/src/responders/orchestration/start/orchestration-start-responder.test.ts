@@ -5,11 +5,13 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
 
 describe('OrchestrationStartResponder', () => {
   describe('quest validation', () => {
     it('VALID: {questId with approved quest} => returns processId', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -21,6 +23,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('ERROR: {questId not found} => throws quest not found error', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'nonexistent' });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupQuestNotFound();
@@ -31,6 +34,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('ERROR: {questId with non-approved quest} => throws status error listing startable statuses', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'created' });
       const proxy = OrchestrationStartResponderProxy();
@@ -42,6 +46,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {questId with design_approved quest} => returns processId', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'design_approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -53,6 +58,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('ERROR: {questId with in_progress quest} => throws status error listing startable statuses', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'in_progress', steps: [] });
       const proxy = OrchestrationStartResponderProxy();
@@ -66,6 +72,7 @@ describe('OrchestrationStartResponder', () => {
 
   describe('quest status transition', () => {
     it('ERROR: {quest modify fails} => throws start error', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -77,6 +84,7 @@ describe('OrchestrationStartResponder', () => {
 
   describe('always transitions to seek_scope on start', () => {
     it('VALID: {approved quest} => persisted status is seek_scope', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -90,6 +98,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {design_approved quest} => persisted status is seek_scope', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'design_approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -105,6 +114,7 @@ describe('OrchestrationStartResponder', () => {
 
   describe('pathseeker work item creation', () => {
     it('VALID: {approved quest with completed chaos} => persists pathseeker with correct identity', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -129,6 +139,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with completed chaos} => persists pathseeker with correct config', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -152,6 +163,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with no work items} => persists pathseeker with empty dependsOn', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -166,6 +178,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {quest already has pathseeker} => does not create duplicate pathseeker', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const existingPathseeker = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
@@ -189,6 +202,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('ERROR: {pathseeker insert fails} => throws pathseeker creation error', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
@@ -198,6 +212,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with chaos and glyphsmith complete} => pathseeker depends on both', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
@@ -232,6 +247,7 @@ describe('OrchestrationStartResponder', () => {
 
   describe('chat work item promotion on start', () => {
     it('VALID: {approved quest with pending chaos} => chaos promoted to complete with completedAt', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -256,6 +272,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with pending glyphsmith} => glyph promoted to complete with completedAt', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
       const glyphItem = WorkItemStub({
@@ -280,6 +297,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with pending chaos and glyph} => both promoted, pathseeker depends on both', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
@@ -316,6 +334,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with already-complete chaos} => chaos stays complete, pathseeker depends on it', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -339,6 +358,7 @@ describe('OrchestrationStartResponder', () => {
     });
 
     it('VALID: {approved quest with failed chaos} => failed chaos NOT promoted', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -362,6 +382,7 @@ describe('OrchestrationStartResponder', () => {
 
   describe('sequential modify atomicity (H-1 root cause)', () => {
     it('VALID: {approved quest with chaos complete} => final persisted quest status is seek_scope', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -376,18 +397,13 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      // The responder does two sequential questModifyBroker calls:
-      //   1. Set status: approved → seek_scope
-      //   2. Insert pathseeker work item
-      // If the second call loads stale data (pre-status-change quest),
-      // it overwrites status back to 'approved'. The loop then sees only
-      // chaos=complete → terminal → quest=complete. This is the H-1 bug.
       const persistedQuest = proxy.getLastPersistedQuest();
 
       expect(persistedQuest.status).toBe('seek_scope');
     });
 
     it('VALID: {approved quest with chaos complete} => final persisted quest has pathseeker with seek_scope status context', async () => {
+      questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const chaosItem = WorkItemStub({
@@ -405,12 +421,51 @@ describe('OrchestrationStartResponder', () => {
       const persistedQuest = proxy.getLastPersistedQuest();
       const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
 
-      // Both status=seek_scope AND pathseeker must coexist in the final write.
-      // Status regression means the loop will see terminal state and skip pathseeker.
       expect(persistedQuest.status).toBe('seek_scope');
       expect(pathseekerItems[0]?.role).toBe('pathseeker');
       expect(pathseekerItems[0]?.status).toBe('pending');
       expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
+    });
+  });
+
+  describe('queue enqueue behavior', () => {
+    it('VALID: {approved quest} => enqueues exactly one queue entry with questId, guildId, title', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved', title: 'Add Authentication' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const entries = questExecutionQueueState.getAll();
+      const summary = entries.map((e) => ({
+        questId: e.questId,
+        guildId: e.guildId,
+        questTitle: e.questTitle,
+      }));
+
+      expect(summary).toStrictEqual([
+        {
+          questId,
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          questTitle: 'Add Authentication',
+        },
+      ]);
+    });
+
+    it('VALID: {approved quest} => queue entry status matches what questGetBroker returned (the test proxy keeps status stable)', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const entries = questExecutionQueueState.getAll();
+
+      expect(entries[0]?.status).toBe('approved');
     });
   });
 });

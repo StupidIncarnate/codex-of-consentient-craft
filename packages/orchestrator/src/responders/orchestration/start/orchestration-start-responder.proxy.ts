@@ -1,5 +1,4 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
@@ -15,9 +14,7 @@ import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
-import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
-import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
-import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
+import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -32,16 +29,12 @@ export const OrchestrationStartResponderProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
 } => {
-  claudeLineNormalizeBrokerProxy();
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  questOrchestrationLoopBrokerProxy();
-  const eventsProxy = orchestrationEventsStateProxy();
-  eventsProxy.setupEmpty();
-  const stateProxy = orchestrationProcessesStateProxy();
-  stateProxy.setupEmpty();
+  const queueProxy = questExecutionQueueStateProxy();
+  queueProxy.setupEmpty();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',

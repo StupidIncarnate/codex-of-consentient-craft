@@ -8,8 +8,8 @@
 - [x] Phase 4: Rename `brokers/smoketest/run-orchestration-case/` → `run-case/`; delete `brokers/smoketest/run-single-agent-case/`
 - [x] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
 - [x] Phase 6: Web-presence state + server WS connect/disconnect hooks + set-web-presence adapter
-- [ ] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
-- [ ] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter
+- [x] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
+- [x] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter
 - [ ] Phase 9: Delete drawer + rewire tooling dropdown + slim `useSmoketestRunBinding`
 - [ ] Manual E2E verification
 - [ ] Plan alignment review (orchestrator-owned)

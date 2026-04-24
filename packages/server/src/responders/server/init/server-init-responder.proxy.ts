@@ -54,7 +54,6 @@ import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
-import { orchestratorRecoverActiveQuestsAdapterProxy } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter.proxy';
 import { orchestratorSetWebPresenceAdapterProxy } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
@@ -100,7 +99,6 @@ export const ServerInitResponderProxy = (): {
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
-  orchestratorRecoverActiveQuestsAdapterProxy();
   const setWebPresenceProxy = orchestratorSetWebPresenceAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   const devLogProxy = processDevLogAdapterProxy();

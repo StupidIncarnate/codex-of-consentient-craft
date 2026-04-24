@@ -23,6 +23,26 @@ dispatch a sub agent to gather it and report back.
   tests will spend its budget on implementation and produce weak or missing tests. Dispatch implementation first, then
   dispatch a separate agent for test coverage. The same applies to cleanup work (merge conflicts, package-lock fixes,
   ward debugging) — do not pile these onto a testing agent.
+- **Parallelize aggressively when work is independent** — Long-running singular agents start punting ("tests may not be
+  as deep as requested", "migration cost too high", "deferred to follow-up"). Multiple small-scoped parallel agents
+  produce deeper, more consistent work because none of them can see a larger backlog to rationalize against. A single
+  `Task` tool call with multiple invocations in the same message runs them concurrently. Default to parallel dispatch
+  unless one agent's output feeds another's input. Cases that parallelize:
+    - **Multiple plan phases with no cross-dependencies** — if phase B doesn't consume phase A's output, dispatch both
+      in the same message.
+    - **Verification steps against the same diff** — coverage review and `ward --changed` both read the same changeset
+      independently; dispatch together, not in sequence.
+    - **Fix fan-out** — if a reviewer identifies N files with gaps, dispatch N agents, one per file, in parallel. Never
+      hand one agent a list of files to "work through."
+    - **Independent exploration** — if you need context on multiple unrelated code areas before planning, dispatch
+      parallel Explore sub agents.
+  Cases that do NOT parallelize:
+    - Fixes that touch overlapping files (race on git, conflicting edits).
+    - Review-then-fix chains (you need the review findings to know what to dispatch).
+    - Phases where phase N+1's code/tests import phase N's new exports.
+- **One-agent-per-file for test coverage fixes** — when filling in weak tests across multiple files, dispatch one agent
+  per target file, in parallel. A single agent given 5 files will batch-plan, pick the easy 2, and punt on 3. Five
+  parallel single-file agents produce consistent depth because each one's entire budget is dedicated to one file.
 
 ## Plan File Setup (DO THIS FIRST)
 
@@ -39,14 +59,21 @@ progress or append `> [!]` review notes. **Before doing anything else:**
 ## Workflow
 
 1. Read the plan file (the repo-local copy). Identify logical groups of work (steps, phases, or however the plan is
-   structured).
-2. For each group:
-   a. **Dispatch an agent** with the plan context (pass the repo-local plan file path) and specify which steps to
-   implement.
-   b. **Dispatch a sub agent** to pull a list of changed implementation files and manually verify that all implementation changes have test coverage based on project standards. If missing cases are discovered, the agent needs to fill them in and run tests until passing. 
-   c. **Dispatch a sub agent** to run `npm run ward --changed` at root of repo. If issues are found, dispatch a sub
-   agent to fix them.
-   d. **Update progress** — Edit the repo-local plan file directly to mark completed steps. Then **commit** the changes.
+   structured). Map out which groups depend on which — groups with no cross-dependency are candidates to dispatch in
+   parallel.
+2. For each group (or a bundle of independent groups dispatched concurrently):
+   a. **Dispatch implementation agent(s)** with the plan context and the repo-local plan file path. If multiple plan
+   phases are independent, dispatch them together in a single `Task` message with multiple invocations.
+   b. **Once implementation reports back, dispatch verification in parallel** (single message, two sub-agent calls):
+      - Sub agent A pulls the list of changed implementation files and verifies test coverage against project
+        standards. Its job ends at reporting gaps — it does NOT fix them.
+      - Sub agent B runs `npm run ward --changed` at repo root and reports failures.
+      Both read the same diff; neither blocks the other.
+   c. **Fan out fixes in parallel** — if the coverage reviewer reports N gap files, dispatch N fix agents, ONE FILE
+   per agent, in a single message with N invocations. Same for ward failures in independent files. Do NOT give one
+   agent a batch; batching is where punting happens. Dispatch further parallel waves if fixes uncover new gaps.
+   d. **Update progress and commit** — Edit the repo-local plan file to mark completed steps, then commit. Progress
+   edits can happen after the whole parallel bundle finishes; you don't need to commit between parallel siblings.
 3. Repeat until all plan steps are complete.
 
 ## After All Steps Pass — Manual E2E Verification
@@ -126,6 +153,13 @@ Watch for these patterns in agent reports — they indicate the agent gave up or
 - **Retreating to a different package** — If an agent can't get tests passing in package A, it may run tests only in
   package B and claim success. Verify that ward passed for ALL affected packages, not just the ones the agent chose to
   report on.
+- **"Migration cost too high" / "deferred due to proxy-conversion scope" / "out of scope for this pass"** — The agent
+  was handed multiple files to strengthen and batched the easy ones while punting on the hard ones. Reject. Re-dispatch
+  as N parallel single-file agents; each agent has exactly one file in its prompt and cannot hide behind "there was too
+  much."
+- **Batched coverage reports that mix PASS/PARTIAL/FAIL with per-file excuses** — If a reviewer's output reads like "3
+  PASS, 2 PARTIAL, 1 FAIL (migration scope)", the reviewer punted. The next orchestration action is to fan out fix
+  agents for every PARTIAL and FAIL as separate parallel tasks, NOT a single follow-up agent.
 
 ## Progress Tracking
 

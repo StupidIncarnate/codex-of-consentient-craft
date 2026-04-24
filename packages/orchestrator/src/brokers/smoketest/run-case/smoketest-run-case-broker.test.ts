@@ -100,7 +100,8 @@ describe('smoketestRunCaseBroker', () => {
 
   describe('register / unregister are wired', () => {
     it('ERROR: {hydrate fails before register} => neither register nor unregister is called', async () => {
-      smoketestRunCaseBrokerProxy();
+      const proxy = smoketestRunCaseBrokerProxy();
+      proxy.setupHydrateRejects({ error: new Error('hydrate failure') });
       const scenario = SmoketestScenarioStub();
       const registerCalls: QuestId[] = [];
       const unregisterCalls: QuestId[] = [];

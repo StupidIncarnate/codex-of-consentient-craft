@@ -12,6 +12,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestsQueueResponder } from '../../responders/quests/queue/quests-queue-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
 import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete-responder';
@@ -26,6 +27,11 @@ export const QuestFlow = (): Hono => {
 
   app.get(apiRoutesStatics.quests.list, async (c) => {
     const result = await QuestListResponder({ query: { guildId: c.req.query('guildId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.queue, async (c) => {
+    const result = await QuestsQueueResponder();
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

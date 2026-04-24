@@ -15,9 +15,10 @@ describe('questQueueEntryContract', () => {
     });
   });
 
-  it('VALID: {all fields incl. questSource, startedAt, error} => parses fully populated entry', () => {
+  it('VALID: {all fields incl. questSource, startedAt, error, activeSessionId} => parses fully populated entry', () => {
     const entry = QuestQueueEntryStub({
       questSource: 'smoketest-orchestration',
+      activeSessionId: 'chat-session-abc' as never,
       startedAt: '2024-01-15T10:05:00.000Z' as never,
       error: {
         message: 'runner threw' as never,
@@ -32,6 +33,7 @@ describe('questQueueEntryContract', () => {
       questTitle: 'Add Authentication',
       status: 'in_progress',
       questSource: 'smoketest-orchestration',
+      activeSessionId: 'chat-session-abc',
       enqueuedAt: '2024-01-15T10:00:00.000Z',
       startedAt: '2024-01-15T10:05:00.000Z',
       error: {
