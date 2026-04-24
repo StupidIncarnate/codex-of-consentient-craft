@@ -9,6 +9,7 @@
 
 import { ChatStopAllResponder } from '../../responders/chat/stop-all/chat-stop-all-responder';
 import { OrchestrationAbandonResponder } from '../../responders/orchestration/abandon/orchestration-abandon-responder';
+import { OrchestrationDeleteResponder } from '../../responders/orchestration/delete/orchestration-delete-responder';
 import { OrchestrationGetStatusResponder } from '../../responders/orchestration/get-status/orchestration-get-status-responder';
 import { OrchestrationPauseResponder } from '../../responders/orchestration/pause/orchestration-pause-responder';
 import { OrchestrationResumeResponder } from '../../responders/orchestration/resume/orchestration-resume-responder';
@@ -26,6 +27,9 @@ type ResumeResult = Awaited<ReturnType<typeof OrchestrationResumeResponder>>;
 
 type AbandonParams = Parameters<typeof OrchestrationAbandonResponder>[0];
 type AbandonResult = Awaited<ReturnType<typeof OrchestrationAbandonResponder>>;
+
+type DeleteParams = Parameters<typeof OrchestrationDeleteResponder>[0];
+type DeleteResult = Awaited<ReturnType<typeof OrchestrationDeleteResponder>>;
 
 type GetStatusParams = Parameters<typeof OrchestrationGetStatusResponder>[0];
 type GetStatusResult = ReturnType<typeof OrchestrationGetStatusResponder>;
@@ -45,6 +49,9 @@ export const OrchestrationFlow = {
 
   abandon: async ({ questId }: AbandonParams): Promise<AbandonResult> =>
     OrchestrationAbandonResponder({ questId }),
+
+  delete: async ({ questId, guildId }: DeleteParams): Promise<DeleteResult> =>
+    OrchestrationDeleteResponder({ questId, guildId }),
 
   getStatus: ({ processId }: GetStatusParams): GetStatusResult =>
     OrchestrationGetStatusResponder({ processId }),

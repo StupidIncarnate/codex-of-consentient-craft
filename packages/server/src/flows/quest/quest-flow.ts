@@ -14,6 +14,7 @@ import { QuestListResponder } from '../../responders/quest/list/quest-list-respo
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
 import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
@@ -66,6 +67,14 @@ export const QuestFlow = (): Hono => {
 
   app.post(apiRoutesStatics.quests.abandon, async (c) => {
     const result = await QuestAbandonResponder({ params: { questId: c.req.param('questId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.delete(apiRoutesStatics.quests.delete, async (c) => {
+    const result = await QuestDeleteResponder({
+      params: { questId: c.req.param('questId') },
+      query: { guildId: c.req.query('guildId') },
+    });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

@@ -102,6 +102,14 @@ export const StartOrchestrator = {
   abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
     OrchestrationFlow.abandon({ questId }),
 
+  deleteQuest: async ({
+    questId,
+    guildId,
+  }: {
+    questId: QuestId;
+    guildId: GuildId;
+  }): Promise<{ deleted: boolean }> => OrchestrationFlow.delete({ questId, guildId }),
+
   getQuestStatus: ({ processId }: { processId: ProcessId }): OrchestrationStatus =>
     OrchestrationFlow.getStatus({ processId }),
 

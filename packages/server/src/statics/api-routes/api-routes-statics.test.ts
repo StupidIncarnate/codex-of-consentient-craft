@@ -13,6 +13,7 @@ describe('apiRoutesStatics', () => {
         pause: '/api/quests/:questId/pause',
         resume: '/api/quests/:questId/resume',
         abandon: '/api/quests/:questId/abandon',
+        delete: '/api/quests/:questId',
       },
       process: {
         status: '/api/process/:processId',

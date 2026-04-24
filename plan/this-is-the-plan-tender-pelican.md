@@ -3,7 +3,7 @@
 ## Progress
 
 - [x] Phase 1: Contract changes — add `questSource` + `smoketestResults` to quest; thread through AddQuestInput, questAddBroker, questHydrateBroker
-- [ ] Phase 2: Quest delete — new `questDeleteBroker` + `questDeleteResponder`
+- [x] Phase 2: Quest delete — new `questDeleteBroker` + `questDeleteResponder`
 - [ ] Phase 3: Case-catalog → blueprint transformer + bundled MCP/Signals blueprints + `smoketestClearPriorQuestsBroker`
 - [ ] Phase 4: Rename `brokers/smoketest/run-orchestration-case/` → `run-case/`; delete `brokers/smoketest/run-single-agent-case/`
 - [ ] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
