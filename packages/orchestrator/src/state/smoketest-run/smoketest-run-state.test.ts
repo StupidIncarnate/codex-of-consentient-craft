@@ -24,6 +24,26 @@ describe('smoketestRunState', () => {
     expect({ runId: active?.runId, suite: active?.suite }).toStrictEqual({ runId, suite });
   });
 
+  it('VALID: {isActive before start} => returns false', () => {
+    smoketestRunState.end();
+
+    expect(smoketestRunState.isActive()).toBe(false);
+  });
+
+  it('VALID: {isActive after start} => returns true until end', () => {
+    smoketestRunState.end();
+
+    smoketestRunState.start({
+      runId: SmoketestRunIdStub(),
+      suite: SmoketestSuiteStub({ value: 'mcp' }),
+    });
+    const whileActive = smoketestRunState.isActive();
+    smoketestRunState.end();
+    const afterEnd = smoketestRunState.isActive();
+
+    expect({ whileActive, afterEnd }).toStrictEqual({ whileActive: true, afterEnd: false });
+  });
+
   it('VALID: {appendEvent} => events show up in getRecentEvents', () => {
     smoketestRunState.end();
     const runId = SmoketestRunIdStub();

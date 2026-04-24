@@ -61,6 +61,9 @@ export const EnqueueOrchestrationScenarioLayerResponder = async ({
     unsubscribe: (handler: QuestModifiedHandler): void => {
       orchestrationEventsState.off({ type: 'quest-modified', handler });
     },
+    onQuestGone: ({ questId: goneQuestId }): void => {
+      smoketestScenarioState.unregister({ questId: goneQuestId });
+    },
   });
 
   const quest = await LoadQuestLayerResponder({ questId });

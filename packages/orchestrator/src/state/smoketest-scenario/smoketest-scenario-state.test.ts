@@ -107,18 +107,56 @@ describe('smoketestScenarioState', () => {
     expect(active?.callOrdinals).toStrictEqual({ codeweaver: 1 });
   });
 
-  it('INVALID: {register while another active} => throws concurrency error', () => {
-    const firstQuestId = QuestIdStub({ value: 'first-active-quest' });
-    const secondQuestId = QuestIdStub({ value: 'second-active-quest' });
+  it('VALID: {register multiple distinct questIds} => each has its own active instance and dispenses independently', () => {
+    const firstQuestId = QuestIdStub({ value: 'multi-first-quest' });
+    const secondQuestId = QuestIdStub({ value: 'multi-second-quest' });
 
     smoketestScenarioState.register({
       questId: firstQuestId,
       scripts: { codeweaver: ['signalComplete'] },
     });
+    smoketestScenarioState.register({
+      questId: secondQuestId,
+      scripts: { codeweaver: ['signalFailed'] },
+    });
+    const firstDispense = smoketestScenarioState.dispense({
+      questId: firstQuestId,
+      role: 'codeweaver',
+    });
+    const secondDispense = smoketestScenarioState.dispense({
+      questId: secondQuestId,
+      role: 'codeweaver',
+    });
+    const firstActive = smoketestScenarioState.getActive({ questId: firstQuestId });
+    const secondActive = smoketestScenarioState.getActive({ questId: secondQuestId });
+    smoketestScenarioState.unregister({ questId: firstQuestId });
+    smoketestScenarioState.unregister({ questId: secondQuestId });
+
+    expect({ firstDispense, secondDispense, firstActive, secondActive }).toStrictEqual({
+      firstDispense: 'signalComplete',
+      secondDispense: 'signalFailed',
+      firstActive: {
+        scripts: { codeweaver: ['signalComplete'] },
+        callOrdinals: { codeweaver: 1 },
+      },
+      secondActive: {
+        scripts: { codeweaver: ['signalFailed'] },
+        callOrdinals: { codeweaver: 1 },
+      },
+    });
+  });
+
+  it('INVALID: {register same questId twice} => throws duplicate-registration error', () => {
+    const questId = QuestIdStub({ value: 'duplicate-register-quest' });
+
+    smoketestScenarioState.register({
+      questId,
+      scripts: { codeweaver: ['signalComplete'] },
+    });
     const thrown = (): void => {
       smoketestScenarioState.register({
-        questId: secondQuestId,
-        scripts: { codeweaver: ['signalComplete'] },
+        questId,
+        scripts: { codeweaver: ['signalFailed'] },
       });
     };
     let caught: unknown = null;
@@ -127,12 +165,10 @@ describe('smoketestScenarioState', () => {
     } catch (error: unknown) {
       caught = error;
     }
-    smoketestScenarioState.unregister({ questId: firstQuestId });
+    smoketestScenarioState.unregister({ questId });
 
     expect(caught).toStrictEqual(
-      new Error(
-        `smoketestScenarioState.register: a scenario is already active (quests: ${firstQuestId}); concurrent scenarios are not supported`,
-      ),
+      new Error(`smoketestScenarioState.register: quest "${questId}" is already registered`),
     );
   });
 });

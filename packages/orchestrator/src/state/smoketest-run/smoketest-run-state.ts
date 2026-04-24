@@ -3,6 +3,7 @@
  *
  * USAGE:
  * smoketestRunState.start({ runId, suite });
+ * smoketestRunState.isActive();
  * smoketestRunState.getActive();
  * smoketestRunState.appendEvent({ event });
  * smoketestRunState.getRecentEvents();
@@ -38,6 +39,8 @@ export const smoketestRunState = {
   },
 
   getActive: (): ActiveSmoketestRun | null => state.active,
+
+  isActive: (): boolean => state.active !== null,
 
   appendEvent: ({ event }: { event: unknown }): void => {
     const next = [...state.events, event];

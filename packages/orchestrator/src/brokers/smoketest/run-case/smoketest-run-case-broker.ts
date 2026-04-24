@@ -99,6 +99,9 @@ export const smoketestRunCaseBroker = async ({
       dispense: ({ role }) => dispense({ questId: boundQuestId, role }),
       subscribe,
       unsubscribe,
+      onQuestGone: ({ questId: goneQuestId }) => {
+        unregister({ questId: goneQuestId });
+      },
     });
     driverStop = driver.stop;
 

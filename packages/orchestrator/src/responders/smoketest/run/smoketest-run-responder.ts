@@ -45,9 +45,11 @@ export const SmoketestRunResponder = async ({
   enqueued: readonly { questId: QuestId; guildSlug: UrlSlug }[];
   results: readonly SmoketestCaseResult[];
 }> => {
-  const existing = smoketestRunState.getActive();
-  if (existing !== null) {
-    throw new Error(`Smoketest already running (runId=${existing.runId}, suite=${existing.suite})`);
+  if (smoketestRunState.isActive()) {
+    const existing = smoketestRunState.getActive();
+    throw new Error(
+      `Smoketest already running (runId=${existing?.runId ?? ''}, suite=${existing?.suite ?? ''})`,
+    );
   }
 
   const runId = smoketestRunIdContract.parse(crypto.randomUUID());
@@ -115,7 +117,12 @@ export const SmoketestRunResponder = async ({
     }
 
     return { runId, enqueued, results: [] as readonly SmoketestCaseResult[] };
-  } finally {
+  } catch (error: unknown) {
+    // Only clear the active flag on enqueue failure. On success the flag remains set
+    // until the post-terminal listener drains the last registered smoketest quest —
+    // otherwise a second POST arriving after this responder returns (but before the
+    // enqueued quests finish) would see no active run and enqueue a duplicate suite.
     smoketestRunState.end();
+    throw error;
   }
 };

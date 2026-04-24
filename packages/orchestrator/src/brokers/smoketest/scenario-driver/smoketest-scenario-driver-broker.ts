@@ -31,8 +31,10 @@
 
 import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
+import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { createDriverHandlerLayerBroker } from './create-driver-handler-layer-broker';
+import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer-broker';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 
 type QuestModifiedHandler = (event: {
@@ -54,12 +56,14 @@ export const smoketestScenarioDriverBroker = async ({
   dispense,
   subscribe,
   unsubscribe,
+  onQuestGone,
   pollIntervalMs,
 }: {
   questId: QuestId;
   dispense: Dispense;
   subscribe: (handler: QuestModifiedHandler) => void;
   unsubscribe: (handler: QuestModifiedHandler) => void;
+  onQuestGone?: (params: { questId: QuestId }) => void;
   pollIntervalMs?: number;
 }): Promise<{ stop: () => void }> => {
   const abortController = new AbortController();
@@ -79,7 +83,10 @@ export const smoketestScenarioDriverBroker = async ({
   // Awaiting this guarantees every hydrated work item is stamped BEFORE the caller starts the
   // orchestration loop; otherwise the loop can dispatch an unstamped item with the real role template.
   // On failure, unwind the subscription and re-throw so the runner's outer try/catch produces a
-  // failed case result instead of silently leaving a dangling handler + an unstamped quest.
+  // failed case result instead of silently leaving a dangling handler + an unstamped quest. When the
+  // failure is "quest not found in any guild" (quest deleted/abandoned before the driver subscribed),
+  // fire onQuestGone so the caller can release its scenario-state entry; still re-throw so the outer
+  // runner can mark the case failed.
   await smoketestSweepPendingWorkItemsLayerBroker({
     questId,
     abortSignal: abortController.signal,
@@ -87,6 +94,9 @@ export const smoketestScenarioDriverBroker = async ({
   }).catch((error: unknown) => {
     abortController.abort();
     unsubscribe(handler);
+    if (isQuestNotFoundErrorGuard({ error }) && onQuestGone !== undefined) {
+      onQuestGone({ questId });
+    }
     throw error;
   });
 
@@ -95,24 +105,25 @@ export const smoketestScenarioDriverBroker = async ({
   // process. The poll guarantees dynamically-added work items (codeweaver-fail replan pathseeker,
   // lawbringer-fail spiritmender, blightwarden failed-replan pathseeker) get stamped before the
   // orchestration loop dispatches them with a real role template.
-  const interval = setInterval(() => {
-    if (abortController.signal.aborted) {
-      return;
-    }
-    smoketestSweepPendingWorkItemsLayerBroker({
+  //
+  // The tick body (sweep + self-destruct on quest-gone) lives in createDriverPollTickLayerBroker
+  // so no nested function is declared inside this broker. The layer takes a stopNow callback that
+  // the driver wires to its own teardown — on quest-gone detection, the layer invokes stopNow
+  // (clearInterval + abort + unsubscribe) then onQuestGone so the scenario-state entry is released.
+  const interval: ReturnType<typeof setInterval> = setInterval(
+    createDriverPollTickLayerBroker({
       questId,
       abortSignal: abortController.signal,
       dispense,
-    }).catch((error: unknown) => {
-      if (abortController.signal.aborted) {
-        return;
-      }
-      const message = error instanceof Error ? error.message : 'unknown error';
-      process.stderr.write(
-        `[smoketestScenarioDriverBroker] poll sweep failed for quest "${questId}": ${message}\n`,
-      );
-    });
-  }, intervalMs);
+      stopNow: (): void => {
+        clearInterval(interval);
+        abortController.abort();
+        unsubscribe(handler);
+      },
+      ...(onQuestGone === undefined ? {} : { onQuestGone }),
+    }),
+    intervalMs,
+  );
 
   return {
     stop: (): void => {

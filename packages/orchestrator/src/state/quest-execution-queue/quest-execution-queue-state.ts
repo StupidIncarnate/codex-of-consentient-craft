@@ -11,9 +11,16 @@
  * questExecutionQueueState.clearBySource({ questSource });
  * questExecutionQueueState.setHeadError({ message });
  * questExecutionQueueState.markHeadStarted();
+ * questExecutionQueueState.removeByQuestId({ questId });
+ * questExecutionQueueState.updateEntryStatus({ questId, status });
  */
 
-import type { QuestQueueEntry, QuestSource } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestId,
+  QuestQueueEntry,
+  QuestSource,
+  QuestStatus,
+} from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import type { RemovedCount } from '../../contracts/removed-count/removed-count-contract';
@@ -105,6 +112,41 @@ export const questExecutionQueueState = {
     for (const handler of state.handlers) {
       handler();
     }
+  },
+
+  removeByQuestId: ({ questId }: { questId: QuestId }): RemovedCount => {
+    const before = state.entries.length;
+    state.entries = state.entries.filter((entry) => entry.questId !== questId);
+    const removed = before - state.entries.length;
+    if (removed > 0) {
+      for (const handler of state.handlers) {
+        handler();
+      }
+    }
+    return removedCountContract.parse(removed);
+  },
+
+  updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }): boolean => {
+    const index = state.entries.findIndex((entry) => entry.questId === questId);
+    if (index === -1) {
+      return false;
+    }
+    const existing = state.entries[index];
+    if (existing === undefined) {
+      return false;
+    }
+    if (existing.status === status) {
+      return false;
+    }
+    const updated = questQueueEntryContract.parse({
+      ...existing,
+      status,
+    });
+    state.entries[index] = updated;
+    for (const handler of state.handlers) {
+      handler();
+    }
+    return true;
   },
 
   clear: (): void => {

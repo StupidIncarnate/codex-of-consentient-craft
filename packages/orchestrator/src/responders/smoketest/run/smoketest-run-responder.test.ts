@@ -225,7 +225,7 @@ describe('SmoketestRunResponder', () => {
     });
   });
 
-  describe('finally cleanup', () => {
+  describe('error cleanup', () => {
     it('VALID: {orchestration suite layer throws mid-loop} => smoketestRunState is reset to inactive', async () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
@@ -243,7 +243,7 @@ describe('SmoketestRunResponder', () => {
       expect(smoketestRunState.getActive()).toBe(null);
     });
 
-    it('VALID: {happy mcp run} => smoketestRunState is reset to inactive after success', async () => {
+    it('VALID: {happy mcp run} => smoketestRunState stays active after success (post-terminal listener clears it)', async () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
@@ -262,7 +262,45 @@ describe('SmoketestRunResponder', () => {
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
-      expect(smoketestRunState.getActive()).toBe(null);
+      const active = smoketestRunState.getActive();
+      smoketestRunState.end();
+
+      expect(active?.suite).toBe(SmoketestSuiteStub({ value: 'mcp' }));
+    });
+
+    it('ERROR: {back-to-back calls — first left state active} => second call rejects without enqueuing', async () => {
+      smoketestRunState.end();
+      const proxy = SmoketestRunResponderProxy();
+      const guildId = GuildIdStub();
+      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      proxy.setupHappyPath({
+        guildId,
+        guildSlug,
+        bundledRecord: EnqueuedRecordStub({
+          questId: QuestIdStub({ value: 'mcp-bundled-1' }),
+          guildSlug,
+        }),
+      });
+
+      await SmoketestRunResponder({
+        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        startPath: FilePathStub({ value: '/tmp/proj' }),
+      });
+
+      const bundledCallsBefore = proxy.getEnqueueBundledCallArgs().length;
+
+      const secondPromise = SmoketestRunResponder({
+        suite: SmoketestSuiteStub({ value: 'signals' }),
+        startPath: FilePathStub({ value: '/tmp/proj' }),
+      });
+
+      await expect(secondPromise).rejects.toThrow(/^Smoketest already running.*$/u);
+
+      const bundledCallsAfter = proxy.getEnqueueBundledCallArgs().length;
+
+      smoketestRunState.end();
+
+      expect(bundledCallsAfter).toBe(bundledCallsBefore);
     });
   });
 });

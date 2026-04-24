@@ -2,6 +2,7 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-layer-broker.proxy';
+import { createDriverPollTickLayerBrokerProxy } from './create-driver-poll-tick-layer-broker.proxy';
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -26,6 +27,7 @@ export const smoketestScenarioDriverBrokerProxy = (): {
   // smoketestStampOverrideBrokerProxy chain — setupQuestFound must seed the stamp proxy enough
   // times to satisfy BOTH an initial sweep AND a subsequent event-driven sweep.
   createDriverHandlerLayerBrokerProxy();
+  createDriverPollTickLayerBrokerProxy();
   const sweepProxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
   const handlers: QuestModifiedHandler[] = [];
 

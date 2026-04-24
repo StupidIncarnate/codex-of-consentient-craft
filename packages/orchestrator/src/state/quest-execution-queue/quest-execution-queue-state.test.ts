@@ -1,4 +1,8 @@
-import { QuestQueueEntryStub, QuestSourceStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestQueueEntryStub,
+  QuestSourceStub,
+  QuestStatusStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questExecutionQueueState } from './quest-execution-queue-state';
 import { questExecutionQueueStateProxy } from './quest-execution-queue-state.proxy';
@@ -200,6 +204,155 @@ describe('questExecutionQueueState', () => {
 
       expect(handler.mock.calls).toStrictEqual([]);
       expect(questExecutionQueueState.getActive()).toBe(undefined);
+    });
+  });
+
+  describe('removeByQuestId', () => {
+    it('VALID: {entry present at head} => removes it, returns 1, subsequent getActive returns next', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      questExecutionQueueState.enqueue({ entry: b });
+
+      const removed = questExecutionQueueState.removeByQuestId({ questId: 'q-a' as never });
+
+      expect(removed).toBe(1);
+      expect(questExecutionQueueState.getActive()).toStrictEqual(b);
+      expect(questExecutionQueueState.getAll()).toStrictEqual([b]);
+    });
+
+    it('VALID: {entry present mid-queue} => removes it, returns 1, head unchanged', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
+      const c = QuestQueueEntryStub({ questId: 'q-c' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      questExecutionQueueState.enqueue({ entry: b });
+      questExecutionQueueState.enqueue({ entry: c });
+
+      const removed = questExecutionQueueState.removeByQuestId({ questId: 'q-b' as never });
+
+      expect(removed).toBe(1);
+      expect(questExecutionQueueState.getAll()).toStrictEqual([a, c]);
+    });
+
+    it('EMPTY: {questId not in queue} => returns 0, queue unchanged, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const removed = questExecutionQueueState.removeByQuestId({ questId: 'q-missing' as never });
+
+      expect(removed).toBe(0);
+      expect(questExecutionQueueState.getAll()).toStrictEqual([a]);
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {removal occurs} => handler fires exactly once', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      questExecutionQueueState.removeByQuestId({ questId: 'q-a' as never });
+
+      expect(handler.mock.calls).toStrictEqual([[]]);
+    });
+  });
+
+  describe('updateEntryStatus', () => {
+    it('VALID: {entry present, new status different} => mutates status, returns true, handler fires', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryStatus({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'abandoned' }),
+      });
+
+      expect(changed).toBe(true);
+      expect(questExecutionQueueState.getActive()?.status).toBe('abandoned');
+      expect(handler.mock.calls).toStrictEqual([[]]);
+    });
+
+    it('VALID: {entry present mid-queue} => updates only the matching entry', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+      const b = QuestQueueEntryStub({
+        questId: 'q-b' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      questExecutionQueueState.enqueue({ entry: b });
+
+      questExecutionQueueState.updateEntryStatus({
+        questId: 'q-b' as never,
+        status: QuestStatusStub({ value: 'complete' }),
+      });
+
+      const [head, second] = questExecutionQueueState.getAll();
+
+      expect(head?.status).toBe('in_progress');
+      expect(second?.status).toBe('complete');
+    });
+
+    it('EMPTY: {questId not in queue} => returns false, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryStatus({
+        questId: 'q-missing' as never,
+        status: QuestStatusStub({ value: 'complete' }),
+      });
+
+      expect(changed).toBe(false);
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+
+    it('EDGE: {new status equals existing status} => no mutation, returns false, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryStatus({
+        questId: 'q-a' as never,
+        status: QuestStatusStub({ value: 'in_progress' }),
+      });
+
+      expect(changed).toBe(false);
+      expect(handler.mock.calls).toStrictEqual([]);
     });
   });
 });

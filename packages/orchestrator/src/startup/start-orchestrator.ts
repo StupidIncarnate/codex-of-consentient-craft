@@ -54,6 +54,10 @@ import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-
 // Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
 ExecutionQueueFlow.bootstrap();
 
+// Bootstrap the queue sync listener on module load. Keeps queue entries in sync with
+// quest file changes (abandon/complete/delete) so the runner can always advance. Idempotent.
+ExecutionQueueFlow.bootstrapSyncListener();
+
 // Bootstrap the smoketest post-terminal listener on module load. Idempotent.
 SmoketestFlow.bootstrap();
 

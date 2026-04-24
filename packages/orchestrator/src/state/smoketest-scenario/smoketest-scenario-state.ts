@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Singleton per-quest scenario state — holds per-role script of canned prompt names plus per-role call ordinals; dispense returns and advances one prompt at a time
+ * PURPOSE: Multi-active per-quest scenario state keyed by QuestId — holds per-role script of canned prompt names plus per-role call ordinals; dispense returns and advances one prompt at a time for the given quest
  *
  * USAGE:
  * smoketestScenarioState.register({ questId, scripts: { codeweaver: ['signalFailed', 'signalComplete'] } });
@@ -7,6 +7,10 @@
  * // Returns: 'signalFailed' (first call), then 'signalComplete' (second), then null (exhausted)
  * smoketestScenarioState.getActive({ questId });
  * smoketestScenarioState.unregister({ questId });
+ *
+ * WHEN-TO-USE: Orchestration smoketest enqueues multiple scenarios at once; each registered quest gets
+ * its own isolated script + ordinal bookkeeping. Re-registering an already-active questId throws so
+ * double-registration bugs surface immediately.
  */
 
 import {
@@ -30,12 +34,8 @@ export const smoketestScenarioState = {
     questId: QuestId;
     scripts: ScenarioInstance['scripts'];
   }): void => {
-    if (state.instances.size > 0) {
-      throw new Error(
-        `smoketestScenarioState.register: a scenario is already active (quests: ${Array.from(
-          state.instances.keys(),
-        ).join(', ')}); concurrent scenarios are not supported`,
-      );
+    if (state.instances.has(questId)) {
+      throw new Error(`smoketestScenarioState.register: quest "${questId}" is already registered`);
     }
     state.instances.set(questId, { scripts, callOrdinals: {} });
   },

@@ -7,8 +7,12 @@
 - [x] Phase 3: Case-catalog → blueprint transformer + bundled MCP/Signals blueprints + `smoketestClearPriorQuestsBroker`
 - [x] Phase 4: Rename `brokers/smoketest/run-orchestration-case/` → `run-case/`; delete `brokers/smoketest/run-single-agent-case/`
 - [x] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
+  > [x] Queue stale-entry bug resolved — new `quest-queue-sync-listener` broker subscribes to `quest-modified` events; on terminal status updates the entry then removes it, on quest-not-found removes by questId. Queue state exposes `removeByQuestId` + `updateEntryStatus`.
 - [x] Phase 6: Web-presence state + server WS connect/disconnect hooks + set-web-presence adapter
 - [x] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
+  > [x] 409 guard fixed — `try/finally { end() }` replaced with `try/catch { end(); throw }` so the active flag clears only on failure. Post-terminal listener clears the flag when the last smoketest quest drains. Server responder maps "already running" error to HTTP 409.
+  > [x] Orchestration suite fixed — scenario state is now multi-active keyed by questId (the internal Map already supported it; the artificial `size > 0` throw was the only blocker). All 5 scenarios can register concurrently.
+  > [x] Scenario-driver leak fixed — poll tick catches quest-not-found, invokes `stopNow()` (clearInterval + abort + unsubscribe), then fires `onQuestGone` so the responder releases the scenario entry.
 - [x] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter
 - [x] Phase 9: Delete drawer + rewire tooling dropdown + slim `useSmoketestRunBinding`
 - [ ] Manual E2E verification
