@@ -10,7 +10,7 @@
 - [x] Phase 6: Web-presence state + server WS connect/disconnect hooks + set-web-presence adapter
 - [x] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
 - [x] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter
-- [ ] Phase 9: Delete drawer + rewire tooling dropdown + slim `useSmoketestRunBinding`
+- [x] Phase 9: Delete drawer + rewire tooling dropdown + slim `useSmoketestRunBinding`
 - [ ] Manual E2E verification
 - [ ] Plan alignment review (orchestrator-owned)
 

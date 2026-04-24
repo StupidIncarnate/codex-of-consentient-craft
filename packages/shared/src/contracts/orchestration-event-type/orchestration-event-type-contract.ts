@@ -24,7 +24,6 @@ export const orchestrationEventTypeContract = z.enum([
   'chat-history-complete',
   'quest-session-linked',
   'chat-session-started',
-  'smoketest-progress',
   'execution-queue-updated',
   'execution-queue-error',
 ]);

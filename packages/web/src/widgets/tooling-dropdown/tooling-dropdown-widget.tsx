@@ -1,17 +1,18 @@
 /**
- * PURPOSE: Renders a Tooling icon button with Smoketests options (MCP, Signals, Orchestration)
+ * PURPOSE: Renders a Tooling icon button with Smoketests options (MCP, Signals, Orchestration); while a smoketest suite is the active queue head, the button spins and clicks navigate to that quest's session instead of opening the menu
  *
  * USAGE:
- * <ToolingDropdownWidget onRun={(suite) => handle(suite)} running={isRunning} onReopen={reopen} />
- * // Renders a 36px icon-button trigger that opens a Mantine Menu above it; while running, becomes a plain reopen button
+ * <ToolingDropdownWidget />
+ * // Renders a 36px icon-button trigger that opens a Mantine Menu above it; while a smoketest quest is the active queue head, it becomes a spinning button that navigates to the active smoketest session
  */
 
 import { Menu, UnstyledButton } from '@mantine/core';
 import { IconLoader2, IconTool } from '@tabler/icons-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
-
+import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
+import { useSmoketestRunBinding } from '../../bindings/use-smoketest-run/use-smoketest-run-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const MENU_ITEM_FONT_SIZE = 12;
@@ -19,17 +20,15 @@ const BUTTON_SIZE = 36;
 const ICON_SIZE = 20;
 const DISABLED_OPACITY = 0.4;
 
-export const ToolingDropdownWidget = ({
-  onRun,
-  onReopen,
-  running,
-}: {
-  onRun: (params: { suite: SmoketestSuite }) => void;
-  onReopen?: () => void;
-  running?: boolean;
-}): React.JSX.Element => {
+export const ToolingDropdownWidget = (): React.JSX.Element => {
   const [opened, setOpened] = useState(false);
   const { colors } = emberDepthsThemeStatics;
+  const navigate = useNavigate();
+  const { activeEntry } = useQuestQueueBinding();
+  const { run } = useSmoketestRunBinding();
+
+  const isSmoketestActive =
+    activeEntry !== null && activeEntry.questSource?.startsWith('smoketest-') === true;
 
   const buttonStyle = {
     width: BUTTON_SIZE,
@@ -48,13 +47,24 @@ export const ToolingDropdownWidget = ({
     <style>{`@keyframes tooling-spin { to { transform: rotate(360deg); } }`}</style>
   );
 
-  if (running === true) {
+  if (isSmoketestActive) {
+    const sessionHref =
+      activeEntry.activeSessionId === undefined
+        ? `/${activeEntry.guildSlug}/session`
+        : `/${activeEntry.guildSlug}/session/${activeEntry.activeSessionId}`;
     return (
       <UnstyledButton
         data-testid="TOOLING_DROPDOWN_TRIGGER"
-        aria-label="Tooling (reopen drawer)"
-        title="Tooling (reopen drawer)"
-        onClick={(): void => onReopen?.()}
+        aria-label="Tooling (open active smoketest)"
+        title="Tooling (open active smoketest)"
+        onClick={(): void => {
+          const result: unknown = navigate(sessionHref);
+          if (result instanceof Promise) {
+            result.catch((navError: unknown) => {
+              globalThis.console.error('[tooling-dropdown] navigate', navError);
+            });
+          }
+        }}
         style={{ ...buttonStyle, opacity: DISABLED_OPACITY }}
       >
         <IconLoader2 size={ICON_SIZE} style={{ animation: 'tooling-spin 1s linear infinite' }} />
@@ -89,7 +99,20 @@ export const ToolingDropdownWidget = ({
           data-testid="TOOLING_SMOKETEST_MCP"
           onClick={(): void => {
             setOpened(false);
-            onRun({ suite: 'mcp' });
+            run({ suite: 'mcp' })
+              .then((first) => {
+                if (first !== null) {
+                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  if (result instanceof Promise) {
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error('[tooling-dropdown] navigate after mcp', navError);
+                    });
+                  }
+                }
+              })
+              .catch((error: unknown) => {
+                globalThis.console.error('[tooling-dropdown]', error);
+              });
           }}
         >
           MCP
@@ -98,7 +121,23 @@ export const ToolingDropdownWidget = ({
           data-testid="TOOLING_SMOKETEST_SIGNALS"
           onClick={(): void => {
             setOpened(false);
-            onRun({ suite: 'signals' });
+            run({ suite: 'signals' })
+              .then((first) => {
+                if (first !== null) {
+                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  if (result instanceof Promise) {
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error(
+                        '[tooling-dropdown] navigate after signals',
+                        navError,
+                      );
+                    });
+                  }
+                }
+              })
+              .catch((error: unknown) => {
+                globalThis.console.error('[tooling-dropdown]', error);
+              });
           }}
         >
           Signals
@@ -107,7 +146,23 @@ export const ToolingDropdownWidget = ({
           data-testid="TOOLING_SMOKETEST_ORCHESTRATION"
           onClick={(): void => {
             setOpened(false);
-            onRun({ suite: 'orchestration' });
+            run({ suite: 'orchestration' })
+              .then((first) => {
+                if (first !== null) {
+                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  if (result instanceof Promise) {
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error(
+                        '[tooling-dropdown] navigate after orchestration',
+                        navError,
+                      );
+                    });
+                  }
+                }
+              })
+              .catch((error: unknown) => {
+                globalThis.console.error('[tooling-dropdown]', error);
+              });
           }}
         >
           Orchestration

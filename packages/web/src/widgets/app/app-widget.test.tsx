@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
   GuildIdStub,
   GuildListItemStub,
+  QuestQueueEntryStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -36,6 +37,45 @@ const renderApp = (): void => {
 };
 
 describe('AppWidget', () => {
+  describe('queue bar + drawer mounting', () => {
+    it('VALID: {queue has entries} => QuestQueueBarWidget is mounted and visible', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+      proxy.setupQuestQueue({
+        entries: [QuestQueueEntryStub({ questId: 'q-head', questTitle: 'Head Quest' })],
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isQuestQueueBarVisible()).toBe(true);
+      });
+
+      expect(proxy.isQuestQueueBarVisible()).toBe(true);
+    });
+
+    it('VALID: {rendered} => SmoketestDrawer testids are NOT in the DOM', async () => {
+      const proxy = AppWidgetProxy();
+
+      proxy.setupGuilds({ guilds: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          renderApp();
+          await Promise.resolve();
+        },
+      });
+
+      expect(proxy.isSmoketestDrawerMounted()).toBe(false);
+    });
+  });
+
   describe('empty state', () => {
     it('VALID: {no guilds} => shows NEW GUILD form', async () => {
       const proxy = AppWidgetProxy();

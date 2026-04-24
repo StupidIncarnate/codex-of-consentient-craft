@@ -12,13 +12,12 @@ import { Center } from '@mantine/core';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
-import { useSmoketestRunBinding } from '../../bindings/use-smoketest-run/use-smoketest-run-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { isSessionRouteGuard } from '../../guards/is-session-route/is-session-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
-import { SmoketestDrawerWidget } from '../smoketest-drawer/smoketest-drawer-widget';
+import { QuestQueueBarWidget } from '../quest-queue-bar/quest-queue-bar-widget';
 import { ToolingDropdownWidget } from '../tooling-dropdown/tooling-dropdown-widget';
 
 const TRANSITION_DURATION = '0.4s';
@@ -32,7 +31,6 @@ export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
   const isQuestRoute = isSessionRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
-  const smoketest = useSmoketestRunBinding();
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;
 
@@ -46,6 +44,8 @@ export const AppWidget = (): React.JSX.Element => {
         flexDirection: 'column',
       }}
     >
+      <QuestQueueBarWidget />
+
       {/* Top spacer: flex-grows on home to push content to center, collapses on quest */}
       <div
         data-testid="APP_SPACER_TOP"
@@ -103,16 +103,6 @@ export const AppWidget = (): React.JSX.Element => {
         }}
       />
 
-      <SmoketestDrawerWidget
-        opened={smoketest.opened}
-        onClose={smoketest.close}
-        runId={smoketest.runId}
-        total={smoketest.total}
-        currentCase={smoketest.currentCase}
-        results={smoketest.results}
-        running={smoketest.running}
-      />
-
       {!isQuestRoute && (
         <div
           data-testid="APP_TOOLING_SLOT"
@@ -123,11 +113,7 @@ export const AppWidget = (): React.JSX.Element => {
             zIndex: 1000,
           }}
         >
-          <ToolingDropdownWidget
-            onRun={smoketest.run}
-            onReopen={smoketest.open}
-            running={smoketest.running}
-          />
+          <ToolingDropdownWidget />
         </div>
       )}
     </div>

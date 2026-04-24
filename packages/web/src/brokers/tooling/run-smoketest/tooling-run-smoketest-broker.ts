@@ -1,17 +1,13 @@
 /**
- * PURPOSE: POSTs /api/tooling/smoketest/run with the chosen suite and returns the resulting run + case results
+ * PURPOSE: POSTs /api/tooling/smoketest/run with the chosen suite and returns the enqueued quest records
  *
  * USAGE:
- * const result = await toolingRunSmoketestBroker({ suite: 'mcp' });
- * // Returns { runId, results }
+ * const { enqueued } = await toolingRunSmoketestBroker({ suite: 'mcp' });
+ * // Returns { enqueued: [{ questId, guildSlug }, ...] }
  */
 
-import { smoketestRunIdContract } from '@dungeonmaster/shared/contracts';
-import type {
-  SmoketestCaseResult,
-  SmoketestRunId,
-  SmoketestSuite,
-} from '@dungeonmaster/shared/contracts';
+import { questIdContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import type { QuestId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -20,17 +16,18 @@ export const toolingRunSmoketestBroker = async ({
   suite,
 }: {
   suite: SmoketestSuite;
-}): Promise<{ runId: SmoketestRunId; results: readonly SmoketestCaseResult[] }> => {
+}): Promise<{ enqueued: readonly { questId: QuestId; guildSlug: UrlSlug }[] }> => {
   const response = await fetchPostAdapter<{
-    runId: unknown;
-    results: readonly SmoketestCaseResult[];
+    enqueued: readonly { questId: unknown; guildSlug: unknown }[];
   }>({
     url: webConfigStatics.api.routes.toolingSmoketestRun,
     body: { suite },
   });
 
-  return {
-    runId: smoketestRunIdContract.parse(response.runId),
-    results: response.results,
-  };
+  const enqueued = response.enqueued.map((entry) => ({
+    questId: questIdContract.parse(entry.questId),
+    guildSlug: urlSlugContract.parse(entry.guildSlug),
+  }));
+
+  return { enqueued };
 };

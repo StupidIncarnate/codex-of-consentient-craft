@@ -12,20 +12,21 @@ import userEvent from '@testing-library/user-event';
 import type {
   GuildIdStub,
   GuildListItemStub,
+  QuestQueueEntryStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { useSmoketestRunBindingProxy } from '../../bindings/use-smoketest-run/use-smoketest-run-binding.proxy';
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
-import { SmoketestDrawerWidgetProxy } from '../smoketest-drawer/smoketest-drawer-widget.proxy';
+import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-widget.proxy';
 import { ToolingDropdownWidgetProxy } from '../tooling-dropdown/tooling-dropdown-widget.proxy';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection
 // These proxies are needed because AppWidget renders HomeContentWidget and QuestChatWidget
@@ -39,6 +40,7 @@ export const AppWidgetProxy = (): {
   setupCreateGuild: (params: { id: GuildId }) => void;
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupSessionsError: () => void;
+  setupQuestQueue: (params: { entries: readonly QuestQueueEntry[] }) => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -54,15 +56,16 @@ export const AppWidgetProxy = (): {
   isQuestChatVisible: () => boolean;
   clickLogoLink: () => Promise<void>;
   isLogoLinkVisible: () => boolean;
+  isQuestQueueBarVisible: () => boolean;
+  isSmoketestDrawerMounted: () => boolean;
   clearStorage: () => void;
 } => {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
   setupQuestChat();
   const homeProxy = setupHomeContent();
-  useSmoketestRunBindingProxy();
+  const queueBar = QuestQueueBarWidgetProxy();
   ToolingDropdownWidgetProxy();
-  SmoketestDrawerWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -79,6 +82,9 @@ export const AppWidgetProxy = (): {
     },
     setupSessionsError: (): void => {
       homeProxy.setupSessionsError();
+    },
+    setupQuestQueue: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
+      queueBar.setupEntries({ entries });
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await homeProxy.clickGuildItem({ testId });
@@ -115,6 +121,9 @@ export const AppWidgetProxy = (): {
       await userEvent.click(screen.getByTestId('LOGO_LINK'));
     },
     isLogoLinkVisible: (): boolean => screen.queryByTestId('LOGO_LINK') !== null,
+    isQuestQueueBarVisible: (): boolean => screen.queryByTestId('QUEST_QUEUE_BAR') !== null,
+    isSmoketestDrawerMounted: (): boolean =>
+      screen.queryByTestId('SMOKETEST_DRAWER_CONTENT') !== null,
     clearStorage: (): void => {
       homeProxy.clearStorage();
     },

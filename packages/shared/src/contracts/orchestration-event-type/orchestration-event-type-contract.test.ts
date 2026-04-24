@@ -24,7 +24,6 @@ describe('orchestrationEventTypeContract', () => {
     'chat-history-complete',
     'quest-session-linked',
     'chat-session-started',
-    'smoketest-progress',
     'execution-queue-updated',
     'execution-queue-error',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
@@ -40,6 +39,12 @@ describe('orchestrationEventTypeContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return orchestrationEventTypeContract.parse('');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "smoketest-progress"} => throws validation error (removed enum value)', () => {
+    expect(() => {
+      return orchestrationEventTypeContract.parse('smoketest-progress');
     }).toThrow(/Invalid enum value/u);
   });
 });

@@ -1,14 +1,11 @@
-import type { SmoketestCaseResult, SmoketestRunId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 
 import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const toolingRunSmoketestBrokerProxy = (): {
-  setupSuccess: (params: {
-    runId: SmoketestRunId;
-    results: readonly SmoketestCaseResult[];
-  }) => void;
+  setupSuccess: (params: { enqueued: readonly { questId: QuestId; guildSlug: UrlSlug }[] }) => void;
   setupError: () => void;
 } => {
   fetchPostAdapterProxy();
@@ -19,8 +16,8 @@ export const toolingRunSmoketestBrokerProxy = (): {
   });
 
   return {
-    setupSuccess: ({ runId, results }) => {
-      endpoint.resolves({ data: { runId, results } });
+    setupSuccess: ({ enqueued }) => {
+      endpoint.resolves({ data: { enqueued } });
     },
     setupError: () => {
       endpoint.networkError();
