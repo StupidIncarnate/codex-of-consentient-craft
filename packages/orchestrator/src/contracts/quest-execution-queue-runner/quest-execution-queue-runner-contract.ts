@@ -17,6 +17,7 @@ export interface QuestExecutionQueueRunnerDeps {
   dequeueHead: () => QuestQueueEntry | undefined;
   markHeadStarted: () => void;
   setHeadError: ({ message }: { message: string }) => void;
+  removeByQuestId: ({ questId }: { questId: QuestQueueEntry['questId'] }) => void;
   onQueueChange: ({ handler }: { handler: QuestExecutionQueueChangeHandler }) => void;
   offQueueChange: ({ handler }: { handler: QuestExecutionQueueChangeHandler }) => void;
   isWebPresent: () => boolean;

@@ -18,11 +18,17 @@ import {
   questContract,
   smoketestCaseResultContract,
 } from '@dungeonmaster/shared/contracts';
-import type { Quest, QuestId, SmoketestCaseResult } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  Quest,
+  QuestId,
+  SmoketestCaseResult,
+} from '@dungeonmaster/shared/contracts';
 import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import type { SmoketestScenarioMeta } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
+import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questPersistBroker } from '../../quest/persist/quest-persist-broker';
@@ -45,9 +51,31 @@ export const processTerminalEventLayerBroker = async ({
   unregisterListener: ({ questId }: { questId: QuestId }) => void;
 }): Promise<AdapterResult> => {
   const notProcessed = adapterResultContract.parse({ success: true });
-  const { questPath } = await questFindQuestPathBroker({ questId });
+
+  // The quest may have been deleted between the outbox event being appended and this
+  // handler running (e.g. the user abandoned + deleted a stuck smoketest quest, or the
+  // next suite run cleared prior quests). In that case `questFindQuestPathBroker` throws
+  // — there's nothing to assert against, so stop the scenario driver and unregister the
+  // listener so the caller's unregister callback fires and the active-run flag can clear.
+  const foundPath: { questPath: AbsoluteFilePath } | null = await questFindQuestPathBroker({
+    questId,
+  }).catch((error: unknown): null => {
+    if (isQuestNotFoundErrorGuard({ error })) {
+      return null;
+    }
+    throw error;
+  });
+
+  if (foundPath === null) {
+    if (entry.stopDriver !== undefined) {
+      entry.stopDriver();
+    }
+    unregisterListener({ questId });
+    return notProcessed;
+  }
+
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    pathJoinAdapter({ paths: [foundPath.questPath, QUEST_FILE_NAME] }),
   );
 
   const quest: Quest = await questLoadBroker({ questFilePath });

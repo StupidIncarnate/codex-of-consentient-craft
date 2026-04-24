@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Installs a global quest-modified handler that keeps the execution queue in sync with quest file changes — auto-removes entries on abandon/complete/delete so the queue runner can advance
+ * PURPOSE: Installs a global quest-changed handler that keeps the execution queue in sync with quest file changes — auto-removes entries on abandon/complete/blocked/delete so the queue runner can advance
  *
  * USAGE:
- * const handle = questQueueSyncListenerBroker({
- *   subscribe: (handler) => orchestrationEventsState.on({ type: 'quest-modified', handler }),
- *   unsubscribe: (handler) => orchestrationEventsState.off({ type: 'quest-modified', handler }),
- *   loadQuestStatus: async ({ questId }) => { ... },
+ * const handle = await questQueueSyncListenerBroker({
+ *   install: async (onQuestChanged) =>
+ *     questOutboxWatchBroker({ onQuestChanged, onError: (...) => ... }),
+ *   loadQuest: async ({ questId }) => { ... },
  *   removeByQuestId: ({ questId }) => { questExecutionQueueState.removeByQuestId({ questId }); },
  *   updateEntryStatus: ({ questId, status }) => { questExecutionQueueState.updateEntryStatus({ questId, status }); },
  * });
@@ -14,44 +14,45 @@
  * WHEN-TO-USE: Wired once from the execution-queue flow at module load.
  * WHEN-NOT-TO-USE: Not per-request — this is a process-lifetime subscription.
  *
- * WHY subscribe/unsubscribe/loadQuestStatus/removeByQuestId/updateEntryStatus are injected:
- * brokers/ cannot import state/. The caller (a bootstrap responder) wires the real event bus
- * and state-backed callbacks.
+ * WHY install/loadQuest/removeByQuestId/updateEntryStatus are injected:
+ * brokers/ cannot import state/. The caller (a bootstrap responder) wires the real event
+ * source (outbox watcher) and state-backed callbacks.
+ *
+ * WHY the outbox watcher is the event source: `quest-modified` is emitted through the
+ * file outbox (via questPersistBroker), not on the in-memory `orchestrationEventsState`
+ * bus — subscribing to the in-memory bus would never see the terminal-status writes the
+ * orchestration loop persists. The outbox watcher fires `onQuestChanged({questId})` on
+ * every quest-persist line, which is what this listener needs.
  */
 
-import type { ProcessId, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
 
 import { createSyncHandlerLayerBroker } from './create-sync-handler-layer-broker';
 
-type QuestModifiedHandler = (event: {
-  processId: ProcessId;
-  payload: { questId?: unknown };
-}) => void;
+type QuestChangedHandler = (args: { questId: QuestId }) => void;
 
-export const questQueueSyncListenerBroker = ({
-  subscribe,
-  unsubscribe,
-  loadQuestStatus,
+export const questQueueSyncListenerBroker = async ({
+  install,
+  loadQuest,
   removeByQuestId,
   updateEntryStatus,
 }: {
-  subscribe: (handler: QuestModifiedHandler) => void;
-  unsubscribe: (handler: QuestModifiedHandler) => void;
-  loadQuestStatus: ({ questId }: { questId: QuestId }) => Promise<QuestStatus | undefined>;
+  install: (onQuestChanged: QuestChangedHandler) => Promise<{ stop: () => void }>;
+  loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
   removeByQuestId: ({ questId }: { questId: QuestId }) => void;
   updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
-}): { stop: () => void } => {
+}): Promise<{ stop: () => void }> => {
   const handler = createSyncHandlerLayerBroker({
-    loadQuestStatus,
+    loadQuest,
     removeByQuestId,
     updateEntryStatus,
   });
 
-  subscribe(handler);
+  const { stop } = await install(handler);
 
   return {
     stop: (): void => {
-      unsubscribe(handler);
+      stop();
     },
   };
 };

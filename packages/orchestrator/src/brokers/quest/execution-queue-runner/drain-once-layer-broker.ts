@@ -19,11 +19,14 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
+import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
+
 export const drainOnceLayerBroker = async ({
   getHead,
   dequeueHead,
   markHeadStarted,
   setHeadError,
+  removeByQuestId,
   isWebPresent,
   runOrchestrationLoop,
   getQuestStatus,
@@ -34,6 +37,7 @@ export const drainOnceLayerBroker = async ({
   dequeueHead: () => QuestQueueEntry | undefined;
   markHeadStarted: () => void;
   setHeadError: ({ message }: { message: string }) => void;
+  removeByQuestId: ({ questId }: { questId: QuestQueueEntry['questId'] }) => void;
   isWebPresent: () => boolean;
   runOrchestrationLoop: ({
     questId,
@@ -77,6 +81,7 @@ export const drainOnceLayerBroker = async ({
       dequeueHead,
       markHeadStarted,
       setHeadError,
+      removeByQuestId,
       isWebPresent,
       runOrchestrationLoop,
       getQuestStatus,
@@ -101,6 +106,23 @@ export const drainOnceLayerBroker = async ({
   try {
     await runOrchestrationLoop({ questId: head.questId, guildId: head.guildId });
   } catch (error: unknown) {
+    if (isQuestNotFoundErrorGuard({ error })) {
+      removeByQuestId({ questId: head.questId });
+      emitQueueUpdated();
+      await drainOnceLayerBroker({
+        getHead,
+        dequeueHead,
+        markHeadStarted,
+        setHeadError,
+        removeByQuestId,
+        isWebPresent,
+        runOrchestrationLoop,
+        getQuestStatus,
+        emitQueueUpdated,
+        emitQueueError,
+      });
+      return ok;
+    }
     const message = error instanceof Error ? error.message : String(error);
     setHeadError({ message });
     emitQueueError({ message });
@@ -118,6 +140,7 @@ export const drainOnceLayerBroker = async ({
       dequeueHead,
       markHeadStarted,
       setHeadError,
+      removeByQuestId,
       isWebPresent,
       runOrchestrationLoop,
       getQuestStatus,

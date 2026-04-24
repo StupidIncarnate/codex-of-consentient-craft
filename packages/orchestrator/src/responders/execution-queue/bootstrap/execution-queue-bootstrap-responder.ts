@@ -56,6 +56,9 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
     setHeadError: ({ message }: { message: string }): void => {
       questExecutionQueueState.setHeadError({ message });
     },
+    removeByQuestId: ({ questId }: { questId: QuestQueueEntry['questId'] }): void => {
+      questExecutionQueueState.removeByQuestId({ questId });
+    },
     onQueueChange: ({ handler }: { handler: () => void }): void => {
       questExecutionQueueState.onChange(handler);
     },

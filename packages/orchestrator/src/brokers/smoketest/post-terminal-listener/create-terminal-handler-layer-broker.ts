@@ -40,5 +40,14 @@ export const createTerminalHandlerLayerBroker =
       process.stderr.write(
         `[smoketestPostTerminalListenerBroker] handler failed for quest ${questId}: ${String(error)}\n`,
       );
+      // Defensive unregister: if the assertion/persist path threw for any reason
+      // (not the quest-not-found case, which the inner broker already handles), we
+      // still need to drain the listener so the bootstrap responder's unregister
+      // callback can clear the active-run flag. Otherwise one unhandled rejection
+      // leaves the suite stuck and every subsequent POST /smoketest/run returns 409.
+      if (entry.stopDriver !== undefined) {
+        entry.stopDriver();
+      }
+      unregisterListener({ questId });
     });
   };

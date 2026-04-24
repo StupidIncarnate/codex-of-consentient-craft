@@ -14,6 +14,7 @@
  */
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { processTerminalEventLayerBroker } from './process-terminal-event-layer-broker';
@@ -31,10 +32,11 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupSucceeds: () => void;
   setupRejects: (params: { error: Error }) => void;
   setupPassthrough: () => void;
+  setupQuestDeleted: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
   getCallArgs: () => readonly unknown[][];
 } => {
   pathJoinAdapterProxy();
-  questFindQuestPathBrokerProxy();
+  const findProxy = questFindQuestPathBrokerProxy();
   questLoadBrokerProxy();
   questPersistBrokerProxy();
   questWithModifyLockBrokerProxy();
@@ -64,6 +66,20 @@ export const processTerminalEventLayerBrokerProxy = (): {
         'processTerminalEventLayerBroker',
       ) as typeof processTerminalEventLayerBroker;
       mocked.mockImplementation(realImpl);
+    },
+    setupQuestDeleted: ({
+      homeDir,
+      homePath,
+      guildsDir,
+    }: {
+      homeDir: string;
+      homePath: FilePath;
+      guildsDir: FilePath;
+    }): void => {
+      // Simulates the "quest was deleted between the outbox event firing and this handler
+      // running" case — `questFindQuestPathBroker` throws "not found in any guild" when no
+      // guild dirs exist on disk.
+      findProxy.setupNoGuilds({ homeDir, homePath, guildsDir });
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
   };

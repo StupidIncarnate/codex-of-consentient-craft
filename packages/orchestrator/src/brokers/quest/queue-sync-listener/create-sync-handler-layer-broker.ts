@@ -1,33 +1,30 @@
 /**
- * PURPOSE: Creates the `quest-modified` event handler used by questQueueSyncListenerBroker
+ * PURPOSE: Creates the quest-changed handler used by questQueueSyncListenerBroker
  *
  * USAGE:
- * const handler = createSyncHandlerLayerBroker({ loadQuestStatus, removeByQuestId, updateEntryStatus });
- * // Returns a handler that on every matching event delegates to processSyncEventLayerBroker.
+ * const handler = createSyncHandlerLayerBroker({ loadQuest, removeByQuestId, updateEntryStatus });
+ * handler({ questId });
+ * // On every invocation delegates to processSyncEventLayerBroker with the injected callbacks.
  */
 
-import type { ProcessId, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
 
 import { processSyncEventLayerBroker } from './process-sync-event-layer-broker';
 
 export const createSyncHandlerLayerBroker =
   ({
-    loadQuestStatus,
+    loadQuest,
     removeByQuestId,
     updateEntryStatus,
   }: {
-    loadQuestStatus: ({ questId }: { questId: QuestId }) => Promise<QuestStatus | undefined>;
+    loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
     removeByQuestId: ({ questId }: { questId: QuestId }) => void;
     updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
-  }): ((event: { processId: ProcessId; payload: { questId?: unknown } }) => void) =>
-  (event): void => {
-    const rawQuestId: unknown = event.payload.questId;
-    if (typeof rawQuestId !== 'string') return;
-    const questId = rawQuestId as QuestId;
-
+  }): (({ questId }: { questId: QuestId }) => void) =>
+  ({ questId }): void => {
     processSyncEventLayerBroker({
       questId,
-      loadQuestStatus,
+      loadQuest,
       removeByQuestId,
       updateEntryStatus,
     }).catch((error: unknown) => {

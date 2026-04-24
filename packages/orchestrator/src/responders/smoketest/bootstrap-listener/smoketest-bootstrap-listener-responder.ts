@@ -15,8 +15,8 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { smoketestPostTerminalListenerBroker } from '../../../brokers/smoketest/post-terminal-listener/smoketest-post-terminal-listener-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
-import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
+import { DrainListenerLayerResponder } from './drain-listener-layer-responder';
 
 type QuestModifiedHandler = Parameters<
   Parameters<typeof smoketestPostTerminalListenerBroker>[0]['subscribe']
@@ -39,16 +39,12 @@ export const SmoketestBootstrapListenerResponder = (): AdapterResult => {
       orchestrationEventsState.off({ type: 'quest-modified', handler });
     },
     getListenerEntry: ({ questId }) => smoketestListenerState.get({ questId }),
-    unregisterListener: ({ questId }) => {
-      smoketestListenerState.unregister({ questId });
-      smoketestScenarioMetaState.unregister({ questId });
-      // When the last smoketest quest drains from the listener registry, clear the
-      // active-run flag so a fresh POST /api/tooling/smoketest/run can kick off a new
-      // suite. Matches the responder's "state stays active across the async queue run"
-      // contract.
-      if (smoketestListenerState.getAllQuestIds().length === 0) {
-        smoketestRunState.end();
-      }
+    unregisterListener: ({ questId }): void => {
+      // Delegates to a layer responder so the "drain + clear active flag when empty"
+      // behavior is unit-testable in isolation. When the last smoketest quest drains
+      // from the listener registry, the layer clears the active-run flag so a fresh
+      // POST /api/tooling/smoketest/run can kick off a new suite.
+      DrainListenerLayerResponder({ questId });
     },
     getScenarioMeta: ({ questId }) => smoketestScenarioMetaState.get({ questId }),
   });

@@ -170,5 +170,64 @@ describe('createTerminalHandlerLayerBroker', () => {
 
       expect(stderrCapture.wroteRejectionLog()).toBe(true);
     });
+
+    it('VALID: {dispatched broker rejects with entry.stopDriver present} => catch block stops driver and unregisters (defensive drain)', async () => {
+      const proxy = createTerminalHandlerLayerBrokerProxy();
+      proxy.setupProcessRejects({ error: new Error('unexpected') });
+      proxy.silenceStderrAndCaptureLogs();
+      const stopDriver = jest.fn();
+      const entry = SmoketestListenerEntryStub({ stopDriver });
+      const meta = SmoketestScenarioMetaStub();
+      const getListenerEntry = jest.fn().mockReturnValue(entry);
+      const getScenarioMeta = jest.fn().mockReturnValue(meta);
+      const unregisterListener = jest.fn();
+      const questId = QuestIdStub({ value: 'q-defensive-unregister' });
+
+      const handler = createTerminalHandlerLayerBroker({
+        getListenerEntry,
+        unregisterListener,
+        getScenarioMeta,
+      });
+
+      handler({
+        processId: ProcessIdStub({ value: 'proc-defensive' }),
+        payload: { questId },
+      });
+
+      // Allow microtasks to flush so the .catch fires.
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(stopDriver.mock.calls).toStrictEqual([[]]);
+      expect(unregisterListener.mock.calls).toStrictEqual([[{ questId }]]);
+    });
+
+    it('VALID: {dispatched broker rejects with entry.stopDriver undefined} => catch block still unregisters (no crash on missing stopDriver)', async () => {
+      const proxy = createTerminalHandlerLayerBrokerProxy();
+      proxy.setupProcessRejects({ error: new Error('unexpected') });
+      proxy.silenceStderrAndCaptureLogs();
+      const entry = SmoketestListenerEntryStub();
+      const meta = SmoketestScenarioMetaStub();
+      const getListenerEntry = jest.fn().mockReturnValue(entry);
+      const getScenarioMeta = jest.fn().mockReturnValue(meta);
+      const unregisterListener = jest.fn();
+      const questId = QuestIdStub({ value: 'q-defensive-no-driver' });
+
+      const handler = createTerminalHandlerLayerBroker({
+        getListenerEntry,
+        unregisterListener,
+        getScenarioMeta,
+      });
+
+      handler({
+        processId: ProcessIdStub({ value: 'proc-defensive-no-driver' }),
+        payload: { questId },
+      });
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(unregisterListener.mock.calls).toStrictEqual([[{ questId }]]);
+    });
   });
 });
