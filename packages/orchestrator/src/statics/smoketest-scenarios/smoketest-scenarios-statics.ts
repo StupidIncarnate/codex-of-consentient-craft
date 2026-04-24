@@ -5,7 +5,7 @@
  * smoketestScenariosStatics.orchHappyPath;
  * // Returns the SmoketestScenario literal for the happy-path case (validated against the contract via the colocated test)
  *
- * WHEN-TO-USE: Consumed by smoketestRunOrchestrationCaseBroker (Phase 5) to drive each scenario end-to-end through the real orchestration loop.
+ * WHEN-TO-USE: Consumed by smoketestRunCaseBroker to drive each scenario end-to-end through the real orchestration loop.
  * WHEN-NOT-TO-USE: MCP / Signals suites that do not exercise the work-item loop.
  *
  * NOTE: Scenario values are literal — statics/ cannot import the zod contract. The colocated test parses every scenario through `smoketestScenarioContract` so drift surfaces immediately.

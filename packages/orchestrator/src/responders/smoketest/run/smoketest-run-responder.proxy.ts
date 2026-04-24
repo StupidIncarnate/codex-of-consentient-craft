@@ -3,8 +3,7 @@ import type { Dirent } from 'fs';
 
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
 import { smoketestEnsureGuildBrokerProxy } from '../../../brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy';
-import { smoketestRunOrchestrationCaseBrokerProxy } from '../../../brokers/smoketest/run-orchestration-case/smoketest-run-orchestration-case-broker.proxy';
-import { smoketestRunSingleAgentCaseBrokerProxy } from '../../../brokers/smoketest/run-single-agent-case/smoketest-run-single-agent-case-broker.proxy';
+import { smoketestRunCaseBrokerProxy } from '../../../brokers/smoketest/run-case/smoketest-run-case-broker.proxy';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { smoketestRunStateProxy } from '../../../state/smoketest-run/smoketest-run-state.proxy';
@@ -26,8 +25,7 @@ export const SmoketestRunResponderProxy = (): {
     name: string;
   }) => GuildListItem | undefined;
 } => {
-  smoketestRunSingleAgentCaseBrokerProxy();
-  smoketestRunOrchestrationCaseBrokerProxy();
+  smoketestRunCaseBrokerProxy();
   const ensureGuildProxy = smoketestEnsureGuildBrokerProxy();
   questOrchestrationLoopBrokerProxy();
   orchestrationEventsStateProxy();

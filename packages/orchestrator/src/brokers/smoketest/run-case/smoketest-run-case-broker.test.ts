@@ -9,8 +9,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { SmoketestScenarioStub } from '../../../contracts/smoketest-scenario/smoketest-scenario.stub';
-import { smoketestRunOrchestrationCaseBroker } from './smoketest-run-orchestration-case-broker';
-import { smoketestRunOrchestrationCaseBrokerProxy } from './smoketest-run-orchestration-case-broker.proxy';
+import { smoketestRunCaseBroker } from './smoketest-run-case-broker';
+import { smoketestRunCaseBrokerProxy } from './smoketest-run-case-broker.proxy';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 type Role = ReturnType<typeof WorkItemRoleStub>;
@@ -43,13 +43,13 @@ const unreachableStartQuest = async (): Promise<ProcessId> =>
 
 const WI_PROBE = QuestWorkItemIdStub({ value: 'dddddddd-dddd-dddd-dddd-dddddddddd01' });
 
-describe('smoketestRunOrchestrationCaseBroker', () => {
+describe('smoketestRunCaseBroker', () => {
   describe('hydration failure', () => {
     it('ERROR: {questHydrateBroker throws} => returns passed=false with errorMessage', async () => {
-      smoketestRunOrchestrationCaseBrokerProxy();
+      smoketestRunCaseBrokerProxy();
       const scenario = SmoketestScenarioStub();
 
-      const result = await smoketestRunOrchestrationCaseBroker({
+      const result = await smoketestRunCaseBroker({
         scenario,
         guildId: GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
         startPath: FilePathStub({ value: '/tmp/smoketest-start' }),
@@ -78,10 +78,10 @@ describe('smoketestRunOrchestrationCaseBroker', () => {
 
   describe('cleanup on error path', () => {
     it('ERROR: {hydrate fails before driver starts} => does not leave a subscribed handler on the event bus', async () => {
-      const proxy = smoketestRunOrchestrationCaseBrokerProxy();
+      const proxy = smoketestRunCaseBrokerProxy();
       const scenario = SmoketestScenarioStub();
 
-      await smoketestRunOrchestrationCaseBroker({
+      await smoketestRunCaseBroker({
         scenario,
         guildId: GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
         startPath: FilePathStub({ value: '/tmp/smoketest-start' }),
@@ -100,12 +100,12 @@ describe('smoketestRunOrchestrationCaseBroker', () => {
 
   describe('register / unregister are wired', () => {
     it('ERROR: {hydrate fails before register} => neither register nor unregister is called', async () => {
-      smoketestRunOrchestrationCaseBrokerProxy();
+      smoketestRunCaseBrokerProxy();
       const scenario = SmoketestScenarioStub();
       const registerCalls: QuestId[] = [];
       const unregisterCalls: QuestId[] = [];
 
-      await smoketestRunOrchestrationCaseBroker({
+      await smoketestRunCaseBroker({
         scenario,
         guildId: GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
         startPath: FilePathStub({ value: '/tmp/smoketest-start' }),

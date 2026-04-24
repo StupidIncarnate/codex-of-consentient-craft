@@ -14,7 +14,7 @@ type QuestModifiedHandler = (event: {
   payload: { questId?: unknown };
 }) => void;
 
-export const smoketestRunOrchestrationCaseBrokerProxy = (): {
+export const smoketestRunCaseBrokerProxy = (): {
   subscribe: (handler: QuestModifiedHandler) => void;
   unsubscribe: (handler: QuestModifiedHandler) => void;
   emitQuestModified: (payload: { questId?: unknown }) => void;

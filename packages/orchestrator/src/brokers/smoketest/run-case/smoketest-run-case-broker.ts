@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Drives a single orchestration smoketest scenario end-to-end — hydrates quest, registers scripts, starts scenario driver, kicks the orchestration loop, polls for terminal, runs assertions + optional teardown checks, and cleans up
+ * PURPOSE: Drives a single smoketest scenario end-to-end — hydrates quest, registers scripts, starts scenario driver, kicks the orchestration loop, polls for terminal, runs assertions + optional teardown checks, and cleans up
  *
  * USAGE:
- * const result = await smoketestRunOrchestrationCaseBroker({
+ * const result = await smoketestRunCaseBroker({
  *   scenario,
  *   guildId,
  *   startPath,
@@ -16,9 +16,10 @@
  * });
  * // Returns: SmoketestCaseResult { caseId, name, passed, durationMs, ... }
  *
- * WHEN-TO-USE: SmoketestRunResponder's orchestration suite dispatch — one call per scenario in smoketestScenariosStatics.
- * The responder must first ensure the smoketest guild exists via smoketestEnsureGuildBroker and pass its returned guildId.
- * WHEN-NOT-TO-USE: MCP / Signals suites — those go through smoketestRunSingleAgentCaseBroker.
+ * WHEN-TO-USE: SmoketestRunResponder's suite dispatch — one call per scenario. Scenario scripts may be empty
+ * (MCP/Signals suites pre-stamp prompt overrides at hydrate time via the blueprint), in which case the scenario
+ * driver's dispense callback simply returns null and no stamping occurs. The responder must first ensure the
+ * smoketest guild exists via smoketestEnsureGuildBroker and pass its returned guildId.
  *
  * WHY subscribe/unsubscribe/dispense/register/unregister/startQuest are injected:
  * brokers/ cannot import state/ or responders/. The caller (a responder that CAN import both) wires the real event
@@ -54,7 +55,7 @@ type QuestModifiedHandler = (event: {
 
 type ScriptsMap = Readonly<Partial<Record<WorkItemRole, readonly SmoketestPromptName[]>>>;
 
-export const smoketestRunOrchestrationCaseBroker = async ({
+export const smoketestRunCaseBroker = async ({
   scenario,
   guildId,
   startPath,

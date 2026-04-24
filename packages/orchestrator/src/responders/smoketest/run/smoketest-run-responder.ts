@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Executes a smoketest suite in-process — MCP / Signals cases run a single Claude agent; Orchestration cases drive a full scripted scenario through the real orchestration loop
+ * PURPOSE: Executes a smoketest suite in-process — Orchestration cases drive a full scripted scenario through the real orchestration loop; MCP / Signals suites are temporarily inert (Phase 7 will enqueue them through the quest queue)
  *
  * USAGE:
  * const result = await SmoketestRunResponder({ suite, startPath });
@@ -18,18 +18,15 @@ import type {
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
 
-import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import {
   smoketestScenarioContract,
   type SmoketestScenario,
 } from '../../../contracts/smoketest-scenario/smoketest-scenario-contract';
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
-import { smoketestPromptsStatics } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { smoketestStatics } from '../../../statics/smoketest/smoketest-statics';
 import { smoketestEnsureGuildBroker } from '../../../brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker';
-import { smoketestRunOrchestrationCaseBroker } from '../../../brokers/smoketest/run-orchestration-case/smoketest-run-orchestration-case-broker';
-import { smoketestRunSingleAgentCaseBroker } from '../../../brokers/smoketest/run-single-agent-case/smoketest-run-single-agent-case-broker';
+import { smoketestRunCaseBroker } from '../../../brokers/smoketest/run-case/smoketest-run-case-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
 import { smoketestScenarioState } from '../../../state/smoketest-scenario/smoketest-scenario-state';
@@ -64,15 +61,10 @@ export const SmoketestRunResponder = async ({
       smoketestStatics.orchestrationCaseTimeoutMs,
     );
 
-    const singleAgentCases =
-      suite === 'mcp'
-        ? smoketestCaseCatalogStatics.mcp
-        : suite === 'signals'
-          ? smoketestCaseCatalogStatics.signals
-          : suite === 'all'
-            ? [...smoketestCaseCatalogStatics.mcp, ...smoketestCaseCatalogStatics.signals]
-            : [];
-
+    // Phase 7 rewrites this responder to bundle MCP/Signals case catalogs into one blueprint per
+    // suite via caseCatalogToBlueprintTransformer and enqueue them on the quest execution queue.
+    // Until that lands, MCP/Signals suites are inert — no cases run, no results are produced.
+    // Orchestration suite still runs end-to-end through smoketestRunCaseBroker.
     const orchestrationCases: readonly SmoketestScenario[] =
       suite === 'orchestration' || suite === 'all'
         ? smoketestCaseCatalogStatics.orchestration.map((scenario) =>
@@ -80,7 +72,7 @@ export const SmoketestRunResponder = async ({
           )
         : [];
 
-    const totalCases = singleAgentCases.length + orchestrationCases.length;
+    const totalCases = orchestrationCases.length;
 
     orchestrationEventsState.emit({
       type: 'smoketest-progress',
@@ -88,45 +80,7 @@ export const SmoketestRunResponder = async ({
       payload: { runId, suite, phase: 'started', total: totalCases },
     });
 
-    const singleResults = await singleAgentCases.reduce<Promise<readonly SmoketestCaseResult[]>>(
-      async (prevPromise, caseDef) => {
-        const prevResults = await prevPromise;
-
-        orchestrationEventsState.emit({
-          type: 'smoketest-progress',
-          processId,
-          payload: {
-            runId,
-            suite,
-            phase: 'case-started',
-            caseId: caseDef.caseId,
-            name: caseDef.name,
-          },
-        });
-
-        const prompt = promptTextContract.parse(
-          Reflect.get(smoketestPromptsStatics, caseDef.promptKey),
-        );
-        const result = await smoketestRunSingleAgentCaseBroker({
-          caseId: caseDef.caseId,
-          name: caseDef.name,
-          prompt,
-          expectedSignal: caseDef.expectedSignal,
-          startPath: resolvedStartPath,
-        });
-
-        smoketestRunState.appendEvent({ event: result });
-
-        orchestrationEventsState.emit({
-          type: 'smoketest-progress',
-          processId,
-          payload: { runId, suite, phase: 'case-complete', caseResult: result },
-        });
-
-        return [...prevResults, result];
-      },
-      Promise.resolve([]),
-    );
+    const singleResults: readonly SmoketestCaseResult[] = [];
 
     // Ensure the smoketest guild exists before dispatching any orchestration case. The hydrator,
     // quest-modify, and orchestration-loop all expect the guildId to resolve to a real guild in
@@ -158,7 +112,7 @@ export const SmoketestRunResponder = async ({
           },
         });
 
-        const result = await smoketestRunOrchestrationCaseBroker({
+        const result = await smoketestRunCaseBroker({
           scenario,
           guildId: ensuredGuildId,
           startPath: resolvedStartPath,

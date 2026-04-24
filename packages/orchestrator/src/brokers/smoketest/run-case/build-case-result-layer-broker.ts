@@ -13,7 +13,7 @@
  * // When the case passed because all workItems are terminal (but quest.status is not itself in {complete, blocked,
  * // abandoned}), the summary gets a `(workItems-terminal)` suffix so the drawer makes that visible.
  *
- * WHEN-TO-USE: Called once by smoketestRunOrchestrationCaseBroker after the assertion + teardown brokers report.
+ * WHEN-TO-USE: Called once by smoketestRunCaseBroker after the assertion + teardown brokers report.
  * WHEN-NOT-TO-USE: Error paths. The parent broker hands errors directly to the contract parser.
  */
 

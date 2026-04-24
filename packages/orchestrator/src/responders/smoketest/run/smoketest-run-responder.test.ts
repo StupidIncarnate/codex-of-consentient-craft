@@ -76,7 +76,7 @@ describe('SmoketestRunResponder', () => {
       startPath: FilePathStub({ value: '/tmp/smoketest-start' }),
     });
 
-    // Every orchestration case goes through the mocked run-orchestration-case-broker proxy, which
+    // Every orchestration case goes through the mocked run-case-broker proxy, which
     // returns undefined. If ensure-guild had NOT been called before dispatch, the responder would
     // have thrown when the real guildListBroker hit disk. Surviving with at least one result proves
     // the ensure-guild call happened on the dispatch path before the case loop ran.
