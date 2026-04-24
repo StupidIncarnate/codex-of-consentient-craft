@@ -26,21 +26,11 @@ export const statusLiteralStatics = {
   statusHolderIdentifierSuffixPattern: 'Quest$|Item$',
   // Path substrings that place a file outside the rule's enforcement scope (legitimate status-literal readers).
   allowlistPathSubstrings: [
-    '/packages/shared/src/statics/quest-status-metadata/',
-    '/packages/shared/src/statics/work-item-status-metadata/',
+    // State-machine transition table: `created: ['explore_flows', 'paused']` — array-as-property triggers inlineStatusSet.
     '/packages/shared/src/statics/quest-status-transitions/',
-    '/packages/shared/src/contracts/quest-status/',
-    '/packages/shared/src/contracts/work-item-status/',
-    '/packages/shared/src/contracts/quest-status-metadata/',
-    '/packages/shared/src/contracts/work-item-status-metadata/',
-    '/packages/shared/src/contracts/display-header/',
-    '/packages/shared/src/transformers/next-approval-quest-status/',
-    '/packages/shared/src/transformers/display-header-quest-status/',
-    '/packages/orchestrator/src/statics/quest-status-transitions/',
-    // Plan per-site table (line 215): case-dispatch on nextStatus from explicit source status — not a membership read.
+    // Branch dispatch on (nextStatus, quest.status) pairs to call distinct validator pipelines per transition.
     '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
-    // Hydrator strategy: mirrors the status machine's linear walk from created to in_progress; must
-    // reference each status literal explicitly to drive per-transition modify-quest payloads.
+    // Per-status hydrate-strategy table; `walkPath` is a `[...] as const` array of every walked status literal.
     '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
   ],
   // Path regex fragments — guard matches filenames ending in these forms.

@@ -10,7 +10,7 @@ const productionFixture =
 const allowlistedTestFixture =
   '/repo/packages/local-eslint/src/fixtures/ban-quest-status-literals/sample.test.ts';
 const allowlistedMetadataFixture =
-  '/repo/packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts';
+  '/repo/packages/shared/src/statics/quest-status-transitions/quest-status-transitions-statics.ts';
 const allowlistedGuardFixture =
   '/repo/packages/shared/src/guards/is-terminal-quest-status/is-terminal-quest-status-guard.ts';
 const promptStaticsFixture =

@@ -11,19 +11,11 @@ describe('isStatusComparisonAllowlistedGuard', () => {
     });
   });
 
-  describe('allowlisted shared metadata/contract paths', () => {
+  describe('allowlisted state-machine table / branch-dispatch paths', () => {
     it.each([
-      '/repo/packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts',
-      '/repo/packages/shared/src/statics/work-item-status-metadata/work-item-status-metadata-statics.ts',
       '/repo/packages/shared/src/statics/quest-status-transitions/quest-status-transitions-statics.ts',
-      '/repo/packages/shared/src/contracts/quest-status/quest-status-contract.ts',
-      '/repo/packages/shared/src/contracts/work-item-status/work-item-status-contract.ts',
-      '/repo/packages/shared/src/contracts/quest-status-metadata/quest-status-metadata-contract.ts',
-      '/repo/packages/shared/src/contracts/work-item-status-metadata/work-item-status-metadata-contract.ts',
-      '/repo/packages/shared/src/contracts/display-header/display-header-contract.ts',
-      '/repo/packages/shared/src/transformers/next-approval-quest-status/next-approval-quest-status-transformer.ts',
-      '/repo/packages/shared/src/transformers/display-header-quest-status/display-header-quest-status-transformer.ts',
-      '/repo/packages/orchestrator/src/statics/quest-status-transitions/quest-status-transitions-statics.ts',
+      '/repo/packages/orchestrator/src/transformers/quest-completeness-for-transition/quest-completeness-for-transition-transformer.ts',
+      '/repo/packages/orchestrator/src/statics/quest-hydrate-strategy/quest-hydrate-strategy-statics.ts',
     ] as const)('VALID: {filename: %s} => returns true', (filename) => {
       expect(isStatusComparisonAllowlistedGuard({ filename })).toBe(true);
     });
@@ -86,6 +78,18 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/web/src/guards/is-design-tab-visible/is-design-tab-visible-guard.ts',
       '/repo/packages/web/src/guards/is-design-start-visible/is-design-start-visible-guard.ts',
       '/repo/packages/server/src/responders/design/start/design-start-responder.ts',
+      // Metadata/contract files contain only object-property values, z.enum, or z.object — no syntactic
+      // pattern the rule fires on — so they need no path allowlist; the AST shape itself keeps them safe.
+      '/repo/packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts',
+      '/repo/packages/shared/src/statics/work-item-status-metadata/work-item-status-metadata-statics.ts',
+      '/repo/packages/shared/src/contracts/quest-status/quest-status-contract.ts',
+      '/repo/packages/shared/src/contracts/work-item-status/work-item-status-contract.ts',
+      '/repo/packages/shared/src/contracts/quest-status-metadata/quest-status-metadata-contract.ts',
+      '/repo/packages/shared/src/contracts/work-item-status-metadata/work-item-status-metadata-contract.ts',
+      '/repo/packages/shared/src/contracts/display-header/display-header-contract.ts',
+      // Pure metadata-table lookups: `metadata.statuses[status].field` — no literal comparison.
+      '/repo/packages/shared/src/transformers/next-approval-quest-status/next-approval-quest-status-transformer.ts',
+      '/repo/packages/shared/src/transformers/display-header-quest-status/display-header-quest-status-transformer.ts',
     ] as const)('EMPTY: {filename: %s} => returns false', (filename) => {
       expect(isStatusComparisonAllowlistedGuard({ filename })).toBe(false);
     });
@@ -96,7 +100,7 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       expect(
         isStatusComparisonAllowlistedGuard({
           filename:
-            'C:\\repo\\packages\\shared\\src\\contracts\\quest-status\\quest-status-contract.ts',
+            'C:\\repo\\packages\\shared\\src\\statics\\quest-status-transitions\\quest-status-transitions-statics.ts',
         }),
       ).toBe(true);
     });

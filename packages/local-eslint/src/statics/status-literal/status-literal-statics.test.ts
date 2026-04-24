@@ -59,17 +59,7 @@ describe('statusLiteralStatics', () => {
   describe('allowlistPathSubstrings', () => {
     it('VALID: allowlistPathSubstrings => equals the exhaustive list in declared order', () => {
       expect(statusLiteralStatics.allowlistPathSubstrings).toStrictEqual([
-        '/packages/shared/src/statics/quest-status-metadata/',
-        '/packages/shared/src/statics/work-item-status-metadata/',
         '/packages/shared/src/statics/quest-status-transitions/',
-        '/packages/shared/src/contracts/quest-status/',
-        '/packages/shared/src/contracts/work-item-status/',
-        '/packages/shared/src/contracts/quest-status-metadata/',
-        '/packages/shared/src/contracts/work-item-status-metadata/',
-        '/packages/shared/src/contracts/display-header/',
-        '/packages/shared/src/transformers/next-approval-quest-status/',
-        '/packages/shared/src/transformers/display-header-quest-status/',
-        '/packages/orchestrator/src/statics/quest-status-transitions/',
         '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
         '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
       ]);
