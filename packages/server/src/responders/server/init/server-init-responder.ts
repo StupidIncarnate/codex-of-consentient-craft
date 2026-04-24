@@ -30,6 +30,7 @@ import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/loa
 import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
 import { orchestratorRecoverActiveQuestsAdapter } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter';
+import { orchestratorSetWebPresenceAdapter } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter';
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
@@ -54,8 +55,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     '/ws',
     upgradeWebSocket(() => ({
       onOpen: (_evt: unknown, ws: unknown) => {
+        const wasEmpty = clients.size === 0;
         clients.add(ws as WsClient);
         processDevLogAdapter({ message: 'WebSocket client connected' });
+        if (wasEmpty) {
+          orchestratorSetWebPresenceAdapter({ isPresent: true });
+        }
       },
       onMessage: (evt: unknown, _ws: unknown) => {
         try {
@@ -177,6 +182,9 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       onClose: (_evt: unknown, ws: unknown) => {
         clients.delete(ws as WsClient);
         processDevLogAdapter({ message: 'WebSocket client disconnected' });
+        if (clients.size === 0) {
+          orchestratorSetWebPresenceAdapter({ isPresent: false });
+        }
       },
     })),
   );

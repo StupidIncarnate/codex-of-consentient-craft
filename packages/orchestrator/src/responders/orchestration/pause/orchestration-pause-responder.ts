@@ -1,18 +1,16 @@
 /**
- * PURPOSE: Pauses a running quest by killing its orchestration process, resetting in_progress work items to pending, and setting quest status to paused
+ * PURPOSE: Pauses a running quest by delegating to questPauseBroker — looks up the quest's current status, then invokes the shared pause pipeline. Throws when the quest is missing or the pause persist fails.
  *
  * USAGE:
  * const result = await OrchestrationPauseResponder({ questId });
- * // Returns { paused: true } if quest was paused, { paused: false } if no running process found
+ * // Returns { paused: true } on success, throws when the quest is not found or the pause fails to persist.
  */
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
-
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
-import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
-import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
+import { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
 export const OrchestrationPauseResponder = async ({
@@ -20,37 +18,28 @@ export const OrchestrationPauseResponder = async ({
 }: {
   questId: QuestId;
 }): Promise<{ paused: boolean }> => {
-  const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
+  const getResult = await questGetBroker({
+    input: getQuestInputContract.parse({ questId }),
+  });
 
-  if (existingProcess) {
-    orchestrationProcessesState.kill({ processId: existingProcess.processId });
-  }
-
-  const input = getQuestInputContract.parse({ questId });
-  const result = await questGetBroker({ input });
-
-  if (!result.success || !result.quest) {
+  if (!getResult.success || getResult.quest === undefined) {
     throw new Error(`Quest not found: ${questId}`);
   }
 
-  const { quest } = result;
+  const { quest } = getResult;
 
-  const orphanedItems = quest.workItems
-    .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
-    .map((wi) => ({ id: wi.id, status: 'pending' as const }));
-
-  const modifyResult = await questModifyBroker({
-    input: {
-      questId,
-      status: 'paused',
-      pausedAtStatus: quest.status,
-      ...(orphanedItems.length > 0 ? { workItems: orphanedItems } : {}),
-    } as ModifyQuestInput,
+  const result = await questPauseBroker({
+    questId,
+    previousStatus: quest.status,
+    processControls: {
+      findByQuestId: orchestrationProcessesState.findByQuestId,
+      kill: orchestrationProcessesState.kill,
+    },
   });
 
-  if (!modifyResult.success) {
-    throw new Error(modifyResult.error ?? 'Failed to pause quest');
+  if (!result.paused) {
+    throw new Error(`Failed to pause quest: ${questId}`);
   }
 
-  return { paused: true };
+  return result;
 };

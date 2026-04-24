@@ -228,4 +228,7 @@ export const StartOrchestrator = {
 
   // Execution queue
   getExecutionQueue: (): readonly QuestQueueEntry[] => ExecutionQueueFlow.getAll(),
+
+  setWebPresence: ({ isPresent }: { isPresent: boolean }): AdapterResult =>
+    ExecutionQueueFlow.setWebPresence({ isPresent }),
 };

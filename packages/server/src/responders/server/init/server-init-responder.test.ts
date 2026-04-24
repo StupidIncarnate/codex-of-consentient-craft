@@ -318,4 +318,55 @@ describe('ServerInitResponder', () => {
       expect(sendMock.mock.calls).toStrictEqual([]);
     });
   });
+
+  describe('web presence hooks', () => {
+    it('VALID: {first connect} => invokes setWebPresence adapter with isPresent: true', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+
+      expect(proxy.getSetWebPresenceCalls()).toStrictEqual([{ isPresent: true }]);
+    });
+
+    it('VALID: {second connect while first still attached} => does NOT invoke setWebPresence again', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const clientA = WsClientStub();
+      const clientB = WsClientStub();
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
+
+      expect(proxy.getSetWebPresenceCalls()).toStrictEqual([{ isPresent: true }]);
+    });
+
+    it('VALID: {last disconnect} => invokes setWebPresence adapter with isPresent: false', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const client = WsClientStub();
+      proxy.simulateConnection({ client });
+      proxy.simulateDisconnect({ ws: client });
+
+      expect(proxy.getSetWebPresenceCalls()).toStrictEqual([
+        { isPresent: true },
+        { isPresent: false },
+      ]);
+    });
+
+    it('VALID: {one disconnect while another client remains} => does NOT invoke setWebPresence(false)', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const clientA = WsClientStub();
+      const clientB = WsClientStub();
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateConnection({ client: clientB });
+      proxy.simulateDisconnect({ ws: clientA });
+
+      expect(proxy.getSetWebPresenceCalls()).toStrictEqual([{ isPresent: true }]);
+    });
+  });
 });

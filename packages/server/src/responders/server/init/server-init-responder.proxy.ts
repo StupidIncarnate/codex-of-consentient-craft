@@ -27,6 +27,7 @@ registerModuleMock({
       recoverActiveQuests: jest.fn(),
       removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),
+      setWebPresence: jest.fn(),
       startChat: jest.fn(),
       startDesignChat: jest.fn(),
       startQuest: jest.fn(),
@@ -54,6 +55,7 @@ import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrato
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
 import { orchestratorRecoverActiveQuestsAdapterProxy } from '../../../adapters/orchestrator/recover-active-quests/orchestrator-recover-active-quests-adapter.proxy';
+import { orchestratorSetWebPresenceAdapterProxy } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
@@ -83,6 +85,7 @@ export const ServerInitResponderProxy = (): {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
     onError: ((args: { error: unknown }) => void) | undefined;
   };
+  getSetWebPresenceCalls: () => unknown[];
 } => {
   const dateSpy = registerSpyOn({
     object: Date.prototype,
@@ -98,6 +101,7 @@ export const ServerInitResponderProxy = (): {
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
   orchestratorRecoverActiveQuestsAdapterProxy();
+  const setWebPresenceProxy = orchestratorSetWebPresenceAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   const devLogProxy = processDevLogAdapterProxy();
   pathJoinAdapterProxy();
@@ -156,5 +160,6 @@ export const ServerInitResponderProxy = (): {
       devLogProxy.enableVerbose();
     },
     getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
+    getSetWebPresenceCalls: (): unknown[] => setWebPresenceProxy.getAllCalledArgs(),
   };
 };

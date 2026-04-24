@@ -3,8 +3,9 @@
  *
  * USAGE:
  * ExecutionQueueBootstrapResponder();
- * // Queue runner is now subscribed to queue changes. Enqueuing entries advances the queue
- * // through questOrchestrationLoopBroker calls per head. Phase 7 wires enqueue sites.
+ * // Queue runner is now subscribed to queue changes and to web-presence flips. On
+ * // presence true the runner drains the queue; on presence false the active head (if
+ * // pauseable) is sent through PauseActiveHeadLayerResponder.
  *
  * WHEN-TO-USE: Called once from StartOrchestrator module load.
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
@@ -17,17 +18,24 @@ import {
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestQueueEntry, QuestStatus } from '@dungeonmaster/shared/contracts';
+import { isQuestPauseableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { QuestExecutionQueueRunnerController } from '../../../contracts/quest-execution-queue-runner/quest-execution-queue-runner-contract';
 import { questExecutionQueueRunnerBroker } from '../../../brokers/quest/execution-queue-runner/quest-execution-queue-runner-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
+import { webPresenceState } from '../../../state/web-presence/web-presence-state';
+import { PauseActiveHeadLayerResponder } from './pause-active-head-layer-responder';
 
 const RUNNER_PROCESS_ID = processIdContract.parse('execution-queue-runner');
 
-const state: { runner: QuestExecutionQueueRunnerController | null } = {
+const state: {
+  runner: QuestExecutionQueueRunnerController | null;
+  presenceHandler: (({ isPresent }: { isPresent: boolean }) => void) | null;
+} = {
   runner: null,
+  presenceHandler: null,
 };
 
 export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
@@ -35,7 +43,7 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
     return adapterResultContract.parse({ success: true });
   }
 
-  state.runner = questExecutionQueueRunnerBroker({
+  const runner = questExecutionQueueRunnerBroker({
     getHead: (): QuestQueueEntry | undefined => questExecutionQueueState.getActive(),
     dequeueHead: (): QuestQueueEntry | undefined => questExecutionQueueState.dequeueHead(),
     markHeadStarted: (): void => {
@@ -50,9 +58,7 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
     offQueueChange: ({ handler }: { handler: () => void }): void => {
       questExecutionQueueState.offChange(handler);
     },
-    // Phase 6 wires real web-presence. Phase 5 keeps runner always-enabled so that
-    // any early enqueue surfaces via the error path rather than silently stalling.
-    isWebPresent: (): boolean => true,
+    isWebPresent: (): boolean => webPresenceState.getIsPresent(),
     runOrchestrationLoop: async (): Promise<void> =>
       Promise.reject(
         new Error(
@@ -89,6 +95,36 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
     },
   });
 
-  state.runner.start();
+  state.runner = runner;
+  runner.start();
+
+  state.presenceHandler = ({ isPresent }: { isPresent: boolean }): void => {
+    if (isPresent) {
+      runner.kick().catch((error: unknown) => {
+        process.stderr.write(
+          `[execution-queue-bootstrap] presence kick failed: ${String(error)}\n`,
+        );
+      });
+      return;
+    }
+    const head = questExecutionQueueState.getActive();
+    if (head === undefined) {
+      return;
+    }
+    if (!isQuestPauseableQuestStatusGuard({ status: head.status })) {
+      return;
+    }
+    PauseActiveHeadLayerResponder({
+      questId: head.questId,
+      guildId: head.guildId,
+      status: head.status,
+    }).catch((error: unknown) => {
+      process.stderr.write(
+        `[execution-queue-bootstrap] pause-on-presence-false failed: ${String(error)}\n`,
+      );
+    });
+  };
+  webPresenceState.onChange(state.presenceHandler);
+
   return adapterResultContract.parse({ success: true });
 };
