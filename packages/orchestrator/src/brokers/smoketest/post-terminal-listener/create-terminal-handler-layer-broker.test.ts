@@ -1,4 +1,4 @@
-import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SmoketestListenerEntryStub } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry.stub';
 import { SmoketestScenarioMetaStub } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta.stub';
@@ -7,7 +7,7 @@ import { createTerminalHandlerLayerBrokerProxy } from './create-terminal-handler
 
 describe('createTerminalHandlerLayerBroker', () => {
   describe('handler factory', () => {
-    it('VALID: {factory call} => returns a callable handler accepting (event)', () => {
+    it('VALID: {factory call} => returns a callable handler accepting ({questId})', () => {
       createTerminalHandlerLayerBrokerProxy();
 
       const handler = createTerminalHandlerLayerBroker({
@@ -23,48 +23,6 @@ describe('createTerminalHandlerLayerBroker', () => {
   });
 
   describe('handler dispatch', () => {
-    it('EMPTY: {payload.questId is a number, not a string} => no lookup callback fires', () => {
-      createTerminalHandlerLayerBrokerProxy();
-      const getListenerEntry = jest.fn().mockReturnValue(undefined);
-      const getScenarioMeta = jest.fn().mockReturnValue(undefined);
-      const unregisterListener = jest.fn();
-
-      const handler = createTerminalHandlerLayerBroker({
-        getListenerEntry,
-        unregisterListener,
-        getScenarioMeta,
-      });
-
-      handler({
-        processId: ProcessIdStub({ value: 'proc-bad-payload' }),
-        payload: { questId: 99 },
-      });
-
-      expect(getListenerEntry.mock.calls).toStrictEqual([]);
-      expect(getScenarioMeta.mock.calls).toStrictEqual([]);
-    });
-
-    it('EMPTY: {payload.questId omitted entirely} => no lookup callback fires', () => {
-      createTerminalHandlerLayerBrokerProxy();
-      const getListenerEntry = jest.fn().mockReturnValue(undefined);
-      const getScenarioMeta = jest.fn().mockReturnValue(undefined);
-      const unregisterListener = jest.fn();
-
-      const handler = createTerminalHandlerLayerBroker({
-        getListenerEntry,
-        unregisterListener,
-        getScenarioMeta,
-      });
-
-      handler({
-        processId: ProcessIdStub({ value: 'proc-no-questid' }),
-        payload: {},
-      });
-
-      expect(getListenerEntry.mock.calls).toStrictEqual([]);
-      expect(getScenarioMeta.mock.calls).toStrictEqual([]);
-    });
-
     it('EMPTY: {questId not in listener state} => scenario-meta lookup is skipped, no dispatch', () => {
       const proxy = createTerminalHandlerLayerBrokerProxy();
       const getListenerEntry = jest.fn().mockReturnValue(undefined);
@@ -78,10 +36,7 @@ describe('createTerminalHandlerLayerBroker', () => {
       });
       const questId = QuestIdStub({ value: 'q-not-listening' });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-not-listening' }),
-        payload: { questId },
-      });
+      handler({ questId });
 
       expect(getScenarioMeta.mock.calls).toStrictEqual([]);
       expect(proxy.getProcessCallArgs()).toStrictEqual([]);
@@ -101,10 +56,7 @@ describe('createTerminalHandlerLayerBroker', () => {
       });
       const questId = QuestIdStub({ value: 'q-no-meta' });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-no-meta' }),
-        payload: { questId },
-      });
+      handler({ questId });
 
       expect(proxy.getProcessCallArgs()).toStrictEqual([]);
     });
@@ -125,10 +77,7 @@ describe('createTerminalHandlerLayerBroker', () => {
       });
       const questId = QuestIdStub({ value: 'q-full-dispatch' });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-full-dispatch' }),
-        payload: { questId },
-      });
+      handler({ questId });
 
       const calls = proxy.getProcessCallArgs();
       const argShapes = calls.map((c) => c[0]);
@@ -159,10 +108,7 @@ describe('createTerminalHandlerLayerBroker', () => {
         getScenarioMeta,
       });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-rejects' }),
-        payload: { questId: QuestIdStub({ value: 'q-rejects' }) },
-      });
+      handler({ questId: QuestIdStub({ value: 'q-rejects' }) });
 
       // Allow microtasks to flush so the .catch fires.
       await Promise.resolve();
@@ -189,10 +135,7 @@ describe('createTerminalHandlerLayerBroker', () => {
         getScenarioMeta,
       });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-defensive' }),
-        payload: { questId },
-      });
+      handler({ questId });
 
       // Allow microtasks to flush so the .catch fires.
       await Promise.resolve();
@@ -219,10 +162,7 @@ describe('createTerminalHandlerLayerBroker', () => {
         getScenarioMeta,
       });
 
-      handler({
-        processId: ProcessIdStub({ value: 'proc-defensive-no-driver' }),
-        payload: { questId },
-      });
+      handler({ questId });
 
       await Promise.resolve();
       await Promise.resolve();
