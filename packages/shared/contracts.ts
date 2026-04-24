@@ -439,3 +439,7 @@ export * from './src/contracts/smoketest-case-result/smoketest-case-result.stub'
 // Smoketest Run ID Contracts
 export * from './src/contracts/smoketest-run-id/smoketest-run-id-contract';
 export * from './src/contracts/smoketest-run-id/smoketest-run-id.stub';
+
+// Quest Queue Entry Contracts
+export * from './src/contracts/quest-queue-entry/quest-queue-entry-contract';
+export * from './src/contracts/quest-queue-entry/quest-queue-entry.stub';

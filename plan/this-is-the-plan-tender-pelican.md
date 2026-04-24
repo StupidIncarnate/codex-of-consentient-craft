@@ -6,7 +6,7 @@
 - [x] Phase 2: Quest delete — new `questDeleteBroker` + `questDeleteResponder`
 - [x] Phase 3: Case-catalog → blueprint transformer + bundled MCP/Signals blueprints + `smoketestClearPriorQuestsBroker`
 - [x] Phase 4: Rename `brokers/smoketest/run-orchestration-case/` → `run-case/`; delete `brokers/smoketest/run-single-agent-case/`
-- [ ] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
+- [x] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
 - [ ] Phase 6: Web-presence state + server WS connect/disconnect hooks + set-web-presence adapter
 - [ ] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
 - [ ] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter

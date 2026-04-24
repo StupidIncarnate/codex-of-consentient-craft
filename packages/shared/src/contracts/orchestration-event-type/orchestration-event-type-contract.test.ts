@@ -25,6 +25,8 @@ describe('orchestrationEventTypeContract', () => {
     'quest-session-linked',
     'chat-session-started',
     'smoketest-progress',
+    'execution-queue-updated',
+    'execution-queue-error',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
     expect(orchestrationEventTypeContract.parse(type)).toBe(type);
   });

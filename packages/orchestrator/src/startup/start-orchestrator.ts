@@ -30,6 +30,7 @@ import type {
   Quest,
   QuestId,
   QuestListItem,
+  QuestQueueEntry,
   QuestStatus,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
@@ -43,11 +44,15 @@ import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
 import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
+import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
+
+// Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
+ExecutionQueueFlow.bootstrap();
 
 export const StartOrchestrator = {
   // Guild methods
@@ -220,4 +225,7 @@ export const StartOrchestrator = {
   > => SmoketestFlow.run({ suite, startPath }),
 
   getSmoketestState: (): ReturnType<typeof SmoketestFlow.getState> => SmoketestFlow.getState(),
+
+  // Execution queue
+  getExecutionQueue: (): readonly QuestQueueEntry[] => ExecutionQueueFlow.getAll(),
 };
