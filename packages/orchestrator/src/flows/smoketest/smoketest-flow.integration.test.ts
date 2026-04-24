@@ -2,8 +2,9 @@ import { SmoketestFlow } from './smoketest-flow';
 
 describe('SmoketestFlow', () => {
   describe('export', () => {
-    it('VALID: SmoketestFlow => exports run and getState', () => {
+    it('VALID: SmoketestFlow => exports bootstrap, run, and getState', () => {
       expect(SmoketestFlow).toStrictEqual({
+        bootstrap: expect.any(Function),
         run: expect.any(Function),
         getState: expect.any(Function),
       });

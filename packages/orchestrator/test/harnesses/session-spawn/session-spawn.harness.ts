@@ -9,6 +9,7 @@
 import { createInterface } from 'readline';
 import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
+import { ClaudeModelStub } from '../../../src/contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../src/contracts/prompt-text/prompt-text.stub';
 import { childProcessSpawnStreamJsonAdapter } from '../../../src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 
@@ -77,6 +78,7 @@ export const sessionSpawnHarness = (): {
             prompt,
             cwd: String(repoRoot),
             stdinMode: 'ignore',
+            model: ClaudeModelStub({ value: 'haiku' }),
           });
 
           const collected: PromptText[] = [];

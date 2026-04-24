@@ -24,6 +24,7 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
+import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -50,6 +51,14 @@ export const runChatLayerBroker = async ({
     ...(workItem.sessionId === undefined ? {} : { sessionId: workItem.sessionId }),
   });
 
+  if (workItem.role === 'ward') {
+    throw new Error(
+      `runChatLayerBroker cannot spawn role '${workItem.role}' — ward is a command, not a Claude agent`,
+    );
+  }
+
+  const model = roleToModelTransformer({ role: workItem.role });
+
   try {
     const { sessionId, exitCode } = await new Promise<{
       sessionId: SessionId | null;
@@ -60,6 +69,7 @@ export const runChatLayerBroker = async ({
       agentSpawnUnifiedBroker({
         prompt,
         cwd: absoluteFilePathContract.parse(startPath),
+        model,
         ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
         onLine: ({ line }) => {
           onAgentEntry({

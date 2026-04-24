@@ -33,7 +33,7 @@ export const agentSpawnUnifiedBroker = ({
   prompt: PromptText;
   cwd: AbsoluteFilePath;
   resumeSessionId?: SessionId;
-  model?: ClaudeModel;
+  model: ClaudeModel;
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
   onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
@@ -41,14 +41,11 @@ export const agentSpawnUnifiedBroker = ({
   const spawnParams: Parameters<typeof childProcessSpawnStreamJsonAdapter>[0] = {
     prompt,
     cwd,
+    model,
   };
 
   if (resumeSessionId) {
     spawnParams.resumeSessionId = resumeSessionId;
-  }
-
-  if (model !== undefined) {
-    spawnParams.model = model;
   }
 
   const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);

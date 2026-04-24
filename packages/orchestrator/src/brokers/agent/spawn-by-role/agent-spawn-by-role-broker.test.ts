@@ -8,6 +8,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ContinuationContextStub } from '../../../contracts/continuation-context/continuation-context.stub';
+import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import {
   CodeweaverWorkUnitStub,
   LawbringerWorkUnitStub,
@@ -351,6 +352,87 @@ describe('agentSpawnByRoleBroker', () => {
       expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
         /^\[agent-spawn\] session-id resolution failed:.*callback exploded\n$/u,
       );
+    });
+  });
+
+  describe('model resolution', () => {
+    it('VALID: {pathseeker workUnit, no smoketest override} => spawns with --model opus', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const modelIdx = spawnedArgs.indexOf('--model');
+
+      expect(modelIdx).toBeGreaterThan(-1);
+      expect(spawnedArgs[modelIdx + 1]).toBe('opus');
+    });
+
+    it('VALID: {codeweaver workUnit, no smoketest override} => spawns with --model sonnet', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const modelIdx = spawnedArgs.indexOf('--model');
+
+      expect(modelIdx).toBeGreaterThan(-1);
+      expect(spawnedArgs[modelIdx + 1]).toBe('sonnet');
+    });
+
+    it('VALID: {siegemaster workUnit, no smoketest override} => spawns with --model opus', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = SiegemasterWorkUnitStub();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const modelIdx = spawnedArgs.indexOf('--model');
+
+      expect(modelIdx).toBeGreaterThan(-1);
+      expect(spawnedArgs[modelIdx + 1]).toBe('opus');
+    });
+
+    it('VALID: {pathseeker workUnit with smoketestPromptOverride} => spawns with --model haiku (smoketest wins)', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub({
+        smoketestPromptOverride: PromptTextStub({ value: 'smoketest canned prompt' }),
+      });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
+      const modelIdx = spawnedArgs.indexOf('--model');
+
+      expect(modelIdx).toBeGreaterThan(-1);
+      expect(spawnedArgs[modelIdx + 1]).toBe('haiku');
     });
   });
 

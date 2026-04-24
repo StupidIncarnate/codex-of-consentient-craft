@@ -32,7 +32,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
   resumeSessionId?: SessionId;
   cwd?: string;
   stdinMode?: 'inherit' | 'ignore';
-  model?: ClaudeModel;
+  model: ClaudeModel;
 }): SpawnStreamJsonResult => {
   const effectiveCwd = cwd ?? process.cwd();
   const settingsFile = path.join(effectiveCwd, '.claude', 'settings.json');
@@ -43,7 +43,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
     // settings file may not exist
   }
 
-  const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose'];
+  const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', model];
 
   if (settingsJson.length > 0) {
     args.push('--settings', settingsJson);
@@ -51,10 +51,6 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   if (resumeSessionId) {
     args.push('--resume', resumeSessionId);
-  }
-
-  if (model !== undefined) {
-    args.push('--model', model);
   }
 
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';

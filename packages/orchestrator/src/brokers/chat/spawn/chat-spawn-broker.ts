@@ -34,6 +34,7 @@ import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
+import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questAddBroker } from '../../quest/add/quest-add-broker';
@@ -121,11 +122,18 @@ export const chatSpawnBroker = async ({
     ...(sessionId ? { sessionId } : {}),
   });
 
+  if (role === 'ward') {
+    throw new Error(
+      `chatSpawnBroker cannot spawn role '${role}' — ward is a command, not a Claude agent`,
+    );
+  }
+
   const guildAbsolutePath = absoluteFilePathContract.parse(guild.path);
 
   const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,
     cwd: guildAbsolutePath,
+    model: roleToModelTransformer({ role }),
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
     onLine: ({ line }) => {
       const subagentDebug = process.env.SUBAGENT_DEBUG === '1';

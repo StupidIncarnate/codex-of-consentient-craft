@@ -1,16 +1,18 @@
 import { childProcessSpawnStreamJsonAdapter } from './child-process-spawn-stream-json-adapter';
 import { childProcessSpawnStreamJsonAdapterProxy } from './child-process-spawn-stream-json-adapter.proxy';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 
 describe('childProcessSpawnStreamJsonAdapter', () => {
   describe('without resumeSessionId', () => {
-    it('VALID: {prompt: "Hello"} => spawns claude with stream-json output and inline --settings from .claude/settings.json', () => {
+    it('VALID: {prompt: "Hello", model: sonnet} => spawns claude with stream-json output, --model, and inline --settings from .claude/settings.json', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       const mockChildProcess = proxy.setupSpawn();
 
       const result = childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       expect(result).toStrictEqual({
@@ -24,6 +26,8 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--model',
+        'sonnet',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -31,13 +35,14 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
   });
 
   describe('with resumeSessionId', () => {
-    it('VALID: {prompt: "Hello", resumeSessionId: "abc-123"} => spawns with resume flag after --settings', () => {
+    it('VALID: {prompt: "Hello", resumeSessionId: "abc-123", model: opus} => spawns with --model then resume flag after --settings', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       const mockChildProcess = proxy.setupSpawn();
 
       const result = childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
+        model: ClaudeModelStub({ value: 'opus' }),
       });
 
       expect(result).toStrictEqual({
@@ -50,6 +55,8 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--model',
+        'opus',
         '--settings',
         '{"hooks":{}}',
         '--resume',
@@ -59,13 +66,14 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
   });
 
   describe('settings file not found', () => {
-    it('VALID: {settings file missing} => spawns without --settings flag', () => {
+    it('VALID: {settings file missing, model: haiku} => spawns without --settings flag', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       proxy.setupSettingsNotFound();
       proxy.setupSpawn();
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -74,6 +82,8 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--model',
+        'haiku',
       ]);
     });
   });
@@ -86,6 +96,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: '/custom/path',
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       const options = proxy.getSpawnedOptions();
@@ -99,6 +110,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       const options = proxy.getSpawnedOptions();
@@ -114,6 +126,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       const options = proxy.getSpawnedOptions();
@@ -130,6 +143,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
         stdinMode: 'ignore',
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       const options = proxy.getSpawnedOptions();
@@ -143,6 +157,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
       const options = proxy.getSpawnedOptions();

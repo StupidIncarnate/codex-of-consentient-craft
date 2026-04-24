@@ -1,5 +1,6 @@
 import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
+import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 
 import { agentSpawnUnifiedBroker } from './agent-spawn-unified-broker';
@@ -49,6 +50,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -82,6 +84,7 @@ describe('agentSpawnUnifiedBroker', () => {
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onError,
         onComplete,
@@ -108,6 +111,7 @@ describe('agentSpawnUnifiedBroker', () => {
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -132,6 +136,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -159,6 +164,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -184,6 +190,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -213,6 +220,7 @@ describe('agentSpawnUnifiedBroker', () => {
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -240,6 +248,7 @@ describe('agentSpawnUnifiedBroker', () => {
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -268,6 +277,7 @@ describe('agentSpawnUnifiedBroker', () => {
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
         onLine,
         onComplete,
       });
@@ -294,6 +304,7 @@ describe('agentSpawnUnifiedBroker', () => {
         prompt: PromptTextStub(),
         cwd: AbsoluteFilePathStub({ value: '/test' }),
         resumeSessionId,
+        model: ClaudeModelStub({ value: 'opus' }),
         onLine,
         onComplete,
       });
@@ -308,6 +319,8 @@ describe('agentSpawnUnifiedBroker', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--model',
+        'opus',
         '--settings',
         '{"hooks":{}}',
         '--resume',

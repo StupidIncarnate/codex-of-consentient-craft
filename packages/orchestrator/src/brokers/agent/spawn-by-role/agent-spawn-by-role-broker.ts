@@ -20,12 +20,16 @@ import {
   agentSpawnStreamingResultContract,
   type AgentSpawnStreamingResult,
 } from '../../../contracts/agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
-import { claudeModelContract } from '../../../contracts/claude-model/claude-model-contract';
+import {
+  claudeModelContract,
+  type ClaudeModel,
+} from '../../../contracts/claude-model/claude-model-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
+import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { roleToPromptTemplateTransformer } from '../../../transformers/role-to-prompt-template/role-to-prompt-template-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
 import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
@@ -67,9 +71,9 @@ export const agentSpawnByRoleBroker = async ({
 
   const prompt = promptTextContract.parse(promptText);
 
-  // Smoketest spawns force `--model haiku` for cost/speed. Real roles continue to use
-  // Claude CLI's configured default (no `model` flag passed).
-  const modelOverride = overrideText === undefined ? undefined : SMOKETEST_MODEL;
+  // Smoketest spawns force haiku for cost/speed. Real roles resolve via the role→model map.
+  const model: ClaudeModel =
+    overrideText === undefined ? roleToModelTransformer({ role: workUnit.role }) : SMOKETEST_MODEL;
 
   try {
     let lastSignal: StreamSignal | null = null;
@@ -80,7 +84,7 @@ export const agentSpawnByRoleBroker = async ({
         prompt,
         cwd: absoluteFilePathContract.parse(startPath),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
-        ...(modelOverride === undefined ? {} : { model: modelOverride }),
+        model,
         onLine: ({ line }) => {
           onLine?.({ line });
 
