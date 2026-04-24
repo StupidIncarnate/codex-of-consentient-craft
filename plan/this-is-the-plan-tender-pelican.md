@@ -8,18 +8,18 @@
 - [x] Phase 4: Rename `brokers/smoketest/run-orchestration-case/` → `run-case/`; delete `brokers/smoketest/run-single-agent-case/`
 - [x] Phase 5: Queue state + runner + QuestQueueEntry contract + queue events on orchestration-event-type (not wired to start responder yet)
   > [x] Queue stale-entry bug resolved — new `quest-queue-sync-listener` broker subscribes to `quest-modified` events; on terminal status updates the entry then removes it, on quest-not-found removes by questId. Queue state exposes `removeByQuestId` + `updateEntryStatus`.
-  > [!] Natural terminal transition does NOT clean up queue entry (re-verification test C FAIL). Signals quest drained through all 3 codeweavers to terminal but queue entry stayed `status: in_progress`. `quest-queue-sync-listener` is registered but not firing for natural terminals — likely the `quest-modified` event payload / disk timing / status-match logic is off.
+  > [x] Natural terminal cleanup fixed — root cause was subscribing to `orchestrationEventsState` for `quest-modified`, which is a file-outbox-only event type. Migrated to `questOutboxWatchBroker`; swapped the terminal guard to `isSmoketestPollTerminalStatusGuard` so workItems-drained also dequeues. Confirmed via E2E: queue entry removed within 1s of abandon-induced terminal.
   > [x] Queue runner's error-path dequeues on quest-not-found — `drainOnceLayerBroker` now checks `isQuestNotFoundErrorGuard` in the catch block; on match it calls the injected `removeByQuestId` callback, emits `execution-queue-updated`, and recurses to drain the next head. Generic errors still setHeadError + emit `execution-queue-error` as before. `QuestExecutionQueueRunnerDeps` gained `removeByQuestId`, wired in `ExecutionQueueBootstrapResponder` via `questExecutionQueueState.removeByQuestId`.
 - [x] Phase 6: Web-presence state + server WS connect/disconnect hooks + set-web-presence adapter
 - [x] Phase 7: Atomic flip — orchestrationStartResponder enqueues + smoketest-run responder rewrite + startup-recovery gating
   > [x] 409 guard fixed — `try/finally { end() }` replaced with `try/catch { end(); throw }` so the active flag clears only on failure. Post-terminal listener clears the flag when the last smoketest quest drains. Server responder maps "already running" error to HTTP 409.
-  > [!] Active flag still never clears post-terminal (re-verification test A step 4 FAIL). Post-terminal listener unregister path isn't firing when quests terminate. All subsequent POSTs return 409 indefinitely. Needs investigation: is the listener actually being called on terminal? Is the "last smoketest drained" check looking at the wrong registry?
+  > [x] Active flag now clears on terminal — two-part fix: (a) `processTerminalEventLayerBroker` catches `isQuestNotFoundErrorGuard` and unregisters instead of swallowing; (b) `smoketestBootstrapListenerResponder` migrated from the dead `orchestrationEventsState` bus to `questOutboxWatchBroker`, so natural terminal transitions actually fire the handler. Drain-then-clear logic extracted into `drainListenerLayerResponder`. Confirmed via E2E: POST → abandon+delete → active clears in ~1s → POST again returns 200.
   > [x] Orchestration suite fixed — scenario state is now multi-active keyed by questId (the internal Map already supported it; the artificial `size > 0` throw was the only blocker). All 5 scenarios can register concurrently.
   > [x] Scenario-driver leak fixed — poll tick catches quest-not-found, invokes `stopNow()` (clearInterval + abort + unsubscribe), then fires `onQuestGone` so the responder releases the scenario entry.
 - [x] Phase 8: Queue bar widget + `use-quest-queue` binding + GET /api/quests/queue endpoint + get-quest-queue adapter
 - [x] Phase 9: Delete drawer + rewire tooling dropdown + slim `useSmoketestRunBinding`
-- [ ] Manual E2E verification
-- [ ] Plan alignment review (orchestrator-owned)
+- [x] Manual E2E verification — all 4 re-verification tests pass (concurrent 409, natural terminal queue cleanup, orchestration 5 quests, full re-run chain). No server restart required between runs.
+- [x] Plan alignment review (orchestrator-owned) — all 14 checked items (cross-guild FIFO, pause gate, suite-scoped cleanup, WS-disconnect pause, startup-recovery gating, error bubbling, bar-hidden-when-empty, all required files present, deleted surfaces gone, smoketest-progress removed) verified against source.
 
 ## Context
 
