@@ -42,3 +42,6 @@ export * from './src/brokers/port/config-walk/port-config-walk-broker.proxy';
 
 // Claude Line Normalize Broker Proxy (single funnel)
 export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
+
+// Cwd Resolve Broker Proxy (typed-cwd brand resolver)
+export * from './src/brokers/cwd/resolve/cwd-resolve-broker.proxy';

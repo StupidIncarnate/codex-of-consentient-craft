@@ -1,17 +1,18 @@
 import { childProcessSpawnStreamJsonAdapter } from './child-process-spawn-stream-json-adapter';
 import { childProcessSpawnStreamJsonAdapterProxy } from './child-process-spawn-stream-json-adapter.proxy';
-import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 
 describe('childProcessSpawnStreamJsonAdapter', () => {
   describe('without resumeSessionId', () => {
-    it('VALID: {prompt: "Hello", model: sonnet} => spawns claude with stream-json output, --model, and inline --settings from .claude/settings.json', () => {
+    it('VALID: {prompt: "Hello", cwd: repo root, model: sonnet} => spawns claude with stream-json output, --model, and inline --settings from .claude/settings.json', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       const mockChildProcess = proxy.setupSpawn();
 
       const result = childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
@@ -35,12 +36,13 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
   });
 
   describe('with resumeSessionId', () => {
-    it('VALID: {prompt: "Hello", resumeSessionId: "abc-123", model: opus} => spawns with --model then resume flag after --settings', () => {
+    it('VALID: {prompt: "Hello", cwd: repo root, resumeSessionId: "abc-123", model: opus} => spawns with --model then resume flag after --settings', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       const mockChildProcess = proxy.setupSpawn();
 
       const result = childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
         model: ClaudeModelStub({ value: 'opus' }),
       });
@@ -66,9 +68,30 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
   });
 
   describe('settings file not found', () => {
-    it('VALID: {settings file missing, model: haiku} => spawns without --settings flag', () => {
+    it('VALID: {cwd: repo root, settings file missing, model: haiku} => spawns without --settings flag', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();
       proxy.setupSettingsNotFound();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'haiku',
+      ]);
+    });
+
+    it('VALID: {cwd omitted, model: haiku} => skips settings discovery entirely (no --settings flag)', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
       proxy.setupSpawn();
 
       childProcessSpawnStreamJsonAdapter({
@@ -95,7 +118,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: '/custom/path',
+        cwd: RepoRootCwdStub({ value: '/custom/path' }),
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 

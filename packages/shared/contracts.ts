@@ -337,6 +337,10 @@ export * from './src/contracts/ward-queue-response/ward-queue-response.stub';
 export * from './src/contracts/ward-run-id/ward-run-id-contract';
 export * from './src/contracts/ward-run-id/ward-run-id.stub';
 
+// Agent ID Contracts
+export * from './src/contracts/agent-id/agent-id-contract';
+export * from './src/contracts/agent-id/agent-id.stub';
+
 // Adapter Result Contracts
 export * from './src/contracts/adapter-result/adapter-result-contract';
 export * from './src/contracts/adapter-result/adapter-result.stub';
@@ -443,3 +447,16 @@ export * from './src/contracts/smoketest-run-id/smoketest-run-id.stub';
 // Quest Queue Entry Contracts
 export * from './src/contracts/quest-queue-entry/quest-queue-entry-contract';
 export * from './src/contracts/quest-queue-entry/quest-queue-entry.stub';
+
+// Typed CWD Brand Contracts (Layer 3 — Stroustrup locations)
+export * from './src/contracts/repo-root-cwd/repo-root-cwd-contract';
+export * from './src/contracts/repo-root-cwd/repo-root-cwd.stub';
+
+export * from './src/contracts/project-root-cwd/project-root-cwd-contract';
+export * from './src/contracts/project-root-cwd/project-root-cwd.stub';
+
+export * from './src/contracts/guild-path-cwd/guild-path-cwd-contract';
+export * from './src/contracts/guild-path-cwd/guild-path-cwd.stub';
+
+export * from './src/contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd-contract';
+export * from './src/contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd.stub';

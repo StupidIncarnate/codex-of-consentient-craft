@@ -11,7 +11,7 @@
  * // Spawns Claude CLI, forwards raw lines, extracts session ID, returns kill handle
  */
 
-import type { AbsoluteFilePath, ExitCode, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -32,7 +32,7 @@ export const agentSpawnUnifiedBroker = ({
   onComplete,
 }: {
   prompt: PromptText;
-  cwd: AbsoluteFilePath;
+  cwd: RepoRootCwd;
   resumeSessionId?: SessionId;
   model: ClaudeModel;
   disableToolSearch?: boolean;

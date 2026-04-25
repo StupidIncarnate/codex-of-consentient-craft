@@ -36,3 +36,25 @@ export * from './src/brokers/install/check/install-check-broker';
 
 // Claude Line Normalize (single funnel for all Claude session ingest)
 export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker';
+
+// Cwd Resolve (typed-cwd brand resolver)
+export * from './src/brokers/cwd/resolve/cwd-resolve-broker';
+
+// Locations (resolver brokers for every disk-shape literal)
+export * from './src/brokers/locations/mcp-json-path-find/locations-mcp-json-path-find-broker';
+export * from './src/brokers/locations/claude-settings-path-find/locations-claude-settings-path-find-broker';
+export * from './src/brokers/locations/outbox-path-find/locations-outbox-path-find-broker';
+export * from './src/brokers/locations/ward-local-run-path-find/locations-ward-local-run-path-find-broker';
+export * from './src/brokers/locations/node-modules-bin-path-find/locations-node-modules-bin-path-find-broker';
+export * from './src/brokers/locations/eslint-config-path-find/locations-eslint-config-path-find-broker';
+export * from './src/brokers/locations/tsconfig-path-find/locations-tsconfig-path-find-broker';
+export * from './src/brokers/locations/hook-config-path-find/locations-hook-config-path-find-broker';
+export * from './src/brokers/locations/guild-path-find/locations-guild-path-find-broker';
+export * from './src/brokers/locations/guild-config-path-find/locations-guild-config-path-find-broker';
+export * from './src/brokers/locations/guild-quests-path-find/locations-guild-quests-path-find-broker';
+export * from './src/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker';
+export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker';
+export * from './src/brokers/locations/design-scaffold-path-find/locations-design-scaffold-path-find-broker';
+export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
+export * from './src/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker';
+export * from './src/brokers/locations/claude-subagent-session-file-path-find/locations-claude-subagent-session-file-path-find-broker';

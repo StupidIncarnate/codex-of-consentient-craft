@@ -1,7 +1,16 @@
-import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import { GuildConfigStub, GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { ExitCodeStub, QuestStub, RepoRootCwd } from '@dungeonmaster/shared/contracts';
+import {
+  GuildConfigStub,
+  GuildStub,
+  GuildIdStub,
+  repoRootCwdContract,
+} from '@dungeonmaster/shared/contracts';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import {
+  claudeLineNormalizeBrokerProxy,
+  cwdResolveBrokerProxy,
+} from '@dungeonmaster/shared/testing';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
@@ -28,13 +37,25 @@ export const chatSpawnBrokerProxy = (): {
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
+  setupCwdResolveSuccess: (params: { cwd: string }) => void;
+  setupCwdResolveReject: (params: { error: Error }) => void;
+  getSpawnedOptions: () => unknown;
+  getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   claudeLineNormalizeBrokerProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
+  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
+  cwdResolveBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const addProxy = questUserAddBrokerProxy();
+
+  // chat-spawn-broker walks up from the guild path to the repo root via cwdResolveBroker.
+  // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
+  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
+  cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse('/home/user/my-guild'));
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -124,5 +145,19 @@ export const chatSpawnBrokerProxy = (): {
       handle.mockImplementation(() => true);
       return handle;
     },
+
+    setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
+      cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse(cwd));
+    },
+
+    setupCwdResolveReject: ({ error }: { error: Error }): void => {
+      cwdResolveMock.mockImplementation(() => {
+        throw error;
+      });
+    },
+
+    getSpawnedOptions: (): unknown => unifiedProxy.getSpawnedOptions(),
+
+    getSpawnedCwd: (): RepoRootCwd | undefined => unifiedProxy.getSpawnedCwd(),
   };
 };

@@ -18,11 +18,12 @@
 
 import type { GuildId, QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 import {
-  absoluteFilePathContract,
+  filePathContract,
   processIdContract,
+  repoRootCwdContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
@@ -128,11 +129,21 @@ export const chatSpawnBroker = async ({
     );
   }
 
-  const guildAbsolutePath = absoluteFilePathContract.parse(guild.path);
+  // Walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
+  // so the spawned Claude CLI's cwd lets `.mcp.json` resolve its relative command. Falls back
+  // to the guild path when no `.dungeonmaster.json` ancestor exists (standalone projects).
+  const guildStartPath = filePathContract.parse(guild.path);
+  const repoRootCwd = await (async () => {
+    try {
+      return await cwdResolveBroker({ startPath: guildStartPath, kind: 'repo-root' });
+    } catch {
+      return repoRootCwdContract.parse(guild.path);
+    }
+  })();
 
   const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,
-    cwd: guildAbsolutePath,
+    cwd: repoRootCwd,
     model: roleToModelTransformer({ role }),
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
     onLine: ({ line }) => {

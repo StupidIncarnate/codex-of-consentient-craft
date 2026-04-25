@@ -54,6 +54,7 @@ describe('EslintPluginFlow', () => {
         'forbid-todo-skip',
         'forbid-type-reexport',
         'jest-mocked-must-import',
+        'no-bare-process-cwd',
         'no-multiple-property-assertions',
         'no-mutable-state-in-proxy-factory',
         'require-contract-validation',

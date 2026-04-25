@@ -495,7 +495,7 @@ describe('agentSpawnByRoleBroker', () => {
       const options = proxy.getSpawnedOptions();
 
       expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
-      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
     it('VALID: {non-smoketest spawn} => resolves cwd to configRoot via configRootFindBroker (idempotent for repo-root startPaths)', async () => {
@@ -517,7 +517,7 @@ describe('agentSpawnByRoleBroker', () => {
       const options = proxy.getSpawnedOptions();
 
       expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
-      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
     it('VALID: {configRootFindBroker rejects (no .dungeonmaster.json ancestor)} => falls back to startPath as cwd', async () => {
@@ -538,7 +538,7 @@ describe('agentSpawnByRoleBroker', () => {
       const options = proxy.getSpawnedOptions();
 
       expect(Reflect.get(options as object, 'cwd')).toBe('/tmp/dm-e2e-isolated-guild');
-      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
     it('VALID: {non-smoketest spawn for auto-spawned recovery pathseeker on smoketest quest} => walks up from smoketest guild path to repo root', async () => {
@@ -560,7 +560,7 @@ describe('agentSpawnByRoleBroker', () => {
       const options = proxy.getSpawnedOptions();
 
       expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
-      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
   });
 

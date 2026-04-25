@@ -3,6 +3,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  RepoRootCwdStub,
   SessionIdStub,
   UserInputStub,
   WorkItemStub,
@@ -150,6 +151,58 @@ describe('runChatLayerBroker', () => {
         '--resume',
         existingSessionId,
       ]);
+    });
+
+    it('VALID: {cwdResolveBroker resolves repo root} => passes resolved RepoRootCwd as cwd to spawn', async () => {
+      const proxy = runChatLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'chaoswhisperer',
+        status: 'in_progress',
+      });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
+      const resolvedRepoRoot = RepoRootCwdStub({ value: '/resolved/repo/root' });
+      proxy.setupCwdResolveSuccess({ repoRoot: resolvedRepoRoot });
+      proxy.setupQuestFound({ quest });
+
+      await runChatLayerBroker({
+        questId,
+        workItem,
+        startPath: FilePathStub({ value: '/resolved/repo/root/packages/foo' }),
+        userMessage: UserInputStub({ value: 'Help me build auth' }),
+        onAgentEntry: jest.fn(),
+      });
+
+      const spawnedCwd = proxy.getSpawnedCwd();
+
+      expect(spawnedCwd).toBe(resolvedRepoRoot);
+    });
+
+    it('EDGE: {cwdResolveBroker rejects} => falls back to parsing startPath via repoRootCwdContract and uses it as cwd', async () => {
+      const proxy = runChatLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const workItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'chaoswhisperer',
+        status: 'in_progress',
+      });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
+      const fallbackPath = '/standalone/project/src';
+      proxy.setupCwdResolveReject({ error: new Error('no .dungeonmaster.json ancestor') });
+      proxy.setupQuestFound({ quest });
+
+      await runChatLayerBroker({
+        questId,
+        workItem,
+        startPath: FilePathStub({ value: fallbackPath }),
+        userMessage: UserInputStub({ value: 'Help me build auth' }),
+        onAgentEntry: jest.fn(),
+      });
+
+      const spawnedCwd = proxy.getSpawnedCwd();
+
+      expect(spawnedCwd).toBe(RepoRootCwdStub({ value: fallbackPath }));
     });
   });
 });

@@ -7,8 +7,9 @@
  */
 
 import {
-  absoluteFilePathContract,
   adapterResultContract,
+  filePathContract,
+  repoRootCwdContract,
   sessionIdContract,
   type AdapterResult,
   type ExitCode,
@@ -18,7 +19,7 @@ import {
   type UserInput,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -59,6 +60,18 @@ export const runChatLayerBroker = async ({
 
   const model = roleToModelTransformer({ role: workItem.role });
 
+  // Walk up from `startPath` to the repo root (directory containing `.dungeonmaster.json`)
+  // so the spawned Claude CLI's cwd lets `.mcp.json` resolve. Falls back to startPath when
+  // no `.dungeonmaster.json` ancestor exists (standalone projects, isolated /tmp dirs).
+  const parsedStartPath = filePathContract.parse(startPath);
+  const resolvedCwd = await (async () => {
+    try {
+      return await cwdResolveBroker({ startPath: parsedStartPath, kind: 'repo-root' });
+    } catch {
+      return repoRootCwdContract.parse(startPath);
+    }
+  })();
+
   try {
     const { sessionId, exitCode } = await new Promise<{
       sessionId: SessionId | null;
@@ -68,7 +81,7 @@ export const runChatLayerBroker = async ({
 
       agentSpawnUnifiedBroker({
         prompt,
-        cwd: absoluteFilePathContract.parse(startPath),
+        cwd: resolvedCwd,
         model,
         ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
         onLine: ({ line }) => {

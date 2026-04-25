@@ -1,5 +1,6 @@
 import {
   GuildIdStub,
+  RepoRootCwdStub,
   SessionIdStub,
   ExitCodeStub,
   QuestIdStub,
@@ -1028,6 +1029,57 @@ describe('chatSpawnBroker', () => {
       );
 
       expect(traceCalls).toStrictEqual([]);
+    });
+  });
+
+  describe('cwd resolution', () => {
+    it('VALID: {cwdResolveBroker resolves repo-root above guild path} => spawns with resolved repo-root cwd', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/user/repo-root' });
+
+      proxy.setupCwdResolveSuccess({ cwd: resolvedRepoRoot });
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntries: jest.fn(),
+        onAgentDetected: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      const spawnedCwd = proxy.getSpawnedCwd();
+
+      expect(spawnedCwd).toBe(resolvedRepoRoot);
+    });
+
+    it('ERROR: {cwdResolveBroker throws} => falls back to repoRootCwdContract.parse(guild.path) for cwd', async () => {
+      const proxy = chatSpawnBrokerProxy();
+      const guildId = GuildIdStub();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+
+      proxy.setupCwdResolveReject({ error: new Error('no .dungeonmaster.json ancestor') });
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
+
+      await chatSpawnBroker({
+        role,
+        guildId,
+        message: 'Help me build auth',
+        processor: chatLineProcessTransformer(),
+        onEntries: jest.fn(),
+        onAgentDetected: jest.fn(),
+        onComplete: jest.fn(),
+        registerProcess: jest.fn(),
+      });
+
+      const spawnedCwd = proxy.getSpawnedCwd();
+
+      expect(spawnedCwd).toBe(RepoRootCwdStub({ value: '/home/user/my-guild' }));
     });
   });
 
