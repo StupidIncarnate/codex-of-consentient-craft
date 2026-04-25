@@ -232,7 +232,7 @@ describe('SubagentChainWidget', () => {
   });
 
   describe('per-line token badges', () => {
-    it('VALID: {first assistant entry with usage} => shows full context as delta badge', () => {
+    it('VALID: {first assistant entry with usage} => no badge (no prev to diff against)', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
@@ -258,10 +258,10 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
+      expect(badges).toStrictEqual([]);
     });
 
-    it('VALID: {second assistant entry} => shows delta not absolute', () => {
+    it('VALID: {second assistant entry} => shows +delta on second only (first has no prev)', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
@@ -300,10 +300,10 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context', '1.2k context']);
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['+1.2k context']);
     });
 
-    it('VALID: {delta zero from same API call} => no badge on second entry', () => {
+    it('VALID: {delta zero from same API call} => no badge on either entry (first has no prev, second has zero delta)', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
@@ -342,7 +342,7 @@ describe('SubagentChainWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.getAttribute('data-testid'))).toStrictEqual(['TOKEN_BADGE']);
+      expect(badges).toStrictEqual([]);
     });
 
     it('VALID: {tool result with content} => shows estimated badge', () => {
@@ -499,10 +499,9 @@ describe('SubagentChainWidget', () => {
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
       expect(badges.map((b) => b.textContent)).toStrictEqual([
-        '15.5k context',
         '~541 est',
         '~217 est',
-        '1.9k context',
+        '+1.9k context',
       ]);
     });
   });

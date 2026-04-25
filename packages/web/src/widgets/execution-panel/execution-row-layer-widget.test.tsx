@@ -940,7 +940,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.queryByTestId('execution-row-context')).toBe(null);
     });
 
-    it('VALID: {expanded, tool-pair with usage} => renders TOKEN_BADGE on tool row', async () => {
+    it('VALID: {expanded, tool-pair with usage} => no TOKEN_BADGE on tool row (per-tool delta is misattribution when multiple tools fire per turn)', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -971,7 +971,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
+      expect(badges).toStrictEqual([]);
     });
 
     it('VALID: {expanded, tool-pair with result content} => renders RESULT_TOKEN_BADGE', async () => {
@@ -1003,7 +1003,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
     });
 
-    it('VALID: {expanded, assistant text with usage} => renders TOKEN_BADGE on message', () => {
+    it('VALID: {expanded, single assistant text with usage} => no TOKEN_BADGE (no prev to diff against; baseline is not a delta)', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1028,7 +1028,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.5k context']);
+      expect(badges).toStrictEqual([]);
     });
   });
 });

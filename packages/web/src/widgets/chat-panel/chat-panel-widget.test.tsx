@@ -447,7 +447,7 @@ describe('ChatPanelWidget', () => {
   });
 
   describe('token badge rendering', () => {
-    it('VALID: {assistant text entry with usage, not streaming} => renders token badge with context suffix', () => {
+    it('VALID: {first assistant text entry with usage} => no token badge (no prev to diff against; baseline is not a delta)', () => {
       ChatPanelWidgetProxy();
       const entries = [
         UserChatEntryStub({ content: 'Hello' }),
@@ -475,8 +475,7 @@ describe('ChatPanelWidget', () => {
 
       const tokenBadge = screen.queryByTestId('TOKEN_BADGE');
 
-      expect(tokenBadge).toBeInTheDocument();
-      expect(tokenBadge?.textContent).toBe('500 context');
+      expect(tokenBadge).toBe(null);
     });
 
     it('VALID: {assistant text with usage, not streaming} => renders context divider with cumulative tokens', () => {
@@ -568,7 +567,7 @@ describe('ChatPanelWidget', () => {
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['500 context', '700 context']);
+      expect(badges.map((b) => b.textContent)).toStrictEqual(['+700 context']);
     });
   });
 

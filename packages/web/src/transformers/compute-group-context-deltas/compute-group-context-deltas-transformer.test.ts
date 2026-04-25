@@ -69,10 +69,7 @@ describe('computeGroupContextDeltasTransformer', () => {
   describe('cross-group deltas (session)', () => {
     it('VALID: {two tool-groups with cumulative 30k -> 50k} => [null, +20000]', () => {
       const result = computeGroupContextDeltasTransformer({
-        groups: [
-          ToolGroupStub({ contextTokens: 30000 }),
-          ToolGroupStub({ contextTokens: 50000 }),
-        ],
+        groups: [ToolGroupStub({ contextTokens: 30000 }), ToolGroupStub({ contextTokens: 50000 })],
       });
 
       expect(result).toStrictEqual([null, 20000]);

@@ -30,20 +30,21 @@ export const computeGroupContextDeltasTransformer = ({
   let prevSubagent: ContextTokenCount | null = null;
 
   return groups.map((group): ContextTokenDelta | null => {
-    let value: ContextTokenCount | null = null;
-    let source: 'session' | 'subagent' = 'session';
+    const value: ContextTokenCount | null =
+      group.kind === 'tool-group'
+        ? group.contextTokens
+        : group.kind === 'subagent-chain'
+          ? group.contextTokens
+          : computeEntryContextTransformer({ entry: group.entry });
 
-    if (group.kind === 'tool-group') {
-      value = group.contextTokens;
-      source = group.source;
-    } else if (group.kind === 'subagent-chain') {
-      value = group.contextTokens;
-      source = 'subagent';
-    } else {
-      const { entry } = group;
-      source = 'source' in entry && entry.source === 'subagent' ? 'subagent' : 'session';
-      value = computeEntryContextTransformer({ entry });
-    }
+    const source: 'session' | 'subagent' =
+      group.kind === 'tool-group'
+        ? group.source
+        : group.kind === 'subagent-chain'
+          ? 'subagent'
+          : 'source' in group.entry && group.entry.source === 'subagent'
+            ? 'subagent'
+            : 'session';
 
     if (value === null) {
       return null;
