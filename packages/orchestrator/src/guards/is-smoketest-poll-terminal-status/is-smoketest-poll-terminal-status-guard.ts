@@ -22,7 +22,11 @@
  * the loop finished without completion. The runner must unblock on `blocked` too.
  */
 
-import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isQuestBlockedQuestStatusGuard,
+  isTerminalQuestStatusGuard,
+  isTerminalWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import type { QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
 
 export const isSmoketestPollTerminalStatusGuard = ({
@@ -35,7 +39,7 @@ export const isSmoketestPollTerminalStatusGuard = ({
   if (status === undefined) {
     return false;
   }
-  if (status === 'complete' || status === 'blocked' || status === 'abandoned') {
+  if (isTerminalQuestStatusGuard({ status }) || isQuestBlockedQuestStatusGuard({ status })) {
     return true;
   }
   if (workItems === undefined || workItems.length === 0) {
