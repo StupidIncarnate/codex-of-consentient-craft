@@ -11,7 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
-import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { QuestFlow } from './quest-flow';
@@ -46,7 +46,7 @@ describe('QuestFlow', () => {
         path: GuildPathStub({ value: testbed.guildPath }),
       });
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Forward Transition Quest',
         userRequest: 'Walks the full seek_* forward path',
         guildId: guild.id,
@@ -125,7 +125,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Back Synth→Scope Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Back Synth→Scope Quest',
         userRequest: 'Tests seek_synth back-edge to seek_scope',
         guildId: guild.id,
@@ -159,7 +159,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Back Walk→Scope Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Back Walk→Scope Quest',
         userRequest: 'Tests seek_walk back-edge to seek_scope',
         guildId: guild.id,
@@ -193,7 +193,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Back Plan→Walk Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Back Plan→Walk Quest',
         userRequest: 'Tests seek_plan back-edge to seek_walk',
         guildId: guild.id,
@@ -241,7 +241,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Back InProgress→Walk Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Back InProgress→Walk Quest',
         userRequest: 'Tests in_progress back-edge to seek_walk for failure replan',
         guildId: guild.id,
@@ -289,7 +289,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Back InProgress→Scope Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Back InProgress→Scope Quest',
         userRequest: 'Tests in_progress back-edge to seek_scope for full replan',
         guildId: guild.id,
@@ -325,7 +325,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Bad Transition Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Bad Transition Quest',
         userRequest: 'Tests rejection of transitions not in the transition map',
         guildId: guild.id,
@@ -364,7 +364,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Bad Fields Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Bad Fields Quest',
         userRequest: 'Tests allowlist rejection of steps during seek_scope',
         guildId: guild.id,
@@ -423,7 +423,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Bad Gate Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Bad Gate Quest',
         userRequest: 'Tests gate-content rejection when scopeClassification missing',
         guildId: guild.id,
@@ -460,7 +460,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Bad Completeness Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Bad Completeness Quest',
         userRequest: 'Tests completeness rejection when reviewReport.signal is critical',
         guildId: guild.id,
@@ -525,7 +525,7 @@ describe('QuestFlow', () => {
         name: GuildNameStub({ value: 'Resume Partial Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Resume Partial Quest',
         userRequest: 'Tests get-planning-notes returns committed scope+synthesis at seek_walk',
         guildId: guild.id,

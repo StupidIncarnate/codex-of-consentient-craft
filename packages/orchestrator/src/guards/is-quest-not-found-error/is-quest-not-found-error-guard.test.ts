@@ -9,6 +9,14 @@ describe('isQuestNotFoundErrorGuard', () => {
     expect(result).toBe(true);
   });
 
+  it('VALID: {error with "Guild not found:" message} => returns true', () => {
+    const error = new Error('Guild not found: f47ac10b-58cc-4372-a567-0e02b2c3d479');
+
+    const result = isQuestNotFoundErrorGuard({ error });
+
+    expect(result).toBe(true);
+  });
+
   it('VALID: {unrelated Error} => returns false', () => {
     const error = new Error('ENOENT: file not found');
 

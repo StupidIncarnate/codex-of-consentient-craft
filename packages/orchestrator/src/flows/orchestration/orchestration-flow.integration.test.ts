@@ -15,7 +15,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
-import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { OrchestrationFlow } from './orchestration-flow';
 import { orchestrationQueueHarness } from '../../../test/harnesses/orchestration-queue/orchestration-queue.harness';
@@ -80,7 +80,7 @@ describe('OrchestrationFlow', () => {
         path: GuildPathStub({ value: testbed.guildPath }),
       });
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Test Quest',
         userRequest: 'A test quest for orchestration flow integration tests',
         guildId: guild.id,
@@ -106,7 +106,7 @@ describe('OrchestrationFlow', () => {
         path: GuildPathStub({ value: testbed.guildPath }),
       });
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Approved Quest',
         userRequest: 'A quest that will be approved for orchestration start tests',
         guildId: guild.id,
@@ -151,7 +151,7 @@ describe('OrchestrationFlow', () => {
         path: GuildPathStub({ value: testbed.guildPath }),
       });
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Chaos Promote Quest',
         userRequest: 'Test that chaos is promoted on start',
         guildId: guild.id,
@@ -203,7 +203,7 @@ describe('OrchestrationFlow', () => {
           path: GuildPathStub({ value: testbed.guildPath }),
         });
 
-        const addResult = await QuestAddResponder({
+        const addResult = await QuestUserAddResponder({
           title: 'Chaos Full Pipeline Quest',
           userRequest: 'Test that chaos promotion works through full pipeline',
           guildId: guild.id,
@@ -296,7 +296,7 @@ describe('OrchestrationFlow', () => {
         path: GuildPathStub({ value: testbed.guildPath }),
       });
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Chaos Glyph Promote Quest',
         userRequest: 'Test that chaos and glyph are both promoted on start from design_approved',
         guildId: guild.id,
@@ -1576,7 +1576,7 @@ describe('OrchestrationFlow', () => {
           path: GuildPathStub({ value: testbed.guildPath }),
         });
 
-        const addResult = await QuestAddResponder({
+        const addResult = await QuestUserAddResponder({
           title: 'Chaos Quest',
           userRequest: 'A quest testing chaos flow',
           guildId: guild.id,
@@ -1656,7 +1656,7 @@ describe('OrchestrationFlow', () => {
           path: GuildPathStub({ value: testbed.guildPath }),
         });
 
-        const addResult = await QuestAddResponder({
+        const addResult = await QuestUserAddResponder({
           title: 'Glyph Quest',
           userRequest: 'A quest with design phase',
           guildId: guild.id,
@@ -1884,28 +1884,18 @@ describe('OrchestrationFlow', () => {
       });
       const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
       const quest: QuestType = await (async (): Promise<QuestType> => {
-        const guild = await GuildAddResponder({
-          name: GuildNameStub({ value: 'PS Exhaust Guild' }),
-          path: GuildPathStub({ value: testbed.guildPath }),
-        });
-
-        const addResult = await QuestAddResponder({
-          title: 'PS Exhaust Quest',
-          userRequest: 'Test pathseeker retry exhaustion',
-          guildId: guild.id,
-        });
-
-        const questId = addResult.questId!;
-        const typedQuestId = questId;
-
-        // Approve quest but with no steps
-        await questHelper.approveQuest({
-          questId: typedQuestId,
+        // OrchestrationStartResponder enqueues onto the cross-guild queue and
+        // relies on the queue runner (gated by web-presence) to pick the quest
+        // up — that runner is not bootstrapped in integration tests. Use the
+        // shared seeded-quest pattern so the test exercises the orchestration
+        // loop directly: createTestQuest seeds an in_progress quest with chaos
+        // already complete and the pathseeker pending, mirroring what
+        // OrchestrationStartResponder produces post-start.
+        const { questId } = await questHelper.createTestQuest({
+          testbed,
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
           stepCount: 0,
         });
-
-        await questHelper.completeChaosWorkItem({ questId });
 
         // Queue 3 pathseeker attempts, each exiting non-zero (crashed spawn)
         queue.enqueue({
@@ -1930,7 +1920,7 @@ describe('OrchestrationFlow', () => {
           }),
         });
 
-        await OrchestrationFlow.start({ questId: typedQuestId });
+        await questHelper.startLoop({ questId });
 
         // With 'failed' in SATISFIED_STATUSES and dependsOn: [prevPathseekerId],
         // retry pathseekers become ready after their predecessor fails.
@@ -1991,7 +1981,7 @@ describe('OrchestrationFlow', () => {
           path: GuildPathStub({ value: testbed.guildPath }),
         });
 
-        const addResult = await QuestAddResponder({
+        const addResult = await QuestUserAddResponder({
           title: 'Zero Steps Quest',
           userRequest: 'Test zero steps edge case',
           guildId: guild.id,
@@ -2155,7 +2145,7 @@ describe('OrchestrationFlow', () => {
           path: GuildPathStub({ value: testbed.guildPath }),
         });
 
-        const addResult = await QuestAddResponder({
+        const addResult = await QuestUserAddResponder({
           title: 'CW Deps Quest',
           userRequest: 'Test codeweaver inter-step dependencies',
           guildId: guild.id,

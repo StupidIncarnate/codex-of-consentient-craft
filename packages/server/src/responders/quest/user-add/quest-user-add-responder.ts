@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Handles quest creation requests by validating input and delegating to the orchestrator adapter
+ * PURPOSE: Handles user-initiated quest creation HTTP requests by validating input and delegating to the orchestrator adapter
  *
  * USAGE:
- * const result = await QuestAddResponder({ body: { title: 'My Quest', userRequest: 'Do X', guildId: 'abc' } });
+ * const result = await QuestUserAddResponder({ body: { title: 'My Quest', userRequest: 'Do X', guildId: 'abc' } });
  * // Returns { status: 201, data: result } or { status: 400/500, data: { error } }
  */
 
@@ -12,7 +12,11 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
-export const QuestAddResponder = async ({ body }: { body: unknown }): Promise<ResponderResult> => {
+export const QuestUserAddResponder = async ({
+  body,
+}: {
+  body: unknown;
+}): Promise<ResponderResult> => {
   try {
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({

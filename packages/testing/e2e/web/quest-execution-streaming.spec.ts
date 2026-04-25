@@ -13,7 +13,10 @@ const GUILD_PATH = '/tmp/dm-e2e-quest-execution-streaming';
 const PANEL_TIMEOUT = 5_000;
 const STREAMING_TEXT_TIMEOUT = 5_000;
 
-const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const claudeMock = wireHarnessLifecycle({
+  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),

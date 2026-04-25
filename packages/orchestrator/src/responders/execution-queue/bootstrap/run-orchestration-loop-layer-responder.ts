@@ -16,7 +16,7 @@ import {
   filePathContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -35,13 +35,33 @@ export const RunOrchestrationLoopLayerResponder = async ({
   const ok = adapterResultContract.parse({ success: true });
 
   const existing = orchestrationProcessesState.findByQuestId({ questId });
-  if (existing !== undefined) {
+  // OrchestrationStartResponder pre-registers a placeholder process (prefix `proc-`)
+  // when an HTTP /start call returns a processId before the queue runner picks the
+  // quest up. We adopt that processId so callers polling /api/process/:processId
+  // continue to find the same handle once the loop is live. Other prefixes
+  // (`proc-queue-`, `chat-`, `proc-recovery-`) indicate a real loop is already
+  // running — skip in that case.
+  const adoptedProcessId = ((): ProcessId | null => {
+    if (existing === undefined) {
+      return null;
+    }
+    const { processId: existingId } = existing;
+    if (
+      existingId.startsWith('proc-') &&
+      !existingId.startsWith('proc-queue-') &&
+      !existingId.startsWith('proc-recovery-')
+    ) {
+      return existingId;
+    }
+    return null;
+  })();
+  if (existing !== undefined && adoptedProcessId === null) {
     // Another responder (e.g. a chat pathway) already spawned a loop for this quest.
     // The queue runner should not start a second one — await nothing.
     return ok;
   }
-
-  const processId = processIdContract.parse(`proc-queue-${crypto.randomUUID()}`);
+  const processId =
+    adoptedProcessId ?? processIdContract.parse(`proc-queue-${crypto.randomUUID()}`);
   const abortController = new AbortController();
 
   orchestrationProcessesState.register({

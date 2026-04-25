@@ -120,6 +120,8 @@ export const mcpServerHarness = (): {
     };
 
     serverProcess.stdout.on('data', dataHandler);
+    // Drain stderr so the pipe doesn't block when the child writes warnings.
+    serverProcess.stderr.on('data', () => undefined);
 
     await new Promise((resolve) => {
       setTimeout(resolve, mcpServerStatics.timeouts.startupMs);
@@ -153,16 +155,19 @@ export const mcpServerHarness = (): {
           pendingTimeouts.clear();
           pendingResponses.clear();
 
-          serverProcess.once('close', () => {
+          serverProcess.once('exit', () => {
             serverProcess.stdout.removeAllListeners();
             serverProcess.stderr.removeAllListeners();
             serverProcess.stdin.removeAllListeners();
+            serverProcess.stdout.destroy();
+            serverProcess.stderr.destroy();
+            serverProcess.stdin.destroy();
             testbed.cleanup();
             resolve();
           });
 
           serverProcess.stdout.off('data', dataHandler);
-          serverProcess.kill();
+          serverProcess.kill('SIGKILL');
         }),
     };
   };

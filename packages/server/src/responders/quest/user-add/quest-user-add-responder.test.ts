@@ -1,9 +1,9 @@
-import { QuestAddResponderProxy } from './quest-add-responder.proxy';
+import { QuestUserAddResponderProxy } from './quest-user-add-responder.proxy';
 
-describe('QuestAddResponder', () => {
+describe('QuestUserAddResponder', () => {
   describe('successful creation', () => {
     it('VALID: {title, userRequest, guildId} => returns 201 with result', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
       const { expectedData } = proxy.setupAddQuest();
 
       const result = await proxy.callResponder({
@@ -23,7 +23,7 @@ describe('QuestAddResponder', () => {
 
   describe('validation errors', () => {
     it('INVALID: {null body} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({ body: null });
 
@@ -34,7 +34,7 @@ describe('QuestAddResponder', () => {
     });
 
     it('INVALID: {non-object body} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({ body: 'not-an-object' });
 
@@ -45,7 +45,7 @@ describe('QuestAddResponder', () => {
     });
 
     it('INVALID: {missing title and userRequest} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({ body: {} });
 
@@ -56,7 +56,7 @@ describe('QuestAddResponder', () => {
     });
 
     it('INVALID: {title is number} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({ body: { title: 123, userRequest: 'Do X' } });
 
@@ -67,7 +67,7 @@ describe('QuestAddResponder', () => {
     });
 
     it('INVALID: {missing guildId} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({
         body: { title: 'My Quest', userRequest: 'Do X' },
@@ -80,7 +80,7 @@ describe('QuestAddResponder', () => {
     });
 
     it('INVALID: {guildId is number} => returns 400 with error', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
 
       const result = await proxy.callResponder({
         body: { title: 'My Quest', userRequest: 'Do X', guildId: 123 },
@@ -95,7 +95,7 @@ describe('QuestAddResponder', () => {
 
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
-      const proxy = QuestAddResponderProxy();
+      const proxy = QuestUserAddResponderProxy();
       proxy.setupAddQuestError({ message: 'Failed to create' });
 
       const result = await proxy.callResponder({

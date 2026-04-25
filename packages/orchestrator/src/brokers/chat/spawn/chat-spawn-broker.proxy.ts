@@ -1,17 +1,12 @@
 import type { ExitCodeStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import {
-  FilePathStub,
-  GuildConfigStub,
-  GuildStub,
-  GuildIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildConfigStub, GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
-import { questAddBrokerProxy } from '../../quest/add/quest-add-broker.proxy';
+import { questUserAddBrokerProxy } from '../../quest/user-add/quest-user-add-broker.proxy';
 import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 
@@ -37,9 +32,9 @@ export const chatSpawnBrokerProxy = (): {
   claudeLineNormalizeBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  const addProxy = questAddBrokerProxy();
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const addProxy = questUserAddBrokerProxy();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -62,7 +57,7 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
     }): void => {
-      // questAddBrokerProxy default mock already handles quest creation
+      // questUserAddBrokerProxy default mock already handles quest creation
       unifiedProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
@@ -83,11 +78,7 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     setupQuestCreationFailure: (): void => {
-      const questsFolderPath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/guilds/quests',
-      });
-      addProxy.setupQuestCreationFailure({
-        questsFolderPath,
+      addProxy.setupCreateFailure({
         error: new Error('mkdir failed'),
       });
     },

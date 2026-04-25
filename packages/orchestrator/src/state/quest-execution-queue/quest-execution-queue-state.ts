@@ -126,6 +126,18 @@ export const questExecutionQueueState = {
     return removedCountContract.parse(removed);
   },
 
+  removeByGuildId: ({ guildId }: { guildId: QuestQueueEntry['guildId'] }): RemovedCount => {
+    const before = state.entries.length;
+    state.entries = state.entries.filter((entry) => entry.guildId !== guildId);
+    const removed = before - state.entries.length;
+    if (removed > 0) {
+      for (const handler of state.handlers) {
+        handler();
+      }
+    }
+    return removedCountContract.parse(removed);
+  },
+
   updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }): boolean => {
     const index = state.entries.findIndex((entry) => entry.questId === questId);
     if (index === -1) {

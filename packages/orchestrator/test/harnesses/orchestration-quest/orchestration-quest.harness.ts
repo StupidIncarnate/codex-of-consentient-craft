@@ -31,7 +31,7 @@ import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
 import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild-remove-responder';
-import { QuestAddResponder } from '../../../src/responders/quest/add/quest-add-responder';
+import { QuestUserAddResponder } from '../../../src/responders/quest/user-add/quest-user-add-responder';
 import { QuestGetResponder } from '../../../src/responders/quest/get/quest-get-responder';
 import { QuestModifyResponder } from '../../../src/responders/quest/modify/quest-modify-responder';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
@@ -417,7 +417,7 @@ export const orchestrationQuestHarness = (): {
 
       createdGuildIds.push(guild.id);
 
-      const addResult = await QuestAddResponder({
+      const addResult = await QuestUserAddResponder({
         title: 'Integration Test Quest',
         userRequest: 'An integration test quest',
         guildId: guild.id,

@@ -15,14 +15,13 @@
 
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBroker } from './quest-hydrate-broker';
+import { questCreateBrokerProxy } from '../create/quest-create-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
-import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 import { buildHydrateInputLayerBrokerProxy } from './build-hydrate-input-layer-broker.proxy';
 
 registerModuleMock({ module: './quest-hydrate-broker' });
@@ -36,12 +35,10 @@ export const questHydrateBrokerProxy = (): {
   setupRejects: (params: { error: Error }) => void;
   getCallArgs: () => readonly unknown[][];
 } => {
-  fsMkdirAdapterProxy();
-  pathJoinAdapterProxy();
+  questCreateBrokerProxy();
   questLoadBrokerProxy();
   questModifyBrokerProxy();
   questPersistBrokerProxy();
-  questResolveQuestsPathBrokerProxy();
   buildHydrateInputLayerBrokerProxy();
 
   const mocked = questHydrateBroker as jest.MockedFunction<typeof questHydrateBroker>;

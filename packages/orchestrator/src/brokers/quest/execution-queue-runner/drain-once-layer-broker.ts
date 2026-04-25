@@ -66,8 +66,27 @@ export const drainOnceLayerBroker = async ({
     return ok;
   }
 
-  const currentStatus =
-    (await getQuestStatus({ questId: head.questId, guildId: head.guildId })) ?? head.status;
+  const fetchedStatus = await getQuestStatus({ questId: head.questId, guildId: head.guildId });
+  // Quest file unreadable — guild was removed (cleanup) or quest was deleted. Stale entry;
+  // drop it and advance so the runner doesn't get stuck on a non-existent quest.
+  if (fetchedStatus === undefined) {
+    removeByQuestId({ questId: head.questId });
+    emitQueueUpdated();
+    await drainOnceLayerBroker({
+      getHead,
+      dequeueHead,
+      markHeadStarted,
+      setHeadError,
+      removeByQuestId,
+      isWebPresent,
+      runOrchestrationLoop,
+      getQuestStatus,
+      emitQueueUpdated,
+      emitQueueError,
+    });
+    return ok;
+  }
+  const currentStatus = fetchedStatus;
 
   if (isUserPausedQuestStatusGuard({ status: currentStatus })) {
     return ok;

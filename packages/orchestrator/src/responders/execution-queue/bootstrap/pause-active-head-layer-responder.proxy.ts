@@ -1,28 +1,41 @@
-import type { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
-import { questPauseBrokerProxy } from '../../../brokers/quest/pause/quest-pause-broker.proxy';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
+import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 
-type PauseArgs = Parameters<typeof questPauseBroker>[0];
-
 export const PauseActiveHeadLayerResponderProxy = (): {
-  setupPaused: () => void;
-  setupNotPaused: () => void;
-  getPauseBrokerCalls: () => readonly PauseArgs[];
+  setupWithProcessForQuest: (params: { questId: QuestId }) => void;
+  setupNoProcess: () => void;
+  getKilledProcessIds: () => readonly ProcessId[];
 } => {
-  const pauseProxy = questPauseBrokerProxy();
   const processesProxy = orchestrationProcessesStateProxy();
   processesProxy.setupEmpty();
 
+  const killSpy = registerSpyOn({
+    object: orchestrationProcessesState,
+    method: 'kill',
+    passthrough: true,
+  });
+
   return {
-    setupPaused: (): void => {
-      pauseProxy.setupPaused();
+    setupWithProcessForQuest: ({ questId }: { questId: QuestId }): void => {
+      orchestrationProcessesState.register({
+        orchestrationProcess: OrchestrationProcessStub({
+          processId: ProcessIdStub({ value: 'proc-test-active' }),
+          questId,
+        }),
+      });
     },
-    setupNotPaused: (): void => {
-      pauseProxy.setupNotPaused();
+    setupNoProcess: (): void => {
+      // intentionally empty — start state already empty
     },
-    getPauseBrokerCalls: (): readonly PauseArgs[] => {
-      const raw = pauseProxy.getCallArgs();
-      return raw.map((callArgs) => callArgs[0] as PauseArgs);
-    },
+    getKilledProcessIds: (): readonly ProcessId[] =>
+      killSpy.mock.calls.map(([params]) => {
+        const { processId } = params as Parameters<typeof orchestrationProcessesState.kill>[0];
+        return processId;
+      }),
   };
 };

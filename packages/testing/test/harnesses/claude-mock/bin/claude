@@ -11,15 +11,40 @@ if (!queueDir) {
     process.exit(1);
 }
 
-// Find the lowest-numbered .json file in the queue directory
+// Cross-test isolation: each test scopes its queue under a subdirectory keyed by the
+// spawning process's cwd (the guild path). The orchestrator spawns this fake CLI with
+// `cwd: guildPath`, so different specs (with different guild paths) get isolated queues
+// even though all tests share the same root FAKE_CLAUDE_QUEUE_DIR. A leftover loop from
+// a prior spec cannot consume a queued response from the current spec.
+const encodeCwd = (cwd) => cwd.replace(/[^A-Za-z0-9._-]/g, '_');
+const scopedQueueDir = path.join(queueDir, '__by_cwd__', encodeCwd(process.cwd()));
+
+// Prefer the cwd-scoped queue when it has files; fall back to the root queue for callers
+// that don't scope (e.g. legacy harness calls without a guild path).
+const readQueueFiles = (dir) => {
+    try {
+        return fs.readdirSync(dir)
+            .filter((f) => f.endsWith('.json') && f !== 'metadata.json')
+            .sort();
+    } catch {
+        return null;
+    }
+};
+
+const scopedFiles = readQueueFiles(scopedQueueDir);
+let activeQueueDir;
 let files;
-try {
-    files = fs.readdirSync(queueDir)
-        .filter((f) => f.endsWith('.json') && f !== 'metadata.json')
-        .sort();
-} catch {
-    process.stderr.write(`Failed to read queue directory: ${queueDir}\n`);
-    process.exit(1);
+if (scopedFiles && scopedFiles.length > 0) {
+    activeQueueDir = scopedQueueDir;
+    files = scopedFiles;
+} else {
+    const rootFiles = readQueueFiles(queueDir);
+    if (rootFiles === null) {
+        process.stderr.write(`Failed to read queue directory: ${queueDir}\n`);
+        process.exit(1);
+    }
+    activeQueueDir = queueDir;
+    files = rootFiles;
 }
 
 if (files.length === 0) {
@@ -27,7 +52,7 @@ if (files.length === 0) {
     process.exit(1);
 }
 
-const nextFile = path.join(queueDir, files[0]);
+const nextFile = path.join(activeQueueDir, files[0]);
 const raw = fs.readFileSync(nextFile, 'utf-8');
 const response = JSON.parse(raw);
 

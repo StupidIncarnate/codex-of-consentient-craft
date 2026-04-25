@@ -21,6 +21,7 @@ import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-br
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import {
   isStartableQuestStatusGuard,
@@ -120,6 +121,20 @@ export const OrchestrationStartResponder = async ({
     status: quest.status,
     enqueuedAt: new Date().toISOString(),
     ...(quest.questSource === undefined ? {} : { questSource: quest.questSource }),
+  });
+
+  // Register the processId so callers can poll /api/process/:processId for status
+  // immediately after start. The queue runner picks the quest up later and registers
+  // its own running-loop process under the same questId; that registration overrides
+  // this entry so kill/abandon flows hit the live AbortController.
+  orchestrationProcessesState.register({
+    orchestrationProcess: {
+      processId,
+      questId,
+      kill: (): void => {
+        questExecutionQueueState.removeByQuestId({ questId });
+      },
+    },
   });
 
   questExecutionQueueState.enqueue({ entry });

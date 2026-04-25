@@ -10,15 +10,15 @@
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  */
 
-import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 
-type AddParams = Parameters<typeof QuestAddResponder>[0];
-type AddResult = Awaited<ReturnType<typeof QuestAddResponder>>;
+type AddParams = Parameters<typeof QuestUserAddResponder>[0];
+type AddResult = Awaited<ReturnType<typeof QuestUserAddResponder>>;
 
 type GetParams = Parameters<typeof QuestGetResponder>[0];
 type GetResult = Awaited<ReturnType<typeof QuestGetResponder>>;
@@ -37,7 +37,7 @@ type ModifyResult = Awaited<ReturnType<typeof QuestModifyResponder>>;
 
 export const QuestFlow = {
   add: async ({ title, userRequest, guildId }: AddParams): Promise<AddResult> =>
-    QuestAddResponder({ title, userRequest, guildId }),
+    QuestUserAddResponder({ title, userRequest, guildId }),
 
   get: async ({ questId, stage }: GetParams): Promise<GetResult> =>
     QuestGetResponder({ questId, ...(stage !== undefined && { stage }) }),

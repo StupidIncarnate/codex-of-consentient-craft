@@ -9,10 +9,9 @@
  * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer or PathSeeker run.
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
+  addQuestInputContract,
   fileContentsContract,
-  filePathContract,
   folderTypeGroupsContract,
   questContract,
   questIdContract,
@@ -32,13 +31,12 @@ import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-bl
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
 import { stepsToWorkItemsTransformer } from '../../../transformers/steps-to-work-items/steps-to-work-items-transformer';
 import { workItemsSkipRolesTransformer } from '../../../transformers/work-items-skip-roles/work-items-skip-roles-transformer';
+import { questCreateBroker } from '../create/quest-create-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questPersistBroker } from '../persist/quest-persist-broker';
-import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 import { buildHydrateInputLayerBroker } from './build-hydrate-input-layer-broker';
 
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const questHydrateBroker = async ({
@@ -54,41 +52,12 @@ export const questHydrateBroker = async ({
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
 
   // 1. Create the quest folder + initial quest.json at status 'created'
-  const { questsPath } = questResolveQuestsPathBroker({ guildId });
-  const questsBasePath = filePathContract.parse(questsPath);
-  await fsMkdirAdapter({ filepath: questsBasePath });
-
-  const questFolderPath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questsBasePath, questId] }),
-  );
-  await fsMkdirAdapter({ filepath: questFolderPath });
-
-  const initialQuest = questContract.parse({
-    id: questId,
-    folder: questId,
+  const input = addQuestInputContract.parse({
     title: blueprint.title,
-    status: 'created',
-    createdAt: new Date().toISOString(),
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [],
-    needsDesign: false,
     userRequest: blueprint.userRequest,
-    workItems: [],
-    wardResults: [],
-    planningNotes: { surfaceReports: [], blightReports: [] },
     ...(questSource === undefined ? {} : { questSource }),
   });
-
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questFolderPath, QUEST_FILE_NAME] }),
-  );
-  const initialJson = fileContentsContract.parse(
-    JSON.stringify(initialQuest, null, JSON_INDENT_SPACES),
-  );
-  await questPersistBroker({ questFilePath, contents: initialJson, questId });
+  const { questFilePath } = await questCreateBroker({ questId, guildId, input });
 
   // 2. Walk modify-quest through each transition up to targetStatus
   await questHydrateStrategyStatics.walkPath.reduce<Promise<boolean>>(
@@ -97,8 +66,8 @@ export const questHydrateBroker = async ({
       if (reached) {
         return true;
       }
-      const input = buildHydrateInputLayerBroker({ blueprint, toStatus, questId });
-      const result = await questModifyBroker({ input });
+      const modifyInput = buildHydrateInputLayerBroker({ blueprint, toStatus, questId });
+      const result = await questModifyBroker({ input: modifyInput });
       if (!result.success) {
         throw new Error(
           `quest-hydrate: modify-quest to ${toStatus} failed: ${result.error ?? 'unknown'}`,

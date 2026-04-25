@@ -12,7 +12,7 @@ const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 const CHAT_TIMEOUT = 5_000;
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });

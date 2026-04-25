@@ -129,6 +129,47 @@ describe('drainOnceLayerBroker', () => {
     ]);
   });
 
+  it('VALID: {getQuestStatus returns undefined (stale entry, guild removed)} => removes head and recurses to next', async () => {
+    drainOnceLayerBrokerProxy();
+    const a = QuestQueueEntryStub({ questId: QuestIdStub({ value: 'q-stale' }) });
+    const b = QuestQueueEntryStub({ questId: QuestIdStub({ value: 'q-next' }) });
+    const queue: QueueEntry[] = [a, b];
+    const runOrchestrationLoop = jest.fn().mockResolvedValue(undefined);
+    const removeByQuestId = jest.fn().mockImplementation((): void => {
+      queue.shift();
+    });
+    const dequeueHead = jest.fn().mockImplementation((): QueueEntry | undefined => queue.shift());
+    const statusByQuestId = new Map<QuestId, QuestStatus | undefined>([
+      [a.questId, undefined],
+      [b.questId, QuestStatusStub({ value: 'in_progress' })],
+    ]);
+    const getQuestStatus = jest
+      .fn()
+      .mockImplementation(
+        async ({ questId }: { questId: QuestId }): Promise<QuestStatus | undefined> =>
+          Promise.resolve(statusByQuestId.get(questId)),
+      );
+    const emitQueueUpdated = jest.fn();
+
+    await drainOnceLayerBroker({
+      getHead: (): QueueEntry | undefined => queue[0],
+      dequeueHead,
+      markHeadStarted: jest.fn(),
+      setHeadError: jest.fn(),
+      removeByQuestId,
+      isWebPresent: (): boolean => true,
+      runOrchestrationLoop,
+      getQuestStatus,
+      emitQueueUpdated,
+      emitQueueError: jest.fn(),
+    });
+
+    expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId: a.questId }]]);
+    expect(runOrchestrationLoop.mock.calls).toStrictEqual([
+      [{ questId: b.questId, guildId: b.guildId }],
+    ]);
+  });
+
   it('VALID: {head is paused} => does not run loop, does not dequeue', async () => {
     drainOnceLayerBrokerProxy();
     const head = QuestQueueEntryStub({

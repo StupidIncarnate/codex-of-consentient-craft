@@ -1,10 +1,10 @@
 import { orchestratorAddQuestAdapterProxy } from '../../../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter.proxy';
-import { QuestAddResponder } from './quest-add-responder';
+import { QuestUserAddResponder } from './quest-user-add-responder';
 
-export const QuestAddResponderProxy = (): {
+export const QuestUserAddResponderProxy = (): {
   setupAddQuest: () => { expectedData: unknown };
   setupAddQuestError: (params: { message: string }) => void;
-  callResponder: typeof QuestAddResponder;
+  callResponder: typeof QuestUserAddResponder;
 } => {
   const adapterProxy = orchestratorAddQuestAdapterProxy();
 
@@ -22,6 +22,6 @@ export const QuestAddResponderProxy = (): {
     setupAddQuestError: ({ message }: { message: string }): void => {
       adapterProxy.throws({ error: new Error(message) });
     },
-    callResponder: QuestAddResponder,
+    callResponder: QuestUserAddResponder,
   };
 };

@@ -1,11 +1,3 @@
-/**
- * PURPOSE: Proxy for quest-add-broker that mocks filesystem and path operations
- *
- * USAGE:
- * const brokerProxy = questAddBrokerProxy();
- * brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
- */
-
 import { pathJoinAdapterProxy, fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
@@ -13,7 +5,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 
-export const questAddBrokerProxy = (): {
+export const questCreateBrokerProxy = (): {
   setupQuestCreation: (params: {
     questsFolderPath: FilePath;
     questFolderPath: FilePath;
@@ -44,17 +36,11 @@ export const questAddBrokerProxy = (): {
         questsPath: questsFolderPath,
       });
 
-      // Mock mkdir for quests base directory
       mkdirProxy.succeeds({ filepath: questsFolderPath });
-
-      // Mock path joins (questFolderPath, questFilePath)
       pathJoinProxy.returns({ result: questFolderPath });
       pathJoinProxy.returns({ result: questFilePath });
-
-      // Mock mkdir for quest folder
       mkdirProxy.succeeds({ filepath: questFolderPath });
 
-      // Mock persist (write + outbox)
       persistProxy.setupPersist({
         homePath,
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
@@ -75,7 +61,6 @@ export const questAddBrokerProxy = (): {
         questsPath: questsFolderPath,
       });
 
-      // Mock mkdir failure for quests base directory
       mkdirProxy.throws({ filepath: questsFolderPath, error });
     },
 

@@ -15,7 +15,7 @@ const CHAT_TIMEOUT = 5_000;
 const SETTLE_DELAY = 500;
 const USER_MSG_TIMEOUT = 3_000;
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 

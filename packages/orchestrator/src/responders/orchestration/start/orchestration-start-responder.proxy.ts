@@ -14,6 +14,7 @@ import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
 
@@ -35,6 +36,8 @@ export const OrchestrationStartResponderProxy = (): {
   const guildProxy = guildGetBrokerProxy();
   const queueProxy = questExecutionQueueStateProxy();
   queueProxy.setupEmpty();
+  const processesProxy = orchestrationProcessesStateProxy();
+  processesProxy.setupEmpty();
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',

@@ -31,7 +31,7 @@ describe('QuestFlow', () => {
   });
 
   describe('POST /api/quests', () => {
-    it('VALID: {missing title} => delegates to QuestAddResponder which validates and returns 400', async () => {
+    it('VALID: {missing title} => delegates to QuestUserAddResponder which validates and returns 400', async () => {
       const app = QuestFlow();
       const guildId = GuildIdStub();
 

@@ -34,12 +34,20 @@ import { RunOrchestrationLoopLayerResponder } from './run-orchestration-loop-lay
 
 const RUNNER_PROCESS_ID = processIdContract.parse('execution-queue-runner');
 
+// Debounce window for presence-false → pause-active-head. React StrictMode and SPA
+// route transitions can briefly drop the WebSocket (close → reopen within tens of
+// milliseconds); without this delay, the brief presence-false window kills the active
+// head's CLI mid-stream and the loop strands the work item in `in_progress`.
+const PRESENCE_FALSE_DEBOUNCE_MS = 750;
+
 const state: {
   runner: QuestExecutionQueueRunnerController | null;
   presenceHandler: (({ isPresent }: { isPresent: boolean }) => void) | null;
+  pendingPauseTimer: ReturnType<typeof setTimeout> | null;
 } = {
   runner: null,
   presenceHandler: null,
+  pendingPauseTimer: null,
 };
 
 export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
@@ -110,6 +118,14 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
 
   state.presenceHandler = ({ isPresent }: { isPresent: boolean }): void => {
     if (isPresent) {
+      // A new presence-true cancels any pending pause kicked off by a brief drop —
+      // the most common cause of a flapped presence is a SPA route transition that
+      // closes and immediately reopens the WebSocket.
+      if (state.pendingPauseTimer !== null) {
+        clearTimeout(state.pendingPauseTimer);
+        state.pendingPauseTimer = null;
+      }
+
       const shouldRecover = !executionQueueBootstrapState.getHasRecoveredOnce();
       if (shouldRecover) {
         executionQueueBootstrapState.markRecovered();
@@ -140,22 +156,35 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
         });
       return;
     }
-    const head = questExecutionQueueState.getActive();
-    if (head === undefined) {
-      return;
+    // Debounce the pause: only fire if presence stays false past the debounce window.
+    // Catches React StrictMode double-mount and short SPA route transitions that briefly
+    // drop the WS without intent to actually pause execution.
+    if (state.pendingPauseTimer !== null) {
+      clearTimeout(state.pendingPauseTimer);
     }
-    if (!isQuestPauseableQuestStatusGuard({ status: head.status })) {
-      return;
-    }
-    PauseActiveHeadLayerResponder({
-      questId: head.questId,
-      guildId: head.guildId,
-      status: head.status,
-    }).catch((error: unknown) => {
-      process.stderr.write(
-        `[execution-queue-bootstrap] pause-on-presence-false failed: ${String(error)}\n`,
-      );
-    });
+    state.pendingPauseTimer = setTimeout(() => {
+      state.pendingPauseTimer = null;
+      // Re-check presence — if it flipped back to true during the debounce window, skip.
+      if (webPresenceState.getIsPresent()) {
+        return;
+      }
+      const head = questExecutionQueueState.getActive();
+      if (head === undefined) {
+        return;
+      }
+      if (!isQuestPauseableQuestStatusGuard({ status: head.status })) {
+        return;
+      }
+      PauseActiveHeadLayerResponder({
+        questId: head.questId,
+        guildId: head.guildId,
+        status: head.status,
+      }).catch((error: unknown) => {
+        process.stderr.write(
+          `[execution-queue-bootstrap] pause-on-presence-false failed: ${String(error)}\n`,
+        );
+      });
+    }, PRESENCE_FALSE_DEBOUNCE_MS);
   };
   webPresenceState.onChange(state.presenceHandler);
 

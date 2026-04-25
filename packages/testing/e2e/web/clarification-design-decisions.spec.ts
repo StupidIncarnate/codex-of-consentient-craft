@@ -14,7 +14,10 @@ const GUILD_PATH = '/tmp/dm-e2e-clarify-design-decisions';
 const CHAT_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 
-const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const claudeMock = wireHarnessLifecycle({
+  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),

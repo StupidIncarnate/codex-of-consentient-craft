@@ -27,7 +27,10 @@ const ROLE_FLOOR_MAP = {
 
 const VISIBLE_ROLES = Object.keys(ROLE_FLOOR_MAP);
 
-const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const claudeMock = wireHarnessLifecycle({
+  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),

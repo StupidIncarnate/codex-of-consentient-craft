@@ -14,7 +14,7 @@ import { QuestListResponder } from '../../responders/quest/list/quest-list-respo
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestsQueueResponder } from '../../responders/quests/queue/quests-queue-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
-import { QuestAddResponder } from '../../responders/quest/add/quest-add-responder';
+import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
@@ -44,7 +44,7 @@ export const QuestFlow = (): Hono => {
   });
 
   app.post(apiRoutesStatics.quests.list, async (c) => {
-    const result = await QuestAddResponder({ body: await c.req.json() });
+    const result = await QuestUserAddResponder({ body: await c.req.json() });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

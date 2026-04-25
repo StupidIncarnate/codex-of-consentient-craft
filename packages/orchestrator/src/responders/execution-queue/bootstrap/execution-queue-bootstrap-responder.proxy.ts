@@ -10,16 +10,16 @@ import { PauseActiveHeadLayerResponderProxy } from './pause-active-head-layer-re
 import { RunOrchestrationLoopLayerResponderProxy } from './run-orchestration-loop-layer-responder.proxy';
 
 type PauseLayerProxy = ReturnType<typeof PauseActiveHeadLayerResponderProxy>;
-type GetPauseBrokerCalls = PauseLayerProxy['getPauseBrokerCalls'];
+type GetKilledProcessIds = PauseLayerProxy['getKilledProcessIds'];
 
 // Bootstrap responder is idempotent and wires module-scoped state. The proxy
 // composes child proxies per enforce-proxy-child-creation so tests that exercise
 // wiring can reset all transitive state in one call. Presence-handler tests observe
-// questPauseBroker invocations via the `getPauseBrokerCalls` semantic method below,
-// which delegates to the composed pause-layer proxy without re-exporting it.
+// pause-active-head invocations indirectly via process kill records below — the
+// pause layer no longer mutates quest status, only kills the registered process.
 export const ExecutionQueueBootstrapResponderProxy = (): {
   reset: () => void;
-  getPauseBrokerCalls: GetPauseBrokerCalls;
+  getKilledProcessIds: GetKilledProcessIds;
   getRecoveryBrokerCallArgs: () => readonly unknown[][];
 } => {
   const runnerProxy = questExecutionQueueRunnerBrokerProxy();
@@ -43,10 +43,10 @@ export const ExecutionQueueBootstrapResponderProxy = (): {
       eventsProxy.setupEmpty();
       queueProxy.setupEmpty();
       presenceProxy.setupEmpty();
-      pauseLayerProxy.setupPaused();
+      pauseLayerProxy.setupNoProcess();
       bootstrapStateProxy.setupEmpty();
     },
-    getPauseBrokerCalls: pauseLayerProxy.getPauseBrokerCalls,
+    getKilledProcessIds: pauseLayerProxy.getKilledProcessIds,
     getRecoveryBrokerCallArgs: (): readonly unknown[][] => recoveryProxy.getCallArgs(),
   };
 };

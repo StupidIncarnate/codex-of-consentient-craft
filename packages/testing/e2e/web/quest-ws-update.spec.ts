@@ -13,7 +13,10 @@ const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const PANEL_TIMEOUT = 5_000;
 const CHAT_TIMEOUT = 5_000;
 
-const claudeMock = wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+const claudeMock = wireHarnessLifecycle({
+  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),
@@ -205,7 +208,7 @@ test.describe('Quest WS Update', () => {
     });
 
     // Send a message — this triggers the /api/sessions/new endpoint which:
-    // 1. Creates a quest via questAddBroker (empty, no flows)
+    // 1. Creates a quest via questUserAddBroker (empty, no flows)
     // 2. Emits quest-session-linked WS event with chatProcessId
     // 3. Spawns fake CLI
     // 4. Returns { chatProcessId } in HTTP response

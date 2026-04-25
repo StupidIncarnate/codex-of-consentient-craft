@@ -2,9 +2,14 @@
  * PURPOSE: Wraps ward mock queue helpers with lifecycle hooks for E2E tests
  *
  * USAGE:
- * const ward = wardMockHarness();
- * // beforeEach: clears queue
+ * const ward = wardMockHarness({ guildPath: GUILD_PATH });
+ * // beforeEach: clears the cwd-scoped queue subdir + the root queue
  * ward.queueResponse({ response: wardResponseData });
+ *
+ * Per-cwd queue scoping prevents cross-test contamination: each test's responses live under
+ * `${queueDir}/__by_cwd__/${encodedGuildPath}/`. The fake ward CLI computes the same path
+ * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
+ * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,8 +20,10 @@ import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 
 const COUNTER_START = 0;
 const PAD_LENGTH = 4;
+const ENCODE_NON_SAFE = /[^A-Za-z0-9._-]/gu;
+const SCOPE_REPLACEMENT = '_';
 
-const getQueueDir = () => {
+const getRootQueueDir = () => {
   const home = process.env.DUNGEONMASTER_HOME;
   if (!home) {
     throw new Error('DUNGEONMASTER_HOME env var is not set');
@@ -24,10 +31,18 @@ const getQueueDir = () => {
   return path.join(home, 'ward-queue');
 };
 
-const getMetadataPath = () => path.join(getQueueDir(), 'metadata.json');
+// Must match the encoding in the fake ward CLI so it finds the harness's queued files.
+const encodeCwdScope = ({ cwd }: { cwd: string }) =>
+  cwd.replace(ENCODE_NON_SAFE, SCOPE_REPLACEMENT);
 
-const getCounter = () => {
-  const metaPath = getMetadataPath();
+const getScopedQueueDir = ({ guildPath }: { guildPath: string }) =>
+  path.join(getRootQueueDir(), '__by_cwd__', encodeCwdScope({ cwd: guildPath }));
+
+const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
+  path.join(queueDir, 'metadata.json');
+
+const getCounter = ({ queueDir }: { queueDir: string }) => {
+  const metaPath = getMetadataPath({ queueDir });
   if (fs.existsSync(metaPath)) {
     const raw = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
     return Number(raw.counter);
@@ -35,46 +50,64 @@ const getCounter = () => {
   return COUNTER_START;
 };
 
-const setCounter = (params: { counter: ReturnType<typeof getCounter> }): void => {
-  fs.writeFileSync(getMetadataPath(), JSON.stringify(params));
+const setCounter = ({
+  queueDir,
+  counter,
+}: {
+  queueDir: string;
+  counter: ReturnType<typeof getCounter>;
+}): void => {
+  fs.writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };
 
-const queueWardResponse = ({ response }: { response: WardQueueResponse }): void => {
-  const queueDir = getQueueDir();
+const queueWardResponse = ({
+  queueDir,
+  response,
+}: {
+  queueDir: string;
+  response: WardQueueResponse;
+}): void => {
   fs.mkdirSync(queueDir, { recursive: true });
-
-  const counter = getCounter();
+  const counter = getCounter({ queueDir });
   const filePath = path.join(queueDir, `${String(counter).padStart(PAD_LENGTH, '0')}.json`);
   fs.writeFileSync(filePath, JSON.stringify(response));
-  setCounter({ counter: counter + 1 });
+  setCounter({ queueDir, counter: counter + 1 });
 };
 
-const clearWardQueue = (): void => {
-  const queueDir = getQueueDir();
+const clearWardQueue = ({ queueDir }: { queueDir: string }): void => {
   if (!fs.existsSync(queueDir)) {
     return;
   }
 
   const files = fs.readdirSync(queueDir);
   for (const file of files) {
-    fs.unlinkSync(path.join(queueDir, file));
+    const full = path.join(queueDir, file);
+    if (fs.statSync(full).isFile()) {
+      fs.unlinkSync(full);
+    }
   }
 };
 
 // ── Harness ────────────────────────────────────────────────────────────────────
 
-export const wardMockHarness = (): {
+export const wardMockHarness = ({
+  guildPath,
+}: {
+  guildPath: string;
+}): {
   beforeEach: () => void;
   queueResponse: (params: { response: WardQueueResponse }) => void;
   clearQueue: () => void;
 } => ({
   beforeEach: (): void => {
-    clearWardQueue();
+    clearWardQueue({ queueDir: getRootQueueDir() });
+    clearWardQueue({ queueDir: getScopedQueueDir({ guildPath }) });
   },
   queueResponse: ({ response }: { response: WardQueueResponse }): void => {
-    queueWardResponse({ response });
+    queueWardResponse({ queueDir: getScopedQueueDir({ guildPath }), response });
   },
   clearQueue: (): void => {
-    clearWardQueue();
+    clearWardQueue({ queueDir: getRootQueueDir() });
+    clearWardQueue({ queueDir: getScopedQueueDir({ guildPath }) });
   },
 });

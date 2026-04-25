@@ -58,7 +58,7 @@ import {guildHarness} from '../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-example';
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({guildPath: GUILD_PATH});
 wireHarnessLifecycle({harness: claudeMock, testObj: test});
 wireHarnessLifecycle({harness: environmentHarness({guildPath: GUILD_PATH}), testObj: test});
 

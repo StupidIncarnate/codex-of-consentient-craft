@@ -10,7 +10,7 @@ const GUILD_PATH = '/tmp/dm-e2e-streaming-subagent';
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 10_000;
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });

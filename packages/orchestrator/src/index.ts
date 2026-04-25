@@ -2,7 +2,7 @@
 export { StartOrchestrator } from './startup/start-orchestrator';
 
 // Quest brokers - exported for CLI package to use directly
-export { questAddBroker } from './brokers/quest/add/quest-add-broker';
+export { questUserAddBroker } from './brokers/quest/user-add/quest-user-add-broker';
 export { questGetBroker } from './brokers/quest/get/quest-get-broker';
 export { questFolderFindBroker } from './brokers/quest/folder-find/quest-folder-find-broker';
 export { questFindQuestPathBroker } from './brokers/quest/find-quest-path/quest-find-quest-path-broker';

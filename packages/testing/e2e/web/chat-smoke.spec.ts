@@ -10,7 +10,7 @@ const GUILD_PATH = '/tmp/dm-e2e-chat-guild';
 const HTTP_OK = 200;
 const CHAT_TIMEOUT = 5_000;
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 

@@ -10,7 +10,7 @@ import { navigationHarness } from '../../test/harnesses/navigation/navigation.ha
 const GUILD_PATH = '/tmp/dm-e2e-floor-ordering';
 const PANEL_TIMEOUT = 15_000;
 
-wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: claudeMockHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });

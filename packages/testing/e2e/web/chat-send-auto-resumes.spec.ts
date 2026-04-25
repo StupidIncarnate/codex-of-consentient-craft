@@ -14,7 +14,7 @@ const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 10_000;
 
-const claudeMock = claudeMockHarness();
+const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({

@@ -37,7 +37,7 @@ import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-bu
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
-import { questAddBroker } from '../../quest/add/quest-add-broker';
+import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
@@ -107,7 +107,7 @@ export const chatSpawnBroker = async ({
     resolvedQuestId = questId ?? null;
   } else {
     const addInput = addQuestInputContract.parse({ title: 'New Quest', userRequest: message });
-    const questResult = await questAddBroker({ input: addInput, guildId });
+    const questResult = await questUserAddBroker({ input: addInput, guildId });
     if (!questResult.success || !questResult.questId) {
       throw new Error(`Failed to create quest: ${questResult.error ?? 'unknown'}`);
     }

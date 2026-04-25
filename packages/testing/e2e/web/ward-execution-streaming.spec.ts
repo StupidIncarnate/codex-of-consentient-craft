@@ -12,8 +12,11 @@ const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
 
-wireHarnessLifecycle({ harness: claudeMockHarness(), testObj: test });
-const wardMock = wireHarnessLifecycle({ harness: wardMockHarness(), testObj: test });
+wireHarnessLifecycle({ harness: claudeMockHarness({ guildPath: GUILD_PATH }), testObj: test });
+const wardMock = wireHarnessLifecycle({
+  harness: wardMockHarness({ guildPath: GUILD_PATH }),
+  testObj: test,
+});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),
