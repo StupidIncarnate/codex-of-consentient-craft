@@ -2230,9 +2230,14 @@ describe('QuestChatWidget', () => {
 
       await userEvent.click(rowHeader);
 
+      // Same entry surfaces in both the expanded execution row and the right
+      // activity pane (Bug C — chat panel must show agent activity live).
       const messages = screen.queryAllByTestId('CHAT_MESSAGE');
 
-      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+        'CHAT_MESSAGE',
+      ]);
       expect(messages[0]?.textContent).toBe('PATHSEEKERExploring quest requirements...');
     });
   });

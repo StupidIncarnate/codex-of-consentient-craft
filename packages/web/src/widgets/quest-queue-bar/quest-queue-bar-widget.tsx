@@ -13,12 +13,12 @@ import { Link } from 'react-router-dom';
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
-const BAR_HEIGHT = 36;
-const ROW_FONT_SIZE = 12;
+const BAR_HEIGHT = 48;
+const ROW_FONT_SIZE = 13;
 const CHEVRON_SIZE = 14;
 const ERROR_BADGE_SIZE = 10;
 const BORDER_WIDTH = 1;
-const ROW_PADDING_Y = 4;
+const ROW_PADDING_Y = 6;
 const ROW_PADDING_X = 12;
 
 export const QuestQueueBarWidget = (): React.JSX.Element | null => {
@@ -34,6 +34,10 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
   const total = allEntries.length;
   const collapsedLabel = `Quest ${activeIndex + 1}/${total} — ${activeEntry.questTitle}`;
   const hasError = errorEntry !== undefined;
+  const openHref =
+    activeEntry.activeSessionId === undefined
+      ? `/${activeEntry.guildSlug}/session`
+      : `/${activeEntry.guildSlug}/session/${activeEntry.activeSessionId}`;
 
   return (
     <div
@@ -49,11 +53,7 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
         fontFamily: 'monospace',
       }}
     >
-      <UnstyledButton
-        data-testid="QUEST_QUEUE_BAR_TOGGLE"
-        onClick={(): void => {
-          setExpanded((prev) => !prev);
-        }}
+      <div
         style={{
           width: '100%',
           minHeight: BAR_HEIGHT,
@@ -63,43 +63,78 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
           fontSize: ROW_FONT_SIZE,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
         }}
       >
-        <Group justify="space-between" style={{ width: '100%' }}>
-          <Group gap="xs">
-            {hasError ? (
-              <span
-                data-testid="QUEST_QUEUE_BAR_ERROR_BADGE"
-                aria-label="Queue runner error"
-                title={errorEntry.error?.message ?? ''}
-                style={{
-                  display: 'inline-block',
-                  width: ERROR_BADGE_SIZE,
-                  height: ERROR_BADGE_SIZE,
-                  borderRadius: ERROR_BADGE_SIZE,
-                  backgroundColor: colors.danger,
-                }}
-              />
-            ) : null}
-            <Text
-              size="xs"
-              ff="monospace"
-              c={colors.text}
-              data-testid="QUEST_QUEUE_BAR_COLLAPSED_LABEL"
-            >
-              {collapsedLabel}
-            </Text>
-          </Group>
+        <UnstyledButton
+          data-testid="QUEST_QUEUE_BAR_TOGGLE"
+          onClick={(): void => {
+            setExpanded((prev) => !prev);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            color: colors.text,
+            fontFamily: 'monospace',
+            fontSize: ROW_FONT_SIZE,
+            flex: 1,
+            textAlign: 'left',
+          }}
+        >
+          {hasError ? (
+            <span
+              data-testid="QUEST_QUEUE_BAR_ERROR_BADGE"
+              aria-label="Queue runner error"
+              title={errorEntry.error?.message ?? ''}
+              style={{
+                display: 'inline-block',
+                width: ERROR_BADGE_SIZE,
+                height: ERROR_BADGE_SIZE,
+                borderRadius: ERROR_BADGE_SIZE,
+                backgroundColor: colors.danger,
+              }}
+            />
+          ) : null}
           <Text
             size="xs"
             ff="monospace"
-            c={colors['text-dim']}
-            data-testid="QUEST_QUEUE_BAR_CHEVRON"
+            c={colors.text}
+            data-testid="QUEST_QUEUE_BAR_COLLAPSED_LABEL"
           >
-            {expanded ? '▴' : '▾'}
+            {collapsedLabel}
           </Text>
+        </UnstyledButton>
+        <Group gap="md">
+          <Link
+            to={openHref}
+            data-testid="QUEST_QUEUE_BAR_OPEN_LINK"
+            style={{
+              color: colors['loot-gold'],
+              fontFamily: 'monospace',
+              fontSize: ROW_FONT_SIZE,
+              textDecoration: 'none',
+              fontWeight: 600,
+            }}
+          >
+            OPEN ▸
+          </Link>
+          <UnstyledButton
+            data-testid="QUEST_QUEUE_BAR_CHEVRON_TOGGLE"
+            onClick={(): void => {
+              setExpanded((prev) => !prev);
+            }}
+            style={{
+              fontFamily: 'monospace',
+              fontSize: ROW_FONT_SIZE,
+              color: colors['text-dim'],
+            }}
+          >
+            <span data-testid="QUEST_QUEUE_BAR_CHEVRON">{expanded ? '▴' : '▾'}</span>
+          </UnstyledButton>
         </Group>
-      </UnstyledButton>
+      </div>
 
       {expanded ? (
         <Stack

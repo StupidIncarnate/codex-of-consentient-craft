@@ -11,10 +11,12 @@
 import {
   absoluteFilePathContract,
   exitCodeContract,
+  filePathContract,
+  type AbsoluteFilePath,
   type FilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { claudeLineNormalizeBroker, configRootFindBroker } from '@dungeonmaster/shared/brokers';
 
 import {
   agentSpawnStreamingResultContract,
@@ -78,6 +80,17 @@ export const agentSpawnByRoleBroker = async ({
     ? SMOKETEST_MODEL
     : roleToModelTransformer({ role: workUnit.role });
 
+  // Always walk up from `startPath` to the directory containing `.dungeonmaster.json` so the
+  // spawned agent's cwd lets `.mcp.json` resolve its relative `node packages/mcp/dist/src/index.js`
+  // command. `configRootFindBroker` is idempotent — when `startPath` itself contains
+  // `.dungeonmaster.json` (e.g. the codex guild's repo-root path) it returns `startPath` unchanged.
+  // For the smoketests guild, whose path is the dungeonmaster home (`.dungeonmaster-dev/`), it
+  // walks up to the repo root. This also correctly handles auto-spawned recovery agents
+  // (pathseeker for replan) on smoketest quests, which don't carry `smoketestPromptOverride`.
+  const resolvedCwd: AbsoluteFilePath = absoluteFilePathContract.parse(
+    await configRootFindBroker({ startPath: filePathContract.parse(startPath) }),
+  );
+
   try {
     let lastSignal: StreamSignal | null = null;
     const outputLines: StreamText[] = [];
@@ -85,7 +98,7 @@ export const agentSpawnByRoleBroker = async ({
     return await new Promise<AgentSpawnStreamingResult>((resolve) => {
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt,
-        cwd: absoluteFilePathContract.parse(startPath),
+        cwd: resolvedCwd,
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
         model,
         disableToolSearch: isSmoketestSpawn,
