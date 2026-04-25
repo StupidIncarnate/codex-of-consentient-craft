@@ -11,7 +11,8 @@
 
 import type { QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
-import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 
@@ -43,7 +44,7 @@ export const createDriverPollTickLayerBroker =
       if (abortSignal.aborted) {
         return;
       }
-      if (isQuestNotFoundErrorGuard({ error })) {
+      if (error instanceof QuestNotFoundError || error instanceof GuildNotFoundError) {
         stopNow();
         if (onQuestGone !== undefined) {
           onQuestGone({ questId });

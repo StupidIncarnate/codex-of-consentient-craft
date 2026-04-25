@@ -20,6 +20,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 
 const QUEST_FILE_NAME = 'quest.json';
 
@@ -98,5 +99,5 @@ export const questFindQuestPathBroker = async ({
     return match;
   }
 
-  throw new Error(`Quest with id "${questId}" not found in any guild`);
+  throw new QuestNotFoundError({ questId });
 };

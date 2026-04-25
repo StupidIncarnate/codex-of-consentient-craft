@@ -10,6 +10,7 @@
 import type { Guild, GuildId } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -19,7 +20,7 @@ export const guildGetBroker = async ({ guildId }: { guildId: GuildId }): Promise
   const guild = config.guilds.find((g) => g.id === guildId);
 
   if (!guild) {
-    throw new Error(`Guild not found: ${guildId}`);
+    throw new GuildNotFoundError({ guildId });
   }
 
   if (!guild.urlSlug) {

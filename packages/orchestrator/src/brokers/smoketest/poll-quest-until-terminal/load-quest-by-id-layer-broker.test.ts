@@ -5,6 +5,7 @@ import {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { loadQuestByIdLayerBroker } from './load-quest-by-id-layer-broker';
 import { loadQuestByIdLayerBrokerProxy } from './load-quest-by-id-layer-broker.proxy';
 
@@ -31,7 +32,7 @@ describe('loadQuestByIdLayerBroker', () => {
   describe('find throws', () => {
     it('ERROR: {quest path not found} => propagates the error', async () => {
       const proxy = loadQuestByIdLayerBrokerProxy();
-      proxy.setupFindThrows({ error: new Error('Quest with id "X" not found in any guild') });
+      proxy.setupFindThrows({ error: new QuestNotFoundError({ questId: 'X' }) });
 
       await expect(loadQuestByIdLayerBroker({ questId: QUEST_ID })).rejects.toThrow(
         /not found in any guild/u,

@@ -31,7 +31,8 @@
 
 import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
-import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { createDriverHandlerLayerBroker } from './create-driver-handler-layer-broker';
 import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer-broker';
@@ -94,7 +95,10 @@ export const smoketestScenarioDriverBroker = async ({
   }).catch((error: unknown) => {
     abortController.abort();
     unsubscribe(handler);
-    if (isQuestNotFoundErrorGuard({ error }) && onQuestGone !== undefined) {
+    if (
+      (error instanceof QuestNotFoundError || error instanceof GuildNotFoundError) &&
+      onQuestGone !== undefined
+    ) {
       onQuestGone({ questId });
     }
     throw error;

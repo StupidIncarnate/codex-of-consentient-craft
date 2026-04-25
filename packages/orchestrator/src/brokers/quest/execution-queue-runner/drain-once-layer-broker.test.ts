@@ -1,5 +1,6 @@
 import { QuestIdStub, QuestQueueEntryStub, QuestStatusStub } from '@dungeonmaster/shared/contracts';
 
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { drainOnceLayerBroker } from './drain-once-layer-broker';
 import { drainOnceLayerBrokerProxy } from './drain-once-layer-broker.proxy';
 
@@ -233,7 +234,7 @@ describe('drainOnceLayerBroker', () => {
     const queue: QueueEntry[] = [a, b];
     const runOrchestrationLoop = jest
       .fn()
-      .mockRejectedValueOnce(new Error(`Quest ${String(a.questId)} not found in any guild`))
+      .mockRejectedValueOnce(new QuestNotFoundError({ questId: String(a.questId) }))
       .mockResolvedValueOnce(undefined);
     const setHeadError = jest.fn();
     const emitQueueError = jest.fn();

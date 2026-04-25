@@ -10,6 +10,7 @@
 import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildId, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -27,7 +28,7 @@ export const guildUpdateBroker = async ({
   const existing = config.guilds.find((g) => g.id === guildId);
 
   if (!existing) {
-    throw new Error(`Guild not found: ${guildId}`);
+    throw new GuildNotFoundError({ guildId });
   }
 
   if (path !== undefined) {

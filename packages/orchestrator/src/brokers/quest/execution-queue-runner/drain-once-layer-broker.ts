@@ -19,7 +19,8 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 
 export const drainOnceLayerBroker = async ({
   getHead,
@@ -125,7 +126,7 @@ export const drainOnceLayerBroker = async ({
   try {
     await runOrchestrationLoop({ questId: head.questId, guildId: head.guildId });
   } catch (error: unknown) {
-    if (isQuestNotFoundErrorGuard({ error })) {
+    if (error instanceof QuestNotFoundError || error instanceof GuildNotFoundError) {
       removeByQuestId({ questId: head.questId });
       emitQueueUpdated();
       await drainOnceLayerBroker({

@@ -28,7 +28,8 @@ import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import type { SmoketestScenarioMeta } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
-import { isQuestNotFoundErrorGuard } from '../../../guards/is-quest-not-found-error/is-quest-not-found-error-guard';
+import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questPersistBroker } from '../../quest/persist/quest-persist-broker';
@@ -60,7 +61,7 @@ export const processTerminalEventLayerBroker = async ({
   const foundPath: { questPath: AbsoluteFilePath } | null = await questFindQuestPathBroker({
     questId,
   }).catch((error: unknown): null => {
-    if (isQuestNotFoundErrorGuard({ error })) {
+    if (error instanceof QuestNotFoundError || error instanceof GuildNotFoundError) {
       return null;
     }
     throw error;

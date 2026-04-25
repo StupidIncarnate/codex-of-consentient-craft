@@ -6,6 +6,7 @@ import {
   TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { smoketestPollQuestUntilTerminalBroker } from './smoketest-poll-quest-until-terminal-broker';
 import { smoketestPollQuestUntilTerminalBrokerProxy } from './smoketest-poll-quest-until-terminal-broker.proxy';
 
@@ -125,7 +126,7 @@ describe('smoketestPollQuestUntilTerminalBroker', () => {
     it('ERROR: {initial quest load throws} => rejects with the error', async () => {
       const proxy = smoketestPollQuestUntilTerminalBrokerProxy();
       proxy.setupFindThrows({
-        error: new Error('Quest with id "poll-broker-quest" not found in any guild'),
+        error: new QuestNotFoundError({ questId: 'poll-broker-quest' }),
       });
 
       await expect(
