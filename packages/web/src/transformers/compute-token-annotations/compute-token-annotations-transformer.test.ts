@@ -37,7 +37,7 @@ describe('computeTokenAnnotationsTransformer', () => {
   });
 
   describe('entries with usage', () => {
-    it('VALID: {items: [assistant text with usage]} => returns tokenBadgeLabel with formatted context', () => {
+    it('VALID: {items: [first assistant text with usage]} => no badge (no prev to diff against), captures cumulative', () => {
       const items = [
         MergedEntryItemStub({
           entry: AssistantTextChatEntryStub({
@@ -55,7 +55,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
@@ -63,7 +63,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       ]);
     });
 
-    it('VALID: {items: [two assistant texts with usage]} => returns rolling delta on second', () => {
+    it('VALID: {items: [two assistant texts with usage]} => second shows +delta badge', () => {
       const items = [
         MergedEntryItemStub({
           entry: AssistantTextChatEntryStub({
@@ -91,13 +91,13 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
@@ -133,7 +133,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
@@ -149,7 +149,7 @@ describe('computeTokenAnnotationsTransformer', () => {
   });
 
   describe('tool pairs', () => {
-    it('VALID: {items: [tool-pair, toolUse has usage]} => returns tokenBadgeLabel on annotation', () => {
+    it('VALID: {items: [tool-pair, toolUse has usage]} => no tokenBadgeLabel (per-tool delta is misattribution), captures cumulative', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -172,7 +172,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
@@ -205,7 +205,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       ]);
     });
 
-    it('VALID: {items: [tool-pair, both usage and result]} => returns both labels', () => {
+    it('VALID: {items: [tool-pair with usage and result]} => no tokenBadgeLabel, but resultTokenBadgeLabel is set', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -228,7 +228,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
@@ -285,7 +285,7 @@ describe('computeTokenAnnotationsTransformer', () => {
   });
 
   describe('source tracking', () => {
-    it('VALID: {items: [session entry, subagent entry]} => tracks separate prev counters', () => {
+    it('VALID: {items: [session, subagent, session]} => prev counters tracked separately; first of each source has no badge', () => {
       const items = [
         MergedEntryItemStub({
           entry: AssistantTextChatEntryStub({
@@ -326,19 +326,19 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '1.2k context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: null,
           source: 'subagent',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
@@ -348,7 +348,7 @@ describe('computeTokenAnnotationsTransformer', () => {
   });
 
   describe('negative delta', () => {
-    it('EDGE: {items: [entry with 1200 context, entry with 500 context]} => clamps badge to null, contextDelta is negative', () => {
+    it('EDGE: {items: [entry with 1200 context, entry with 500 context]} => no badge (negative delta), contextDelta is negative', () => {
       const items = [
         MergedEntryItemStub({
           entry: AssistantTextChatEntryStub({
@@ -376,7 +376,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '1.2k context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: null,
           source: 'session',
@@ -437,7 +437,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
@@ -446,7 +446,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       ]);
     });
 
-    it('VALID: {items: [two tool-pairs with usage]} => returns rolling delta on second', () => {
+    it('VALID: {items: [two tool-pairs with usage]} => both have null tokenBadgeLabel; second tracks contextDelta', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -484,14 +484,14 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
@@ -500,7 +500,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       ]);
     });
 
-    it('EDGE: {items: [two tool-pairs with identical usage]} => returns null tokenBadgeLabel and zero contextDelta', () => {
+    it('EDGE: {items: [two tool-pairs with identical usage]} => null tokenBadgeLabel and zero contextDelta', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -538,7 +538,7 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
@@ -589,13 +589,13 @@ describe('computeTokenAnnotationsTransformer', () => {
 
       expect(result).toStrictEqual([
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '500 context' }),
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
-          tokenBadgeLabel: FormattedTokenLabelStub({ value: '700 context' }),
+          tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 1200 }),
           contextDelta: ContextTokenDeltaStub({ value: 700 }),

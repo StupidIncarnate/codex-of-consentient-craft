@@ -24,7 +24,11 @@ export interface ToolRowWidgetProps {
   toolUse: ToolUseEntry;
   toolResult?: ToolResultEntry | null;
   isLoading?: boolean;
-  tokenBadgeLabel?: FormattedTokenLabel;
+  // Per-tool context number = chars/4 estimate of tool_result content (~X.Xk est).
+  // We do NOT show a per-tool delta from `usage` because when multiple tools fire in
+  // one assistant turn the delta is shared and can't be split per-tool. The result
+  // estimate is per-tool and accurate enough for relative comparison.
+  // See packages/web/CLAUDE.md - "Per-tool context numbers".
   resultTokenBadgeLabel?: FormattedTokenLabel;
   defaultExpanded?: boolean;
 }
@@ -45,7 +49,6 @@ export const ToolRowWidget = ({
   toolUse,
   toolResult,
   isLoading,
-  tokenBadgeLabel,
   resultTokenBadgeLabel,
   defaultExpanded,
 }: ToolRowWidgetProps): React.JSX.Element => {
@@ -224,41 +227,25 @@ export const ToolRowWidget = ({
         )}
       </UnstyledButton>
 
-      {((): React.JSX.Element | null => {
-        if (tokenBadgeLabel === undefined && resultTokenBadgeLabel === undefined) {
-          return null;
-        }
-        return (
-          <Box
-            data-testid="TOOL_ROW_TOKENS"
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: 8,
-              padding: '0 8px 4px 17px',
-            }}
+      {resultTokenBadgeLabel === undefined ? null : (
+        <Box
+          data-testid="TOOL_ROW_TOKENS"
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 8,
+            padding: '0 8px 4px 17px',
+          }}
+        >
+          <Text
+            ff="monospace"
+            data-testid="RESULT_TOKEN_BADGE"
+            style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
           >
-            {tokenBadgeLabel === undefined ? null : (
-              <Text
-                ff="monospace"
-                data-testid="TOKEN_BADGE"
-                style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-              >
-                {tokenBadgeLabel}
-              </Text>
-            )}
-            {resultTokenBadgeLabel === undefined ? null : (
-              <Text
-                ff="monospace"
-                data-testid="RESULT_TOKEN_BADGE"
-                style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-              >
-                {resultTokenBadgeLabel}
-              </Text>
-            )}
-          </Box>
-        );
-      })()}
+            {resultTokenBadgeLabel}
+          </Text>
+        </Box>
+      )}
 
       {expanded ? (
         <Box

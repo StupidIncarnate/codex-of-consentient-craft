@@ -79,3 +79,38 @@ agentId via the convergence.
 - **Dungeonmaster is a dev tool / AI orchestrator**, not a SaaS product. The web UI is an
   operational RPG-themed interface, not a product page. Pixel art RPG dungeon raid aesthetic
   is the core visual identity.
+
+## Per-tool context numbers
+
+The Claude API does NOT return a per-tool token count for tool results. The `usage`
+object on each assistant message reports `input_tokens + cache_creation + cache_read +
+output_tokens` for that one API call — per-message, not per-tool. So when one assistant
+turn fires multiple tools (e.g. discover + discover + Bash all in one go), the API
+gives us one combined input cost; we cannot split it per-tool without server help.
+
+What this means for the UI:
+
+| Surface                         | Number shown                       | Why it's accurate                           |
+| ------------------------------- | ---------------------------------- | ------------------------------------------- |
+| Tool row (`ToolRowWidget`)      | `~X est` from result content chars | chars/4 of `tool_result.content` is per-tool and stable for relative comparison |
+| Tool group header (`ToolGroupWidget`) | `(+X.Xk context)` cross-API-call delta | This is the only number actually reported per-turn by the API; attributing it to the GROUP (whole turn) is correct |
+| Cumulative-context divider (`ContextDividerWidget`) | Cumulative + delta | Comes straight from `usage` on a single assistant entry; one entry = one API call |
+
+What we deliberately DO NOT do:
+
+- Do not show a "context delta" badge on individual tool rows. The cross-turn delta
+  cannot be attributed to a single tool when a turn fires multiple tools, so showing
+  it next to the first tool of the turn implies false causation.
+- Do not show the cumulative context as if it were a delta on the first message of a
+  conversation. (Old bug: `~34k context` was reported on the first tool because
+  `prevContext === null` synthesized a baseline-as-delta. Now: no badge when prev is
+  unknown.)
+
+If you want a tighter per-tool number than chars/4, the only path is Anthropic's
+`messages.countTokens` API — it requires a network round-trip per result, so it's
+unsuitable for rendering many tool calls. Anthropic does not ship a public client-side
+tokenizer for Claude 3/4. chars/4 is intentional.
+
+Relevant files: `transformers/compute-token-annotations/`,
+`transformers/compute-group-context-deltas/`, `transformers/estimate-content-tokens/`,
+`widgets/tool-row/`, `widgets/tool-group/`, `widgets/context-divider/`.

@@ -33,24 +33,11 @@ export const computeTokenAnnotationsTransformer = ({
         'source' in toolUse && toolUse.source === 'subagent' ? 'subagent' : 'session';
       const totalContext = computeEntryContextTransformer({ entry: toolUse });
 
-      let tokenBadgeLabel: FormattedTokenLabel | null = null;
       let cumulativeContext: ContextTokenCount | null = null;
       let contextDelta: TokenAnnotation['contextDelta'] = null;
 
       if (totalContext !== null) {
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
-        const delta =
-          prevContext === null
-            ? totalContext
-            : contextTokenCountContract.parse(
-                Math.max(0, Number(totalContext) - Number(prevContext)),
-              );
-        tokenBadgeLabel =
-          Number(delta) === 0
-            ? null
-            : formattedTokenLabelContract.parse(
-                `${formatContextTokensTransformer({ count: delta })} context`,
-              );
         cumulativeContext = totalContext;
         contextDelta =
           prevContext === null
@@ -82,7 +69,7 @@ export const computeTokenAnnotationsTransformer = ({
       }
 
       return tokenAnnotationContract.parse({
-        tokenBadgeLabel,
+        tokenBadgeLabel: null,
         resultTokenBadgeLabel,
         cumulativeContext,
         contextDelta,
@@ -100,22 +87,17 @@ export const computeTokenAnnotationsTransformer = ({
 
     if (totalContext !== null) {
       const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
-      const delta =
-        prevContext === null
-          ? totalContext
-          : contextTokenCountContract.parse(
-              Math.max(0, Number(totalContext) - Number(prevContext)),
-            );
-      const tokenBadgeLabel =
-        Number(delta) === 0
-          ? null
-          : formattedTokenLabelContract.parse(
-              `${formatContextTokensTransformer({ count: delta })} context`,
-            );
       const contextDelta =
         prevContext === null
           ? null
           : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
+
+      const tokenBadgeLabel =
+        contextDelta === null || Number(contextDelta) <= 0
+          ? null
+          : formattedTokenLabelContract.parse(
+              `+${formatContextTokensTransformer({ count: contextTokenCountContract.parse(Number(contextDelta)) })} context`,
+            );
 
       if (source === 'subagent') {
         prevSubagentContext = totalContext;
