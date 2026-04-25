@@ -21,6 +21,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   getSpawnedOptions: () => unknown;
   setupStderrCapture: () => SpyOnHandle;
   setupConfigRoot: (params: { root: string }) => void;
+  setupConfigRootRejection: (params: { error: Error }) => void;
   getConfigRootCalls: () => readonly unknown[][];
 } => {
   claudeLineNormalizeBrokerProxy();
@@ -113,6 +114,10 @@ export const agentSpawnByRoleBrokerProxy = (): {
 
     setupConfigRoot: ({ root }: { root: string }): void => {
       configRootMock.mockResolvedValue(root);
+    },
+
+    setupConfigRootRejection: ({ error }: { error: Error }): void => {
+      configRootMock.mockImplementation(async () => Promise.reject(error));
     },
 
     getConfigRootCalls: (): readonly unknown[][] => configRootMock.mock.calls,

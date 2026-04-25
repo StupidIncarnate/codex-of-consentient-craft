@@ -262,6 +262,56 @@ describe('sessionListBroker', () => {
       ]);
     });
 
+    it('VALID: {quest with sessionId in different project dir} => finds session via cross-project glob and correlates', async () => {
+      const proxy = sessionListBrokerProxy();
+      const guildId = GuildIdStub();
+      const guild = GuildStub({ path: '/repo/.dungeonmaster-dev/guilds/__smoketests' });
+      const birthtime = new Date('2025-01-15T10:00:00.000Z');
+
+      proxy.setupGuild({ guild });
+      proxy.setupHomeDir({ path: '/home/user' });
+      // First glob (encoded guild path) finds nothing — smoketest sessions live elsewhere
+      proxy.setupGlobFiles({ files: [] });
+      // Second glob (cross-project lookup by sessionId) finds the JSONL under the repo-root encoded dir
+      proxy.setupGlobFiles({
+        files: ['/home/user/.claude/projects/-repo/smoketest-session.jsonl'],
+      });
+      proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
+      proxy.setupFileContent({ content: '{"type":"summary","summary":"Smoketest run"}' });
+      proxy.setupQuests({
+        quests: [
+          QuestListItemStub({
+            activeSessionId: 'smoketest-session',
+            title: 'Smoketest Quest',
+            status: 'in_progress',
+            userRequest: 'Smoketest user request',
+          }),
+        ],
+      });
+
+      const getCacheMock = jest.fn().mockReturnValue({ hit: false });
+      const setCacheMock = jest.fn();
+
+      const result = await sessionListBroker({
+        guildId,
+        getCache: getCacheMock as (params: { sessionId: unknown; mtimeMs: unknown }) => {
+          hit: false;
+        },
+        setCache: setCacheMock,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'smoketest-session',
+          startedAt: undefined,
+          summary: 'Smoketest user request',
+          questId: 'add-auth',
+          questTitle: 'Smoketest Quest',
+          questStatus: 'in_progress',
+        },
+      ]);
+    });
+
     it('VALID: {quest without matching session} => session has no quest fields', async () => {
       const proxy = sessionListBrokerProxy();
       const guildId = GuildIdStub();

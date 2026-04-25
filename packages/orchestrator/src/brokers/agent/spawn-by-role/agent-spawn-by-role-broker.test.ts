@@ -520,6 +520,27 @@ describe('agentSpawnByRoleBroker', () => {
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
     });
 
+    it('VALID: {configRootFindBroker rejects (no .dungeonmaster.json ancestor)} => falls back to startPath as cwd', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/tmp/dm-e2e-isolated-guild' });
+
+      proxy.setupConfigRootRejection({ error: new Error('no project root') });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'cwd')).toBe('/tmp/dm-e2e-isolated-guild');
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+    });
+
     it('VALID: {non-smoketest spawn for auto-spawned recovery pathseeker on smoketest quest} => walks up from smoketest guild path to repo root', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       // Recovery pathseeker auto-spawned mid-flight has no smoketestPromptOverride.
