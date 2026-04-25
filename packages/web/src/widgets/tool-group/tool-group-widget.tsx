@@ -3,7 +3,13 @@
  *
  * USAGE:
  * <ToolGroupWidget group={toolGroup} isLastGroup={false} isStreaming={false} />
- * // Renders collapsed tool group with header showing tool count and context tokens
+ * // Renders collapsed tool group with header showing tool count and per-turn context delta
+ *
+ * Header context badge represents the cross-API-call DELTA (tokens this assistant turn
+ * added to context vs. the previous API call's input). The first group in a conversation
+ * has no prev to diff against, so the badge is omitted. See packages/web/CLAUDE.md ->
+ * "Per-tool context numbers" for why per-tool deltas are NOT meaningful when multiple
+ * tools fire per turn - only result-content estimates (~est) are per-tool accurate.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -12,6 +18,7 @@ import { useState } from 'react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import type { ContextTokenDelta } from '../../contracts/context-token-delta/context-token-delta-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
@@ -25,12 +32,14 @@ export interface ToolGroupWidgetProps {
   group: ChatEntryGroup;
   isLastGroup: boolean;
   isStreaming: boolean;
+  deltaContextTokens?: ContextTokenDelta | null;
 }
 
 export const ToolGroupWidget = ({
   group,
   isLastGroup,
   isStreaming,
+  deltaContextTokens,
 }: ToolGroupWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(false);
@@ -38,19 +47,30 @@ export const ToolGroupWidget = ({
   if (group.kind !== 'tool-group') return null;
 
   const isActiveStreaming = isStreaming && isLastGroup;
-  const chevron = expanded ? '\u25BE' : '\u25B8';
+  const chevron = expanded ? '▾' : '▸';
 
-  const formattedTokens =
-    group.contextTokens === null
-      ? null
-      : formatContextTokensTransformer({
-          count: contextTokenCountContract.parse(group.contextTokens),
-        });
+  // Header shows per-turn DELTA: tokens this assistant turn's API call grew the input
+  // by vs. the previous API call. Per-tool delta attribution is NOT possible when a
+  // turn fires multiple tools - usage is reported per assistant message, not per tool.
+  // First group has no prev to diff against, so the badge is omitted.
+  // See packages/web/CLAUDE.md - "Per-tool context numbers".
+  const hasDelta =
+    deltaContextTokens !== undefined &&
+    deltaContextTokens !== null &&
+    Number(deltaContextTokens) !== 0;
+
+  const formattedDelta = hasDelta
+    ? formatContextTokensTransformer({
+        count: contextTokenCountContract.parse(Math.abs(Number(deltaContextTokens))),
+      })
+    : null;
+
+  const deltaSign = hasDelta && Number(deltaContextTokens) < 0 ? '-' : '+';
 
   const headerText =
-    formattedTokens === null
+    formattedDelta === null
       ? `${chevron} ${String(group.toolCount)} Tools`
-      : `${chevron} ${String(group.toolCount)} Tools (${formattedTokens} context)`;
+      : `${chevron} ${String(group.toolCount)} Tools (${deltaSign}${formattedDelta} context)`;
 
   const pairs = mergeToolEntriesTransformer({ entries: group.entries });
   const lastPair = pairs.at(-1);
@@ -122,10 +142,6 @@ export const ToolGroupWidget = ({
                     {...(item.toolResult === null
                       ? {}
                       : { toolResult: item.toolResult as ToolResultEntry })}
-                    {...(annotation?.tokenBadgeLabel === undefined ||
-                    annotation.tokenBadgeLabel === null
-                      ? {}
-                      : { tokenBadgeLabel: annotation.tokenBadgeLabel })}
                     {...(annotation?.resultTokenBadgeLabel === undefined ||
                     annotation.resultTokenBadgeLabel === null
                       ? {}

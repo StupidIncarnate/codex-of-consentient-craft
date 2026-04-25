@@ -24,7 +24,11 @@ export interface ToolRowWidgetProps {
   toolUse: ToolUseEntry;
   toolResult?: ToolResultEntry | null;
   isLoading?: boolean;
-  tokenBadgeLabel?: FormattedTokenLabel;
+  // Per-tool context number = chars/4 estimate of tool_result content (~X.Xk est).
+  // We do NOT show a per-tool delta from `usage` because when multiple tools fire in
+  // one assistant turn the delta is shared and can't be split per-tool. The result
+  // estimate is per-tool and accurate enough for relative comparison.
+  // See packages/web/CLAUDE.md - "Per-tool context numbers".
   resultTokenBadgeLabel?: FormattedTokenLabel;
   defaultExpanded?: boolean;
 }
@@ -45,7 +49,6 @@ export const ToolRowWidget = ({
   toolUse,
   toolResult,
   isLoading,
-  tokenBadgeLabel,
   resultTokenBadgeLabel,
   defaultExpanded,
 }: ToolRowWidgetProps): React.JSX.Element => {
@@ -330,16 +333,6 @@ export const ToolRowWidget = ({
               {toolInput}
             </Text>
           ) : null}
-
-          {tokenBadgeLabel === undefined ? null : (
-            <Text
-              ff="monospace"
-              data-testid="TOKEN_BADGE"
-              style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-            >
-              {tokenBadgeLabel}
-            </Text>
-          )}
 
           {hasResult ? (
             <Box

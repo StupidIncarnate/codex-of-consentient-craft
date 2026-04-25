@@ -14,6 +14,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { mergedChatItemContract } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
+import { computeGroupContextDeltasTransformer } from '../../transformers/compute-group-context-deltas/compute-group-context-deltas-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
 import { ContextDividerWidget } from '../context-divider/context-divider-widget';
@@ -44,6 +45,7 @@ export const ChatEntryListWidget = ({
     .filter((g) => g.kind === 'single')
     .map((g) => mergedChatItemContract.parse({ kind: 'entry', entry: g.entry }));
   const singleAnnotations = computeTokenAnnotationsTransformer({ items: singleItems });
+  const groupDeltas = computeGroupContextDeltasTransformer({ groups: groupedEntries });
 
   let trailingEmptyThinkingIndex = -1;
   if (swapTrailingEmptyThinkingForIndicator) {
@@ -68,12 +70,14 @@ export const ChatEntryListWidget = ({
     if (group === undefined) continue;
 
     if (group.kind === 'tool-group') {
+      const deltaContextTokens = groupDeltas[i] ?? null;
       elements.push(
         <ToolGroupWidget
           key={`group-${String(i)}`}
           group={group}
           isLastGroup={i === groupedEntries.length - 1}
           isStreaming={isStreaming}
+          deltaContextTokens={deltaContextTokens}
         />,
       );
       continue;

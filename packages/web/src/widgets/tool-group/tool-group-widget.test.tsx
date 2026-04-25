@@ -5,6 +5,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
+import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 import { ToolGroupStub } from '../../contracts/chat-entry-group/chat-entry-group.stub';
 import { ToolGroupWidget } from './tool-group-widget';
 import { ToolGroupWidgetProxy } from './tool-group-widget.proxy';
@@ -31,24 +32,53 @@ describe('ToolGroupWidget', () => {
       expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
     });
 
-    it('VALID: {group with context tokens 25500} => shows formatted tokens in header', () => {
+    it('VALID: {deltaContextTokens: 18000} => header shows positive delta context', () => {
       ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [AssistantToolUseChatEntryStub({ toolUseId: 'use_1' })],
         toolCount: 1,
-        contextTokens: 25500,
       });
 
       mantineRenderAdapter({
-        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+        ui: (
+          <ToolGroupWidget
+            group={group}
+            isLastGroup={false}
+            isStreaming={false}
+            deltaContextTokens={ContextTokenDeltaStub({ value: 18000 })}
+          />
+        ),
       });
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('\u25B8 1 Tools (25.5k context)');
+      expect(header.textContent).toBe('▸ 1 Tools (+18.0k context)');
     });
 
-    it('VALID: {group with null contextTokens} => renders header without context suffix', () => {
+    it('VALID: {deltaContextTokens: -5000} => header shows negative delta context', () => {
+      ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [AssistantToolUseChatEntryStub({ toolUseId: 'use_1' })],
+        toolCount: 1,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolGroupWidget
+            group={group}
+            isLastGroup={false}
+            isStreaming={false}
+            deltaContextTokens={ContextTokenDeltaStub({ value: -5000 })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('TOOL_GROUP_HEADER');
+
+      expect(header.textContent).toBe('▸ 1 Tools (-5.0k context)');
+    });
+
+    it('VALID: {deltaContextTokens: undefined} => header omits context badge (first group)', () => {
       ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -56,7 +86,6 @@ describe('ToolGroupWidget', () => {
           AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
         ],
         toolCount: 1,
-        contextTokens: null,
       });
 
       mantineRenderAdapter({
@@ -65,7 +94,33 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('\u25B8 1 Tools');
+      expect(header.textContent).toBe('▸ 1 Tools');
+    });
+
+    it('VALID: {deltaContextTokens: 0} => header omits context badge', () => {
+      ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+          AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+        ],
+        toolCount: 1,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolGroupWidget
+            group={group}
+            isLastGroup={false}
+            isStreaming={false}
+            deltaContextTokens={ContextTokenDeltaStub({ value: 0 })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('TOOL_GROUP_HEADER');
+
+      expect(header.textContent).toBe('▸ 1 Tools');
     });
   });
 
@@ -226,7 +281,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('\u25B8 1 Tools');
+      expect(header.textContent).toBe('▸ 1 Tools');
     });
 
     it('VALID: {expanded} => shows down-pointing chevron', async () => {
@@ -247,41 +302,12 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('\u25BE 1 Tools');
+      expect(header.textContent).toBe('▾ 1 Tools');
     });
   });
 
-  describe('per-line token badges', () => {
-    it('VALID: {tool_use entry with usage} => shows context delta badge when row expanded', async () => {
-      const proxy = ToolGroupWidgetProxy();
-      const group = ToolGroupStub({
-        entries: [
-          AssistantToolUseChatEntryStub({
-            toolUseId: 'use_1',
-            usage: {
-              inputTokens: 50,
-              outputTokens: 20,
-              cacheCreationInputTokens: 5000,
-              cacheReadInputTokens: 0,
-            },
-          }),
-        ],
-        toolCount: 1,
-      });
-
-      mantineRenderAdapter({
-        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
-      });
-
-      await proxy.clickHeader();
-      await proxy.expandAllToolRows();
-
-      const badges = screen.queryAllByTestId('TOKEN_BADGE');
-
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
-    });
-
-    it('VALID: {linked tool_result with content} => shows estimated badge when row expanded', async () => {
+  describe('per-tool result-content estimate badges', () => {
+    it('VALID: {linked tool_result with content} => shows estimated badge when row expanded; no per-tool TOKEN_BADGE', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -301,12 +327,53 @@ describe('ToolGroupWidget', () => {
       await proxy.clickHeader();
       await proxy.expandAllToolRows();
 
-      const badges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
+      const resultBadges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
+      const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
 
-      expect(badges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
+      expect(resultBadges.map((b) => b.textContent)).toStrictEqual(['~200 est']);
+      expect(tokenBadges).toStrictEqual([]);
     });
 
-    it('VALID: {mixed tool_use and tool_result entries} => correct delta tracking with inline badges', async () => {
+    it('VALID: {two tool_use with usage but no result content} => no TOKEN_BADGE on tool rows (per-tool delta is misattribution)', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({
+            toolUseId: 'use_1',
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+          AssistantToolUseChatEntryStub({
+            toolUseId: 'use_2',
+            toolName: 'write_file',
+            usage: {
+              inputTokens: 50,
+              outputTokens: 20,
+              cacheCreationInputTokens: 5000,
+              cacheReadInputTokens: 0,
+            },
+          }),
+        ],
+        toolCount: 2,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+      await proxy.expandAllToolRows();
+
+      const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
+
+      expect(tokenBadges).toStrictEqual([]);
+    });
+
+    it('VALID: {mixed tool_use and tool_result entries} => only RESULT_TOKEN_BADGE per tool, no TOKEN_BADGE', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -351,47 +418,8 @@ describe('ToolGroupWidget', () => {
       const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
       const resultBadges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
 
-      expect(tokenBadges.map((b) => b.textContent)).toStrictEqual(['5.0k context']);
+      expect(tokenBadges).toStrictEqual([]);
       expect(resultBadges.map((b) => b.textContent)).toStrictEqual(['~200 est', '~100 est']);
-    });
-
-    it('VALID: {tool_use with delta zero} => no badge on second entry', async () => {
-      const proxy = ToolGroupWidgetProxy();
-      const group = ToolGroupStub({
-        entries: [
-          AssistantToolUseChatEntryStub({
-            toolUseId: 'use_1',
-            usage: {
-              inputTokens: 50,
-              outputTokens: 20,
-              cacheCreationInputTokens: 5000,
-              cacheReadInputTokens: 0,
-            },
-          }),
-          AssistantToolUseChatEntryStub({
-            toolUseId: 'use_2',
-            toolName: 'write_file',
-            usage: {
-              inputTokens: 50,
-              outputTokens: 20,
-              cacheCreationInputTokens: 5000,
-              cacheReadInputTokens: 0,
-            },
-          }),
-        ],
-        toolCount: 2,
-      });
-
-      mantineRenderAdapter({
-        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
-      });
-
-      await proxy.clickHeader();
-      await proxy.expandAllToolRows();
-
-      const badges = screen.queryAllByTestId('TOKEN_BADGE');
-
-      expect(badges.map((b) => b.getAttribute('data-testid'))).toStrictEqual(['TOKEN_BADGE']);
     });
   });
 });
