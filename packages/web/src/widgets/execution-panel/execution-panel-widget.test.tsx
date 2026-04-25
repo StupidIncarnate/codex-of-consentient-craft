@@ -2479,5 +2479,33 @@ describe('ExecutionPanelWidget', () => {
         expect(screen.queryByTestId('execution-panel-terminal-banner')).toBe(null);
       },
     );
+
+    it('VALID: {status: complete} => terminal banner uses success color (green)', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const banner = screen.getByTestId('execution-panel-terminal-banner');
+
+      // emberDepthsThemeStatics.colors.success = '#4ade80' → rgb(74, 222, 128) in JSDOM
+      expect(banner.style.color).toBe('rgb(74, 222, 128)');
+    });
+
+    it('VALID: {status: abandoned} => terminal banner uses danger color (red)', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'abandoned' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const banner = screen.getByTestId('execution-panel-terminal-banner');
+
+      // emberDepthsThemeStatics.colors.danger = '#ef4444' → rgb(239, 68, 68) in JSDOM
+      expect(banner.style.color).toBe('rgb(239, 68, 68)');
+    });
   });
 });

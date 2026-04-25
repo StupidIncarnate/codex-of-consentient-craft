@@ -14,7 +14,7 @@ describe('QuestFlow', () => {
         'get-quest-status',
         'list-quests',
         'list-guilds',
-        'get-planning-notes',
+        'get-quest-planning-notes',
       ]);
     });
 

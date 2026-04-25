@@ -632,12 +632,12 @@ describe('QuestHandleResponder', () => {
     });
   });
 
-  describe('get-planning-notes', () => {
+  describe('get-quest-planning-notes', () => {
     it('VALID: {questId} => returns wrapped default planning-notes as JSON', async () => {
       const proxy = QuestHandleResponderProxy();
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
         args: { questId: 'test-quest-id' },
       });
 
@@ -662,7 +662,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
         args: { questId: 'test-quest-id', section: 'surface' },
       });
 
@@ -685,7 +685,7 @@ describe('QuestHandleResponder', () => {
 
       await expect(
         proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-planning-notes' }),
+          tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
           args: { questId: 'test-quest-id', section: 'bogus' },
         }),
       ).rejects.toThrow(/Invalid enum value/u);
@@ -698,7 +698,7 @@ describe('QuestHandleResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
         args: { questId: 'test-quest-id' },
       });
 
@@ -722,7 +722,7 @@ describe('QuestHandleResponder', () => {
       proxy.setupGetPlanningNotesThrows({ error: new Error('Notes unavailable') });
 
       const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-planning-notes' }),
+        tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
         args: { questId: 'test-quest-id' },
       });
 

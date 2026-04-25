@@ -10,15 +10,24 @@
  * rather than silently skipped.
  *
  * MODES:
- * - `call`     — the probe invokes the tool with `args`, then signals complete.
+ * - `call`        — the probe invokes the tool with `args`, then signals complete.
  * - `signal-only` — the probe skips the tool call and just signals complete (used for `signal-back` itself).
  * - `skip-call`   — the probe deliberately does NOT call the tool (used for `ask-user-question`, which would block the harness).
+ *
+ * PLACEHOLDERS in `args`:
+ * - `'{{questId}}'` is rewritten to the running smoketest's questId at enqueue time (live id).
+ * - `'{{guildId}}'` is rewritten to the smoketest guild's GuildId at enqueue time.
+ *
+ * `expectError: true` flags probes whose tool call is intentionally expected to fail (e.g. `start-quest`
+ * called against a never-real questId, or `get-quest-status` called against a never-real processId). The
+ * prompt builder appends a note telling the agent the tool error is expected — the agent should still
+ * signal-back complete so the case passes.
  */
 
 import { smoketestStatics } from '../smoketest/smoketest-statics';
 
-const Q = smoketestStatics.questId;
-const G = smoketestStatics.guildId;
+const PLACEHOLDER_QUEST_ID = smoketestStatics.questId;
+const PLACEHOLDER_PROCESS_ID = '00000000-0000-0000-0000-0000000000aa';
 
 export const smoketestProbeArgsStatics = {
   discover: {
@@ -48,12 +57,12 @@ export const smoketestProbeArgsStatics = {
   },
   'get-quest': {
     mode: 'call',
-    args: { questId: Q },
+    args: { questId: '{{questId}}' },
     summary: 'mcp-get-quest-probe-ok',
   },
   'modify-quest': {
     mode: 'call',
-    args: { questId: Q },
+    args: { questId: '{{questId}}' },
     summary: 'mcp-modify-quest-probe-ok',
   },
   'signal-back': {
@@ -62,17 +71,19 @@ export const smoketestProbeArgsStatics = {
   },
   'start-quest': {
     mode: 'call',
-    args: { questId: Q },
+    args: { questId: PLACEHOLDER_QUEST_ID },
+    expectError: true,
     summary: 'mcp-start-quest-probe-ok',
   },
   'get-quest-status': {
     mode: 'call',
-    args: { questId: Q },
+    args: { processId: PLACEHOLDER_PROCESS_ID },
+    expectError: true,
     summary: 'mcp-get-quest-status-probe-ok',
   },
   'list-quests': {
     mode: 'call',
-    args: { guildId: G },
+    args: { guildId: '{{guildId}}' },
     summary: 'mcp-list-quests-probe-ok',
   },
   'list-guilds': {
@@ -96,9 +107,9 @@ export const smoketestProbeArgsStatics = {
     args: {},
     summary: 'mcp-get-project-map-probe-ok',
   },
-  'get-planning-notes': {
+  'get-quest-planning-notes': {
     mode: 'call',
-    args: { questId: Q },
-    summary: 'mcp-get-planning-notes-probe-ok',
+    args: { questId: '{{questId}}' },
+    summary: 'mcp-get-quest-planning-notes-probe-ok',
   },
 } as const;

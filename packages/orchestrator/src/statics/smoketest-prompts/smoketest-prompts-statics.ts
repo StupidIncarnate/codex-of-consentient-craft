@@ -12,6 +12,12 @@
  * `mcpToolsStatics.tools.names` auto-extends/shrinks the probe prompt bank — the only other change
  * required is adding the matching entry in `smoketestProbeArgsStatics` (pinned by a colocated test).
  *
+ * PLACEHOLDERS: Some probe args contain literal `{{questId}}` / `{{guildId}}` strings. These are
+ * substituted with the live smoketest quest's id and guild id at enqueue time
+ * (`enqueue-bundled-suite-layer-responder`). Probes flagged with `expectError: true` use a hard-coded
+ * placeholder id and the prompt explicitly tells the agent the tool call is expected to error so the
+ * harness still passes once `signal-back complete` fires.
+ *
  * NO ToolSearch preamble: smoketest agents spawn via `claude --print` (headless) which pre-loads every
  * MCP tool configured in `.mcp.json` directly into the tool list. `ToolSearch` is an interactive
  * Claude-Code-only feature and does not exist in `-p` mode; including it caused Haiku to derail while
@@ -38,7 +44,11 @@ const probePromptEntries = mcpToolsStatics.tools.names.map((toolName) => {
   }
   const fullToolName = `mcp__${SERVER}__${toolName}`;
   const argsJson = JSON.stringify(spec.args);
-  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
+  const expectErrorNote =
+    'expectError' in spec
+      ? ` The tool call is expected to error with a "not found" message because the placeholder id is not a real running record — that error is fine. Still call signal-back complete after.`
+      : '';
+  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}.${expectErrorNote} 2) Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
   return [toolName, prompt] as const;
 });
 

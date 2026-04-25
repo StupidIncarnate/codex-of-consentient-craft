@@ -1,68 +1,68 @@
-import { getPlanningNotesInputContract } from './get-planning-notes-input-contract';
-import { GetPlanningNotesInputStub } from './get-planning-notes-input.stub';
+import { getQuestPlanningNotesInputContract } from './get-quest-planning-notes-input-contract';
+import { GetQuestPlanningNotesInputStub } from './get-quest-planning-notes-input.stub';
 
-describe('getPlanningNotesInputContract', () => {
+describe('getQuestPlanningNotesInputContract', () => {
   describe('valid inputs', () => {
     it('VALID: {questId: "add-auth"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth' });
     });
 
     it('VALID: {questId: "add-auth"} => parses with default stub value', () => {
-      const input = GetPlanningNotesInputStub();
+      const input = GetQuestPlanningNotesInputStub();
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth' });
     });
 
     it('VALID: {questId, section: "scope"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'scope' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'scope' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'scope' });
     });
 
     it('VALID: {questId, section: "surface"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'surface' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'surface' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'surface' });
     });
 
     it('VALID: {questId, section: "synthesis"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'synthesis' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'synthesis' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'synthesis' });
     });
 
     it('VALID: {questId, section: "walk"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'walk' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'walk' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'walk' });
     });
 
     it('VALID: {questId, section: "review"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'review' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'review' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'review' });
     });
 
     it('VALID: {questId, section: "blight"} => parses successfully', () => {
-      const input = GetPlanningNotesInputStub({ questId: 'add-auth', section: 'blight' });
+      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'blight' });
 
-      const result = getPlanningNotesInputContract.parse(input);
+      const result = getQuestPlanningNotesInputContract.parse(input);
 
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'blight' });
     });
@@ -71,25 +71,28 @@ describe('getPlanningNotesInputContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
-        return getPlanningNotesInputContract.parse({ questId: '' });
+        return getQuestPlanningNotesInputContract.parse({ questId: '' });
       }).toThrow(/too_small/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
-        return getPlanningNotesInputContract.parse({});
+        return getQuestPlanningNotesInputContract.parse({});
       }).toThrow(/Required/u);
     });
 
     it('INVALID: {section: "unknown"} => throws validation error', () => {
       expect(() => {
-        return getPlanningNotesInputContract.parse({ questId: 'add-auth', section: 'unknown' });
+        return getQuestPlanningNotesInputContract.parse({
+          questId: 'add-auth',
+          section: 'unknown',
+        });
       }).toThrow(/invalid_enum_value/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {
       expect(() => {
-        return getPlanningNotesInputContract.parse({
+        return getQuestPlanningNotesInputContract.parse({
           questId: 'add-auth',
           stage: 'planning',
         } as never);

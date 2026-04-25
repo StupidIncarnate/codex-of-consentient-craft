@@ -21,6 +21,7 @@ import { smoketestScenarioMetaContract } from '../../../contracts/smoketest-scen
 import { questHydrateBroker } from '../../../brokers/quest/hydrate/quest-hydrate-broker';
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { caseCatalogToBlueprintTransformer } from '../../../transformers/case-catalog-to-blueprint/case-catalog-to-blueprint-transformer';
+import { smoketestSubstituteWorkItemPlaceholdersTransformer } from '../../../transformers/smoketest-substitute-work-item-placeholders/smoketest-substitute-work-item-placeholders-transformer';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
@@ -54,7 +55,13 @@ export const EnqueueBundledSuiteLayerResponder = async ({
 
   const { questId } = await questHydrateBroker({ blueprint, guildId, questSource });
 
-  await OverwriteWorkItemsLayerResponder({ questId, workItems });
+  const substitutedWorkItems = smoketestSubstituteWorkItemPlaceholdersTransformer({
+    workItems,
+    questId,
+    guildId,
+  });
+
+  await OverwriteWorkItemsLayerResponder({ questId, workItems: substitutedWorkItems });
 
   const quest = await LoadQuestLayerResponder({ questId });
   const entry: QuestQueueEntry = questQueueEntryContract.parse({

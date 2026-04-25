@@ -35,6 +35,7 @@ import type { TotalCount } from '../../contracts/total-count/total-count-contrac
 import {
   isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
+  isCompletedSuccessfullyQuestStatusGuard,
   isCompleteWorkItemStatusGuard,
   isQuestResumableQuestStatusGuard,
   isTerminalQuestStatusGuard,
@@ -199,7 +200,9 @@ export const ExecutionPanelWidget = ({
                 textAlign: 'center',
                 backgroundColor: colors['bg-raised'],
                 borderBottom: `1px solid ${colors.border}`,
-                color: colors.danger,
+                color: isCompletedSuccessfullyQuestStatusGuard({ status: quest.status })
+                  ? colors.success
+                  : colors.danger,
                 fontFamily: 'monospace',
                 fontWeight: 700,
                 fontSize: 12,

@@ -8,7 +8,7 @@
  */
 
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
-import { orchestratorGetPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-planning-notes/orchestrator-get-planning-notes-adapter.proxy';
+import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
 import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
@@ -45,7 +45,7 @@ export const QuestHandleResponderProxy = (): {
   const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
-  const getPlanningNotesProxy = orchestratorGetPlanningNotesAdapterProxy();
+  const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
 
   return {
     callResponder: QuestHandleResponder,

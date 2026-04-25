@@ -2,10 +2,10 @@
  * PURPOSE: Adapter for StartOrchestrator.getPlanningNotes that wraps the orchestrator package
  *
  * USAGE:
- * const notes = await orchestratorGetPlanningNotesAdapter({ questId });
+ * const notes = await orchestratorGetQuestPlanningNotesAdapter({ questId });
  * // Returns PathSeeker's planningNotes for the quest (full object or section slice)
  *
- * const scope = await orchestratorGetPlanningNotesAdapter({ questId, section: 'scope' });
+ * const scope = await orchestratorGetQuestPlanningNotesAdapter({ questId, section: 'scope' });
  * // Returns scopeClassification only
  */
 
@@ -13,7 +13,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 type Section = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
 
-export const orchestratorGetPlanningNotesAdapter = async ({
+export const orchestratorGetQuestPlanningNotesAdapter = async ({
   questId,
   section,
 }: {

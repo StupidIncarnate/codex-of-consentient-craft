@@ -21,7 +21,7 @@ describe('mcpPermissionsCreatorTransformer', () => {
         'mcp__dungeonmaster__ask-user-question',
         'mcp__dungeonmaster__get-agent-prompt',
         'mcp__dungeonmaster__get-project-map',
-        'mcp__dungeonmaster__get-planning-notes',
+        'mcp__dungeonmaster__get-quest-planning-notes',
       ]);
     });
   });

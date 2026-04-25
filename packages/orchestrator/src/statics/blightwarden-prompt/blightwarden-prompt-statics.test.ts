@@ -24,7 +24,7 @@ describe('blightwardenPromptStatics', () => {
 
   it('VALID: template => Resume Protocol mentions loading blightReports via section filter', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^2\. Call `get-planning-notes\(\{ questId: "QUEST_ID", section: 'blight' \}\)` to load every prior `blightReports\[\]` entry\.$/mu,
+      /^2\. Call `get-quest-planning-notes\(\{ questId: "QUEST_ID", section: 'blight' \}\)` to load every prior `blightReports\[\]` entry\.$/mu,
     );
   });
 

@@ -23,6 +23,7 @@ import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
+import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
@@ -71,25 +72,40 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   // Bug A: when the route is /:guildSlug/session (no sessionId) and the active
   // queue entry for this guild has a sessionId, redirect to that session URL so
-  // F5 lands on the running smoketest's chat view.
+  // F5 lands on the running smoketest's chat view. Fallback for terminal quests
+  // (queue dequeued, but the user opened a finished smoketest from home / queue
+  // bar): consult the guild's quest list and pick the most-recent quest with an
+  // activeSessionId. Keeps the URL deep-linkable both during AND after execution.
   const { allEntries: queueEntries } = useQuestQueueBinding();
   const activeQueueEntryForGuild = queueEntries.find(
     (entry) => entry.guildSlug === guildSlug || entry.guildId === resolvedGuildId,
   );
   const activeQueueSessionId = activeQueueEntryForGuild?.activeSessionId;
 
+  const { data: guildQuests } = useQuestsBinding({ guildId: resolvedGuildId });
+  const fallbackQuestSessionId = useMemo<SessionId | undefined>(() => {
+    if (activeQueueSessionId) return undefined;
+    const sorted = [...guildQuests].sort((a, b) =>
+      String(b.createdAt).localeCompare(String(a.createdAt)),
+    );
+    const match = sorted.find((quest) => quest.activeSessionId !== undefined);
+    return match?.activeSessionId;
+  }, [activeQueueSessionId, guildQuests]);
+
+  const resolvedSessionRedirect = activeQueueSessionId ?? fallbackQuestSessionId;
+
   useEffect(() => {
     if (sessionId) return;
     if (!guildSlug) return;
-    if (!activeQueueSessionId) return;
+    if (!resolvedSessionRedirect) return;
 
-    const result = navigate(`/${guildSlug}/session/${activeQueueSessionId}`, { replace: true });
+    const result = navigate(`/${guildSlug}/session/${resolvedSessionRedirect}`, { replace: true });
     if (result instanceof Promise) {
       result.catch((navError: unknown) => {
         globalThis.console.error('[quest-chat] queue-redirect failed', navError);
       });
     }
-  }, [sessionId, guildSlug, activeQueueSessionId, navigate]);
+  }, [sessionId, guildSlug, resolvedSessionRedirect, navigate]);
 
   const { refresh: refreshGuild } = useGuildDetailBinding({
     guildId: resolvedGuildId,
@@ -409,6 +425,10 @@ export const QuestChatWidget = (): React.JSX.Element => {
     displayStatus !== null &&
     shouldRenderExecutionPanelQuestStatusGuard({ status: displayStatus })
   ) {
+    // Smoketest quests skip the aggregated activity panel — the user drills into
+    // per-work-item streams via the left execution tree, so the right pane is noise.
+    const isSmoketestQuest = questData.questSource?.startsWith('smoketest-') === true;
+
     return (
       <Box
         data-testid="QUEST_CHAT"
@@ -461,47 +481,51 @@ export const QuestChatWidget = (): React.JSX.Element => {
           ) : null}
         </Box>
 
-        <div
-          data-testid="QUEST_CHAT_DIVIDER"
-          style={{
-            width: 1,
-            backgroundColor: colors.border,
-            alignSelf: 'stretch',
-          }}
-        />
+        {isSmoketestQuest ? null : (
+          <>
+            <div
+              data-testid="QUEST_CHAT_DIVIDER"
+              style={{
+                width: 1,
+                backgroundColor: colors.border,
+                alignSelf: 'stretch',
+              }}
+            />
 
-        <Box
-          data-testid="QUEST_CHAT_ACTIVITY"
-          style={{
-            flex: 1,
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {(() => {
-            const flattened: ChatEntry[] = [];
-            for (const list of sessionEntriesMap.values()) {
-              flattened.push(...list);
-            }
-            if (flattened.length === 0) {
-              return <DumpsterRaccoonWidget />;
-            }
-            return (
-              <AutoScrollContainerWidget
-                style={{ flex: 1, padding: 16 }}
-                contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-              >
-                <ChatEntryListWidget
-                  entries={flattened}
-                  isStreaming={isStreaming}
-                  showContextDividers={true}
-                  showEndStreamingIndicator={true}
-                />
-              </AutoScrollContainerWidget>
-            );
-          })()}
-        </Box>
+            <Box
+              data-testid="QUEST_CHAT_ACTIVITY"
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {(() => {
+                const flattened: ChatEntry[] = [];
+                for (const list of sessionEntriesMap.values()) {
+                  flattened.push(...list);
+                }
+                if (flattened.length === 0) {
+                  return <DumpsterRaccoonWidget />;
+                }
+                return (
+                  <AutoScrollContainerWidget
+                    style={{ flex: 1, padding: 16 }}
+                    contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                  >
+                    <ChatEntryListWidget
+                      entries={flattened}
+                      isStreaming={isStreaming}
+                      showContextDividers={true}
+                      showEndStreamingIndicator={true}
+                    />
+                  </AutoScrollContainerWidget>
+                );
+              })()}
+            </Box>
+          </>
+        )}
       </Box>
     );
   }

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Bulk-deletes every quest in the __smoketests guild whose questSource matches the given suite tag, so a smoketest suite run starts from a clean slate
+ * PURPOSE: Bulk-deletes every quest in the smoketests guild whose questSource matches the given suite tag, so a smoketest suite run starts from a clean slate
  *
  * USAGE:
  * const { deletedCount } = await smoketestClearPriorQuestsBroker({ questSource: 'smoketest-mcp' });

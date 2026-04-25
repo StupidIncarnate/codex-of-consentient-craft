@@ -10,6 +10,7 @@ import {
   FlowStub,
   GuildListItemStub,
   GuildStub,
+  QuestListItemStub,
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -2543,6 +2544,132 @@ describe('QuestChatWidget', () => {
       });
 
       expect(proxy.hasActivityPlaceholder()).toBe(false);
+    });
+
+    it('VALID: {smoketest quest in execution phase} => hides right activity panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'smoketests' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({
+        id: 'smoketest-q1',
+        status: 'in_progress',
+        questSource: 'smoketest-mcp',
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/smoketests/session/smoketest-q1']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(screen.queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
+      expect(screen.queryByTestId('QUEST_CHAT_ACTIVITY')).toBe(null);
+    });
+
+    it('VALID: {non-smoketest quest in execution phase} => still renders right activity panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'real-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'real-q1', status: 'in_progress' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/real-guild/session/real-q1']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasDivider()).toBe(true);
+      });
+
+      expect(proxy.hasDivider()).toBe(true);
+      expect(proxy.hasActivityPlaceholder()).toBe(true);
+    });
+
+    it('VALID: {no sessionId in URL, quest list has activeSessionId} => redirects to session URL', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'smoketests' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuests({
+        quests: [
+          QuestListItemStub({
+            id: 'smoketest-q1',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            activeSessionId: 'session-from-list',
+          }),
+        ],
+      });
+
+      const LocationDisplay = (): React.JSX.Element => {
+        const location = useLocation();
+        return <span data-testid="LOCATION_PATHNAME">{location.pathname}</span>;
+      };
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/smoketests/session']}>
+            <Routes>
+              <Route
+                path="/:guildSlug/session"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+              <Route
+                path="/:guildSlug/session/:sessionId"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+          '/smoketests/session/session-from-list',
+        );
+      });
+
+      expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+        '/smoketests/session/session-from-list',
+      );
     });
 
     it('VALID: {quest-by-session-not-found received} => does not render chat input', async () => {

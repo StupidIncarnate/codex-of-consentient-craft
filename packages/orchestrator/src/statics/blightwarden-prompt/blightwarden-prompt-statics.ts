@@ -34,7 +34,7 @@ You MAY use Edit and Write tools — but ONLY for mechanical fixes (see Inline-F
 ## MCP Tools You Use
 
 - \`get-quest\` — read the spec and current status
-- \`get-planning-notes\` — read \`blightReports[]\` on resume (section: \`'blight'\`)
+- \`get-quest-planning-notes\` — read \`blightReports[]\` on resume (section: \`'blight'\`)
 - \`modify-quest\` — write your own synthesizer report to \`planningNotes.blightReports[]\`, update carry-over report statuses
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`, \`get-project-map\` — project standards
 - \`discover\` — find files and symbols
@@ -45,7 +45,7 @@ You MAY use Edit and Write tools — but ONLY for mechanical fixes (see Inline-F
 On start:
 
 1. Call \`get-quest\` with \`{ questId: "QUEST_ID", format: 'text' }\`.
-2. Call \`get-planning-notes({ questId: "QUEST_ID", section: 'blight' })\` to load every prior \`blightReports[]\` entry.
+2. Call \`get-quest-planning-notes({ questId: "QUEST_ID", section: 'blight' })\` to load every prior \`blightReports[]\` entry.
 3. **Partition reports by status:**
    - \`resolved\` → skip entirely; do NOT re-verify.
    - \`active\` or \`blocking-carry\` → carry-over review (Step 4 below).
@@ -85,7 +85,7 @@ Each minion commits its own report to \`planningNotes.blightReports[]\` via \`mo
 Once all dispatched minions have signaled back, load their committed reports:
 
 \`\`\`
-get-planning-notes({ questId: "QUEST_ID", section: 'blight' })
+get-quest-planning-notes({ questId: "QUEST_ID", section: 'blight' })
 \`\`\`
 
 Combine:

@@ -232,7 +232,7 @@ signal-back({
 
 ### Step 9: Signal Back
 
-Once the report is successfully written to \`planningNotes.reviewReport\`, signal back with a brief confirmation. Do NOT paste the full markdown — the report is already on the quest, and PathSeeker will read it via \`get-planning-notes\`.
+Once the report is successfully written to \`planningNotes.reviewReport\`, signal back with a brief confirmation. Do NOT paste the full markdown — the report is already on the quest, and PathSeeker will read it via \`get-quest-planning-notes\`.
 
 \`\`\`
 signal-back({
