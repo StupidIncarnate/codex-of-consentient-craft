@@ -618,4 +618,30 @@ describe('ChatPanelWidget', () => {
       expect(onStopChat).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('readOnly mode', () => {
+    it('VALID: {readOnly: true} => does not render chat input', () => {
+      ChatPanelWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ChatPanelWidget entries={[]} isStreaming={false} readOnly />,
+      });
+
+      expect(screen.queryByTestId('CHAT_INPUT')).toBe(null);
+    });
+
+    it('VALID: {readOnly: true, with entries} => still renders entries', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        UserChatEntryStub({ content: 'Hello' }),
+        AssistantTextChatEntryStub({ content: 'Hi' }),
+      ];
+
+      mantineRenderAdapter({
+        ui: <ChatPanelWidget entries={entries} isStreaming={false} readOnly />,
+      });
+
+      expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
+    });
+  });
 });

@@ -58,6 +58,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const sessionId = (params.sessionId as SessionId | undefined) ?? null;
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
+  const wasLoadedFromUrlRef = useRef(sessionId !== null);
 
   const { guilds, loading: guildsLoading } = useGuildsBinding();
   const matchedGuild = guilds.find(
@@ -84,7 +85,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     sessionId,
   });
 
-  const { questData, requestRefresh } = useQuestEventsBinding({
+  const { questData, sessionHasNoQuest, requestRefresh } = useQuestEventsBinding({
     sessionId: currentSessionId ?? sessionId,
     guildId: resolvedGuildId,
   });
@@ -341,6 +342,24 @@ export const QuestChatWidget = (): React.JSX.Element => {
         <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
           The guild or session you are looking for does not exist.
         </Text>
+      </Box>
+    );
+  }
+
+  if (wasLoadedFromUrlRef.current && sessionHasNoQuest && !questData) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <ChatPanelWidget entries={entries} isStreaming={isStreaming} readOnly />
+        </Box>
       </Box>
     );
   }

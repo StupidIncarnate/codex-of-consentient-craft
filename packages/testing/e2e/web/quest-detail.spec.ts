@@ -16,7 +16,10 @@ test.describe('Quest Detail Navigation', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: click session item opens quest chat view', async ({ page, request }) => {
+  test('VALID: click session item opens quest chat in read-only view', async ({
+    page,
+    request,
+  }) => {
     await guildHarness({ request }).createGuild({ name: 'Test Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-detail-${Date.now()}`;
@@ -32,29 +35,11 @@ test.describe('Quest Detail Navigation', () => {
 
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
     await expect(page.getByTestId('CHAT_PANEL')).toBeVisible();
-    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
-    await expect(page.getByTestId('SEND_BUTTON')).toBeVisible();
-    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
-  });
 
-  test('VALID: quest chat view has input and activity panel', async ({ page, request }) => {
-    await guildHarness({ request }).createGuild({ name: 'Tab Guild', path: GUILD_PATH });
-
-    const sessionId = `e2e-session-tab-${Date.now()}`;
-    sessions.createSessionFile({
-      sessionId,
-      userMessage: 'Test tabs',
-    });
-
-    await page.goto('/');
-    await page.getByText('Tab Guild').click();
-    await page.getByTestId('SESSION_FILTER').getByText('All').click();
-    await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
-
-    await expect(page.getByTestId('CHAT_INPUT')).toBeEnabled();
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible();
-
-    await expect(page.getByTestId('QUEST_CHAT_DIVIDER')).toBeVisible();
+    await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
+    await expect(page.getByTestId('SEND_BUTTON')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_DIVIDER')).not.toBeVisible();
   });
 
   test('EDGE: browser back returns to session list', async ({ page, request }) => {

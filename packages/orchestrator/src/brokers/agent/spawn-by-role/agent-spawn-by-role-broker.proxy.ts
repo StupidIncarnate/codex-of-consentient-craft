@@ -14,6 +14,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnFailureOnce: () => void;
   setupSpawnExitOnKill: (params: { lines: readonly string[]; exitCode: ExitCode | null }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedOptions: () => unknown;
   setupStderrCapture: () => SpyOnHandle;
 } => {
   claudeLineNormalizeBrokerProxy();
@@ -85,6 +86,8 @@ export const agentSpawnByRoleBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => unifiedProxy.getSpawnedArgs(),
+
+    getSpawnedOptions: (): unknown => unifiedProxy.getSpawnedOptions(),
 
     setupStderrCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });

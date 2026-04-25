@@ -29,8 +29,9 @@ import type { UserInput } from '@dungeonmaster/shared/contracts';
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
-  onSendMessage: (params: { message: UserInput }) => void;
-  onStopChat: () => void;
+  onSendMessage?: (params: { message: UserInput }) => void;
+  onStopChat?: () => void;
+  readOnly?: boolean;
 }
 
 const RACCOON_SCALE = 8;
@@ -48,6 +49,7 @@ export const ChatPanelWidget = ({
   isStreaming,
   onSendMessage,
   onStopChat,
+  readOnly = false,
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [raccoonFlip, setRaccoonFlip] = useState(false);
@@ -118,13 +120,17 @@ export const ChatPanelWidget = ({
         />
       </AutoScrollContainerWidget>
 
-      <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />
+      {readOnly ? null : (
+        <>
+          <Box style={{ height: 1, backgroundColor: colors.border, flexShrink: 0 }} />
 
-      <ChatInputWidget
-        isStreaming={isStreaming}
-        onSendMessage={onSendMessage}
-        onStopChat={onStopChat}
-      />
+          <ChatInputWidget
+            isStreaming={isStreaming}
+            onSendMessage={onSendMessage ?? ((): void => undefined)}
+            onStopChat={onStopChat ?? ((): void => undefined)}
+          />
+        </>
+      )}
     </Box>
   );
 };

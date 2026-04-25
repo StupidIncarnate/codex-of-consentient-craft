@@ -133,6 +133,39 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       expect(Reflect.get(options as object, 'env')).toStrictEqual({ ...process.env });
     });
+
+    it('VALID: {disableToolSearch: true} => sets ENABLE_TOOL_SEARCH=false in spawn env', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
+        disableToolSearch: true,
+      });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'env')).toStrictEqual({
+        ...process.env,
+        ENABLE_TOOL_SEARCH: 'false',
+      });
+    });
+
+    it('VALID: {disableToolSearch: false} => omits ENABLE_TOOL_SEARCH from spawn env', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
+        disableToolSearch: false,
+      });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'env')).toStrictEqual({ ...process.env });
+    });
   });
 
   describe('stdinMode parameter', () => {

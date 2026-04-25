@@ -2468,4 +2468,111 @@ describe('QuestChatWidget', () => {
       expect(proxy.getQuestPauseRequestCount()).toBe(1);
     });
   });
+
+  describe('session without quest (read-only)', () => {
+    it('VALID: {quest-by-session-not-found received} => renders ChatPanel in read-only mode', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/orphan-session']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'quest-by-session-not-found',
+            payload: { sessionId: 'orphan-session', guildId: guild.id },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
+    });
+
+    it('VALID: {quest-by-session-not-found received} => does not render right activity panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/orphan-session-2']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'quest-by-session-not-found',
+            payload: { sessionId: 'orphan-session-2', guildId: guild.id },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(proxy.hasActivityPlaceholder()).toBe(false);
+    });
+
+    it('VALID: {quest-by-session-not-found received} => does not render chat input', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/session/orphan-session-3']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'quest-by-session-not-found',
+            payload: { sessionId: 'orphan-session-3', guildId: guild.id },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(screen.queryByTestId('CHAT_INPUT')).toBe(null);
+    });
+  });
 });

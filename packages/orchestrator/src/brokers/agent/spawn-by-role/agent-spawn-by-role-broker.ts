@@ -71,9 +71,12 @@ export const agentSpawnByRoleBroker = async ({
 
   const prompt = promptTextContract.parse(promptText);
 
+  const isSmoketestSpawn = overrideText !== undefined;
+
   // Smoketest spawns force haiku for cost/speed. Real roles resolve via the role→model map.
-  const model: ClaudeModel =
-    overrideText === undefined ? roleToModelTransformer({ role: workUnit.role }) : SMOKETEST_MODEL;
+  const model: ClaudeModel = isSmoketestSpawn
+    ? SMOKETEST_MODEL
+    : roleToModelTransformer({ role: workUnit.role });
 
   try {
     let lastSignal: StreamSignal | null = null;
@@ -85,6 +88,7 @@ export const agentSpawnByRoleBroker = async ({
         cwd: absoluteFilePathContract.parse(startPath),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
         model,
+        disableToolSearch: isSmoketestSpawn,
         onLine: ({ line }) => {
           onLine?.({ line });
 

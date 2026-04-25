@@ -224,6 +224,42 @@ export const ToolRowWidget = ({
         )}
       </UnstyledButton>
 
+      {((): React.JSX.Element | null => {
+        if (tokenBadgeLabel === undefined && resultTokenBadgeLabel === undefined) {
+          return null;
+        }
+        return (
+          <Box
+            data-testid="TOOL_ROW_TOKENS"
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 8,
+              padding: '0 8px 4px 17px',
+            }}
+          >
+            {tokenBadgeLabel === undefined ? null : (
+              <Text
+                ff="monospace"
+                data-testid="TOKEN_BADGE"
+                style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
+              >
+                {tokenBadgeLabel}
+              </Text>
+            )}
+            {resultTokenBadgeLabel === undefined ? null : (
+              <Text
+                ff="monospace"
+                data-testid="RESULT_TOKEN_BADGE"
+                style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
+              >
+                {resultTokenBadgeLabel}
+              </Text>
+            )}
+          </Box>
+        );
+      })()}
+
       {expanded ? (
         <Box
           data-testid="TOOL_ROW_DETAIL"
@@ -331,16 +367,6 @@ export const ToolRowWidget = ({
             </Text>
           ) : null}
 
-          {tokenBadgeLabel === undefined ? null : (
-            <Text
-              ff="monospace"
-              data-testid="TOKEN_BADGE"
-              style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-            >
-              {tokenBadgeLabel}
-            </Text>
-          )}
-
           {hasResult ? (
             <Box
               data-testid="TOOL_ROW_RESULT"
@@ -354,15 +380,6 @@ export const ToolRowWidget = ({
               >
                 {resultLabel}
               </Text>
-              {resultTokenBadgeLabel === undefined ? null : (
-                <Text
-                  ff="monospace"
-                  data-testid="RESULT_TOKEN_BADGE"
-                  style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-                >
-                  {resultTokenBadgeLabel}
-                </Text>
-              )}
               {isSkippedResult ? (
                 <Text ff="monospace" style={{ fontSize: DETAIL_FONT_SIZE, color: colors.warning }}>
                   This tool call was skipped because another tool call in the same batch failed.

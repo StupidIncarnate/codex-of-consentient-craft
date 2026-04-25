@@ -434,6 +434,44 @@ describe('agentSpawnByRoleBroker', () => {
       expect(modelIdx).toBeGreaterThan(-1);
       expect(spawnedArgs[modelIdx + 1]).toBe('haiku');
     });
+
+    it('VALID: {workUnit with smoketestPromptOverride} => spawn env sets ENABLE_TOOL_SEARCH=false so haiku can reach MCP tools', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub({
+        smoketestPromptOverride: PromptTextStub({ value: 'smoketest canned prompt' }),
+      });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+      const env = Reflect.get(options as object, 'env');
+
+      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe('false');
+    });
+
+    it('VALID: {workUnit without smoketestPromptOverride} => spawn env does not set ENABLE_TOOL_SEARCH', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+      const env = Reflect.get(options as object, 'env');
+
+      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe(undefined);
+    });
   });
 
   describe('onLine forwarding', () => {

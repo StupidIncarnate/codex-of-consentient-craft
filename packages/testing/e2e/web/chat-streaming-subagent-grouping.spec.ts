@@ -4,6 +4,7 @@ import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts';
 import { claudeMockHarness } from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
+import { questHarness } from '../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-streaming-subagent';
@@ -43,6 +44,24 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
     // Pre-create the sub-agent JSONL that chatSubagentTailBroker will read ONCE the
     // foreground Agent tool_use is correlated and the tail starts.
     sessions.createSubagentTailOnly({ sessionId, agentId, assistantText: SUBAGENT_MARKER });
+
+    // Seed a quest bound to this session so the page renders the interactive chat
+    // (not the read-only orphan-session view that hides the chat input).
+    const quests = questHarness({ request });
+    const created = await quests.createQuest({
+      guildId,
+      title: 'Streaming Subagent Quest',
+      userRequest: 'Stream sub-agent via stdout',
+    });
+    quests.writeQuestFile({
+      questId: String(created.questId),
+      questFolder: created.questFolder,
+      questFilePath: created.filePath,
+      status: 'review_flows',
+      workItems: [
+        { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', sessionId },
+      ],
+    });
 
     // Queue a Claude CLI response that mirrors REAL streaming output: the user
     // tool_result line carries `tool_use_result` (snake_case, as Claude CLI emits on
