@@ -76,7 +76,7 @@ describe('ServerInitResponder', () => {
       ]);
     });
 
-    it('EDGE: {type: quest-by-session-request, no matching session} => does not send ws message', async () => {
+    it('EDGE: {type: quest-by-session-request, no matching session} => sends quest-by-session-not-found ws message', async () => {
       const proxy = ServerInitResponderProxy();
       const sessionId = SessionIdStub({ value: 'session-no-match' });
       const guildId = GuildIdStub();
@@ -102,7 +102,13 @@ describe('ServerInitResponder', () => {
         setTimeout(resolve, 10);
       });
 
-      expect(sendMock.mock.calls).toStrictEqual([]);
+      expect(sendMock.mock.calls).toStrictEqual([
+        [
+          expect.stringMatching(
+            /^\{"type":"quest-by-session-not-found","payload":\{"sessionId":"session-no-match","guildId":"[0-9a-f-]+"\},"timestamp":"2024-01-01T00:00:00\.000Z"\}$/u,
+          ),
+        ],
+      ]);
     });
   });
 

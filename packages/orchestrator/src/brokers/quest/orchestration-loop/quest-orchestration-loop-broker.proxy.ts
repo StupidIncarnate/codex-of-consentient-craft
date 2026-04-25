@@ -99,6 +99,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupPreExecutionStatus: (params: { quest: QuestParam }) => void;
   setupItemsStillRunning: (params: { quest: QuestParam }) => void;
   setupSingleDispatch: (params: { quest: QuestParam; terminalQuest: QuestParam }) => void;
+  setupModifyReject: (params: { error: Error }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Quest[];
   findPersistedWorkItem: (params: {
@@ -332,6 +333,10 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Recursion: load terminal quest
       getProxy.setupQuestFound({ quest: terminalQuest });
       modifyProxy.setupQuestFound({ quest: terminalQuest });
+    },
+
+    setupModifyReject: ({ error }: { error: Error }): void => {
+      modifyProxy.setupReject({ error });
     },
 
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),

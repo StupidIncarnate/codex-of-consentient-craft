@@ -27,6 +27,7 @@ import { useAgentOutputBindingProxy } from '../../bindings/use-agent-output/use-
 import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-guild-detail-binding.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
+import { useQuestQueueBindingProxy } from '../../bindings/use-quest-queue/use-quest-queue-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
 import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
@@ -35,6 +36,8 @@ import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
+import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
+import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DesignPanelWidgetProxy } from '../design-panel/design-panel-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
@@ -104,7 +107,10 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const guildsBindingProxy = useGuildsBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
+  useQuestQueueBindingProxy();
   const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
+  AutoScrollContainerWidgetProxy();
+  ChatEntryListWidgetProxy();
   const chatPanelProxy = ChatPanelWidgetProxy();
   const specPanelProxy = QuestSpecPanelWidgetProxy();
   const modifyProxy = questModifyBrokerProxy();

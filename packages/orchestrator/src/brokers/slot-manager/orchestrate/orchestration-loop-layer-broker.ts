@@ -254,6 +254,16 @@ export const orchestrationLoopLayerBroker = async ({
     }
 
     case 'spawn_role': {
+      // Smoketest spawns test signal emission, including 'failed' and 'failed-replan' as
+      // expected outcomes. handleSignalLayerBroker already called markFailed; flip the
+      // work item back to complete so dependent smoketest cases dispatch normally and the
+      // quest converges. The smoketest assertion framework reads the actual signal from
+      // the session JSONL — orchestration status doesn't need to mirror signal value.
+      if (workUnit.smoketestPromptOverride !== undefined) {
+        await workTracker.markCompleted({ workItemId: completedAgent.workItemId });
+        return { done: false, activeAgents };
+      }
+
       const isWithinDepthLimit =
         maxFollowupDepth === undefined || completedAgent.followupDepth < maxFollowupDepth;
 

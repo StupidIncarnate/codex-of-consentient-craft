@@ -23,6 +23,7 @@ describe('orchestrationEventTypeContract', () => {
     'chat-patch',
     'chat-history-complete',
     'quest-session-linked',
+    'quest-by-session-not-found',
     'chat-session-started',
     'execution-queue-updated',
     'execution-queue-error',

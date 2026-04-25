@@ -115,7 +115,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
               .then(async (quests) => {
                 const match = quests.find((q) => q.activeSessionId === sessionId);
 
-                if (!match) return;
+                if (!match) {
+                  const notFoundMessage = wsMessageContract.parse({
+                    type: 'quest-by-session-not-found',
+                    payload: { sessionId, guildId },
+                    timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                  });
+                  (_ws as WsClient).send(JSON.stringify(notFoundMessage));
+                  return;
+                }
 
                 return orchestratorLoadQuestAdapter({ questId: match.id }).then((quest) => {
                   const message = wsMessageContract.parse({
@@ -134,6 +142,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 processDevLogAdapter({
                   message: `quest-by-session-request failed for session ${sessionId}: ${reason}`,
                 });
+                const notFoundMessage = wsMessageContract.parse({
+                  type: 'quest-by-session-not-found',
+                  payload: { sessionId, guildId },
+                  timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                });
+                (_ws as WsClient).send(JSON.stringify(notFoundMessage));
               });
           }
           if (type === 'ward-detail-request') {

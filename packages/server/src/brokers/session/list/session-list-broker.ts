@@ -24,6 +24,7 @@ import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/trans
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { mtimeMsContract } from '../../../contracts/mtime-ms/mtime-ms-contract';
 import type { MtimeMs } from '../../../contracts/mtime-ms/mtime-ms-contract';
 import type { SessionSummary } from '../../../contracts/session-summary/session-summary-contract';
@@ -58,13 +59,41 @@ export const sessionListBroker = async ({
     String(probePath).slice(0, String(probePath).lastIndexOf('/')),
   );
 
-  const jsonlFiles = await globFindAdapter({
+  const directFiles = await globFindAdapter({
     pattern: globPatternContract.parse('*.jsonl'),
     cwd: claudeProjectDir,
   });
 
+  const quests = await orchestratorListQuestsAdapter({ guildId });
+
+  const directSessionIds = new Set(
+    directFiles.map((p) => String(p).split('/').pop()?.replace('.jsonl', '') ?? ''),
+  );
+  const crossProjectRoot = filePathContract.parse(`${homeDir}/.claude/projects`);
+  const crossProjectSessionIds = quests
+    .map((q) => q.activeSessionId)
+    .filter((s): s is SessionId => s !== undefined && !directSessionIds.has(String(s)));
+  const crossProjectFileLists = await Promise.all(
+    crossProjectSessionIds.map(async (sessionId) =>
+      globFindAdapter({
+        pattern: globPatternContract.parse(`*/${sessionId}.jsonl`),
+        cwd: crossProjectRoot,
+      }),
+    ),
+  );
+  const crossProjectFiles = crossProjectFileLists.flat();
+
+  const seenPaths = new Set<FilePath>();
+  const dedupedFiles = [...directFiles, ...crossProjectFiles].filter((file) => {
+    if (seenPaths.has(file)) {
+      return false;
+    }
+    seenPaths.add(file);
+    return true;
+  });
+
   const diskResults = await Promise.all(
-    jsonlFiles.map(async (filePath) => {
+    dedupedFiles.map(async (filePath) => {
       const fileName = String(filePath).split('/').pop() ?? '';
       const diskSessionId = sessionIdContract.parse(fileName.replace('.jsonl', ''));
 
@@ -116,7 +145,6 @@ export const sessionListBroker = async ({
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     .filter((entry) => hasSessionSummaryGuard({ session: entry }));
 
-  const quests = await orchestratorListQuestsAdapter({ guildId });
   const sessionToQuest = new Map(
     quests
       .filter((q) => q.activeSessionId !== undefined)

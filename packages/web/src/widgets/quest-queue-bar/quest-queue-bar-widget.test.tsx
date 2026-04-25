@@ -116,6 +116,53 @@ describe('QuestQueueBarWidget', () => {
     });
   });
 
+  describe('open link', () => {
+    it('VALID: {head with activeSessionId} => OPEN link href targets that session', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      const head = QuestQueueEntryStub({
+        questId: 'q-open',
+        questTitle: 'Smoketest: Signals',
+        guildSlug: 'smoketests-guild' as never,
+        activeSessionId: SessionIdStub({ value: 'sess-open' }),
+      });
+      proxy.setupEntries({ entries: [head] });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
+
+      expect(openLink.getAttribute('href')).toBe('/smoketests-guild/session/sess-open');
+    });
+
+    it('VALID: {head without activeSessionId} => OPEN link falls back to guild session route', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      const head = QuestQueueEntryStub({
+        questId: 'q-open',
+        questTitle: 'Planning',
+        guildSlug: 'guild-x' as never,
+      });
+      proxy.setupEntries({ entries: [head] });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
+
+      expect(openLink.getAttribute('href')).toBe('/guild-x/session');
+    });
+  });
+
   describe('expanded view', () => {
     it('VALID: {click chevron} => renders one row per entry with correct href', async () => {
       const proxy = QuestQueueBarWidgetProxy();

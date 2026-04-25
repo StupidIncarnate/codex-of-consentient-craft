@@ -26,7 +26,9 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
       });
-      expect(configContent).toBe(JSON.stringify({ framework: 'node', schema: 'zod' }, null, 2));
+      expect(configContent).toBe(
+        JSON.stringify({ framework: 'node-library', schema: 'zod' }, null, 2),
+      );
     });
   });
 });

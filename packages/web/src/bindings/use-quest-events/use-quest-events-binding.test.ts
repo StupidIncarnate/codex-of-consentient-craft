@@ -145,6 +145,60 @@ describe('useQuestEventsBinding', () => {
     });
   });
 
+  describe('quest-by-session-not-found', () => {
+    it('VALID: {quest-by-session-not-found for current session} => sets sessionHasNoQuest to true', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-by-session-not-found',
+              payload: { sessionId: 'session-1', guildId },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        questData: null,
+        sessionHasNoQuest: true,
+        requestRefresh: expect.any(Function) as () => void,
+      });
+    });
+
+    it('EDGE: {quest-by-session-not-found for different session} => does not set sessionHasNoQuest', () => {
+      const proxy = useQuestEventsBindingProxy();
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const guildId = GuildIdStub();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestEventsBinding({ sessionId, guildId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'quest-by-session-not-found',
+              payload: { sessionId: 'other-session', guildId },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.sessionHasNoQuest).toBe(false);
+    });
+  });
+
   describe('invalid messages', () => {
     it('EDGE: {invalid WS message} => does not set questData', () => {
       const proxy = useQuestEventsBindingProxy();

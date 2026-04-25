@@ -13,12 +13,11 @@ describe('questActiveSessionTransformer', () => {
       });
     });
 
-    it('EMPTY: {only non-chat items} => undefined', () => {
+    it('EMPTY: {non-chat items without sessionId} => undefined', () => {
       const item = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
         role: 'codeweaver',
         status: 'in_progress',
-        sessionId: SessionIdStub({ value: 'session-abc' }),
       });
 
       const result = questActiveSessionTransformer({ workItems: [item] });
@@ -121,6 +120,75 @@ describe('questActiveSessionTransformer', () => {
       expect(result).toStrictEqual({
         sessionId: undefined,
         role: undefined,
+      });
+    });
+  });
+
+  describe('non-chat fallback (smoketest quests)', () => {
+    it('VALID: {only in_progress codeweaver with sessionId} => returns codeweaver session', () => {
+      const sessionId = SessionIdStub({ value: 'session-cw-1' });
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'in_progress',
+        sessionId,
+      });
+
+      const result = questActiveSessionTransformer({ workItems: [item] });
+
+      expect(result).toStrictEqual({
+        sessionId,
+        role: 'codeweaver',
+      });
+    });
+
+    it('VALID: {completed codeweavers, none active} => returns most recent by completedAt', () => {
+      const oldSession = SessionIdStub({ value: 'session-old' });
+      const newSession = SessionIdStub({ value: 'session-new' });
+      const olderItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'complete',
+        sessionId: oldSession,
+        completedAt: '2024-01-15T10:00:00.000Z',
+      });
+      const newerItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        role: 'codeweaver',
+        status: 'complete',
+        sessionId: newSession,
+        completedAt: '2024-01-15T12:00:00.000Z',
+      });
+
+      const result = questActiveSessionTransformer({
+        workItems: [olderItem, newerItem],
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: newSession,
+        role: 'codeweaver',
+      });
+    });
+
+    it('VALID: {chat work item without sessionId + non-chat with sessionId} => prefers non-chat', () => {
+      const sessionId = SessionIdStub({ value: 'session-cw-1' });
+      const chaos = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'chaoswhisperer',
+        status: 'in_progress',
+      });
+      const cw = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        role: 'codeweaver',
+        status: 'in_progress',
+        sessionId,
+      });
+
+      const result = questActiveSessionTransformer({ workItems: [chaos, cw] });
+
+      expect(result).toStrictEqual({
+        sessionId,
+        role: 'codeweaver',
       });
     });
   });

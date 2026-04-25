@@ -211,22 +211,26 @@ test.describe('Session ID Routing', () => {
     await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
 
     // Execution panel should appear
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+    const executionPanel = page.getByTestId('execution-panel-widget');
+
+    await expect(executionPanel).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
     // The planning row should appear (pathseeker is running)
-    await expect(page.getByText('Planning steps...')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(executionPanel.getByText('Planning steps...')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
 
     // The [PATHSEEKER] role badge should be visible
     await expect(
-      page.getByTestId('execution-row-role-badge').filter({ hasText: '[PATHSEEKER]' }),
+      executionPanel.getByTestId('execution-row-role-badge').filter({ hasText: '[PATHSEEKER]' }),
     ).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // The actual streamed text content should appear in the pathseeker panel
-    // This verifies live sessionId routing: the chat-output WS event includes sessionId
-    // and the widget routes the text to the correct work item panel
-    await expect(page.getByText(pathseekerText)).toBeVisible({
+    // The actual streamed text content should appear in the pathseeker panel.
+    // Scope to the execution panel because the activity panel also flattens session entries and
+    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
+    await expect(executionPanel.getByText(pathseekerText)).toBeVisible({
       timeout: STREAMING_TEXT_TIMEOUT,
     });
   });

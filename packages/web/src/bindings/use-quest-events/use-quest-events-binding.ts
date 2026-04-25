@@ -20,8 +20,13 @@ export const useQuestEventsBinding = ({
 }: {
   sessionId: SessionId | null;
   guildId: GuildId | null;
-}): { questData: Quest | null; requestRefresh: () => void } => {
+}): {
+  questData: Quest | null;
+  sessionHasNoQuest: boolean;
+  requestRefresh: () => void;
+} => {
   const [questData, setQuestData] = useState<Quest | null>(null);
+  const [sessionHasNoQuest, setSessionHasNoQuest] = useState(false);
   const sessionIdRef = useRef<SessionId | null>(sessionId);
   const guildIdRef = useRef<GuildId | null>(guildId);
   const connectionRef = useRef<WsConnection | null>(null);
@@ -49,6 +54,14 @@ export const useQuestEventsBinding = ({
       onMessage: (message: unknown): void => {
         const parsed = wsMessageContract.safeParse(message);
         if (!parsed.success) return;
+
+        if (parsed.data.type === 'quest-by-session-not-found') {
+          const payloadSessionId: unknown = Reflect.get(parsed.data.payload, 'sessionId');
+          if (payloadSessionId === sessionIdRef.current) {
+            setSessionHasNoQuest(true);
+          }
+          return;
+        }
 
         if (parsed.data.type === 'quest-modified') {
           const rawQuest: unknown = Reflect.get(parsed.data.payload, 'quest');
@@ -115,6 +128,7 @@ export const useQuestEventsBinding = ({
 
   useEffect(() => {
     if (questData !== null) return undefined;
+    if (sessionHasNoQuest) return undefined;
 
     const retryIntervalMs = 1000;
     const intervalId = globalThis.setInterval(() => {
@@ -130,7 +144,7 @@ export const useQuestEventsBinding = ({
     return (): void => {
       globalThis.clearInterval(intervalId);
     };
-  }, [questData]);
+  }, [questData, sessionHasNoQuest]);
 
   const requestRefresh = useCallback((): void => {
     if (sessionIdRef.current && guildIdRef.current) {
@@ -142,5 +156,5 @@ export const useQuestEventsBinding = ({
     }
   }, []);
 
-  return { questData, requestRefresh };
+  return { questData, sessionHasNoQuest, requestRefresh };
 };

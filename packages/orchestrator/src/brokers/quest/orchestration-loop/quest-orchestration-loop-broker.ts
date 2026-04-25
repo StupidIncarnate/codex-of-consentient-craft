@@ -25,6 +25,7 @@ import { slotCountContract } from '../../../contracts/slot-count/slot-count-cont
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
+  isFailureWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
@@ -126,19 +127,60 @@ export const questOrchestrationLoopBroker = async ({
   );
 
   // 3. Handle terminal states
+  // Wrap the modify call in try/catch so smoketest and other minimal-content
+  // quests still terminalize even if real-quest gates (spec-completeness,
+  // gate-content) reject the in_progress -> complete/blocked transition. A
+  // silent swallow here is what was leaving smoketest quests stuck at
+  // in_progress and bypassing the post-terminal listener.
   if (questTerminal) {
-    const newStatus = workItemsToQuestStatusTransformer({
+    const transformedStatus = workItemsToQuestStatusTransformer({
       workItems: quest.workItems,
       currentStatus: quest.status,
     });
+    // When every work item is terminal but transformedStatus didn't transition
+    // (e.g. all-terminal-with-failures + no pending dependents leaves
+    // workItemsToQuestStatusTransformer falling through to currentStatus),
+    // force `blocked` so the quest reaches a terminal status and post-terminal
+    // listeners (smoketest assertions) fire.
+    const hasFailures = quest.workItems.some((item) =>
+      isFailureWorkItemStatusGuard({ status: item.status }),
+    );
+    const newStatus =
+      transformedStatus === quest.status && hasFailures ? 'blocked' : transformedStatus;
     if (newStatus !== quest.status) {
-      await questModifyBroker({ input: { questId, status: newStatus } as ModifyQuestInput });
+      try {
+        const transitionResult = await questModifyBroker({
+          input: { questId, status: newStatus } as ModifyQuestInput,
+        });
+        if (!transitionResult.success) {
+          process.stderr.write(
+            `[orchestration-loop] terminal transition to ${newStatus} failed for questId=${questId}: ${transitionResult.error ?? 'unknown error'}\n`,
+          );
+        }
+      } catch (error: unknown) {
+        process.stderr.write(
+          `[orchestration-loop] terminal transition to ${newStatus} threw for questId=${questId}: ${String(error)}\n`,
+        );
+      }
     }
     return result;
   }
 
   if (questBlocked) {
-    await questModifyBroker({ input: { questId, status: 'blocked' } as ModifyQuestInput });
+    try {
+      const transitionResult = await questModifyBroker({
+        input: { questId, status: 'blocked' } as ModifyQuestInput,
+      });
+      if (!transitionResult.success) {
+        process.stderr.write(
+          `[orchestration-loop] blocked transition failed for questId=${questId}: ${transitionResult.error ?? 'unknown error'}\n`,
+        );
+      }
+    } catch (error: unknown) {
+      process.stderr.write(
+        `[orchestration-loop] blocked transition threw for questId=${questId}: ${String(error)}\n`,
+      );
+    }
     return result;
   }
 

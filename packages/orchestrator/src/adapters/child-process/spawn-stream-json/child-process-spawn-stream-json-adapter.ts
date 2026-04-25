@@ -27,12 +27,14 @@ export const childProcessSpawnStreamJsonAdapter = ({
   cwd,
   stdinMode = 'inherit',
   model,
+  disableToolSearch = false,
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
   cwd?: string;
   stdinMode?: 'inherit' | 'ignore';
   model: ClaudeModel;
+  disableToolSearch?: boolean;
 }): SpawnStreamJsonResult => {
   const effectiveCwd = cwd ?? process.cwd();
   const settingsFile = path.join(effectiveCwd, '.claude', 'settings.json');
@@ -55,9 +57,17 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';
 
+  // Haiku models do not support the Claude Code MCP tool-search loop, so smoketest
+  // spawns (which force --model haiku) need ENABLE_TOOL_SEARCH=false to load every
+  // MCP tool's schema upfront. Without this, deferred tools like
+  // mcp__dungeonmaster__signal-back are listed by name but unreachable.
+  const env = disableToolSearch
+    ? { ...process.env, ENABLE_TOOL_SEARCH: 'false' }
+    : { ...process.env };
+
   const childProcess = spawn(cliPath, args, {
     stdio: [stdinMode, 'pipe', 'inherit'],
-    env: { ...process.env },
+    env,
     ...(cwd && { cwd }),
   });
 

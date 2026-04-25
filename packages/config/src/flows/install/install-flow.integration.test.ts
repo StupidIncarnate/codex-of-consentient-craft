@@ -34,7 +34,9 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
-      expect(configContent).toBe(JSON.stringify({ framework: 'node', schema: 'zod' }, null, 2));
+      expect(configContent).toBe(
+        JSON.stringify({ framework: 'node-library', schema: 'zod' }, null, 2),
+      );
     });
 
     it('VALID: {context: config already exists} => skips installation', async () => {

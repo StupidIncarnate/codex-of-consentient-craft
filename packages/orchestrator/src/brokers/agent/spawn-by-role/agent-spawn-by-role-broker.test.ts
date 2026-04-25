@@ -434,6 +434,134 @@ describe('agentSpawnByRoleBroker', () => {
       expect(modelIdx).toBeGreaterThan(-1);
       expect(spawnedArgs[modelIdx + 1]).toBe('haiku');
     });
+
+    it('VALID: {workUnit with smoketestPromptOverride} => spawn env sets ENABLE_TOOL_SEARCH=false so haiku can reach MCP tools', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub({
+        smoketestPromptOverride: PromptTextStub({ value: 'smoketest canned prompt' }),
+      });
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+      const env = Reflect.get(options as object, 'env');
+
+      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe('false');
+    });
+
+    it('VALID: {workUnit without smoketestPromptOverride} => spawn env does not set ENABLE_TOOL_SEARCH', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+      const env = Reflect.get(options as object, 'env');
+
+      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe(undefined);
+    });
+  });
+
+  describe('cwd resolution', () => {
+    it('VALID: {smoketest spawn with non-repo-root startPath} => resolves cwd to configRoot via configRootFindBroker', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const workUnit = PathseekerWorkUnitStub({
+        smoketestPromptOverride: PromptTextStub({ value: 'smoketest canned prompt' }),
+      });
+      const startPath = FilePathStub({ value: '/home/user/.dungeonmaster-dev' });
+      const repoRoot = '/home/user/repo';
+
+      proxy.setupConfigRoot({ root: repoRoot });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+    });
+
+    it('VALID: {non-smoketest spawn} => resolves cwd to configRoot via configRootFindBroker (idempotent for repo-root startPaths)', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const repoRoot = '/project';
+
+      proxy.setupConfigRoot({ root: repoRoot });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+    });
+
+    it('VALID: {configRootFindBroker rejects (no .dungeonmaster.json ancestor)} => falls back to startPath as cwd', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/tmp/dm-e2e-isolated-guild' });
+
+      proxy.setupConfigRootRejection({ error: new Error('no project root') });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'cwd')).toBe('/tmp/dm-e2e-isolated-guild');
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+    });
+
+    it('VALID: {non-smoketest spawn for auto-spawned recovery pathseeker on smoketest quest} => walks up from smoketest guild path to repo root', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      // Recovery pathseeker auto-spawned mid-flight has no smoketestPromptOverride.
+      const workUnit = PathseekerWorkUnitStub();
+      const startPath = FilePathStub({ value: '/home/user/.dungeonmaster-dev' });
+      const repoRoot = '/home/user/repo';
+
+      proxy.setupConfigRoot({ root: repoRoot });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      const options = proxy.getSpawnedOptions();
+
+      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath }]]);
+    });
   });
 
   describe('onLine forwarding', () => {

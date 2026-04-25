@@ -145,24 +145,30 @@ test.describe('Ward Execution Streaming', () => {
     await guildsResponsePromise;
 
     // Execution panel renders immediately since quest status is seek_scope
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+    const executionPanel = page.getByTestId('execution-panel-widget');
+
+    await expect(executionPanel).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
     // Wait for ward row to appear with DONE status
-    const wardRow = page.getByText('[WARD]').first();
+    const wardRow = executionPanel.getByText('[WARD]').first();
 
     await expect(wardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
     // Click the ward row to expand it and reveal streamed entries
     await wardRow.click();
 
-    // Ward output lines should be visible in the expanded row after streaming
-    await expect(page.getByText('lint        @dungeonmaster/shared PASS  42 files')).toBeVisible({
+    // Ward output lines should be visible in the expanded row after streaming.
+    // Scope to the execution panel because the activity panel also flattens session entries and
+    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
+    await expect(
+      executionPanel.getByText('lint        @dungeonmaster/shared PASS  42 files'),
+    ).toBeVisible({
       timeout: WARD_OUTPUT_TIMEOUT,
     });
     await expect(
-      page.getByText('unit        @dungeonmaster/shared PASS  15 tests passed'),
+      executionPanel.getByText('unit        @dungeonmaster/shared PASS  15 tests passed'),
     ).toBeVisible({
       timeout: WARD_OUTPUT_TIMEOUT,
     });
@@ -319,24 +325,28 @@ test.describe('Ward Execution Streaming', () => {
     await guildsResponsePromise;
 
     // Execution panel renders immediately since quest status is seek_scope
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+    const executionPanel = page.getByTestId('execution-panel-widget');
+
+    await expect(executionPanel).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
     // Wait for floor boss ward row — there should be 2 [WARD] badges (mini boss + floor boss)
-    const wardRows = page.getByText('[WARD]');
+    const wardRows = executionPanel.getByText('[WARD]');
 
     await expect(wardRows.nth(1)).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
     // Click the floor boss ward row (second [WARD] badge) to expand it
     await wardRows.nth(1).click();
 
-    // Ward output lines should be visible in the expanded row after streaming
+    // Ward output lines should be visible in the expanded row after streaming.
+    // Scope to the execution panel because the activity panel also flattens session entries and
+    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
     await expect(
-      page.getByText('lint        @dungeonmaster/orchestrator PASS  128 files'),
+      executionPanel.getByText('lint        @dungeonmaster/orchestrator PASS  128 files'),
     ).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
     await expect(
-      page.getByText('integration @dungeonmaster/orchestrator PASS  12 tests passed'),
+      executionPanel.getByText('integration @dungeonmaster/orchestrator PASS  12 tests passed'),
     ).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
   });
 });

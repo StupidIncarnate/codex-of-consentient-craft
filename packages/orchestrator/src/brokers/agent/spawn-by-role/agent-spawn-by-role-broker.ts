@@ -11,10 +11,12 @@
 import {
   absoluteFilePathContract,
   exitCodeContract,
+  filePathContract,
+  type AbsoluteFilePath,
   type FilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { claudeLineNormalizeBroker, configRootFindBroker } from '@dungeonmaster/shared/brokers';
 
 import {
   agentSpawnStreamingResultContract,
@@ -71,9 +73,32 @@ export const agentSpawnByRoleBroker = async ({
 
   const prompt = promptTextContract.parse(promptText);
 
+  const isSmoketestSpawn = overrideText !== undefined;
+
   // Smoketest spawns force haiku for cost/speed. Real roles resolve via the role→model map.
-  const model: ClaudeModel =
-    overrideText === undefined ? roleToModelTransformer({ role: workUnit.role }) : SMOKETEST_MODEL;
+  const model: ClaudeModel = isSmoketestSpawn
+    ? SMOKETEST_MODEL
+    : roleToModelTransformer({ role: workUnit.role });
+
+  // Walk up from `startPath` to the directory containing `.dungeonmaster.json` so the
+  // spawned agent's cwd lets `.mcp.json` resolve its relative `node packages/mcp/dist/src/index.js`
+  // command. `configRootFindBroker` is idempotent — when `startPath` itself contains
+  // `.dungeonmaster.json` (e.g. the codex guild's repo-root path) it returns `startPath` unchanged.
+  // For the smoketests guild, whose path is the dungeonmaster home (`.dungeonmaster-dev/`), it
+  // walks up to the repo root. This also correctly handles auto-spawned recovery agents
+  // (pathseeker for replan) on smoketest quests, which don't carry `smoketestPromptOverride`.
+  // Fallback to `startPath` when no `.dungeonmaster.json` ancestor exists — guild paths in
+  // standalone projects (and e2e isolated /tmp dirs) won't have one, and the spawn should still
+  // run from the guild path. Only smoketest spawns truly need the repo-root walk.
+  const resolvedCwd: AbsoluteFilePath = await (async (): Promise<AbsoluteFilePath> => {
+    try {
+      return absoluteFilePathContract.parse(
+        await configRootFindBroker({ startPath: filePathContract.parse(startPath) }),
+      );
+    } catch {
+      return absoluteFilePathContract.parse(startPath);
+    }
+  })();
 
   try {
     let lastSignal: StreamSignal | null = null;
@@ -82,9 +107,10 @@ export const agentSpawnByRoleBroker = async ({
     return await new Promise<AgentSpawnStreamingResult>((resolve) => {
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt,
-        cwd: absoluteFilePathContract.parse(startPath),
+        cwd: resolvedCwd,
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
         model,
+        disableToolSearch: isSmoketestSpawn,
         onLine: ({ line }) => {
           onLine?.({ line });
 

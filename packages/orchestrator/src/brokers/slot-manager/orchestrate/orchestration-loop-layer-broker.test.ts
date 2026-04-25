@@ -2397,4 +2397,141 @@ describe('orchestrationLoopLayerBroker', () => {
       expect(calledIds).toStrictEqual([workItemId1, workItemId2]);
     });
   });
+
+  describe('spawn_role path - smoketest short-circuit', () => {
+    it('VALID: {smoketest codeweaver signals failed} => marks completed and skips drain/transition/spawn', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'smoketest-codeweaver-1' });
+      const smoketestCodeweaverWorkUnit = CodeweaverWorkUnitStub({
+        smoketestPromptOverride: 'emit failed signal' as never,
+      });
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => smoketestCodeweaverWorkUnit,
+        markCompleted: mockMarkCompleted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Smoketest expected failure' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      const result = await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+      });
+
+      expect(result).toStrictEqual({ done: false, activeAgents: [] });
+      expect({
+        markCompleted: mockMarkCompleted.mock.calls.length,
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+        questModifyCalls: proxy.getQuestModifyCalls().length,
+      }).toStrictEqual({
+        markCompleted: 1,
+        skipAllPending: 0,
+        addWorkItem: 0,
+        questModifyCalls: 0,
+      });
+      expect(mockMarkCompleted.mock.calls[0]![0]).toStrictEqual({ workItemId });
+    });
+
+    it('VALID: {non-smoketest codeweaver signals failed} => still drains, transitions seek_walk, and spawns pathseeker', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'codeweaver-regression-1' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockMarkStarted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markStarted: mockMarkStarted,
+        markCompleted: mockMarkCompleted,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Real build failure' as never,
+      });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+      });
+
+      expect({
+        markCompleted: mockMarkCompleted.mock.calls.length,
+        skipAllPending: mockSkipAllPending.mock.calls.length,
+        addWorkItem: mockAddWorkItem.mock.calls.length,
+      }).toStrictEqual({
+        markCompleted: 0,
+        skipAllPending: 1,
+        addWorkItem: 1,
+      });
+      expect(proxy.getQuestModifyCalls()).toStrictEqual([
+        { input: { questId: QuestIdStub({ value: 'add-auth' }), status: 'seek_walk' } },
+      ]);
+    });
+  });
 });

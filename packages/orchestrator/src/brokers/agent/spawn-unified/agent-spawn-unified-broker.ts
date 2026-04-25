@@ -26,6 +26,7 @@ export const agentSpawnUnifiedBroker = ({
   cwd,
   resumeSessionId,
   model,
+  disableToolSearch,
   onLine,
   onError,
   onComplete,
@@ -34,6 +35,7 @@ export const agentSpawnUnifiedBroker = ({
   cwd: AbsoluteFilePath;
   resumeSessionId?: SessionId;
   model: ClaudeModel;
+  disableToolSearch?: boolean;
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
   onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
@@ -46,6 +48,10 @@ export const agentSpawnUnifiedBroker = ({
 
   if (resumeSessionId) {
     spawnParams.resumeSessionId = resumeSessionId;
+  }
+
+  if (disableToolSearch !== undefined) {
+    spawnParams.disableToolSearch = disableToolSearch;
   }
 
   const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);

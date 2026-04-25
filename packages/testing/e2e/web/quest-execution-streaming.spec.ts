@@ -84,15 +84,23 @@ test.describe('Quest Execution Streaming', () => {
     await nav.navigateToSession({ urlSlug, sessionId });
 
     // Execution panel should appear since quest is in an execution-phase status (seek_scope)
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+    const executionPanel = page.getByTestId('execution-panel-widget');
+
+    await expect(executionPanel).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
 
-    // The planning row should be visible
-    await expect(page.getByText('Planning steps...')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // The planning row should be visible inside the execution panel
+    await expect(executionPanel.getByText('Planning steps...')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
 
-    // The actual streamed text content should appear in the execution row — not just "streaming..."
-    await expect(page.getByText('Analyzing quest requirements and planning steps')).toBeVisible({
+    // The actual streamed text content should appear in the execution row — not just "streaming...".
+    // Scope to the execution panel because the activity panel also flattens session entries and
+    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
+    await expect(
+      executionPanel.getByText('Analyzing quest requirements and planning steps'),
+    ).toBeVisible({
       timeout: STREAMING_TEXT_TIMEOUT,
     });
   });

@@ -42,7 +42,7 @@ export const ToolGroupWidget = ({
   deltaContextTokens,
 }: ToolGroupWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   if (group.kind !== 'tool-group') return null;
 
@@ -128,12 +128,14 @@ export const ToolGroupWidget = ({
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
             const annotations = computeTokenAnnotationsTransformer({ items: pairs });
+            const lastIndex = pairs.length - 1;
 
             return pairs.map((item, index) => {
               const annotation = annotations[index];
 
               if (item.kind === 'tool-pair') {
                 const toolUseEntry = item.toolUse;
+                const isStreamingLast = isActiveStreaming && index === lastIndex;
 
                 return (
                   <ToolRowWidget
@@ -146,6 +148,12 @@ export const ToolGroupWidget = ({
                     annotation.resultTokenBadgeLabel === null
                       ? {}
                       : { resultTokenBadgeLabel: annotation.resultTokenBadgeLabel })}
+                    {...(isStreamingLast
+                      ? {
+                          defaultExpanded: true,
+                          ...(item.toolResult === null ? { isLoading: true } : {}),
+                        }
+                      : {})}
                   />
                 );
               }

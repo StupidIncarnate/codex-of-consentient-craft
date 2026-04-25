@@ -114,7 +114,35 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
-    it('VALID: {all items terminal but some failed} => quest stays in_progress', async () => {
+    it('VALID: {all complete, terminal transition rejected by gate} => orchestration still resolves; does not throw', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupQuestTerminal({ quest });
+      proxy.setupModifyReject({ error: new Error('gate-content check failed') });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-status-reject' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toStrictEqual({ success: true });
+    });
+
+    it('VALID: {all items terminal but some failed} => quest transitions to blocked', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
         id: questId,
@@ -150,10 +178,12 @@ describe('questOrchestrationLoopBroker', () => {
         }),
       ).resolves.toStrictEqual({ success: true });
 
-      // Quest should not be marked complete — status stays in_progress because failed items exist
+      // Quest should not be marked complete (failed items present), but it
+      // MUST transition to blocked so the post-terminal listener fires.
       const quests = proxy.getAllPersistedQuests();
 
       expect(quests.find((q) => q.status === 'complete')).toBe(undefined);
+      expect(quests[quests.length - 1]!.status).toBe('blocked');
     });
 
     it('VALID: {pre-execution quest status preserved when chat fails} => status stays explore_flows', async () => {

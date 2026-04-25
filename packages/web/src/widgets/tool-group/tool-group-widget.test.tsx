@@ -11,8 +11,8 @@ import { ToolGroupWidget } from './tool-group-widget';
 import { ToolGroupWidgetProxy } from './tool-group-widget.proxy';
 
 describe('ToolGroupWidget', () => {
-  describe('collapsed state', () => {
-    it('VALID: {group with 2 tool_use, not streaming} => shows header with tool count', () => {
+  describe('default expanded state', () => {
+    it('VALID: {group with 2 tool_use, not streaming} => starts expanded showing tool rows', () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -29,7 +29,7 @@ describe('ToolGroupWidget', () => {
       });
 
       expect(proxy.isHeaderVisible()).toBe(true);
-      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 2 })).toBe(true);
     });
 
     it('VALID: {deltaContextTokens: 18000} => header shows positive delta context', () => {
@@ -52,7 +52,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▸ 1 Tools (+18.0k context)');
+      expect(header.textContent).toBe('▾ 1 Tools (+18.0k context)');
     });
 
     it('VALID: {deltaContextTokens: -5000} => header shows negative delta context', () => {
@@ -75,7 +75,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▸ 1 Tools (-5.0k context)');
+      expect(header.textContent).toBe('▾ 1 Tools (-5.0k context)');
     });
 
     it('VALID: {deltaContextTokens: undefined} => header omits context badge (first group)', () => {
@@ -94,7 +94,7 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▸ 1 Tools');
+      expect(header.textContent).toBe('▾ 1 Tools');
     });
 
     it('VALID: {deltaContextTokens: 0} => header omits context badge', () => {
@@ -120,12 +120,12 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▸ 1 Tools');
+      expect(header.textContent).toBe('▾ 1 Tools');
     });
   });
 
-  describe('expanded state', () => {
-    it('VALID: {click header on linked pair} => expands to show merged entry', async () => {
+  describe('toggle behavior', () => {
+    it('VALID: {default expanded, linked pair} => shows merged entry without click', () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -138,14 +138,31 @@ describe('ToolGroupWidget', () => {
       mantineRenderAdapter({
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
       });
-
-      await proxy.clickHeader();
 
       expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
       expect(screen.queryByTestId('TOOL_ROW')).toBeInTheDocument();
     });
 
-    it('VALID: {click header twice} => collapses back', async () => {
+    it('VALID: {click header once} => collapses entries', async () => {
+      const proxy = ToolGroupWidgetProxy();
+      const group = ToolGroupStub({
+        entries: [
+          AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
+          AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+        ],
+        toolCount: 1,
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
+      });
+
+      await proxy.clickHeader();
+
+      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
+    });
+
+    it('VALID: {click header twice} => re-expands', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -162,10 +179,10 @@ describe('ToolGroupWidget', () => {
       await proxy.clickHeader();
       await proxy.clickHeader();
 
-      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
     });
 
-    it('VALID: {unlinked entries} => shows orphan result separately', async () => {
+    it('VALID: {unlinked entries, default expanded} => shows orphan result separately', () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [AssistantToolUseChatEntryStub(), AssistantToolResultChatEntryStub()],
@@ -175,8 +192,6 @@ describe('ToolGroupWidget', () => {
       mantineRenderAdapter({
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
       });
-
-      await proxy.clickHeader();
 
       expect(proxy.hasEntryCount({ count: 2 })).toBe(true);
     });
@@ -215,7 +230,7 @@ describe('ToolGroupWidget', () => {
       expect(screen.queryByTestId('TOOL_ROW_RESULT')).toBeInTheDocument();
     });
 
-    it('VALID: {isLastGroup: false, isStreaming: true} => stays collapsed', () => {
+    it('VALID: {isLastGroup: false, isStreaming: true} => default expanded shows entry', () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [AssistantToolUseChatEntryStub({ toolUseId: 'use_1' })],
@@ -226,7 +241,7 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={true} />,
       });
 
-      expect(proxy.hasEntryCount({ count: 0 })).toBe(true);
+      expect(proxy.hasEntryCount({ count: 1 })).toBe(true);
     });
   });
 
@@ -265,7 +280,7 @@ describe('ToolGroupWidget', () => {
   });
 
   describe('chevron', () => {
-    it('VALID: {collapsed} => shows right-pointing chevron', () => {
+    it('VALID: {default expanded} => shows down-pointing chevron', () => {
       ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -281,10 +296,10 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▸ 1 Tools');
+      expect(header.textContent).toBe('▾ 1 Tools');
     });
 
-    it('VALID: {expanded} => shows down-pointing chevron', async () => {
+    it('VALID: {click to collapse} => shows right-pointing chevron', async () => {
       const proxy = ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
@@ -302,13 +317,13 @@ describe('ToolGroupWidget', () => {
 
       const header = screen.getByTestId('TOOL_GROUP_HEADER');
 
-      expect(header.textContent).toBe('▾ 1 Tools');
+      expect(header.textContent).toBe('▸ 1 Tools');
     });
   });
 
   describe('per-tool result-content estimate badges', () => {
-    it('VALID: {linked tool_result with content} => shows estimated badge when row expanded; no per-tool TOKEN_BADGE', async () => {
-      const proxy = ToolGroupWidgetProxy();
+    it('VALID: {linked tool_result with content} => shows estimated badge; no per-tool TOKEN_BADGE', () => {
+      ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
           AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
@@ -324,9 +339,6 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
       });
 
-      await proxy.clickHeader();
-      await proxy.expandAllToolRows();
-
       const resultBadges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
       const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
 
@@ -334,8 +346,8 @@ describe('ToolGroupWidget', () => {
       expect(tokenBadges).toStrictEqual([]);
     });
 
-    it('VALID: {two tool_use with usage but no result content} => no TOKEN_BADGE on tool rows (per-tool delta is misattribution)', async () => {
-      const proxy = ToolGroupWidgetProxy();
+    it('VALID: {two tool_use with usage but no result content} => no TOKEN_BADGE on tool rows (per-tool delta is misattribution)', () => {
+      ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
           AssistantToolUseChatEntryStub({
@@ -365,16 +377,13 @@ describe('ToolGroupWidget', () => {
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
       });
 
-      await proxy.clickHeader();
-      await proxy.expandAllToolRows();
-
       const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
 
       expect(tokenBadges).toStrictEqual([]);
     });
 
-    it('VALID: {mixed tool_use and tool_result entries} => only RESULT_TOKEN_BADGE per tool, no TOKEN_BADGE', async () => {
-      const proxy = ToolGroupWidgetProxy();
+    it('VALID: {mixed tool_use and tool_result entries} => only RESULT_TOKEN_BADGE per tool, no TOKEN_BADGE', () => {
+      ToolGroupWidgetProxy();
       const group = ToolGroupStub({
         entries: [
           AssistantToolUseChatEntryStub({
@@ -411,9 +420,6 @@ describe('ToolGroupWidget', () => {
       mantineRenderAdapter({
         ui: <ToolGroupWidget group={group} isLastGroup={false} isStreaming={false} />,
       });
-
-      await proxy.clickHeader();
-      await proxy.expandAllToolRows();
 
       const tokenBadges = screen.queryAllByTestId('TOKEN_BADGE');
       const resultBadges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');

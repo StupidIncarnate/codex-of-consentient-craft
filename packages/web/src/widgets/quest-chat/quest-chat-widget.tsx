@@ -22,6 +22,7 @@ import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent
 import { useGuildDetailBinding } from '../../bindings/use-guild-detail/use-guild-detail-binding';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest-events-binding';
+import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
@@ -44,6 +45,8 @@ import {
   shouldShowBeginQuestModalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
+import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
+import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DesignPanelWidget } from '../design-panel/design-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
@@ -58,12 +61,35 @@ export const QuestChatWidget = (): React.JSX.Element => {
   const sessionId = (params.sessionId as SessionId | undefined) ?? null;
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
+  const wasLoadedFromUrlRef = useRef(sessionId !== null);
 
   const { guilds, loading: guildsLoading } = useGuildsBinding();
   const matchedGuild = guilds.find(
     (guild) => guild.urlSlug === guildSlug || guild.id === guildSlug,
   );
   const resolvedGuildId = matchedGuild?.id ?? null;
+
+  // Bug A: when the route is /:guildSlug/session (no sessionId) and the active
+  // queue entry for this guild has a sessionId, redirect to that session URL so
+  // F5 lands on the running smoketest's chat view.
+  const { allEntries: queueEntries } = useQuestQueueBinding();
+  const activeQueueEntryForGuild = queueEntries.find(
+    (entry) => entry.guildSlug === guildSlug || entry.guildId === resolvedGuildId,
+  );
+  const activeQueueSessionId = activeQueueEntryForGuild?.activeSessionId;
+
+  useEffect(() => {
+    if (sessionId) return;
+    if (!guildSlug) return;
+    if (!activeQueueSessionId) return;
+
+    const result = navigate(`/${guildSlug}/session/${activeQueueSessionId}`, { replace: true });
+    if (result instanceof Promise) {
+      result.catch((navError: unknown) => {
+        globalThis.console.error('[quest-chat] queue-redirect failed', navError);
+      });
+    }
+  }, [sessionId, guildSlug, activeQueueSessionId, navigate]);
 
   const { refresh: refreshGuild } = useGuildDetailBinding({
     guildId: resolvedGuildId,
@@ -84,7 +110,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
     sessionId,
   });
 
-  const { questData, requestRefresh } = useQuestEventsBinding({
+  const { questData, sessionHasNoQuest, requestRefresh } = useQuestEventsBinding({
     sessionId: currentSessionId ?? sessionId,
     guildId: resolvedGuildId,
   });
@@ -345,6 +371,24 @@ export const QuestChatWidget = (): React.JSX.Element => {
     );
   }
 
+  if (wasLoadedFromUrlRef.current && sessionHasNoQuest && !questData) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <ChatPanelWidget entries={entries} isStreaming={isStreaming} readOnly />
+        </Box>
+      </Box>
+    );
+  }
+
   if (sessionId && !questData && entries.length === 0) {
     return (
       <Box
@@ -435,7 +479,28 @@ export const QuestChatWidget = (): React.JSX.Element => {
             flexDirection: 'column',
           }}
         >
-          <DumpsterRaccoonWidget />
+          {(() => {
+            const flattened: ChatEntry[] = [];
+            for (const list of sessionEntriesMap.values()) {
+              flattened.push(...list);
+            }
+            if (flattened.length === 0) {
+              return <DumpsterRaccoonWidget />;
+            }
+            return (
+              <AutoScrollContainerWidget
+                style={{ flex: 1, padding: 16 }}
+                contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+              >
+                <ChatEntryListWidget
+                  entries={flattened}
+                  isStreaming={isStreaming}
+                  showContextDividers={true}
+                  showEndStreamingIndicator={true}
+                />
+              </AutoScrollContainerWidget>
+            );
+          })()}
         </Box>
       </Box>
     );

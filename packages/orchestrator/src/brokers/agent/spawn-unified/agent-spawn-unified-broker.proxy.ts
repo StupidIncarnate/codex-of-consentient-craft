@@ -32,6 +32,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   setAutoEmitLines: (params: { lines: readonly string[] }) => void;
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedOptions: () => unknown;
 } => {
   claudeLineNormalizeBrokerProxy();
   const readlineProxy = readlineCreateInterfaceAdapterProxy();
@@ -129,5 +130,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+
+    getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
   };
 };

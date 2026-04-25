@@ -940,7 +940,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.queryByTestId('execution-row-context')).toBe(null);
     });
 
-    it('VALID: {expanded, tool-pair with usage} => no TOKEN_BADGE on tool row (per-tool delta is misattribution when multiple tools fire per turn)', async () => {
+    it('VALID: {expanded, tool-pair with usage} => no TOKEN_BADGE on tool row (per-tool delta is misattribution when multiple tools fire per turn)', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -964,17 +964,12 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      await userEvent.click(screen.getByTestId('TOOL_GROUP_HEADER'));
-
-      const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
-      await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
-
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
       expect(badges).toStrictEqual([]);
     });
 
-    it('VALID: {expanded, tool-pair with result content} => renders RESULT_TOKEN_BADGE', async () => {
+    it('VALID: {expanded, tool-pair with result content} => renders RESULT_TOKEN_BADGE', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -992,11 +987,6 @@ describe('ExecutionRowLayerWidget', () => {
           />
         ),
       });
-
-      await userEvent.click(screen.getByTestId('TOOL_GROUP_HEADER'));
-
-      const toolRowHeaders = screen.queryAllByTestId('TOOL_ROW_HEADER');
-      await Promise.all(toolRowHeaders.map(async (header) => userEvent.click(header)));
 
       const badges = screen.queryAllByTestId('RESULT_TOKEN_BADGE');
 
