@@ -124,7 +124,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                Reflect.set(sessionIds, workItemId, sessionId);
+                sessionIds[workItemId] = sessionId;
                 onWorkItemSessionId({ workItemId, sessionId });
               },
             }),
@@ -167,7 +167,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations.releaseSlot({ slotIndex: completedAgent.slotIndex });
 
   if (result.sessionId !== null) {
-    Reflect.set(sessionIds, completedAgent.workItemId, result.sessionId);
+    sessionIds[completedAgent.workItemId] = result.sessionId;
   }
 
   // If aborted (paused), do not mark failed, retry, or spawn followups — just exit cleanly
@@ -209,7 +209,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                Reflect.set(sessionIds, completedAgent.workItemId, sessionId);
+                sessionIds[completedAgent.workItemId] = sessionId;
                 onWorkItemSessionId({ workItemId: completedAgent.workItemId, sessionId });
               },
             }),
@@ -350,7 +350,7 @@ export const orchestrationLoopLayerBroker = async ({
               ? {}
               : {
                   onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                    Reflect.set(sessionIds, newWorkItemId, sessionId);
+                    sessionIds[newWorkItemId] = sessionId;
                     onWorkItemSessionId({ workItemId: newWorkItemId, sessionId });
                   },
                 }),

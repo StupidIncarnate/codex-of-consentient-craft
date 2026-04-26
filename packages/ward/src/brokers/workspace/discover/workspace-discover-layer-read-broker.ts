@@ -12,6 +12,7 @@ import {
   projectFolderContract,
   type ProjectFolder,
 } from '../../../contracts/project-folder/project-folder-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsReaddirDirsAdapter } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter';
 
@@ -24,11 +25,8 @@ export const workspaceDiscoverLayerReadBroker = async ({
   const pkgPath = filePathContract.parse(`${fullPath}/package.json`);
   try {
     const contents = await fsReadFileAdapter({ filePath: pkgPath });
-    const parsed: unknown = JSON.parse(contents);
-    if (typeof parsed !== 'object' || parsed === null) {
-      return null;
-    }
-    const name: unknown = Reflect.get(parsed, 'name');
+    const parsed = packageJsonContract.parse(JSON.parse(contents));
+    const { name } = parsed;
     if (typeof name !== 'string') {
       return null;
     }

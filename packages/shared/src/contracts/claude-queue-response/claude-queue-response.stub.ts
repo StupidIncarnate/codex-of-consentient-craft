@@ -114,7 +114,7 @@ export const ClaudeQueueResponseStub = ({
 export const SimpleTextResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = Reflect.get(props, 'text') as string | undefined;
+  const customText = (props as Record<PropertyKey, unknown>).text as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
@@ -135,8 +135,9 @@ export const SimpleTextResponseStub = ({
 export const ToolUseChainResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customFollowUpText = Reflect.get(props, 'followUpText') as string | undefined;
-  const customToolName = Reflect.get(props, 'toolName') as string | undefined;
+  const propsAsRecord = props as Record<PropertyKey, unknown>;
+  const customFollowUpText = propsAsRecord.followUpText as string | undefined;
+  const customToolName = propsAsRecord.toolName as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
@@ -160,7 +161,7 @@ export const ToolUseChainResponseStub = ({
 export const ErrorResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = Reflect.get(props, 'partialOutput') as string | undefined;
+  const customText = (props as Record<PropertyKey, unknown>).partialOutput as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
@@ -180,7 +181,7 @@ export const ErrorResponseStub = ({
 export const ResumeResponseStub = ({
   ...props
 }: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = Reflect.get(props, 'text') as string | undefined;
+  const customText = (props as Record<PropertyKey, unknown>).text as string | undefined;
   const sessionId = sessionOrDefault({ value: props.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,

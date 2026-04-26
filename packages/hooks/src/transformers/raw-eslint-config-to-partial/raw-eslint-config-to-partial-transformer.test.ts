@@ -89,8 +89,7 @@ describe('rawEslintConfigToPartialTransformer', () => {
     });
 
     it('EDGE: {rawConfig with rules: null} => returns empty config', () => {
-      const rawConfig = RawEslintConfigStub();
-      Reflect.set(rawConfig, 'rules', null);
+      const rawConfig = Object.assign(RawEslintConfigStub(), { rules: null });
 
       const result = rawEslintConfigToPartialTransformer({ rawConfig });
 
@@ -98,8 +97,7 @@ describe('rawEslintConfigToPartialTransformer', () => {
     });
 
     it('EDGE: {rawConfig with rules: string} => returns empty config', () => {
-      const rawConfig = RawEslintConfigStub();
-      Reflect.set(rawConfig, 'rules', 'invalid');
+      const rawConfig = Object.assign(RawEslintConfigStub(), { rules: 'invalid' });
 
       const result = rawEslintConfigToPartialTransformer({ rawConfig });
 

@@ -8,10 +8,8 @@
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
-import {
-  clarificationQuestionContract,
-  type ClarificationQuestion,
-} from '../../contracts/clarification-question/clarification-question-contract';
+import { askUserQuestionInputContract } from '../../contracts/ask-user-question-input/ask-user-question-input-contract';
+import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
@@ -30,23 +28,12 @@ export const streamJsonToClarificationTransformer = ({
 
   try {
     const parsedInput: unknown = JSON.parse(entry.toolInput);
-    if (typeof parsedInput !== 'object' || parsedInput === null || !('questions' in parsedInput)) {
+    const questionsParseResult = askUserQuestionInputContract.safeParse(parsedInput);
+    if (!questionsParseResult.success) {
       return null;
     }
 
-    const questionsRaw: unknown = Reflect.get(parsedInput, 'questions');
-    if (!Array.isArray(questionsRaw)) {
-      return null;
-    }
-
-    const questions: ClarificationQuestion[] = [];
-    for (const q of questionsRaw) {
-      const parseResult = clarificationQuestionContract.safeParse(q);
-      if (!parseResult.success) {
-        return null;
-      }
-      questions.push(parseResult.data);
-    }
+    const { questions } = questionsParseResult.data;
 
     if (questions.length === 0) {
       return null;
