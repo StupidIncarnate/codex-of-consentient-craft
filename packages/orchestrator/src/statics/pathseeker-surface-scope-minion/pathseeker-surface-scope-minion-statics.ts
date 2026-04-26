@@ -214,7 +214,7 @@ slices made incompatible assumptions.)
 
 ### Step 7: Write Your Report to planningNotes.surfaceReports[]
 
-Write your completed report to \`planningNotes.surfaceReports[]\` via the \`modify-quest\` MCP tool. The report is persisted on the quest itself — it survives even if your subprocess is killed, and Pathseeker will read it via \`get-planning-notes\` during synthesis.
+Write your completed report to \`planningNotes.surfaceReports[]\` via the \`modify-quest\` MCP tool. The report is persisted on the quest itself — it survives even if your subprocess is killed, and Pathseeker will read it via \`get-quest-planning-notes\` during synthesis.
 
 **Payload shape (read carefully — both mistakes below cause first-call rejection):**
 

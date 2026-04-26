@@ -1,17 +1,17 @@
 /**
- * PURPOSE: Validates input for the get-planning-notes MCP tool
+ * PURPOSE: Validates input for the get-quest-planning-notes MCP tool
  *
  * USAGE:
- * getPlanningNotesInputContract.parse({questId: 'add-auth'});
- * // Returns: GetPlanningNotesInput branded object
+ * getQuestPlanningNotesInputContract.parse({questId: 'add-auth'});
+ * // Returns: GetQuestPlanningNotesInput branded object
  *
- * getPlanningNotesInputContract.parse({questId: 'add-auth', section: 'surface'});
- * // Returns: GetPlanningNotesInput with section filter
+ * getQuestPlanningNotesInputContract.parse({questId: 'add-auth', section: 'surface'});
+ * // Returns: GetQuestPlanningNotesInput with section filter
  */
 
 import { z } from 'zod';
 
-export const getPlanningNotesInputContract = z
+export const getQuestPlanningNotesInputContract = z
   .object({
     questId: z
       .string()
@@ -34,6 +34,6 @@ export const getPlanningNotesInputContract = z
       .optional(),
   })
   .strict()
-  .brand<'GetPlanningNotesInput'>();
+  .brand<'GetQuestPlanningNotesInput'>();
 
-export type GetPlanningNotesInput = z.infer<typeof getPlanningNotesInputContract>;
+export type GetQuestPlanningNotesInput = z.infer<typeof getQuestPlanningNotesInputContract>;

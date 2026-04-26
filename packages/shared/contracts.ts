@@ -317,6 +317,9 @@ export * from './src/contracts/ward-result/ward-result.stub';
 export * from './src/contracts/work-item/work-item-contract';
 export * from './src/contracts/work-item/work-item.stub';
 
+export * from './src/contracts/stream-signal-kind/stream-signal-kind-contract';
+export * from './src/contracts/stream-signal-kind/stream-signal-kind.stub';
+
 // Claude Queue Response Contracts
 export * from './src/contracts/claude-queue-response/claude-queue-response-contract';
 export * from './src/contracts/claude-queue-response/claude-queue-response.stub';

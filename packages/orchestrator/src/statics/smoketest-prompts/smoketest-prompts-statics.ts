@@ -11,6 +11,15 @@
  * `mcpToolsStatics.tools.names` × `smoketestProbeArgsStatics`. Adding or removing a tool in
  * `mcpToolsStatics.tools.names` auto-extends/shrinks the probe prompt bank — the only other change
  * required is adding the matching entry in `smoketestProbeArgsStatics` (pinned by a colocated test).
+ * Tools flagged with `mode: 'skip-from-suite'` (e.g. `start-quest`) are filtered out and produce no
+ * probe prompt — exercising them is the orchestration suite's job.
+ *
+ * PLACEHOLDERS: Some probe args contain literal `{{questId}}` / `{{guildId}}` / `{{processId}}`
+ * strings. These are substituted with live ids at enqueue time
+ * (`enqueue-bundled-suite-layer-responder`). With every placeholder resolved, the probe is expected
+ * to succeed; a tool-call error means a real regression (permission gap, contract drift, broken
+ * handler), so the agent signals `failed` with `mcp-<tool>-tool-error` instead of masking it as
+ * `complete`.
  *
  * NO ToolSearch preamble: smoketest agents spawn via `claude --print` (headless) which pre-loads every
  * MCP tool configured in `.mcp.json` directly into the tool list. `ToolSearch` is an interactive
@@ -26,20 +35,24 @@ import { smoketestProbeArgsStatics } from '../smoketest-probe-args/smoketest-pro
 const SERVER = mcpToolsStatics.server.name;
 const SIGNAL = `mcp__${SERVER}__signal-back`;
 
-const probePromptEntries = mcpToolsStatics.tools.names.map((toolName) => {
+const probePromptEntries = mcpToolsStatics.tools.names.flatMap((toolName) => {
   const spec = smoketestProbeArgsStatics[toolName];
+  if (spec.mode === 'skip-from-suite') {
+    return [];
+  }
   if (spec.mode === 'skip-call') {
     const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. ${spec.note}`;
-    return [toolName, prompt] as const;
+    return [[toolName, prompt] as const];
   }
   if (spec.mode === 'signal-only') {
     const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
-    return [toolName, prompt] as const;
+    return [[toolName, prompt] as const];
   }
   const fullToolName = `mcp__${SERVER}__${toolName}`;
   const argsJson = JSON.stringify(spec.args);
-  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
-  return [toolName, prompt] as const;
+  const errorSummary = `mcp-${toolName}-tool-error`;
+  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) If the tool call errors, call "${SIGNAL}" with { "signal": "failed", "summary": "${errorSummary}" } and stop. If the tool call succeeds, call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
+  return [[toolName, prompt] as const];
 });
 
 const probePrompts = Object.fromEntries(probePromptEntries);

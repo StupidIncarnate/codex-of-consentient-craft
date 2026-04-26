@@ -16,6 +16,8 @@ import type {
   GuildListItemStub,
   GuildStub,
   ProcessId,
+  QuestListItemStub,
+  QuestQueueEntry,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts';
@@ -28,6 +30,7 @@ import { useGuildDetailBindingProxy } from '../../bindings/use-guild-detail/use-
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestEventsBindingProxy } from '../../bindings/use-quest-events/use-quest-events-binding.proxy';
 import { useQuestQueueBindingProxy } from '../../bindings/use-quest-queue/use-quest-queue-binding.proxy';
+import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { useSessionChatBindingProxy } from '../../bindings/use-session-chat/use-session-chat-binding.proxy';
 import { designSessionBrokerProxy } from '../../brokers/design/session/design-session-broker.proxy';
 import { designStartBrokerProxy } from '../../brokers/design/start/design-start-broker.proxy';
@@ -47,6 +50,7 @@ import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
+type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Guild = ReturnType<typeof GuildStub>;
 
 export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
@@ -56,6 +60,8 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   receiveWsMessage: (params: { data: string }) => void;
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupQuest: (params: { quest: Quest }) => void;
+  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQueueEntries: (params: { entries: readonly QuestQueueEntry[] }) => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
   getSentWsMessages: () => unknown[];
@@ -107,7 +113,12 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const guildsBindingProxy = useGuildsBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
-  useQuestQueueBindingProxy();
+  const questQueueBindingProxy = useQuestQueueBindingProxy();
+  const questsBindingProxy = useQuestsBindingProxy();
+  // Default to empty so HTTP requests resolve immediately for tests that don't
+  // care about the redirect-fallback path. Tests that exercise the fallback
+  // call setupQuests({ quests }) with their own list.
+  questsBindingProxy.setupQuests({ quests: [] });
   const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
   AutoScrollContainerWidgetProxy();
   ChatEntryListWidgetProxy();
@@ -140,6 +151,12 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
       guildsBindingProxy.setupGuilds({ guilds });
+    },
+    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
+      questsBindingProxy.setupQuests({ quests });
+    },
+    setupQueueEntries: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
+      questQueueBindingProxy.setupEntries({ entries });
     },
     setupQuest: ({ quest }: { quest: Quest }): void => {
       const questWithWorkItem =

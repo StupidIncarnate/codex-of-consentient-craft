@@ -16,16 +16,6 @@ export const SingleGroupStub = ({ ...props }: StubArgument<ChatEntryGroup> = {})
     ...props,
   });
 
-export const ToolGroupStub = ({ ...props }: StubArgument<ChatEntryGroup> = {}): ChatEntryGroup =>
-  chatEntryGroupContract.parse({
-    kind: 'tool-group',
-    entries: [AssistantToolUseChatEntryStub(), AssistantToolResultChatEntryStub()],
-    toolCount: 1,
-    contextTokens: null,
-    source: 'session',
-    ...props,
-  });
-
 export const SubagentChainGroupStub = ({
   ...props
 }: StubArgument<ChatEntryGroup> = {}): ChatEntryGroup =>

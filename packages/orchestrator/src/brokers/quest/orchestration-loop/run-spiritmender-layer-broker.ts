@@ -18,6 +18,7 @@ import {
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
+  type StreamSignalKind,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
@@ -113,6 +114,7 @@ export const runSpiritmenderLayerBroker = async ({
 
   type SignalSummary = NonNullable<StreamSignal['summary']>;
   const summaryMap = new Map<WorkItemId, SignalSummary>();
+  const signalMap = new Map<WorkItemId, StreamSignalKind>();
 
   const result = await slotManagerOrchestrateBroker({
     questId,
@@ -125,6 +127,9 @@ export const runSpiritmenderLayerBroker = async ({
     onAgentEntry,
     onWorkItemSummary: ({ workItemId, summary }) => {
       summaryMap.set(workItemId, summary as SignalSummary);
+    },
+    onWorkItemSignal: ({ workItemId, signal }) => {
+      signalMap.set(workItemId, signal);
     },
     onWorkItemSessionId: ({ workItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(workItemId);
@@ -157,6 +162,7 @@ export const runSpiritmenderLayerBroker = async ({
   for (const [slotId, questItemId] of slotToQuestMap) {
     const sessionId = result.sessionIds[slotId];
     const slotSummary = summaryMap.get(slotId);
+    const slotSignal = signalMap.get(slotId);
     if (result.completed) {
       workItemUpdates.push({
         id: questItemId,
@@ -164,6 +170,7 @@ export const runSpiritmenderLayerBroker = async ({
         completedAt,
         ...(sessionId === undefined ? {} : { sessionId }),
         ...(slotSummary === undefined ? {} : { summary: slotSummary }),
+        ...(slotSignal === undefined ? {} : { actualSignal: slotSignal }),
       });
     } else {
       workItemUpdates.push({
@@ -171,6 +178,7 @@ export const runSpiritmenderLayerBroker = async ({
         status: 'failed',
         ...(sessionId === undefined ? {} : { sessionId }),
         ...(slotSummary === undefined ? {} : { summary: slotSummary }),
+        ...(slotSignal === undefined ? {} : { actualSignal: slotSignal }),
       });
     }
   }

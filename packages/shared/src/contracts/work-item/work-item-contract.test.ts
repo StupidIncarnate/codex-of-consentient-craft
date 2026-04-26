@@ -240,5 +240,83 @@ describe('workItemContract', () => {
         });
       }).toThrow(/too_small/u);
     });
+
+    it('INVALID: {unknown smoketestExpectedSignal} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          smoketestExpectedSignal: 'not-a-real-signal',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {unknown actualSignal} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          actualSignal: 'bogus',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+  });
+
+  describe('signal fields', () => {
+    it('VALID: {smoketestExpectedSignal=failed, actualSignal=complete} => parses successfully', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'complete',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        smoketestExpectedSignal: 'failed',
+        actualSignal: 'complete',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'complete',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        smoketestExpectedSignal: 'failed',
+        actualSignal: 'complete',
+      });
+    });
+
+    it('VALID: {actualSignal=failed-replan, no expected} => parses successfully', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'failed',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        actualSignal: 'failed-replan',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'failed',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        actualSignal: 'failed-replan',
+      });
+    });
   });
 });

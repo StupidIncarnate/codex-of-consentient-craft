@@ -12,6 +12,7 @@ import {
   type FilePath,
   type QuestId,
   type QuestWorkItemId,
+  type StreamSignalKind,
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
@@ -90,6 +91,7 @@ export const runLawbringerLayerBroker = async ({
 
   type SignalSummary = NonNullable<StreamSignal['summary']>;
   const summaryMap = new Map<WorkItemId, SignalSummary>();
+  const signalMap = new Map<WorkItemId, StreamSignalKind>();
 
   const result = await slotManagerOrchestrateBroker({
     questId,
@@ -102,6 +104,9 @@ export const runLawbringerLayerBroker = async ({
     onAgentEntry,
     onWorkItemSummary: ({ workItemId, summary }) => {
       summaryMap.set(workItemId, summary as SignalSummary);
+    },
+    onWorkItemSignal: ({ workItemId, signal }) => {
+      signalMap.set(workItemId, signal);
     },
     onFollowupCreated: ({ followupWorkItemId, role, failedWorkItemId }) => {
       const questItemId = slotToQuestMap.get(failedWorkItemId);
@@ -159,12 +164,14 @@ export const runLawbringerLayerBroker = async ({
   for (const [slotId, questItemId] of slotToQuestMap) {
     const sessionId = result.sessionIds[slotId];
     const slotSummary = summaryMap.get(slotId);
+    const slotSignal = signalMap.get(slotId);
     if (failedSlotIds.has(slotId)) {
       workItemUpdates.push({
         id: questItemId,
         status: 'failed',
         ...(sessionId === undefined ? {} : { sessionId }),
         ...(slotSummary === undefined ? {} : { summary: slotSummary }),
+        ...(slotSignal === undefined ? {} : { actualSignal: slotSignal }),
       });
     } else {
       workItemUpdates.push({
@@ -173,6 +180,7 @@ export const runLawbringerLayerBroker = async ({
         completedAt,
         ...(sessionId === undefined ? {} : { sessionId }),
         ...(slotSummary === undefined ? {} : { summary: slotSummary }),
+        ...(slotSignal === undefined ? {} : { actualSignal: slotSignal }),
       });
     }
   }

@@ -11,7 +11,7 @@
 export const smoketestStatics = {
   guildId: '00000000-0000-0000-0000-000000000001',
   questId: '00000000-0000-0000-0000-000000000000',
-  guildName: '__smoketests',
+  guildName: 'smoketests',
   defaultTimeoutMs: 60000,
   orchestrationCaseTimeoutMs: 300000,
 } as const;

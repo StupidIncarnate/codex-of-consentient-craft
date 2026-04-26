@@ -33,10 +33,15 @@ const workItemRoleCountAssertionContract = z.object({
   minCount: z.number().int().nonnegative().brand<'WorkItemRoleMinCount'>(),
 });
 
+const workItemSignalMatchAssertionContract = z.object({
+  kind: z.literal('work-item-signal-match'),
+});
+
 export const smoketestAssertionContract = z.discriminatedUnion('kind', [
   questStatusAssertionContract,
   workItemStatusHistogramAssertionContract,
   workItemRoleCountAssertionContract,
+  workItemSignalMatchAssertionContract,
 ]);
 
 export type SmoketestAssertion = z.infer<typeof smoketestAssertionContract>;

@@ -12,6 +12,7 @@ import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-i
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
+import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 
@@ -33,6 +34,8 @@ export const workItemContract = z.object({
   insertedBy: questWorkItemIdContract.optional(),
   wardMode: z.enum(['changed', 'full']).optional(),
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
+  smoketestExpectedSignal: streamSignalKindContract.optional(),
+  actualSignal: streamSignalKindContract.optional(),
 });
 
 export type WorkItem = z.infer<typeof workItemContract>;

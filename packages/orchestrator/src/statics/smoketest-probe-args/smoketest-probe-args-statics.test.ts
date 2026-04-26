@@ -27,4 +27,8 @@ describe('smoketestProbeArgsStatics', () => {
   it('VALID: {ask-user-question} => uses skip-call mode', () => {
     expect(smoketestProbeArgsStatics['ask-user-question'].mode).toBe('skip-call');
   });
+
+  it('VALID: {start-quest} => uses skip-from-suite mode (orchestration suite owns this)', () => {
+    expect(smoketestProbeArgsStatics['start-quest'].mode).toBe('skip-from-suite');
+  });
 });

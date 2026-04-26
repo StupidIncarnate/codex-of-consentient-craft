@@ -15,7 +15,7 @@ export const ChatPanelWidgetProxy = (): {
   isStopButtonVisible: () => boolean;
   isSendButtonVisible: () => boolean;
   hasMessageCount: (params: { count: number }) => boolean;
-  hasToolGroupCount: (params: { count: number }) => boolean;
+  hasToolRowCount: (params: { count: number }) => boolean;
   hasDividerCount: (params: { count: number }) => boolean;
   hasSubagentChainCount: (params: { count: number }) => boolean;
 } => {
@@ -44,8 +44,8 @@ export const ChatPanelWidgetProxy = (): {
     isSendButtonVisible: (): boolean => screen.queryByTestId('SEND_BUTTON') !== null,
     hasMessageCount: ({ count }: { count: number }): boolean =>
       screen.queryAllByTestId('CHAT_MESSAGE').length === count,
-    hasToolGroupCount: ({ count }: { count: number }): boolean =>
-      screen.queryAllByTestId('TOOL_GROUP_HEADER').length === count,
+    hasToolRowCount: ({ count }: { count: number }): boolean =>
+      screen.queryAllByTestId('TOOL_ROW').length === count,
     hasDividerCount: ({ count }: { count: number }): boolean =>
       screen.queryAllByTestId('CONTEXT_DIVIDER').length === count,
     hasSubagentChainCount: ({ count }: { count: number }): boolean =>

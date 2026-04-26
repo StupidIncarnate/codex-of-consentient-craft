@@ -6,6 +6,7 @@ import {
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
@@ -18,6 +19,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
       questExecutionQueueState.clear();
       smoketestListenerState.clear();
       smoketestScenarioMetaState.clear();
+      orchestrationProcessesState.clear();
 
       const proxy = EnqueueBundledSuiteLayerResponderProxy();
       proxy.setupPassthrough();
@@ -47,7 +49,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
       const listenerEntry = smoketestListenerState.get({ questId: hydratedQuestId });
 
       expect(listenerEntry).toStrictEqual({
-        assertions: [],
+        assertions: [{ kind: 'work-item-signal-match' }],
         isOrchestration: false,
       });
 
@@ -63,6 +65,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
       questExecutionQueueState.clear();
       smoketestListenerState.clear();
       smoketestScenarioMetaState.clear();
+      orchestrationProcessesState.clear();
 
       const proxy = EnqueueBundledSuiteLayerResponderProxy();
       proxy.setupPassthrough();
@@ -90,11 +93,41 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
     });
   });
 
+  describe('processId pre-registration', () => {
+    it('VALID: {suite=mcp} => pre-registers a proc-* orchestration process tied to the hydrated questId so {{processId}} substitution + get-quest-status probes have a live id', async () => {
+      questExecutionQueueState.clear();
+      smoketestListenerState.clear();
+      smoketestScenarioMetaState.clear();
+      orchestrationProcessesState.clear();
+
+      const proxy = EnqueueBundledSuiteLayerResponderProxy();
+      proxy.setupPassthrough();
+      const hydratedQuestId = QuestIdStub({ value: 'mcp-bundled-procreg' });
+      proxy.setupHydrateReturnsQuestId({ questId: hydratedQuestId });
+      proxy.setupLoadQuestReturns({
+        quest: QuestStub({ id: hydratedQuestId, status: 'in_progress' }),
+      });
+
+      await EnqueueBundledSuiteLayerResponder({
+        suite: 'mcp',
+        questSource: QuestSourceStub({ value: 'smoketest-mcp' }),
+        guildId: GuildIdStub(),
+        guildSlug: UrlSlugStub({ value: 'smoketests' }),
+      });
+
+      const registered = orchestrationProcessesState.findByQuestId({ questId: hydratedQuestId });
+
+      expect(registered?.questId).toBe(hydratedQuestId);
+      expect(registered?.processId.startsWith('proc-')).toBe(true);
+    });
+  });
+
   describe('hydrate broker integration', () => {
     it('VALID: {suite=mcp} => questHydrateBroker called once with the forwarded guildId + questSource', async () => {
       questExecutionQueueState.clear();
       smoketestListenerState.clear();
       smoketestScenarioMetaState.clear();
+      orchestrationProcessesState.clear();
 
       const proxy = EnqueueBundledSuiteLayerResponderProxy();
       proxy.setupPassthrough();

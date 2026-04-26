@@ -191,6 +191,84 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
     });
   });
 
+  describe('hooks stripping for smoketest spawns', () => {
+    it('VALID: {disableToolSearch: true, settings has hooks} => --settings JSON has hooks stripped', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSettingsJson({
+        json: '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo hi"}]}]},"permissions":{"allow":["Bash"]}}',
+      });
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
+        disableToolSearch: true,
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'haiku',
+        '--settings',
+        '{"permissions":{"allow":["Bash"]}}',
+      ]);
+    });
+
+    it('VALID: {disableToolSearch: false, settings has hooks} => --settings JSON retains hooks verbatim', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSettingsJson({
+        json: '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo hi"}]}]},"permissions":{"allow":["Bash"]}}',
+      });
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
+        disableToolSearch: false,
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'sonnet',
+        '--settings',
+        '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo hi"}]}]},"permissions":{"allow":["Bash"]}}',
+      ]);
+    });
+
+    it('VALID: {disableToolSearch: true, settings is malformed JSON} => passes original string through without throwing', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSettingsJson({ json: '{not valid json' });
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
+        disableToolSearch: true,
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'haiku',
+        '--settings',
+        '{not valid json',
+      ]);
+    });
+  });
+
   describe('stdinMode parameter', () => {
     it('VALID: {stdinMode: "ignore"} => passes ignore as stdio[0]', () => {
       const proxy = childProcessSpawnStreamJsonAdapterProxy();

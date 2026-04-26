@@ -84,9 +84,7 @@ export const SubagentChainWidget = ({
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
-            const singleEntries = group.innerGroups
-              .filter((ig) => ig.kind === 'single')
-              .map((ig) => ig.entry);
+            const singleEntries = group.innerGroups.map((ig) => ig.entry);
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
 

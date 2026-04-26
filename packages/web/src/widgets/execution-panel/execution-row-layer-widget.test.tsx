@@ -592,7 +592,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(contents).toStrictEqual(['first', 'final']);
     });
 
-    it('VALID: {multiple tool groups separated by text} => all tool groups render when expanded', () => {
+    it('VALID: {multiple tool pairs separated by text} => all tool rows render when expanded', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -614,15 +614,9 @@ describe('ExecutionRowLayerWidget', () => {
         ),
       });
 
-      const toolGroupIds = screen
-        .queryAllByTestId('TOOL_GROUP_HEADER')
-        .map((h) => h.getAttribute('data-testid'));
+      const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
 
-      expect(toolGroupIds).toStrictEqual([
-        'TOOL_GROUP_HEADER',
-        'TOOL_GROUP_HEADER',
-        'TOOL_GROUP_HEADER',
-      ]);
+      expect(toolRowNames).toStrictEqual(['Read', 'Grep', 'Bash']);
     });
   });
 

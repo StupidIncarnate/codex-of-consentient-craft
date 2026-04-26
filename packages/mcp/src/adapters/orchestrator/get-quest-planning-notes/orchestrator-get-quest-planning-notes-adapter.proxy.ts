@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Proxy for orchestrator-get-planning-notes-adapter that mocks the orchestrator package
+ * PURPOSE: Proxy for orchestrator-get-quest-planning-notes-adapter that mocks the orchestrator package
  *
  * USAGE:
- * const proxy = orchestratorGetPlanningNotesAdapterProxy();
+ * const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
  * proxy.returns({ result: { success: true, data: { surfaceReports: [] } } });
  */
 
@@ -16,7 +16,7 @@ const emptyPlanningNotes = (): GetPlanningNotesResult => ({
   data: { surfaceReports: [], blightReports: [] },
 });
 
-export const orchestratorGetPlanningNotesAdapterProxy = (): {
+export const orchestratorGetQuestPlanningNotesAdapterProxy = (): {
   returns: (params: { result: GetPlanningNotesResult }) => void;
   throws: (params: { error: Error }) => void;
   getLastCalledInput: () => unknown;

@@ -42,7 +42,7 @@ Intermediate artifacts live on \`quest.planningNotes\`:
 On start:
 
 1. Call \`get-quest\` with \`{ questId: "QUEST_ID", format: 'text' }\` to read \`status\` and the spec as rendered markdown. For a replan-focused view of existing steps, pass \`stage: 'planning'\` on a follow-up call (see MCP Tools).
-2. If \`status\` is one of the \`seek_*\` statuses AND \`planningNotes\` already has any content, call \`get-planning-notes\` (params: \`{ questId: "QUEST_ID" }\`) to load everything committed so far. \`get-planning-notes\` also accepts an optional \`section\` filter (\`'scope' | 'surface' | 'synthesis' | 'walk' | 'review'\`) when you only want a subset.
+2. If \`status\` is one of the \`seek_*\` statuses AND \`planningNotes\` already has any content, call \`get-quest-planning-notes\` (params: \`{ questId: "QUEST_ID" }\`) to load everything committed so far. \`get-quest-planning-notes\` also accepts an optional \`section\` filter (\`'scope' | 'surface' | 'synthesis' | 'walk' | 'review'\`) when you only want a subset.
 3. **Do NOT redo committed work.** If \`scopeClassification\` is already there, do not reclassify. If \`surfaceReports[]\` has entries from a prior run, do not re-dispatch those slices. Resume from the section below matching \`status\`:
    - \`seek_scope\` → go to the \`seek_scope\` section
    - \`seek_synth\` → go to the \`seek_synth\` section (dispatch any missing slices, then synthesize)
@@ -61,7 +61,7 @@ On start:
 ## MCP Tools You Use
 
 - \`get-quest\` — read the spec and current status. Always pass \`format: 'text'\` (cheap to consume, renders mermaid). Default stage returns everything; use \`stage: 'planning'\` for a replan-focused view of committed steps.
-- \`get-planning-notes\` — read committed intermediate artifacts on resume
+- \`get-quest-planning-notes\` — read committed intermediate artifacts on resume
 - \`modify-quest\` — write scopeClassification, synthesis, walkFindings, steps; transition status
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`, \`get-project-map\` — project standards
 - \`discover\` — find files and symbols
@@ -160,7 +160,7 @@ Parallel dispatch is a hard rule. Sequential minion dispatch wastes the time sav
 Once all dispatched minions have signaled back, load their committed reports:
 
 \`\`\`
-get-planning-notes({ questId: "QUEST_ID", section: "surface" })
+get-quest-planning-notes({ questId: "QUEST_ID", section: "surface" })
 \`\`\`
 
 This returns the full \`surfaceReports[]\` array. Read each minion's \`rawReport\` (the markdown). The report structure is self-describing — headers indicate what each section contains. Work through the reports in this order:
@@ -361,7 +361,7 @@ The Pathseeker Quest Review Minion performs both structural and semantic review.
 Once the review minion signals back, load its report:
 
 \`\`\`
-get-planning-notes({ questId: "QUEST_ID", section: "review" })
+get-quest-planning-notes({ questId: "QUEST_ID", section: "review" })
 \`\`\`
 
 Inspect \`reviewReport.signal\`:
@@ -398,7 +398,7 @@ A replacement PathSeeker will pick up from the current status using the Resume P
 
 ## Quest Context
 
-The quest ID and any additional context is provided in Quest Context below. Always start with the Resume Protocol: \`get-quest\`, then \`get-planning-notes\` if a seek_* status has existing planningNotes content.
+The quest ID and any additional context is provided in Quest Context below. Always start with the Resume Protocol: \`get-quest\`, then \`get-quest-planning-notes\` if a seek_* status has existing planningNotes content.
 
 $ARGUMENTS`,
     placeholders: {

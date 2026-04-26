@@ -81,6 +81,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           dependsOn: wi.dependsOn,
           relatedDataItems: wi.relatedDataItems,
           smoketestPromptOverride: wi.smoketestPromptOverride,
+          smoketestExpectedSignal: wi.smoketestExpectedSignal,
         })),
       ).toStrictEqual([
         {
@@ -91,6 +92,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           dependsOn: [],
           relatedDataItems: ['steps/case-signal-complete'],
           smoketestPromptOverride: smoketestPromptsStatics.signalComplete,
+          smoketestExpectedSignal: 'complete',
         },
         {
           id: '00000000-0000-4000-8000-000000000002',
@@ -100,6 +102,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000001'],
           relatedDataItems: ['steps/case-signal-failed'],
           smoketestPromptOverride: smoketestPromptsStatics.signalFailed,
+          smoketestExpectedSignal: 'failed',
         },
         {
           id: '00000000-0000-4000-8000-000000000003',
@@ -109,6 +112,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000002'],
           relatedDataItems: ['steps/case-signal-failed-replan'],
           smoketestPromptOverride: smoketestPromptsStatics.signalFailedReplan,
+          smoketestExpectedSignal: 'failed-replan',
         },
       ]);
     });

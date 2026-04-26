@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-planning-notes)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -9,16 +9,16 @@
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
-import { orchestratorGetPlanningNotesAdapter } from '../../../adapters/orchestrator/get-planning-notes/orchestrator-get-planning-notes-adapter';
+import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
-import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import { getPlanningNotesInputContract } from '../../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
+import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../../../contracts/list-quests-input/list-quests-input-contract';
@@ -170,7 +170,7 @@ export const QuestHandleResponder = async ({
     const { processId } = getQuestStatusInputContract.parse(args);
 
     try {
-      const status = orchestratorGetQuestStatusAdapter({ processId });
+      const status = await orchestratorGetQuestStatusBroker({ processId });
       return {
         content: [
           {
@@ -257,11 +257,11 @@ export const QuestHandleResponder = async ({
     }
   }
 
-  if (tool === 'get-planning-notes') {
-    const { questId, section } = getPlanningNotesInputContract.parse(args);
+  if (tool === 'get-quest-planning-notes') {
+    const { questId, section } = getQuestPlanningNotesInputContract.parse(args);
 
     try {
-      const notes = await orchestratorGetPlanningNotesAdapter({
+      const notes = await orchestratorGetQuestPlanningNotesAdapter({
         questId,
         ...(section !== undefined && { section }),
       });

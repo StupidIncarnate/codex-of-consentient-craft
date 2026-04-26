@@ -34,7 +34,7 @@ describe('ChatPanelWidget', () => {
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
     });
 
-    it('VALID: {entries with tool use} => renders user message and tool group header', () => {
+    it('VALID: {entries with tool use} => renders user message and flat tool row', () => {
       const proxy = ChatPanelWidgetProxy();
       const entries = [
         UserChatEntryStub({ content: 'Do something' }),
@@ -53,7 +53,7 @@ describe('ChatPanelWidget', () => {
       });
 
       expect(proxy.hasMessageCount({ count: 1 })).toBe(true);
-      expect(proxy.hasToolGroupCount({ count: 1 })).toBe(true);
+      expect(proxy.hasToolRowCount({ count: 1 })).toBe(true);
     });
 
     it('VALID: {tool_use as last entry, isStreaming true} => shows Running indicator', () => {

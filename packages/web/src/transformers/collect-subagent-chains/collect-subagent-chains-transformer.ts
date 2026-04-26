@@ -1,12 +1,11 @@
 /**
- * PURPOSE: Collects sub-agent entries into collapsible chain groups, preserving ordering of non-chain entries
+ * PURPOSE: Collects sub-agent entries into collapsible chain groups, preserving ordering of non-chain entries as singles
  *
  * USAGE:
  * collectSubagentChainsTransformer({entries: chatEntries});
- * // Returns ChatEntryGroup[] with subagent-chain groups and normal groups interleaved
+ * // Returns ChatEntryGroup[] with subagent-chain groups and single entry groups interleaved
  */
 
-import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntryGroup,
@@ -18,7 +17,6 @@ import type { ContextTokenCount } from '../../contracts/context-token-count/cont
 import { isTaskToolUseGuard } from '../../guards/is-task-tool-use/is-task-tool-use-guard';
 import { computeEntryContextTransformer } from '../compute-entry-context/compute-entry-context-transformer';
 import { extractTaskDescriptionTransformer } from '../extract-task-description/extract-task-description-transformer';
-import { flushNormalBufferTransformer } from '../flush-normal-buffer/flush-normal-buffer-transformer';
 import { indexSubagentEntriesTransformer } from '../index-subagent-entries/index-subagent-entries-transformer';
 
 type ChainAgentId = SubagentChainGroup['agentId'];
@@ -95,14 +93,17 @@ export const collectSubagentChainsTransformer = ({
 
       consumed.add(entry);
 
+      const description = extractTaskDescriptionTransformer({ entry });
+
+      const flushedSingles: SingleGroup[] = normalBuffer.map(
+        (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
+      );
+      groups.push(...flushedSingles);
+      normalBuffer = [];
+
       const innerGroups: SingleGroup[] = subagentEntries.map(
         (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
       );
-      const description = extractTaskDescriptionTransformer({ entry });
-
-      const flushed = flushNormalBufferTransformer({ buffer: normalBuffer });
-      groups.push(...flushed);
-      normalBuffer = [];
 
       groups.push({
         kind: 'subagent-chain',
@@ -119,13 +120,10 @@ export const collectSubagentChainsTransformer = ({
     }
   }
 
-  const remaining = flushNormalBufferTransformer({ buffer: normalBuffer });
-  groups.push(...remaining);
-
-  const entryIndexMap = new Map<ChatEntry, ArrayIndex>();
-  entries.forEach((e, i) => {
-    entryIndexMap.set(e, arrayIndexContract.parse(i));
-  });
+  const trailingSingles: SingleGroup[] = normalBuffer.map(
+    (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
+  );
+  groups.push(...trailingSingles);
 
   for (let gi = 0; gi < groups.length; gi++) {
     const group = groups[gi];
@@ -134,47 +132,8 @@ export const collectSubagentChainsTransformer = ({
       continue;
     }
 
-    if (group.kind === 'tool-group' && group.contextTokens !== null) {
-      const firstContext = group.contextTokens;
-      const lastEntry = group.entries.at(-1);
-
-      if (lastEntry === undefined) {
-        continue;
-      }
-
-      const lastIndex = entryIndexMap.get(lastEntry) ?? -1;
-      let nextContext: ContextTokenCount | null = null;
-
-      for (let i = lastIndex + 1; i < entries.length; i++) {
-        const candidate = entries[i];
-
-        if (candidate === undefined) {
-          continue;
-        }
-
-        nextContext = computeEntryContextTransformer({ entry: candidate });
-
-        if (nextContext !== null) {
-          break;
-        }
-      }
-
-      if (nextContext === null) {
-        groups[gi] = { ...group, contextTokens: null } as ChatEntryGroup;
-      } else {
-        const delta = Number(nextContext) - Number(firstContext);
-
-        groups[gi] = {
-          ...group,
-          contextTokens: contextTokenCountContract.parse(Math.max(0, delta)),
-        } as ChatEntryGroup;
-      }
-    }
-
     if (group.kind === 'subagent-chain') {
-      const innerEntries = group.innerGroups
-        .filter((g): g is SingleGroup => g.kind === 'single')
-        .map((g: SingleGroup) => g.entry);
+      const innerEntries = group.innerGroups.map((g) => g.entry);
 
       let firstContext: ContextTokenCount | null = null;
       let lastContext: ContextTokenCount | null = null;

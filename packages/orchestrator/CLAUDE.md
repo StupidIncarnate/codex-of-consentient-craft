@@ -361,7 +361,7 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 These writes flow through the same `modify-quest` pipeline as PathSeeker's own writes; the `questStatusInputAllowlistStatics` entry for each seek_* status governs exactly which `planningNotes.*` sub-fields are writable at that status. Minion output is durable the moment it's committed — a minion crash after write does not lose work.
 
-PathSeeker itself reads accumulated planning state via the `get-planning-notes` MCP tool when resuming after a restart or downstream failure.
+PathSeeker itself reads accumulated planning state via the `get-quest-planning-notes` MCP tool when resuming after a restart or downstream failure.
 
 ## Signal System
 

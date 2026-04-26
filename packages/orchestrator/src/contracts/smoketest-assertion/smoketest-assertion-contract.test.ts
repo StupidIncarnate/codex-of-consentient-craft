@@ -2,6 +2,7 @@ import { smoketestAssertionContract } from './smoketest-assertion-contract';
 import {
   QuestStatusAssertionStub,
   WorkItemRoleCountAssertionStub,
+  WorkItemSignalMatchAssertionStub,
   WorkItemStatusHistogramAssertionStub,
 } from './smoketest-assertion.stub';
 
@@ -51,6 +52,14 @@ describe('smoketestAssertionContract', () => {
         kind: 'work-item-role-count',
         role: 'spiritmender',
         minCount: 1,
+      });
+    });
+
+    it('VALID: {kind: "work-item-signal-match"} => parses to signal-match assertion', () => {
+      const result = WorkItemSignalMatchAssertionStub();
+
+      expect(result).toStrictEqual({
+        kind: 'work-item-signal-match',
       });
     });
   });

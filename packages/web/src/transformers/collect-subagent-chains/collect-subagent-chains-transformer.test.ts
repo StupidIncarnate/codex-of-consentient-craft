@@ -18,7 +18,7 @@ describe('collectSubagentChainsTransformer', () => {
   });
 
   describe('no subagent entries', () => {
-    it('VALID: {entries with no agentId} => delegates to groupChatEntriesTransformer (no chains)', () => {
+    it('VALID: {entries with no agentId} => emits singles in order', () => {
       const userEntry = UserChatEntryStub();
       const textEntry = AssistantTextChatEntryStub();
 
@@ -27,6 +27,29 @@ describe('collectSubagentChainsTransformer', () => {
       expect(result).toStrictEqual([
         { kind: 'single', entry: userEntry },
         { kind: 'single', entry: textEntry },
+      ]);
+    });
+
+    it('VALID: {tool_use + tool_result not in a sub-agent chain} => emitted as separate singles', () => {
+      const toolUse = AssistantToolUseChatEntryStub({
+        usage: {
+          inputTokens: 20000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+      const toolResult = AssistantToolResultChatEntryStub();
+      const nextText = AssistantTextChatEntryStub();
+
+      const result = collectSubagentChainsTransformer({
+        entries: [toolUse, toolResult, nextText],
+      });
+
+      expect(result).toStrictEqual([
+        { kind: 'single', entry: toolUse },
+        { kind: 'single', entry: toolResult },
+        { kind: 'single', entry: nextText },
       ]);
     });
   });
@@ -237,7 +260,7 @@ describe('collectSubagentChainsTransformer', () => {
     });
   });
 
-  describe('context delta computation', () => {
+  describe('subagent chain context delta', () => {
     it('VALID: {subagent chain with usage on inner entries} => computes contextTokens delta', () => {
       const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
       const subEntry1 = AssistantToolUseChatEntryStub({
@@ -283,70 +306,6 @@ describe('collectSubagentChainsTransformer', () => {
           taskNotification: null,
           entryCount: 3,
           contextTokens: 2900,
-        },
-      ]);
-    });
-
-    it('VALID: {tool-group followed by entry with usage} => computes contextTokens as delta', () => {
-      const toolUse = AssistantToolUseChatEntryStub({
-        usage: {
-          inputTokens: 20000,
-          outputTokens: 100,
-          cacheCreationInputTokens: 3000,
-          cacheReadInputTokens: 2000,
-        },
-      });
-      const toolResult = AssistantToolResultChatEntryStub();
-      const nextText = AssistantTextChatEntryStub({
-        usage: {
-          inputTokens: 20500,
-          outputTokens: 200,
-          cacheCreationInputTokens: 3000,
-          cacheReadInputTokens: 2150,
-        },
-      });
-
-      const result = collectSubagentChainsTransformer({
-        entries: [toolUse, toolResult, nextText],
-      });
-
-      expect(result).toStrictEqual([
-        {
-          kind: 'tool-group',
-          entries: [toolUse, toolResult],
-          toolCount: 1,
-          contextTokens: 650,
-          source: 'session',
-        },
-        {
-          kind: 'single',
-          entry: nextText,
-        },
-      ]);
-    });
-
-    it('VALID: {tool-group with no subsequent usage entry} => contextTokens becomes null', () => {
-      const toolUse = AssistantToolUseChatEntryStub({
-        usage: {
-          inputTokens: 20000,
-          outputTokens: 100,
-          cacheCreationInputTokens: 3000,
-          cacheReadInputTokens: 2000,
-        },
-      });
-      const toolResult = AssistantToolResultChatEntryStub();
-
-      const result = collectSubagentChainsTransformer({
-        entries: [toolUse, toolResult],
-      });
-
-      expect(result).toStrictEqual([
-        {
-          kind: 'tool-group',
-          entries: [toolUse, toolResult],
-          toolCount: 1,
-          contextTokens: null,
-          source: 'session',
         },
       ]);
     });
@@ -413,7 +372,7 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
 
-    it('EDGE: {subagent entries without matching Task tool_use} => treated as normal flat entries', () => {
+    it('EDGE: {subagent entries without matching Task tool_use} => emitted as flat singles', () => {
       const subagentToolUse = AssistantToolUseChatEntryStub({
         source: 'subagent',
         agentId: 'agent-001',
@@ -428,13 +387,8 @@ describe('collectSubagentChainsTransformer', () => {
       });
 
       expect(result).toStrictEqual([
-        {
-          kind: 'tool-group',
-          entries: [subagentToolUse, subagentToolResult],
-          toolCount: 1,
-          contextTokens: null,
-          source: 'subagent',
-        },
+        { kind: 'single', entry: subagentToolUse },
+        { kind: 'single', entry: subagentToolResult },
       ]);
     });
   });
@@ -527,8 +481,7 @@ describe('collectSubagentChainsTransformer', () => {
 
       // Chain contains only the properly-indexed subagent text entry. The inner
       // subagent tool_result was NOT pinned to the chain via the toolName fallback
-      // and surfaces after the chain (normal-buffer grouping wraps a trailing
-      // tool_result as a tool-group with toolCount 0).
+      // and surfaces after the chain as a flat single.
       expect(result).toStrictEqual([
         {
           kind: 'subagent-chain',
@@ -540,13 +493,7 @@ describe('collectSubagentChainsTransformer', () => {
           entryCount: 1,
           contextTokens: null,
         },
-        {
-          kind: 'tool-group',
-          entries: [innerSubagentToolResult],
-          toolCount: 0,
-          contextTokens: null,
-          source: 'subagent',
-        },
+        { kind: 'single', entry: innerSubagentToolResult },
       ]);
     });
 
@@ -579,13 +526,7 @@ describe('collectSubagentChainsTransformer', () => {
           entryCount: 1,
           contextTokens: null,
         },
-        {
-          kind: 'tool-group',
-          entries: [unrelatedToolResult],
-          toolCount: 0,
-          contextTokens: null,
-          source: 'session',
-        },
+        { kind: 'single', entry: unrelatedToolResult },
       ]);
     });
   });

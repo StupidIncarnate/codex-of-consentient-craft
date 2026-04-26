@@ -13,9 +13,9 @@ describe('smoketestPromptsStatics', () => {
     });
   });
 
-  it('VALID: {discover probe} => two-step call-then-signal prompt with summary', () => {
+  it('VALID: {discover probe} => call-then-conditional-signal prompt with success+error summaries', () => {
     expect(Reflect.get(smoketestPromptsStatics, 'discover')).toBe(
-      'Do exactly two things and nothing else: 1) Call "mcp__dungeonmaster__discover" with {"glob":"packages/*/src/statics/**"}. 2) Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "summary": "mcp-discover-probe-ok" }. Do not output anything else.',
+      'Do exactly two things and nothing else: 1) Call "mcp__dungeonmaster__discover" with {"glob":"packages/*/src/statics/**"}. 2) If the tool call errors, call "mcp__dungeonmaster__signal-back" with { "signal": "failed", "summary": "mcp-discover-tool-error" } and stop. If the tool call succeeds, call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "summary": "mcp-discover-probe-ok" }. Do not output anything else.',
     );
   });
 
@@ -29,5 +29,9 @@ describe('smoketestPromptsStatics', () => {
     expect(Reflect.get(smoketestPromptsStatics, 'ask-user-question')).toBe(
       'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "summary": "mcp-ask-user-question-probe-ok (deferred: calling ask-user-question would block the smoketest)" }. Do not call ask-user-question and do not output anything else.',
     );
+  });
+
+  it('VALID: {start-quest} => skip-from-suite produces no probe prompt', () => {
+    expect(Reflect.has(smoketestPromptsStatics, 'start-quest')).toBe(false);
   });
 });

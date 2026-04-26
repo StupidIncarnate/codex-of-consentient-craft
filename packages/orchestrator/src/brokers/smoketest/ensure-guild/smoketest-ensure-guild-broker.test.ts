@@ -8,13 +8,13 @@ const SMOKETEST_HOME = '/home/testuser/.dungeonmaster';
 
 describe('smoketestEnsureGuildBroker', () => {
   describe('existing smoketest guild', () => {
-    it('VALID: {config already contains guild named __smoketests} => returns the existing guild id without creating a new guild', async () => {
+    it('VALID: {config already contains guild named smoketests} => returns the existing guild id without creating a new guild', async () => {
       const proxy = smoketestEnsureGuildBrokerProxy();
       proxy.setupPassthrough();
 
       const existingSmoketestGuild = GuildStub({
         id: SMOKETEST_GUILD_ID,
-        name: '__smoketests',
+        name: 'smoketests',
         path: SMOKETEST_HOME,
         createdAt: '2024-01-15T10:00:00.000Z',
       });

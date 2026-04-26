@@ -3,6 +3,7 @@ import { QuestStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/sha
 import {
   QuestStatusAssertionStub,
   WorkItemRoleCountAssertionStub,
+  WorkItemSignalMatchAssertionStub,
   WorkItemStatusHistogramAssertionStub,
 } from '../../../contracts/smoketest-assertion/smoketest-assertion.stub';
 import { smoketestAssertFinalStateBroker } from './smoketest-assert-final-state-broker';
@@ -88,6 +89,79 @@ describe('smoketestAssertFinalStateBroker', () => {
       });
 
       expect(result).toStrictEqual({ passed: false, failures: [roleAssertion] });
+    });
+  });
+
+  describe('work-item-signal-match', () => {
+    it('VALID: {every item with expected has matching actual} => returns passed', () => {
+      smoketestAssertFinalStateBrokerProxy();
+      const signalMatchAssertion = WorkItemSignalMatchAssertionStub();
+      const quest = QuestStub({
+        status: 'complete',
+        workItems: [
+          WorkItemStub({
+            id: WI_1,
+            role: 'codeweaver',
+            status: 'complete',
+            smoketestExpectedSignal: 'complete',
+            actualSignal: 'complete',
+          }),
+          WorkItemStub({
+            id: WI_2,
+            role: 'codeweaver',
+            status: 'complete',
+            smoketestExpectedSignal: 'failed',
+            actualSignal: 'failed',
+          }),
+          WorkItemStub({
+            id: WI_3,
+            role: 'codeweaver',
+            status: 'complete',
+            smoketestExpectedSignal: 'failed-replan',
+            actualSignal: 'failed-replan',
+          }),
+          // Items without expected signal are ignored
+          WorkItemStub({ id: WI_4, role: 'pathseeker', status: 'complete' }),
+        ],
+      });
+
+      const result = smoketestAssertFinalStateBroker({
+        quest,
+        assertions: [signalMatchAssertion],
+      });
+
+      expect(result).toStrictEqual({ passed: true, failures: [] });
+    });
+
+    it('INVALID: {one item with expected=failed has actual=complete} => returns failures containing signal-match assertion', () => {
+      smoketestAssertFinalStateBrokerProxy();
+      const signalMatchAssertion = WorkItemSignalMatchAssertionStub();
+      const quest = QuestStub({
+        status: 'complete',
+        workItems: [
+          WorkItemStub({
+            id: WI_1,
+            role: 'codeweaver',
+            status: 'complete',
+            smoketestExpectedSignal: 'complete',
+            actualSignal: 'complete',
+          }),
+          WorkItemStub({
+            id: WI_2,
+            role: 'codeweaver',
+            status: 'complete',
+            smoketestExpectedSignal: 'failed',
+            actualSignal: 'complete',
+          }),
+        ],
+      });
+
+      const result = smoketestAssertFinalStateBroker({
+        quest,
+        assertions: [signalMatchAssertion],
+      });
+
+      expect(result).toStrictEqual({ passed: false, failures: [signalMatchAssertion] });
     });
   });
 

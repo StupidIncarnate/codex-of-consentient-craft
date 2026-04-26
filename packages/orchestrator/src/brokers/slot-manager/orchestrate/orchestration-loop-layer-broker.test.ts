@@ -2218,6 +2218,113 @@ describe('orchestrationLoopLayerBroker', () => {
     });
   });
 
+  describe('onWorkItemSignal callback', () => {
+    it('VALID: {agent signals complete} => invokes onWorkItemSignal with signal=complete', async () => {
+      orchestrationLoopLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        markCompleted: mockMarkCompleted,
+      });
+
+      const completeSignal = StreamSignalStub({ signal: 'complete', summary: undefined });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: completeSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const onWorkItemSignal = jest.fn();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        onWorkItemSignal,
+      });
+
+      expect(onWorkItemSignal).toHaveBeenCalledTimes(1);
+      expect(onWorkItemSignal).toHaveBeenCalledWith({
+        workItemId: 'work-item-1',
+        signal: 'complete',
+      });
+    });
+
+    it('VALID: {agent signals failed} => invokes onWorkItemSignal with signal=failed', async () => {
+      const proxy = orchestrationLoopLayerBrokerProxy();
+      proxy.setupDateNow({ timestamp: 1700000000000 });
+
+      const workItemId = WorkItemIdStub({ value: 'codeweaver-work-2' });
+      const codeweaverWorkUnit = CodeweaverWorkUnitStub();
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const mockAddWorkItem = jest.fn().mockReturnValue(undefined);
+      const mockSkipAllPending = jest.fn().mockReturnValue(undefined);
+      const workTracker = WorkTrackerStub({
+        isAllComplete: () => false,
+        getReadyWorkIds: () => [],
+        getIncompleteIds: () => [workItemId],
+        getFailedIds: () => [],
+        getWorkUnit: () => codeweaverWorkUnit,
+        markFailed: mockMarkFailed,
+        addWorkItem: mockAddWorkItem,
+        skipAllPending: mockSkipAllPending,
+      });
+
+      const failedSignal = StreamSignalStub({ signal: 'failed', summary: undefined });
+      const agentResult = AgentSpawnStreamingResultStub({
+        sessionId: SessionIdStub(),
+        exitCode: ExitCodeStub({ value: 1 }),
+        signal: failedSignal,
+        crashed: false as never,
+      });
+
+      const activeAgent = ActiveAgentStub({
+        workItemId,
+        sessionId: null,
+        followupDepth: FollowupDepthStub({ value: 0 }),
+        promise: Promise.resolve(agentResult),
+      });
+
+      const onWorkItemSignal = jest.fn();
+      const startPath = FilePathStub({ value: '/project/src' });
+
+      await orchestrationLoopLayerBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workTracker,
+        startPath,
+        slotCount: SlotCountStub({ value: 2 }),
+        slotOperations: SlotOperationsStub(),
+        activeAgents: [activeAgent],
+        sessionIds: {},
+        maxFollowupDepth: FollowupDepthStub({ value: 3 }),
+        onWorkItemSignal,
+      });
+
+      expect(onWorkItemSignal).toHaveBeenCalledTimes(1);
+      expect(onWorkItemSignal).toHaveBeenCalledWith({
+        workItemId: 'codeweaver-work-2',
+        signal: 'failed',
+      });
+    });
+  });
+
   describe('concurrent dispatch within single iteration', () => {
     const COMPLETE_SIGNAL_LINE = JSON.stringify({
       type: 'assistant',

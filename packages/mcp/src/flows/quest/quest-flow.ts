@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-planning-notes)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes)
  *
  * USAGE:
  * const registrations = QuestFlow();
@@ -8,7 +8,7 @@
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import { getPlanningNotesInputContract } from '../../contracts/get-planning-notes-input/get-planning-notes-input-contract';
+import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
@@ -27,8 +27,8 @@ const getQuestStatusSchema = zodToJsonSchema(
 );
 const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
-const getPlanningNotesSchema = zodToJsonSchema(
-  getPlanningNotesInputContract as never,
+const getQuestPlanningNotesSchema = zodToJsonSchema(
+  getQuestPlanningNotesInputContract as never,
   jsonSchemaOptions,
 );
 
@@ -72,11 +72,11 @@ export const QuestFlow = (): ToolRegistration[] => [
     handler: async ({ args }) => QuestHandleResponder({ tool: 'list-guilds' as never, args }),
   },
   {
-    name: 'get-planning-notes' as never,
+    name: 'get-quest-planning-notes' as never,
     description:
       "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts." as never,
-    inputSchema: getPlanningNotesSchema as never,
+    inputSchema: getQuestPlanningNotesSchema as never,
     handler: async ({ args }) =>
-      QuestHandleResponder({ tool: 'get-planning-notes' as never, args }),
+      QuestHandleResponder({ tool: 'get-quest-planning-notes' as never, args }),
   },
 ];
