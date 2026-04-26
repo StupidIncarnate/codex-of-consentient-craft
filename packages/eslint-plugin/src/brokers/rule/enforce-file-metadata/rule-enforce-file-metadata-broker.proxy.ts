@@ -5,7 +5,7 @@
  * const proxy = ruleEnforceFileMetadataBrokerProxy();
  * // Returns empty object (no dependencies to mock)
  */
-export const ruleEnforceFileMetadataBrokerProxy = (): object =>
+export const ruleEnforceFileMetadataBrokerProxy = (): Record<PropertyKey, never> =>
   // No dependencies to mock - rule uses only pure functions
   // (guards, transformers, contracts)
   ({});

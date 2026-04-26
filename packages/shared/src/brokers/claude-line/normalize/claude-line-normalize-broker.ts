@@ -7,18 +7,27 @@
  */
 
 import { fastXmlParserParseAdapter } from '../../../adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter';
+import {
+  normalizedLineContract,
+  type NormalizedLine,
+} from '../../../contracts/normalized-line/normalized-line-contract';
 import { inflateXmlStringsTransformer } from '../../../transformers/inflate-xml-strings/inflate-xml-strings-transformer';
 import { safeJsonParseTransformer } from '../../../transformers/safe-json-parse/safe-json-parse-transformer';
 import { snakeKeysToCamelKeysTransformer } from '../../../transformers/snake-keys-to-camel-keys/snake-keys-to-camel-keys-transformer';
 
-export const claudeLineNormalizeBroker = ({ rawLine }: { rawLine: string }): unknown => {
+export const claudeLineNormalizeBroker = ({
+  rawLine,
+}: {
+  rawLine: string;
+}): NormalizedLine | null => {
   const parseResult = safeJsonParseTransformer({ value: rawLine });
   if (!parseResult.ok) {
     return null;
   }
   const camelKeyed = snakeKeysToCamelKeysTransformer({ value: parseResult.value });
-  return inflateXmlStringsTransformer({
+  const inflated = inflateXmlStringsTransformer({
     value: camelKeyed,
     parseXml: fastXmlParserParseAdapter,
   });
+  return normalizedLineContract.parse(inflated);
 };
