@@ -19,6 +19,7 @@ import {
 } from '../../../contracts/network-port/network-port-contract';
 import { environmentStatics } from '../../../statics/environment/environment-statics';
 import { portConfigWalkBroker } from '../config-walk/port-config-walk-broker';
+import { processCwdAdapter } from '../../../adapters/process/cwd/process-cwd-adapter';
 
 export const portResolveBroker = ({
   startDir,
@@ -33,7 +34,7 @@ export const portResolveBroker = ({
     }
   }
 
-  const lookupDir = startDir ?? absoluteFilePathContract.parse(process.cwd());
+  const lookupDir = startDir ?? absoluteFilePathContract.parse(processCwdAdapter());
   const configPort = portConfigWalkBroker({ dir: lookupDir });
   if (configPort !== undefined) {
     return configPort;

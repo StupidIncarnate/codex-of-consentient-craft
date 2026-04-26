@@ -21,6 +21,7 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { FileMetadata } from '../../../contracts/file-metadata/file-metadata-contract';
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
@@ -39,7 +40,7 @@ export const fileScannerBroker = async ({
   context?: ContextLines;
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from cwd + shared package
-  const cwdPath = pathSegmentContract.parse(process.cwd());
+  const cwdPath = pathSegmentContract.parse(processCwdAdapter());
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
   const projectFiles = await globFindAdapter({ pattern, cwd: cwdPath });
@@ -191,7 +192,7 @@ export const fileScannerBroker = async ({
     const displayPath =
       isShared && sharedBasePathStr
         ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
-        : pathToRelativeTransformer({ filepath: file.path });
+        : pathToRelativeTransformer({ filepath: file.path, cwd: cwdPath });
 
     const relatedFilenames = related
       .map((relatedPath) => pathToBasenameTransformer({ filepath: relatedPath }))
@@ -210,7 +211,7 @@ export const fileScannerBroker = async ({
     const displayPath =
       isShared && sharedBasePathStr
         ? pathSegmentContract.parse(file.path.replace(sharedBasePathStr, '@dungeonmaster/shared'))
-        : pathToRelativeTransformer({ filepath: file.path });
+        : pathToRelativeTransformer({ filepath: file.path, cwd: cwdPath });
 
     return fileMetadataContract.parse({
       ...file,

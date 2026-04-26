@@ -9,6 +9,7 @@
 import {
   architectureOverviewBrokerProxy,
   architectureProjectMapBrokerProxy,
+  processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type {
   FileContents,
@@ -37,6 +38,7 @@ export const ArchitectureHandleResponderProxy = (): {
   setupSingleRepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupSingleRepo'];
   setupEmptySrc: ReturnType<typeof architectureProjectMapBrokerProxy>['setupEmptySrc'];
 } => {
+  processCwdAdapterProxy();
   architectureOverviewBrokerProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();

@@ -40,7 +40,13 @@ describe('folderConfigTransformer', () => {
       const result = folderConfigTransformer({ folderType: 'startup' });
 
       expect(result).toStrictEqual(folderConfigStatics.startup);
-      expect(result!.allowedImports).toStrictEqual(['flows/', 'contracts/', 'statics/', 'errors/']);
+      expect(result!.allowedImports).toStrictEqual([
+        'flows/',
+        'contracts/',
+        'statics/',
+        'errors/',
+        '@dungeonmaster/shared/adapters',
+      ]);
     });
   });
 

@@ -10,6 +10,7 @@
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fileScannerBrokerProxy = (): {
@@ -26,6 +27,7 @@ export const fileScannerBrokerProxy = (): {
     pattern: GlobPattern;
   }) => void;
 } => {
+  processCwdAdapterProxy();
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   sharedPackageResolveAdapterProxy();

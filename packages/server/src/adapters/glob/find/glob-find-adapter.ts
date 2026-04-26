@@ -3,7 +3,8 @@
  *
  * USAGE:
  * const files = await globFindAdapter({
- *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' })
+ *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' }),
+ *   cwd: filePathContract.parse('/path/to/project'),
  * });
  * // Returns: [FilePath('/path/to/file.ts'), ...]
  */
@@ -17,10 +18,10 @@ export const globFindAdapter = async ({
   cwd,
 }: {
   pattern: GlobPattern;
-  cwd?: FilePath;
+  cwd: FilePath;
 }): Promise<readonly FilePath[]> => {
   const options = {
-    cwd: cwd ? String(cwd) : process.cwd(),
+    cwd: String(cwd),
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
   };

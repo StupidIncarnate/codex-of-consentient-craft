@@ -7,6 +7,7 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { duplicateDetectionDetectBroker } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -29,7 +30,7 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
   const pattern = globPatternContract.parse(patternArg ? patternArg.split('=')[1] : '**/*.ts');
   const cwd = cwdArg
     ? absoluteFilePathContract.parse(cwdArg.split('=')[1] ?? '')
-    : absoluteFilePathContract.parse(process.cwd());
+    : absoluteFilePathContract.parse(processCwdAdapter());
   const threshold = occurrenceThresholdContract.parse(
     thresholdArg
       ? parseInt(

@@ -6,7 +6,7 @@
  * // Returns: { status, data: { runId, results } | { error } }
  */
 
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
 
 import { orchestratorRunSmoketestAdapter } from '../../../adapters/orchestrator/run-smoketest/orchestrator-run-smoketest-adapter';
@@ -28,10 +28,9 @@ export const ToolingSmoketestRunResponder = async ({
     // the dungeonmaster MCP server. `projectRootFindBroker` can't be used because it stops at the
     // first package.json (the workspace member); `configRootFindBroker` walks up to the repo-level
     // .dungeonmaster.json.
-    const projectRoot = await configRootFindBroker({
-      startPath: filePathContract.parse(process.cwd()),
+    const startPath = await configRootFindBroker({
+      startPath: processCwdAdapter(),
     });
-    const startPath = filePathContract.parse(projectRoot);
 
     const result = await orchestratorRunSmoketestAdapter({ suite, startPath });
 

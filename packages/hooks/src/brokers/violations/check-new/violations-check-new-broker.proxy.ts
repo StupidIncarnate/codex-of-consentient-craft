@@ -3,10 +3,12 @@ import { hookConfigLoadBrokerProxy } from '../../hook-config/load/hook-config-lo
 import { eslintLoadConfigBrokerProxy } from '../../eslint/load-config/eslint-load-config-broker.proxy';
 import { eslintLintRunTargetedBrokerProxy } from '../../eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy';
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const violationsCheckNewBrokerProxy = (): {
   setupViolationCheck: (params?: { hasViolations?: boolean }) => void;
 } => {
+  processCwdAdapterProxy();
   const contentChangesProxy = toolInputGetContentChangesBrokerProxy();
   hookConfigLoadBrokerProxy();
   eslintLoadConfigBrokerProxy();

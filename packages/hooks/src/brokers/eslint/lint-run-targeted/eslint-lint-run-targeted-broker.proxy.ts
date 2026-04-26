@@ -8,11 +8,13 @@
 
 import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
   setupLintResults: (params: { oldResults: unknown[]; newResults: unknown[] }) => void;
   returnsLintResults: (params: { results: unknown[] }) => void;
 } => {
+  processCwdAdapterProxy();
   const eslintProxy = eslintEslintAdapterProxy();
   pathResolveAdapterProxy();
 

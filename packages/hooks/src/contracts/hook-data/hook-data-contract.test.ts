@@ -9,7 +9,7 @@ describe('hookDataContract', () => {
       hook_event_name: 'PreToolUse',
       session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       transcript_path: '/tmp/transcript.jsonl',
-      cwd: process.cwd(),
+      cwd: '/tmp/stub-cwd',
       tool_name: 'Write',
       tool_input: {
         file_path: '/test/file.ts',
@@ -28,7 +28,7 @@ describe('hookDataContract', () => {
       hook_event_name: 'PreToolUse',
       session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       transcript_path: '/tmp/transcript.jsonl',
-      cwd: process.cwd(),
+      cwd: '/tmp/stub-cwd',
       tool_name: 'Edit',
       tool_input: {
         file_path: '/test/file.ts',

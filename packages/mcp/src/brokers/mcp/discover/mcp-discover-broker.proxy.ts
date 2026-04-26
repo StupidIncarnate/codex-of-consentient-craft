@@ -9,6 +9,7 @@
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const mcpDiscoverBrokerProxy = (): {
@@ -30,6 +31,7 @@ export const mcpDiscoverBrokerProxy = (): {
     pattern: GlobPattern;
   }) => void;
 } => {
+  processCwdAdapterProxy();
   const fileScannerProxy = fileScannerBrokerProxy();
   const globProxy = globFindAdapterProxy();
 

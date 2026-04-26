@@ -286,7 +286,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
-    // Startup can import flows, contracts, statics, errors (no npm packages)
+    // Startup can import flows, contracts, statics, errors, and @dungeonmaster/shared/adapters
     {
       code: 'import { userFlow } from "../flows/user/user-flow";',
       filename: '/project/src/startup/index.ts',
@@ -294,6 +294,10 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { serverPortStatics } from "../statics/server-port/server-port-statics";',
       filename: '/project/src/startup/app.ts',
+    },
+    {
+      code: 'import { processCwdAdapter } from "@dungeonmaster/shared/adapters";',
+      filename: '/project/src/startup/start-ward.ts',
     },
 
     // Responders (depth 2) can import from widgets, brokers, bindings, state, contracts, transformers, guards, statics, errors

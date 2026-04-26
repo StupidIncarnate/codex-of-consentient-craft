@@ -4,6 +4,7 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   callResponder: typeof PrimitiveDuplicateDetectionRunResponder;
@@ -12,6 +13,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   getStdoutOutput: () => readonly unknown[];
 } => {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
+  processCwdAdapterProxy();
   const writes: unknown[] = [];
 
   registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(

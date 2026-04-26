@@ -16,6 +16,7 @@ export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
 export * from './src/adapters/path/join/path-join-adapter.proxy';
 export * from './src/adapters/os/homedir/os-homedir-adapter.proxy';
 export * from './src/adapters/os/user-homedir/os-user-homedir-adapter.proxy';
+export * from './src/adapters/process/cwd/process-cwd-adapter.proxy';
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy';
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';

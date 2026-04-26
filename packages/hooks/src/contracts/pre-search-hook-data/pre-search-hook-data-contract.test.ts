@@ -11,7 +11,7 @@ describe('preSearchHookDataContract', () => {
       expect(data).toStrictEqual({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/stub-cwd',
         hook_event_name: 'PreToolUse',
         tool_name: 'Grep',
         tool_input: { pattern: 'searchTerm', path: '/src' },
@@ -24,7 +24,7 @@ describe('preSearchHookDataContract', () => {
       expect(data).toStrictEqual({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/stub-cwd',
         hook_event_name: 'PreToolUse',
         tool_name: 'Glob',
         tool_input: { pattern: 'searchTerm', path: '/src' },
@@ -39,7 +39,7 @@ describe('preSearchHookDataContract', () => {
       expect(data).toStrictEqual({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/stub-cwd',
         hook_event_name: 'PreToolUse',
         tool_name: 'Grep',
         tool_input: { pattern: '*.ts', path: '/src' },
@@ -53,7 +53,7 @@ describe('preSearchHookDataContract', () => {
         return preSearchHookDataContract.parse({
           session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           transcript_path: '/tmp/transcript.jsonl',
-          cwd: process.cwd(),
+          cwd: '/tmp/stub-cwd',
           hook_event_name: 'PostToolUse',
           tool_name: 'Grep',
           tool_input: {},
@@ -66,7 +66,7 @@ describe('preSearchHookDataContract', () => {
         return preSearchHookDataContract.parse({
           session_id: '',
           transcript_path: '/tmp/transcript.jsonl',
-          cwd: process.cwd(),
+          cwd: '/tmp/stub-cwd',
           hook_event_name: 'PreToolUse',
           tool_name: 'Grep',
           tool_input: {},

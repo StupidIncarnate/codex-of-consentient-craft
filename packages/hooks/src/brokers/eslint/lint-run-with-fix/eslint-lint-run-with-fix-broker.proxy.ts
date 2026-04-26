@@ -11,10 +11,12 @@ import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint
 import { eslintOutputFixesAdapterProxy } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const eslintLintRunWithFixBrokerProxy = (): {
   returnsLintResults: (params: { results: unknown[] }) => void;
 } => {
+  processCwdAdapterProxy();
   const eslintProxy = eslintEslintAdapterProxy();
   eslintOutputFixesAdapterProxy();
   fsReadFileAdapterProxy();

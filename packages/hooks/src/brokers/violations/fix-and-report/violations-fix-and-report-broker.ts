@@ -14,7 +14,8 @@ import {
   hookPostEditResponderResultContract,
   type HookPostEditResponderResult,
 } from '../../../contracts/hook-post-edit-responder-result/hook-post-edit-responder-result-contract';
-import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 /**
  * Runs ESLint with auto-fix and reports remaining error-level violations.
@@ -37,7 +38,7 @@ export const violationsFixAndReportBroker = async ({
   toolInput: ToolInput;
   cwd?: FilePath;
 }): Promise<HookPostEditResponderResult> => {
-  const workingDir = cwd ?? filePathContract.parse(process.cwd());
+  const workingDir = cwd ?? processCwdAdapter();
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

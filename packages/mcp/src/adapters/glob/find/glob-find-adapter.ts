@@ -3,7 +3,8 @@
  *
  * USAGE:
  * const files = await globFindAdapter({
- *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' })
+ *   pattern: GlobPatternStub({ value: 'star-star-slash-star.ts' }),
+ *   cwd: PathSegmentStub({ value: '/home/user/project' }),
  * });
  * // Returns: [PathSegment('/path/to/file.ts'), ...]
  */
@@ -18,13 +19,13 @@ export const globFindAdapter = async ({
   includeDirectories,
 }: {
   pattern: GlobPattern;
-  cwd?: PathSegment;
+  cwd: PathSegment;
   includeDirectories?: boolean;
 }): Promise<readonly PathSegment[]> => {
   const ignore = globIgnoreFilterTransformer({ pattern });
 
   const files = await glob(pattern, {
-    cwd: cwd ? String(cwd) : process.cwd(),
+    cwd: String(cwd),
     absolute: true,
     nodir: includeDirectories !== true,
     ignore: [...ignore],

@@ -14,9 +14,10 @@ import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 export const hookConfigLoadBroker = ({ cwd }: { cwd?: FilePath } = {}): PreEditLintConfig => {
-  const workingDir = cwd ?? filePathContract.parse(process.cwd());
+  const workingDir = cwd ?? processCwdAdapter();
   const configPaths = [
     pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.js'] }),
     pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.mjs'] }),

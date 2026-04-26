@@ -2,35 +2,35 @@
 > dungeonmaster@0.1.0-beta.1 ward
 > dungeonmaster-ward --only lint
 
-lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/config running...lint        @dungeonmaster/hooks running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (9.1s)
+lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/config running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/hooks running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (8.7s)
 [K
-lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.7s)
+lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.2s)
 [K
-lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.5s)
+lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.1s)
 [K
-lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  341 files, 48 errors, 341 discovered (18.9s)
+lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  341 files, 25 errors, 341 discovered (18.4s)
 [K
 lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 7 errors, 580 discovered (26.5s)
 [K
-lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 9 errors, 440 discovered (21.8s)
+lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 9 errors, 440 discovered (21.7s)
 [K
-lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 4 errors, 376 discovered (19.2s)
+lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 4 errors, 376 discovered (19.3s)
 [K
-lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 8 errors, 722 discovered (27.9s)
+lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 3 errors, 722 discovered (28.1s)
 [K
-lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 10 errors, 349 discovered (23.4s)
+lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 10 errors, 349 discovered (23.0s)
 [K
-[Klint        @dungeonmaster/ward  FAIL  320 files, 2 errors, 320 discovered (19.9s)
+[Klint        @dungeonmaster/ward  FAIL  320 files, 1 errors, 320 discovered (19.1s)
 [K
-[Klint        @dungeonmaster/orchestrator FAIL  1043 files, 35 errors, 1043 discovered (50.1s)
+[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 26 errors, 1049 discovered (49.7s)
 [K
-lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   FAIL  628 files, 1 errors, 628 discovered (31.2s)
+lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (31.1s)
 [K
-[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.1s)
+[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.2s)
 [K
 [K
-run: 1777195621738-4e68  (84.7s)
-lint:      FAIL  13 packages (5012 files passed/80 files failed, 5092 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (7), @dungeonmaster/hooks (48), @dungeonmaster/mcp (9), @dungeonmaster/orchestrator (35), @dungeonmaster/server (4), @dungeonmaster/shared (8), @dungeonmaster/testing (10), @dungeonmaster/tooling (2), @dungeonmaster/ward (2), @dungeonmaster/web (1)  50.1s
+run: 1777197192932-69bc  (84.3s)
+lint:      FAIL  13 packages (5030 files passed/71 files failed, 5101 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (7), @dungeonmaster/hooks (25), @dungeonmaster/mcp (9), @dungeonmaster/orchestrator (26), @dungeonmaster/server (4), @dungeonmaster/shared (3), @dungeonmaster/testing (10), @dungeonmaster/tooling (2), @dungeonmaster/ward (1)  49.7s
 
 --- lint ---
 packages/cli/bin/cli-entry.ts
@@ -77,48 +77,6 @@ packages/hooks/src/contracts/base-hook-data/base-hook-data.stub.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
 packages/hooks/src/contracts/hook-data/hook-data.stub.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 35)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 79)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 87)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 95)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 105)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 113)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 122)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 123)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 171)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 172)
-packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 173)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 27)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 83)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 91)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 99)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 108)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 109)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 157)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 158)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 159)
-packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 160)
 packages/hooks/src/contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 12)
 packages/hooks/src/contracts/pre-search-hook-data/pre-search-hook-data.stub.ts
@@ -143,10 +101,6 @@ packages/hooks/src/responders/install/create-settings/install-create-settings-re
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
 packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
-packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 93)
-packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.test.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 102)
 packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.ts
   @typescript-eslint/no-unnecessary-condition Unnecessary conditional, the types have no overlap. (line 25)
 packages/hooks/test/harnesses/hook-runner/hook-persistent-runner.harness.ts
@@ -197,14 +151,6 @@ packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 17)
 packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
-packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 127)
-packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 170)
-packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 212)
-packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 353)
 packages/orchestrator/src/brokers/smoketest/poll-quest-until-terminal/load-quest-by-id-layer-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
 packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.ts
@@ -229,16 +175,6 @@ packages/orchestrator/src/transformers/chat-line-process/chat-line-process-trans
   @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 135)
 packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.ts
   @typescript-eslint/no-unsafe-assignment Unsafe assignment of an `any` value. (line 37)
-packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 44)
-packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 45)
-packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 46)
-packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 47)
-packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 37)
 packages/server/src/adapters/glob/find/glob-find-adapter.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 23)
 packages/server/src/brokers/design/scaffold/design-scaffold-broker.ts
@@ -253,16 +189,6 @@ packages/shared/src/brokers/install/check/install-check-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
 packages/shared/src/brokers/port/resolve/port-resolve-broker.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 36)
-packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 117)
-packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 138)
-packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 139)
-packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 163)
-packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 183)
 packages/testing/src/adapters/jest/require-actual/jest-require-actual-adapter.ts
   @typescript-eslint/no-unnecessary-type-parameters Type parameter T is used only once in the function signature. (line 18)
 packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
@@ -287,11 +213,7 @@ packages/tooling/src/adapters/glob/find/glob-find-adapter.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 21)
 packages/tooling/src/responders/primitive-duplicate-detection/run/primitive-duplicate-detection-run-responder.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
-packages/ward/src/brokers/workspace/discover/workspace-discover-layer-read-broker.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 31)
 packages/ward/src/startup/start-ward.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 15)
-packages/web/src/transformers/extract-task-description/extract-task-description-transformer.ts
-  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 32)
 
-Full error details: npm run ward -- detail 1777195621738-4e68 <filePath>
+Full error details: npm run ward -- detail 1777197192932-69bc <filePath>
