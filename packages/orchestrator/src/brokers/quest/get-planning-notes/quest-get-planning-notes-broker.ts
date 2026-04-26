@@ -14,11 +14,10 @@
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 type PlanningNotes = Quest['planningNotes'];
 
@@ -43,7 +42,7 @@ export const questGetPlanningNotesBroker = async ({
   const { questPath } = await questFindQuestPathBroker({ questId });
 
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
   );
 
   const quest = await questLoadBroker({ questFilePath });

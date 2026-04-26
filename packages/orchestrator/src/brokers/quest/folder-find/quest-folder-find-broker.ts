@@ -10,12 +10,11 @@
 import { questContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import type { QuestFolderFindResult } from '../../../contracts/quest-folder-find-result/quest-folder-find-result-contract';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const questFolderFindBroker = async ({
   questId,
@@ -33,7 +32,9 @@ export const questFolderFindBroker = async ({
 
   const questFileResults = await Promise.all(
     folderPaths.map(async ({ folder: _folder, folderPath }) => {
-      const questFilePath = pathJoinAdapter({ paths: [folderPath, QUEST_FILE_NAME] });
+      const questFilePath = pathJoinAdapter({
+        paths: [folderPath, locationsStatics.quest.questFile],
+      });
       try {
         const contents = await fsReadFileAdapter({ filePath: questFilePath });
         const parsed: unknown = JSON.parse(contents);

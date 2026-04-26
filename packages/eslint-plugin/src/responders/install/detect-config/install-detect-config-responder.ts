@@ -13,6 +13,7 @@ import {
   packageNameContract,
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
@@ -99,7 +100,7 @@ export const InstallDetectConfigResponder = ({
   }
 
   const newConfigPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, 'eslint.config.js'],
+    paths: [context.targetProjectRoot, locationsStatics.repoRoot.eslintConfig[1]],
   });
 
   const contents = fileContentsContract.parse(NEW_CONFIG_TEMPLATE);

@@ -2,43 +2,37 @@
 > dungeonmaster@0.1.0-beta.1 ward
 > dungeonmaster-ward --only lint
 
-lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/config running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/hooks running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (8.7s)
+lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/hooks running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/config running...[Klint        @dungeonmaster/cli   PASS  75 files, 75 discovered (8.7s)
 [K
-lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.2s)
+lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.6s)
 [K
-lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.1s)
+lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.4s)
 [K
-lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  341 files, 25 errors, 341 discovered (18.4s)
+lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  341 files, 7 errors, 341 discovered (18.7s)
 [K
-lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 7 errors, 580 discovered (26.5s)
+lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 7 errors, 580 discovered (27.0s)
 [K
-lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 9 errors, 440 discovered (21.7s)
+lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 4 errors, 440 discovered (21.3s)
 [K
-lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 4 errors, 376 discovered (19.3s)
+lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 2 errors, 376 discovered (18.9s)
 [K
-lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 3 errors, 722 discovered (28.1s)
+lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 2 errors, 722 discovered (27.7s)
 [K
-lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 10 errors, 349 discovered (23.0s)
+lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 10 errors, 349 discovered (22.6s)
 [K
-[Klint        @dungeonmaster/ward  FAIL  320 files, 1 errors, 320 discovered (19.1s)
+[Klint        @dungeonmaster/ward  PASS  320 files, 320 discovered (18.9s)
 [K
-[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 26 errors, 1049 discovered (49.7s)
+[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 26 errors, 1049 discovered (48.5s)
 [K
-lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (31.1s)
+[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (30.6s)
+lint        @dungeonmaster/tooling running...[K
+[Klint        @dungeonmaster/tooling PASS  78 files, 78 discovered (7.4s)
 [K
-[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.2s)
 [K
-[K
-run: 1777197192932-69bc  (84.3s)
-lint:      FAIL  13 packages (5030 files passed/71 files failed, 5101 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (7), @dungeonmaster/hooks (25), @dungeonmaster/mcp (9), @dungeonmaster/orchestrator (26), @dungeonmaster/server (4), @dungeonmaster/shared (3), @dungeonmaster/testing (10), @dungeonmaster/tooling (2), @dungeonmaster/ward (1)  49.7s
+run: 1777200127454-9e95  (83.9s)
+lint:      FAIL  13 packages (5057 files passed/44 files failed, 5101 discovered)  @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (7), @dungeonmaster/hooks (7), @dungeonmaster/mcp (4), @dungeonmaster/orchestrator (26), @dungeonmaster/server (2), @dungeonmaster/shared (2), @dungeonmaster/testing (10)  48.5s
 
 --- lint ---
-packages/cli/bin/cli-entry.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 23)
-packages/cli/src/transformers/create-default-install-context/create-default-install-context-transformer.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 12)
-packages/cli/src/transformers/create-default-install-context/create-default-install-context-transformer.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 13)
 packages/config/src/responders/install/create-config/install-create-config-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
 packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.proxy.ts
@@ -55,48 +49,12 @@ packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-stati
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.mjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 12)
 packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.cjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
-packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 33)
-packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 34)
-packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 24)
 packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 19)
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.js'. It belongs to `locationsStatics.hooks.configFiles[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
 packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.js'. It belongs to `locationsStatics.hooks.configFiles[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 21)
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.mjs'. It belongs to `locationsStatics.hooks.configFiles[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
 packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.mjs'. It belongs to `locationsStatics.hooks.configFiles[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
-packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.cjs'. It belongs to `locationsStatics.hooks.configFiles[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
-packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 43)
-packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 40)
-packages/hooks/src/contracts/base-hook-data/base-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
-packages/hooks/src/contracts/hook-data/hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
-packages/hooks/src/contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 12)
-packages/hooks/src/contracts/pre-search-hook-data/pre-search-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
-packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 17)
-packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 39)
-packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 62)
-packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 87)
-packages/hooks/src/contracts/session-start-hook-data/session-start-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
-packages/hooks/src/contracts/subagent-start-hook-data/subagent-start-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
-packages/hooks/src/contracts/user-prompt-submit-hook-data/user-prompt-submit-hook-data.stub.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
-packages/hooks/src/flows/hook-session-snippet/hook-session-snippet-flow.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 35)
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.cjs'. It belongs to `locationsStatics.hooks.configFiles[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
 packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
 packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
@@ -105,24 +63,14 @@ packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-t
   @typescript-eslint/no-unnecessary-condition Unnecessary conditional, the types have no overlap. (line 25)
 packages/hooks/test/harnesses/hook-runner/hook-persistent-runner.harness.ts
   @typescript-eslint/no-unsafe-argument Unsafe argument of type `any` assigned to a parameter of type `{ stdout?: string; stderr?: string; exitCode?: number; }`. (line 47)
-packages/mcp/src/adapters/glob/find/glob-find-adapter.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 27)
-packages/mcp/src/brokers/file/scanner/file-scanner-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 42)
-packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 78)
 packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
 packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
 packages/mcp/src/index.proxy.ts
   @typescript-eslint/no-floating-promises Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator. (line 47)
-packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 108)
 packages/mcp/src/responders/install/config-create/install-config-create-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/mcp/src/transformers/path-to-relative/path-to-relative-transformer.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 18)
 packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 44)
 packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
@@ -175,20 +123,14 @@ packages/orchestrator/src/transformers/chat-line-process/chat-line-process-trans
   @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 135)
 packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.ts
   @typescript-eslint/no-unsafe-assignment Unsafe assignment of an `any` value. (line 37)
-packages/server/src/adapters/glob/find/glob-find-adapter.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 23)
 packages/server/src/brokers/design/scaffold/design-scaffold-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-quests'. It belongs to `locationsStatics.repoRoot.dungeonmasterQuests` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
 packages/server/src/responders/server/init/server-init-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 160)
-packages/server/src/responders/tooling/smoketest-run/tooling-smoketest-run-responder.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
 packages/shared/src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
 packages/shared/src/brokers/install/check/install-check-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
-packages/shared/src/brokers/port/resolve/port-resolve-broker.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 36)
 packages/testing/src/adapters/jest/require-actual/jest-require-actual-adapter.ts
   @typescript-eslint/no-unnecessary-type-parameters Type parameter T is used only once in the function signature. (line 18)
 packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
@@ -209,11 +151,5 @@ packages/testing/src/brokers/integration-environment/create/integration-environm
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 104)
 packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 176)
-packages/tooling/src/adapters/glob/find/glob-find-adapter.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 21)
-packages/tooling/src/responders/primitive-duplicate-detection/run/primitive-duplicate-detection-run-responder.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
-packages/ward/src/startup/start-ward.ts
-  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 15)
 
-Full error details: npm run ward -- detail 1777197192932-69bc <filePath>
+Full error details: npm run ward -- detail 1777200127454-9e95 <filePath>

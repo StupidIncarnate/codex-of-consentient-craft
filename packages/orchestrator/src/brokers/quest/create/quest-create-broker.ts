@@ -27,10 +27,9 @@ import type {
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
-
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const questCreateBroker = async ({
@@ -73,7 +72,7 @@ export const questCreateBroker = async ({
   });
 
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questFolderPath, QUEST_FILE_NAME] }),
+    pathJoinAdapter({ paths: [questFolderPath, locationsStatics.quest.questFile] }),
   );
   const contents = fileContentsContract.parse(
     JSON.stringify(initialQuest, null, JSON_INDENT_SPACES),

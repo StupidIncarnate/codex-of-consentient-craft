@@ -8,7 +8,7 @@
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { fsReaddirWithTypesAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { guildIdContract, questContract } from '@dungeonmaster/shared/contracts';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import type {
@@ -21,8 +21,6 @@ import type {
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const questFindQuestPathBroker = async ({
   questId,
@@ -59,7 +57,7 @@ export const questFindQuestPathBroker = async ({
       for (const questFolder of questFolders) {
         candidates.push({
           questFilePath: pathJoinAdapter({
-            paths: [questsDirPath, questFolder.name, QUEST_FILE_NAME],
+            paths: [questsDirPath, questFolder.name, locationsStatics.quest.questFile],
           }),
           questFolderPath: pathJoinAdapter({
             paths: [questsDirPath, questFolder.name],

@@ -23,6 +23,7 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
@@ -43,7 +44,6 @@ import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-pa
 import { questLoadBroker } from '../load/quest-load-broker';
 import { withQuestModifyLockLayerBroker } from './with-quest-modify-lock-layer-broker';
 
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const questModifyBroker = async ({
@@ -72,7 +72,7 @@ export const questModifyBroker = async ({
         const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 
         const questFilePath = filePathContract.parse(
-          pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+          pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
         );
 
         const loadedQuest = await questLoadBroker({ questFilePath });

@@ -15,6 +15,7 @@ import type { Readable } from 'stream';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 export interface SpawnStreamJsonResult {
   process: ChildProcess;
@@ -41,7 +42,11 @@ export const childProcessSpawnStreamJsonAdapter = ({
   // that want settings must resolve a typed RepoRootCwd up the chain (cwdResolveBroker).
   let settingsJson = '';
   if (cwd !== undefined) {
-    const settingsFile = path.join(cwd, '.claude', 'settings.json');
+    const settingsFile = path.join(
+      cwd,
+      locationsStatics.repoRoot.claude.dir,
+      locationsStatics.repoRoot.claude.settings,
+    );
     try {
       settingsJson = readFileSync(settingsFile, 'utf8');
     } catch {

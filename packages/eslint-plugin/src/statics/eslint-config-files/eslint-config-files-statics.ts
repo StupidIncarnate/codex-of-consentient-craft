@@ -7,8 +7,6 @@
  * // Returns: ['eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs']
  */
 
-export const eslintConfigFilesStatics = [
-  'eslint.config.js',
-  'eslint.config.mjs',
-  'eslint.config.cjs',
-] as const;
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+
+export const eslintConfigFilesStatics = locationsStatics.repoRoot.eslintConfig.slice(1);

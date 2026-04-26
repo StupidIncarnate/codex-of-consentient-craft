@@ -15,14 +15,14 @@ import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 export const hookConfigLoadBroker = ({ cwd }: { cwd?: FilePath } = {}): PreEditLintConfig => {
   const workingDir = cwd ?? processCwdAdapter();
-  const configPaths = [
-    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.js'] }),
-    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.mjs'] }),
-    pathResolveAdapter({ paths: [workingDir, '.dungeonmaster-hooks.config.cjs'] }),
-  ];
+  // Skip the .ts variant (index 0) — require() cannot load TypeScript without a transpiler.
+  const configPaths = locationsStatics.hooks.configFiles
+    .filter((f) => !f.endsWith('.ts'))
+    .map((filename) => pathResolveAdapter({ paths: [workingDir, filename] }));
 
   for (const configPath of configPaths) {
     if (fsExistsSyncAdapter({ filePath: configPath })) {

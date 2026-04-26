@@ -13,7 +13,10 @@ import {
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { portResolveBroker } from '@dungeonmaster/shared/brokers';
+import {
+  portResolveBroker,
+  locationsWardResultsPathFindBroker,
+} from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -157,7 +160,10 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             orchestratorFindQuestPathAdapter({ questId })
               .then(async ({ questPath }) => {
                 const detailFilePath = pathJoinAdapter({
-                  paths: [questPath, 'ward-results', `${wardResultId}.json`],
+                  paths: [
+                    locationsWardResultsPathFindBroker({ questFolderPath: questPath }),
+                    `${wardResultId}.json`,
+                  ],
                 });
 
                 const contents = await fsReadFileAdapter({

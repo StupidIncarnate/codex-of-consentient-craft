@@ -10,11 +10,10 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { adapterResultContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
-
-const OUTBOX_FILE_NAME = 'event-outbox.jsonl';
 
 export const questOutboxAppendBroker = async ({
   questId,
@@ -23,7 +22,9 @@ export const questOutboxAppendBroker = async ({
 }): Promise<AdapterResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const outboxFilePath = pathJoinAdapter({ paths: [homePath, OUTBOX_FILE_NAME] });
+  const outboxFilePath = pathJoinAdapter({
+    paths: [homePath, locationsStatics.dungeonmasterHome.eventOutbox],
+  });
 
   const outboxLine = questOutboxLineContract.parse({
     questId,

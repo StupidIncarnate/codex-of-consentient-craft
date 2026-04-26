@@ -20,6 +20,7 @@ import {
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
@@ -27,7 +28,6 @@ import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questPersistBroker } from '../../quest/persist/quest-persist-broker';
 import { questWithModifyLockBroker } from '../../quest/with-modify-lock/quest-with-modify-lock-broker';
 
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const smoketestStampOverrideBroker = async ({
@@ -44,7 +44,7 @@ export const smoketestStampOverrideBroker = async ({
     run: async (): Promise<{ success: true }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
       );
 
       const loadedQuest = await questLoadBroker({ questFilePath });

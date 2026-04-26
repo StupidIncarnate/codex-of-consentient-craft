@@ -47,3 +47,7 @@ export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker.
 
 // Cwd Resolve Broker Proxy (typed-cwd brand resolver)
 export * from './src/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+
+// Locations Broker Proxies
+export * from './src/brokers/locations/design-scaffold-path-find/locations-design-scaffold-path-find-broker.proxy';
+export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';

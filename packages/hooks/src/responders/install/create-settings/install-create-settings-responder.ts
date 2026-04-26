@@ -13,14 +13,13 @@ import {
   packageNameContract,
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
 
-const SETTINGS_DIR = '.claude';
-const SETTINGS_FILENAME = 'settings.json';
 const PACKAGE_NAME = '@dungeonmaster/hooks';
 const JSON_INDENT_SPACES = 2;
 
@@ -30,7 +29,11 @@ export const InstallCreateSettingsResponder = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   const settingsPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, SETTINGS_DIR, SETTINGS_FILENAME],
+    paths: [
+      context.targetProjectRoot,
+      locationsStatics.repoRoot.claude.dir,
+      locationsStatics.repoRoot.claude.settings,
+    ],
   });
 
   let existingSettings: ClaudeSettings | null = null;

@@ -8,13 +8,12 @@
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
@@ -26,7 +25,7 @@ export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promis
   const quests = await Promise.all(
     questFolders.map(async (folderName) => {
       const questFilePath = pathJoinAdapter({
-        paths: [questsPath, folderName, QUEST_FILE_NAME],
+        paths: [questsPath, folderName, locationsStatics.quest.questFile],
       });
       return questLoadBroker({ questFilePath });
     }),

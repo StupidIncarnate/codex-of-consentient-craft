@@ -17,11 +17,9 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
-import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
+import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import type { McpPermission } from '../../../contracts/mcp-permission/mcp-permission-contract';
 
-const SETTINGS_DIR = '.claude';
-const SETTINGS_FILENAME = 'settings.json';
 const JSON_INDENT_SPACES = 2;
 const DUNGEONMASTER_PERMISSION_PREFIX = `mcp__${mcpToolsStatics.server.name}__`;
 
@@ -31,10 +29,16 @@ export const settingsPermissionsAddBroker = async ({
   targetProjectRoot: PathSegment;
 }): Promise<FileContents> => {
   const settingsDir = pathSegmentContract.parse(
-    pathJoinAdapter({ paths: [targetProjectRoot, SETTINGS_DIR] }),
+    pathJoinAdapter({ paths: [targetProjectRoot, locationsStatics.repoRoot.claude.dir] }),
   );
   const settingsPath = pathSegmentContract.parse(
-    pathJoinAdapter({ paths: [targetProjectRoot, SETTINGS_DIR, SETTINGS_FILENAME] }),
+    pathJoinAdapter({
+      paths: [
+        targetProjectRoot,
+        locationsStatics.repoRoot.claude.dir,
+        locationsStatics.repoRoot.claude.settings,
+      ],
+    }),
   );
 
   // Ensure .claude directory exists
