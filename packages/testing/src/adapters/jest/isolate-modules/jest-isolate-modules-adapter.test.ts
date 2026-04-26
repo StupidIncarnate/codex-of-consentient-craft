@@ -3,13 +3,13 @@ import { jestIsolateModulesAdapterProxy } from './jest-isolate-modules-adapter.p
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('jestIsolateModulesAdapter', () => {
-  it('VALID: {mocks, entrypoint} => applies doMock and requires entrypoint in isolated scope', () => {
+  it('VALID: {mocks, entrypoint} => applies doMock and imports entrypoint in isolated scope', async () => {
     jestIsolateModulesAdapterProxy();
 
     let callCount = 0;
 
     callCount += 1;
-    jestIsolateModulesAdapter({
+    await jestIsolateModulesAdapter({
       mocks: [
         {
           module: FilePathStub({ value: 'path' }),

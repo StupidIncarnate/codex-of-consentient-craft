@@ -2,35 +2,35 @@
 > dungeonmaster@0.1.0-beta.1 ward
 > dungeonmaster-ward --only lint
 
-lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/config running...lint        @dungeonmaster/hooks running...lint        @dungeonmaster/cli   running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (9.3s)
+lint        @dungeonmaster/cli   running...lint        @dungeonmaster/config running...lint        @dungeonmaster/hooks running...lint        @dungeonmaster/eslint-plugin running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (9.1s)
 [K
-lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (11.1s)
+lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.7s)
 [K
-lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.3s)
+lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.5s)
 [K
-lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  338 files, 49 errors, 338 discovered (19.2s)
+lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  338 files, 49 errors, 338 discovered (18.8s)
 [K
-lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 10 errors, 580 discovered (26.8s)
+lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 9 errors, 580 discovered (26.6s)
 [K
-lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 10 errors, 440 discovered (21.6s)
+lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 8 errors, 440 discovered (21.9s)
 [K
-lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 5 errors, 376 discovered (19.1s)
+lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 5 errors, 376 discovered (19.0s)
 [K
-lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  719 files, 11 errors, 719 discovered (27.4s)
+lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 8 errors, 722 discovered (27.9s)
 [K
-lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 11 errors, 349 discovered (22.1s)
+lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 11 errors, 349 discovered (22.5s)
 [K
-[Klint        @dungeonmaster/ward  FAIL  320 files, 2 errors, 320 discovered (18.8s)
+[Klint        @dungeonmaster/ward  FAIL  320 files, 2 errors, 320 discovered (19.2s)
 [K
-[Klint        @dungeonmaster/orchestrator FAIL  1043 files, 37 errors, 1043 discovered (48.4s)
+[Klint        @dungeonmaster/orchestrator FAIL  1043 files, 36 errors, 1043 discovered (49.3s)
 [K
-lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   FAIL  628 files, 1 errors, 628 discovered (31.4s)
+lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   FAIL  628 files, 1 errors, 628 discovered (30.8s)
 [K
-[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.1s)
+[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.2s)
 [K
 [K
-run: 1777191498539-06ec  (83.3s)
-lint:      FAIL  13 packages (4995 files passed/91 files failed, 5086 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (10), @dungeonmaster/hooks (49), @dungeonmaster/mcp (10), @dungeonmaster/orchestrator (37), @dungeonmaster/server (5), @dungeonmaster/shared (11), @dungeonmaster/testing (11), @dungeonmaster/tooling (2), @dungeonmaster/ward (2), @dungeonmaster/web (1)  48.4s
+run: 1777193361023-29c2  (84.2s)
+lint:      FAIL  13 packages (5005 files passed/84 files failed, 5089 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (9), @dungeonmaster/hooks (49), @dungeonmaster/mcp (8), @dungeonmaster/orchestrator (36), @dungeonmaster/server (5), @dungeonmaster/shared (8), @dungeonmaster/testing (11), @dungeonmaster/tooling (2), @dungeonmaster/ward (2), @dungeonmaster/web (1)  49.3s
 
 --- lint ---
 packages/cli/bin/cli-entry.ts
@@ -49,8 +49,6 @@ packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-uni
   @typescript-eslint/prefer-optional-chain Prefer using an optional chain expression instead, as it's more concise and easier to read. (line 56)
 packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts
   @typescript-eslint/init-declarations Variable 'varDecl' should be initialized on declaration. (line 38)
-packages/eslint-plugin/src/brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker.proxy.ts
-  @dungeonmaster/enforce-folder-return-types Functions in brokers/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 8)
 packages/eslint-plugin/src/module-loads.e2e.test.ts
   @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 31)
 packages/eslint-plugin/src/responders/install/detect-config/install-detect-config-responder.ts
@@ -161,8 +159,6 @@ packages/hooks/test/harnesses/hook-runner/hook-persistent-runner.harness.ts
   @typescript-eslint/no-unsafe-argument Unsafe argument of type `any` assigned to a parameter of type `{ stdout?: string; stderr?: string; exitCode?: number; }`. (line 47)
 packages/mcp/src/adapters/glob/find/glob-find-adapter.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 27)
-packages/mcp/src/adapters/path/resolve/path-resolve-adapter.proxy.ts
-  @dungeonmaster/enforce-folder-return-types Functions in adapters/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 8)
 packages/mcp/src/brokers/file/scanner/file-scanner-broker.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 42)
 packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts
@@ -175,8 +171,6 @@ packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 108)
 packages/mcp/src/responders/install/config-create/install-config-create-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/mcp/src/transformers/kebab-to-camel/kebab-to-camel-transformer.proxy.ts
-  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 9)
 packages/mcp/src/transformers/path-to-relative/path-to-relative-transformer.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 18)
 packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
@@ -241,8 +235,6 @@ packages/orchestrator/src/transformers/chat-line-process/chat-line-process-trans
   @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 135)
 packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.ts
   @typescript-eslint/no-unsafe-assignment Unsafe assignment of an `any` value. (line 37)
-packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.ts
-  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 13)
 packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
   @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 44)
 packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
@@ -263,8 +255,6 @@ packages/server/src/responders/server/init/server-init-responder.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 160)
 packages/server/src/responders/tooling/smoketest-run/tooling-smoketest-run-responder.ts
   @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
-packages/shared/src/brokers/claude-line/normalize/claude-line-normalize-broker.ts
-  @dungeonmaster/enforce-folder-return-types Functions in brokers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 14)
 packages/shared/src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.ts
   @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
 packages/shared/src/brokers/install/check/install-check-broker.ts
@@ -281,10 +271,6 @@ packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.t
   @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 163)
 packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
   @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 183)
-packages/shared/src/transformers/inflate-xml-strings/inflate-xml-strings-transformer.ts
-  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 17)
-packages/shared/src/transformers/snake-keys-to-camel-keys/snake-keys-to-camel-keys-transformer.ts
-  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 9)
 packages/testing/src/adapters/jest/isolate-modules/jest-isolate-modules-adapter.ts
   @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 29)
 packages/testing/src/adapters/jest/require-actual/jest-require-actual-adapter.ts
@@ -318,4 +304,4 @@ packages/ward/src/startup/start-ward.ts
 packages/web/src/transformers/extract-task-description/extract-task-description-transformer.ts
   @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 32)
 
-Full error details: npm run ward -- detail 1777191498539-06ec <filePath>
+Full error details: npm run ward -- detail 1777193361023-29c2 <filePath>

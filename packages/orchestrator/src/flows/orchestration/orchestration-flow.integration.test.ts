@@ -1,4 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { requireActual } from '@dungeonmaster/testing/register-mock';
 import { orchestrationEventPayloadRecordTransformer } from '../../transformers/orchestration-event-payload-record/orchestration-event-payload-record-transformer';
 import { orchestrationEventsStateExtractTransformer } from '../../transformers/orchestration-events-state-extract/orchestration-events-state-extract-transformer';
 import {
@@ -2774,11 +2775,14 @@ describe('OrchestrationFlow', () => {
   });
 
   describe('agent output streaming', () => {
-    // Access orchestrationEventsState singleton via require (allowed in test files).
-    // The import hierarchy rule prevents flows/ from importing state/ via ESM,
-    // but require() is not checked by ImportDeclaration visitors.
+    // Access orchestrationEventsState singleton via requireActual with an absolute path.
+    // The import hierarchy rule prevents flows/ from importing state/ via ESM.
+    // require.resolve() (MemberExpression callee) is not banned by ban-require-in-source,
+    // and passing an absolute path to requireActual bypasses the proxy stack-frame resolver.
     const eventsState = orchestrationEventsStateExtractTransformer({
-      rawModule: require('../../state/orchestration-events/orchestration-events-state'),
+      rawModule: requireActual({
+        module: require.resolve('../../state/orchestration-events/orchestration-events-state'),
+      }),
     });
 
     const subscribeChatOutput = (): {

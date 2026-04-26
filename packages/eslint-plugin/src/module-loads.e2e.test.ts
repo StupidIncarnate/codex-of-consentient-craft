@@ -26,12 +26,8 @@ describe('ESLint Plugin Module Loading', () => {
     ]);
   });
 
-  it('VALID: {require @dungeonmaster/eslint-plugin} => returns module with StartEslintPlugin export', () => {
-    const importPlugin = (): unknown => {
-      return require('@dungeonmaster/eslint-plugin');
-    };
-
-    const module = importPlugin() as {
+  it('VALID: {import @dungeonmaster/eslint-plugin} => returns module with StartEslintPlugin export', async () => {
+    const module = (await import('@dungeonmaster/eslint-plugin')) as {
       configDungeonmasterBroker: typeof configDungeonmasterBroker;
     };
 

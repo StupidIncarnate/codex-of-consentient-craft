@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Wraps jest.isolateModules and jest.doMock for entry point testing without direct jest API usage in proxies
+ * PURPOSE: Wraps jest.isolateModulesAsync and jest.doMock for entry point testing without direct jest API usage in proxies
  *
  * USAGE:
- * jestIsolateModulesAdapter({ mocks: [{ module: filePathContract.parse('/abs/path/to/module'), factory: () => ({}) }], entrypoint: filePathContract.parse('/abs/path/to/index') });
+ * await jestIsolateModulesAdapter({ mocks: [{ module: filePathContract.parse('/abs/path/to/module'), factory: () => ({}) }], entrypoint: filePathContract.parse('/abs/path/to/index') });
  * // Loads entrypoint in an isolated module scope with specified modules mocked
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
@@ -14,19 +14,19 @@ export interface IsolateModulesMock {
   factory: () => Record<PropertyKey, unknown>;
 }
 
-export const jestIsolateModulesAdapter = ({
+export const jestIsolateModulesAdapter = async ({
   mocks,
   entrypoint,
 }: {
   mocks: IsolateModulesMock[];
   entrypoint: FilePath;
-}): AdapterResult => {
-  jest.isolateModules(() => {
+}): Promise<AdapterResult> => {
+  await jest.isolateModulesAsync(async () => {
     for (const mock of mocks) {
       jest.doMock(mock.module, mock.factory);
     }
 
-    require(filePathContract.parse(entrypoint));
+    await import(filePathContract.parse(entrypoint));
   });
 
   return { success: true as const };
