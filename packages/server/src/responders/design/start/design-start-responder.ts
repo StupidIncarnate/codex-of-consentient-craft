@@ -6,11 +6,7 @@
  * // Returns { status: 200, data: { port } } or { status: 400/500, data: { error } }
  */
 
-import {
-  absoluteFilePathContract,
-  guildIdContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
@@ -18,6 +14,8 @@ import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { designScaffoldBroker } from '../../../brokers/design/scaffold/design-scaffold-broker';
 import { designStartBroker } from '../../../brokers/design/start/design-start-broker';
+import { guildIdBodyContract } from '../../../contracts/guild-id-body/guild-id-body-contract';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
@@ -39,13 +37,14 @@ export const DesignStartResponder = async ({
       });
     }
 
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
+    const { questId } = parsedParams.data;
 
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
@@ -54,18 +53,16 @@ export const DesignStartResponder = async ({
       });
     }
 
-    const rawGuildId: unknown = Reflect.get(body, 'guildId');
-    if (typeof rawGuildId !== 'string') {
+    const parsedBody = guildIdBodyContract.safeParse(body);
+    if (!parsedBody.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId is required' },
       });
     }
+    const { guildId } = parsedBody.data;
 
-    const questId = questIdContract.parse(questIdRaw);
-    const guildId = guildIdContract.parse(rawGuildId);
-
-    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    const questResult = await orchestratorGetQuestAdapter({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -99,7 +96,7 @@ export const DesignStartResponder = async ({
     designProcessState.register({ questId, port, kill });
 
     await orchestratorModifyQuestAdapter({
-      questId: questIdRaw,
+      questId,
       input: { status: 'explore_design', designPort: port } as never,
     });
 

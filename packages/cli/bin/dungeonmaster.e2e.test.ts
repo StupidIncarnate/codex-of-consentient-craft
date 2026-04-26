@@ -9,7 +9,7 @@ import { spawn } from 'node:child_process';
 import { accessSync, constants, existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 
 const BIN_PATH = resolve(__dirname, '../dist/bin/dungeonmaster.js');
 const TIMEOUT_MS = 5000;
@@ -50,21 +50,22 @@ describe('dungeonmaster binary', () => {
       async () => {
         const tempDir = createTempDir();
 
-        const result = await new Promise((promiseResolve, promiseReject) => {
+        let exitCode: ReturnType<typeof ExitCodeStub> | null = null;
+
+        await new Promise<void>((promiseResolve, promiseReject) => {
           const child = spawn('node', [BIN_PATH, 'init'], {
             stdio: ['pipe', 'pipe', 'pipe'],
             env: { ...process.env, FORCE_COLOR: '0' },
             cwd: tempDir,
           });
 
-          let stdoutOutput = '';
-
-          child.stdout.on('data', (data: Buffer) => {
-            stdoutOutput += data.toString();
+          child.stdout.on('data', (_data: Buffer) => {
+            // stdout consumed but not asserted in this test
           });
 
-          child.on('exit', (exitCode) => {
-            promiseResolve({ code: exitCode, stdout: stdoutOutput });
+          child.on('exit', (code) => {
+            exitCode = ExitCodeStub({ value: code! });
+            promiseResolve();
           });
 
           child.on('error', (err) => {
@@ -74,11 +75,8 @@ describe('dungeonmaster binary', () => {
 
         rmSync(tempDir, { recursive: true, force: true });
 
-        // Extract properties from result using Reflect.get for type safety
-        const code = Reflect.get(result as object, 'code');
-
         // Init command should complete without error (exit 0)
-        expect(code).toBe(0);
+        expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
       },
       TIMEOUT_MS,
     );

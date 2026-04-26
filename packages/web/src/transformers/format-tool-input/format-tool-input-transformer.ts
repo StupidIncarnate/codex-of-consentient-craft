@@ -8,6 +8,7 @@
 
 import { formattedToolInputContract } from '../../contracts/formatted-tool-input/formatted-tool-input-contract';
 import type { FormattedToolInput } from '../../contracts/formatted-tool-input/formatted-tool-input-contract';
+import { parsedToolInputContract } from '../../contracts/parsed-tool-input/parsed-tool-input-contract';
 
 const LONG_VALUE_THRESHOLD = 120;
 
@@ -32,17 +33,23 @@ export const formatToolInputTransformer = ({
     return null;
   }
 
-  let parsed: unknown = null;
+  const rawParsed = ((): unknown => {
+    try {
+      return JSON.parse(toolInput) as unknown;
+    } catch {
+      return undefined;
+    }
+  })();
 
-  try {
-    parsed = JSON.parse(toolInput) as unknown;
-  } catch {
+  if (typeof rawParsed !== 'object' || rawParsed === null || Array.isArray(rawParsed)) {
     return null;
   }
 
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+  const parsedResult = parsedToolInputContract.safeParse(rawParsed);
+  if (!parsedResult.success) {
     return null;
   }
+  const parsed = parsedResult.data;
 
   const allKeys = Object.keys(parsed);
   const priorityKeys = priorityFieldsMap.get(toolName) ?? [];
@@ -53,7 +60,7 @@ export const formatToolInputTransformer = ({
   ];
 
   const fields = orderedKeys.map((key) => {
-    const rawValue: unknown = Reflect.get(parsed, key);
+    const rawValue = parsed[key as keyof typeof parsed];
     const value = typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue);
 
     return {

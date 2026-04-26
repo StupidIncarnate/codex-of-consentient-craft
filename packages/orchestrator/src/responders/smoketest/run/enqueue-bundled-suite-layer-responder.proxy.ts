@@ -65,12 +65,10 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
       mocked.mockResolvedValueOnce(null);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './enqueue-bundled-suite-layer-responder' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'EnqueueBundledSuiteLayerResponder',
-      ) as typeof EnqueueBundledSuiteLayerResponder;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        EnqueueBundledSuiteLayerResponder: typeof EnqueueBundledSuiteLayerResponder;
+      }>({ module: './enqueue-bundled-suite-layer-responder' });
+      mocked.mockImplementation(realMod.EnqueueBundledSuiteLayerResponder);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
     getHydrateBrokerCallArgs: (): readonly unknown[][] => hydrateProxy.getCallArgs(),

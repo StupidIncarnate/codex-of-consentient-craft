@@ -61,14 +61,12 @@ export const EnqueueOrchestrationScenarioLayerResponderProxy = (): {
       mocked.mockRejectedValueOnce(error);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({
+      const realMod = requireActual<{
+        EnqueueOrchestrationScenarioLayerResponder: typeof EnqueueOrchestrationScenarioLayerResponder;
+      }>({
         module: './enqueue-orchestration-scenario-layer-responder',
       });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'EnqueueOrchestrationScenarioLayerResponder',
-      ) as typeof EnqueueOrchestrationScenarioLayerResponder;
-      mocked.mockImplementation(realImpl);
+      mocked.mockImplementation(realMod.EnqueueOrchestrationScenarioLayerResponder);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
   };

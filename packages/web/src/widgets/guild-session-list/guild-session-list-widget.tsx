@@ -8,7 +8,7 @@
 
 import { Badge, Group, Loader, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
@@ -31,27 +31,27 @@ const ITEM_FONT_SIZE = 12;
 const STATUS_FONT_SIZE = 10;
 const { colors } = emberDepthsThemeStatics;
 
-const STATUS_COLORS = {
-  created: colors.warning,
-  pending: colors.warning,
-  explore_flows: colors.warning,
-  flows_approved: colors.warning,
-  explore_observables: colors.warning,
-  explore_design: colors.warning,
-  review_flows: colors['loot-gold'],
-  review_observables: colors['loot-gold'],
-  review_design: colors['loot-gold'],
-  approved: colors['loot-rare'],
-  design_approved: colors['loot-rare'],
-  seek_scope: colors['seek-scope'],
-  seek_synth: colors['seek-synth'],
-  seek_walk: colors['seek-walk'],
-  seek_plan: colors['seek-plan'],
-  in_progress: colors.primary,
-  complete: colors.success,
-  blocked: colors.danger,
-  abandoned: colors['text-dim'],
-} as const;
+const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof colors]>([
+  ['created', colors.warning],
+  ['pending', colors.warning],
+  ['explore_flows', colors.warning],
+  ['flows_approved', colors.warning],
+  ['explore_observables', colors.warning],
+  ['explore_design', colors.warning],
+  ['review_flows', colors['loot-gold']],
+  ['review_observables', colors['loot-gold']],
+  ['review_design', colors['loot-gold']],
+  ['approved', colors['loot-rare']],
+  ['design_approved', colors['loot-rare']],
+  ['seek_scope', colors['seek-scope']],
+  ['seek_synth', colors['seek-synth']],
+  ['seek_walk', colors['seek-walk']],
+  ['seek_plan', colors['seek-plan']],
+  ['in_progress', colors.primary],
+  ['complete', colors.success],
+  ['blocked', colors.danger],
+  ['abandoned', colors['text-dim']],
+]);
 
 const TERMINAL_ROW_OPACITY = 0.5;
 const TERMINAL_STATUSES = new Set(['abandoned']);
@@ -146,9 +146,8 @@ export const GuildSessionListWidget = ({
                     data-testid={`SESSION_STATUS_${session.sessionId}`}
                     style={{
                       color:
-                        (Reflect.get(STATUS_COLORS, session.questStatus) as
-                          | (typeof colors)['text-dim']
-                          | undefined) ?? colors['text-dim'],
+                        STATUS_COLOR_MAP.get(session.questStatus as unknown as QuestStatus) ??
+                        colors['text-dim'],
                       fontSize: STATUS_FONT_SIZE,
                     }}
                   >

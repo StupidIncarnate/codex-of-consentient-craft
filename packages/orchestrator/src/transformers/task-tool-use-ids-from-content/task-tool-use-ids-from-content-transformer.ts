@@ -6,37 +6,50 @@
  * // Returns ['toolu_01X'] as ToolUseId[]. The matching item is mutated with agentId = 'toolu_01X'.
  */
 
+import {
+  normalizedStreamLineContentItemContract,
+  type NormalizedStreamLineContentItem,
+} from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import {
+  normalizedStreamLineContract,
+  type NormalizedStreamLine,
+} from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 
 export const taskToolUseIdsFromContentTransformer = ({
   entry,
 }: {
-  entry: Record<string, unknown>;
+  entry: unknown;
 }): ToolUseId[] => {
-  const message: unknown = Reflect.get(entry, 'message');
-  if (typeof message !== 'object' || message === null) {
+  // Validate the line shape first; if invalid, nothing to extract.
+  const lineParse = normalizedStreamLineContract.safeParse(entry);
+  if (!lineParse.success) {
     return [];
   }
 
-  const content: unknown = Reflect.get(message, 'content');
-  if (!Array.isArray(content)) {
+  // After validation, walk the ORIGINAL entry's content array (not the parsed copy)
+  // so the eager `agentId` stamping on each tool_use item lands on the same object
+  // reference downstream consumers hold via `parsed` in chat-line-process-transformer.
+  // The cast to `NormalizedStreamLine` is sound because `lineParse.success` confirmed it.
+  const originalContent = (entry as NormalizedStreamLine).message?.content;
+  if (!Array.isArray(originalContent)) {
     return [];
   }
 
   const ids: ToolUseId[] = [];
-  for (const item of content) {
-    if (typeof item !== 'object' || item === null) continue;
-    if (Reflect.get(item, 'type') !== 'tool_use') continue;
-    const itemName: unknown = Reflect.get(item, 'name');
-    if (itemName !== 'Task' && itemName !== 'Agent') continue;
-    const id: unknown = Reflect.get(item, 'id');
-    if (typeof id !== 'string') continue;
-    const parsedId = toolUseIdContract.parse(id);
+  for (const rawItem of originalContent) {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) continue;
+    const item = itemParse.data;
+    if (item.type !== 'tool_use') continue;
+    if (item.name !== 'Task' && item.name !== 'Agent') continue;
+    if (typeof item.id !== 'string') continue;
+    const parsedId = toolUseIdContract.parse(String(item.id));
     ids.push(parsedId);
-    const existingAgentId: unknown = Reflect.get(item, 'agentId');
-    if (typeof existingAgentId !== 'string' || existingAgentId.length === 0) {
-      Reflect.set(item, 'agentId', parsedId);
+    if (typeof item.agentId !== 'string' || String(item.agentId).length === 0) {
+      const mutTarget = rawItem as NormalizedStreamLineContentItem;
+      mutTarget.agentId = parsedId as unknown as NormalizedStreamLineContentItem['agentId'];
     }
   }
 

@@ -9,11 +9,7 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
-  guildIdContract,
   orchestrationEventTypeContract,
-  processIdContract,
-  questIdContract,
-  sessionIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -38,6 +34,9 @@ import { devLogEventFormatTransformer } from '../../../transformers/dev-log-even
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { ProcessId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
+import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
+import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
+import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
@@ -63,20 +62,23 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       },
       onMessage: (evt: unknown, _ws: unknown) => {
         try {
-          const evtData: unknown =
-            typeof evt === 'object' && evt !== null ? Reflect.get(evt, 'data') : undefined;
+          const evtParsed =
+            typeof evt === 'object' && evt !== null
+              ? wsEventDataContract.safeParse(evt)
+              : undefined;
+          const evtData = evtParsed?.success ? evtParsed.data.data : undefined;
 
-          const raw: unknown =
+          const rawJson: unknown =
             typeof evtData === 'string' ? (JSON.parse(evtData) as unknown) : undefined;
 
-          if (typeof raw !== 'object' || raw === null) return;
+          if (typeof rawJson !== 'object' || rawJson === null) return;
 
-          const type: unknown = Reflect.get(raw, 'type');
+          const parsedMessage = wsIncomingMessageContract.safeParse(rawJson);
+          if (!parsedMessage.success) return;
+          const message = parsedMessage.data;
 
-          if (type === 'replay-history') {
-            const sessionId = sessionIdContract.parse(Reflect.get(raw, 'sessionId'));
-            const guildId = guildIdContract.parse(Reflect.get(raw, 'guildId'));
-            const chatProcessId = processIdContract.parse(Reflect.get(raw, 'chatProcessId'));
+          if (message.type === 'replay-history') {
+            const { sessionId, guildId, chatProcessId } = message;
 
             orchestratorListQuestsAdapter({ guildId })
               .then(async (quests) => {
@@ -107,9 +109,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
               });
           }
 
-          if (type === 'quest-by-session-request') {
-            const sessionId = sessionIdContract.parse(Reflect.get(raw, 'sessionId'));
-            const guildId = guildIdContract.parse(Reflect.get(raw, 'guildId'));
+          if (message.type === 'quest-by-session-request') {
+            const { sessionId, guildId } = message;
 
             orchestratorListQuestsAdapter({ guildId })
               .then(async (quests) => {
@@ -126,12 +127,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 }
 
                 return orchestratorLoadQuestAdapter({ questId: match.id }).then((quest) => {
-                  const message = wsMessageContract.parse({
+                  const modifiedMessage = wsMessageContract.parse({
                     type: 'quest-modified',
                     payload: { questId: match.id, quest },
                     timestamp: isoTimestampContract.parse(new Date().toISOString()),
                   });
-                  (_ws as WsClient).send(JSON.stringify(message));
+                  (_ws as WsClient).send(JSON.stringify(modifiedMessage));
                 });
               })
               .catch((error: unknown) => {
@@ -150,9 +151,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 (_ws as WsClient).send(JSON.stringify(notFoundMessage));
               });
           }
-          if (type === 'ward-detail-request') {
-            const questId = questIdContract.parse(Reflect.get(raw, 'questId'));
-            const wardResultId = String(Reflect.get(raw, 'wardResultId'));
+          if (message.type === 'ward-detail-request') {
+            const { questId, wardResultId } = message;
 
             orchestratorFindQuestPathAdapter({ questId })
               .then(async ({ questPath }) => {
@@ -231,10 +231,11 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       type,
       handler: ({ processId, payload }) => {
         const role = processRoleMap.get(processId);
+        const parsedPayload = chatOutputPayloadContract.safeParse(payload);
+        const payloadRole = parsedPayload.success ? parsedPayload.data.role : undefined;
+        const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
         const enrichedPayload =
-          type === 'chat-output' && role && !Reflect.get(payload, 'role')
-            ? { ...payload, role }
-            : payload;
+          type === 'chat-output' && role && !payloadRole ? { ...payload, role } : payload;
 
         if (type === 'chat-history-complete') {
           processRoleMap.delete(processId);
@@ -247,7 +248,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           }),
         });
 
-        if (type === 'chat-output' && typeof Reflect.get(payload, 'slotIndex') === 'number') {
+        if (type === 'chat-output' && typeof slotIndexValue === 'number') {
           pipelineChatOutputBuffer.push({ processId, payload });
           return;
         }

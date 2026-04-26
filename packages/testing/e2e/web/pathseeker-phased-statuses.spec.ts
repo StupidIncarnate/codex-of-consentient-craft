@@ -278,7 +278,7 @@ test.describe('PathSeeker Phased Statuses', () => {
 
     const patchBody = (await patchResponse.json()) as Record<PropertyKey, unknown>;
 
-    expect(Reflect.get(patchBody, 'success')).toBe(true);
+    expect(patchBody.success).toBe(true);
 
     // GET the quest back — server wraps the quest as { success, quest } per getQuestResultContract.
     const getResponse = await request.get(`/api/quests/${questId}`);
@@ -286,19 +286,15 @@ test.describe('PathSeeker Phased Statuses', () => {
     expect(getResponse.status()).toBe(HTTP_OK);
 
     const getBody = (await getResponse.json()) as Record<PropertyKey, unknown>;
-    const questPayload = Reflect.get(getBody, 'quest') as Record<PropertyKey, unknown> | undefined;
-    const planningNotes = Reflect.get(questPayload ?? {}, 'planningNotes') as
-      | Record<PropertyKey, unknown>
-      | undefined;
-    const persistedScope = Reflect.get(planningNotes ?? {}, 'scopeClassification') as
+    const questPayload = getBody.quest as Record<PropertyKey, unknown> | undefined;
+    const planningNotes = questPayload?.planningNotes as Record<PropertyKey, unknown> | undefined;
+    const persistedScope = planningNotes?.scopeClassification as
       | Record<PropertyKey, unknown>
       | undefined;
 
-    expect(Reflect.get(persistedScope ?? {}, 'size')).toBe(scopeClassification.size);
-    expect(Reflect.get(persistedScope ?? {}, 'slicing')).toBe(String(scopeClassification.slicing));
-    expect(Reflect.get(persistedScope ?? {}, 'rationale')).toBe(
-      String(scopeClassification.rationale),
-    );
+    expect(persistedScope?.size).toBe(scopeClassification.size);
+    expect(persistedScope?.slicing).toBe(String(scopeClassification.slicing));
+    expect(persistedScope?.rationale).toBe(String(scopeClassification.rationale));
 
     // UI must not crash — execution panel stays visible after the WS quest-modified event fires.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({

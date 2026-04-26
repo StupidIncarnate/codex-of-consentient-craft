@@ -52,12 +52,10 @@ export const questEnqueueRecoverableBrokerProxy = (): {
       mocked.mockRejectedValueOnce(error);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './quest-enqueue-recoverable-broker' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'questEnqueueRecoverableBroker',
-      ) as typeof questEnqueueRecoverableBroker;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        questEnqueueRecoverableBroker: typeof questEnqueueRecoverableBroker;
+      }>({ module: './quest-enqueue-recoverable-broker' });
+      mocked.mockImplementation(realMod.questEnqueueRecoverableBroker);
     },
     setupDirectGuildListing: ({ items }: { items: readonly GuildListItem[] }): void => {
       guildListProxy.setupDirectListing({ items });

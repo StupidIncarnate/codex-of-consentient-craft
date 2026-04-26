@@ -7,6 +7,7 @@
  */
 import { partialEslintConfigContract } from '../../contracts/partial-eslint-config/partial-eslint-config-contract';
 import type { PartialEslintConfig } from '../../contracts/partial-eslint-config/partial-eslint-config-contract';
+import { rawEslintConfigContract } from '../../contracts/raw-eslint-config/raw-eslint-config-contract';
 
 export const rawEslintConfigToPartialTransformer = ({
   rawConfig,
@@ -14,11 +15,12 @@ export const rawEslintConfigToPartialTransformer = ({
   rawConfig: unknown;
 }): PartialEslintConfig => {
   // Extract only the rules field from raw config, ignoring language and other fields
-  if (typeof rawConfig !== 'object' || rawConfig === null) {
+  const parsed = rawEslintConfigContract.safeParse(rawConfig);
+  if (!parsed.success) {
     return partialEslintConfigContract.parse({});
   }
 
-  const rulesValue: unknown = Reflect.get(rawConfig, 'rules');
+  const rulesValue = parsed.data.rules;
 
   if (typeof rulesValue !== 'object' || rulesValue === null || Array.isArray(rulesValue)) {
     return partialEslintConfigContract.parse({});

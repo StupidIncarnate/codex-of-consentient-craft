@@ -6,6 +6,8 @@
  * // Returns {questions: [{question: "Pick one"}]} or the original input if normalization is not needed
  */
 
+import { askUserQuestionToolInputContract } from '../../contracts/ask-user-question-tool-input/ask-user-question-tool-input-contract';
+
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
 export const normalizeAskUserQuestionInputTransformer = ({
@@ -19,24 +21,24 @@ export const normalizeAskUserQuestionInputTransformer = ({
     return input ?? {};
   }
 
-  if (typeof input !== 'object' || input === null || !('questions' in input)) {
+  const inputParse = askUserQuestionToolInputContract.safeParse(input);
+  if (!inputParse.success) {
     return input ?? {};
   }
 
-  const questions: unknown = Reflect.get(input, 'questions');
-
+  const { questions } = inputParse.data;
   if (typeof questions !== 'string') {
     return input;
   }
 
   try {
-    const parsed: unknown = JSON.parse(questions);
+    const parsed: unknown = JSON.parse(String(questions));
 
     if (!Array.isArray(parsed)) {
       return input;
     }
 
-    return { ...input, questions: parsed };
+    return { ...inputParse.data, questions: parsed };
   } catch {
     return input;
   }

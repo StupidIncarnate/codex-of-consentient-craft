@@ -10,7 +10,11 @@ import { writeFileSync } from 'fs';
 
 import type { APIRequestContext } from '@playwright/test';
 
-import type { QuestId, FilePath } from '@dungeonmaster/shared/contracts';
+import {
+  addQuestResultContract,
+  type QuestId,
+  type FilePath,
+} from '@dungeonmaster/shared/contracts';
 
 import { questFlowObservableSeedTransformer } from '../../../src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer';
 import { questGateContentSeedTransformer } from '../../../src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer';
@@ -96,19 +100,17 @@ export const questHarness = ({
     const response = await request.post('/api/quests', {
       data: { guildId, title, userRequest },
     });
-    const result = (await response.json()) as Record<PropertyKey, unknown>;
-    const questFolder = Reflect.get(result, 'questFolder');
-    const filePath = Reflect.get(result, 'filePath');
-    if (typeof questFolder !== 'string' || typeof filePath !== 'string') {
+    const result = addQuestResultContract.parse(await response.json());
+    if (!result.questFolder || !result.filePath) {
       throw new Error(
         `createQuest API did not return questFolder/filePath: ${JSON.stringify(result)}`,
       );
     }
-    return result as {
-      questId: QuestId;
-      questFolder: QuestId;
-      filePath: FilePath;
-      success: boolean;
+    return {
+      success: result.success,
+      questId: result.questId!,
+      questFolder: result.questFolder as unknown as QuestId,
+      filePath: result.filePath as FilePath,
     };
   };
 

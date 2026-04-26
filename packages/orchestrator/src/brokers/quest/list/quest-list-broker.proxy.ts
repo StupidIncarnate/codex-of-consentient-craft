@@ -27,9 +27,10 @@ export const questListBrokerProxy = (): {
 
   const mocked = questListBroker as jest.MockedFunction<typeof questListBroker>;
   // Default: passthrough so existing consumers driving the fs chain keep working.
-  const realMod = requireActual({ module: './quest-list-broker' });
-  const realImpl = Reflect.get(realMod as object, 'questListBroker') as typeof questListBroker;
-  mocked.mockImplementation(realImpl);
+  const realMod = requireActual<{ questListBroker: typeof questListBroker }>({
+    module: './quest-list-broker',
+  });
+  mocked.mockImplementation(realMod.questListBroker);
 
   return {
     setupQuestsPath: ({

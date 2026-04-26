@@ -1,0 +1,321 @@
+
+> dungeonmaster@0.1.0-beta.1 ward
+> dungeonmaster-ward --only lint
+
+lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/config running...lint        @dungeonmaster/hooks running...lint        @dungeonmaster/cli   running...[Klint        @dungeonmaster/cli   FAIL  75 files, 3 errors, 75 discovered (9.3s)
+[K
+lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (11.1s)
+[K
+lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.3s)
+[K
+lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  338 files, 49 errors, 338 discovered (19.2s)
+[K
+lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 10 errors, 580 discovered (26.8s)
+[K
+lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 10 errors, 440 discovered (21.6s)
+[K
+lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 5 errors, 376 discovered (19.1s)
+[K
+lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  719 files, 11 errors, 719 discovered (27.4s)
+[K
+lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 11 errors, 349 discovered (22.1s)
+[K
+[Klint        @dungeonmaster/ward  FAIL  320 files, 2 errors, 320 discovered (18.8s)
+[K
+[Klint        @dungeonmaster/orchestrator FAIL  1043 files, 37 errors, 1043 discovered (48.4s)
+[K
+lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   FAIL  628 files, 1 errors, 628 discovered (31.4s)
+[K
+[Klint        @dungeonmaster/tooling FAIL  78 files, 2 errors, 78 discovered (7.1s)
+[K
+[K
+run: 1777191498539-06ec  (83.3s)
+lint:      FAIL  13 packages (4995 files passed/91 files failed, 5086 discovered)  @dungeonmaster/cli (3), @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (10), @dungeonmaster/hooks (49), @dungeonmaster/mcp (10), @dungeonmaster/orchestrator (37), @dungeonmaster/server (5), @dungeonmaster/shared (11), @dungeonmaster/testing (11), @dungeonmaster/tooling (2), @dungeonmaster/ward (2), @dungeonmaster/web (1)  48.4s
+
+--- lint ---
+packages/cli/bin/cli-entry.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 23)
+packages/cli/src/transformers/create-default-install-context/create-default-install-context-transformer.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 12)
+packages/cli/src/transformers/create-default-install-context/create-default-install-context-transformer.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 13)
+packages/config/src/responders/install/create-config/install-create-config-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
+packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 32)
+packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.proxy.ts
+  @dungeonmaster/enforce-proxy-child-creation Implementation imports checkResolveSchemaBindingLayerBroker but proxy does not import its corresponding proxy from ./check-resolve-schema-binding-layer-broker.proxy. (line 1)
+packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts
+  @typescript-eslint/prefer-optional-chain Prefer using an optional chain expression instead, as it's more concise and easier to read. (line 56)
+packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts
+  @typescript-eslint/init-declarations Variable 'varDecl' should be initialized on declaration. (line 38)
+packages/eslint-plugin/src/brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker.proxy.ts
+  @dungeonmaster/enforce-folder-return-types Functions in brokers/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 8)
+packages/eslint-plugin/src/module-loads.e2e.test.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 31)
+packages/eslint-plugin/src/responders/install/detect-config/install-detect-config-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 102)
+packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 11)
+packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.mjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 12)
+packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.cjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
+packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 33)
+packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 34)
+packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 24)
+packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 18)
+packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.js'. It belongs to `locationsStatics.hooks.configFiles[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
+packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.mjs'. It belongs to `locationsStatics.hooks.configFiles[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 21)
+packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.cjs'. It belongs to `locationsStatics.hooks.configFiles[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
+packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 32)
+packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 43)
+packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 40)
+packages/hooks/src/contracts/base-hook-data/base-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
+packages/hooks/src/contracts/hook-data/hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 9)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 35)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 79)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 87)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 95)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 105)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 113)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 122)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 123)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 171)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 172)
+packages/hooks/src/contracts/is-session-start-hook-data/is-session-start-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 173)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 27)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 83)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 91)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 99)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 108)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 109)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 157)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 158)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 159)
+packages/hooks/src/contracts/is-valid-hook-data/is-valid-hook-data-contract.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 160)
+packages/hooks/src/contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 12)
+packages/hooks/src/contracts/pre-search-hook-data/pre-search-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
+packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 17)
+packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 39)
+packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 62)
+packages/hooks/src/contracts/pre-tool-use-hook-data/pre-tool-use-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 87)
+packages/hooks/src/contracts/session-start-hook-data/session-start-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
+packages/hooks/src/contracts/subagent-start-hook-data/subagent-start-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
+packages/hooks/src/contracts/user-prompt-submit-hook-data/user-prompt-submit-hook-data.stub.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 11)
+packages/hooks/src/flows/hook-session-snippet/hook-session-snippet-flow.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 35)
+packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
+packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
+packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 93)
+packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.test.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 102)
+packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.ts
+  @typescript-eslint/no-unnecessary-condition Unnecessary conditional, the types have no overlap. (line 25)
+packages/hooks/test/harnesses/hook-runner/hook-persistent-runner.harness.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type `any` assigned to a parameter of type `{ stdout?: string; stderr?: string; exitCode?: number; }`. (line 47)
+packages/mcp/src/adapters/glob/find/glob-find-adapter.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 27)
+packages/mcp/src/adapters/path/resolve/path-resolve-adapter.proxy.ts
+  @dungeonmaster/enforce-folder-return-types Functions in adapters/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 8)
+packages/mcp/src/brokers/file/scanner/file-scanner-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 42)
+packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 78)
+packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
+packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
+packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 108)
+packages/mcp/src/responders/install/config-create/install-config-create-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
+packages/mcp/src/transformers/kebab-to-camel/kebab-to-camel-transformer.proxy.ts
+  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary) (line 9)
+packages/mcp/src/transformers/path-to-relative/path-to-relative-transformer.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 18)
+packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 44)
+packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 44)
+packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.ts
+  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 150)
+packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.ts
+  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 163)
+packages/orchestrator/src/brokers/quest/create/quest-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 33)
+packages/orchestrator/src/brokers/quest/find-quest-path/quest-find-quest-path-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
+packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 18)
+packages/orchestrator/src/brokers/quest/get-planning-notes/quest-get-planning-notes-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 21)
+packages/orchestrator/src/brokers/quest/get/quest-get-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
+packages/orchestrator/src/brokers/quest/list/quest-list-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 17)
+packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 46)
+packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts
+  @typescript-eslint/no-unnecessary-condition Unnecessary conditional, value is always falsy. (line 329)
+packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 17)
+packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
+packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 127)
+packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 170)
+packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 212)
+packages/orchestrator/src/brokers/slot-manager/orchestrate/orchestration-loop-layer-broker.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.set is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.set as an escape hatch. (line 353)
+packages/orchestrator/src/brokers/smoketest/poll-quest-until-terminal/load-quest-by-id-layer-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
+packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 40)
+packages/orchestrator/src/brokers/smoketest/scenario-driver/smoketest-sweep-pending-work-items-layer-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 29)
+packages/orchestrator/src/brokers/smoketest/stamp-override/smoketest-stamp-override-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 30)
+packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
+packages/orchestrator/src/contracts/normalized-stream-line/normalized-stream-line-contract.ts
+  @typescript-eslint/no-unused-vars 'contentItem' is assigned a value but only used as a type. Allowed unused vars must match /^_/u. (line 17)
+packages/orchestrator/src/contracts/orchestration-events-state-facade/orchestration-events-state-facade.stub.ts
+  @typescript-eslint/no-empty-function Unexpected empty arrow function. (line 6)
+packages/orchestrator/src/flows/orchestration/orchestration-flow.integration.test.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 2781)
+packages/orchestrator/src/responders/quest/load/quest-load-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
+packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
+packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 26)
+packages/orchestrator/src/transformers/chat-line-process/chat-line-process-transformer.ts
+  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 135)
+packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.ts
+  @typescript-eslint/no-unsafe-assignment Unsafe assignment of an `any` value. (line 37)
+packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.ts
+  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 13)
+packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 44)
+packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 45)
+packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 46)
+packages/orchestrator/src/transformers/parse-batch-file/parse-batch-file-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 47)
+packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 37)
+packages/server/src/adapters/glob/find/glob-find-adapter.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 23)
+packages/server/src/adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 30)
+packages/server/src/brokers/design/scaffold/design-scaffold-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-quests'. It belongs to `locationsStatics.repoRoot.dungeonmasterQuests` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
+packages/server/src/responders/server/init/server-init-responder.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 160)
+packages/server/src/responders/tooling/smoketest-run/tooling-smoketest-run-responder.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
+packages/shared/src/brokers/claude-line/normalize/claude-line-normalize-broker.ts
+  @dungeonmaster/enforce-folder-return-types Functions in brokers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 14)
+packages/shared/src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
+packages/shared/src/brokers/install/check/install-check-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
+packages/shared/src/brokers/port/resolve/port-resolve-broker.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 36)
+packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 117)
+packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 138)
+packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 139)
+packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 163)
+packages/shared/src/contracts/claude-queue-response/claude-queue-response.stub.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 183)
+packages/shared/src/transformers/inflate-xml-strings/inflate-xml-strings-transformer.ts
+  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 17)
+packages/shared/src/transformers/snake-keys-to-camel-keys/snake-keys-to-camel-keys-transformer.ts
+  @dungeonmaster/enforce-folder-return-types Functions in transformers/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary) (line 9)
+packages/testing/src/adapters/jest/isolate-modules/jest-isolate-modules-adapter.ts
+  @dungeonmaster/ban-require-in-source Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup. (line 29)
+packages/testing/src/adapters/jest/require-actual/jest-require-actual-adapter.ts
+  @typescript-eslint/no-unnecessary-type-parameters Type parameter T is used only once in the function signature. (line 18)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 69)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 112)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 112)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 121)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 130)
+packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 139)
+packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'tsconfig.json'. It belongs to `locationsStatics.repoRoot.tsconfig` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 95)
+packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 104)
+packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
+  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 176)
+packages/tooling/src/adapters/glob/find/glob-find-adapter.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 21)
+packages/tooling/src/responders/primitive-duplicate-detection/run/primitive-duplicate-detection-run-responder.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 32)
+packages/ward/src/brokers/workspace/discover/workspace-discover-layer-read-broker.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 31)
+packages/ward/src/startup/start-ward.ts
+  @dungeonmaster/no-bare-process-cwd process.cwd() is only valid as a seed at CLI entry points (default: start-install.ts) or inside a path-resolver broker. Walk up from a known anchor (package.json, your config file) and pass an absolute path through your call chain instead. (line 15)
+packages/web/src/transformers/extract-task-description/extract-task-description-transformer.ts
+  @dungeonmaster/ban-reflect-outside-guards Reflect.get is only allowed in *-guard.ts and *-contract.ts files. Validate the value through a Zod contract (e.g., someContract.parse(x).y) instead of using Reflect.get as an escape hatch. (line 32)
+
+Full error details: npm run ward -- detail 1777191498539-06ec <filePath>

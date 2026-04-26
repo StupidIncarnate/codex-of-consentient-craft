@@ -13,8 +13,8 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
-import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
+import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
 import { hasFolderTypeSuffixGuard } from '../../../guards/has-folder-type-suffix/has-folder-type-suffix-guard';
@@ -79,15 +79,8 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         // Get folder type and config
         const folderType = projectFolderTypeFromFilePathTransformer({ filename });
-        const folderConfigValue: unknown = folderType
-          ? Reflect.get(folderConfigStatics, folderType)
-          : undefined;
         const folderConfig =
-          folderConfigValue !== null &&
-          folderConfigValue !== undefined &&
-          typeof folderConfigValue === 'object'
-            ? folderConfigValue
-            : undefined;
+          folderType === null ? undefined : folderConfigTransformer({ folderType });
 
         // Determine if this is a contract file
         const isContract = isFileInFolderTypeGuard({
@@ -97,12 +90,9 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         });
 
         // Read testType from folder config to determine test requirements
-        const testTypeValue: unknown =
-          folderConfig && 'testType' in folderConfig
-            ? Reflect.get(folderConfig, 'testType')
-            : 'unit';
+        const rawTestType = folderConfig?.testType;
         const testType =
-          testTypeValue === 'integration' || testTypeValue === 'none' ? testTypeValue : 'unit';
+          rawTestType === 'integration' || rawTestType === 'none' ? rawTestType : 'unit';
 
         // Derive fileType label for integration-test-only messages
         const isStartup = filename.includes('/startup/');
@@ -183,10 +173,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
           if (!hasTestFile) {
             const primaryTestFileName = testFilePaths[0] ?? filename;
-            const allowsLayerFiles =
-              folderConfig && 'allowsLayerFiles' in folderConfig
-                ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
-                : false;
+            const allowsLayerFiles = Boolean(folderConfig?.allowsLayerFiles);
             ctx.report({
               node,
               messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
@@ -225,14 +212,9 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
         }
 
         // Check for proxy file based on folder config (per testing-standards.md:403-418)
-        // Note: folderType and folderConfig already declared above
 
         // Default to not requiring proxy if config doesn't exist or doesn't specify
-        const requireProxyValue: unknown =
-          folderConfig && 'requireProxy' in folderConfig
-            ? Reflect.get(folderConfig, 'requireProxy')
-            : undefined;
-        const needsProxyFile = requireProxyValue === true;
+        const needsProxyFile = folderConfig?.requireProxy === true;
 
         if (needsProxyFile) {
           // Derive expected proxy file name
@@ -281,10 +263,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               }
             }
 
-            const allowsLayerFilesForProxy =
-              folderConfig && 'allowsLayerFiles' in folderConfig
-                ? Boolean(Reflect.get(folderConfig, 'allowsLayerFiles'))
-                : false;
+            const allowsLayerFilesForProxy = folderConfig.allowsLayerFiles;
             ctx.report({
               node,
               messageId: allowsLayerFilesForProxy

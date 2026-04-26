@@ -35,12 +35,10 @@ export const LoadQuestLayerResponderProxy = (): {
       mocked.mockResolvedValueOnce(quest);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './load-quest-layer-responder' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'LoadQuestLayerResponder',
-      ) as typeof LoadQuestLayerResponder;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{ LoadQuestLayerResponder: typeof LoadQuestLayerResponder }>({
+        module: './load-quest-layer-responder',
+      });
+      mocked.mockImplementation(realMod.LoadQuestLayerResponder);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
   };

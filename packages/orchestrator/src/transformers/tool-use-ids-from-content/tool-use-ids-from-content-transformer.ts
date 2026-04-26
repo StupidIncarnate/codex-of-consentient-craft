@@ -6,31 +6,29 @@
  * // Returns ['toolu_01X'] as ToolUseId[]
  */
 
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 
-export const toolUseIdsFromContentTransformer = ({
-  entry,
-}: {
-  entry: Record<string, unknown>;
-}): ToolUseId[] => {
-  const message: unknown = Reflect.get(entry, 'message');
-  if (typeof message !== 'object' || message === null) {
+export const toolUseIdsFromContentTransformer = ({ entry }: { entry: unknown }): ToolUseId[] => {
+  const lineParse = normalizedStreamLineContract.safeParse(entry);
+  if (!lineParse.success) {
     return [];
   }
-
-  const content: unknown = Reflect.get(message, 'content');
+  const content = lineParse.data.message?.content;
   if (!Array.isArray(content)) {
     return [];
   }
 
   const ids: ToolUseId[] = [];
-  for (const item of content) {
-    if (typeof item !== 'object' || item === null) continue;
-    if (Reflect.get(item, 'type') !== 'tool_result') continue;
-    const toolUseId: unknown = Reflect.get(item, 'toolUseId');
-    if (typeof toolUseId === 'string') {
-      ids.push(toolUseIdContract.parse(toolUseId));
+  for (const rawItem of content) {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) continue;
+    const item = itemParse.data;
+    if (item.type !== 'tool_result') continue;
+    if (typeof item.toolUseId === 'string') {
+      ids.push(toolUseIdContract.parse(String(item.toolUseId)));
     }
   }
 

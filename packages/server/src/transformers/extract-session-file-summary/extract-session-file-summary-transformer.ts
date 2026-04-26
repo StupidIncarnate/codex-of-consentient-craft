@@ -7,6 +7,7 @@
  */
 
 import type { FileContents } from '@dungeonmaster/shared/contracts';
+import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
 import {
   sessionSummaryContract,
   type SessionSummary,
@@ -63,11 +64,11 @@ export const extractSessionFileSummaryTransformer = ({
       continue;
     }
     try {
-      const parsed: unknown = JSON.parse(line);
-      if (typeof parsed === 'object' && parsed !== null) {
-        const slug: unknown = Reflect.get(parsed, 'slug');
-        if (typeof slug === 'string' && slug.length > 0) {
-          return sessionSummaryContract.parse(slug);
+      const rawParsed: unknown = JSON.parse(line);
+      if (typeof rawParsed === 'object' && rawParsed !== null) {
+        const parsedLine = jsonlSessionLineContract.safeParse(rawParsed);
+        if (parsedLine.success && parsedLine.data.slug !== undefined) {
+          return sessionSummaryContract.parse(parsedLine.data.slug);
         }
       }
     } catch {

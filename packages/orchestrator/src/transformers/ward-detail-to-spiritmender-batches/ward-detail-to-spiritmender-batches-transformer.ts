@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { SpiritmenderBatch } from '../../contracts/spiritmender-batch/spiritmender-batch-contract';
+import { wardDetailJsonContract } from '../../contracts/ward-detail-json/ward-detail-json-contract';
 
 const STACK_TRACE_PREFIX = 'Stack: ';
 
@@ -25,52 +26,37 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
   batchSize: number;
 }): SpiritmenderBatch[] => {
   const trimmed = detailJson.trim();
-  const parsed: unknown = JSON.parse(trimmed);
+  const parseResult = wardDetailJsonContract.safeParse(JSON.parse(trimmed));
 
-  if (typeof parsed !== 'object' || parsed === null) {
+  if (!parseResult.success) {
     return [];
   }
 
+  const detail = parseResult.data;
   const fileErrorMap = new Map<AbsoluteFilePath, ErrorMessage[]>();
-
-  const checksValue: unknown = Reflect.get(parsed, 'checks');
-  const checks: unknown[] = Array.isArray(checksValue) ? checksValue : [];
+  const checks = detail.checks ?? [];
 
   for (const check of checks) {
-    if (typeof check !== 'object' || check === null) {
-      continue;
-    }
-
-    const projectResultsValue: unknown = Reflect.get(check, 'projectResults');
-    const projectResults: unknown[] = Array.isArray(projectResultsValue) ? projectResultsValue : [];
+    const projectResults = check.projectResults ?? [];
 
     for (const projectResult of projectResults) {
-      if (typeof projectResult !== 'object' || projectResult === null) {
-        continue;
-      }
-
-      const errorsValue: unknown = Reflect.get(projectResult, 'errors');
-      const errors: unknown[] = Array.isArray(errorsValue) ? errorsValue : [];
+      const errors = projectResult.errors ?? [];
 
       for (const error of errors) {
-        if (typeof error !== 'object' || error === null) {
-          continue;
-        }
-
-        const filePath: unknown = Reflect.get(error, 'filePath');
+        const { filePath } = error;
 
         if (typeof filePath !== 'string') {
           continue;
         }
 
         try {
-          const absolutePath = absoluteFilePathContract.parse(filePath);
-          const message: unknown = Reflect.get(error, 'message');
-          const line: unknown = Reflect.get(error, 'line');
-          const column: unknown = Reflect.get(error, 'column');
-          const rule: unknown = Reflect.get(error, 'rule');
+          const absolutePath = absoluteFilePathContract.parse(String(filePath));
+          const { message } = error;
+          const { line } = error;
+          const { column } = error;
+          const { rule } = error;
 
-          const errorParts: ErrorMessage[] = [errorMessageContract.parse(filePath)];
+          const errorParts: ErrorMessage[] = [errorMessageContract.parse(String(filePath))];
 
           if (typeof line === 'number') {
             errorParts.push(errorMessageContract.parse(`:${String(line)}`));
@@ -81,11 +67,11 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
           }
 
           if (typeof message === 'string') {
-            errorParts.push(errorMessageContract.parse(` ${message}`));
+            errorParts.push(errorMessageContract.parse(` ${String(message)}`));
           }
 
           if (typeof rule === 'string') {
-            errorParts.push(errorMessageContract.parse(` (${rule})`));
+            errorParts.push(errorMessageContract.parse(` (${String(rule)})`));
           }
 
           const formattedError = errorMessageContract.parse(errorParts.join(''));
@@ -98,38 +84,35 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
         }
       }
 
-      const testFailuresValue: unknown = Reflect.get(projectResult, 'testFailures');
-      const testFailures: unknown[] = Array.isArray(testFailuresValue) ? testFailuresValue : [];
+      const testFailures = projectResult.testFailures ?? [];
 
       for (const failure of testFailures) {
-        if (typeof failure !== 'object' || failure === null) {
-          continue;
-        }
-
-        const suitePath: unknown = Reflect.get(failure, 'suitePath');
+        const { suitePath } = failure;
 
         if (typeof suitePath !== 'string') {
           continue;
         }
 
         try {
-          const absolutePath = absoluteFilePathContract.parse(suitePath);
-          const testName: unknown = Reflect.get(failure, 'testName');
-          const message: unknown = Reflect.get(failure, 'message');
-          const stackTrace: unknown = Reflect.get(failure, 'stackTrace');
+          const absolutePath = absoluteFilePathContract.parse(String(suitePath));
+          const { testName } = failure;
+          const { message } = failure;
+          const { stackTrace } = failure;
 
-          const failParts: ErrorMessage[] = [errorMessageContract.parse(suitePath)];
+          const failParts: ErrorMessage[] = [errorMessageContract.parse(String(suitePath))];
 
           if (typeof testName === 'string') {
-            failParts.push(errorMessageContract.parse(` - ${testName}`));
+            failParts.push(errorMessageContract.parse(` - ${String(testName)}`));
           }
 
           if (typeof message === 'string') {
-            failParts.push(errorMessageContract.parse(`: ${message}`));
+            failParts.push(errorMessageContract.parse(`: ${String(message)}`));
           }
 
-          if (typeof stackTrace === 'string' && stackTrace.length > 0) {
-            failParts.push(errorMessageContract.parse(` ${STACK_TRACE_PREFIX}${stackTrace}`));
+          if (typeof stackTrace === 'string' && String(stackTrace).length > 0) {
+            failParts.push(
+              errorMessageContract.parse(` ${STACK_TRACE_PREFIX}${String(stackTrace)}`),
+            );
           }
 
           const formattedError = errorMessageContract.parse(failParts.join(''));

@@ -8,6 +8,7 @@
 import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import { lintMessageContract } from '../../contracts/lint-message/lint-message-contract';
 import { lintResultContract } from '../../contracts/lint-result/lint-result-contract';
+import { eslintRawMessageContract } from '../../contracts/eslint-raw-message/eslint-raw-message-contract';
 
 /**
  * Transforms an ESLint result to the internal LintResult format.
@@ -30,42 +31,19 @@ export const eslintResultToLintResultTransformer = ({
 }): LintResult => {
   // Filter and validate messages
   const validMessages = eslintResult.messages
+    .map((msg) => eslintRawMessageContract.safeParse(msg))
     .filter(
       (
-        msg,
-      ): msg is {
-        line: unknown;
-        column: unknown;
-        message: unknown;
-        severity: unknown;
-        ruleId?: unknown;
-      } => {
-        // ESLint can return messages without line/column for non-TypeScript files
-        if (typeof msg !== 'object' || msg === null) return false;
-
-        const msgObj = msg as Record<PropertyKey, unknown>;
-        const line = Reflect.get(msgObj, 'line');
-        const column = Reflect.get(msgObj, 'column');
-
-        // Filter out messages with invalid line/column
-        return typeof line === 'number' && line > 0 && typeof column === 'number' && column >= 0;
-      },
+        parsed,
+      ): parsed is ReturnType<typeof eslintRawMessageContract.safeParse> & { success: true } =>
+        parsed.success && parsed.data.line > 0 && parsed.data.column >= 0,
     )
-    .map((msg) => {
-      const msgObj = msg as Record<PropertyKey, unknown>;
-      const messageData = {
-        line: Reflect.get(msgObj, 'line'),
-        column: Reflect.get(msgObj, 'column'),
-        message: Reflect.get(msgObj, 'message'),
-        severity: Reflect.get(msgObj, 'severity'),
-      };
+    .map((parsed) => {
+      const { line, column, message, severity, ruleId } = parsed.data;
+      const messageData = { line, column, message, severity };
 
-      const ruleId = Reflect.get(msgObj, 'ruleId');
-      if (ruleId !== null && ruleId !== '') {
-        return lintMessageContract.parse({
-          ...messageData,
-          ruleId,
-        });
+      if (ruleId !== null && ruleId !== undefined && ruleId !== '') {
+        return lintMessageContract.parse({ ...messageData, ruleId });
       }
 
       return lintMessageContract.parse(messageData);

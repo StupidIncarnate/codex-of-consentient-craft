@@ -9,6 +9,7 @@ import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-esli
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
+import { rawEslintConfigContract } from '../../../contracts/raw-eslint-config/raw-eslint-config-contract';
 
 /**
  * Runs ESLint on specific content with targeted rules.
@@ -69,18 +70,12 @@ export const eslintLintRunTargetedBroker = async ({
 
     if (hasProjectError) {
       // Create a simplified config without project reference
-      const configObj = config as Record<PropertyKey, unknown>;
-      const languageOptions = Reflect.get(configObj, 'languageOptions') as
-        | Record<PropertyKey, unknown>
-        | undefined;
-      const parserOptions = languageOptions
-        ? (Reflect.get(languageOptions, 'parserOptions') as
-            | Record<PropertyKey, unknown>
-            | undefined)
-        : undefined;
+      const parsedConfig = rawEslintConfigContract.safeParse(config);
+      const languageOptions = parsedConfig.success ? parsedConfig.data.languageOptions : undefined;
+      const parserOptions = languageOptions?.parserOptions;
 
       const simplifiedConfig = {
-        ...configObj,
+        ...(parsedConfig.success ? parsedConfig.data : {}),
         languageOptions: {
           ...languageOptions,
           parserOptions: {

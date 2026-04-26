@@ -463,3 +463,7 @@ export * from './src/contracts/guild-path-cwd/guild-path-cwd.stub';
 
 export * from './src/contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd-contract';
 export * from './src/contracts/dungeonmaster-home-cwd/dungeonmaster-home-cwd.stub';
+
+// Project Config Contracts
+export * from './src/contracts/project-config/project-config-contract';
+export * from './src/contracts/project-config/project-config.stub';

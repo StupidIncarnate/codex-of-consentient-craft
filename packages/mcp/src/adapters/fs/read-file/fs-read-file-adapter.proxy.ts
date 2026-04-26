@@ -9,9 +9,7 @@ export const fsReadFileAdapterProxy = (): {
   const handle = registerMock({ fn: readFile });
 
   // Default: passthrough to real readFile so tests that read real files still work
-  const actualFs = requireActual({ module: 'fs/promises' }) as {
-    readFile: typeof readFile;
-  };
+  const actualFs = requireActual<{ readFile: typeof readFile }>({ module: 'fs/promises' });
   handle.mockImplementation((async (path: unknown) =>
     actualFs.readFile(path as Parameters<typeof readFile>[0], 'utf-8')) as (
     ...args: never[]

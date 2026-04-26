@@ -12,6 +12,7 @@ import {
   projectFolderContract,
   type ProjectFolder,
 } from '../../../contracts/project-folder/project-folder-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const commandRunLayerFolderBroker = async ({
@@ -22,12 +23,9 @@ export const commandRunLayerFolderBroker = async ({
   const pkgPath = filePathContract.parse(`${rootPath}/package.json`);
   try {
     const contents = await fsReadFileAdapter({ filePath: pkgPath });
-    const parsed: unknown = JSON.parse(contents);
-    if (typeof parsed === 'object' && parsed !== null) {
-      const nameValue: unknown = Reflect.get(parsed, 'name');
-      if (typeof nameValue === 'string') {
-        return projectFolderContract.parse({ name: nameValue, path: String(rootPath) });
-      }
+    const parsed = packageJsonContract.parse(JSON.parse(contents));
+    if (parsed.name !== undefined) {
+      return projectFolderContract.parse({ name: String(parsed.name), path: String(rootPath) });
     }
   } catch {
     // fall through to default

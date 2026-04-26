@@ -6,6 +6,7 @@
  * // Returns DevLogLine '.../src/file.ts'
  */
 
+import { devLogToolInputContract } from '../../contracts/dev-log-tool-input/dev-log-tool-input-contract';
 import {
   devLogLineContract,
   type DevLogLine,
@@ -23,17 +24,18 @@ export const devLogToolInputFormatTransformer = ({
   toolName: string;
   input: Record<PropertyKey, unknown>;
 }): DevLogLine => {
+  const parsed = devLogToolInputContract.parse(input);
   if (toolName === 'Read' || toolName === 'Write' || toolName === 'Edit') {
-    const fp = Reflect.get(input, 'file_path');
-    if (typeof fp !== 'string') return devLogLineContract.parse('');
+    const fp = parsed.file_path;
+    if (fp === undefined) return devLogLineContract.parse('');
     const parts = fp.split('/');
     return devLogLineContract.parse(
       parts.length <= PATH_TAIL_SEGMENTS ? fp : `.../${parts.slice(-PATH_TAIL_SEGMENTS).join('/')}`,
     );
   }
   if (toolName === 'Bash') {
-    const cmd = Reflect.get(input, 'command');
-    if (typeof cmd !== 'string') return devLogLineContract.parse('');
+    const cmd = parsed.command;
+    if (cmd === undefined) return devLogLineContract.parse('');
     return devLogLineContract.parse(
       cmd.length > TOOL_CMD_PREVIEW_LENGTH
         ? `"${cmd.slice(0, TOOL_CMD_PREVIEW_LENGTH)}..."`
@@ -41,35 +43,33 @@ export const devLogToolInputFormatTransformer = ({
     );
   }
   if (toolName === 'Grep') {
-    const pattern = Reflect.get(input, 'pattern');
-    return devLogLineContract.parse(typeof pattern === 'string' ? `pattern:"${pattern}"` : '');
+    return devLogLineContract.parse(
+      parsed.pattern === undefined ? '' : `pattern:"${parsed.pattern}"`,
+    );
   }
   if (toolName === 'Glob') {
-    const pattern = Reflect.get(input, 'pattern');
-    return devLogLineContract.parse(typeof pattern === 'string' ? `"${pattern}"` : '');
+    return devLogLineContract.parse(parsed.pattern === undefined ? '' : `"${parsed.pattern}"`);
   }
   if (toolName === 'Agent') {
-    const desc = Reflect.get(input, 'description');
-    return devLogLineContract.parse(typeof desc === 'string' ? `"${desc}"` : '');
+    return devLogLineContract.parse(
+      parsed.description === undefined ? '' : `"${parsed.description}"`,
+    );
   }
   if (toolName === 'TaskCreate') {
-    const subject = Reflect.get(input, 'subject');
     return devLogLineContract.parse(
-      typeof subject === 'string' ? `"${subject.slice(0, TEXT_PREVIEW_LENGTH)}"` : '',
+      parsed.subject === undefined ? '' : `"${parsed.subject.slice(0, TEXT_PREVIEW_LENGTH)}"`,
     );
   }
   if (toolName === 'TaskUpdate') {
-    const taskId = Reflect.get(input, 'taskId');
-    const status = Reflect.get(input, 'status');
-    return devLogLineContract.parse(`task:${String(taskId)}  ${String(status)}`);
+    return devLogLineContract.parse(`task:${String(parsed.taskId)}  ${String(parsed.status)}`);
   }
   if (toolName.startsWith('mcp__dungeonmaster__')) {
-    const questId = Reflect.get(input, 'questId');
-    if (typeof questId === 'string')
-      return devLogLineContract.parse(`quest:${devLogShortIdTransformer({ id: questId })}`);
-    const guildId = Reflect.get(input, 'guildId');
-    if (typeof guildId === 'string')
-      return devLogLineContract.parse(`guild:${devLogShortIdTransformer({ id: guildId })}`);
+    if (parsed.questId !== undefined) {
+      return devLogLineContract.parse(`quest:${devLogShortIdTransformer({ id: parsed.questId })}`);
+    }
+    if (parsed.guildId !== undefined) {
+      return devLogLineContract.parse(`guild:${devLogShortIdTransformer({ id: parsed.guildId })}`);
+    }
     return devLogLineContract.parse('');
   }
   return devLogLineContract.parse('');

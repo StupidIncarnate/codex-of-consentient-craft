@@ -4,29 +4,12 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
+import { contentItemAgentIdAtIndexTransformer } from '../content-item-agent-id-at-index/content-item-agent-id-at-index-transformer';
+import { contentItemAgentIdSetAtIndexTransformer } from '../content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer';
 import { taskToolUseIdsFromContentTransformer } from './task-tool-use-ids-from-content-transformer';
 
-const getContentItemAgentId = ({
-  entry,
-  index,
-}: {
-  entry: { message?: unknown };
-  index: number;
-}) => {
-  const message = Reflect.get(entry, 'message');
-  if (message === null || typeof message !== 'object') {
-    return undefined;
-  }
-  const content = Reflect.get(message, 'content');
-  if (!Array.isArray(content)) {
-    return undefined;
-  }
-  const item = content[index];
-  if (item === null || typeof item !== 'object') {
-    return undefined;
-  }
-  return Reflect.get(item, 'agentId');
-};
+const getContentItemAgentId = ({ entry, index }: { entry: { message?: unknown }; index: number }) =>
+  contentItemAgentIdAtIndexTransformer({ entry, index });
 
 const setContentItemAgentId = ({
   entry,
@@ -37,19 +20,7 @@ const setContentItemAgentId = ({
   index: number;
   value: string;
 }) => {
-  const message = Reflect.get(entry, 'message');
-  if (message === null || typeof message !== 'object') {
-    return;
-  }
-  const content = Reflect.get(message, 'content');
-  if (!Array.isArray(content)) {
-    return;
-  }
-  const item = content[index];
-  if (item === null || typeof item !== 'object') {
-    return;
-  }
-  Reflect.set(item, 'agentId', value);
+  contentItemAgentIdSetAtIndexTransformer({ entry, index, value });
 };
 
 const AssistantTaskEntry = ({ toolUseId }: { toolUseId: string }) => ({

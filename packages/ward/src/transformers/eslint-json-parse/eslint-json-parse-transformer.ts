@@ -12,6 +12,7 @@ import {
   errorEntryContract,
   type ErrorEntry,
 } from '../../contracts/error-entry/error-entry-contract';
+import { eslintJsonReportContract } from '../../contracts/eslint-json-report/eslint-json-report-contract';
 import { eslintSeverityStatics } from '../../statics/eslint-severity/eslint-severity-statics';
 import { extractJsonArrayTransformer } from '../extract-json-array/extract-json-array-transformer';
 
@@ -23,54 +24,53 @@ export const eslintJsonParseTransformer = ({
   const cleanedOutput = extractJsonArrayTransformer({
     output: errorMessageContract.parse(jsonOutput),
   });
-  const parsed: unknown = JSON.parse(cleanedOutput);
+  const rawJson: unknown = JSON.parse(cleanedOutput);
+  const parsedReport = ((): ReturnType<typeof eslintJsonReportContract.parse> | null => {
+    try {
+      return eslintJsonReportContract.parse(rawJson);
+    } catch {
+      return null;
+    }
+  })();
 
-  if (!Array.isArray(parsed)) {
+  if (parsedReport === null) {
     return [];
   }
 
-  return parsed.flatMap((fileResult: unknown) => {
-    if (typeof fileResult !== 'object' || fileResult === null) {
+  return parsedReport.flatMap((entryParsed) => {
+    const { filePath } = entryParsed;
+    const { messages } = entryParsed;
+
+    if (filePath === undefined || messages === undefined) {
       return [];
     }
 
-    const filePath: unknown = Reflect.get(fileResult, 'filePath');
-    const messages: unknown = Reflect.get(fileResult, 'messages');
+    return messages.reduce<ErrorEntry[]>((entries, message) => {
+      const { ruleId } = message;
+      const { severity } = message;
+      const msg = message.message;
+      const { line } = message;
+      const { column } = message;
 
-    if (typeof filePath !== 'string' || !Array.isArray(messages)) {
-      return [];
-    }
-
-    return messages.reduce<ErrorEntry[]>((entries, message: unknown) => {
-      if (typeof message !== 'object' || message === null) {
+      if (severity === undefined || msg === undefined) {
         return entries;
       }
 
-      const ruleId: unknown = Reflect.get(message, 'ruleId');
-      const severity: unknown = Reflect.get(message, 'severity');
-      const msg: unknown = Reflect.get(message, 'message');
-      const line: unknown = Reflect.get(message, 'line');
-      const column: unknown = Reflect.get(message, 'column');
+      const resolvedLine = line ?? 0;
+      const resolvedColumn = column ?? 0;
 
-      if (typeof severity !== 'number' || typeof msg !== 'string') {
-        return entries;
-      }
-
-      const resolvedLine = typeof line === 'number' ? line : 0;
-      const resolvedColumn = typeof column === 'number' ? column : 0;
-
-      const severityKey = severity as keyof typeof eslintSeverityStatics;
+      const severityKey = Number(severity) as keyof typeof eslintSeverityStatics;
       const severityValue = eslintSeverityStatics[severityKey];
 
       return [
         ...entries,
         errorEntryContract.parse({
-          filePath,
-          line: resolvedLine,
-          column: resolvedColumn,
-          message: msg,
+          filePath: String(filePath),
+          line: Number(resolvedLine),
+          column: Number(resolvedColumn),
+          message: String(msg),
           severity: severityValue,
-          ...(typeof ruleId === 'string' ? { rule: ruleId } : {}),
+          ...(typeof ruleId === 'string' && ruleId.length > 0 ? { rule: String(ruleId) } : {}),
         }),
       ];
     }, []);

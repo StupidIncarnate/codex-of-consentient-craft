@@ -25,25 +25,19 @@ export const applyOverridesTransformer = ({
 
   // Apply each override
   for (const [folder, override] of Object.entries(config.architecture.overrides)) {
-    if (!override?.add || !isFrameworkPresetKeyGuard({ key: folder })) {
+    if (!override?.add || !isFrameworkPresetKeyGuard(folder)) {
       continue;
     }
 
-    // Get current value using Reflect to avoid type assertion
-    const currentValues: unknown = Reflect.get(result, folder);
+    // Get current value using bracket access — folder is narrowed to keyof FrameworkPreset by the guard above
+    const currentValues = result[folder];
 
     // Only add to folders that allow packages (not null)
     if (!Array.isArray(currentValues)) {
       continue;
     }
 
-    // Verify all elements are strings before spreading
-    const allStrings = currentValues.every((item) => typeof item === 'string');
-    if (!allStrings) {
-      continue;
-    }
-
-    Reflect.set(result, folder, [...currentValues, ...override.add]);
+    result[folder] = [...currentValues, ...override.add];
   }
 
   return result;

@@ -12,48 +12,36 @@ import {
   type FileContents,
 } from '@dungeonmaster/shared/contracts';
 
+import { wardDetailJsonContract } from '../../contracts/ward-detail-json/ward-detail-json-contract';
+
 export const wardOutputToFilePathsTransformer = ({
   wardResultJson,
 }: {
   wardResultJson: FileContents;
 }): AbsoluteFilePath[] => {
-  const parsed: unknown = JSON.parse(wardResultJson);
+  const parseResult = wardDetailJsonContract.safeParse(JSON.parse(wardResultJson));
 
-  if (typeof parsed !== 'object' || parsed === null) {
+  if (!parseResult.success) {
     return [];
   }
 
-  const checksValue: unknown = Reflect.get(parsed, 'checks');
-  const checks: unknown[] = Array.isArray(checksValue) ? checksValue : [];
+  const detail = parseResult.data;
+  const checks = detail.checks ?? [];
   const seen = new Set<AbsoluteFilePath>();
   const result: AbsoluteFilePath[] = [];
 
   for (const check of checks) {
-    if (typeof check !== 'object' || check === null) {
-      continue;
-    }
-
-    const projectResultsValue: unknown = Reflect.get(check, 'projectResults');
-    const projectResults: unknown[] = Array.isArray(projectResultsValue) ? projectResultsValue : [];
+    const projectResults = check.projectResults ?? [];
 
     for (const projectResult of projectResults) {
-      if (typeof projectResult !== 'object' || projectResult === null) {
-        continue;
-      }
-
-      const errorsValue: unknown = Reflect.get(projectResult, 'errors');
-      const errors: unknown[] = Array.isArray(errorsValue) ? errorsValue : [];
+      const errors = projectResult.errors ?? [];
 
       for (const error of errors) {
-        if (typeof error !== 'object' || error === null) {
-          continue;
-        }
-
-        const filePath: unknown = Reflect.get(error, 'filePath');
+        const { filePath } = error;
 
         if (typeof filePath === 'string') {
           try {
-            const absolutePath = absoluteFilePathContract.parse(filePath);
+            const absolutePath = absoluteFilePathContract.parse(String(filePath));
 
             if (!seen.has(absolutePath)) {
               seen.add(absolutePath);
@@ -65,19 +53,14 @@ export const wardOutputToFilePathsTransformer = ({
         }
       }
 
-      const testFailuresValue: unknown = Reflect.get(projectResult, 'testFailures');
-      const testFailures: unknown[] = Array.isArray(testFailuresValue) ? testFailuresValue : [];
+      const testFailures = projectResult.testFailures ?? [];
 
       for (const failure of testFailures) {
-        if (typeof failure !== 'object' || failure === null) {
-          continue;
-        }
-
-        const suitePath: unknown = Reflect.get(failure, 'suitePath');
+        const { suitePath } = failure;
 
         if (typeof suitePath === 'string') {
           try {
-            const absolutePath = absoluteFilePathContract.parse(suitePath);
+            const absolutePath = absoluteFilePathContract.parse(String(suitePath));
 
             if (!seen.has(absolutePath)) {
               seen.add(absolutePath);

@@ -6,8 +6,8 @@
  * // Returns { status: 200, data: quests[] } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
+import { guildIdQueryContract } from '../../../contracts/guild-id-query/guild-id-query-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -24,14 +24,14 @@ export const QuestListResponder = async ({
         data: { error: 'Invalid query' },
       });
     }
-    const guildIdRaw: unknown = Reflect.get(query, 'guildId');
-    if (typeof guildIdRaw !== 'string') {
+    const parsedQuery = guildIdQueryContract.safeParse(query);
+    if (!parsedQuery.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId query parameter is required' },
       });
     }
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = parsedQuery.data;
     const quests = await orchestratorListQuestsAdapter({ guildId });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: quests });
   } catch (error: unknown) {

@@ -23,7 +23,8 @@ export const devLogEventFormatTransformer = ({
   type: OrchestrationEventType;
   payload: Record<PropertyKey, unknown>;
 }): DevLogLine => {
-  const iconValue: unknown = Reflect.get(devLogEventIconsStatics.icons, type);
+  const iconValue =
+    devLogEventIconsStatics.icons[type as keyof typeof devLogEventIconsStatics.icons];
   const icon = typeof iconValue === 'string' ? iconValue : '· ';
 
   const body =

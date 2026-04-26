@@ -2,7 +2,7 @@
  * PURPOSE: Wraps jest.requireActual so proxy files can access real module exports without calling jest APIs directly
  *
  * USAGE:
- * const realPath = jestRequireActualAdapter({ module: 'path' }) as { resolve: typeof resolve };
+ * const realPath = jestRequireActualAdapter<{ resolve: typeof resolve }>({ module: 'path' });
  * realPath.resolve('/a', 'b'); // Calls real path.resolve, not the mock
  *
  * WHEN-TO-USE: When a parent proxy needs the real implementation of a module mocked by a child proxy
@@ -15,10 +15,14 @@ import type { resolve } from 'path';
 // in test files that transitively mock it through their proxy chain
 const realPathModule: { resolve: typeof resolve } = jest.requireActual('path');
 
-export const jestRequireActualAdapter = ({ module: moduleName }: { module: string }): unknown => {
+export const jestRequireActualAdapter = <T = unknown>({
+  module: moduleName,
+}: {
+  module: string;
+}): T => {
   // For non-relative paths (npm packages), resolve directly
   if (!moduleName.startsWith('.')) {
-    return jest.requireActual(moduleName);
+    return jest.requireActual(moduleName) as T;
   }
 
   // For relative paths, resolve from the caller's directory using stack trace.
@@ -46,10 +50,10 @@ export const jestRequireActualAdapter = ({ module: moduleName }: { module: strin
     if (lastSlash >= 0) {
       const callerDir = pathPart.substring(0, lastSlash);
       const absolutePath = realPathModule.resolve(callerDir, moduleName);
-      return jest.requireActual(absolutePath);
+      return jest.requireActual(absolutePath) as T;
     }
   }
 
   // Fallback: try direct resolution (non-proxy callers or if no proxy frame found)
-  return jest.requireActual(moduleName);
+  return jest.requireActual(moduleName) as T;
 };

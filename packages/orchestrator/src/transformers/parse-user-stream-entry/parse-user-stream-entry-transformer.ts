@@ -7,20 +7,29 @@
  */
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { mapContentItemToChatEntryTransformer } from '../map-content-item-to-chat-entry/map-content-item-to-chat-entry-transformer';
 
-export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }): ChatEntry[] => {
-  const message: unknown = 'message' in parsed ? Reflect.get(parsed, 'message') : null;
-
-  if (typeof message !== 'object' || message === null) {
+export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown }): ChatEntry[] => {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
+    return [];
+  }
+  const line = lineParse.data;
+  const { message } = line;
+  if (message === undefined) {
     return [];
   }
 
-  const rawSource: unknown = 'source' in parsed ? Reflect.get(parsed, 'source') : undefined;
-  const validSource = rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
-  const rawAgentId: unknown = 'agentId' in parsed ? Reflect.get(parsed, 'agentId') : undefined;
+  const rawSource = line.source === undefined ? undefined : String(line.source);
+  const validSource: 'session' | 'subagent' | undefined =
+    rawSource === 'session' || rawSource === 'subagent' ? rawSource : undefined;
+  const rawAgentId = line.agentId;
   const validAgentId =
-    typeof rawAgentId === 'string' && rawAgentId.length > 0 ? rawAgentId : undefined;
+    typeof rawAgentId === 'string' && String(rawAgentId).length > 0
+      ? String(rawAgentId)
+      : undefined;
 
   // If the orchestrator already parsed <task-notification> XML on the server side, it attaches
   // the structured fields as `taskNotification` on the line. Build the task_notification
@@ -31,29 +40,28 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
   // web's chain grouping can pin this notification to its Task by the same key every other
   // sub-agent entry uses. Without this, the entry's `taskId` holds the real internal agentId
   // (from <task-id>) which never matches the chain's toolUseId-based agentId.
-  const rawTaskNotification: unknown =
-    'taskNotification' in parsed ? Reflect.get(parsed, 'taskNotification') : undefined;
-  if (typeof rawTaskNotification === 'object' && rawTaskNotification !== null) {
-    const taskId: unknown = Reflect.get(rawTaskNotification, 'taskId');
-    const status: unknown = Reflect.get(rawTaskNotification, 'status');
+  const rawTaskNotification = line.taskNotification;
+  if (rawTaskNotification !== undefined) {
+    const { taskId } = rawTaskNotification;
+    const { status } = rawTaskNotification;
     if (typeof taskId === 'string' && typeof status === 'string') {
-      const summary: unknown = Reflect.get(rawTaskNotification, 'summary');
-      const result: unknown = Reflect.get(rawTaskNotification, 'result');
-      const totalTokens: unknown = Reflect.get(rawTaskNotification, 'totalTokens');
-      const toolUses: unknown = Reflect.get(rawTaskNotification, 'toolUses');
-      const durationMs: unknown = Reflect.get(rawTaskNotification, 'durationMs');
-      const notificationToolUseId: unknown = Reflect.get(rawTaskNotification, 'toolUseId');
+      const { summary } = rawTaskNotification;
+      const { result } = rawTaskNotification;
+      const { totalTokens } = rawTaskNotification;
+      const { toolUses } = rawTaskNotification;
+      const { durationMs } = rawTaskNotification;
+      const notificationToolUseId = rawTaskNotification.toolUseId;
       const notificationAgentId =
-        typeof notificationToolUseId === 'string' && notificationToolUseId.length > 0
-          ? notificationToolUseId
+        typeof notificationToolUseId === 'string' && String(notificationToolUseId).length > 0
+          ? String(notificationToolUseId)
           : validAgentId;
       const taskEntry = chatEntryContract.safeParse({
         role: 'system',
         type: 'task_notification',
-        taskId,
-        status,
-        ...(typeof summary === 'string' ? { summary } : {}),
-        ...(typeof result === 'string' ? { result } : {}),
+        taskId: String(taskId),
+        status: String(status),
+        ...(typeof summary === 'string' ? { summary: String(summary) } : {}),
+        ...(typeof result === 'string' ? { result: String(result) } : {}),
         ...(typeof totalTokens === 'number' ? { totalTokens } : {}),
         ...(typeof toolUses === 'number' ? { toolUses } : {}),
         ...(typeof durationMs === 'number' ? { durationMs } : {}),
@@ -66,7 +74,7 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
     }
   }
 
-  const contentArray: unknown = 'content' in message ? Reflect.get(message, 'content') : null;
+  const contentArray = message.content;
 
   if (typeof contentArray === 'string' && contentArray.length > 0) {
     const userEntry = chatEntryContract.safeParse({
@@ -85,23 +93,21 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: object }):
 
   const entries: ChatEntry[] = [];
 
-  for (const item of contentArray) {
-    if (
-      typeof item === 'object' &&
-      item !== null &&
-      'type' in item &&
-      Reflect.get(item, 'type') === 'tool_result'
-    ) {
-      const entry = mapContentItemToChatEntryTransformer({
-        item: item as never,
-        usage: undefined,
-        ...(validSource ? { source: validSource } : {}),
-        ...(validAgentId ? { agentId: validAgentId } : {}),
-      });
+  for (const rawItem of contentArray) {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) continue;
+    const item = itemParse.data;
+    if (item.type !== 'tool_result') continue;
 
-      if (entry) {
-        entries.push(entry);
-      }
+    const entry = mapContentItemToChatEntryTransformer({
+      item: rawItem as never,
+      usage: undefined,
+      ...(validSource ? { source: validSource } : {}),
+      ...(validAgentId ? { agentId: validAgentId } : {}),
+    });
+
+    if (entry) {
+      entries.push(entry);
     }
   }
 

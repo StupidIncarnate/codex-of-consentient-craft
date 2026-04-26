@@ -9,6 +9,7 @@
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { workspaceDiscoverLayerPatternBroker } from './workspace-discover-layer-pattern-broker';
 
@@ -24,31 +25,28 @@ export const workspaceDiscoverBroker = async ({
     return null;
   }
 
-  const parsed: unknown = (() => {
+  const parsed = ((): ReturnType<typeof packageJsonContract.parse> | null => {
     try {
-      return JSON.parse(raw) as unknown;
+      return packageJsonContract.parse(JSON.parse(raw));
     } catch {
       return null;
     }
   })();
 
-  if (typeof parsed !== 'object' || parsed === null) {
+  if (parsed === null) {
     return null;
   }
 
-  const workspaces: unknown = Reflect.get(parsed, 'workspaces');
+  const { workspaces } = parsed;
 
-  if (!Array.isArray(workspaces) || workspaces.length === 0) {
+  if (workspaces === undefined || workspaces.length === 0) {
     return null;
   }
 
   const resolvedGroups = await Promise.all(
-    workspaces.map(async (w) => {
-      if (typeof w !== 'string') {
-        return [] as ProjectFolder[];
-      }
-      return workspaceDiscoverLayerPatternBroker({ pattern: w, rootPath });
-    }),
+    workspaces.map(async (w) =>
+      workspaceDiscoverLayerPatternBroker({ pattern: String(w), rootPath }),
+    ),
   );
 
   return resolvedGroups.flat();

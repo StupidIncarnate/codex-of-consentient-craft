@@ -7,7 +7,7 @@
  */
 
 import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
-import { processIdContract } from '../../../contracts/process-id/process-id-contract';
+import { processIdParamsContract } from '../../../contracts/process-id-params/process-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -20,14 +20,14 @@ export const ProcessStatusResponder = ({ params }: { params: unknown }): Respond
         data: { error: 'Invalid params' },
       });
     }
-    const processIdRaw: unknown = Reflect.get(params, 'processId');
-    if (typeof processIdRaw !== 'string') {
+    const parsedParams = processIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'processId is required' },
       });
     }
-    const processId = processIdContract.parse(processIdRaw);
+    const { processId } = parsedParams.data;
     const status = orchestratorGetQuestStatusAdapter({ processId });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: status });
   } catch (error: unknown) {

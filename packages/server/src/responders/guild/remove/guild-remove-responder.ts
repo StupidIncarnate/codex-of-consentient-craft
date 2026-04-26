@@ -6,8 +6,8 @@
  * // Returns { status: 200, data: { success: true } } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import { orchestratorRemoveGuildAdapter } from '../../../adapters/orchestrator/remove-guild/orchestrator-remove-guild-adapter';
+import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -25,16 +25,14 @@ export const GuildRemoveResponder = async ({
       });
     }
 
-    const guildIdRaw: unknown = Reflect.get(params, 'guildId');
-
-    if (typeof guildIdRaw !== 'string') {
+    const parsedParams = guildIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId is required' },
       });
     }
-
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = parsedParams.data;
     await orchestratorRemoveGuildAdapter({ guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

@@ -54,10 +54,10 @@ export const settingsPermissionsAddBroker = async ({
   const currentPermissionsSet = new Set<McpPermission>(mcpPermissions);
 
   // Get existing permissions
-  const existingPermissions = Reflect.get(existingSettings, 'permissions') as
+  const existingPermissions = existingSettings.permissions as
     | Record<PropertyKey, unknown>
     | undefined;
-  const existingAllow = (Reflect.get(existingPermissions ?? {}, 'allow') ?? []) as McpPermission[];
+  const existingAllow = (existingPermissions?.allow ?? []) as McpPermission[];
 
   // Prune stale dungeonmaster permissions (tools no longer in mcpToolsStatics.tools.names),
   // leave all other permissions untouched, then union with current dungeonmaster permissions.

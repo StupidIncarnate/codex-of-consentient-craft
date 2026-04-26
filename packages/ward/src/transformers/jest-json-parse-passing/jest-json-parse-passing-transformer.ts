@@ -8,6 +8,7 @@
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
+import { jestJsonReportContract } from '../../contracts/jest-json-report/jest-json-report-contract';
 import {
   passingTestContract,
   type PassingTest,
@@ -21,55 +22,46 @@ export const jestJsonParsePassingTransformer = ({
 }): PassingTest[] => {
   try {
     const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
-    const parsed: unknown = JSON.parse(jsonString);
+    const parsed = jestJsonReportContract.parse(JSON.parse(jsonString));
 
-    if (typeof parsed !== 'object' || parsed === null) {
+    const { testResults } = parsed;
+
+    if (testResults === undefined) {
       return [];
     }
 
-    const testResults: unknown = Reflect.get(parsed, 'testResults');
+    return testResults.flatMap((suite) => {
+      const testFilePath = suite.name;
+      const suiteResults = suite.assertionResults;
 
-    if (!Array.isArray(testResults)) {
-      return [];
-    }
-
-    return testResults.flatMap((suite: unknown) => {
-      if (typeof suite !== 'object' || suite === null) {
+      if (testFilePath === undefined || suiteResults === undefined) {
         return [];
       }
 
-      const testFilePath: unknown = Reflect.get(suite, 'name');
-      const suiteResults: unknown = Reflect.get(suite, 'assertionResults');
-
-      if (typeof testFilePath !== 'string' || !Array.isArray(suiteResults)) {
-        return [];
-      }
-
-      return suiteResults.reduce<PassingTest[]>((passing, test: unknown) => {
-        if (typeof test !== 'object' || test === null) {
-          return passing;
-        }
-
-        const status: unknown = Reflect.get(test, 'status');
+      return suiteResults.reduce<PassingTest[]>((passing, test) => {
+        const { status } = test;
 
         if (status !== 'passed') {
           return passing;
         }
 
-        const fullName: unknown = Reflect.get(test, 'fullName');
+        const { fullName } = test;
 
-        if (typeof fullName !== 'string') {
+        if (fullName === undefined) {
           return passing;
         }
 
-        const duration: unknown = Reflect.get(test, 'duration');
-        const durationMs = typeof duration === 'number' && duration >= 0 ? duration : 0;
+        const { duration } = test;
+        const durationMs =
+          duration !== null && duration !== undefined && Number(duration) >= 0
+            ? Number(duration)
+            : 0;
 
         return [
           ...passing,
           passingTestContract.parse({
-            suitePath: testFilePath,
-            testName: fullName,
+            suitePath: String(testFilePath),
+            testName: String(fullName),
             durationMs,
           }),
         ];

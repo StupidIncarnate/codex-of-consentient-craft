@@ -18,6 +18,8 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 import { extractDevDependenciesTransformer } from '../../../transformers/extract-dev-dependencies/extract-dev-dependencies-transformer';
+import { dependencyMapContract } from '../../../contracts/dependency-map/dependency-map-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 const JSON_INDENT_SPACES = 2;
@@ -41,9 +43,9 @@ export const InstallAddDevDepsResponder = async ({
   }
 
   const packageJsonContent = await fsReadFileAdapter({ filePath: packageJsonPath });
-  const packageJson: unknown = JSON.parse(packageJsonContent);
+  const parsedPackageJson = packageJsonContract.safeParse(JSON.parse(packageJsonContent));
 
-  if (typeof packageJson !== 'object' || packageJson === null) {
+  if (!parsedPackageJson.success) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: false,
@@ -52,17 +54,13 @@ export const InstallAddDevDepsResponder = async ({
     };
   }
 
+  const packageJson = parsedPackageJson.data;
   const existingDevDeps = extractDevDependenciesTransformer({ packageJson });
 
   const requiredPackages = devDependenciesStatics.packages;
-  let missingCount = 0;
-
-  for (const name of Object.keys(requiredPackages)) {
-    if (!(name in existingDevDeps)) {
-      missingCount += 1;
-      Reflect.set(existingDevDeps, name, Reflect.get(requiredPackages, name));
-    }
-  }
+  const missingCount = Object.keys(requiredPackages).filter(
+    (name) => !(name in existingDevDeps),
+  ).length;
 
   if (missingCount === 0) {
     return {
@@ -73,7 +71,8 @@ export const InstallAddDevDepsResponder = async ({
     };
   }
 
-  const updatedPackageJson = { ...packageJson, devDependencies: existingDevDeps };
+  const mergedDevDeps = dependencyMapContract.parse({ ...requiredPackages, ...existingDevDeps });
+  const updatedPackageJson = { ...packageJson, devDependencies: mergedDevDeps };
 
   const contents = fileContentsContract.parse(
     JSON.stringify(updatedPackageJson, null, JSON_INDENT_SPACES),

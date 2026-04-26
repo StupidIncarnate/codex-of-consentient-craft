@@ -10,6 +10,7 @@ import type { LinterConfig } from '../../contracts/linter-config/linter-config-c
 import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 import { rawEslintConfigToPartialTransformer } from '../raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer';
+import { rawEslintConfigContract } from '../../contracts/raw-eslint-config/raw-eslint-config-contract';
 
 export const eslintConfigFilterTransformer = ({
   eslintConfig,
@@ -22,10 +23,11 @@ export const eslintConfigFilterTransformer = ({
   const partialConfig = rawEslintConfigToPartialTransformer({ rawConfig: eslintConfig });
 
   // Extract required fields from raw config (needed for ESLint to work properly)
-  const rawConfigObj =
-    typeof eslintConfig === 'object' && eslintConfig !== null ? eslintConfig : {};
-  const plugins: unknown = Reflect.get(rawConfigObj, 'plugins');
-  const languageOptions: unknown = Reflect.get(rawConfigObj, 'languageOptions');
+  const parsedConfig = rawEslintConfigContract.safeParse(eslintConfig);
+  const plugins: unknown = parsedConfig.success ? parsedConfig.data.plugins : undefined;
+  const languageOptions: unknown = parsedConfig.success
+    ? parsedConfig.data.languageOptions
+    : undefined;
 
   // Create new config with filtered rules
   const filteredRules: Record<PropertyKey, unknown> = {};

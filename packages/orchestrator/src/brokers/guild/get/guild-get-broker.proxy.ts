@@ -18,9 +18,10 @@ export const guildGetBrokerProxy = (): {
 
   const mocked = guildGetBroker as jest.MockedFunction<typeof guildGetBroker>;
   // Default: passthrough so existing consumers driving the fs chain keep working.
-  const realMod = requireActual({ module: './guild-get-broker' });
-  const realImpl = Reflect.get(realMod as object, 'guildGetBroker') as typeof guildGetBroker;
-  mocked.mockImplementation(realImpl);
+  const realMod = requireActual<{ guildGetBroker: typeof guildGetBroker }>({
+    module: './guild-get-broker',
+  });
+  mocked.mockImplementation(realMod.guildGetBroker);
 
   return {
     setupConfig: ({ config }: { config: GuildConfig }): void => {

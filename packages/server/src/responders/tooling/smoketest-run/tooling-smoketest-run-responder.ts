@@ -6,12 +6,13 @@
  * // Returns: { status, data: { runId, results } | { error } }
  */
 
-import { filePathContract, smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
 
 import { orchestratorRunSmoketestAdapter } from '../../../adapters/orchestrator/run-smoketest/orchestrator-run-smoketest-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
+import { toolingSmoketestRunBodyContract } from '../../../contracts/tooling-smoketest-run-body/tooling-smoketest-run-body-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
 export const ToolingSmoketestRunResponder = async ({
@@ -20,9 +21,7 @@ export const ToolingSmoketestRunResponder = async ({
   body: unknown;
 }): Promise<ResponderResult> => {
   try {
-    const rawSuite: unknown =
-      typeof body === 'object' && body !== null ? Reflect.get(body, 'suite') : undefined;
-    const suite = smoketestSuiteContract.parse(rawSuite);
+    const { suite } = toolingSmoketestRunBodyContract.parse(body);
     // Use the repo root (directory containing `.dungeonmaster.json`) — not process.cwd() — because
     // npm workspace scripts set cwd to the workspace package dir (e.g. packages/server), but the
     // spawned Claude subprocess needs to run from the repo root so it can discover `.mcp.json` for

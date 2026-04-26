@@ -16,6 +16,7 @@ import {
   SiegemasterWorkUnitStub,
   SpiritmenderWorkUnitStub,
 } from '../../../contracts/work-unit/work-unit.stub';
+import { spawnedOptionsSnapshotTransformer } from '../../../transformers/spawned-options-snapshot/spawned-options-snapshot-transformer';
 import { agentSpawnByRoleBroker } from './agent-spawn-by-role-broker';
 import { agentSpawnByRoleBrokerProxy } from './agent-spawn-by-role-broker.proxy';
 
@@ -449,10 +450,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
-      const env = Reflect.get(options as object, 'env');
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe('false');
+      expect(options.env?.ENABLE_TOOL_SEARCH).toBe('false');
     });
 
     it('VALID: {workUnit without smoketestPromptOverride} => spawn env does not set ENABLE_TOOL_SEARCH', async () => {
@@ -467,10 +467,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
-      const env = Reflect.get(options as object, 'env');
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(env as object, 'ENABLE_TOOL_SEARCH')).toBe(undefined);
+      expect(options.env?.ENABLE_TOOL_SEARCH).toBe(undefined);
     });
   });
 
@@ -492,9 +491,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(options.cwd).toBe(repoRoot);
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
@@ -514,9 +513,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(options.cwd).toBe(repoRoot);
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
@@ -535,9 +534,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe('/tmp/dm-e2e-isolated-guild');
+      expect(options.cwd).toBe('/tmp/dm-e2e-isolated-guild');
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
 
@@ -557,9 +556,9 @@ describe('agentSpawnByRoleBroker', () => {
 
       await agentSpawnByRoleBroker({ workUnit, startPath });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe(repoRoot);
+      expect(options.cwd).toBe(repoRoot);
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
     });
   });

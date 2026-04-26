@@ -6,6 +6,7 @@
  * // Returns DevLogLine 'quest:89362ba3  chat:e8c8ba78'
  */
 
+import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
 import {
   devLogLineContract,
   type DevLogLine,
@@ -19,31 +20,33 @@ export const devLogGenericEventFormatTransformer = ({
   payload: Record<PropertyKey, unknown>;
 }): DevLogLine => {
   const procLabel = devLogProcLabelTransformer({ payload });
+  const parsed = devLogEventPayloadContract.parse(payload);
 
-  const questId = Reflect.get(payload, 'questId');
   const questPart =
-    typeof questId === 'string' ? `  quest:${devLogShortIdTransformer({ id: questId })}` : '';
+    parsed.questId === undefined
+      ? ''
+      : `  quest:${devLogShortIdTransformer({ id: parsed.questId })}`;
 
-  const sessionId = Reflect.get(payload, 'sessionId');
   const sessionPart =
-    typeof sessionId === 'string' ? `  session:${devLogShortIdTransformer({ id: sessionId })}` : '';
+    parsed.sessionId === undefined
+      ? ''
+      : `  session:${devLogShortIdTransformer({ id: parsed.sessionId })}`;
 
-  const chatProcessId = Reflect.get(payload, 'chatProcessId');
   const shortChat =
-    typeof chatProcessId === 'string' ? devLogShortIdTransformer({ id: chatProcessId }) : '';
+    parsed.chatProcessId === undefined
+      ? ''
+      : devLogShortIdTransformer({ id: parsed.chatProcessId });
   const chatPart = shortChat && !procLabel.includes(shortChat) ? `  chat:${shortChat}` : '';
 
-  const phase = Reflect.get(payload, 'phase');
-  const phasePart = typeof phase === 'string' ? `  phase:${phase}` : '';
+  const phasePart = parsed.phase === undefined ? '' : `  phase:${parsed.phase}`;
 
-  const slotIndex = Reflect.get(payload, 'slotIndex');
-  const slotPart = typeof slotIndex === 'number' ? `  slot:${slotIndex}` : '';
+  const slotPart = parsed.slotIndex === undefined ? '' : `  slot:${parsed.slotIndex}`;
 
-  const role = Reflect.get(payload, 'role');
-  const rolePart = typeof role === 'string' ? `  role:${role}` : '';
+  const rolePart = parsed.role === undefined ? '' : `  role:${parsed.role}`;
 
-  const questions = Reflect.get(payload, 'questions');
-  const questionsPart = Array.isArray(questions) ? `  questions:${questions.length}` : '';
+  const questionsPart = Array.isArray(parsed.questions)
+    ? `  questions:${parsed.questions.length}`
+    : '';
 
   return devLogLineContract.parse(
     `${procLabel}${questPart}${sessionPart}${chatPart}${phasePart}${slotPart}${rolePart}${questionsPart}`.trim(),

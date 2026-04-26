@@ -8,24 +8,26 @@
 
 import { sessionIdContract, type SessionId } from '@dungeonmaster/shared/contracts';
 
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
+
 export const sessionIdExtractorTransformer = ({
   parsed,
 }: {
   parsed: unknown;
 }): SessionId | null => {
-  if (typeof parsed !== 'object' || parsed === null) {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
     return null;
   }
+  const line = lineParse.data;
 
   // Skip hook events — they carry a temporary sessionId that differs from the real one
-  const subtype: unknown = Reflect.get(parsed, 'subtype');
-  if (subtype === 'hook_started' || subtype === 'hook_response') {
+  if (line.subtype === 'hook_started' || line.subtype === 'hook_response') {
     return null;
   }
 
-  if ('sessionId' in parsed && typeof Reflect.get(parsed, 'sessionId') === 'string') {
-    const sessionIdValue = Reflect.get(parsed, 'sessionId');
-    const parseResult = sessionIdContract.safeParse(sessionIdValue);
+  if (typeof line.sessionId === 'string') {
+    const parseResult = sessionIdContract.safeParse(String(line.sessionId));
     if (parseResult.success) {
       return parseResult.data;
     }

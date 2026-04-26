@@ -121,7 +121,10 @@ describe('sessionListBroker', () => {
       proxy.setupQuests({ quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
-      const setCacheMock = jest.fn();
+      const setCacheMock: jest.Mock<
+        void,
+        [{ sessionId: unknown; mtimeMs: unknown; summary: unknown }]
+      > = jest.fn();
 
       const result = await sessionListBroker({
         guildId,
@@ -137,9 +140,9 @@ describe('sessionListBroker', () => {
 
       expect(setCacheCallCount).toBe(1);
 
-      const setCacheFirstCallArg: unknown = setCacheMock.mock.calls[0]?.[0];
+      const setCacheFirstCallArg = setCacheMock.mock.calls[0]?.[0];
 
-      expect(Reflect.get(setCacheFirstCallArg as object, 'summary')).toBe(undefined);
+      expect(setCacheFirstCallArg?.summary).toBe(undefined);
     });
 
     it('ERROR: {stat throws} => session entry is null and filtered out', async () => {

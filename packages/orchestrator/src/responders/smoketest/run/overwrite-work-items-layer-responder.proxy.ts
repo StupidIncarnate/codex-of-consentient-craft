@@ -57,12 +57,10 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
       mocked.mockRejectedValueOnce(error);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './overwrite-work-items-layer-responder' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'OverwriteWorkItemsLayerResponder',
-      ) as typeof OverwriteWorkItemsLayerResponder;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        OverwriteWorkItemsLayerResponder: typeof OverwriteWorkItemsLayerResponder;
+      }>({ module: './overwrite-work-items-layer-responder' });
+      mocked.mockImplementation(realMod.OverwriteWorkItemsLayerResponder);
     },
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       const guildId = GuildIdStub();

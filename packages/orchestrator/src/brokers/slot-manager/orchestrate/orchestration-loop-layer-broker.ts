@@ -112,7 +112,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                const knownSessionId = Reflect.get(sessionIds, workItemId) as SessionId | undefined;
+                const knownSessionId: SessionId | undefined = sessionIds[workItemId];
                 onAgentEntry({
                   slotIndex,
                   entry: { raw: line },
@@ -197,9 +197,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                const knownSessionId = Reflect.get(sessionIds, completedAgent.workItemId) as
-                  | SessionId
-                  | undefined;
+                const knownSessionId: SessionId | undefined = sessionIds[completedAgent.workItemId];
                 onAgentEntry({
                   slotIndex: newSlotIndex,
                   entry: { raw: line },
@@ -340,9 +338,7 @@ export const orchestrationLoopLayerBroker = async ({
               ? {}
               : {
                   onLine: ({ line }: { line: string }) => {
-                    const knownSessionId = Reflect.get(sessionIds, newWorkItemId) as
-                      | SessionId
-                      | undefined;
+                    const knownSessionId: SessionId | undefined = sessionIds[newWorkItemId];
                     onAgentEntry({
                       slotIndex: newSlotIndex,
                       entry: { raw: line },

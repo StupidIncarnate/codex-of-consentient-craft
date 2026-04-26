@@ -326,7 +326,7 @@ export const questOrchestrationLoopBroker = async ({
       });
     }
   } catch (error: unknown) {
-    if (Reflect.get(abortSignal, 'aborted')) {
+    if (abortSignal.aborted) {
       return result;
     }
 

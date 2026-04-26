@@ -14,10 +14,8 @@ import {
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import {
-  networkPortContract,
-  type NetworkPort,
-} from '../../../contracts/network-port/network-port-contract';
+import type { NetworkPort } from '../../../contracts/network-port/network-port-contract';
+import { projectConfigContract } from '../../../contracts/project-config/project-config-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
 export const portConfigWalkBroker = ({
@@ -32,13 +30,9 @@ export const portConfigWalkBroker = ({
     const contents = fsReadFileSyncAdapter({
       filePath: absoluteFilePathContract.parse(configPath),
     });
-    const parsed: unknown = JSON.parse(contents);
-    if (typeof parsed !== 'object' || parsed === null) return undefined;
-    const dm: unknown = Reflect.get(parsed, 'dungeonmaster');
-    if (typeof dm !== 'object' || dm === null) return undefined;
-    const port: unknown = Reflect.get(dm, 'port');
-    if (typeof port !== 'number' || !Number.isFinite(port)) return undefined;
-    return networkPortContract.parse(port);
+    const result = projectConfigContract.safeParse(JSON.parse(contents));
+    if (!result.success) return undefined;
+    return result.data.dungeonmaster?.port;
   } catch {
     const parent = pathDirnameAdapter({ path: filePathContract.parse(dir) });
     if (parent === dir) return undefined;

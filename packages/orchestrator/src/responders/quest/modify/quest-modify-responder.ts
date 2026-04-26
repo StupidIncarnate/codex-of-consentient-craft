@@ -62,7 +62,7 @@ export const QuestModifyResponder = async ({
               questId: typedQuestId,
               startPath,
               onAgentEntry: ({ slotIndex, entry, sessionId }) => {
-                const rawLine: unknown = Reflect.get(entry, 'raw');
+                const rawLine: unknown = entry.raw;
                 if (typeof rawLine !== 'string') return;
                 const parsed = claudeLineNormalizeBroker({ rawLine });
                 const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });

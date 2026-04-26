@@ -3,6 +3,7 @@ import { childProcessSpawnStreamJsonAdapterProxy } from './child-process-spawn-s
 import { RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
+import { spawnedOptionsSnapshotTransformer } from '../../../transformers/spawned-options-snapshot/spawned-options-snapshot-transformer';
 
 describe('childProcessSpawnStreamJsonAdapter', () => {
   describe('without resumeSessionId', () => {
@@ -122,9 +123,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe('/custom/path');
+      expect(options.cwd).toBe('/custom/path');
     });
 
     it('VALID: {cwd omitted} => does not pass cwd to spawn options', () => {
@@ -136,9 +137,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'cwd')).toBe(undefined);
+      expect(options.cwd).toBe(undefined);
     });
   });
 
@@ -152,9 +153,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'env')).toStrictEqual({ ...process.env });
+      expect(options.env).toStrictEqual({ ...process.env });
     });
 
     it('VALID: {disableToolSearch: true} => sets ENABLE_TOOL_SEARCH=false in spawn env', () => {
@@ -167,9 +168,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         disableToolSearch: true,
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'env')).toStrictEqual({
+      expect(options.env).toStrictEqual({
         ...process.env,
         ENABLE_TOOL_SEARCH: 'false',
       });
@@ -185,9 +186,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         disableToolSearch: false,
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'env')).toStrictEqual({ ...process.env });
+      expect(options.env).toStrictEqual({ ...process.env });
     });
   });
 
@@ -201,6 +202,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
         model: ClaudeModelStub({ value: 'haiku' }),
         disableToolSearch: true,
       });
@@ -227,6 +229,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
         model: ClaudeModelStub({ value: 'sonnet' }),
         disableToolSearch: false,
       });
@@ -251,6 +254,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       childProcessSpawnStreamJsonAdapter({
         prompt: PromptTextStub({ value: 'Hello' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
         model: ClaudeModelStub({ value: 'haiku' }),
         disableToolSearch: true,
       });
@@ -280,9 +284,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'stdio')).toStrictEqual(['ignore', 'pipe', 'inherit']);
+      expect(options.stdio).toStrictEqual(['ignore', 'pipe', 'inherit']);
     });
 
     it('VALID: {stdinMode omitted} => defaults to inherit as stdio[0]', () => {
@@ -294,9 +298,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         model: ClaudeModelStub({ value: 'sonnet' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(Reflect.get(options as object, 'stdio')).toStrictEqual(['inherit', 'pipe', 'inherit']);
+      expect(options.stdio).toStrictEqual(['inherit', 'pipe', 'inherit']);
     });
   });
 });
