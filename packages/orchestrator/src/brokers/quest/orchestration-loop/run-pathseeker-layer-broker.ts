@@ -95,6 +95,7 @@ export const runPathseekerLayerBroker = async ({
   });
 
   const agentSummary = spawnResult.signal?.summary ?? undefined;
+  const agentSignal = spawnResult.signal?.signal ?? undefined;
 
   if (abortSignal.aborted) {
     return result;
@@ -119,6 +120,7 @@ export const runPathseekerLayerBroker = async ({
             status: 'complete',
             completedAt,
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+            ...(agentSignal === undefined ? {} : { actualSignal: agentSignal }),
           },
         ],
       } as ModifyQuestInput,
@@ -158,6 +160,7 @@ export const runPathseekerLayerBroker = async ({
             completedAt,
             errorMessage: 'pathseeker_failed',
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+            ...(agentSignal === undefined ? {} : { actualSignal: agentSignal }),
           },
         ],
       } as ModifyQuestInput,
@@ -195,6 +198,7 @@ export const runPathseekerLayerBroker = async ({
             completedAt,
             errorMessage: 'pathseeker_failed',
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+            ...(agentSignal === undefined ? {} : { actualSignal: agentSignal }),
           },
         ],
       } as ModifyQuestInput,

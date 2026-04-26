@@ -34,3 +34,13 @@ export const WorkItemRoleCountAssertionStub = ({
     minCount: 2,
     ...props,
   });
+
+export const WorkItemSignalMatchAssertionStub = ({
+  ...props
+}: StubArgument<
+  Extract<SmoketestAssertion, { kind: 'work-item-signal-match' }>
+> = {}): SmoketestAssertion =>
+  smoketestAssertionContract.parse({
+    kind: 'work-item-signal-match',
+    ...props,
+  });

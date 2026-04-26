@@ -12,7 +12,7 @@ import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-
 import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
-import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -170,7 +170,7 @@ export const QuestHandleResponder = async ({
     const { processId } = getQuestStatusInputContract.parse(args);
 
     try {
-      const status = orchestratorGetQuestStatusAdapter({ processId });
+      const status = await orchestratorGetQuestStatusBroker({ processId });
       return {
         content: [
           {

@@ -1,5 +1,5 @@
 import { chatEntryGroupContract } from './chat-entry-group-contract';
-import { SingleGroupStub, SubagentChainGroupStub, ToolGroupStub } from './chat-entry-group.stub';
+import { SingleGroupStub, SubagentChainGroupStub } from './chat-entry-group.stub';
 
 describe('chatEntryGroupContract', () => {
   describe('single group', () => {
@@ -7,14 +7,6 @@ describe('chatEntryGroupContract', () => {
       const result = chatEntryGroupContract.parse(SingleGroupStub());
 
       expect(result.kind).toBe('single');
-    });
-  });
-
-  describe('tool group', () => {
-    it('VALID: {kind: tool-group, entries: [tool_use, tool_result]} => parses successfully', () => {
-      const result = chatEntryGroupContract.parse(ToolGroupStub());
-
-      expect(result.kind).toBe('tool-group');
     });
   });
 

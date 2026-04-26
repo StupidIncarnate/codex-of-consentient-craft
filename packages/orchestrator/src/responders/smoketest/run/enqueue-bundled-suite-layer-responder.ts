@@ -12,7 +12,7 @@ import type {
   QuestSource,
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
-import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -22,6 +22,7 @@ import { questHydrateBroker } from '../../../brokers/quest/hydrate/quest-hydrate
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { caseCatalogToBlueprintTransformer } from '../../../transformers/case-catalog-to-blueprint/case-catalog-to-blueprint-transformer';
 import { smoketestSubstituteWorkItemPlaceholdersTransformer } from '../../../transformers/smoketest-substitute-work-item-placeholders/smoketest-substitute-work-item-placeholders-transformer';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
@@ -55,10 +56,27 @@ export const EnqueueBundledSuiteLayerResponder = async ({
 
   const { questId } = await questHydrateBroker({ blueprint, guildId, questSource });
 
+  // Pre-register an orchestration processId tied to this smoketest's questId so the
+  // get-quest-status MCP probe has a live id to query at runtime. The queue runner's
+  // RunOrchestrationLoopLayerResponder adopts existing `proc-` prefix entries (and not
+  // `proc-queue-` / `proc-recovery-`), so this pre-registration deduplicates with the
+  // loop's own registration when it picks the quest up.
+  const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
+  orchestrationProcessesState.register({
+    orchestrationProcess: {
+      processId,
+      questId,
+      kill: (): void => {
+        questExecutionQueueState.removeByQuestId({ questId });
+      },
+    },
+  });
+
   const substitutedWorkItems = smoketestSubstituteWorkItemPlaceholdersTransformer({
     workItems,
     questId,
     guildId,
+    processId,
   });
 
   await OverwriteWorkItemsLayerResponder({ questId, workItems: substitutedWorkItems });
@@ -78,7 +96,7 @@ export const EnqueueBundledSuiteLayerResponder = async ({
   smoketestListenerState.register({
     questId,
     entry: smoketestListenerEntryContract.parse({
-      assertions: [],
+      assertions: [{ kind: 'work-item-signal-match' }],
       isOrchestration: false,
     }),
   });

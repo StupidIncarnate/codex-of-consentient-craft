@@ -22,6 +22,7 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   setupSpawnThrow: (params: { error: Error }) => void;
   setupSpawnThrowOnce: (params: { error: Error }) => void;
   setupSettingsNotFound: () => void;
+  setupSettingsJson: (params: { json: string }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
@@ -121,6 +122,10 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
       readFileMock.mockImplementation(() => {
         throw new Error('ENOENT: no such file or directory');
       });
+    },
+
+    setupSettingsJson: ({ json }: { json: string }): void => {
+      readFileMock.mockReturnValue(json);
     },
 
     getSpawnedCommand: (): unknown => {

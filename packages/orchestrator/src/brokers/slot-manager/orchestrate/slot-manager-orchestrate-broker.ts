@@ -13,6 +13,7 @@ import type {
   OnAgentEntryCallback,
   OnFollowupCreatedCallback,
   OnWorkItemSessionIdCallback,
+  OnWorkItemSignalCallback,
   OnWorkItemSummaryCallback,
 } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
@@ -31,6 +32,7 @@ export const slotManagerOrchestrateBroker = async ({
   onWorkItemSessionId,
   onFollowupCreated,
   onWorkItemSummary,
+  onWorkItemSignal,
   abortSignal,
   maxFollowupDepth,
 }: {
@@ -43,6 +45,7 @@ export const slotManagerOrchestrateBroker = async ({
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
   onWorkItemSummary?: OnWorkItemSummaryCallback;
+  onWorkItemSignal?: OnWorkItemSignalCallback;
   abortSignal?: AbortSignal;
   maxFollowupDepth?: FollowupDepth;
 }): Promise<SlotManagerResult> => {
@@ -58,6 +61,7 @@ export const slotManagerOrchestrateBroker = async ({
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
     ...(onFollowupCreated === undefined ? {} : { onFollowupCreated }),
     ...(onWorkItemSummary === undefined ? {} : { onWorkItemSummary }),
+    ...(onWorkItemSignal === undefined ? {} : { onWorkItemSignal }),
     ...(abortSignal === undefined ? {} : { abortSignal }),
     ...(maxFollowupDepth === undefined ? {} : { maxFollowupDepth }),
   });

@@ -76,6 +76,15 @@ export const QuestChatWidget = (): React.JSX.Element => {
   // (queue dequeued, but the user opened a finished smoketest from home / queue
   // bar): consult the guild's quest list and pick the most-recent quest with an
   // activeSessionId. Keeps the URL deep-linkable both during AND after execution.
+  //
+  // Subtle race: the queue entry exists the moment a smoketest is enqueued but
+  // its `activeSessionId` only populates once the orchestrator spawns the first
+  // agent and Claude CLI emits a session id (~1-3s later). During that gap, an
+  // unconditional fallback walks the guild's quest list and picks the
+  // most-recent COMPLETED quest's session — landing the user on the previous
+  // suite's result page when they meant to start a new one. Only fall back
+  // when there is NO active queue entry for the guild; if there's a fresh
+  // entry awaiting its session, wait for it instead.
   const { allEntries: queueEntries } = useQuestQueueBinding();
   const activeQueueEntryForGuild = queueEntries.find(
     (entry) => entry.guildSlug === guildSlug || entry.guildId === resolvedGuildId,
@@ -84,13 +93,13 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
   const { data: guildQuests } = useQuestsBinding({ guildId: resolvedGuildId });
   const fallbackQuestSessionId = useMemo<SessionId | undefined>(() => {
-    if (activeQueueSessionId) return undefined;
+    if (activeQueueEntryForGuild !== undefined) return undefined;
     const sorted = [...guildQuests].sort((a, b) =>
       String(b.createdAt).localeCompare(String(a.createdAt)),
     );
     const match = sorted.find((quest) => quest.activeSessionId !== undefined);
     return match?.activeSessionId;
-  }, [activeQueueSessionId, guildQuests]);
+  }, [activeQueueEntryForGuild, guildQuests]);
 
   const resolvedSessionRedirect = activeQueueSessionId ?? fallbackQuestSessionId;
 

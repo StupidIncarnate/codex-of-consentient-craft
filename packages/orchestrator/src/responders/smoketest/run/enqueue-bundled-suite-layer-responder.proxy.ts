@@ -8,6 +8,7 @@ import type { QuestId, QuestStub as QuestStubType, UrlSlug } from '@dungeonmaste
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBrokerProxy } from '../../../brokers/quest/hydrate/quest-hydrate-broker.proxy';
+import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { smoketestListenerStateProxy } from '../../../state/smoketest-listener/smoketest-listener-state.proxy';
 import { smoketestScenarioMetaStateProxy } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state.proxy';
@@ -33,12 +34,14 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
   const queueProxy = questExecutionQueueStateProxy();
   const listenerProxy = smoketestListenerStateProxy();
   const metaProxy = smoketestScenarioMetaStateProxy();
+  const processesProxy = orchestrationProcessesStateProxy();
   const loadQuestProxy = LoadQuestLayerResponderProxy();
   OverwriteWorkItemsLayerResponderProxy();
 
   queueProxy.setupEmpty();
   listenerProxy.setupEmpty();
   metaProxy.setupEmpty();
+  processesProxy.setupEmpty();
 
   const mocked = EnqueueBundledSuiteLayerResponder as jest.MockedFunction<
     typeof EnqueueBundledSuiteLayerResponder

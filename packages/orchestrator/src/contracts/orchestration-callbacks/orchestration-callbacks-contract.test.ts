@@ -29,6 +29,10 @@ describe('orchestrationCallbacksContract', () => {
         workItemId: 'work-item-0',
         summary: 'Implemented feature with tests',
       },
+      onWorkItemSignalParams: {
+        workItemId: 'work-item-0',
+        signal: 'complete',
+      },
     });
   });
 

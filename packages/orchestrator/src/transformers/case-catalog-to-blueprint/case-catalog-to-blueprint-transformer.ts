@@ -17,7 +17,7 @@
  * smoketestScenariosStatics.
  */
 
-import { workItemContract } from '@dungeonmaster/shared/contracts';
+import { streamSignalKindContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -102,6 +102,7 @@ export const caseCatalogToBlueprintTransformer = ({
       );
     }
     const override = promptTextContract.parse(resolved);
+    const expectedSignal = streamSignalKindContract.parse(entry.expectedSignal);
     return workItemContract.parse({
       id,
       role: 'codeweaver',
@@ -112,6 +113,7 @@ export const caseCatalogToBlueprintTransformer = ({
       maxAttempts: 1,
       createdAt: now,
       smoketestPromptOverride: override,
+      smoketestExpectedSignal: expectedSignal,
     });
   });
 

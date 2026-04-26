@@ -11,6 +11,7 @@ import {
   GuildListItemStub,
   GuildStub,
   QuestListItemStub,
+  QuestQueueEntryStub,
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -2610,6 +2611,79 @@ describe('QuestChatWidget', () => {
 
       expect(proxy.hasDivider()).toBe(true);
       expect(proxy.hasActivityPlaceholder()).toBe(true);
+    });
+
+    it('VALID: {no sessionId in URL, fresh queue entry without activeSessionId yet, prior completed quest in list} => stays on /:guildSlug/session and does NOT redirect to the prior quest', async () => {
+      // Race condition fix: when a smoketest is just enqueued, the queue entry
+      // exists but its `activeSessionId` only populates ~1-3s later (once the
+      // first agent spawns + Claude CLI emits a session id). Without this guard
+      // the redirect fallback would walk the guild's quest list and pick the
+      // most-recent COMPLETED quest's session — landing the user on the
+      // previous suite's result instead of the new run.
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'smoketests' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQueueEntries({
+        entries: [
+          QuestQueueEntryStub({
+            questId: 'smoketest-fresh',
+            guildId: guild.id,
+            guildSlug: 'smoketests',
+          }),
+        ],
+      });
+      proxy.setupQuests({
+        quests: [
+          QuestListItemStub({
+            id: 'smoketest-prior-mcp',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            activeSessionId: 'session-prior-mcp',
+          }),
+        ],
+      });
+
+      const LocationDisplay = (): React.JSX.Element => {
+        const location = useLocation();
+        return <span data-testid="LOCATION_PATHNAME">{location.pathname}</span>;
+      };
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/smoketests/session']}>
+            <Routes>
+              <Route
+                path="/:guildSlug/session"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+              <Route
+                path="/:guildSlug/session/:sessionId"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationDisplay />
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      // Allow async effects (queue + quests fetches) to settle, then assert no
+      // redirect to the prior completed session occurred.
+      await waitFor(() => {
+        expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe('/smoketests/session');
+      });
+
+      expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe('/smoketests/session');
     });
 
     it('VALID: {no sessionId in URL, quest list has activeSessionId} => redirects to session URL', async () => {

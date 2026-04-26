@@ -15,7 +15,7 @@ import { ChatEntryListWidgetProxy } from './chat-entry-list-widget.proxy';
 
 describe('ChatEntryListWidget', () => {
   describe('chat variant (default flags)', () => {
-    it('VALID: {assistant text + tool pair} => renders message and tool group header', () => {
+    it('VALID: {assistant text + tool pair} => renders message and flat tool row', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -32,12 +32,13 @@ describe('ChatEntryListWidget', () => {
       });
 
       const messages = screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent);
-      const toolGroupIds = screen
-        .queryAllByTestId('TOOL_GROUP_HEADER')
+      const toolRowIds = screen
+        .queryAllByTestId('TOOL_ROW')
         .map((h) => h.getAttribute('data-testid'));
 
       expect(messages.length).toBeGreaterThan(0);
-      expect(toolGroupIds).toStrictEqual(['TOOL_GROUP_HEADER']);
+      expect(toolRowIds).toStrictEqual(['TOOL_ROW']);
+      expect(screen.queryByTestId('TOOL_GROUP_HEADER')).toBe(null);
     });
 
     it('VALID: {subagent task tool_use} => renders subagent chain header', () => {
@@ -174,6 +175,34 @@ describe('ChatEntryListWidget', () => {
 
       expect(screen.queryByTestId('CONTEXT_DIVIDER')).toBe(null);
     });
+
+    it('VALID: {tool_use with usage, flag on} => renders context divider after the tool row', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({
+                toolUseId: 'use_1',
+                usage: {
+                  inputTokens: 500,
+                  outputTokens: 50,
+                  cacheCreationInputTokens: 5000,
+                  cacheReadInputTokens: 0,
+                },
+              }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+            ]}
+            isStreaming={false}
+            showContextDividers={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('CONTEXT_DIVIDER')).toBeInTheDocument();
+      expect(screen.getByTestId('TOOL_ROW')).toBeInTheDocument();
+    });
   });
 
   describe('swapTrailingEmptyThinkingForIndicator', () => {
@@ -199,7 +228,7 @@ describe('ChatEntryListWidget', () => {
       expect(contents).toStrictEqual(['first thought', 'second thought', 'final thought']);
     });
 
-    it('VALID: {multiple tool groups separated by text} => all tool groups render', () => {
+    it('VALID: {multiple tool pairs separated by text} => all tool rows render', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -218,14 +247,12 @@ describe('ChatEntryListWidget', () => {
         ),
       });
 
-      const toolGroupIds = screen
-        .queryAllByTestId('TOOL_GROUP_HEADER')
-        .map((h) => h.getAttribute('data-testid'));
+      const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
 
-      expect(toolGroupIds).toStrictEqual(['TOOL_GROUP_HEADER', 'TOOL_GROUP_HEADER']);
+      expect(toolRowNames).toStrictEqual(['Read', 'Grep']);
     });
 
-    it('VALID: {interleaved thinking + tool groups + text} => all sections render in order', () => {
+    it('VALID: {interleaved thinking + tool pairs + text} => all sections render in order', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -252,19 +279,13 @@ describe('ChatEntryListWidget', () => {
       const thinkingContents = screen
         .queryAllByTestId('THINKING_ROW_CONTENT')
         .map((c) => c.textContent);
-      const toolGroupIds = screen
-        .queryAllByTestId('TOOL_GROUP_HEADER')
-        .map((h) => h.getAttribute('data-testid'));
+      const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
 
       expect(thinkingContents).toStrictEqual(['thinking a', 'thinking b']);
-      expect(toolGroupIds).toStrictEqual([
-        'TOOL_GROUP_HEADER',
-        'TOOL_GROUP_HEADER',
-        'TOOL_GROUP_HEADER',
-      ]);
+      expect(toolRowNames).toStrictEqual(['Read', 'Grep', 'Bash']);
     });
 
-    it('EDGE: {single tool group, single thinking} => both render', () => {
+    it('EDGE: {single tool pair, single thinking} => both render', () => {
       ChatEntryListWidgetProxy();
 
       mantineRenderAdapter({
@@ -284,12 +305,10 @@ describe('ChatEntryListWidget', () => {
       const thinkingContents = screen
         .queryAllByTestId('THINKING_ROW_CONTENT')
         .map((c) => c.textContent);
-      const toolGroupIds = screen
-        .queryAllByTestId('TOOL_GROUP_HEADER')
-        .map((h) => h.getAttribute('data-testid'));
+      const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
 
       expect(thinkingContents).toStrictEqual(['only thought']);
-      expect(toolGroupIds).toStrictEqual(['TOOL_GROUP_HEADER']);
+      expect(toolRowNames).toStrictEqual(['Read']);
     });
 
     it('VALID: {last thinking has empty content} => renders streaming indicator in place of empty thinking row', () => {
@@ -334,6 +353,23 @@ describe('ChatEntryListWidget', () => {
       const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
 
       expect(contents).toStrictEqual(['first', 'second']);
+    });
+  });
+
+  describe('streaming tool_use without result', () => {
+    it('VALID: {last entry is unmatched tool_use, isStreaming true} => renders ToolRowWidget with loading state', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' })]}
+            isStreaming={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('TOOL_LOADING')).toBeInTheDocument();
     });
   });
 

@@ -11,17 +11,21 @@ import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
-import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
+import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-import type { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
+import type {
+  GetQuestResultStub,
+  ModifyQuestResultStub,
+  OrchestrationStatusStub,
+} from '@dungeonmaster/shared/contracts';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
+type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 
 export const QuestHandleResponderProxy = (): {
@@ -31,6 +35,7 @@ export const QuestHandleResponderProxy = (): {
   setupModifyQuestReturns: (params: { result: ModifyQuestResult }) => void;
   setupModifyQuestThrows: (params: { error: Error }) => void;
   setupStartQuestThrows: (params: { error: Error }) => void;
+  setupGetQuestStatusReturns: (params: { status: OrchestrationStatus }) => void;
   setupGetQuestStatusThrows: (params: { error: Error }) => void;
   setupListQuestsThrows: (params: { error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
@@ -42,7 +47,7 @@ export const QuestHandleResponderProxy = (): {
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
   const startQuestProxy = orchestratorStartQuestAdapterProxy();
-  const getQuestStatusProxy = orchestratorGetQuestStatusAdapterProxy();
+  const getQuestStatusProxy = orchestratorGetQuestStatusBrokerProxy();
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
@@ -68,6 +73,10 @@ export const QuestHandleResponderProxy = (): {
 
     setupStartQuestThrows: ({ error }: { error: Error }): void => {
       startQuestProxy.throws({ error });
+    },
+
+    setupGetQuestStatusReturns: ({ status }: { status: OrchestrationStatus }): void => {
+      getQuestStatusProxy.returns({ status });
     },
 
     setupGetQuestStatusThrows: ({ error }: { error: Error }): void => {

@@ -11,12 +11,11 @@ See `packages/orchestrator/CLAUDE.md` for the full translation funnel.
 
 ### What the web IS responsible for
 
-- **Rendering.** React widgets that display a `ChatEntry`, grouped into tool-groups or
-  sub-agent chains.
-- **Grouping/layout.** `collectSubagentChainsTransformer`, `groupChatEntriesTransformer`,
-  `mergeToolEntriesTransformer` — these are pure rendering concerns: they take
-  `ChatEntry[]` and decide how to lay them out. They don't parse; they restructure already-
-  typed data.
+- **Rendering.** React widgets that display a `ChatEntry` flatly, with sub-agent
+  activity collapsed under a `SubagentChainWidget` (the one remaining grouping).
+- **Grouping/layout.** `collectSubagentChainsTransformer`, `mergeToolEntriesTransformer`
+  — these are pure rendering concerns: they take `ChatEntry[]` and decide how to lay them
+  out. They don't parse; they restructure already-typed data.
 - **User input.** Sending chat messages, clarification answers, etc., via HTTP.
 - **Session routing.** URL state, session ID → active chat binding.
 
@@ -90,21 +89,29 @@ gives us one combined input cost; we cannot split it per-tool without server hel
 
 What this means for the UI:
 
-| Surface                         | Number shown                       | Why it's accurate                           |
-| ------------------------------- | ---------------------------------- | ------------------------------------------- |
-| Tool row (`ToolRowWidget`)      | `~X est` from result content chars | chars/4 of `tool_result.content` is per-tool and stable for relative comparison |
-| Tool group header (`ToolGroupWidget`) | `(+X.Xk context)` cross-API-call delta | This is the only number actually reported per-turn by the API; attributing it to the GROUP (whole turn) is correct |
-| Cumulative-context divider (`ContextDividerWidget`) | Cumulative + delta | Comes straight from `usage` on a single assistant entry; one entry = one API call |
+| Surface                                             | Number shown                       | Why it's accurate                                                                                    |
+|-----------------------------------------------------|------------------------------------|------------------------------------------------------------------------------------------------------|
+| Tool row (`ToolRowWidget`)                          | `~X est` from result content chars | chars/4 of `tool_result.content` is per-tool and stable for relative comparison                      |
+| Cumulative-context divider (`ContextDividerWidget`) | Cumulative + delta                 | Comes straight from `usage` on a single assistant entry (text or tool_use); one entry = one API call |
+
+The chat list is flat — tool rows render inline alongside text and thinking entries,
+with a `ContextDividerWidget` after each entry that has `usage` (text or tool_use). No
+collapsible "tool group" wrapper. Sub-agent activity is the one exception: it stays
+grouped via `SubagentChainWidget` because the Task tool_use lifecycle is a meaningful
+unit, not a per-turn collapse.
+
+Tool rows show `~X est` from chars/4 of `tool_result.content` — a per-tool estimate, NOT
+a context delta. We do not put a context delta on tool rows because when one assistant
+turn fires multiple tools, the API only reports one combined `usage` for that turn — the
+delta cannot be split across tools. The cumulative-context divider after each entry with
+`usage` carries the cross-API-call delta separately, where it can be attributed
+correctly (one entry = one API call).
 
 What we deliberately DO NOT do:
 
-- Do not show a "context delta" badge on individual tool rows. The cross-turn delta
-  cannot be attributed to a single tool when a turn fires multiple tools, so showing
-  it next to the first tool of the turn implies false causation.
 - Do not show the cumulative context as if it were a delta on the first message of a
-  conversation. (Old bug: `~34k context` was reported on the first tool because
-  `prevContext === null` synthesized a baseline-as-delta. Now: no badge when prev is
-  unknown.)
+  conversation. The divider omits the delta when there's no previous cumulative to diff
+  against.
 
 If you want a tighter per-tool number than chars/4, the only path is Anthropic's
 `messages.countTokens` API — it requires a network round-trip per result, so it's
@@ -112,5 +119,6 @@ unsuitable for rendering many tool calls. Anthropic does not ship a public clien
 tokenizer for Claude 3/4. chars/4 is intentional.
 
 Relevant files: `transformers/compute-token-annotations/`,
-`transformers/compute-group-context-deltas/`, `transformers/estimate-content-tokens/`,
-`widgets/tool-row/`, `widgets/tool-group/`, `widgets/context-divider/`.
+`transformers/estimate-content-tokens/`, `transformers/merge-tool-entries/`,
+`widgets/tool-row/`, `widgets/context-divider/`,
+`widgets/chat-entry-list/`, `widgets/subagent-chain/`.

@@ -7,8 +7,8 @@
  */
 
 import { z } from 'zod';
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import { sessionIdContract, streamSignalKindContract } from '@dungeonmaster/shared/contracts';
+import type { SessionId, StreamSignalKind } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 import { agentRoleContract } from '../agent-role/agent-role-contract';
@@ -36,6 +36,10 @@ export const orchestrationCallbacksContract = z.object({
     workItemId: workItemIdContract,
     summary: z.string().brand<'SignalSummary'>(),
   }),
+  onWorkItemSignalParams: z.object({
+    workItemId: workItemIdContract,
+    signal: streamSignalKindContract,
+  }),
 });
 
 export type OnAgentEntryCallback = (params: {
@@ -58,4 +62,9 @@ export type OnFollowupCreatedCallback = (params: {
 export type OnWorkItemSummaryCallback = (params: {
   workItemId: WorkItemId;
   summary: string;
+}) => void;
+
+export type OnWorkItemSignalCallback = (params: {
+  workItemId: WorkItemId;
+  signal: StreamSignalKind;
 }) => void;

@@ -22,6 +22,7 @@ export * from './src/adapters/child-process/spawn-stream/child-process-spawn-str
 export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter.proxy';
 export * from './src/adapters/net/free-port/net-free-port-adapter.proxy';
 export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
+export * from './src/adapters/fetch/get/fetch-get-adapter.proxy';
 
 // Broker Proxies
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';

@@ -1,10 +1,15 @@
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
+import { smoketestProbeArgsStatics } from '../smoketest-probe-args/smoketest-probe-args-statics';
 import { smoketestCaseCatalogStatics } from './smoketest-case-catalog-statics';
 
+const exercisedTools = mcpToolsStatics.tools.names.filter(
+  (n) => smoketestProbeArgsStatics[n].mode !== 'skip-from-suite',
+);
+
 describe('smoketestCaseCatalogStatics', () => {
-  it('VALID: {mcp} => case IDs derived 1:1 from mcpToolsStatics.tools.names', () => {
-    const expected = [...mcpToolsStatics.tools.names].map((n) => `mcp-${n}`).sort();
+  it('VALID: {mcp} => case IDs derived from every non-skip-from-suite tool in mcpToolsStatics.tools.names', () => {
+    const expected = [...exercisedTools].map((n) => `mcp-${n}`).sort();
 
     expect(smoketestCaseCatalogStatics.mcp.map((c) => c.caseId).sort()).toStrictEqual(expected);
   });
@@ -15,12 +20,20 @@ describe('smoketestCaseCatalogStatics', () => {
       promptKey: c.promptKey,
     }));
 
-    const expected = [...mcpToolsStatics.tools.names].map((toolName) => ({
+    const expected = exercisedTools.map((toolName) => ({
       caseId: `mcp-${toolName}`,
       promptKey: toolName,
     }));
 
     expect(pairs).toStrictEqual(expected);
+  });
+
+  it('VALID: {start-quest} => excluded from MCP case catalog (skip-from-suite)', () => {
+    const hasStartQuest = smoketestCaseCatalogStatics.mcp.some(
+      (c) => c.caseId === 'mcp-start-quest',
+    );
+
+    expect(hasStartQuest).toBe(false);
   });
 
   it('VALID: {signals} => case IDs list matches the 3-signal set', () => {

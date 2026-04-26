@@ -30,6 +30,9 @@ export * from './src/adapters/child-process/spawn-stream-lines/child-process-spa
 // Net Adapters
 export * from './src/adapters/net/free-port/net-free-port-adapter';
 
+// Fetch Adapters
+export * from './src/adapters/fetch/get/fetch-get-adapter';
+
 // Module Adapters
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter';
 

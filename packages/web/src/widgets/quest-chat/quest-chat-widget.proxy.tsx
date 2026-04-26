@@ -17,6 +17,7 @@ import type {
   GuildStub,
   ProcessId,
   QuestListItemStub,
+  QuestQueueEntry,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts';
@@ -60,6 +61,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupQuest: (params: { quest: Quest }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQueueEntries: (params: { entries: readonly QuestQueueEntry[] }) => void;
   setupGuild: (params: { guild: Guild }) => void;
   setupGuildError: () => void;
   getSentWsMessages: () => unknown[];
@@ -111,7 +113,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   const guildsBindingProxy = useGuildsBindingProxy();
   const guildDetailProxy = useGuildDetailBindingProxy();
   useQuestEventsBindingProxy();
-  useQuestQueueBindingProxy();
+  const questQueueBindingProxy = useQuestQueueBindingProxy();
   const questsBindingProxy = useQuestsBindingProxy();
   // Default to empty so HTTP requests resolve immediately for tests that don't
   // care about the redirect-fallback path. Tests that exercise the fallback
@@ -152,6 +154,9 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsBindingProxy.setupQuests({ quests });
+    },
+    setupQueueEntries: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
+      questQueueBindingProxy.setupEntries({ entries });
     },
     setupQuest: ({ quest }: { quest: Quest }): void => {
       const questWithWorkItem =

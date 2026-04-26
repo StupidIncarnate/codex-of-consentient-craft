@@ -1,7 +1,10 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
-import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
-import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
+import {
+  GetQuestResultStub,
+  ModifyQuestResultStub,
+  OrchestrationStatusStub,
+} from '@dungeonmaster/shared/contracts';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
@@ -518,6 +521,12 @@ describe('QuestHandleResponder', () => {
   describe('get-quest-status', () => {
     it('VALID: {processId} => returns status', async () => {
       const proxy = QuestHandleResponderProxy();
+      const status = OrchestrationStatusStub({
+        processId: 'proc-12345',
+        questId: 'add-auth',
+        phase: 'codeweaver',
+      });
+      proxy.setupGetQuestStatusReturns({ status });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest-status' }),
@@ -525,13 +534,18 @@ describe('QuestHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, status }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
-    it('ERROR: {adapter throws} => returns error response', async () => {
+    it('ERROR: {process not found} => returns Process not found error', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupGetQuestStatusThrows({ error: new Error('Status failed') });
+      proxy.setupGetQuestStatusThrows({ error: new Error('Process not found: proc-12345') });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest-status' }),
@@ -543,7 +557,7 @@ describe('QuestHandleResponder', () => {
           {
             type: 'text',
             text: JSON.stringify(
-              { success: false, error: 'Status failed' },
+              { success: false, error: 'Process not found: proc-12345' },
               null,
               JSON_INDENT_SPACES,
             ),

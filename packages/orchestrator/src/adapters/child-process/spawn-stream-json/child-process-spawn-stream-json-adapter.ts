@@ -47,8 +47,25 @@ export const childProcessSpawnStreamJsonAdapter = ({
 
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', model];
 
-  if (settingsJson.length > 0) {
-    args.push('--settings', settingsJson);
+  // Smoketest probe spawns (disableToolSearch === true) only call one MCP tool
+  // then signal back — they don't need the SessionStart hook guidance bundle
+  // (~10KB of folder/discover/ward snippets per spawn). Strip the hooks field
+  // for these spawns to reclaim the tokens. Real-role spawns keep it.
+  let effectiveSettingsJson = settingsJson;
+  if (disableToolSearch && settingsJson.length > 0) {
+    try {
+      const parsed: unknown = JSON.parse(settingsJson);
+      if (typeof parsed === 'object' && parsed !== null) {
+        Reflect.deleteProperty(parsed, 'hooks');
+        effectiveSettingsJson = JSON.stringify(parsed);
+      }
+    } catch {
+      // malformed settings — fall through with the original string
+    }
+  }
+
+  if (effectiveSettingsJson.length > 0) {
+    args.push('--settings', effectiveSettingsJson);
   }
 
   if (resumeSessionId) {

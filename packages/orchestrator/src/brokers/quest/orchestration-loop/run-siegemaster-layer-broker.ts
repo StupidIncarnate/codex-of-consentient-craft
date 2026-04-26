@@ -270,7 +270,8 @@ export const runSiegemasterLayerBroker = async ({
     }
 
     const agentSummary = spawnResult.signal?.summary ?? undefined;
-    const isComplete = spawnResult.signal?.signal === 'complete';
+    const agentSignal = spawnResult.signal?.signal ?? undefined;
+    const isComplete = agentSignal === 'complete';
 
     const sessionId = spawnResult.sessionId ?? undefined;
 
@@ -285,6 +286,7 @@ export const runSiegemasterLayerBroker = async ({
               completedAt: new Date().toISOString(),
               ...(sessionId === undefined ? {} : { sessionId }),
               ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+              actualSignal: 'complete',
             },
           ],
         } as ModifyQuestInput,
@@ -340,6 +342,7 @@ export const runSiegemasterLayerBroker = async ({
             errorMessage,
             ...(sessionId === undefined ? {} : { sessionId }),
             ...(agentSummary === undefined ? {} : { summary: agentSummary }),
+            ...(agentSignal === undefined ? {} : { actualSignal: agentSignal }),
           },
           ...skippedItems,
           pathseekerReplan,

@@ -10,24 +10,21 @@
  * rather than silently skipped.
  *
  * MODES:
- * - `call`        — the probe invokes the tool with `args`, then signals complete.
- * - `signal-only` — the probe skips the tool call and just signals complete (used for `signal-back` itself).
- * - `skip-call`   — the probe deliberately does NOT call the tool (used for `ask-user-question`, which would block the harness).
+ * - `call`            — the probe invokes the tool with `args`. If the tool errors, the probe signals `failed` with `<tool>-tool-error`. Otherwise it signals `complete` with `summary`.
+ * - `signal-only`     — the probe skips the tool call and just signals complete (used for `signal-back` itself).
+ * - `skip-call`       — the probe deliberately does NOT call the tool (used for `ask-user-question`, which would block the harness).
+ * - `skip-from-suite` — the tool is registered globally but is NOT exercised by the MCP smoketest suite (e.g. `start-quest`, whose semantics are covered by the orchestration suite). The prompt builder and case catalog filter these out.
  *
  * PLACEHOLDERS in `args`:
- * - `'{{questId}}'` is rewritten to the running smoketest's questId at enqueue time (live id).
- * - `'{{guildId}}'` is rewritten to the smoketest guild's GuildId at enqueue time.
+ * - `'{{questId}}'`   is rewritten to the running smoketest's questId at enqueue time (live id).
+ * - `'{{guildId}}'`   is rewritten to the smoketest guild's GuildId at enqueue time.
+ * - `'{{processId}}'` is rewritten to the smoketest's pre-registered orchestration processId at enqueue time (live id; the queue runner adopts this same id when it picks the quest up).
  *
- * `expectError: true` flags probes whose tool call is intentionally expected to fail (e.g. `start-quest`
- * called against a never-real questId, or `get-quest-status` called against a never-real processId). The
- * prompt builder appends a note telling the agent the tool error is expected — the agent should still
- * signal-back complete so the case passes.
+ * Failure-signaling rule: any tool-call error during a `call` probe makes the agent signal `failed` —
+ * masked errors used to silently pass when the agent dutifully called signal-back complete. With every
+ * placeholder substituted to a live id at enqueue time, there is no legitimate reason for an MCP probe
+ * to error, so a tool error means a real regression (permission gap, contract drift, broken handler).
  */
-
-import { smoketestStatics } from '../smoketest/smoketest-statics';
-
-const PLACEHOLDER_QUEST_ID = smoketestStatics.questId;
-const PLACEHOLDER_PROCESS_ID = '00000000-0000-0000-0000-0000000000aa';
 
 export const smoketestProbeArgsStatics = {
   discover: {
@@ -70,15 +67,13 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-signal-back-probe-ok',
   },
   'start-quest': {
-    mode: 'call',
-    args: { questId: PLACEHOLDER_QUEST_ID },
-    expectError: true,
-    summary: 'mcp-start-quest-probe-ok',
+    mode: 'skip-from-suite',
+    summary: 'mcp-start-quest-not-in-mcp-suite',
+    note: 'start-quest semantics belong to the orchestration smoketest suite (end-to-end quest lifecycle).',
   },
   'get-quest-status': {
     mode: 'call',
-    args: { processId: PLACEHOLDER_PROCESS_ID },
-    expectError: true,
+    args: { processId: '{{processId}}' },
     summary: 'mcp-get-quest-status-probe-ok',
   },
   'list-quests': {

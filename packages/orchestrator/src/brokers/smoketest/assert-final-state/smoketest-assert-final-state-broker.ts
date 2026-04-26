@@ -35,9 +35,19 @@ export const smoketestAssertFinalStateBroker = ({
       });
     }
 
-    // work-item-role-count
-    const roleCount = quest.workItems.filter((item) => item.role === assertion.role).length;
-    return roleCount < assertion.minCount;
+    if (assertion.kind === 'work-item-role-count') {
+      const roleCount = quest.workItems.filter((item) => item.role === assertion.role).length;
+      return roleCount < assertion.minCount;
+    }
+
+    // work-item-signal-match: every work item carrying smoketestExpectedSignal must
+    // have actualSignal === smoketestExpectedSignal. Items without expected are skipped.
+    return quest.workItems.some((item) => {
+      if (item.smoketestExpectedSignal === undefined) {
+        return false;
+      }
+      return item.actualSignal !== item.smoketestExpectedSignal;
+    });
   });
 
   return {
