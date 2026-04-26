@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 53 rule names', () => {
+    it('VALID: {} => returns plugin with all 57 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -20,12 +20,15 @@ describe('EslintPluginCreateResponder', () => {
         'ban-playwright-evaluate-for-styles',
         'ban-playwright-extract-then-assert',
         'ban-primitives',
+        'ban-reflect-outside-guards',
+        'ban-require-in-source',
         'ban-silent-catch',
         'ban-startup-branching',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
         'ban-typeof-assertions',
         'ban-unanchored-to-match',
+        'ban-unknown-payload-in-discriminated-union',
         'ban-wait-for-timeout',
         'ban-weak-asymmetric-matchers',
         'ban-weak-existence-matchers',
@@ -58,6 +61,7 @@ describe('EslintPluginCreateResponder', () => {
         'no-multiple-property-assertions',
         'no-mutable-state-in-proxy-factory',
         'require-contract-validation',
+        'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',
       ]);
     });

@@ -130,6 +130,10 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-object-keys-in-expect': 'error',
     '@dungeonmaster/ban-string-includes-in-expect': 'error',
     '@dungeonmaster/ban-weak-asymmetric-matchers': 'error',
+    '@dungeonmaster/ban-reflect-outside-guards': 'error',
+    '@dungeonmaster/ban-require-in-source': 'error',
+    '@dungeonmaster/ban-unknown-payload-in-discriminated-union': 'error',
+    '@dungeonmaster/require-validation-on-untyped-property-access': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

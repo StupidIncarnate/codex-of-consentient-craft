@@ -301,17 +301,21 @@ describe('universalSyntaxRulesStatics', () => {
             violations: ['delete require.cache[resolvedPath]; // Lint error'],
           },
           get: {
-            rule: 'Use Reflect.get() for accessing properties on objects when TypeScript narrows to object type',
-            rationale: 'Avoids unsafe type assertions from object to Record<PropertyKey, unknown>',
+            rule: 'Validate untyped data through a Zod contract, then access typed fields directly. Reflect.get/Reflect.set are restricted to *-guard.ts and *-contract.ts files; do not use them in source files (enforced by @dungeonmaster/ban-reflect-outside-guards).',
+            rationale:
+              'Reflect.get returns unknown and bypasses validation, which previously became a universal escape hatch in transformers/brokers. Parsing through a Zod contract upfront yields branded fields you can access with normal property syntax.',
             llmTrainingViolation:
-              'LLM training instinct: Use obj as Record<PropertyKey, unknown> to access dynamic properties. This is UNSAFE - use Reflect.get() instead.',
+              'LLM training instinct: When TypeScript pushes back on dynamic property access, reach for Reflect.get or as Record<PropertyKey, unknown>. Resist this - define a Zod contract for the shape and parse the value at the boundary, then read fields directly.',
             antiPattern:
-              'const record = obj as Record<string, unknown> // TypeScript allows this but it bypasses safety',
+              'const value = Reflect.get(obj, "field"); // unknown, no validation, no branding - use a contract instead',
             examples: [
-              'export const hasStringProperty = (params: {obj: unknown; property: string;}): params is {obj: Record<PropertyKey, string>; property: string} => { const {obj, property} = params; if (typeof obj !== "object" || obj === null) { return false; } return property in obj && typeof Reflect.get(obj, property) === "string"; };',
+              'const parsed = userPayloadContract.parse(rawJson); const name = parsed.name; // Typed, branded, validated - no Reflect needed',
+              'export const hasStringProperty = (params: {obj: unknown; property: string;}): params is {obj: Record<PropertyKey, string>; property: string} => { const {obj, property} = params; if (typeof obj !== "object" || obj === null) { return false; } return property in obj && typeof Reflect.get(obj, property) === "string"; }; // Allowed: this lives in a *-guard.ts file',
             ],
             violations: [
-              'const record = obj as Record<string, unknown>; // Lint error: unsafe type assertion return typeof record[property] === "string";',
+              'const record = obj as Record<string, unknown>; return typeof record[property] === "string"; // Lint error: unsafe type assertion - parse through a contract',
+              'const name = Reflect.get(payload, "name"); // Lint error in source files: parse payload through a Zod contract and read parsed.name directly',
+              'someAdapter.config = Reflect.set(target, "field", value); // Lint error: Reflect.set is also restricted to *-guard.ts and *-contract.ts',
             ],
           },
         },
