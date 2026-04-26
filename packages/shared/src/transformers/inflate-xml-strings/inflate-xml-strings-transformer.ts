@@ -20,7 +20,7 @@ export const inflateXmlStringsTransformer = ({
 }: {
   value: unknown;
   parseXml: (params: { xml: string }) => unknown;
-}): unknown => {
+}): typeof value => {
   if (typeof value === 'string') {
     if (!XML_PATTERN.test(value)) {
       return value;

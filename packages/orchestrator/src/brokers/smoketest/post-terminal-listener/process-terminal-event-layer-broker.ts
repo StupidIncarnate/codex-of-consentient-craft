@@ -18,6 +18,7 @@ import {
   questContract,
   smoketestCaseResultContract,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type {
   AbsoluteFilePath,
   Quest,
@@ -37,7 +38,6 @@ import { questWithModifyLockBroker } from '../../quest/with-modify-lock/quest-wi
 import { smoketestAssertFinalStateBroker } from '../assert-final-state/smoketest-assert-final-state-broker';
 import { smoketestRunTeardownChecksBroker } from '../run-teardown-checks/smoketest-run-teardown-checks-broker';
 
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const processTerminalEventLayerBroker = async ({
@@ -76,7 +76,7 @@ export const processTerminalEventLayerBroker = async ({
   }
 
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [foundPath.questPath, QUEST_FILE_NAME] }),
+    pathJoinAdapter({ paths: [foundPath.questPath, locationsStatics.quest.questFile] }),
   );
 
   const quest: Quest = await questLoadBroker({ questFilePath });

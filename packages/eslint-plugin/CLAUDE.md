@@ -59,9 +59,7 @@ operations.
 
 - **Rule brokers** (`src/brokers/rule/**`) - Tested with ESLint's RuleTester integration tests, not traditional Jest
   unit tests. Tests are co-located (e.g., `rule-explicit-return-types-broker.test.ts`).
-- `test/helpers/eslintRuleTester.ts` - Creates configured RuleTester with TypeScript parser for rule integration
-  tests. Uses `require('@typescript-eslint/parser')` at runtime due to module resolution constraints - top-level import
-  fails with `moduleResolution: "node"`.
+- `eslintRuleTesterAdapter` (`src/adapters/eslint/rule-tester/`) - Configures RuleTester with TypeScript parser for rule integration tests.
 
 ## Type Handling for ESLint Rules
 

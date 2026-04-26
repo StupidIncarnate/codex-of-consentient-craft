@@ -13,6 +13,7 @@
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
 import { fileExtensionsStatics, folderConfigStatics } from '@dungeonmaster/shared/statics';
+import { folderConfigTransformer } from '../folder-config/folder-config-transformer';
 
 export const parseImplementationImportsTransformer = ({
   content,
@@ -47,17 +48,9 @@ export const parseImplementationImportsTransformer = ({
       const [, folderType] = scopedPackageMatch;
       // Check if the subpath is a known folder type that requires proxies
       if (folderType !== undefined && folderTypes.includes(folderType)) {
-        const folderConfigValue: unknown = Reflect.get(folderConfigStatics, folderType);
+        const folderConfigValue = folderConfigTransformer({ folderType });
 
-        const requireProxyValue: unknown =
-          folderConfigValue !== null &&
-          folderConfigValue !== undefined &&
-          typeof folderConfigValue === 'object' &&
-          'requireProxy' in folderConfigValue
-            ? Reflect.get(folderConfigValue, 'requireProxy')
-            : undefined;
-
-        if (requireProxyValue === true && namedImports !== undefined) {
+        if (folderConfigValue?.requireProxy === true && namedImports !== undefined) {
           const names = namedImports
             .split(',')
             .map((n) => {
@@ -128,21 +121,13 @@ export const parseImplementationImportsTransformer = ({
           }
         }
 
-        const folderConfigValue: unknown =
+        const folderConfigValue =
           folderTypeFromPath === null
             ? undefined
-            : Reflect.get(folderConfigStatics, folderTypeFromPath);
-
-        const requireProxyValue: unknown =
-          folderConfigValue !== null &&
-          folderConfigValue !== undefined &&
-          typeof folderConfigValue === 'object' &&
-          'requireProxy' in folderConfigValue
-            ? Reflect.get(folderConfigValue, 'requireProxy')
-            : undefined;
+            : folderConfigTransformer({ folderType: folderTypeFromPath });
 
         // Only process if folder type requires proxies
-        if (requireProxyValue === true) {
+        if (folderConfigValue?.requireProxy === true) {
           if (namedImports !== undefined) {
             const names = namedImports
               .split(',')

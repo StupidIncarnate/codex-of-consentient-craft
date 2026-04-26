@@ -1,14 +1,17 @@
 /**
- * PURPOSE: Creates a default InstallContext using the current working directory
+ * PURPOSE: Creates a default InstallContext using the provided cwd seed path
  *
  * USAGE:
- * const context = createDefaultInstallContextTransformer();
+ * const context = createDefaultInstallContextTransformer({ cwd: processCwdAdapter() });
  * // Returns InstallContext with cwd as both paths
  */
-import type { InstallContext } from '@dungeonmaster/shared/contracts';
+import type { FilePath, InstallContext } from '@dungeonmaster/shared/contracts';
 
-export const createDefaultInstallContextTransformer = (): InstallContext =>
-  ({
-    targetProjectRoot: process.cwd(),
-    dungeonmasterRoot: process.cwd(),
-  }) as InstallContext;
+export const createDefaultInstallContextTransformer = ({
+  cwd,
+}: {
+  cwd: FilePath;
+}): InstallContext => ({
+  targetProjectRoot: cwd,
+  dungeonmasterRoot: cwd,
+});

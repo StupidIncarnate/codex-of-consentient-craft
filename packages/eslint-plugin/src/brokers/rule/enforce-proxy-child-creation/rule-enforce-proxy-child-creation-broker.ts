@@ -129,14 +129,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         (node: Tsestree): void => {
           const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
           for (const ancestor of ancestors) {
-            // Type guard: check if ancestor is a Tsestree node with VariableDeclarator type
-            if (
-              typeof ancestor === 'object' &&
-              'type' in ancestor &&
-              'id' in ancestor &&
-              ancestor.type === 'VariableDeclarator'
-            ) {
-              const ancestorId = Reflect.get(ancestor, 'id') as Tsestree | null | undefined;
+            if (ancestor.type === 'VariableDeclarator') {
+              const ancestorId = ancestor.id;
               if (ancestorId?.name?.endsWith('Proxy')) {
                 insideProxyFunction = true;
                 foundReturnStatement = false;

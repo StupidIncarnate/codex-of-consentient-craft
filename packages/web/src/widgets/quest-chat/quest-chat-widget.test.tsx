@@ -18,6 +18,7 @@ import {
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { extractReplaySessionIdsTransformer } from '../../transformers/extract-replay-session-ids/extract-replay-session-ids-transformer';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
@@ -2311,9 +2312,7 @@ describe('QuestChatWidget', () => {
       });
 
       const sent = proxy.getSentWsMessages();
-      const replaySessionIds = sent
-        .filter((msg) => Reflect.get(msg as object, 'type') === 'replay-history')
-        .map((msg) => Reflect.get(msg as object, 'sessionId'));
+      const replaySessionIds = extractReplaySessionIdsTransformer({ messages: sent });
 
       expect(replaySessionIds).toStrictEqual(['chat-race-1', 'chat-race-1', 'ps-session-race']);
     });

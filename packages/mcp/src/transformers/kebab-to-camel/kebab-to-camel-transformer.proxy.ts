@@ -6,4 +6,4 @@
  * // Transformer is pure function, no setup needed
  */
 
-export const kebabToCamelTransformerProxy = (): object => ({});
+export const kebabToCamelTransformerProxy = (): Record<PropertyKey, never> => ({});

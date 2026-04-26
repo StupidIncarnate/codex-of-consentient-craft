@@ -20,7 +20,7 @@ describe('dependencyMapContract', () => {
     it('VALID: {} => returns default stub', () => {
       const result = DependencyMapStub();
 
-      expect(Reflect.get(result, 'typescript')).toBe('^5.8.3');
+      expect(result[dependencyMapContract.keySchema.parse('typescript')]).toBe('^5.8.3');
     });
   });
 });

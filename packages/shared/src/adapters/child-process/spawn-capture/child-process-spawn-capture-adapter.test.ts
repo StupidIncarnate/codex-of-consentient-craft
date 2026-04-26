@@ -152,7 +152,9 @@ describe('childProcessSpawnCaptureAdapter', () => {
 
       const options = proxy.getSpawnedOptions();
 
-      expect(Reflect.get(options as object, 'stdio')).toStrictEqual(['inherit', 'pipe', 'pipe']);
+      const { stdio } = options as { stdio?: unknown };
+
+      expect(stdio).toStrictEqual(['inherit', 'pipe', 'pipe']);
     });
   });
 });

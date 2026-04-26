@@ -6,6 +6,7 @@
  * // Returns FileTiming[] with one entry per file, durationMs = sum of stats.times.passes[].total
  */
 
+import { eslintJsonReportEntryContract } from '../../contracts/eslint-json-report-entry/eslint-json-report-entry-contract';
 import {
   fileTimingContract,
   type FileTiming,
@@ -18,44 +19,40 @@ export const eslintStatsParseTransformer = ({
 }): FileTiming[] => {
   const timings: FileTiming[] = [];
 
-  for (const entry of eslintResults) {
-    if (typeof entry !== 'object' || entry === null) {
+  for (const rawEntry of eslintResults) {
+    const entry = ((): ReturnType<typeof eslintJsonReportEntryContract.parse> | null => {
+      try {
+        return eslintJsonReportEntryContract.parse(rawEntry);
+      } catch {
+        return null;
+      }
+    })();
+
+    if (entry === null) {
       continue;
     }
 
-    const filePath: unknown = Reflect.get(entry, 'filePath');
-    if (typeof filePath !== 'string' || filePath.length === 0) {
+    const { filePath } = entry;
+    if (filePath === undefined || String(filePath).length === 0) {
       continue;
     }
 
-    const stats: unknown = Reflect.get(entry, 'stats');
-    if (typeof stats !== 'object' || stats === null) {
-      continue;
-    }
-
-    const times: unknown = Reflect.get(stats, 'times');
-    if (typeof times !== 'object' || times === null) {
-      continue;
-    }
-
-    const passes: unknown = Reflect.get(times, 'passes');
-    if (!Array.isArray(passes)) {
+    const passes = entry.stats?.times?.passes;
+    if (passes === undefined) {
       continue;
     }
 
     let totalMs = 0;
     for (const pass of passes) {
-      if (typeof pass === 'object' && pass !== null) {
-        const total: unknown = Reflect.get(pass, 'total');
-        if (typeof total === 'number' && !Number.isNaN(total)) {
-          totalMs += total;
-        }
+      const { total } = pass;
+      if (total !== undefined && !Number.isNaN(Number(total))) {
+        totalMs += Number(total);
       }
     }
 
     timings.push(
       fileTimingContract.parse({
-        filePath,
+        filePath: String(filePath),
         durationMs: totalMs,
       }),
     );

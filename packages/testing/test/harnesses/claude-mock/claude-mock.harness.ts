@@ -16,6 +16,8 @@ import * as path from 'path';
 
 import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
+import { fsQueueMetadataReadAdapter } from '../../../src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter';
+
 export {
   SimpleTextResponseStub,
   ToolUseChainResponseStub,
@@ -52,8 +54,7 @@ const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
 const getCounter = ({ queueDir }: { queueDir: string }) => {
   const metaPath = getMetadataPath({ queueDir });
   if (fs.existsSync(metaPath)) {
-    const raw = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
-    return Number(raw.counter);
+    return fsQueueMetadataReadAdapter({ metadataPath: metaPath }).counter;
   }
   return COUNTER_START;
 };

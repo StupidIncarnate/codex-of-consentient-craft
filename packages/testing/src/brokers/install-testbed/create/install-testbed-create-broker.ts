@@ -26,6 +26,7 @@ import { processOutputContract } from '../../../contracts/process-output/process
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
 import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
 import type { RelativePath } from '../../../contracts/relative-path/relative-path-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
@@ -66,7 +67,7 @@ export const installTestbedCreateBroker = ({
   });
 
   // Create .claude directory to satisfy pre-install validation
-  const claudeDir = pathJoinAdapter({ paths: [projectPath, '.claude'] });
+  const claudeDir = pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.claude.dir] });
   if (!fsExistsAdapter({ filePath: claudeDir })) {
     fsMkdirAdapter({ dirPath: claudeDir, recursive: true });
   }
@@ -109,7 +110,13 @@ export const installTestbedCreateBroker = ({
     },
 
     getClaudeSettings: (): unknown => {
-      const settingsPath = pathJoinAdapter({ paths: [projectPath, '.claude', 'settings.json'] });
+      const settingsPath = pathJoinAdapter({
+        paths: [
+          projectPath,
+          locationsStatics.repoRoot.claude.dir,
+          locationsStatics.repoRoot.claude.settings,
+        ],
+      });
       if (!fsExistsAdapter({ filePath: settingsPath })) {
         return null;
       }
@@ -118,7 +125,7 @@ export const installTestbedCreateBroker = ({
     },
 
     getMcpConfig: (): unknown => {
-      const mcpPath = pathJoinAdapter({ paths: [projectPath, '.mcp.json'] });
+      const mcpPath = pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.mcpJson] });
       if (!fsExistsAdapter({ filePath: mcpPath })) {
         return null;
       }
@@ -127,7 +134,9 @@ export const installTestbedCreateBroker = ({
     },
 
     getDungeonmasterConfig: (): DungeonmasterConfig | null => {
-      const configPath = pathJoinAdapter({ paths: [projectPath, '.dungeonmaster'] });
+      const configPath = pathJoinAdapter({
+        paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
+      });
       if (!fsExistsAdapter({ filePath: configPath })) {
         return null;
       }
@@ -136,7 +145,9 @@ export const installTestbedCreateBroker = ({
     },
 
     getEslintConfig: (): FileContent | null => {
-      const eslintPath = pathJoinAdapter({ paths: [projectPath, 'eslint.config.js'] });
+      const eslintPath = pathJoinAdapter({
+        paths: [projectPath, locationsStatics.repoRoot.eslintConfig[1]],
+      });
       if (!fsExistsAdapter({ filePath: eslintPath })) {
         return null;
       }

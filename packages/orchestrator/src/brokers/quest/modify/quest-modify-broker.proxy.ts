@@ -48,9 +48,12 @@ export const questModifyBrokerProxy = (): {
   lockLayerProxy.setupEmpty();
 
   // Re-apply passthrough to actual implementation (resetAllMocks clears between tests)
-  const realMod = requireActual({ module: './quest-modify-broker' });
-  const realImpl = Reflect.get(realMod as object, 'questModifyBroker') as typeof questModifyBroker;
-  (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockImplementation(realImpl);
+  const realMod = requireActual<{ questModifyBroker: typeof questModifyBroker }>({
+    module: './quest-modify-broker',
+  });
+  (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockImplementation(
+    realMod.questModifyBroker,
+  );
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

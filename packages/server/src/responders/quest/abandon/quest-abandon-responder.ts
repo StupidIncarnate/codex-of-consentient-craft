@@ -6,10 +6,10 @@
  * // Returns { status: 200, data: { abandoned: true } } or { status: 400/500, data: { error } }
  */
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { isAbandonableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { orchestratorAbandonQuestAdapter } from '../../../adapters/orchestrator/abandon-quest/orchestrator-abandon-quest-adapter';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -26,16 +26,16 @@ export const QuestAbandonResponder = async ({
         data: { error: 'Invalid params' },
       });
     }
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
-    const questId = questIdContract.parse(questIdRaw);
+    const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    const questResult = await orchestratorGetQuestAdapter({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,

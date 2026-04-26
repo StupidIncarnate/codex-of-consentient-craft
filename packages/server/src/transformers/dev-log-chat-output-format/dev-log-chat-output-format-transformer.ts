@@ -8,6 +8,7 @@
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
+import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
 import {
   devLogLineContract,
   type DevLogLine,
@@ -21,12 +22,11 @@ export const devLogChatOutputFormatTransformer = ({
   payload: Record<PropertyKey, unknown>;
 }): DevLogLine => {
   const procLabel = devLogProcLabelTransformer({ payload });
-  const rawRole = Reflect.get(payload, 'role');
-  const rolePart = typeof rawRole === 'string' ? `${rawRole}  ` : '';
-  const slotIndex = Reflect.get(payload, 'slotIndex');
-  const slotPart = typeof slotIndex === 'number' ? `slot:${slotIndex}  ` : '';
+  const parsed = devLogEventPayloadContract.parse(payload);
+  const rolePart = parsed.role === undefined ? '' : `${parsed.role}  `;
+  const slotPart = parsed.slotIndex === undefined ? '' : `slot:${parsed.slotIndex}  `;
 
-  const entries = Reflect.get(payload, 'entries');
+  const { entries } = parsed;
   if (!Array.isArray(entries) || entries.length === 0) {
     return devLogLineContract.parse(`${procLabel}  ${rolePart}${slotPart}(no entries)`.trim());
   }

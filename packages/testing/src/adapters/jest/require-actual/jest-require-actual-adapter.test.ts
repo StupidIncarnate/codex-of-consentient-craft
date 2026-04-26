@@ -5,8 +5,8 @@ describe('jestRequireActualAdapter', () => {
   it('VALID: {module: "path"} => returns real path module with resolve function', () => {
     jestRequireActualAdapterProxy();
 
-    const realPath = jestRequireActualAdapter({ module: 'path' });
+    const realPath = jestRequireActualAdapter<{ resolve: unknown }>({ module: 'path' });
 
-    expect(Reflect.get(realPath as object, 'resolve')).toStrictEqual(expect.any(Function));
+    expect(realPath.resolve).toStrictEqual(expect.any(Function));
   });
 });

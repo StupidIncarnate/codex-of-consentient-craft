@@ -14,10 +14,10 @@ import {
   type ErrorMessage,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
-const WARD_RESULTS_DIR = 'ward-results';
 const JSON_EXTENSION = '.json';
 
 export const wardPersistResultBroker = async ({
@@ -30,7 +30,7 @@ export const wardPersistResultBroker = async ({
   detailJson: ErrorMessage;
 }): Promise<AdapterResult> => {
   const wardResultsDir = pathJoinAdapter({
-    paths: [questFolderPath, WARD_RESULTS_DIR],
+    paths: [questFolderPath, locationsStatics.quest.wardResultsDir],
   });
 
   await fsMkdirAdapter({ filepath: wardResultsDir });

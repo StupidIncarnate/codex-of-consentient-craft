@@ -6,9 +6,9 @@
  * // Returns { status: 200, data: { stopped: true } } or { status: 404, data: { error } }
  */
 
-import { processIdContract } from '../../../contracts/process-id/process-id-contract';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { orchestratorStopChatAdapter } from '../../../adapters/orchestrator/stop-chat/orchestrator-stop-chat-adapter';
+import { chatProcessIdParamsContract } from '../../../contracts/chat-process-id-params/chat-process-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -22,16 +22,14 @@ export const SessionChatStopResponder = ({ params }: { params: unknown }): Respo
       });
     }
 
-    const chatProcessIdRaw: unknown = Reflect.get(params, 'chatProcessId');
-
-    if (typeof chatProcessIdRaw !== 'string') {
+    const parsedParams = chatProcessIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'chatProcessId is required' },
       });
     }
-
-    const chatProcessId = processIdContract.parse(chatProcessIdRaw);
+    const { chatProcessId } = parsedParams.data;
 
     processDevLogAdapter({
       message: `Session chat stop requested: processId=${chatProcessId}`,

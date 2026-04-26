@@ -201,19 +201,18 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     getSpawnedCommand: (): unknown => {
       const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return Reflect.get(lastCall as object, 0);
+      if (!Array.isArray(lastCall)) return undefined;
+      return lastCall[0];
     },
 
     getSpawnedArgs: (): unknown => {
       const { calls } = handle.mock;
       const lastCall: unknown = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return Reflect.get(lastCall as object, 1);
+      if (!Array.isArray(lastCall)) return undefined;
+      return lastCall[1];
     },
 
-    getAllSpawnedArgs: (): unknown[] =>
-      handle.mock.calls.map((call) => Reflect.get(call as object, 1)),
+    getAllSpawnedArgs: (): unknown[] => handle.mock.calls.map((call) => call[1]),
 
     getSpawnedCwd: (): unknown => {
       const { calls } = handle.mock;
@@ -221,7 +220,8 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];
       if (typeof opts !== 'object' || opts === null) return undefined;
-      return Reflect.get(opts, 'cwd');
+      const { cwd } = opts as { cwd?: unknown };
+      return cwd;
     },
   };
 };

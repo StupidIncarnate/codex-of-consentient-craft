@@ -6,6 +6,7 @@
  * // Returns SessionSummary 'Built login page' or undefined if not a summary record
  */
 
+import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
 import {
   sessionSummaryContract,
   type SessionSummary,
@@ -19,10 +20,13 @@ export const extractLineSummaryTransformer = ({
   if (typeof parsed !== 'object' || parsed === null) {
     return undefined;
   }
-  const lineType: unknown = Reflect.get(parsed, 'type');
-  const lineSummary: unknown = Reflect.get(parsed, 'summary');
-  if (lineType === 'summary' && typeof lineSummary === 'string') {
-    return sessionSummaryContract.parse(lineSummary);
+  const parsedLine = jsonlSessionLineContract.safeParse(parsed);
+  if (!parsedLine.success) {
+    return undefined;
+  }
+  const { type, summary } = parsedLine.data;
+  if (type === 'summary' && summary !== undefined) {
+    return sessionSummaryContract.parse(summary);
   }
   return undefined;
 };

@@ -14,13 +14,12 @@ import {
   type ExecResult,
 } from '../../contracts/exec-result/exec-result-contract';
 import { baseHookDataContract } from '../../contracts/base-hook-data/base-hook-data-contract';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 import { HookSessionSnippetPackagesResponder } from '../../responders/hook/session-snippet-packages/hook-session-snippet-packages-responder';
 import { buildFolderTypesTableTransformer } from '../../transformers/build-folder-types-table/build-folder-types-table-transformer';
 import { wrapSubagentStartOutputTransformer } from '../../transformers/wrap-subagent-start-output/wrap-subagent-start-output-transformer';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 type DynamicKey = {
   [K in keyof typeof sessionSnippetStatics]: (typeof sessionSnippetStatics)[K] extends null
@@ -30,10 +29,7 @@ type DynamicKey = {
 
 const dynamicGenerators: Record<DynamicKey, () => ContentText> = {
   folderTypes: buildFolderTypesTableTransformer,
-  packages: () =>
-    HookSessionSnippetPackagesResponder({
-      projectRoot: absoluteFilePathContract.parse(process.cwd()),
-    }),
+  packages: () => HookSessionSnippetPackagesResponder(),
 };
 
 export const HookSessionSnippetFlow = ({

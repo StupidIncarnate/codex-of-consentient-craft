@@ -7,6 +7,8 @@
  */
 
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { questGetQueryContract } from '../../../contracts/quest-get-query/quest-get-query-contract';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -25,17 +27,21 @@ export const QuestGetResponder = async ({
         data: { error: 'Invalid params' },
       });
     }
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
-    const stage: unknown =
-      typeof query === 'object' && query !== null ? Reflect.get(query, 'stage') : undefined;
+    const { questId } = parsedParams.data;
+    const parsedQuery =
+      typeof query === 'object' && query !== null
+        ? questGetQueryContract.safeParse(query)
+        : undefined;
+    const stage = parsedQuery?.success ? parsedQuery.data.stage : undefined;
     const quest = await orchestratorGetQuestAdapter({
-      questId: questIdRaw,
+      questId,
       ...(typeof stage === 'string' && { stage }),
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: quest });

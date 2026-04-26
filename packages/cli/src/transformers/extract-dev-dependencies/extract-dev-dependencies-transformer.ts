@@ -10,34 +10,22 @@ import {
   dependencyMapContract,
   type DependencyMap,
 } from '../../contracts/dependency-map/dependency-map-contract';
+import { packageJsonContract } from '../../contracts/package-json/package-json-contract';
 
 export const extractDevDependenciesTransformer = ({
   packageJson,
 }: {
   packageJson?: unknown;
 }): DependencyMap => {
-  if (typeof packageJson !== 'object' || packageJson === null) {
+  const parsed = packageJsonContract.safeParse(packageJson);
+
+  if (!parsed.success || parsed.data.devDependencies === undefined) {
     return dependencyMapContract.parse({});
   }
 
-  if (!('devDependencies' in packageJson)) {
-    return dependencyMapContract.parse({});
-  }
+  const devDeps = parsed.data.devDependencies;
 
-  const devDeps = Reflect.get(packageJson, 'devDependencies');
-
-  if (typeof devDeps !== 'object' || devDeps === null) {
-    return dependencyMapContract.parse({});
-  }
-
-  const result: DependencyMap = dependencyMapContract.parse({});
-
-  for (const key of Object.keys(devDeps)) {
-    const value: unknown = Reflect.get(devDeps, key);
-    if (typeof value === 'string') {
-      Reflect.set(result, key, value);
-    }
-  }
-
-  return result;
+  return dependencyMapContract.parse(
+    Object.fromEntries(Object.entries(devDeps).filter(([, v]) => typeof v === 'string')),
+  );
 };

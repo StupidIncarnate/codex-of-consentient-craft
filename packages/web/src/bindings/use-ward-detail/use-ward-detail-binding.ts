@@ -12,6 +12,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { WardResult } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { wardDetailResponseContract } from '../../contracts/ward-detail-response/ward-detail-response-contract';
 
 type WardResultId = WardResult['id'];
 
@@ -37,16 +38,11 @@ export const useWardDetailBinding = ({
       const connection = websocketConnectAdapter({
         url: `ws://${globalThis.location.host}/ws`,
         onMessage: (message: unknown): void => {
-          if (typeof message !== 'object' || message === null) return;
+          const parsed = wardDetailResponseContract.safeParse(message);
+          if (!parsed.success) return;
+          if (parsed.data.wardResultId !== wardResultId) return;
 
-          const type: unknown = Reflect.get(message, 'type');
-          if (type !== 'ward-detail-response') return;
-
-          const responseWardResultId: unknown = Reflect.get(message, 'wardResultId');
-          if (responseWardResultId !== wardResultId) return;
-
-          const responseDetail: unknown = Reflect.get(message, 'detail');
-          setDetail(responseDetail);
+          setDetail(parsed.data.detail);
           setLoading(false);
           connection.close();
         },

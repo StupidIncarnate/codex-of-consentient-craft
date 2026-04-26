@@ -35,7 +35,7 @@ export const questFlowObservableSeedTransformer = ({
   }
 
   const flowHasTerminalObservable = flows.some((flow: FlowInput) => {
-    const nodes: unknown = Reflect.get(flow, 'nodes');
+    const nodes: unknown = flow.nodes;
     if (!Array.isArray(nodes)) {
       return false;
     }
@@ -43,8 +43,9 @@ export const questFlowObservableSeedTransformer = ({
       if (typeof node !== 'object' || node === null) {
         return false;
       }
-      const nodeType: unknown = Reflect.get(node, 'type');
-      const observables: unknown = Reflect.get(node, 'observables');
+      const nodeRecord = node as Record<PropertyKey, unknown>;
+      const nodeType: unknown = nodeRecord.type;
+      const observables: unknown = nodeRecord.observables;
       return nodeType === 'terminal' && Array.isArray(observables) && observables.length > 0;
     });
   });
@@ -55,7 +56,7 @@ export const questFlowObservableSeedTransformer = ({
 
   const alreadyInjected = { value: false };
   return flows.map((flow: FlowInput): FlowInput => {
-    const nodes: unknown = Reflect.get(flow, 'nodes');
+    const nodes: unknown = flow.nodes;
     if (!Array.isArray(nodes)) {
       return flow;
     }
@@ -66,11 +67,12 @@ export const questFlowObservableSeedTransformer = ({
       if (typeof node !== 'object' || node === null) {
         return node;
       }
-      if (Reflect.get(node, 'type') !== 'terminal') {
+      const nodeRecord = node as Record<PropertyKey, unknown>;
+      if (nodeRecord.type !== 'terminal') {
         return node;
       }
       alreadyInjected.value = true;
-      const existingObservables: unknown = Reflect.get(node, 'observables');
+      const existingObservables: unknown = nodeRecord.observables;
       const existing: unknown[] = Array.isArray(existingObservables) ? existingObservables : [];
       return {
         ...node,

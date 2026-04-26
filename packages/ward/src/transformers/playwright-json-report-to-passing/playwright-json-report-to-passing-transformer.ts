@@ -12,6 +12,10 @@ import {
   passingTestContract,
   type PassingTest,
 } from '../../contracts/passing-test/passing-test-contract';
+import {
+  playwrightJsonReportContract,
+  type PlaywrightSuite,
+} from '../../contracts/playwright-json-report/playwright-json-report-contract';
 
 const TITLE_SEPARATOR = ' › ';
 
@@ -25,76 +29,67 @@ export const playwrightJsonReportToPassingTransformer = ({
   }
 
   try {
-    const parsed: unknown = JSON.parse(String(jsonContent));
+    const parsed = playwrightJsonReportContract.parse(JSON.parse(String(jsonContent)));
 
-    if (typeof parsed !== 'object' || parsed === null) {
-      return [];
-    }
-
-    const rootSuites: unknown = Reflect.get(parsed, 'suites');
-    if (!Array.isArray(rootSuites)) {
+    const rootSuites = parsed.suites;
+    if (rootSuites === undefined) {
       return [];
     }
 
     const passing: PassingTest[] = [];
-    const stack = rootSuites.map((suite: unknown) => ({ suite, titlePrefix: '' }));
+    const stack = rootSuites.map((suite) => ({ suite, titlePrefix: '' }));
 
     while (stack.length > 0) {
       const frame = stack.shift();
       if (frame === undefined) {
         break;
       }
-      const { suite, titlePrefix } = frame;
-      if (typeof suite !== 'object' || suite === null) {
-        continue;
-      }
+      const suite: PlaywrightSuite = frame.suite;
+      const { titlePrefix } = frame;
 
-      const title: unknown = Reflect.get(suite, 'title');
+      const { title } = suite;
       const nextPrefix =
-        typeof title === 'string' && title.length > 0
+        title !== undefined && String(title).length > 0
           ? titlePrefix.length > 0
-            ? `${titlePrefix}${TITLE_SEPARATOR}${title}`
-            : title
+            ? `${titlePrefix}${TITLE_SEPARATOR}${String(title)}`
+            : String(title)
           : titlePrefix;
 
-      const specs: unknown = Reflect.get(suite, 'specs');
-      if (Array.isArray(specs)) {
+      const { specs } = suite;
+      if (specs !== undefined) {
         for (const spec of specs) {
-          if (typeof spec !== 'object' || spec === null) {
-            continue;
-          }
-          const specTitle: unknown = Reflect.get(spec, 'title');
-          const file: unknown = Reflect.get(spec, 'file');
-          const tests: unknown = Reflect.get(spec, 'tests');
-          if (typeof specTitle !== 'string' || typeof file !== 'string' || !Array.isArray(tests)) {
+          const specTitle = spec.title;
+          const { file } = spec;
+          const { tests } = spec;
+          if (specTitle === undefined || file === undefined || tests === undefined) {
             continue;
           }
 
           const fullTitle =
-            nextPrefix.length > 0 ? `${nextPrefix}${TITLE_SEPARATOR}${specTitle}` : specTitle;
+            nextPrefix.length > 0
+              ? `${nextPrefix}${TITLE_SEPARATOR}${String(specTitle)}`
+              : String(specTitle);
 
           for (const testNode of tests) {
-            if (typeof testNode !== 'object' || testNode === null) {
+            const { results } = testNode;
+            if (results === undefined || results.length === 0) {
               continue;
             }
-            const results: unknown = Reflect.get(testNode, 'results');
-            if (!Array.isArray(results) || results.length === 0) {
+            const latestResult = results[results.length - 1];
+            if (latestResult === undefined) {
               continue;
             }
-            const latestResult: unknown = results[results.length - 1];
-            if (typeof latestResult !== 'object' || latestResult === null) {
-              continue;
-            }
-            const status: unknown = Reflect.get(latestResult, 'status');
+            const { status } = latestResult;
             if (status !== 'passed') {
               continue;
             }
-            const duration: unknown = Reflect.get(latestResult, 'duration');
-            const durationMs = typeof duration === 'number' && duration >= 0 ? duration : 0;
+            const { duration } = latestResult;
+            const durationMs =
+              duration !== undefined && Number(duration) >= 0 ? Number(duration) : 0;
 
             passing.push(
               passingTestContract.parse({
-                suitePath: file,
+                suitePath: String(file),
                 testName: fullTitle,
                 durationMs,
               }),
@@ -103,8 +98,8 @@ export const playwrightJsonReportToPassingTransformer = ({
         }
       }
 
-      const nestedSuites: unknown = Reflect.get(suite, 'suites');
-      if (Array.isArray(nestedSuites)) {
+      const nestedSuites = suite.suites;
+      if (nestedSuites !== undefined) {
         for (const nested of nestedSuites) {
           stack.push({ suite: nested, titlePrefix: nextPrefix });
         }

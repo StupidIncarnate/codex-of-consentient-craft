@@ -6,8 +6,8 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
+import { guildMessageBodyContract } from '../../../contracts/guild-message-body/guild-message-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -25,25 +25,22 @@ export const SessionNewResponder = async ({
       });
     }
 
-    const rawGuildId: unknown = Reflect.get(body, 'guildId');
-    const rawMessage: unknown = Reflect.get(body, 'message');
-
-    if (typeof rawGuildId !== 'string') {
-      return responderResultContract.parse({
-        status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
-      });
-    }
-
-    if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
+    const parsedBody = guildMessageBodyContract.safeParse(body);
+    if (!parsedBody.success) {
+      const { fieldErrors } = parsedBody.error.flatten();
+      if (fieldErrors.guildId) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: { error: 'guildId is required' },
+        });
+      }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'message is required' },
       });
     }
-
-    const guildId = guildIdContract.parse(rawGuildId);
-    const { chatProcessId } = await orchestratorStartChatAdapter({ guildId, message: rawMessage });
+    const { guildId, message } = parsedBody.data;
+    const { chatProcessId } = await orchestratorStartChatAdapter({ guildId, message });
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

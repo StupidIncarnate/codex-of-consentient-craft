@@ -9,8 +9,8 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
+import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 
 export const ruleBanAdhocTypesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -40,19 +40,10 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
     }
 
     // Check if this folder type has the config
-    const folderConfigValue: unknown = Reflect.get(folderConfigStatics, folderType);
-    const hasDisallowAdhocTypes =
-      folderConfigValue !== null &&
-      typeof folderConfigValue === 'object' &&
-      'disallowAdhocTypes' in folderConfigValue;
+    const folderConfigValue = folderConfigTransformer({ folderType });
 
     // If config doesn't exist or disallowAdhocTypes is false, skip validation
-    if (!hasDisallowAdhocTypes) {
-      return {};
-    }
-
-    const disallowAdhocTypesValue: unknown = Reflect.get(folderConfigValue, 'disallowAdhocTypes');
-    if (disallowAdhocTypesValue === false) {
+    if (!folderConfigValue?.disallowAdhocTypes) {
       return {};
     }
 

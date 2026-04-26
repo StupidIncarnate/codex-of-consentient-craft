@@ -7,6 +7,7 @@
  */
 
 import type { FileContents } from '@dungeonmaster/shared/contracts';
+import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
 import {
   sessionSummaryContract,
   type SessionSummary,
@@ -32,35 +33,32 @@ export const extractFirstUserMessageTransformer = ({
     }
 
     try {
-      const parsed: unknown = JSON.parse(line);
+      const rawParsed: unknown = JSON.parse(line);
 
-      if (typeof parsed !== 'object' || parsed === null) {
+      if (typeof rawParsed !== 'object' || rawParsed === null) {
         continue;
       }
 
-      const lineType: unknown = Reflect.get(parsed, 'type');
+      const parsedLine = jsonlSessionLineContract.safeParse(rawParsed);
+      if (!parsedLine.success) {
+        continue;
+      }
+
+      const { type: lineType, isMeta, message } = parsedLine.data;
 
       if (lineType !== 'user') {
         continue;
       }
 
-      const isMeta: unknown = Reflect.get(parsed, 'isMeta');
-
       if (isMeta === true) {
         continue;
       }
 
-      const message: unknown = Reflect.get(parsed, 'message');
-
-      if (typeof message !== 'object' || message === null) {
+      if (message?.content === undefined) {
         continue;
       }
 
-      const content: unknown = Reflect.get(message, 'content');
-
-      if (typeof content !== 'string') {
-        continue;
-      }
+      const { content } = message;
 
       const startsWithCommand = userMessageCommandPrefixesStatics.prefixes.some((prefix) =>
         content.startsWith(prefix),
@@ -88,35 +86,32 @@ export const extractFirstUserMessageTransformer = ({
     }
 
     try {
-      const parsed: unknown = JSON.parse(line);
+      const rawParsed: unknown = JSON.parse(line);
 
-      if (typeof parsed !== 'object' || parsed === null) {
+      if (typeof rawParsed !== 'object' || rawParsed === null) {
         continue;
       }
 
-      const lineType: unknown = Reflect.get(parsed, 'type');
+      const parsedLine = jsonlSessionLineContract.safeParse(rawParsed);
+      if (!parsedLine.success) {
+        continue;
+      }
+
+      const { type: lineType, isMeta, message } = parsedLine.data;
 
       if (lineType !== 'user') {
         continue;
       }
 
-      const isMeta: unknown = Reflect.get(parsed, 'isMeta');
-
       if (isMeta === true) {
         continue;
       }
 
-      const message: unknown = Reflect.get(parsed, 'message');
-
-      if (typeof message !== 'object' || message === null) {
+      if (message?.content === undefined) {
         continue;
       }
 
-      const content: unknown = Reflect.get(message, 'content');
-
-      if (typeof content !== 'string') {
-        continue;
-      }
+      const { content } = message;
 
       const commandNameMatch = /<command-name>(.*?)<\/command-name>/u.exec(content);
 

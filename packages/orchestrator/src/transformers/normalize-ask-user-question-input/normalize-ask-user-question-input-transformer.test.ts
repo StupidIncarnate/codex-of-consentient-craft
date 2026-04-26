@@ -104,13 +104,13 @@ describe('normalizeAskUserQuestionInputTransformer', () => {
       expect(result).toStrictEqual({});
     });
 
-    it('EDGE: {input is a non-object primitive} => returns input unchanged', () => {
+    it('EDGE: {input is a non-object primitive} => returns empty object', () => {
       const result = normalizeAskUserQuestionInputTransformer({
         name: 'mcp__dungeonmaster__ask-user-question',
         input: 'some string',
       });
 
-      expect(result).toBe('some string');
+      expect(result).toStrictEqual({});
     });
   });
 });

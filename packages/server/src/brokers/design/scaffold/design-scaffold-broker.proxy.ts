@@ -1,4 +1,8 @@
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import {
+  fsMkdirAdapterProxy,
+  pathJoinAdapterProxy,
+  locationsDesignScaffoldPathFindBrokerProxy,
+} from '@dungeonmaster/shared/testing';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 export const designScaffoldBrokerProxy = (): {
@@ -6,6 +10,7 @@ export const designScaffoldBrokerProxy = (): {
 } => {
   fsMkdirAdapterProxy();
   pathJoinAdapterProxy();
+  locationsDesignScaffoldPathFindBrokerProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
   return {

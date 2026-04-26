@@ -6,7 +6,7 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
 
     expect('dungeonmaster' in result).toBe(true);
 
-    const dungeonmasterConfig = Reflect.get(result, 'dungeonmaster');
+    const [dungeonmasterConfig] = Object.values(result);
 
     expect(dungeonmasterConfig).toStrictEqual({
       type: 'stdio',
@@ -18,7 +18,7 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
   it('VALID: returns config with correct structure', () => {
     const result = dungeonmasterConfigCreatorTransformer();
 
-    const dungeonmasterConfig = Reflect.get(result, 'dungeonmaster');
+    const [dungeonmasterConfig] = Object.values(result);
 
     expect(dungeonmasterConfig).toStrictEqual({
       type: 'stdio',

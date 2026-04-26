@@ -6,46 +6,37 @@
  * // Returns StreamText if text found, null otherwise
  */
 
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import {
   streamTextContract,
   type StreamText,
 } from '../../contracts/stream-text/stream-text-contract';
 
 export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): StreamText | null => {
-  if (
-    typeof parsed !== 'object' ||
-    parsed === null ||
-    !('type' in parsed) ||
-    Reflect.get(parsed, 'type') !== 'assistant'
-  ) {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
+    return null;
+  }
+  const line = lineParse.data;
+  if (line.type !== 'assistant') {
     return null;
   }
 
-  const message: unknown = Reflect.get(parsed, 'message');
-  if (typeof message !== 'object' || message === null || !('content' in message)) {
-    return null;
-  }
-
-  const content: unknown = Reflect.get(message, 'content');
+  const content = line.message?.content;
   if (!Array.isArray(content)) {
     return null;
   }
 
-  const result = content.reduce<StreamText | null>((acc, item) => {
-    if (
-      typeof item === 'object' &&
-      item !== null &&
-      'type' in item &&
-      Reflect.get(item, 'type') === 'text' &&
-      'text' in item
-    ) {
-      const text: unknown = Reflect.get(item, 'text');
-      if (typeof text === 'string') {
-        const current = acc === null ? '' : acc;
-        return streamTextContract.parse(current + text);
-      }
+  const result = content.reduce<StreamText | null>((acc, rawItem) => {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) return acc;
+    const item = itemParse.data;
+    if (item.type !== 'text' || typeof item.text !== 'string') {
+      return acc;
     }
-    return acc;
+    const current = acc === null ? '' : acc;
+    return streamTextContract.parse(current + String(item.text));
   }, null);
 
   return result;

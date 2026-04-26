@@ -1,3 +1,4 @@
+import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
@@ -33,6 +34,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
+  getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   claudeLineNormalizeBrokerProxy();
   const readlineProxy = readlineCreateInterfaceAdapterProxy();
@@ -132,5 +134,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
 
     getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
+
+    getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),
   };
 };

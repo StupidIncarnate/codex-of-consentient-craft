@@ -7,7 +7,10 @@
  * const result = HookSessionSnippetPackagesResponder({ projectRoot });
  */
 
-import { architectureProjectMapBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  architectureProjectMapBrokerProxy,
+  processCwdAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 import type { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 export const HookSessionSnippetPackagesResponderProxy = (): {
@@ -18,6 +21,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
     }[];
   }) => void;
 } => {
+  processCwdAdapterProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
 
   return {

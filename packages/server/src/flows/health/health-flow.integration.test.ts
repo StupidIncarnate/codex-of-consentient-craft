@@ -1,3 +1,5 @@
+import { parseHealthResponseTransformer } from '../../transformers/parse-health-response/parse-health-response-transformer';
+
 import { HealthFlow } from './health-flow';
 
 describe('HealthFlow', () => {
@@ -7,9 +9,10 @@ describe('HealthFlow', () => {
 
       const response = await app.request('/api/health');
       const body: unknown = await response.json();
+      const parsed = parseHealthResponseTransformer({ value: body });
 
       expect(response.status).toBe(200);
-      expect(Reflect.get(body as object, 'status')).toBe('ok');
+      expect(parsed?.status).toBe('ok');
     });
   });
 });

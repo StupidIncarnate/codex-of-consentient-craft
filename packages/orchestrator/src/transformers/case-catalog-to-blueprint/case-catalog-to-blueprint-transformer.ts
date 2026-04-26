@@ -95,7 +95,8 @@ export const caseCatalogToBlueprintTransformer = ({
   const workItems: WorkItem[] = cases.map((entry, index) => {
     const id = workItemIds[index];
     const prevId = index === 0 ? undefined : workItemIds[index - 1];
-    const resolved: unknown = Reflect.get(smoketestPromptsStatics, entry.promptKey);
+    const resolved: unknown =
+      smoketestPromptsStatics[entry.promptKey as keyof typeof smoketestPromptsStatics];
     if (typeof resolved !== 'string') {
       throw new Error(
         `caseCatalogToBlueprintTransformer: no prompt found for promptKey "${entry.promptKey}"`,

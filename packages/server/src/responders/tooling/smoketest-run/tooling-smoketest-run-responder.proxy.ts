@@ -1,4 +1,4 @@
-import { configRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { configRootFindBrokerProxy, processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { orchestratorRunSmoketestAdapterProxy } from '../../../adapters/orchestrator/run-smoketest/orchestrator-run-smoketest-adapter.proxy';
 
@@ -8,6 +8,7 @@ export const ToolingSmoketestRunResponderProxy = (): {
 } => {
   const adapterProxy = orchestratorRunSmoketestAdapterProxy();
   configRootFindBrokerProxy();
+  processCwdAdapterProxy();
   return {
     setupAlreadyRunning: ({ runId, suite }: { runId: string; suite: string }): void => {
       adapterProxy.throws({

@@ -6,9 +6,9 @@
  * // Returns { status: 200, data: sessions } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import { sessionListBroker } from '../../../brokers/session/list/session-list-broker';
 import { sessionSummaryCacheState } from '../../../state/session-summary-cache/session-summary-cache-state';
+import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -26,16 +26,14 @@ export const SessionListResponder = async ({
       });
     }
 
-    const guildIdRaw: unknown = Reflect.get(params, 'guildId');
-
-    if (typeof guildIdRaw !== 'string') {
+    const parsedParams = guildIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId is required' },
       });
     }
-
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = parsedParams.data;
     const sessions = await sessionListBroker({
       guildId,
       getCache: sessionSummaryCacheState.get,

@@ -7,8 +7,10 @@
  */
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
+import { rawEslintConfigContract } from '../../../contracts/raw-eslint-config/raw-eslint-config-contract';
 
 /**
  * Runs ESLint on specific content with targeted rules.
@@ -22,14 +24,14 @@ import { eslintResultToLintResultTransformer } from '../../../transformers/eslin
  * @param content - The code content to lint
  * @param filePath - The file path (used for extension detection and rule matching)
  * @param config - The Linter configuration with rules to apply
- * @param cwd - The current working directory (defaults to process.cwd())
+ * @param cwd - The current working directory (defaults to processCwdAdapter())
  * @returns Array of lint results for the content
  */
 export const eslintLintRunTargetedBroker = async ({
   content,
   filePath,
   config,
-  cwd = process.cwd(),
+  cwd = processCwdAdapter(),
 }: {
   content: string;
   filePath: string;
@@ -68,19 +70,15 @@ export const eslintLintRunTargetedBroker = async ({
       ) ?? false;
 
     if (hasProjectError) {
-      // Create a simplified config without project reference
-      const configObj = config as Record<PropertyKey, unknown>;
-      const languageOptions = Reflect.get(configObj, 'languageOptions') as
-        | Record<PropertyKey, unknown>
-        | undefined;
-      const parserOptions = languageOptions
-        ? (Reflect.get(languageOptions, 'parserOptions') as
-            | Record<PropertyKey, unknown>
-            | undefined)
-        : undefined;
+      // Create a simplified config without project reference.
+      // Use rawEslintConfigContract only to safely extract languageOptions/parserOptions;
+      // spread the full original config record so fields like `files` are preserved.
+      const parsedConfig = rawEslintConfigContract.safeParse(config);
+      const languageOptions = parsedConfig.success ? parsedConfig.data.languageOptions : undefined;
+      const parserOptions = languageOptions?.parserOptions;
 
       const simplifiedConfig = {
-        ...configObj,
+        ...(config as Record<PropertyKey, unknown>),
         languageOptions: {
           ...languageOptions,
           parserOptions: {

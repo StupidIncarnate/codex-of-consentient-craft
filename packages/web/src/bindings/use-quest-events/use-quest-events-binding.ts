@@ -11,6 +11,8 @@ import type { GuildId, Quest, QuestId, SessionId } from '@dungeonmaster/shared/c
 import { questContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { questBySessionNotFoundPayloadContract } from '../../contracts/quest-by-session-not-found-payload/quest-by-session-not-found-payload-contract';
+import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
 
 type WsConnection = ReturnType<typeof websocketConnectAdapter>;
 
@@ -56,16 +58,21 @@ export const useQuestEventsBinding = ({
         if (!parsed.success) return;
 
         if (parsed.data.type === 'quest-by-session-not-found') {
-          const payloadSessionId: unknown = Reflect.get(parsed.data.payload, 'sessionId');
-          if (payloadSessionId === sessionIdRef.current) {
+          const payloadResult = questBySessionNotFoundPayloadContract.safeParse(
+            parsed.data.payload,
+          );
+          if (!payloadResult.success) return;
+          if (payloadResult.data.sessionId === sessionIdRef.current) {
             setSessionHasNoQuest(true);
           }
           return;
         }
 
         if (parsed.data.type === 'quest-modified') {
-          const rawQuest: unknown = Reflect.get(parsed.data.payload, 'quest');
-          const questParsed = questContract.safeParse(rawQuest);
+          const payloadResult = questModifiedPayloadContract.safeParse(parsed.data.payload);
+          if (!payloadResult.success) return;
+
+          const questParsed = questContract.safeParse(payloadResult.data.quest);
           if (!questParsed.success) return;
 
           const hasMatchingWorkItem = questParsed.data.workItems.some(
@@ -75,15 +82,13 @@ export const useQuestEventsBinding = ({
             return;
           }
 
-          const payloadQuestId: unknown = Reflect.get(parsed.data.payload, 'questId');
+          const payloadQuestId = payloadResult.data.questId;
 
           if (questIdRef.current === null) {
-            if (typeof payloadQuestId === 'string') {
-              questIdRef.current = payloadQuestId as QuestId;
-            }
+            questIdRef.current = payloadQuestId;
           }
 
-          if (questIdRef.current !== null && payloadQuestId !== questIdRef.current) {
+          if (payloadQuestId !== questIdRef.current) {
             return;
           }
 

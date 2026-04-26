@@ -17,13 +17,13 @@ import {
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../brokers/quest/persist/quest-persist-broker';
 import { questWithModifyLockBroker } from '../../../brokers/quest/with-modify-lock/quest-with-modify-lock-broker';
 
-const QUEST_FILE_NAME = 'quest.json';
 const JSON_INDENT_SPACES = 2;
 
 export const OverwriteWorkItemsLayerResponder = async ({
@@ -38,7 +38,7 @@ export const OverwriteWorkItemsLayerResponder = async ({
     run: async (): Promise<AdapterResult> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
       );
       const loaded = await questLoadBroker({ questFilePath });
       const hydratorPathseeker = loaded.workItems.find((wi) => wi.role === 'pathseeker');

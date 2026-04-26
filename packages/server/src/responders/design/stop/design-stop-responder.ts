@@ -6,8 +6,7 @@
  * // Returns { status: 200, data: { stopped: true } } or { status: 400/500, data: { error } }
  */
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
-
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
@@ -22,15 +21,14 @@ export const DesignStopResponder = ({ params }: { params: unknown }): ResponderR
       });
     }
 
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
-
-    const questId = questIdContract.parse(questIdRaw);
+    const { questId } = parsedParams.data;
     const process = designProcessState.get({ questId });
 
     if (!process) {

@@ -48,12 +48,12 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       mocked.mockResolvedValueOnce({ guildId });
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './smoketest-ensure-guild-broker' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'smoketestEnsureGuildBroker',
-      ) as typeof smoketestEnsureGuildBroker;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        smoketestEnsureGuildBroker: typeof smoketestEnsureGuildBroker;
+      }>({
+        module: './smoketest-ensure-guild-broker',
+      });
+      mocked.mockImplementation(realMod.smoketestEnsureGuildBroker);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
     setupGuildPresent: ({

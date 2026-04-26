@@ -10,6 +10,7 @@ import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-esli
 import { eslintOutputFixesAdapter } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
@@ -25,13 +26,13 @@ import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severit
  *
  * @param filePath - The file path to lint and fix
  * @param config - The ESLint configuration with rules to apply
- * @param cwd - The current working directory (defaults to process.cwd())
+ * @param cwd - The current working directory (defaults to processCwdAdapter())
  * @returns Array of lint results containing only error-level violations
  */
 export const eslintLintRunWithFixBroker = async ({
   filePath,
   config: _config,
-  cwd = process.cwd(),
+  cwd = processCwdAdapter(),
 }: {
   filePath: string;
   config: unknown;

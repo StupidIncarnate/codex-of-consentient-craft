@@ -13,6 +13,7 @@ import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint
 import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 const EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT = 6;
 
@@ -21,6 +22,7 @@ const globalState = { constructorCallCount: 0 };
 
 export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child proxies
+  processCwdAdapterProxy();
   const eslintProxy = eslintEslintAdapterProxy();
   eslintCalculateConfigForFileAdapterProxy();
   pathResolveAdapterProxy();

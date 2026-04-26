@@ -2,15 +2,12 @@
  * PURPOSE: Validates if a string is a valid framework preset property key
  *
  * USAGE:
- * isFrameworkPresetKeyGuard({key: 'widgets'});
- * // Returns true if key is a valid preset property, false otherwise
+ * isFrameworkPresetKeyGuard('widgets');
+ * // Returns true and narrows the value to keyof FrameworkPreset, false otherwise
  */
 
-import { frameworkPresetKeysStatics } from '../../statics/framework-preset-keys/framework-preset-keys-statics';
-import { isInReadonlyArrayGuard } from '../is-in-readonly-array/is-in-readonly-array-guard';
+import type { FrameworkPreset } from '../../contracts/framework-presets/framework-presets-contract';
+import { frameworkPresetsContract } from '../../contracts/framework-presets/framework-presets-contract';
 
-export const isFrameworkPresetKeyGuard = ({ key }: { key?: unknown }): boolean =>
-  isInReadonlyArrayGuard({
-    value: key,
-    array: frameworkPresetKeysStatics.keys.all,
-  });
+export const isFrameworkPresetKeyGuard = (key: unknown): key is keyof FrameworkPreset =>
+  typeof key === 'string' && Object.hasOwn(frameworkPresetsContract.shape, key);

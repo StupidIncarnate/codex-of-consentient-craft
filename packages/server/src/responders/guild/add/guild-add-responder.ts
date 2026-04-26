@@ -6,8 +6,8 @@
  * // Returns { status: 201, data: guild } or { status: 400/500, data: { error } }
  */
 
-import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
 import { orchestratorAddGuildAdapter } from '../../../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter';
+import { guildAddBodyContract } from '../../../contracts/guild-add-body/guild-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -21,18 +21,14 @@ export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<Re
       });
     }
 
-    const rawName: unknown = Reflect.get(body, 'name');
-    const rawPath: unknown = Reflect.get(body, 'path');
-
-    if (typeof rawName !== 'string' || typeof rawPath !== 'string') {
+    const parsedBody = guildAddBodyContract.safeParse(body);
+    if (!parsedBody.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'name and path are required strings' },
       });
     }
-
-    const name = guildNameContract.parse(rawName);
-    const path = guildPathContract.parse(rawPath);
+    const { name, path } = parsedBody.data;
     const result = await orchestratorAddGuildAdapter({ name, path });
     return responderResultContract.parse({
       status: httpStatusStatics.success.created,

@@ -2,7 +2,11 @@ import { Hono } from 'hono';
 import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { pathJoinAdapterProxy, portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  pathJoinAdapterProxy,
+  portResolveBrokerProxy,
+  locationsWardResultsPathFindBrokerProxy,
+} from '@dungeonmaster/shared/testing';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -103,6 +107,7 @@ export const ServerInitResponderProxy = (): {
   orchestratorStopAllChatsAdapterProxy();
   const devLogProxy = processDevLogAdapterProxy();
   pathJoinAdapterProxy();
+  locationsWardResultsPathFindBrokerProxy();
   fsReadFileAdapterProxy();
   orchestratorFindQuestPathAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();

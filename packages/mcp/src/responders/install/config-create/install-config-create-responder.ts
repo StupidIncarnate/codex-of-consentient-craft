@@ -20,8 +20,8 @@ import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contrac
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { settingsPermissionsAddBroker } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-const CONFIG_FILENAME = '.mcp.json';
 const PACKAGE_NAME = '@dungeonmaster/mcp';
 const JSON_INDENT_SPACES = 2;
 
@@ -31,7 +31,7 @@ export const InstallConfigCreateResponder = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   const configPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, CONFIG_FILENAME],
+    paths: [context.targetProjectRoot, locationsStatics.repoRoot.mcpJson],
   });
 
   let existingConfig: McpConfig | null = null;

@@ -79,8 +79,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'modify-quest') {
-    const questIdRaw: unknown = Reflect.get(args, 'questId');
-    const questId = questIdContract.parse(questIdRaw);
+    const questId = questIdContract.parse(args.questId);
 
     // Sanitize: strip server-only fields that agents must not set via MCP
     const sanitized = { ...args };

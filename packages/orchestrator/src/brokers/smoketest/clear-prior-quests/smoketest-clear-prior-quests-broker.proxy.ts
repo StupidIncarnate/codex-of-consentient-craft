@@ -45,12 +45,12 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       mocked.mockResolvedValueOnce(noopResult);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './smoketest-clear-prior-quests-broker' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'smoketestClearPriorQuestsBroker',
-      ) as typeof smoketestClearPriorQuestsBroker;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        smoketestClearPriorQuestsBroker: typeof smoketestClearPriorQuestsBroker;
+      }>({
+        module: './smoketest-clear-prior-quests-broker',
+      });
+      mocked.mockImplementation(realMod.smoketestClearPriorQuestsBroker);
       // Cascading passthrough: smoketestClearPriorQuestsBroker calls smoketestEnsureGuildBroker
       // internally, which is also module-mocked. The downstream test still primes the guild list
       // chain via setupSmoketestGuildPresent, so ensure-guild must run real here too.

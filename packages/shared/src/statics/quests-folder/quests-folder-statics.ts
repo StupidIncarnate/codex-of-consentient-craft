@@ -6,9 +6,11 @@
  * // Returns '.dungeonmaster-quests' folder name
  */
 
+import { locationsStatics } from '../locations/locations-statics';
+
 export const questsFolderStatics = {
   paths: {
-    root: '.dungeonmaster-quests',
+    root: locationsStatics.repoRoot.dungeonmasterQuests,
     closed: 'closed',
   },
   files: {

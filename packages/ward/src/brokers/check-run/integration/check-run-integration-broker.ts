@@ -37,6 +37,7 @@ import {
 } from '../../../contracts/file-timing/file-timing-contract';
 import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-test/is-non-integration-test-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import { jestJsonReportContract } from '../../../contracts/jest-json-report/jest-json-report-contract';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
 import { jestJsonParseTransformer } from '../../../transformers/jest-json-parse/jest-json-parse-transformer';
 import { jestJsonParsePassingTransformer } from '../../../transformers/jest-json-parse-passing/jest-json-parse-passing-transformer';
@@ -177,40 +178,27 @@ export const checkRunIntegrationBroker = async ({
 
   try {
     const jsonSlice = extractJsonObjectTransformer({ output: result.output });
-    const parsed: unknown = JSON.parse(jsonSlice);
-    if (typeof parsed === 'object' && parsed !== null && 'numTotalTestSuites' in parsed) {
-      const count: unknown = Reflect.get(parsed, 'numTotalTestSuites');
-      if (typeof count === 'number') {
-        filesCount = count;
-      }
+    const parsed = jestJsonReportContract.parse(JSON.parse(jsonSlice));
+    if (parsed.numTotalTestSuites !== undefined) {
+      filesCount = Number(parsed.numTotalTestSuites);
     }
-    if (typeof parsed === 'object' && parsed !== null && 'numPassedTests' in parsed) {
-      const count: unknown = Reflect.get(parsed, 'numPassedTests');
-      if (typeof count === 'number') {
-        numPassedTests = count;
-      }
+    if (parsed.numPassedTests !== undefined) {
+      numPassedTests = Number(parsed.numPassedTests);
     }
-    if (typeof parsed === 'object' && parsed !== null && 'testResults' in parsed) {
-      const testResults: unknown = Reflect.get(parsed, 'testResults');
-      if (Array.isArray(testResults)) {
-        for (const tr of testResults) {
-          if (typeof tr === 'object' && tr !== null && 'name' in tr) {
-            const name: unknown = Reflect.get(tr, 'name');
-            if (typeof name === 'string' && name.length > 0) {
-              processedFiles.push(gitRelativePathContract.parse(name));
-              if ('startTime' in tr && 'endTime' in tr) {
-                const startTime: unknown = Reflect.get(tr, 'startTime');
-                const endTime: unknown = Reflect.get(tr, 'endTime');
-                if (typeof startTime === 'number' && typeof endTime === 'number') {
-                  fileTimings.push(
-                    fileTimingContract.parse({
-                      filePath: gitRelativePathContract.parse(name),
-                      durationMs: endTime - startTime,
-                    }),
-                  );
-                }
-              }
-            }
+    if (parsed.testResults !== undefined) {
+      for (const tr of parsed.testResults) {
+        const { name } = tr;
+        if (name !== undefined && String(name).length > 0) {
+          processedFiles.push(gitRelativePathContract.parse(String(name)));
+          const { startTime } = tr;
+          const { endTime } = tr;
+          if (startTime !== undefined && endTime !== undefined) {
+            fileTimings.push(
+              fileTimingContract.parse({
+                filePath: gitRelativePathContract.parse(String(name)),
+                durationMs: Number(endTime) - Number(startTime),
+              }),
+            );
           }
         }
       }

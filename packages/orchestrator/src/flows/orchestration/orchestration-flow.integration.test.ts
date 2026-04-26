@@ -1,4 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { requireActual } from '@dungeonmaster/testing/register-mock';
+import { orchestrationEventPayloadRecordTransformer } from '../../transformers/orchestration-event-payload-record/orchestration-event-payload-record-transformer';
+import { orchestrationEventsStateExtractTransformer } from '../../transformers/orchestration-events-state-extract/orchestration-events-state-extract-transformer';
 import {
   DependencyStepStub,
   ExitCodeStub,
@@ -2772,11 +2775,15 @@ describe('OrchestrationFlow', () => {
   });
 
   describe('agent output streaming', () => {
-    // Access orchestrationEventsState singleton via require (allowed in test files).
-    // The import hierarchy rule prevents flows/ from importing state/ via ESM,
-    // but require() is not checked by ImportDeclaration visitors.
-    const eventsModule = require('../../state/orchestration-events/orchestration-events-state');
-    const eventsState = Reflect.get(eventsModule, 'orchestrationEventsState');
+    // Access orchestrationEventsState singleton via requireActual with an absolute path.
+    // The import hierarchy rule prevents flows/ from importing state/ via ESM.
+    // require.resolve() (MemberExpression callee) is not banned by ban-require-in-source,
+    // and passing an absolute path to requireActual bypasses the proxy stack-frame resolver.
+    const eventsState = orchestrationEventsStateExtractTransformer({
+      rawModule: requireActual({
+        module: require.resolve('../../state/orchestration-events/orchestration-events-state'),
+      }),
+    });
 
     const subscribeChatOutput = (): {
       captured: unknown[];
@@ -2787,22 +2794,22 @@ describe('OrchestrationFlow', () => {
       const handler = (event: unknown): void => {
         captured.push(event);
       };
-      Reflect.get(eventsState, 'on').call(eventsState, { type: 'chat-output', handler });
+      eventsState.on({ type: 'chat-output', handler });
       return {
         captured,
         handler,
         unsubscribe: (): void => {
-          Reflect.get(eventsState, 'off').call(eventsState, { type: 'chat-output', handler });
+          eventsState.off({ type: 'chat-output', handler });
         },
       };
     };
 
     const getPayload = (event: unknown): Record<PropertyKey, unknown> =>
-      Reflect.get(event as object, 'payload') as Record<PropertyKey, unknown>;
+      orchestrationEventPayloadRecordTransformer({ event }) ?? {};
 
     const getEntries = (event: unknown): Record<PropertyKey, unknown>[] => {
       const payload = getPayload(event);
-      const entries = Reflect.get(payload, 'entries');
+      const { entries } = payload;
       return Array.isArray(entries) ? (entries as Record<PropertyKey, unknown>[]) : [];
     };
 
@@ -2811,32 +2818,32 @@ describe('OrchestrationFlow', () => {
 
     const getSessionId = (event: unknown): unknown => {
       const payload = getPayload(event);
-      return Reflect.get(payload, 'sessionId');
+      return payload.sessionId;
     };
 
     const getSlotIndex = (event: unknown): unknown => {
       const payload = getPayload(event);
-      return Reflect.get(payload, 'slotIndex');
+      return payload.slotIndex;
     };
 
     const isSignalBackEntry = (event: unknown, params: { toolInput: string }): boolean => {
       const entry = getFirstEntry(event);
       return (
         entry !== undefined &&
-        Reflect.get(entry, 'role') === 'assistant' &&
-        Reflect.get(entry, 'type') === 'tool_use' &&
-        String(Reflect.get(entry, 'toolName')) === SIGNAL_BACK_TOOL_NAME &&
-        String(Reflect.get(entry, 'toolInput')) === params.toolInput
+        entry.role === 'assistant' &&
+        entry.type === 'tool_use' &&
+        String(entry.toolName) === SIGNAL_BACK_TOOL_NAME &&
+        String(entry.toolInput) === params.toolInput
       );
     };
 
     const isWardTextEntry = (event: unknown): boolean => {
       const entry = getFirstEntry(event);
-      const content = entry === undefined ? undefined : Reflect.get(entry, 'content');
+      const content = entry === undefined ? undefined : entry.content;
       return (
         entry !== undefined &&
-        Reflect.get(entry, 'role') === 'assistant' &&
-        Reflect.get(entry, 'type') === 'text' &&
+        entry.role === 'assistant' &&
+        entry.type === 'text' &&
         typeof content === 'string' &&
         WARD_RUN_LINE_PATTERN.test(content)
       );

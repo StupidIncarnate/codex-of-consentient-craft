@@ -6,6 +6,8 @@
  * // Returns StreamSignal if found, null otherwise
  */
 
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import {
   streamSignalContract,
   type StreamSignal,
@@ -18,40 +20,28 @@ export const signalFromStreamTransformer = ({
 }: {
   parsed: unknown;
 }): StreamSignal | null => {
-  if (
-    typeof parsed !== 'object' ||
-    parsed === null ||
-    !('type' in parsed) ||
-    Reflect.get(parsed, 'type') !== 'assistant'
-  ) {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
+    return null;
+  }
+  const line = lineParse.data;
+  if (line.type !== 'assistant') {
     return null;
   }
 
-  const message: unknown = Reflect.get(parsed, 'message');
-  if (typeof message !== 'object' || message === null || !('content' in message)) {
-    return null;
-  }
-
-  const content: unknown = Reflect.get(message, 'content');
+  const content = line.message?.content;
   if (!Array.isArray(content)) {
     return null;
   }
 
-  for (const item of content) {
-    if (
-      typeof item === 'object' &&
-      item !== null &&
-      'type' in item &&
-      Reflect.get(item, 'type') === 'tool_use' &&
-      'name' in item &&
-      Reflect.get(item, 'name') === SIGNAL_BACK_TOOL_NAME &&
-      'input' in item
-    ) {
-      const input: unknown = Reflect.get(item, 'input');
-      const parseResult = streamSignalContract.safeParse(input);
-      if (parseResult.success) {
-        return parseResult.data;
-      }
+  for (const rawItem of content) {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) continue;
+    const item = itemParse.data;
+    if (item.type !== 'tool_use' || item.name !== SIGNAL_BACK_TOOL_NAME) continue;
+    const parseResult = streamSignalContract.safeParse(item.input);
+    if (parseResult.success) {
+      return parseResult.data;
     }
   }
 

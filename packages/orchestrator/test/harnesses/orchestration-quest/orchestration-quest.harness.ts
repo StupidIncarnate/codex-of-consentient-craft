@@ -488,7 +488,7 @@ export const orchestrationQuestHarness = (): {
         questId,
         startPath,
         onAgentEntry: ({ slotIndex, entry, sessionId }) => {
-          const rawLine: unknown = Reflect.get(entry, 'raw');
+          const rawLine: unknown = entry.raw;
           if (typeof rawLine !== 'string') {
             return;
           }

@@ -7,6 +7,7 @@
  */
 
 import { type ErrorMessage, errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { jestJsonReportContract } from '../../contracts/jest-json-report/jest-json-report-contract';
 import {
   testFailureContract,
   type TestFailure,
@@ -22,50 +23,49 @@ export const jestJsonParseTransformer = ({
   jsonOutput: ErrorMessage;
 }): TestFailure[] => {
   const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
-  const parsed: unknown = JSON.parse(jsonString);
+  const rawJson: unknown = JSON.parse(jsonString);
+  const parsed = ((): ReturnType<typeof jestJsonReportContract.parse> | null => {
+    try {
+      return jestJsonReportContract.parse(rawJson);
+    } catch {
+      return null;
+    }
+  })();
 
-  if (typeof parsed !== 'object' || parsed === null) {
+  if (parsed === null) {
     return [];
   }
 
-  const testResults: unknown = Reflect.get(parsed, 'testResults');
+  const { testResults } = parsed;
 
-  if (!Array.isArray(testResults)) {
+  if (testResults === undefined) {
     return [];
   }
 
-  return testResults.flatMap((suite: unknown) => {
-    if (typeof suite !== 'object' || suite === null) {
+  return testResults.flatMap((suite) => {
+    const testFilePath = suite.name;
+    const suiteResults = suite.assertionResults;
+
+    if (testFilePath === undefined || suiteResults === undefined) {
       return [];
     }
 
-    const testFilePath: unknown = Reflect.get(suite, 'name');
-    const suiteResults: unknown = Reflect.get(suite, 'assertionResults');
-
-    if (typeof testFilePath !== 'string' || !Array.isArray(suiteResults)) {
-      return [];
-    }
-
-    const assertionFailures = suiteResults.reduce<TestFailure[]>((failures, test: unknown) => {
-      if (typeof test !== 'object' || test === null) {
-        return failures;
-      }
-
-      const status: unknown = Reflect.get(test, 'status');
+    const assertionFailures = suiteResults.reduce<TestFailure[]>((failures, test) => {
+      const { status } = test;
 
       if (status !== 'failed') {
         return failures;
       }
 
-      const fullName: unknown = Reflect.get(test, 'fullName');
-      const failureMessages: unknown = Reflect.get(test, 'failureMessages');
+      const { fullName } = test;
+      const { failureMessages } = test;
 
-      if (typeof fullName !== 'string' || !Array.isArray(failureMessages)) {
+      if (fullName === undefined || failureMessages === undefined) {
         return failures;
       }
 
       const rawMessages = failureMessages
-        .map((msg: unknown) => (typeof msg === 'string' ? msg : ''))
+        .map((msg) => String(msg))
         .filter((msg: string) => msg.length > 0);
 
       const timeoutAnnotation = annotateTimeoutFailureTransformer({
@@ -77,36 +77,38 @@ export const jestJsonParseTransformer = ({
         stripTimeoutNoiseTransformer({
           message: errorMessageContract.parse(rawMessages.join('\n')),
         });
-      const firstMessage: unknown = failureMessages.length > 0 ? failureMessages[0] : null;
-      const hasStack = typeof firstMessage === 'string' && firstMessage.includes('\n    at ');
+      const firstMessage = failureMessages.length > 0 ? String(failureMessages[0]) : '';
+      const hasStack = firstMessage.length > 0 && firstMessage.includes('\n    at ');
 
       const stackOnly =
-        hasStack && typeof firstMessage === 'string'
+        hasStack && firstMessage.length > 0
           ? firstMessage.slice(firstMessage.indexOf('\n    at '))
           : undefined;
 
       return [
         ...failures,
         testFailureContract.parse({
-          suitePath: testFilePath,
-          testName: fullName,
+          suitePath: String(testFilePath),
+          testName: String(fullName),
           message,
-          ...(stackOnly && !timeoutAnnotation ? { stackTrace: stackOnly } : {}),
+          ...(stackOnly !== undefined && timeoutAnnotation === null
+            ? { stackTrace: stackOnly }
+            : {}),
         }),
       ];
     }, []);
 
-    const suiteStatus: unknown = Reflect.get(suite, 'status');
-    const suiteMessage: unknown = Reflect.get(suite, 'message');
+    const suiteStatus = suite.status;
+    const suiteMessage = suite.message;
 
     if (
       suiteStatus === 'failed' &&
-      typeof suiteMessage === 'string' &&
-      suiteMessage.length > 0 &&
+      suiteMessage !== undefined &&
+      String(suiteMessage).length > 0 &&
       assertionFailures.length === 0
     ) {
       const stripped = stripAnsiCodesTransformer({
-        text: errorMessageContract.parse(suiteMessage),
+        text: errorMessageContract.parse(String(suiteMessage)),
       });
       const cleanedMessage =
         stripped
@@ -120,7 +122,7 @@ export const jestJsonParseTransformer = ({
 
       return [
         testFailureContract.parse({
-          suitePath: testFilePath,
+          suitePath: String(testFilePath),
           testName: 'Test suite failed to run',
           message: strippedSuiteMessage,
         }),

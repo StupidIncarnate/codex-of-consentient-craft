@@ -98,10 +98,18 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
             return;
           }
 
-          // Check if this folder type is in the allowed imports
+          // Check if this folder type is in the allowed imports.
+          // Accepts either the short folder name ('adapters/') or the full shared subpath
+          // ('@dungeonmaster/shared/adapters') so callers can be explicit about which
+          // cross-package shared subpath they need without opening up all local folder imports.
           const isAllowed = allowedImports.some((allowed: string) => {
             if (allowed === 'node_modules') {
               return false;
+            }
+
+            // Full-path match: '@dungeonmaster/shared/adapters' in allowedImports
+            if (allowed === importSource) {
+              return true;
             }
 
             const folderName = allowed.endsWith('/') ? allowed.slice(0, -1) : allowed;

@@ -14,7 +14,7 @@ export const PreToolUseHookStub = ({
   preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
-    cwd: process.cwd(),
+    cwd: '/tmp/stub-cwd',
     hook_event_name: 'PreToolUse',
     tool_name: 'Write',
     tool_input: writeToolInputContract.parse({
@@ -36,7 +36,7 @@ export const WriteToolHookStub = ({
   return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
-    cwd: process.cwd(),
+    cwd: '/tmp/stub-cwd',
     hook_event_name: 'PreToolUse',
     tool_name: 'Write',
     tool_input: writeToolInputContract.parse({
@@ -59,7 +59,7 @@ export const EditToolHookStub = ({
   return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
-    cwd: process.cwd(),
+    cwd: '/tmp/stub-cwd',
     hook_event_name: 'PreToolUse',
     tool_name: 'Edit',
     tool_input: editToolInputContract.parse({
@@ -84,7 +84,7 @@ export const MultiEditToolHookStub = ({
   return preToolUseHookDataContract.parse({
     session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     transcript_path: '/tmp/transcript.jsonl',
-    cwd: process.cwd(),
+    cwd: '/tmp/stub-cwd',
     hook_event_name: 'PreToolUse',
     tool_name: 'MultiEdit',
     tool_input: multiEditToolInputContract.parse({

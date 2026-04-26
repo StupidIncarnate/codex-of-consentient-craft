@@ -11,12 +11,8 @@ describe('index', () => {
       const proxy = indexProxy();
       const { exitSpy, stderrSpy } = proxy.captureProcessInteractions();
 
-      proxy.loadIndexWithStartupBehavior(async () => {
+      await proxy.loadIndexWithStartupBehavior(async () => {
         // Success - no error thrown
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
       });
 
       expect(exitSpy.mock.calls).toStrictEqual([]);
@@ -29,12 +25,8 @@ describe('index', () => {
 
       const testError = new Error('Test server error');
 
-      proxy.loadIndexWithStartupBehavior(async () => {
+      await proxy.loadIndexWithStartupBehavior(async () => {
         return Promise.reject(testError);
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
       });
 
       expect(stderrSpy.mock.calls).toStrictEqual([['MCP server error: Test server error\n']]);
@@ -48,12 +40,8 @@ describe('index', () => {
       // Test non-Error throw case - throw Error containing string representation
       const stringError = new Error('String error');
 
-      proxy.loadIndexWithStartupBehavior(async () => {
+      await proxy.loadIndexWithStartupBehavior(async () => {
         return Promise.reject(stringError);
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
       });
 
       expect(stderrSpy.mock.calls).toStrictEqual([['MCP server error: String error\n']]);

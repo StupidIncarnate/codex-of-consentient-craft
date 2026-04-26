@@ -8,6 +8,7 @@
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 
 const EPOCH_FALLBACK = isoTimestampContract.parse('1970-01-01T00:00:00.000Z');
 
@@ -16,13 +17,15 @@ export const extractTimestampFromJsonlLineTransformer = ({
 }: {
   parsed: unknown;
 }): IsoTimestamp => {
-  if (typeof parsed === 'object' && parsed !== null && 'timestamp' in parsed) {
-    const raw: unknown = Reflect.get(parsed, 'timestamp');
-    if (typeof raw === 'string') {
-      const parseResult = isoTimestampContract.safeParse(raw);
-      if (parseResult.success) {
-        return parseResult.data;
-      }
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
+    return EPOCH_FALLBACK;
+  }
+  const raw = lineParse.data.timestamp;
+  if (typeof raw === 'string') {
+    const parseResult = isoTimestampContract.safeParse(String(raw));
+    if (parseResult.success) {
+      return parseResult.data;
     }
   }
 

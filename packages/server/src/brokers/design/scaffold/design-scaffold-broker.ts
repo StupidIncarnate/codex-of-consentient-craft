@@ -13,6 +13,8 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, Quest } from '@dungeonmaster/shared/contracts';
+import { locationsDesignScaffoldPathFindBroker } from '@dungeonmaster/shared/brokers';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { designScaffoldTemplateStatics } from '../../../statics/design-scaffold-template/design-scaffold-template-statics';
@@ -28,12 +30,12 @@ export const designScaffoldBroker = async ({
   questFolder: string;
   port: DesignPort;
 }): Promise<{ designPath: AbsoluteFilePath }> => {
-  const questsDir = pathJoinAdapter({
-    paths: [guildPath, '.dungeonmaster-quests', questFolder],
-  });
-  const designPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [questsDir, 'design'] }),
+  const questFolderPath = absoluteFilePathContract.parse(
+    pathJoinAdapter({
+      paths: [guildPath, locationsStatics.repoRoot.dungeonmasterQuests, questFolder],
+    }),
   );
+  const designPath = locationsDesignScaffoldPathFindBroker({ questFolderPath });
 
   await fsMkdirAdapter({ filepath: filePathContract.parse(designPath) });
 

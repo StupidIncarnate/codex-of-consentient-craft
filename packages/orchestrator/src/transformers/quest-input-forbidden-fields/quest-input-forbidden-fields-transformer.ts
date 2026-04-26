@@ -76,7 +76,7 @@ export const questInputForbiddenFieldsTransformer = ({
     inputPlanningNotes.blightReports !== undefined;
 
   for (const field of inspectableModifyQuestInputFieldsStatics) {
-    const value = Reflect.get(input, field);
+    const value = input[field];
     if (value === undefined) {
       continue;
     }
@@ -99,8 +99,8 @@ export const questInputForbiddenFieldsTransformer = ({
     (allowedSet.has('planningNotes') || planningNotesBlightOnly)
   ) {
     const allowedPlanningNotesSet = new Set<unknown>(entry.allowedPlanningNotesFields);
-    for (const subField of Object.keys(inputPlanningNotes)) {
-      if (Reflect.get(inputPlanningNotes, subField) === undefined) {
+    for (const [subField, subValue] of Object.entries(inputPlanningNotes)) {
+      if (subValue === undefined) {
         continue;
       }
       if (!allowedPlanningNotesSet.has(subField)) {

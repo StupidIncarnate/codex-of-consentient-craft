@@ -6,12 +6,9 @@
  * // Returns { status: 200, data: guild } or { status: 400/500, data: { error } }
  */
 
-import {
-  guildIdContract,
-  guildNameContract,
-  guildPathContract,
-} from '@dungeonmaster/shared/contracts';
 import { orchestratorUpdateGuildAdapter } from '../../../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter';
+import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
+import { guildUpdateBodyContract } from '../../../contracts/guild-update-body/guild-update-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -31,16 +28,14 @@ export const GuildUpdateResponder = async ({
       });
     }
 
-    const guildIdRaw: unknown = Reflect.get(params, 'guildId');
-
-    if (typeof guildIdRaw !== 'string') {
+    const parsedParams = guildIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId is required' },
       });
     }
-
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = parsedParams.data;
 
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
@@ -49,13 +44,14 @@ export const GuildUpdateResponder = async ({
       });
     }
 
-    const rawName: unknown = Reflect.get(body, 'name');
-    const rawPath: unknown = Reflect.get(body, 'path');
+    const parsedBody = guildUpdateBodyContract.safeParse(body);
+    const name = parsedBody.success ? parsedBody.data.name : undefined;
+    const path = parsedBody.success ? parsedBody.data.path : undefined;
 
     const guild = await orchestratorUpdateGuildAdapter({
       guildId,
-      ...(typeof rawName === 'string' && { name: guildNameContract.parse(rawName) }),
-      ...(typeof rawPath === 'string' && { path: guildPathContract.parse(rawPath) }),
+      ...(name !== undefined && { name }),
+      ...(path !== undefined && { path }),
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guild });
   } catch (error: unknown) {

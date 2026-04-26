@@ -11,6 +11,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { ErrorMessage } from '../../../contracts/error-message/error-message-contract';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 /**
  * Validates that a project has required files/directories for install
@@ -22,7 +23,9 @@ export const installCheckBroker = ({
   projectRoot: FilePath;
 }): { valid: boolean; error?: ErrorMessage } => {
   const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
-  const claudeDirPath = pathJoinAdapter({ paths: [projectRoot, '.claude'] });
+  const claudeDirPath = pathJoinAdapter({
+    paths: [projectRoot, locationsStatics.repoRoot.claude.dir],
+  });
 
   if (!fsExistsSyncAdapter({ filePath: packageJsonPath })) {
     return { valid: false, error: 'No package.json found.' as ErrorMessage };

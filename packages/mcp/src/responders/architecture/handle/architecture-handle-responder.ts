@@ -11,6 +11,7 @@ import {
   architectureProjectMapBroker,
 } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -105,7 +106,7 @@ export const ArchitectureHandleResponder = async ({
 
   if (tool === 'get-project-map') {
     const result = architectureProjectMapBroker({
-      projectRoot: absoluteFilePathContract.parse(process.cwd()),
+      projectRoot: absoluteFilePathContract.parse(processCwdAdapter()),
     });
 
     return {

@@ -86,6 +86,43 @@ ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker
       code: `// Example: export const foo = () => "bar"\nexport const good = (): string => "bar";`,
       filename: '/project/src/transformers/format/format-transformer.ts',
     },
+    // Phase 5 — loose-return carve-outs
+
+    // Adapter returning unknown at the I/O boundary — exempt by file suffix
+    {
+      code: `export const fsReadFileAdapter = (): unknown => null;`,
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
+    },
+    // Adapter returning object — exempt by file suffix
+    {
+      code: `export const fsReadFileAdapter = (): object => ({});`,
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
+    },
+    // Adapter returning Record<string, unknown> — exempt by file suffix
+    {
+      code: `export const fsReadFileAdapter = (): Record<string, unknown> => ({});`,
+      filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
+    },
+    // Contract file returning unknown — exempt by file suffix (also outside function-exporting folders)
+    {
+      code: `export const userContract = (): unknown => null;`,
+      filename: '/project/src/contracts/user/user-contract.ts',
+    },
+    // Proxy file returning readonly unknown[] — minimum generalization for proxy capture getters
+    {
+      code: `export const fooBrokerProxy = (): { getCalls: () => readonly unknown[] } => ({ getCalls: () => [] });`,
+      filename: '/project/src/brokers/foo/foo-broker.proxy.ts',
+    },
+    // Proxy file with arrow getter returning readonly unknown[] — direct exported function
+    {
+      code: `export const getSpawnedArgs = (): readonly unknown[] => [];`,
+      filename: '/project/src/brokers/foo/foo-broker.proxy.ts',
+    },
+    // Branded Record (specific finite key union, not string/PropertyKey) — not flagged
+    {
+      code: `export const formatTransformer = (): Record<'a' | 'b', string> => ({ a: '', b: '' });`,
+      filename: '/project/src/transformers/format/format-transformer.ts',
+    },
   ],
   invalid: [
     // Phase 1 — missingReturnType — applies to any exported function anywhere
@@ -215,6 +252,33 @@ ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker
       `,
       filename: '/project/src/brokers/foo/foo-broker.ts',
       errors: [{ messageId: 'missingReturnType' }, { messageId: 'missingReturnType' }],
+    },
+    // Phase 5 — loose-return rejections in non-IO-boundary files
+    {
+      code: `export const fooBroker = (): unknown => null;`,
+      filename: '/project/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'folderUnknownReturn' }],
+    },
+    {
+      code: `export const fooBroker = (): object => ({});`,
+      filename: '/project/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'folderObjectReturn' }],
+    },
+    {
+      code: `export const fooBroker = (): Record<string, unknown> => ({});`,
+      filename: '/project/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'folderRecordUnknownReturn' }],
+    },
+    {
+      code: `export const fooBroker = (): Record<PropertyKey, unknown> => ({});`,
+      filename: '/project/src/brokers/foo/foo-broker.ts',
+      errors: [{ messageId: 'folderRecordUnknownReturn' }],
+    },
+    // Loose returns are also rejected in proxy files for non-readonly-unknown-array shapes
+    {
+      code: `export const getSpawnedArgs = (): unknown => null;`,
+      filename: '/project/src/brokers/foo/foo-broker.proxy.ts',
+      errors: [{ messageId: 'folderUnknownReturn' }],
     },
   ],
 });

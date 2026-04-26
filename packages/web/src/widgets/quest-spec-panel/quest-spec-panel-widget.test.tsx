@@ -512,10 +512,10 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(onModify).toHaveBeenCalledTimes(1);
 
-      const callArg = onModify.mock.calls[0] as unknown[];
-      const modifications = Reflect.get(callArg[0] as object, 'modifications') as Partial<Quest>;
-
-      expect(modifications.title).toBe('New Title');
+      expect(onModify).toHaveBeenCalledWith({
+        modifications: { title: 'New Title' },
+        action: 'submit',
+      });
     });
 
     it('VALID: {edit title then CANCEL} => discards title change', async () => {

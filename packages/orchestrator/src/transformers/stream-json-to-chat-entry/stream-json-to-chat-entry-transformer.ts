@@ -5,6 +5,7 @@
  * streamJsonToChatEntryTransformer({parsed: {type: 'assistant', message: {content: [{type: 'text', text: 'hi'}]}}});
  * // Returns {entries: [{role: 'assistant', type: 'text', content: 'hi'}], sessionId: null}
  */
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { streamJsonResultContract } from '../../contracts/stream-json-result/stream-json-result-contract';
 import type { StreamJsonResult } from '../../contracts/stream-json-result/stream-json-result-contract';
 import { parseAssistantStreamEntryTransformer } from '../parse-assistant-stream-entry/parse-assistant-stream-entry-transformer';
@@ -15,18 +16,19 @@ export const streamJsonToChatEntryTransformer = ({
 }: {
   parsed: unknown;
 }): StreamJsonResult => {
-  if (typeof parsed !== 'object' || parsed === null || !('type' in parsed)) {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
     return streamJsonResultContract.parse({ entries: [], sessionId: null });
   }
+  const line = lineParse.data;
+  const { type } = line;
 
-  const type: unknown = Reflect.get(parsed, 'type');
-
-  if (type === 'system' && 'subtype' in parsed && Reflect.get(parsed, 'subtype') === 'init') {
-    const sessionId: unknown = 'sessionId' in parsed ? Reflect.get(parsed, 'sessionId') : null;
+  if (type === 'system' && line.subtype === 'init') {
+    const { sessionId } = line;
 
     return streamJsonResultContract.parse({
       entries: [],
-      sessionId: typeof sessionId === 'string' ? sessionId : null,
+      sessionId: typeof sessionId === 'string' ? String(sessionId) : null,
     });
   }
 
@@ -43,11 +45,11 @@ export const streamJsonToChatEntryTransformer = ({
   }
 
   if (type === 'result') {
-    const sessionId: unknown = 'sessionId' in parsed ? Reflect.get(parsed, 'sessionId') : null;
+    const { sessionId } = line;
 
     return streamJsonResultContract.parse({
       entries: [],
-      sessionId: typeof sessionId === 'string' ? sessionId : null,
+      sessionId: typeof sessionId === 'string' ? String(sessionId) : null,
     });
   }
 

@@ -1,8 +1,8 @@
-import type { ExitCode } from '@dungeonmaster/shared/contracts';
-import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
+import { repoRootCwdContract, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   claudeLineNormalizeBrokerProxy,
-  configRootFindBrokerProxy,
+  cwdResolveBrokerProxy,
 } from '@dungeonmaster/shared/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
@@ -26,16 +26,16 @@ export const agentSpawnByRoleBrokerProxy = (): {
 } => {
   claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so configRootFindBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  configRootFindBrokerProxy();
+  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
+  cwdResolveBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   // Every spawn walks up from `startPath` to the repo root (directory containing
-  // `.dungeonmaster.json`) via `configRootFindBroker`. Mock the broker directly so tests can
-  // assert the resolved cwd without threading fs.access / path.join expectations through every
-  // spawn case. Default to resolving with a placeholder absolute path so cases that don't care
-  // about cwd still produce a parseable AbsoluteFilePath.
-  const configRootMock: MockHandle = registerMock({ fn: configRootFindBroker });
-  configRootMock.mockResolvedValue('/project');
+  // `.dungeonmaster.json`) via `cwdResolveBroker({ kind: 'repo-root' })`. Mock the broker
+  // directly so tests can assert the resolved cwd without threading fs.access / path.join
+  // expectations through every spawn case. Default to resolving with a placeholder absolute
+  // path so cases that don't care about cwd still produce a parseable RepoRootCwd.
+  const configRootMock: MockHandle = registerMock({ fn: cwdResolveBroker });
+  configRootMock.mockResolvedValue(repoRootCwdContract.parse('/project'));
 
   return {
     setupSpawnAndMonitor: ({
@@ -113,7 +113,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
     },
 
     setupConfigRoot: ({ root }: { root: string }): void => {
-      configRootMock.mockResolvedValue(root);
+      configRootMock.mockResolvedValue(repoRootCwdContract.parse(root));
     },
 
     setupConfigRootRejection: ({ error }: { error: Error }): void => {

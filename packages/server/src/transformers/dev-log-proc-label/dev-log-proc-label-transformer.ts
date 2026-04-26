@@ -6,6 +6,7 @@
  * // Returns DevLogLine 'proc:e8c8ba78'
  */
 
+import { devLogEventPayloadContract } from '../../contracts/dev-log-event-payload/dev-log-event-payload-contract';
 import {
   devLogLineContract,
   type DevLogLine,
@@ -17,13 +18,14 @@ export const devLogProcLabelTransformer = ({
 }: {
   payload: Record<PropertyKey, unknown>;
 }): DevLogLine => {
-  const chatProcessId = Reflect.get(payload, 'chatProcessId');
-  const processId = Reflect.get(payload, 'processId');
-  const pid =
-    typeof chatProcessId === 'string'
-      ? chatProcessId
-      : typeof processId === 'string'
-        ? processId
-        : '';
-  return devLogLineContract.parse(pid ? `proc:${devLogShortIdTransformer({ id: pid })}` : '');
+  const parsed = devLogEventPayloadContract.parse(payload);
+  if (parsed.chatProcessId !== undefined) {
+    return devLogLineContract.parse(
+      `proc:${devLogShortIdTransformer({ id: parsed.chatProcessId })}`,
+    );
+  }
+  if (parsed.processId !== undefined) {
+    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: parsed.processId })}`);
+  }
+  return devLogLineContract.parse('');
 };

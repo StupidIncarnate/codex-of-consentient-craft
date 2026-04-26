@@ -3,9 +3,10 @@ import { globFindAdapterProxy } from './glob-find-adapter.proxy';
 import { GlobPatternStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 describe('globFindAdapter', () => {
-  it('VALID: {pattern: "**/*.ts"} => returns array of .ts files', async () => {
+  it('VALID: {pattern: "**/*.ts", cwd: "/home/project"} => returns array of .ts files', async () => {
     const adapterProxy = globFindAdapterProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
+    const cwd = PathSegmentStub({ value: '/home/project' });
     const expectedFiles = [
       PathSegmentStub({ value: '/home/project/src/file1.ts' }),
       PathSegmentStub({ value: '/home/project/src/file2.ts' }),
@@ -13,7 +14,7 @@ describe('globFindAdapter', () => {
 
     adapterProxy.returns({ pattern, files: expectedFiles });
 
-    const result = await globFindAdapter({ pattern });
+    const result = await globFindAdapter({ pattern, cwd });
 
     expect(result).toStrictEqual(expectedFiles);
   });
@@ -31,14 +32,15 @@ describe('globFindAdapter', () => {
     expect(result).toStrictEqual(expectedFiles);
   });
 
-  it('EMPTY: {pattern: "nonexistent/**"} => returns empty array', async () => {
+  it('EMPTY: {pattern: "nonexistent/**", cwd: "/home/project"} => returns empty array', async () => {
     const adapterProxy = globFindAdapterProxy();
     const pattern = GlobPatternStub({ value: 'nonexistent/**' });
+    const cwd = PathSegmentStub({ value: '/home/project' });
     const expectedFiles: ReturnType<typeof PathSegmentStub>[] = [];
 
     adapterProxy.returns({ pattern, files: expectedFiles });
 
-    const result = await globFindAdapter({ pattern });
+    const result = await globFindAdapter({ pattern, cwd });
 
     expect(result).toStrictEqual([]);
   });

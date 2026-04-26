@@ -16,6 +16,7 @@ import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/co
 import { chatEntryContract, type ChatEntry } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
+import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 
 import { useAgentOutputBinding } from '../../bindings/use-agent-output/use-agent-output-binding';
@@ -272,10 +273,12 @@ export const QuestChatWidget = (): React.JSX.Element => {
         if (!parsed.success) return;
         if (parsed.data.type !== 'chat-output') return;
 
-        const rawSlotIndex: unknown = Reflect.get(parsed.data.payload, 'slotIndex');
-        const slotIndexParsed = slotIndexContract.safeParse(rawSlotIndex);
+        const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
+        if (!payloadResult.success) return;
+
+        const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
         if (slotIndexParsed.success) {
-          const rawEntries: unknown = Reflect.get(parsed.data.payload, 'entries');
+          const rawEntries = payloadResult.data.entries;
           if (!Array.isArray(rawEntries)) return;
 
           const validEntries: ChatEntry[] = [];
@@ -289,9 +292,8 @@ export const QuestChatWidget = (): React.JSX.Element => {
 
           handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: validEntries });
 
-          const rawSessionId: unknown = Reflect.get(parsed.data.payload, 'sessionId');
-          if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
-            const liveSessionId = rawSessionId as SessionId;
+          const liveSessionId = payloadResult.data.sessionId;
+          if (liveSessionId !== undefined) {
             setWorkItemSessionEntries((prev) => {
               const updated = new Map(prev);
               const existing = updated.get(liveSessionId) ?? [];
@@ -302,19 +304,19 @@ export const QuestChatWidget = (): React.JSX.Element => {
           return;
         }
 
-        const rawChatProcessId: unknown = Reflect.get(parsed.data.payload, 'chatProcessId');
-        if (typeof rawChatProcessId !== 'string') return;
+        const { chatProcessId } = payloadResult.data;
+        if (chatProcessId === undefined) return;
 
         // Only process replay messages initiated by this component's flushPendingReplays,
         // identified by the 'exec-replay-' prefix. The server broadcasts replay output to
         // ALL WS clients, so replays triggered by useSessionChatBinding (prefix 'replay-')
         // or external callers would otherwise duplicate entries in the DOM.
         const EXEC_REPLAY_PREFIX = 'exec-replay-';
-        if (!rawChatProcessId.startsWith(EXEC_REPLAY_PREFIX)) return;
+        if (!chatProcessId.startsWith(EXEC_REPLAY_PREFIX)) return;
 
-        const replaySessionId = rawChatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId;
+        const replaySessionId = chatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId;
 
-        const rawEntries: unknown = Reflect.get(parsed.data.payload, 'entries');
+        const rawEntries = payloadResult.data.entries;
         if (!Array.isArray(rawEntries)) return;
 
         const validEntries: ChatEntry[] = [];

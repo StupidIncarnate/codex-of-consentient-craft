@@ -14,7 +14,8 @@ import path from 'path';
 import type { Readable } from 'stream';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 export interface SpawnStreamJsonResult {
   process: ChildProcess;
@@ -31,18 +32,26 @@ export const childProcessSpawnStreamJsonAdapter = ({
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
-  cwd?: string;
+  cwd?: RepoRootCwd;
   stdinMode?: 'inherit' | 'ignore';
   model: ClaudeModel;
   disableToolSearch?: boolean;
 }): SpawnStreamJsonResult => {
-  const effectiveCwd = cwd ?? process.cwd();
-  const settingsFile = path.join(effectiveCwd, '.claude', 'settings.json');
+  // Settings discovery is anchored to the explicit RepoRootCwd. When cwd is undefined we
+  // skip the .claude/settings.json read entirely — there is no implicit fallback. Callers
+  // that want settings must resolve a typed RepoRootCwd up the chain (cwdResolveBroker).
   let settingsJson = '';
-  try {
-    settingsJson = readFileSync(settingsFile, 'utf8');
-  } catch {
-    // settings file may not exist
+  if (cwd !== undefined) {
+    const settingsFile = path.join(
+      cwd,
+      locationsStatics.repoRoot.claude.dir,
+      locationsStatics.repoRoot.claude.settings,
+    );
+    try {
+      settingsJson = readFileSync(settingsFile, 'utf8');
+    } catch {
+      // settings file may not exist
+    }
   }
 
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', model];

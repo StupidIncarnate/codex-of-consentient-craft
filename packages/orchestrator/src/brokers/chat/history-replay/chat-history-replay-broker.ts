@@ -37,6 +37,8 @@ import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { normalizedStreamLineContentItemContract } from '../../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
@@ -138,20 +140,24 @@ export const chatHistoryReplayBroker = async ({
   // for the eagerly-stamped Task entry — a permanent mismatch that looks like "(0 entries)".
   for (const line of sessionLines) {
     const parsed = claudeLineNormalizeBroker({ rawLine: line });
-    if (typeof parsed !== 'object' || parsed === null) continue;
-    if (Reflect.get(parsed, 'type') !== 'user') continue;
-    const toolUseResult: unknown = Reflect.get(parsed, 'toolUseResult');
-    if (typeof toolUseResult !== 'object' || toolUseResult === null) continue;
-    const realAgentIdRaw: unknown = Reflect.get(toolUseResult, 'agentId');
+    const lineParse = normalizedStreamLineContract.safeParse(parsed);
+    if (!lineParse.success) continue;
+    const lineData = lineParse.data;
+    if (lineData.type !== 'user') continue;
+    const { toolUseResult } = lineData;
+    if (toolUseResult === undefined) continue;
+    const realAgentIdRaw = toolUseResult.agentId;
     if (typeof realAgentIdRaw !== 'string' || realAgentIdRaw.length === 0) continue;
-    const msg: unknown = Reflect.get(parsed, 'message');
-    if (typeof msg !== 'object' || msg === null) continue;
-    const items: unknown = Reflect.get(msg, 'content');
+    const msg = lineData.message;
+    if (msg === undefined) continue;
+    const items = msg.content;
     if (!Array.isArray(items)) continue;
-    for (const item of items) {
-      if (typeof item !== 'object' || item === null) continue;
-      if (Reflect.get(item, 'type') !== 'tool_result') continue;
-      const tuid: unknown = Reflect.get(item, 'toolUseId');
+    for (const rawItem of items) {
+      const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+      if (!itemParse.success) continue;
+      const item = itemParse.data;
+      if (item.type !== 'tool_result') continue;
+      const tuid = item.toolUseId;
       if (typeof tuid !== 'string' || tuid.length === 0) continue;
       processor.registerAgentTranslation({
         agentId: agentIdContract.parse(realAgentIdRaw),

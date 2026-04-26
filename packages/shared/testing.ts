@@ -16,6 +16,7 @@ export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
 export * from './src/adapters/path/join/path-join-adapter.proxy';
 export * from './src/adapters/os/homedir/os-homedir-adapter.proxy';
 export * from './src/adapters/os/user-homedir/os-user-homedir-adapter.proxy';
+export * from './src/adapters/process/cwd/process-cwd-adapter.proxy';
 export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy';
 export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
 export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
@@ -43,3 +44,10 @@ export * from './src/brokers/port/config-walk/port-config-walk-broker.proxy';
 
 // Claude Line Normalize Broker Proxy (single funnel)
 export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
+
+// Cwd Resolve Broker Proxy (typed-cwd brand resolver)
+export * from './src/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+
+// Locations Broker Proxies
+export * from './src/brokers/locations/design-scaffold-path-find/locations-design-scaffold-path-find-broker.proxy';
+export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';

@@ -6,7 +6,6 @@
  * // Returns { status: 200, data: { deleted: true } } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
 import {
   isPreExecutionQuestStatusGuard,
   isTerminalQuestStatusGuard,
@@ -15,6 +14,8 @@ import {
 
 import { orchestratorDeleteQuestAdapter } from '../../../adapters/orchestrator/delete-quest/orchestrator-delete-quest-adapter';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { guildIdQueryContract } from '../../../contracts/guild-id-query/guild-id-query-contract';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -36,14 +37,14 @@ export const QuestDeleteResponder = async ({
         data: { error: 'Invalid params' },
       });
     }
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
-    const questId = questIdContract.parse(questIdRaw);
+    const { questId } = parsedParams.data;
 
     if (typeof query !== 'object' || query === null) {
       return responderResultContract.parse({
@@ -51,16 +52,16 @@ export const QuestDeleteResponder = async ({
         data: { error: 'Invalid query' },
       });
     }
-    const guildIdRaw: unknown = Reflect.get(query, 'guildId');
-    if (typeof guildIdRaw !== 'string') {
+    const parsedQuery = guildIdQueryContract.safeParse(query);
+    if (!parsedQuery.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId query parameter is required' },
       });
     }
-    const guildId = guildIdContract.parse(guildIdRaw);
+    const { guildId } = parsedQuery.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    const questResult = await orchestratorGetQuestAdapter({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,

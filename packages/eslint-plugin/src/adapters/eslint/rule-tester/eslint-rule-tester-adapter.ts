@@ -11,6 +11,7 @@
  */
 import { RuleTester } from 'eslint';
 import type { Linter, Rule } from 'eslint';
+import * as tsParser from '@typescript-eslint/parser';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { eslintRuleNameContract } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
 import type { EslintRuleName } from '../../../contracts/eslint-rule-name/eslint-rule-name-contract';
@@ -28,12 +29,11 @@ export const eslintRuleTesterAdapter = (): RuleTesterWithContractSupport => {
   const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;
   globalWithRuleTester.RuleTester = RuleTester;
 
-  // This is required cause of some weird circular dependency issues
-  const tsParser = require('@typescript-eslint/parser') as Linter.Parser;
+  const tsParserAsLinterParser = tsParser as unknown as Linter.Parser;
 
   const ruleTester = new RuleTester({
     languageOptions: {
-      parser: tsParser,
+      parser: tsParserAsLinterParser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',

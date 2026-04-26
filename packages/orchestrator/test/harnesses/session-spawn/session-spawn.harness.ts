@@ -8,7 +8,7 @@
 
 import { createInterface } from 'readline';
 import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { ClaudeModelStub } from '../../../src/contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../src/contracts/prompt-text/prompt-text.stub';
 import { childProcessSpawnStreamJsonAdapter } from '../../../src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
@@ -72,11 +72,11 @@ export const sessionSpawnHarness = (): {
   }> =>
     new Promise((resolve, reject) => {
       const startPath = FilePathStub({ value: __dirname });
-      configRootFindBroker({ startPath })
+      cwdResolveBroker({ startPath, kind: 'repo-root' })
         .then((repoRoot) => {
           const { process: child, stdout } = childProcessSpawnStreamJsonAdapter({
             prompt,
-            cwd: String(repoRoot),
+            cwd: repoRoot,
             stdinMode: 'ignore',
             model: ClaudeModelStub({ value: 'haiku' }),
           });

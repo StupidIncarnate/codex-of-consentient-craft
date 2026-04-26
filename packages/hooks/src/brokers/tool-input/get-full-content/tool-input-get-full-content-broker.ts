@@ -12,6 +12,7 @@ import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-er
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
+import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
 
 export const toolInputGetFullContentBroker = async ({
   toolInput,
@@ -63,21 +64,14 @@ export const toolInputGetFullContentBroker = async ({
   }
 
   // For MultiEdit tool, apply all edits sequentially
-  if ('edits' in toolInput && Array.isArray(toolInput.edits)) {
+  if ('edits' in toolInput) {
+    const multiEditInput = multiEditToolInputContract.parse(toolInput);
     let result = existingContent;
 
-    for (const editItem of toolInput.edits) {
-      // Type guard check
-      if (typeof editItem !== 'object' || editItem === null || Array.isArray(editItem)) {
-        throw new Error('Invalid edit format: expected object');
-      }
-
-      const oldString: unknown = Reflect.get(editItem, 'old_string');
-      const newString: unknown = Reflect.get(editItem, 'new_string');
-      const replaceAll: unknown = Reflect.get(editItem, 'replace_all');
-
-      const oldStringStr = typeof oldString === 'string' ? oldString : String(oldString);
-      const newStringStr = typeof newString === 'string' ? newString : String(newString);
+    for (const editItem of multiEditInput.edits) {
+      const oldStringStr = String(editItem.old_string);
+      const newStringStr = String(editItem.new_string);
+      const replaceAll = editItem.replace_all;
 
       if (replaceAll === true) {
         const escapedPattern = regexEscapeTransformer({ str: oldStringStr });

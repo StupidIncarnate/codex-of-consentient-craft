@@ -141,13 +141,13 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {verbose: true} => returns full DiscoverResultItem array', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/guards/has-permission-guard.ts`,
+        value: '/default/cwd/src/guards/has-permission-guard.ts',
       });
       const contents = FileContentsStub({
         value:
           '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -173,13 +173,13 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "ENOENT", verbose: true} => returns full items with hits', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/adapters/fs-access-adapter.ts`,
+        value: '/default/cwd/src/adapters/fs-access-adapter.ts',
       });
       const contents = FileContentsStub({
         value:
           "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}",
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -308,12 +308,12 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: multi-dot files (.test.ts, .proxy.ts) appear as regular results', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
-      const implPath = FilePathStub({ value: `${process.cwd()}/src/brokers/user-fetch-broker.ts` });
+      const implPath = FilePathStub({ value: '/default/cwd/src/brokers/user-fetch-broker.ts' });
       const testPath = FilePathStub({
-        value: `${process.cwd()}/src/brokers/user-fetch-broker.test.ts`,
+        value: '/default/cwd/src/brokers/user-fetch-broker.test.ts',
       });
       const proxyPath = FilePathStub({
-        value: `${process.cwd()}/src/brokers/user-fetch-broker.proxy.ts`,
+        value: '/default/cwd/src/brokers/user-fetch-broker.proxy.ts',
       });
 
       const implContents = FileContentsStub({
@@ -329,7 +329,7 @@ describe('mcpDiscoverBroker', () => {
           '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};',
       });
 
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
 
       brokerProxy.setupMultipleFileDiscovery({
         files: [

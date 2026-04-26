@@ -1,3 +1,4 @@
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
   AddQuestInputStub,
   FilePathStub,
@@ -78,9 +79,12 @@ describe('questCreateBroker', () => {
 
     await questCreateBroker({ questId, guildId, input });
 
-    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+    const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
+      brokerProxy.getWrittenContent() as never,
+    );
+    const { questSource } = writtenQuest;
 
-    expect(writtenQuest.questSource).toBe('smoketest-mcp');
+    expect(questSource).toBe('smoketest-mcp');
   });
 
   it('VALID: {input without questSource} => written quest omits questSource field', async () => {
@@ -104,9 +108,12 @@ describe('questCreateBroker', () => {
 
     await questCreateBroker({ questId, guildId, input });
 
-    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+    const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
+      brokerProxy.getWrittenContent() as never,
+    );
+    const { questSource } = writtenQuest;
 
-    expect(writtenQuest.questSource).toBe(undefined);
+    expect(questSource).toBe(undefined);
   });
 
   it('ERROR: {mkdir fails on quests base dir} => throws the underlying error', async () => {

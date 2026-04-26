@@ -9,6 +9,7 @@ import { adapterResultContract, errorMessageContract } from '@dungeonmaster/shar
 import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
+import { questModifyResponseContract } from '../../../contracts/quest-modify-response/quest-modify-response-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questModifyBroker = async ({
@@ -23,16 +24,14 @@ export const questModifyBroker = async ({
     body: modifications,
   });
 
-  if (
-    typeof response === 'object' &&
-    response !== null &&
-    'success' in response &&
-    Reflect.get(response, 'success') === false
-  ) {
-    const errorValue = 'error' in response ? Reflect.get(response, 'error') : undefined;
+  const parsedResponse = questModifyResponseContract.safeParse(response);
+  if (parsedResponse.success && !parsedResponse.data.success) {
+    const errorValue = parsedResponse.data.error;
     throw new Error(
       errorMessageContract.parse(
-        typeof errorValue === 'string' ? errorValue : 'Quest modification failed',
+        typeof errorValue === 'string' && errorValue.length > 0
+          ? errorValue
+          : 'Quest modification failed',
       ),
     );
   }

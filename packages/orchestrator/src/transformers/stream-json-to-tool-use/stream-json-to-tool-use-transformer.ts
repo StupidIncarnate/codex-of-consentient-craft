@@ -6,6 +6,8 @@
  * // Returns '[Task] pattern="*.ts"\n' as ToolUseDisplay if tool_use found, null otherwise
  */
 
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import {
   toolUseDisplayContract,
   type ToolUseDisplay,
@@ -17,50 +19,40 @@ export const streamJsonToToolUseTransformer = ({
 }: {
   parsed: unknown;
 }): ToolUseDisplay | null => {
-  if (
-    typeof parsed !== 'object' ||
-    parsed === null ||
-    !('type' in parsed) ||
-    Reflect.get(parsed, 'type') !== 'assistant'
-  ) {
+  const lineParse = normalizedStreamLineContract.safeParse(parsed);
+  if (!lineParse.success) {
+    return null;
+  }
+  const line = lineParse.data;
+  if (line.type !== 'assistant') {
     return null;
   }
 
-  const message: unknown = Reflect.get(parsed, 'message');
-  if (typeof message !== 'object' || message === null || !('content' in message)) {
-    return null;
-  }
-
-  const content: unknown = Reflect.get(message, 'content');
+  const content = line.message?.content;
   if (!Array.isArray(content)) {
     return null;
   }
 
-  const result = content.reduce<ToolUseDisplay | null>((acc, item) => {
-    if (
-      typeof item === 'object' &&
-      item !== null &&
-      'type' in item &&
-      Reflect.get(item, 'type') === 'tool_use' &&
-      'name' in item
-    ) {
-      const name: unknown = Reflect.get(item, 'name');
-      if (typeof name === 'string') {
-        const inputRaw: unknown = 'input' in item ? Reflect.get(item, 'input') : null;
-        const input =
-          typeof inputRaw === 'object' && inputRaw !== null && !Array.isArray(inputRaw)
-            ? Object.fromEntries(Object.entries(inputRaw))
-            : {};
-
-        const inputDisplay = toolInputToDisplayTransformer({ input });
-        const formattedInput = inputDisplay.length > 0 ? ` ${inputDisplay}` : '';
-
-        const formatted = `[${name}]${formattedInput}`;
-        const current = acc === null ? '' : `${acc.replace(/\n$/u, '')} `;
-        return toolUseDisplayContract.parse(`${current}${formatted}\n`);
-      }
+  const result = content.reduce<ToolUseDisplay | null>((acc, rawItem) => {
+    const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+    if (!itemParse.success) return acc;
+    const item = itemParse.data;
+    if (item.type !== 'tool_use' || typeof item.name !== 'string') {
+      return acc;
     }
-    return acc;
+
+    const inputRaw = item.input;
+    const input =
+      typeof inputRaw === 'object' && inputRaw !== null && !Array.isArray(inputRaw)
+        ? Object.fromEntries(Object.entries(inputRaw))
+        : {};
+
+    const inputDisplay = toolInputToDisplayTransformer({ input });
+    const formattedInput = inputDisplay.length > 0 ? ` ${inputDisplay}` : '';
+
+    const formatted = `[${String(item.name)}]${formattedInput}`;
+    const current = acc === null ? '' : `${acc.replace(/\n$/u, '')} `;
+    return toolUseDisplayContract.parse(`${current}${formatted}\n`);
   }, null);
 
   return result;

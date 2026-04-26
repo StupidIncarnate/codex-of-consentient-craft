@@ -326,10 +326,6 @@ export const questOrchestrationLoopBroker = async ({
       });
     }
   } catch (error: unknown) {
-    if (Reflect.get(abortSignal, 'aborted')) {
-      return result;
-    }
-
     // On unhandled error: mark all in_progress items as failed to prevent zombies
     // Wrapped in inner try/catch to ensure original error always propagates (double fault safety)
     try {

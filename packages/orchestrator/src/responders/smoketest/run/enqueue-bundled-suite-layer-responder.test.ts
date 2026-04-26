@@ -6,6 +6,7 @@ import {
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 
+import type { questHydrateBroker } from '../../../brokers/quest/hydrate/quest-hydrate-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
@@ -152,9 +153,9 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
 
       expect(callCount).toBe(1);
 
-      const firstCall = calls[0]?.[0];
-      const capturedGuildId = Reflect.get(firstCall as object, 'guildId');
-      const capturedQuestSource = Reflect.get(firstCall as object, 'questSource');
+      const firstCall = calls[0]?.[0] as Parameters<typeof questHydrateBroker>[0];
+      const capturedGuildId = firstCall.guildId;
+      const capturedQuestSource = firstCall.questSource;
 
       expect(capturedGuildId).toBe(guildId);
       expect(capturedQuestSource).toBe(questSource);

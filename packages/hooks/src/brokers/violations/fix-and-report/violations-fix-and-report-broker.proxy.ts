@@ -7,10 +7,12 @@
  */
 import { eslintLoadConfigBrokerProxy } from '../../eslint/load-config/eslint-load-config-broker.proxy';
 import { eslintLintRunWithFixBrokerProxy } from '../../eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.proxy';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const violationsFixAndReportBrokerProxy = (): {
   setupFixAndReport: (params?: { hasViolations?: boolean }) => void;
 } => {
+  processCwdAdapterProxy();
   eslintLoadConfigBrokerProxy();
   const lintWithFixProxy = eslintLintRunWithFixBrokerProxy();
 

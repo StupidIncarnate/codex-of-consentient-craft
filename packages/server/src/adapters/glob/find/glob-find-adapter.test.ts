@@ -3,6 +3,8 @@ import { globFindAdapterProxy } from './glob-find-adapter.proxy';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
+const defaultCwd = FilePathStub({ value: '/project' });
+
 describe('globFindAdapter', () => {
   it('EDGE: {glob returns iterable non-array} => coerces to array and parses', async () => {
     const adapterProxy = globFindAdapterProxy();
@@ -15,7 +17,7 @@ describe('globFindAdapter', () => {
     // Simulate glob v7 behavior: returns an iterable non-array object
     adapterProxy.returnsNonArray({ pattern, files: expectedFiles });
 
-    const result = await globFindAdapter({ pattern });
+    const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
     expect(result).toStrictEqual(expectedFiles);
   });
@@ -30,7 +32,7 @@ describe('globFindAdapter', () => {
 
     adapterProxy.returns({ pattern, files: expectedFiles });
 
-    const result = await globFindAdapter({ pattern });
+    const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
     expect(result).toStrictEqual(expectedFiles);
   });
@@ -55,7 +57,9 @@ describe('globFindAdapter', () => {
 
     adapterProxy.throwsNonArray({ pattern, error });
 
-    await expect(globFindAdapter({ pattern })).rejects.toThrow(/Glob callback error/u);
+    await expect(globFindAdapter({ pattern, cwd: defaultCwd })).rejects.toThrow(
+      /Glob callback error/u,
+    );
   });
 
   it('EMPTY: {pattern: "nonexistent/**"} => returns empty array', async () => {
@@ -65,7 +69,7 @@ describe('globFindAdapter', () => {
 
     adapterProxy.returns({ pattern, files: expectedFiles });
 
-    const result = await globFindAdapter({ pattern });
+    const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
     expect(result).toStrictEqual([]);
   });

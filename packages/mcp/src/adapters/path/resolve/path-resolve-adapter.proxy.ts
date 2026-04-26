@@ -5,4 +5,4 @@
  * const proxy = pathResolveAdapterProxy();
  * // No mocking needed - adapter is deterministic
  */
-export const pathResolveAdapterProxy = (): object => ({});
+export const pathResolveAdapterProxy = (): Record<PropertyKey, never> => ({});

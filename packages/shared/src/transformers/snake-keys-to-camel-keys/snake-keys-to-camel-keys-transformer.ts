@@ -6,7 +6,7 @@
  * // Returns { toolUseId: 'x', taskId: 't1', message: { inputTokens: 5 } }
  */
 
-export const snakeKeysToCamelKeysTransformer = ({ value }: { value: unknown }): unknown => {
+export const snakeKeysToCamelKeysTransformer = ({ value }: { value: unknown }): typeof value => {
   if (Array.isArray(value)) {
     return value.map((item: unknown) => snakeKeysToCamelKeysTransformer({ value: item }));
   }

@@ -125,7 +125,7 @@ test.describe('Clarification Design Decisions', () => {
       (dd) =>
         typeof dd === 'object' &&
         dd !== null &&
-        Reflect.get(dd, 'title') === 'Database Selection: PostgreSQL',
+        (dd as Record<PropertyKey, unknown>).title === 'Database Selection: PostgreSQL',
     ) as Record<PropertyKey, unknown> | undefined;
 
     expect(ddMatch).toStrictEqual({

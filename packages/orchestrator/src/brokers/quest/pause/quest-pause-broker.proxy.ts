@@ -59,12 +59,10 @@ export const questPauseBrokerProxy = (): {
     },
 
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './quest-pause-broker' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'questPauseBroker',
-      ) as typeof questPauseBroker;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{ questPauseBroker: typeof questPauseBroker }>({
+        module: './quest-pause-broker',
+      });
+      mocked.mockImplementation(realMod.questPauseBroker);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

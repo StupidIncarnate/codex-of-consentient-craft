@@ -1,5 +1,22 @@
 # Plan: Consolidated `@dungeonmaster/shared/locations` + `local-eslint` regression rules
 
+## Status: IMPLEMENTED — Ready for merge
+
+- Layer 1 (locationsStatics) — done
+- Layer 2 (17 resolver brokers + transitive `claude-path-slug-encoder` transformer) — done
+- Layer 3 (4 Zod brand contracts + cwdResolveBroker + guildPathWalkUpLayerBroker + GuildRootNotFoundError) — done
+- Layer 4 Rule 1 (no-bare-process-cwd, shipped in `@dungeonmaster/eslint-plugin`, in recommended preset) — done
+- Layer 4 Rule 2 (no-bare-location-literals, `local-eslint`, dynamic from locationsStatics) — done
+- Spawn-cycle wiring (4 plan-listed sites + 1 transitive `run-chat-layer-broker`) — done
+- processCwdAdapter + minimatch-match-adapter — done
+
+### Ward state
+- typecheck / unit / integration / e2e: ALL GREEN
+- lint: 32 rule-1 + 45 rule-2 by-design fires on existing offenders. Zero other regressions. By-design fires are intentionally deferred to the post-merge mass cleanup pass.
+
+### Outstanding user action before merge
+- `npm run prod` smoketest (codex guild + smoketests guild) — runtime regression check for `13b291b7` (`.dungeonmaster-dev/`-cwd MCP discovery) and the latent `chat-spawn-broker` bug. The build's TypeScript-level guarantee (`RepoRootCwd` brand only obtainable via `cwdResolveBroker`) gives strong static assurance; a real spawn confirms end-to-end behavior. Not auto-runnable — needs the user's environment.
+
 ## Context
 
 A recurring class of bug: code that needs a file on disk reaches it via `process.cwd()`,
@@ -31,7 +48,6 @@ those sites in the meantime — that's expected and documented.
 ## Audit summary (already collected, scout reports complete)
 
 **Already consolidated in `@dungeonmaster/shared`:**
-
 - `configRootFindBroker` (`.dungeonmaster.json` walk-up)
 - `projectRootFindBroker` (`package.json` walk-up)
 - `dungeonmasterHomeFindBroker` / `Ensure` (`~/.dungeonmaster`, env-aware)
@@ -44,24 +60,23 @@ those sites in the meantime — that's expected and documented.
 
 **Hardcoded path-shapes that need consolidation (current leakage sites):**
 
-| Location                                       | Where it leaks today                                                                           |
-|------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Location | Where it leaks today |
+|---|---|
 | `.claude/settings.json`, `settings.local.json` | `orchestrator/.../spawn-stream-json-adapter:40`, `hooks/.../install-create-settings-responder` |
-| `.mcp.json`                                    | `mcp/.../install-config-create-responder`                                                      |
-| `event-outbox.jsonl`                           | `orchestrator/.../quest-outbox-append:26`, `quest-outbox-watch:31`                             |
-| `ward-results/<id>.json` per quest             | `orchestrator/.../ward-persist-result-broker:32`                                               |
-| `.ward/run-<id>.json` workspace-local          | `ward/.../storage-save-broker`                                                                 |
-| `guilds/<guildId>/quests/...`                  | `orchestrator/.../quest-resolve-quests-path-broker:21-27`                                      |
-| `design/<questFolder>/` scaffold               | `server/.../design-scaffold-broker:27-36`                                                      |
-| `subagents/agent-<realAgentId>.jsonl`          | orchestrator chat tail brokers                                                                 |
-| `eslint.config.{js,mjs,cjs}`                   | static list exists in `eslint-plugin` but no shared finder                                     |
-| `tsconfig.json`                                | string literal `'./tsconfig.json'` in eslint-plugin install                                    |
-| `node_modules/.bin/<bin>`                      | inline in `ward/.../bin-resolve-broker:24`                                                     |
-| `.dungeonmaster-hooks.config.{js,mjs,cjs}`     | hooks-local, not shared                                                                        |
-| `<sessionId>.jsonl` Claude session file        | composed in transformer (encoder is dir-only)                                                  |
+| `.mcp.json` | `mcp/.../install-config-create-responder` |
+| `event-outbox.jsonl` | `orchestrator/.../quest-outbox-append:26`, `quest-outbox-watch:31` |
+| `ward-results/<id>.json` per quest | `orchestrator/.../ward-persist-result-broker:32` |
+| `.ward/run-<id>.json` workspace-local | `ward/.../storage-save-broker` |
+| `guilds/<guildId>/quests/...` | `orchestrator/.../quest-resolve-quests-path-broker:21-27` |
+| `design/<questFolder>/` scaffold | `server/.../design-scaffold-broker:27-36` |
+| `subagents/agent-<realAgentId>.jsonl` | orchestrator chat tail brokers |
+| `eslint.config.{js,mjs,cjs}` | static list exists in `eslint-plugin` but no shared finder |
+| `tsconfig.json` | string literal `'./tsconfig.json'` in eslint-plugin install |
+| `node_modules/.bin/<bin>` | inline in `ward/.../bin-resolve-broker:24` |
+| `.dungeonmaster-hooks.config.{js,mjs,cjs}` | hooks-local, not shared |
+| `<sessionId>.jsonl` Claude session file | composed in transformer (encoder is dir-only) |
 
 **`process.cwd()` usage classification:**
-
 - *Seed-only at entry point* (acceptable): `tooling-smoketest-run-responder:33`,
   `port-resolve-broker:36`, `start-ward.ts:15`,
   `primitive-duplicate-detection-run-responder:32`.
@@ -134,32 +149,31 @@ convention: `startPath: FilePath` (matches `configRootFindBroker:21-23`,
 `AbsoluteFilePath`. Input/output asymmetry is intentional — caller provides the
 walk-up seed in any shape, resolver returns a fully-resolved absolute path.
 
-| Resolver                                                               | Returns                                                              |
-|------------------------------------------------------------------------|----------------------------------------------------------------------|
-| (existing) `configRootFindBroker`                                      | repo root                                                            |
-| (existing) `projectRootFindBroker`                                     | nearest `package.json` dir                                           |
-| (existing) `dungeonmasterHomeFindBroker`                               | `~/.dungeonmaster`                                                   |
-| (existing) `questsFolderFindBroker`                                    | repo-local quests folder                                             |
-| `mcpJsonPathFind({ startPath })`                                       | repo-root + `.mcp.json`                                              |
-| `claudeSettingsPathFind({ startPath, kind: 'shared' \| 'local' })`     | repo-root + `.claude/...`                                            |
-| `outboxPathFind()`                                                     | dm-home + `event-outbox.jsonl`                                       |
-| `guildPathFind({ guildId })`                                           | dm-home + `guilds/<guildId>`                                         |
-| `guildConfigPathFind({ guildId })`                                     | guild + `guild.json`                                                 |
-| `guildQuestsPathFind({ guildId })`                                     | guild + `quests/`                                                    |
-| `questFolderPathFind({ guildId, questId })`                            | guild-quests + `<questId>`                                           |
-| `wardResultsPathFind({ questFolderPath })`                             | quest + `ward-results/`                                              |
-| `wardLocalRunPathFind({ rootPath, runId })`                            | rootPath + `.ward/run-<id>.json` (rootPath = repo root or workspace) |
-| `designScaffoldPathFind({ questFolderPath })`                          | quest + `design/`                                                    |
-| `claudeSessionsDirFind({ guildPath })`                                 | userHome + `.claude/projects/<encoded>`                              |
-| `claudeSessionFilePathFind({ guildPath, sessionId })`                  | sessions-dir + `<sid>.jsonl`                                         |
-| `claudeSubagentSessionFilePathFind({ guildPath, sessionId, agentId })` | sessions-dir + `subagents/agent-<id>.jsonl`                          |
-| `eslintConfigPathFind({ startPath })`                                  | first existing of the three variants                                 |
-| `tsconfigPathFind({ startPath })`                                      | walk-up to nearest                                                   |
-| `nodeModulesBinPathFind({ rootPath, binName })`                        | rootPath + `node_modules/.bin/<bin>`                                 |
-| `hookConfigPathFind({ startPath })`                                    | walk-up to first variant (move from `hooks` package)                 |
+| Resolver | Returns |
+|---|---|
+| (existing) `configRootFindBroker` | repo root |
+| (existing) `projectRootFindBroker` | nearest `package.json` dir |
+| (existing) `dungeonmasterHomeFindBroker` | `~/.dungeonmaster` |
+| (existing) `questsFolderFindBroker` | repo-local quests folder |
+| `mcpJsonPathFind({ startPath })` | repo-root + `.mcp.json` |
+| `claudeSettingsPathFind({ startPath, kind: 'shared' \| 'local' })` | repo-root + `.claude/...` |
+| `outboxPathFind()` | dm-home + `event-outbox.jsonl` |
+| `guildPathFind({ guildId })` | dm-home + `guilds/<guildId>` |
+| `guildConfigPathFind({ guildId })` | guild + `guild.json` |
+| `guildQuestsPathFind({ guildId })` | guild + `quests/` |
+| `questFolderPathFind({ guildId, questId })` | guild-quests + `<questId>` |
+| `wardResultsPathFind({ questFolderPath })` | quest + `ward-results/` |
+| `wardLocalRunPathFind({ rootPath, runId })` | rootPath + `.ward/run-<id>.json` (rootPath = repo root or workspace) |
+| `designScaffoldPathFind({ questFolderPath })` | quest + `design/` |
+| `claudeSessionsDirFind({ guildPath })` | userHome + `.claude/projects/<encoded>` |
+| `claudeSessionFilePathFind({ guildPath, sessionId })` | sessions-dir + `<sid>.jsonl` |
+| `claudeSubagentSessionFilePathFind({ guildPath, sessionId, agentId })` | sessions-dir + `subagents/agent-<id>.jsonl` |
+| `eslintConfigPathFind({ startPath })` | first existing of the three variants |
+| `tsconfigPathFind({ startPath })` | walk-up to nearest |
+| `nodeModulesBinPathFind({ rootPath, binName })` | rootPath + `node_modules/.bin/<bin>` |
+| `hookConfigPathFind({ startPath })` | walk-up to first variant (move from `hooks` package) |
 
-**Note**: the entry-point cwd seed is an **adapter**, not a broker — it wraps a node global (`process.cwd()`), same
-shape as the existing `osHomedirAdapter`. See the dedicated section below.
+**Note**: the entry-point cwd seed is an **adapter**, not a broker — it wraps a node global (`process.cwd()`), same shape as the existing `osHomedirAdapter`. See the dedicated section below.
 
 ### Layer 3 — typed CWD brands (Zod-based)
 
@@ -323,12 +337,12 @@ to produce/consume `RepoRootCwd`. These are the only mandatory backfill sites
 in this PR — they're not "offender cleanup," they're part of the brand's
 type-flow:
 
-| Site                                            | Change                                                                                                                           |
-|-------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `agent-spawn-unified-broker.ts`                 | `cwd: AbsoluteFilePath` → `cwd: RepoRootCwd`                                                                                     |
+| Site | Change |
+|---|---|
+| `agent-spawn-unified-broker.ts` | `cwd: AbsoluteFilePath` → `cwd: RepoRootCwd` |
 | `child-process-spawn-stream-json-adapter.ts:39` | `cwd: AbsoluteFilePath \| undefined` (with `?? process.cwd()` fallback) → `cwd: RepoRootCwd \| undefined`; drop the raw fallback |
-| `agent-spawn-by-role-broker.ts:90-91`           | already walks via `configRootFindBroker` — wrap the result with `repoRootCwdContract.parse(...)`                                 |
-| `chat-spawn-broker:131`                         | resolve `guildAbsolutePath` to `RepoRootCwd` via `configRootFindBroker` before passing                                           |
+| `agent-spawn-by-role-broker.ts:90-91` | already walks via `configRootFindBroker` — wrap the result with `repoRootCwdContract.parse(...)` |
+| `chat-spawn-broker:131` | resolve `guildAbsolutePath` to `RepoRootCwd` via `configRootFindBroker` before passing |
 
 **Existing `dungeonmasterHomeStatics` and `questsFolderStatics`** keep their
 *current shape* (flat `paths` object) but their values are *built from* the new
@@ -356,13 +370,10 @@ when ward runs — that's expected and tracked as a follow-up.
 ## Critical files
 
 **New:**
-
 - `packages/shared/src/statics/locations/locations-statics.ts` (+ test)
 - `packages/shared/src/brokers/locations/...` — one folder per resolver in Layer 2
-- `packages/shared/src/adapters/process/cwd/process-cwd-adapter.ts` (+ proxy + test) — wraps the lone `process.cwd()`
-  call
-- `packages/shared/src/contracts/repo-root-cwd/repo-root-cwd-contract.ts` (+ stub + test) — Zod brand on
-  `absoluteFilePathContract`
+- `packages/shared/src/adapters/process/cwd/process-cwd-adapter.ts` (+ proxy + test) — wraps the lone `process.cwd()` call
+- `packages/shared/src/contracts/repo-root-cwd/repo-root-cwd-contract.ts` (+ stub + test) — Zod brand on `absoluteFilePathContract`
 - `packages/shared/src/contracts/project-root-cwd/...` (+ stub + test)
 - `packages/shared/src/contracts/guild-path-cwd/...` (+ stub + test)
 - `packages/shared/src/contracts/dungeonmaster-home-cwd/...` (+ stub + test)
@@ -372,19 +383,13 @@ when ward runs — that's expected and tracked as a follow-up.
 - `packages/eslint-plugin/src/responders/eslint-plugin/create/...` — register rule 1 in recommended preset
 
 **Modified:**
-
-- `packages/shared/src/statics/dungeonmaster-home/dungeonmaster-home-statics.ts` — values *built from*
-  `locationsStatics` while preserving the existing flat `paths` shape (so `dungeonmaster-home-statics.test.ts` snapshot
-  stays valid)
+- `packages/shared/src/statics/dungeonmaster-home/dungeonmaster-home-statics.ts` — values *built from* `locationsStatics` while preserving the existing flat `paths` shape (so `dungeonmaster-home-statics.test.ts` snapshot stays valid)
 - `packages/shared/src/statics/quests-folder/quests-folder-statics.ts` — same pattern
 - `packages/shared/contracts.ts`, `brokers.ts`, `statics.ts`, `adapters.ts` — barrel exports
 - `packages/orchestrator/src/brokers/agent/spawn-unified/agent-spawn-unified-broker.ts` — `cwd: RepoRootCwd`
-- `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` —
-  `cwd: RepoRootCwd | undefined`, drop `?? process.cwd()` fallback
-- `packages/orchestrator/src/brokers/agent/spawn-by-role/agent-spawn-by-role-broker.ts` — wrap result with
-  `repoRootCwdContract.parse(...)`
-- `packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts` — resolve guild path to `RepoRootCwd` before
-  passing
+- `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` — `cwd: RepoRootCwd | undefined`, drop `?? process.cwd()` fallback
+- `packages/orchestrator/src/brokers/agent/spawn-by-role/agent-spawn-by-role-broker.ts` — wrap result with `repoRootCwdContract.parse(...)`
+- `packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts` — resolve guild path to `RepoRootCwd` before passing
 - `packages/local-eslint/src/responders/local-eslint/create/...` — wire rule 2
 
 **Out of scope (cleanup pass after parallel rule work merges):** all the

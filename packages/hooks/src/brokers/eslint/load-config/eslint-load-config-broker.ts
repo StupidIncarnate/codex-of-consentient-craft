@@ -10,6 +10,7 @@ import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/ca
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
 import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 // Cache the config to avoid repeated expensive loading
 // WARNING: This is a module-level cache that persists across function calls.
@@ -21,7 +22,7 @@ import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-pat
 let configCache: { cwd: PropertyKey; config: unknown } | null = null;
 
 export const eslintLoadConfigBroker = async ({
-  cwd = process.cwd(),
+  cwd = processCwdAdapter(),
   filePath,
 }: {
   cwd?: string;

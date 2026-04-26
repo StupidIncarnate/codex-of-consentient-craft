@@ -6,10 +6,11 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
+import { guildMessageBodyContract } from '../../../contracts/guild-message-body/guild-message-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
+import { sessionIdParamsContract } from '../../../contracts/session-id-params/session-id-params-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
 export const SessionChatResponder = async ({
@@ -27,14 +28,14 @@ export const SessionChatResponder = async ({
       });
     }
 
-    const sessionIdRaw: unknown = Reflect.get(params, 'sessionId');
-
-    if (typeof sessionIdRaw !== 'string') {
+    const parsedParams = sessionIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'sessionId is required' },
       });
     }
+    const { sessionId } = parsedParams.data;
 
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
@@ -43,29 +44,25 @@ export const SessionChatResponder = async ({
       });
     }
 
-    const rawMessage: unknown = Reflect.get(body, 'message');
-    const rawGuildId: unknown = Reflect.get(body, 'guildId');
-
-    if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
-      return responderResultContract.parse({
-        status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'message is required' },
-      });
-    }
-
-    if (typeof rawGuildId !== 'string') {
+    const parsedBody = guildMessageBodyContract.safeParse(body);
+    if (!parsedBody.success) {
+      const { fieldErrors } = parsedBody.error.flatten();
+      if (fieldErrors.message) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: { error: 'message is required' },
+        });
+      }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'guildId is required' },
       });
     }
-
-    const sessionId = sessionIdContract.parse(sessionIdRaw);
-    const guildId = guildIdContract.parse(rawGuildId);
+    const { guildId, message } = parsedBody.data;
 
     const { chatProcessId } = await orchestratorStartChatAdapter({
       guildId,
-      message: rawMessage,
+      message,
       sessionId,
     });
 

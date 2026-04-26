@@ -7,6 +7,7 @@
  */
 
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -25,13 +26,14 @@ export const QuestModifyResponder = async ({
         data: { error: 'Invalid params' },
       });
     }
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
+    const { questId } = parsedParams.data;
 
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
@@ -41,7 +43,7 @@ export const QuestModifyResponder = async ({
     }
 
     const result = await orchestratorModifyQuestAdapter({
-      questId: questIdRaw,
+      questId,
       input: body as never,
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: result });

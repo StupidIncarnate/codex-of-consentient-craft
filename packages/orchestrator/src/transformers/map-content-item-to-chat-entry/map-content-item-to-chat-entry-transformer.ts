@@ -7,6 +7,8 @@
  */
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, ChatUsage } from '@dungeonmaster/shared/contracts';
+
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizeAskUserQuestionInputTransformer } from '../normalize-ask-user-question-input/normalize-ask-user-question-input-transformer';
 
 export const mapContentItemToChatEntryTransformer = ({
@@ -63,9 +65,10 @@ export const mapContentItemToChatEntryTransformer = ({
         ? item.content
         : Array.isArray(item.content)
           ? item.content
-              .map((c: unknown) =>
-                typeof c === 'object' && c !== null ? Reflect.get(c, 'text') : undefined,
-              )
+              .map((c: unknown) => {
+                const cParse = normalizedStreamLineContentItemContract.safeParse(c);
+                return cParse.success ? cParse.data.text : undefined;
+              })
               .filter((t: unknown) => typeof t === 'string')
               .join('\n')
           : '';

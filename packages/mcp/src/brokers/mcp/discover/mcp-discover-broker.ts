@@ -21,6 +21,7 @@ import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -75,7 +76,7 @@ export const mcpDiscoverBroker = async ({
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = pathSegmentContract.parse(process.cwd());
+    const cwdPath = pathSegmentContract.parse(processCwdAdapter());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
 

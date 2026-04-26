@@ -16,6 +16,7 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import {
@@ -25,8 +26,6 @@ import {
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { smoketestStampOverrideBroker } from '../stamp-override/smoketest-stamp-override-broker';
-
-const QUEST_FILE_NAME = 'quest.json';
 
 type Dispense = ({ role }: { role: WorkItemRole }) => SmoketestPromptName | null;
 
@@ -45,7 +44,7 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
 
   const { questPath } = await questFindQuestPathBroker({ questId });
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
   );
   const quest = await questLoadBroker({ questFilePath });
 

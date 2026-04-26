@@ -30,8 +30,8 @@ const extractQuestSources = ({
   calls: readonly unknown[][];
 }): readonly ReturnType<typeof QuestSourceStub>[] =>
   calls.map((c) => {
-    const [arg] = c;
-    return Reflect.get(arg as object, 'questSource') as ReturnType<typeof QuestSourceStub>;
+    const [arg] = c as [{ questSource: ReturnType<typeof QuestSourceStub> }];
+    return arg.questSource;
   });
 
 const extractBundledSuites = ({
@@ -40,8 +40,8 @@ const extractBundledSuites = ({
   calls: readonly unknown[][];
 }): readonly ReturnType<typeof SmoketestSuiteStub>[] =>
   calls.map((c) => {
-    const [arg] = c;
-    return Reflect.get(arg as object, 'suite') as ReturnType<typeof SmoketestSuiteStub>;
+    const [arg] = c as [{ suite: ReturnType<typeof SmoketestSuiteStub> }];
+    return arg.suite;
   });
 
 describe('SmoketestRunResponder', () => {

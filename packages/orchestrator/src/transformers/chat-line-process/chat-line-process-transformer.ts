@@ -27,6 +27,12 @@ import { chatLineOutputContract } from '../../contracts/chat-line-output/chat-li
 import type { ChatLineOutput } from '../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../contracts/chat-line-processor/chat-line-processor-contract';
 import type { ChatLineSource } from '../../contracts/chat-line-source/chat-line-source-contract';
+import { inflatedTaskNotificationContentContract } from '../../contracts/inflated-task-notification-content/inflated-task-notification-content-contract';
+import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import {
+  normalizedStreamLineContract,
+  type NormalizedStreamLine,
+} from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
@@ -66,19 +72,25 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
       source: ChatLineSource;
       agentId?: AgentId;
     }): ChatLineOutput[] => {
-      if (typeof parsed !== 'object' || parsed === null) {
+      // Validate the post-normalize line shape once. Mutations below operate on the
+      // ORIGINAL `parsed` reference so downstream consumers (streamJsonToChatEntryTransformer
+      // and the recursive call back through the chat-line funnel) observe stamped fields.
+      const lineParse = normalizedStreamLineContract.safeParse(parsed);
+      if (!lineParse.success) {
         return [];
       }
-
-      const entryType: unknown = Reflect.get(parsed, 'type');
+      const entryType = lineParse.data.type;
 
       if (entryType !== 'user' && entryType !== 'assistant') {
         return [];
       }
 
+      // Validation above confirmed the shape. Mutate fields on the ORIGINAL parsed object
+      // so the rest of the pipeline reads the stamped values.
+      const original = parsed as NormalizedStreamLine;
       const outputs: ChatLineOutput[] = [];
 
-      Reflect.set(parsed, 'source', source);
+      original.source = source as unknown as NormalizedStreamLine['source'];
 
       // STEP 1: normalize to the streaming wire shape.
       //
@@ -87,23 +99,24 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
       // (the real internal id from the subagent JSONL filename). Resolve that to the Task's
       // toolUseId via the reverse map and stamp `parent_tool_use_id` synthetically so the
       // rest of this function is source-agnostic.
-      let parentToolUseIdVal: unknown = Reflect.get(parsed, 'parentToolUseId');
+      let parentToolUseIdVal: NormalizedStreamLine['parentToolUseId'] = original.parentToolUseId;
       if (
         (typeof parentToolUseIdVal !== 'string' || parentToolUseIdVal.length === 0) &&
         agentId !== undefined
       ) {
         const translated = reverseAgentIdMap.get(agentId);
         if (translated !== undefined) {
-          parentToolUseIdVal = translated;
-          Reflect.set(parsed, 'parentToolUseId', translated);
+          parentToolUseIdVal = translated as unknown as NormalizedStreamLine['parentToolUseId'];
+          original.parentToolUseId =
+            translated as unknown as NormalizedStreamLine['parentToolUseId'];
         }
       }
 
       const isSubagentByParent =
         typeof parentToolUseIdVal === 'string' && parentToolUseIdVal.length > 0;
       if (isSubagentByParent) {
-        Reflect.set(parsed, 'source', 'subagent');
-        Reflect.set(parsed, 'agentId', parentToolUseIdVal);
+        original.source = 'subagent' as unknown as NormalizedStreamLine['source'];
+        original.agentId = parentToolUseIdVal as unknown as NormalizedStreamLine['agentId'];
       }
 
       if (entryType === 'user') {
@@ -115,13 +128,12 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         // background task-notifications). We also record the realAgentId↔toolUseId mapping
         // in agentIdMap so the history replay path can translate sub-agent JSONL lines
         // (tagged with realAgentId) into the same `parent_tool_use_id` wire shape.
-        const toolUseResult: unknown = Reflect.get(parsed, 'toolUseResult');
-        if (typeof toolUseResult === 'object' && toolUseResult !== null) {
-          const resultAgentId: unknown = Reflect.get(toolUseResult, 'agentId');
+        const { toolUseResult } = original;
+        if (toolUseResult !== undefined) {
+          const resultAgentId = toolUseResult.agentId;
           if (typeof resultAgentId === 'string') {
             const parsedAgentId = agentIdContract.parse(resultAgentId);
-            const entry = parsed as Parameters<typeof toolUseIdsFromContentTransformer>[0]['entry'];
-            const toolUseIds = toolUseIdsFromContentTransformer({ entry });
+            const toolUseIds = toolUseIdsFromContentTransformer({ entry: original });
             for (const toolUseId of toolUseIds) {
               // Update BOTH maps — the reverse map is the hot path for sub-agent lines
               // arriving from the file source (tagged with realAgentId from the JSONL
@@ -139,8 +151,8 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
           }
         }
 
-        if (agentId !== undefined && Reflect.get(parsed, 'agentId') === undefined) {
-          Reflect.set(parsed, 'agentId', agentId);
+        if (agentId !== undefined && original.agentId === undefined) {
+          original.agentId = agentId as unknown as NormalizedStreamLine['agentId'];
         }
 
         // Lift inflated <task-notification> XML from message.content into a top-level
@@ -149,11 +161,12 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         // { taskNotification: { taskId, status, summary?, result?, totalTokens?, toolUses?, durationMs? } }
         // and emits totalTokens/toolUses/durationMs as STRINGS (parseTagValue: false on the
         // adapter), so we coerce those three to numbers here to satisfy the ChatEntry contract.
-        const message: unknown = Reflect.get(parsed, 'message');
-        if (typeof message === 'object' && message !== null) {
-          const content: unknown = Reflect.get(message, 'content');
-          if (typeof content === 'object' && content !== null && !Array.isArray(content)) {
-            const taskNotification: unknown = Reflect.get(content, 'taskNotification');
+        const { message } = original;
+        if (message !== undefined) {
+          const { content } = message;
+          const inflatedParse = inflatedTaskNotificationContentContract.safeParse(content);
+          if (inflatedParse.success) {
+            const { taskNotification } = inflatedParse.data;
             if (typeof taskNotification === 'object' && taskNotification !== null) {
               const lifted: Record<PropertyKey, unknown> = {};
               for (const [k, v] of Object.entries(taskNotification)) {
@@ -166,7 +179,7 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
                 }
                 lifted[k] = v;
               }
-              Reflect.set(parsed, 'taskNotification', lifted);
+              original.taskNotification = lifted as NormalizedStreamLine['taskNotification'];
             }
           }
         }
@@ -177,11 +190,10 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         // on every Task/Agent tool_use content item. That's the wire-level correlation key
         // the web uses to group the chain — matching sub-agent lines tagged via
         // parent_tool_use_id (streaming) or the agentId translation map (file replay).
-        const entry = parsed as Parameters<typeof taskToolUseIdsFromContentTransformer>[0]['entry'];
-        taskToolUseIdsFromContentTransformer({ entry });
+        taskToolUseIdsFromContentTransformer({ entry: original });
 
-        if (agentId !== undefined && Reflect.get(parsed, 'agentId') === undefined) {
-          Reflect.set(parsed, 'agentId', agentId);
+        if (agentId !== undefined && original.agentId === undefined) {
+          original.agentId = agentId as unknown as NormalizedStreamLine['agentId'];
         }
 
         // Strip content items that carry extended-thinking blocks with empty text.
@@ -190,24 +202,25 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         // downstream caller can preserve cache continuity without exposing the reasoning.
         // Nothing renders from these blocks; dropping them on the server side avoids the
         // web having to filter empty "THINKING" labels.
-        const message: unknown = Reflect.get(parsed, 'message');
-        if (typeof message === 'object' && message !== null) {
-          const content: unknown = Reflect.get(message, 'content');
+        const { message } = original;
+        if (message !== undefined) {
+          const { content } = message;
           if (Array.isArray(content)) {
-            const filtered = content.filter((item: unknown) => {
-              if (typeof item !== 'object' || item === null) return true;
-              if (Reflect.get(item, 'type') !== 'thinking') return true;
-              const thinkingText: unknown = Reflect.get(item, 'thinking');
-              return typeof thinkingText === 'string' && thinkingText.length > 0;
+            const filtered = content.filter((rawItem: unknown) => {
+              const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+              if (!itemParse.success) return true;
+              const itm = itemParse.data;
+              if (itm.type !== 'thinking') return true;
+              return typeof itm.thinking === 'string' && itm.thinking.length > 0;
             });
             if (filtered.length !== content.length) {
-              Reflect.set(message, 'content', filtered);
+              message.content = filtered;
             }
           }
         }
       }
 
-      const { entries } = streamJsonToChatEntryTransformer({ parsed });
+      const { entries } = streamJsonToChatEntryTransformer({ parsed: original });
       outputs.push(chatLineOutputContract.parse({ type: 'entries', entries }));
 
       return outputs;

@@ -13,11 +13,12 @@ import {
   packageNameContract,
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
-const CONFIG_FILENAME = '.dungeonmaster';
+const CONFIG_FILENAME = locationsStatics.dungeonmasterHome.dir;
 const PACKAGE_NAME = '@dungeonmaster/config';
 const JSON_INDENT_SPACES = 2;
 const F_OK = 0;

@@ -25,6 +25,12 @@ import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
+import { chatCompletePayloadContract } from '../../contracts/chat-complete-payload/chat-complete-payload-contract';
+import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload-contract';
+import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
+import { chatPatchPayloadContract } from '../../contracts/chat-patch-payload/chat-patch-payload-contract';
+import { chatSessionStartedPayloadContract } from '../../contracts/chat-session-started-payload/chat-session-started-payload-contract';
+import { clarificationRequestPayloadContract } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
 
 export const useSessionChatBinding = ({
   guildId,
@@ -79,12 +85,11 @@ export const useSessionChatBinding = ({
     if (!parsed.success) return;
 
     if (parsed.data.type === 'chat-output') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+      const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
+      if (payloadResult.data.chatProcessId !== chatProcessIdRef.current) return;
 
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
-
-      const rawEntries: unknown = Reflect.get(payload, 'entries');
+      const rawEntries = payloadResult.data.entries;
       if (!Array.isArray(rawEntries)) return;
 
       const validEntries: ChatEntry[] = [];
@@ -102,13 +107,11 @@ export const useSessionChatBinding = ({
     }
 
     if (parsed.data.type === 'clarification-request') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+      const payloadResult = clarificationRequestPayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
+      if (payloadResult.data.chatProcessId !== chatProcessIdRef.current) return;
 
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
-
-      const rawQuestions: unknown = Reflect.get(payload, 'questions');
-      const result = askUserQuestionContract.safeParse({ questions: rawQuestions });
+      const result = askUserQuestionContract.safeParse({ questions: payloadResult.data.questions });
 
       if (result.success) {
         setPendingClarification({ questions: result.data.questions });
@@ -116,38 +119,32 @@ export const useSessionChatBinding = ({
     }
 
     if (parsed.data.type === 'chat-session-started') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+      const payloadResult = chatSessionStartedPayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
+      if (payloadResult.data.chatProcessId !== chatProcessIdRef.current) return;
 
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
-
-      const rawSessionId: unknown = Reflect.get(payload, 'sessionId');
-      if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
-        sessionIdRef.current = rawSessionId as SessionId;
-        setCurrentSessionId(rawSessionId as SessionId);
-      }
+      sessionIdRef.current = payloadResult.data.sessionId;
+      setCurrentSessionId(payloadResult.data.sessionId);
     }
 
     if (parsed.data.type === 'chat-complete') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
+      const payloadResult = chatCompletePayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
+      if (payloadResult.data.chatProcessId !== chatProcessIdRef.current) return;
 
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
-
-      const rawSessionId: unknown = Reflect.get(payload, 'sessionId');
-      if (typeof rawSessionId === 'string' && rawSessionId.length > 0) {
-        sessionIdRef.current = rawSessionId as SessionId;
-        setCurrentSessionId(rawSessionId as SessionId);
+      const completedSessionId = payloadResult.data.sessionId;
+      if (completedSessionId !== undefined) {
+        sessionIdRef.current = completedSessionId;
+        setCurrentSessionId(completedSessionId);
       }
 
       setIsStreaming(false);
     }
 
     if (parsed.data.type === 'chat-history-complete') {
-      const { payload } = parsed.data;
-      const rawChatProcessId: unknown = Reflect.get(payload, 'chatProcessId');
-
-      if (rawChatProcessId !== chatProcessIdRef.current) return;
+      const payloadResult = chatHistoryCompletePayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
+      if (payloadResult.data.chatProcessId !== chatProcessIdRef.current) return;
 
       if (!replayReceivedEntriesRef.current && initialSessionIdRef.current) {
         setSessionNotFound(true);
@@ -157,17 +154,15 @@ export const useSessionChatBinding = ({
     }
 
     if (parsed.data.type === 'chat-patch') {
-      const { payload } = parsed.data;
-      const rawToolUseId: unknown = Reflect.get(payload, 'toolUseId');
-      const rawAgentId: unknown = Reflect.get(payload, 'agentId');
+      const payloadResult = chatPatchPayloadContract.safeParse(parsed.data.payload);
+      if (!payloadResult.success) return;
 
-      if (typeof rawToolUseId !== 'string' || rawToolUseId.length === 0) return;
-      if (typeof rawAgentId !== 'string' || rawAgentId.length === 0) return;
+      const { toolUseId, agentId } = payloadResult.data;
 
       setEntries((prev) =>
         prev.map((entry) => {
-          if ('toolUseId' in entry && entry.toolUseId === rawToolUseId) {
-            return chatEntryContract.parse({ ...entry, agentId: rawAgentId });
+          if ('toolUseId' in entry && entry.toolUseId === toolUseId) {
+            return chatEntryContract.parse({ ...entry, agentId });
           }
 
           return entry;

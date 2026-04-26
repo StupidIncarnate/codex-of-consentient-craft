@@ -36,6 +36,7 @@ import { execResultContract } from '../../../contracts/exec-result/exec-result-c
 import { testGuildContract } from '../../../contracts/test-guild/test-guild-contract';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { ProcessOutput } from '../../../contracts/process-output/process-output-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
@@ -92,7 +93,7 @@ export const integrationEnvironmentCreateBroker = ({
     // Create a minimal tsconfig.json that includes all files in this test env
     const { tsconfig } = integrationEnvironmentStatics;
     fsWriteFileAdapter({
-      filePath: pathJoinAdapter({ paths: [projectPath, 'tsconfig.json'] }),
+      filePath: pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.tsconfig] }),
       content: fileContentContract.parse(
         JSON.stringify(tsconfig, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
       ),
@@ -101,7 +102,9 @@ export const integrationEnvironmentCreateBroker = ({
     // Always create a minimal eslint config that uses the local tsconfig
     // This allows type-aware ESLint rules to work on files in /tmp
     fsWriteFileAdapter({
-      filePath: pathJoinAdapter({ paths: [projectPath, 'eslint.config.js'] }),
+      filePath: pathJoinAdapter({
+        paths: [projectPath, locationsStatics.repoRoot.eslintConfig[1]],
+      }),
       content: fileContentContract.parse(integrationEnvironmentStatics.eslintConfig.template),
     });
   }
@@ -173,7 +176,9 @@ export const integrationEnvironmentCreateBroker = ({
     },
 
     getConfig: (): DungeonmasterConfig | null => {
-      const configPath = pathJoinAdapter({ paths: [projectPath, '.dungeonmaster'] });
+      const configPath = pathJoinAdapter({
+        paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
+      });
       if (!fsExistsAdapter({ filePath: configPath })) {
         return null;
       }

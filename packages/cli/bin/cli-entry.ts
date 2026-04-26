@@ -11,6 +11,7 @@
 import { resolve } from 'path';
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 
 import { StartCli } from '../src/startup/start-cli';
 
@@ -20,7 +21,7 @@ const DIRNAME_TO_ROOT_DEPTH = '../../../..';
 const [command] = process.argv.slice(COMMAND_ARG_START_INDEX);
 
 const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
-const targetProjectRoot = filePathContract.parse(process.cwd());
+const targetProjectRoot = processCwdAdapter();
 
 StartCli({ command, context: { dungeonmasterRoot, targetProjectRoot } }).catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);

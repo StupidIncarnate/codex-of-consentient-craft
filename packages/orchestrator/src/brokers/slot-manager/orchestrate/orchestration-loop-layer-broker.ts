@@ -112,7 +112,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                const knownSessionId = Reflect.get(sessionIds, workItemId) as SessionId | undefined;
+                const knownSessionId: SessionId | undefined = sessionIds[workItemId];
                 onAgentEntry({
                   slotIndex,
                   entry: { raw: line },
@@ -124,7 +124,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                Reflect.set(sessionIds, workItemId, sessionId);
+                sessionIds[workItemId] = sessionId;
                 onWorkItemSessionId({ workItemId, sessionId });
               },
             }),
@@ -167,7 +167,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations.releaseSlot({ slotIndex: completedAgent.slotIndex });
 
   if (result.sessionId !== null) {
-    Reflect.set(sessionIds, completedAgent.workItemId, result.sessionId);
+    sessionIds[completedAgent.workItemId] = result.sessionId;
   }
 
   // If aborted (paused), do not mark failed, retry, or spawn followups — just exit cleanly
@@ -197,9 +197,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onLine: ({ line }: { line: string }) => {
-                const knownSessionId = Reflect.get(sessionIds, completedAgent.workItemId) as
-                  | SessionId
-                  | undefined;
+                const knownSessionId: SessionId | undefined = sessionIds[completedAgent.workItemId];
                 onAgentEntry({
                   slotIndex: newSlotIndex,
                   entry: { raw: line },
@@ -211,7 +209,7 @@ export const orchestrationLoopLayerBroker = async ({
           ? {}
           : {
               onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                Reflect.set(sessionIds, completedAgent.workItemId, sessionId);
+                sessionIds[completedAgent.workItemId] = sessionId;
                 onWorkItemSessionId({ workItemId: completedAgent.workItemId, sessionId });
               },
             }),
@@ -340,9 +338,7 @@ export const orchestrationLoopLayerBroker = async ({
               ? {}
               : {
                   onLine: ({ line }: { line: string }) => {
-                    const knownSessionId = Reflect.get(sessionIds, newWorkItemId) as
-                      | SessionId
-                      | undefined;
+                    const knownSessionId: SessionId | undefined = sessionIds[newWorkItemId];
                     onAgentEntry({
                       slotIndex: newSlotIndex,
                       entry: { raw: line },
@@ -354,7 +350,7 @@ export const orchestrationLoopLayerBroker = async ({
               ? {}
               : {
                   onSessionId: ({ sessionId }: { sessionId: SessionId }) => {
-                    Reflect.set(sessionIds, newWorkItemId, sessionId);
+                    sessionIds[newWorkItemId] = sessionId;
                     onWorkItemSessionId({ workItemId: newWorkItemId, sessionId });
                   },
                 }),

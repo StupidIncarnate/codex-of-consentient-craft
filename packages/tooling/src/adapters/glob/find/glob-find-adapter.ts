@@ -17,11 +17,12 @@ export const globFindAdapter = async ({
   pattern: GlobPattern;
   cwd?: AbsoluteFilePath;
 }): Promise<readonly AbsoluteFilePath[]> => {
-  const files = await glob(pattern, {
-    cwd: cwd ? String(cwd) : process.cwd(),
+  const globOptions = {
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
-  });
+    ...(cwd ? { cwd: String(cwd) } : {}),
+  };
+  const files = await glob(pattern, globOptions);
 
   return files.map((file) => absoluteFilePathContract.parse(file));
 };

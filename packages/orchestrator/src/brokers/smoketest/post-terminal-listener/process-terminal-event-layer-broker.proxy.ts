@@ -60,12 +60,12 @@ export const processTerminalEventLayerBrokerProxy = (): {
       mocked.mockRejectedValueOnce(error);
     },
     setupPassthrough: (): void => {
-      const realMod = requireActual({ module: './process-terminal-event-layer-broker' });
-      const realImpl = Reflect.get(
-        realMod as object,
-        'processTerminalEventLayerBroker',
-      ) as typeof processTerminalEventLayerBroker;
-      mocked.mockImplementation(realImpl);
+      const realMod = requireActual<{
+        processTerminalEventLayerBroker: typeof processTerminalEventLayerBroker;
+      }>({
+        module: './process-terminal-event-layer-broker',
+      });
+      mocked.mockImplementation(realMod.processTerminalEventLayerBroker);
     },
     setupQuestDeleted: ({
       homeDir,

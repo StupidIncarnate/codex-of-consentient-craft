@@ -1,4 +1,5 @@
-import type { ExitCode, StreamJsonLine } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, RepoRootCwd, StreamJsonLine } from '@dungeonmaster/shared/contracts';
+import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 import { spawn, type ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import { EventEmitter, Readable } from 'stream';
@@ -26,6 +27,7 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
+  getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   const readFileMock: MockHandle = registerMock({ fn: readFileSync });
   readFileMock.mockReturnValue('{"hooks":{}}');
@@ -147,6 +149,23 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
       const lastCall = calls[calls.length - 1];
       if (!lastCall) return undefined;
       return lastCall[2];
+    },
+
+    getSpawnedCwd: (): RepoRootCwd | undefined => {
+      const { calls } = mock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (!lastCall) return undefined;
+      const [, , options] = lastCall;
+      if (
+        options === undefined ||
+        options === null ||
+        typeof options !== 'object' ||
+        !('cwd' in options) ||
+        options.cwd === undefined
+      ) {
+        return undefined;
+      }
+      return repoRootCwdContract.parse(options.cwd);
     },
   };
 };

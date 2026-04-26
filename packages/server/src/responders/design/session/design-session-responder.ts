@@ -6,11 +6,12 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import { guildIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
 import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorStartDesignChatAdapter } from '../../../adapters/orchestrator/start-design-chat/orchestrator-start-design-chat-adapter';
+import { guildMessageBodyContract } from '../../../contracts/guild-message-body/guild-message-body-contract';
+import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -30,13 +31,14 @@ export const DesignSessionResponder = async ({
       });
     }
 
-    const questIdRaw: unknown = Reflect.get(params, 'questId');
-    if (typeof questIdRaw !== 'string') {
+    const parsedParams = questIdParamsContract.safeParse(params);
+    if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'questId is required' },
       });
     }
+    const { questId } = parsedParams.data;
 
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
@@ -45,27 +47,23 @@ export const DesignSessionResponder = async ({
       });
     }
 
-    const rawGuildId: unknown = Reflect.get(body, 'guildId');
-    const rawMessage: unknown = Reflect.get(body, 'message');
-
-    if (typeof rawGuildId !== 'string') {
-      return responderResultContract.parse({
-        status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
-      });
-    }
-
-    if (typeof rawMessage !== 'string' || rawMessage.length === 0) {
+    const parsedBody = guildMessageBodyContract.safeParse(body);
+    if (!parsedBody.success) {
+      const { fieldErrors } = parsedBody.error.flatten();
+      if (fieldErrors.guildId) {
+        return responderResultContract.parse({
+          status: httpStatusStatics.clientError.badRequest,
+          data: { error: 'guildId is required' },
+        });
+      }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'message is required' },
       });
     }
+    const { guildId, message } = parsedBody.data;
 
-    const questId = questIdContract.parse(questIdRaw);
-    const guildId = guildIdContract.parse(rawGuildId);
-
-    const questResult = await orchestratorGetQuestAdapter({ questId: questIdRaw });
+    const questResult = await orchestratorGetQuestAdapter({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -87,7 +85,7 @@ export const DesignSessionResponder = async ({
     const { chatProcessId } = await orchestratorStartDesignChatAdapter({
       questId,
       guildId,
-      message: rawMessage,
+      message,
     });
 
     return responderResultContract.parse({
