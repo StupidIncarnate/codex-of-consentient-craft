@@ -22,7 +22,7 @@ export const rawEslintConfigToPartialTransformer = ({
 
   const rulesValue = parsed.data.rules;
 
-  if (typeof rulesValue !== 'object' || rulesValue === null || Array.isArray(rulesValue)) {
+  if (rulesValue === undefined) {
     return partialEslintConfigContract.parse({});
   }
 

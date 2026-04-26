@@ -44,7 +44,8 @@ export const hookPersistentRunnerHarness = (): {
     const pending = responseQueue.shift();
     if (pending) {
       try {
-        pending.resolve(ExecResultStub(JSON.parse(line)));
+        const parsed: unknown = JSON.parse(line);
+        pending.resolve(ExecResultStub(parsed as Parameters<typeof ExecResultStub>[0]));
       } catch {
         pending.reject(new Error(`Failed to parse worker response: ${line}`));
       }

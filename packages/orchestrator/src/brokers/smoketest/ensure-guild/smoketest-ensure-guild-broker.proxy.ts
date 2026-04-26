@@ -50,7 +50,9 @@ export const smoketestEnsureGuildBrokerProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         smoketestEnsureGuildBroker: typeof smoketestEnsureGuildBroker;
-      }>({ module: './smoketest-ensure-guild-broker' });
+      }>({
+        module: './smoketest-ensure-guild-broker',
+      });
       mocked.mockImplementation(realMod.smoketestEnsureGuildBroker);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,

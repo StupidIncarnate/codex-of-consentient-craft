@@ -2,7 +2,8 @@
  * PURPOSE: Wraps jest.requireActual so proxy files can access real module exports without calling jest APIs directly
  *
  * USAGE:
- * const realPath = jestRequireActualAdapter<{ resolve: typeof resolve }>({ module: 'path' });
+ * type PathModule = { resolve: typeof resolve };
+ * const realPath = jestRequireActualAdapter<PathModule>({ module: 'path' });
  * realPath.resolve('/a', 'b'); // Calls real path.resolve, not the mock
  *
  * WHEN-TO-USE: When a parent proxy needs the real implementation of a module mocked by a child proxy
@@ -17,8 +18,10 @@ const realPathModule: { resolve: typeof resolve } = jest.requireActual('path');
 
 export const jestRequireActualAdapter = <T = unknown>({
   module: moduleName,
+  _type: _phantom,
 }: {
   module: string;
+  _type?: T;
 }): T => {
   // For non-relative paths (npm packages), resolve directly
   if (!moduleName.startsWith('.')) {

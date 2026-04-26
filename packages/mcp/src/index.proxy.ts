@@ -15,7 +15,7 @@ export const indexProxy = (): {
     exitSpy: SpyOnHandle;
     stderrSpy: SpyOnHandle;
   };
-  loadIndexWithStartupBehavior: (startMcpServerBehavior: () => Promise<void>) => void;
+  loadIndexWithStartupBehavior: (startMcpServerBehavior: () => Promise<void>) => Promise<void>;
 } => {
   /**
    * Capture process.exit and process.stderr calls for testing error handling
@@ -41,10 +41,12 @@ export const indexProxy = (): {
    * Load index with custom StartMcpServer behavior to test entry point
    * Uses isolateModules to prevent module cache pollution
    */
-  const loadIndexWithStartupBehavior = (startMcpServerBehavior: () => Promise<void>): void => {
+  const loadIndexWithStartupBehavior = async (
+    startMcpServerBehavior: () => Promise<void>,
+  ): Promise<void> => {
     type ModulePath = IsolateModulesMock['module'];
 
-    isolateModules({
+    await isolateModules({
       mocks: [
         {
           module: resolve(__dirname, './startup/start-mcp-server') as ModulePath,

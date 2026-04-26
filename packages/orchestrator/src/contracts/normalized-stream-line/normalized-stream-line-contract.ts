@@ -14,7 +14,7 @@
  */
 import { z } from 'zod';
 
-const contentItem = z
+const _contentItem = z
   .object({
     type: z.string().brand<'StreamContentItemType'>().optional(),
     text: z.string().brand<'StreamContentText'>().optional(),
@@ -95,4 +95,4 @@ export const normalizedStreamLineContract = z
   .passthrough();
 
 export type NormalizedStreamLine = z.infer<typeof normalizedStreamLineContract>;
-export type NormalizedStreamLineContentItem = z.infer<typeof contentItem>;
+export type NormalizedStreamLineContentItem = z.infer<typeof _contentItem>;

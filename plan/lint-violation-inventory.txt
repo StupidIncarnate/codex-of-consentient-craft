@@ -2,154 +2,84 @@
 > dungeonmaster@0.1.0-beta.1 ward
 > dungeonmaster-ward --only lint
 
-lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/hooks running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/config running...[Klint        @dungeonmaster/cli   PASS  75 files, 75 discovered (8.7s)
+lint        @dungeonmaster/config running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/hooks running...[Klint        @dungeonmaster/cli   PASS  75 files, 75 discovered (9.3s)
 [K
-lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config FAIL  98 files, 1 errors, 98 discovered (10.6s)
+lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config PASS  98 files, 98 discovered (11.2s)
 [K
-lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.4s)
+lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.3s)
 [K
-lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks FAIL  341 files, 7 errors, 341 discovered (18.7s)
+lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks PASS  341 files, 341 discovered (18.9s)
 [K
-lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin FAIL  580 files, 7 errors, 580 discovered (27.0s)
+lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin PASS  580 files, 580 discovered (26.6s)
 [K
-lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   FAIL  440 files, 4 errors, 440 discovered (21.3s)
+lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   PASS  440 files, 440 discovered (21.2s)
 [K
-lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server FAIL  376 files, 2 errors, 376 discovered (18.9s)
+lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server PASS  376 files, 376 discovered (18.9s)
 [K
-lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared FAIL  722 files, 2 errors, 722 discovered (27.7s)
+lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared PASS  722 files, 722 discovered (27.1s)
 [K
-lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing FAIL  349 files, 10 errors, 349 discovered (22.6s)
+lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing PASS  349 files, 349 discovered (22.0s)
 [K
-[Klint        @dungeonmaster/ward  PASS  320 files, 320 discovered (18.9s)
+[Klint        @dungeonmaster/ward  PASS  320 files, 320 discovered (19.0s)
 [K
-[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 26 errors, 1049 discovered (48.5s)
+[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 24 errors, 1049 discovered (48.8s)
 [K
-[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (30.6s)
-lint        @dungeonmaster/tooling running...[K
-[Klint        @dungeonmaster/tooling PASS  78 files, 78 discovered (7.4s)
+lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (31.0s)
+[K
+[Klint        @dungeonmaster/tooling PASS  78 files, 78 discovered (7.5s)
 [K
 [K
-run: 1777200127454-9e95  (83.9s)
-lint:      FAIL  13 packages (5057 files passed/44 files failed, 5101 discovered)  @dungeonmaster/config (1), @dungeonmaster/eslint-plugin (7), @dungeonmaster/hooks (7), @dungeonmaster/mcp (4), @dungeonmaster/orchestrator (26), @dungeonmaster/server (2), @dungeonmaster/shared (2), @dungeonmaster/testing (10)  48.5s
+run: 1777205098157-9c9e  (83.9s)
+lint:      FAIL  13 packages (5093 files passed/8 files failed, 5101 discovered)  @dungeonmaster/orchestrator (24)  48.8s
 
 --- lint ---
-packages/config/src/responders/install/create-config/install-create-config-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
-packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.proxy.ts
-  @dungeonmaster/enforce-proxy-child-creation Implementation imports checkResolveSchemaBindingLayerBroker but proxy does not import its corresponding proxy from ./check-resolve-schema-binding-layer-broker.proxy. (line 1)
-packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts
-  @typescript-eslint/prefer-optional-chain Prefer using an optional chain expression instead, as it's more concise and easier to read. (line 56)
-packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts
-  @typescript-eslint/init-declarations Variable 'varDecl' should be initialized on declaration. (line 38)
-packages/eslint-plugin/src/responders/install/detect-config/install-detect-config-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 102)
-packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 11)
-packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.mjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 12)
-packages/eslint-plugin/src/statics/eslint-config-files/eslint-config-files-statics.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.cjs'. It belongs to `locationsStatics.repoRoot.eslintConfig[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
-packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.js'. It belongs to `locationsStatics.hooks.configFiles[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
-packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.mjs'. It belongs to `locationsStatics.hooks.configFiles[2]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
-packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-hooks.config.cjs'. It belongs to `locationsStatics.hooks.configFiles[3]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 22)
-packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
-packages/hooks/src/transformers/raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer.ts
-  @typescript-eslint/no-unnecessary-condition Unnecessary conditional, the types have no overlap. (line 25)
-packages/hooks/test/harnesses/hook-runner/hook-persistent-runner.harness.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type `any` assigned to a parameter of type `{ stdout?: string; stderr?: string; exitCode?: number; }`. (line 47)
-packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 23)
-packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/mcp/src/index.proxy.ts
-  @typescript-eslint/no-floating-promises Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator. (line 47)
-packages/mcp/src/responders/install/config-create/install-config-create-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 44)
-packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 44)
-packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.ts
-  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 150)
-packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.ts
-  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 163)
-packages/orchestrator/src/brokers/quest/create/quest-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 33)
-packages/orchestrator/src/brokers/quest/find-quest-path/quest-find-quest-path-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
-packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 18)
-packages/orchestrator/src/brokers/quest/get-planning-notes/quest-get-planning-notes-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 21)
-packages/orchestrator/src/brokers/quest/get/quest-get-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 24)
-packages/orchestrator/src/brokers/quest/list/quest-list-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 17)
-packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 46)
-packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts
-  @typescript-eslint/no-unnecessary-condition Unnecessary conditional, value is always falsy. (line 329)
-packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 17)
-packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'event-outbox.jsonl'. It belongs to `locationsStatics.dungeonmasterHome.eventOutbox` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
-packages/orchestrator/src/brokers/smoketest/poll-quest-until-terminal/load-quest-by-id-layer-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
-packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 40)
-packages/orchestrator/src/brokers/smoketest/scenario-driver/smoketest-sweep-pending-work-items-layer-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 29)
-packages/orchestrator/src/brokers/smoketest/stamp-override/smoketest-stamp-override-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 30)
-packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 20)
-packages/orchestrator/src/contracts/normalized-stream-line/normalized-stream-line-contract.ts
-  @typescript-eslint/no-unused-vars 'contentItem' is assigned a value but only used as a type. Allowed unused vars must match /^_/u. (line 17)
-packages/orchestrator/src/contracts/orchestration-events-state-facade/orchestration-events-state-facade.stub.ts
-  @typescript-eslint/no-empty-function Unexpected empty arrow function. (line 6)
-packages/orchestrator/src/responders/quest/load/quest-load-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
-packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 16)
-packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'quest.json'. It belongs to `locationsStatics.quest.questFile` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 26)
-packages/orchestrator/src/transformers/chat-line-process/chat-line-process-transformer.ts
-  @typescript-eslint/no-unnecessary-type-conversion Passing a string to String() does not change the type or value of the string. (line 135)
-packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.ts
-  @typescript-eslint/no-unsafe-assignment Unsafe assignment of an `any` value. (line 37)
-packages/server/src/brokers/design/scaffold/design-scaffold-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster-quests'. It belongs to `locationsStatics.repoRoot.dungeonmasterQuests` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 32)
-packages/server/src/responders/server/init/server-init-responder.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'ward-results'. It belongs to `locationsStatics.quest.wardResultsDir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 160)
-packages/shared/src/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 13)
-packages/shared/src/brokers/install/check/install-check-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 25)
-packages/testing/src/adapters/jest/require-actual/jest-require-actual-adapter.ts
-  @typescript-eslint/no-unnecessary-type-parameters Type parameter T is used only once in the function signature. (line 18)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 69)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.claude'. It belongs to `locationsStatics.repoRoot.claude.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 112)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'settings.json'. It belongs to `locationsStatics.repoRoot.claude.settings` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 112)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.mcp.json'. It belongs to `locationsStatics.repoRoot.mcpJson` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 121)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 130)
-packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 139)
-packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'tsconfig.json'. It belongs to `locationsStatics.repoRoot.tsconfig` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 95)
-packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal 'eslint.config.js'. It belongs to `locationsStatics.repoRoot.eslintConfig[1]` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 104)
-packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts
-  @dungeonmaster-local/no-bare-location-literals Do not use the raw location literal '.dungeonmaster'. It belongs to `locationsStatics.dungeonmasterHome.dir` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal. (line 176)
+packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 39)
+packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
+  @typescript-eslint/no-unused-vars 'ProcessSyncEventLayerBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 39)
+packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; loadQuest: ({ questId }: { questId: string & BRAND<"QuestId">; }) => Promise<{ status: "pending" | "complete" | "created" | "explore_flows" | ... 15 more ... | "abandoned"; ... 20 more ...; smoketestResults?: { ...; }[] | undefined; } | undefined>; removeByQuestId: ({ ...`. (line 45)
+packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 48)
+packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
+  @typescript-eslint/no-unused-vars 'SmoketestClearPriorQuestsBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 48)
+packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questSource: "user" | "smoketest-mcp" | "smoketest-signals" | "smoketest-orchestration"; }) => Promise<{ deletedCount: number & BRAND<"DeletedCount">; }>) | undefined`. (line 54)
+packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 51)
+packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
+  @typescript-eslint/no-unused-vars 'SmoketestEnsureGuildBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 51)
+packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `(() => Promise<{ guildId: string & BRAND<"GuildId">; }>) | undefined`. (line 57)
+packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 63)
+packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
+  @typescript-eslint/no-unused-vars 'ProcessTerminalEventLayerBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 63)
+packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; entry: { assertions: readonly ({ expected: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | ... 12 more ... | "abandoned"; kind: "quest-status"; } | { ...; } | { ...; } | { ...; })[]; isOrchestration: bo...`. (line 69)
+packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 68)
+packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
+  @typescript-eslint/no-unused-vars 'EnqueueBundledSuiteLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 68)
+packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { suite: "mcp" | "signals"; questSource: "user" | "smoketest-mcp" | "smoketest-signals" | "smoketest-orchestration"; guildId: string & BRAND<"GuildId">; guildSlug: string & BRAND<...>; }) => Promise<...>) | undefined`. (line 74)
+packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 64)
+packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
+  @typescript-eslint/no-unused-vars 'EnqueueOrchestrationScenarioLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 64)
+packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { scenario: { name: string & BRAND<"SmoketestScenarioName">; assertions: ({ expected: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | ... 13 more ... | "abandoned"; kind: "quest-status"; } | { ...; } | { ...; } | { ...; })[]; caseId: string & BRAND<...>; blueprint...`. (line 70)
+packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 38)
+packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
+  @typescript-eslint/no-unused-vars 'LoadQuestLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 38)
+packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; }) => Promise<{ status: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | ... 12 more ... | "abandoned"; ... 20 more ...; smoketestResults?: { ...; }[] | undefined; }>) | undefined`. (line 44)
+packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
+  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 60)
+packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
+  @typescript-eslint/no-unused-vars 'OverwriteWorkItemsLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 60)
+packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
+  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; workItems: readonly { status: "pending" | "failed" | "complete" | "in_progress" | "queued" | "skipped"; id: string & BRAND<"QuestWorkItemId">; ... 16 more ...; actualSignal?: "failed" | ... 2 more ... | undefined; }[]; }) => Promise<...>) | undefined`. (line 66)
 
-Full error details: npm run ward -- detail 1777200127454-9e95 <filePath>
+Full error details: npm run ward -- detail 1777205098157-9c9e <filePath>

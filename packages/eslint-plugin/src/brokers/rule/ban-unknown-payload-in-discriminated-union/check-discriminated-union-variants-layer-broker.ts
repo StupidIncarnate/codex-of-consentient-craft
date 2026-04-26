@@ -45,15 +45,13 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
       // Resolve property name from Identifier.name or string Literal.value
       const { key } = prop;
       const nameFromIdentifier =
-        key && key.type === 'Identifier' && typeof key.name === 'string'
-          ? String(key.name)
-          : undefined;
+        key?.type === 'Identifier' && typeof key.name === 'string' ? String(key.name) : undefined;
       const nameFromLiteral =
-        key && key.type === 'Literal' && typeof key.value === 'string' ? key.value : undefined;
+        key?.type === 'Literal' && typeof key.value === 'string' ? key.value : undefined;
       const name = nameFromIdentifier ?? nameFromLiteral;
 
       // Carve-out: properties named with `Raw` suffix are allowed
-      if (name !== undefined && name.endsWith('Raw')) continue;
+      if (name?.endsWith('Raw')) continue;
 
       const displayName = name ?? '<computed>';
 

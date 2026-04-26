@@ -67,7 +67,9 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         EnqueueBundledSuiteLayerResponder: typeof EnqueueBundledSuiteLayerResponder;
-      }>({ module: './enqueue-bundled-suite-layer-responder' });
+      }>({
+        module: './enqueue-bundled-suite-layer-responder',
+      });
       mocked.mockImplementation(realMod.EnqueueBundledSuiteLayerResponder);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,

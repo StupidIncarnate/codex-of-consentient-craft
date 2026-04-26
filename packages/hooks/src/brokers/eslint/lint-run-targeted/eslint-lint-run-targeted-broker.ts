@@ -70,13 +70,15 @@ export const eslintLintRunTargetedBroker = async ({
       ) ?? false;
 
     if (hasProjectError) {
-      // Create a simplified config without project reference
+      // Create a simplified config without project reference.
+      // Use rawEslintConfigContract only to safely extract languageOptions/parserOptions;
+      // spread the full original config record so fields like `files` are preserved.
       const parsedConfig = rawEslintConfigContract.safeParse(config);
       const languageOptions = parsedConfig.success ? parsedConfig.data.languageOptions : undefined;
       const parserOptions = languageOptions?.parserOptions;
 
       const simplifiedConfig = {
-        ...(parsedConfig.success ? parsedConfig.data : {}),
+        ...(config as Record<PropertyKey, unknown>),
         languageOptions: {
           ...languageOptions,
           parserOptions: {

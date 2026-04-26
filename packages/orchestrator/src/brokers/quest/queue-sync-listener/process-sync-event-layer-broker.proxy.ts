@@ -38,7 +38,9 @@ export const processSyncEventLayerBrokerProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         processSyncEventLayerBroker: typeof processSyncEventLayerBroker;
-      }>({ module: './process-sync-event-layer-broker' });
+      }>({
+        module: './process-sync-event-layer-broker',
+      });
       mocked.mockImplementation(realMod.processSyncEventLayerBroker);
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,

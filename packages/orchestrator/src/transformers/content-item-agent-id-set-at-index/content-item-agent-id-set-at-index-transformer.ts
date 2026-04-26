@@ -34,7 +34,7 @@ export const contentItemAgentIdSetAtIndexTransformer = ({
   const original = entry as NormalizedStreamLine;
   const content = original.message?.content;
   if (!Array.isArray(content)) return { success: false };
-  const item = content[index];
+  const item: unknown = content[index];
   if (item === null || typeof item !== 'object') {
     return { success: false };
   }

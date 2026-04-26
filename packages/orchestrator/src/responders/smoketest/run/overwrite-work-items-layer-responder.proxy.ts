@@ -59,7 +59,9 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         OverwriteWorkItemsLayerResponder: typeof OverwriteWorkItemsLayerResponder;
-      }>({ module: './overwrite-work-items-layer-responder' });
+      }>({
+        module: './overwrite-work-items-layer-responder',
+      });
       mocked.mockImplementation(realMod.OverwriteWorkItemsLayerResponder);
     },
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

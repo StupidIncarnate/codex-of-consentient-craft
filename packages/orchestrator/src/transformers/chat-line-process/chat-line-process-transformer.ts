@@ -101,7 +101,7 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
       // rest of this function is source-agnostic.
       let parentToolUseIdVal: NormalizedStreamLine['parentToolUseId'] = original.parentToolUseId;
       if (
-        (typeof parentToolUseIdVal !== 'string' || String(parentToolUseIdVal).length === 0) &&
+        (typeof parentToolUseIdVal !== 'string' || parentToolUseIdVal.length === 0) &&
         agentId !== undefined
       ) {
         const translated = reverseAgentIdMap.get(agentId);
@@ -113,7 +113,7 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
       }
 
       const isSubagentByParent =
-        typeof parentToolUseIdVal === 'string' && String(parentToolUseIdVal).length > 0;
+        typeof parentToolUseIdVal === 'string' && parentToolUseIdVal.length > 0;
       if (isSubagentByParent) {
         original.source = 'subagent' as unknown as NormalizedStreamLine['source'];
         original.agentId = parentToolUseIdVal as unknown as NormalizedStreamLine['agentId'];
@@ -132,7 +132,7 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         if (toolUseResult !== undefined) {
           const resultAgentId = toolUseResult.agentId;
           if (typeof resultAgentId === 'string') {
-            const parsedAgentId = agentIdContract.parse(String(resultAgentId));
+            const parsedAgentId = agentIdContract.parse(resultAgentId);
             const toolUseIds = toolUseIdsFromContentTransformer({ entry: original });
             for (const toolUseId of toolUseIds) {
               // Update BOTH maps — the reverse map is the hot path for sub-agent lines
@@ -211,7 +211,7 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
               if (!itemParse.success) return true;
               const itm = itemParse.data;
               if (itm.type !== 'thinking') return true;
-              return typeof itm.thinking === 'string' && String(itm.thinking).length > 0;
+              return typeof itm.thinking === 'string' && itm.thinking.length > 0;
             });
             if (filtered.length !== content.length) {
               message.content = filtered;

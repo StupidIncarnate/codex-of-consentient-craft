@@ -147,7 +147,7 @@ export const chatHistoryReplayBroker = async ({
     const { toolUseResult } = lineData;
     if (toolUseResult === undefined) continue;
     const realAgentIdRaw = toolUseResult.agentId;
-    if (typeof realAgentIdRaw !== 'string' || String(realAgentIdRaw).length === 0) continue;
+    if (typeof realAgentIdRaw !== 'string' || realAgentIdRaw.length === 0) continue;
     const msg = lineData.message;
     if (msg === undefined) continue;
     const items = msg.content;
@@ -158,10 +158,10 @@ export const chatHistoryReplayBroker = async ({
       const item = itemParse.data;
       if (item.type !== 'tool_result') continue;
       const tuid = item.toolUseId;
-      if (typeof tuid !== 'string' || String(tuid).length === 0) continue;
+      if (typeof tuid !== 'string' || tuid.length === 0) continue;
       processor.registerAgentTranslation({
-        agentId: agentIdContract.parse(String(realAgentIdRaw)),
-        toolUseId: toolUseIdContract.parse(String(tuid)),
+        agentId: agentIdContract.parse(realAgentIdRaw),
+        toolUseId: toolUseIdContract.parse(tuid),
       });
     }
   }

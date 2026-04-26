@@ -35,15 +35,13 @@ export const checkResolveSchemaBindingLayerBroker = ({
     // Top-level `const x = …;` — VariableDeclaration directly in the body
     // OR top-level `export const x = …;` — wrapped in ExportNamedDeclaration
     // whose `declaration` is the VariableDeclaration.
-    let varDecl: Tsestree | undefined;
-    if (statement.type === 'VariableDeclaration') {
-      varDecl = statement;
-    } else if (statement.type === 'ExportNamedDeclaration') {
-      const inner = statement.declaration;
-      if (inner && inner.type === 'VariableDeclaration') {
-        varDecl = inner;
-      }
-    }
+    const varDecl: Tsestree | undefined =
+      statement.type === 'VariableDeclaration'
+        ? statement
+        : statement.type === 'ExportNamedDeclaration' &&
+            statement.declaration?.type === 'VariableDeclaration'
+          ? statement.declaration
+          : undefined;
     if (!varDecl) continue;
 
     const declarations = varDecl.declarations ?? [];

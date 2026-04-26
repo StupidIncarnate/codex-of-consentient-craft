@@ -62,7 +62,9 @@ export const processTerminalEventLayerBrokerProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         processTerminalEventLayerBroker: typeof processTerminalEventLayerBroker;
-      }>({ module: './process-terminal-event-layer-broker' });
+      }>({
+        module: './process-terminal-event-layer-broker',
+      });
       mocked.mockImplementation(realMod.processTerminalEventLayerBroker);
     },
     setupQuestDeleted: ({

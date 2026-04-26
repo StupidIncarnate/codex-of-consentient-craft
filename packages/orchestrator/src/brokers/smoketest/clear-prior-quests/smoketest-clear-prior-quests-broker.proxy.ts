@@ -47,7 +47,9 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         smoketestClearPriorQuestsBroker: typeof smoketestClearPriorQuestsBroker;
-      }>({ module: './smoketest-clear-prior-quests-broker' });
+      }>({
+        module: './smoketest-clear-prior-quests-broker',
+      });
       mocked.mockImplementation(realMod.smoketestClearPriorQuestsBroker);
       // Cascading passthrough: smoketestClearPriorQuestsBroker calls smoketestEnsureGuildBroker
       // internally, which is also module-mocked. The downstream test still primes the guild list
