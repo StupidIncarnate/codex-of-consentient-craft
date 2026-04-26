@@ -13,6 +13,7 @@
  * questExecutionQueueState.markHeadStarted();
  * questExecutionQueueState.removeByQuestId({ questId });
  * questExecutionQueueState.updateEntryStatus({ questId, status });
+ * questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId });
  */
 
 import type {
@@ -20,6 +21,7 @@ import type {
   QuestQueueEntry,
   QuestSource,
   QuestStatus,
+  SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
@@ -154,6 +156,38 @@ export const questExecutionQueueState = {
       ...existing,
       status,
     });
+    state.entries[index] = updated;
+    for (const handler of state.handlers) {
+      handler();
+    }
+    return true;
+  },
+
+  updateEntryActiveSession: ({
+    questId,
+    activeSessionId,
+  }: {
+    questId: QuestId;
+    activeSessionId: SessionId | undefined;
+  }): boolean => {
+    const index = state.entries.findIndex((entry) => entry.questId === questId);
+    if (index === -1) {
+      return false;
+    }
+    const existing = state.entries[index];
+    if (existing === undefined) {
+      return false;
+    }
+    if (existing.activeSessionId === activeSessionId) {
+      return false;
+    }
+    const next: QuestQueueEntry = { ...existing };
+    if (activeSessionId === undefined) {
+      Reflect.deleteProperty(next, 'activeSessionId');
+    } else {
+      next.activeSessionId = activeSessionId;
+    }
+    const updated = questQueueEntryContract.parse(next);
     state.entries[index] = updated;
     for (const handler of state.handlers) {
       handler();

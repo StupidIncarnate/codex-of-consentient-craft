@@ -2,6 +2,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestStatusStub,
+  SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -10,29 +11,32 @@ import { processSyncEventLayerBrokerProxy } from './process-sync-event-layer-bro
 
 describe('processSyncEventLayerBroker', () => {
   describe('delete case — quest not found', () => {
-    it('VALID: {loadQuest resolves undefined} => removeByQuestId fires, updateEntryStatus does NOT fire', async () => {
+    it('VALID: {loadQuest resolves undefined} => removeByQuestId fires, updateEntryStatus and updateEntryActiveSession do NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-deleted' });
       const loadQuest = jest.fn().mockResolvedValue(undefined);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       const result = await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       expect(result).toStrictEqual({ success: true });
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
       expect(updateEntryStatus.mock.calls).toStrictEqual([]);
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('terminal quest status — abandoned', () => {
-    it('VALID: {quest.status = abandoned} => updateEntryStatus AND removeByQuestId both fire', async () => {
+    it('VALID: {quest.status = abandoned} => updateEntryStatus AND removeByQuestId fire, updateEntryActiveSession does NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-abandoned' });
@@ -41,21 +45,24 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       expect(updateEntryStatus.mock.calls).toStrictEqual([[{ questId, status }]]);
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('terminal quest status — complete', () => {
-    it('VALID: {quest.status = complete} => updateEntryStatus AND removeByQuestId both fire', async () => {
+    it('VALID: {quest.status = complete} => updateEntryStatus AND removeByQuestId fire, updateEntryActiveSession does NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-complete' });
@@ -64,21 +71,24 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       expect(updateEntryStatus.mock.calls).toStrictEqual([[{ questId, status }]]);
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('terminal quest status — blocked', () => {
-    it('VALID: {quest.status = blocked} => updateEntryStatus AND removeByQuestId both fire (blocked is queue-terminal)', async () => {
+    it('VALID: {quest.status = blocked} => updateEntryStatus AND removeByQuestId fire, updateEntryActiveSession does NOT fire (blocked is queue-terminal)', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-blocked' });
@@ -87,21 +97,24 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       expect(updateEntryStatus.mock.calls).toStrictEqual([[{ questId, status }]]);
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('non-terminal quest status, no workItems — in_progress', () => {
-    it('VALID: {quest.status = in_progress, workItems empty} => neither fires', async () => {
+    it('VALID: {quest.status = in_progress, workItems empty} => updateEntryActiveSession fires with undefined; updateEntryStatus and removeByQuestId do NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-running-empty' });
@@ -110,21 +123,26 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([
+        [{ questId, activeSessionId: undefined }],
+      ]);
       expect(updateEntryStatus.mock.calls).toStrictEqual([]);
       expect(removeByQuestId.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('non-terminal quest status, pending work — seek_scope', () => {
-    it('VALID: {quest.status = seek_scope, workItems has a pending item} => neither fires', async () => {
+    it('VALID: {quest.status = seek_scope, workItems has a pending item without sessionId} => updateEntryActiveSession fires with undefined; updateEntryStatus and removeByQuestId do NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-seek' });
@@ -134,21 +152,60 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([
+        [{ questId, activeSessionId: undefined }],
+      ]);
+      expect(updateEntryStatus.mock.calls).toStrictEqual([]);
+      expect(removeByQuestId.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('non-terminal quest status, smoketest non-chat work item with sessionId', () => {
+    it('VALID: {quest with codeweaver workItem in_progress + sessionId, no chat workItems} => updateEntryActiveSession fires with that sessionId', async () => {
+      const proxy = processSyncEventLayerBrokerProxy();
+      proxy.setupPassthrough();
+      const questId = QuestIdStub({ value: 'q-smoketest-orch' });
+      const status = QuestStatusStub({ value: 'in_progress' });
+      const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+      const codeweaver = WorkItemStub({
+        role: 'codeweaver',
+        status: 'in_progress',
+        sessionId,
+      });
+      const quest = QuestStub({ id: questId, status, workItems: [codeweaver] });
+      const loadQuest = jest.fn().mockResolvedValue(quest);
+      const removeByQuestId = jest.fn();
+      const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
+
+      await processSyncEventLayerBroker({
+        questId,
+        loadQuest,
+        removeByQuestId,
+        updateEntryStatus,
+        updateEntryActiveSession,
+      });
+
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([
+        [{ questId, activeSessionId: sessionId }],
+      ]);
       expect(updateEntryStatus.mock.calls).toStrictEqual([]);
       expect(removeByQuestId.mock.calls).toStrictEqual([]);
     });
   });
 
   describe('workItems-all-terminal fallback', () => {
-    it('VALID: {quest.status = in_progress, every workItem terminal (failed/skipped)} => updateEntryStatus AND removeByQuestId fire (drained fallback)', async () => {
+    it('VALID: {quest.status = in_progress, every workItem terminal (failed/skipped)} => updateEntryStatus AND removeByQuestId fire, updateEntryActiveSession does NOT fire (drained fallback)', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-drained' });
@@ -159,16 +216,19 @@ describe('processSyncEventLayerBroker', () => {
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       await processSyncEventLayerBroker({
         questId,
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       expect(updateEntryStatus.mock.calls).toStrictEqual([[{ questId, status }]]);
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
+      expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);
     });
   });
 });

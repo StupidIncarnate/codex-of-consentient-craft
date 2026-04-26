@@ -12,6 +12,7 @@ describe('createSyncHandlerLayerBroker', () => {
         loadQuest: async (): Promise<undefined> => Promise.resolve(undefined),
         removeByQuestId: (): undefined => undefined,
         updateEntryStatus: (): undefined => undefined,
+        updateEntryActiveSession: (): undefined => undefined,
       });
 
       const handlerArity = handler.length;
@@ -29,11 +30,13 @@ describe('createSyncHandlerLayerBroker', () => {
         .mockResolvedValue(QuestStub({ status: QuestStatusStub({ value: 'abandoned' }) }));
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       const handler = createSyncHandlerLayerBroker({
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
       const questId = QuestIdStub({ value: 'q-dispatch' });
 
@@ -48,6 +51,7 @@ describe('createSyncHandlerLayerBroker', () => {
           loadQuest,
           removeByQuestId,
           updateEntryStatus,
+          updateEntryActiveSession,
         },
       ]);
     });
@@ -59,11 +63,13 @@ describe('createSyncHandlerLayerBroker', () => {
       const loadQuest = jest.fn();
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
+      const updateEntryActiveSession = jest.fn();
 
       const handler = createSyncHandlerLayerBroker({
         loadQuest,
         removeByQuestId,
         updateEntryStatus,
+        updateEntryActiveSession,
       });
 
       handler({ questId: QuestIdStub({ value: 'q-rejects' }) });

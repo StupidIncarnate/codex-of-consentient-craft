@@ -16,7 +16,13 @@
  * the outbox to see natural terminal transitions the orchestration loop persists in-process.
  */
 
-import type { AdapterResult, Quest, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  Quest,
+  QuestId,
+  QuestStatus,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -61,6 +67,15 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): AdapterResult =>
     },
     updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }): void => {
       questExecutionQueueState.updateEntryStatus({ questId, status });
+    },
+    updateEntryActiveSession: ({
+      questId,
+      activeSessionId,
+    }: {
+      questId: QuestId;
+      activeSessionId: SessionId | undefined;
+    }): void => {
+      questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId });
     },
   })
     .then((handle: { stop: () => void }): void => {

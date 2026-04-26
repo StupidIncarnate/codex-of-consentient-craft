@@ -1,12 +1,13 @@
 /**
- * PURPOSE: Layer broker for questQueueSyncListenerBroker — resolves the current quest for a just-modified questId and keeps the execution queue in sync (removes on delete/terminal, updates status otherwise).
+ * PURPOSE: Layer broker for questQueueSyncListenerBroker — resolves the current quest for a just-modified questId and keeps the execution queue in sync (removes on delete/terminal, updates status + activeSessionId otherwise).
  *
  * USAGE:
- * await processSyncEventLayerBroker({ questId, loadQuest, removeByQuestId, updateEntryStatus });
+ * await processSyncEventLayerBroker({ questId, loadQuest, removeByQuestId, updateEntryStatus, updateEntryActiveSession });
  * // On terminal status (complete/blocked/abandoned) OR when every workItem is terminal:
  * //   updates the entry's status then removes it from the queue.
  * // On quest-not-found (deleted): removes any matching entry.
- * // On non-terminal, still-pending-work case: no-op.
+ * // On non-terminal, still-pending-work case: pushes the derived activeSessionId so the
+ * //   web's queue bar links remain accurate as work items spawn agents and acquire sessions.
  *
  * WHEN-TO-USE: Only from createSyncHandlerLayerBroker's event handler.
  * WHEN-NOT-TO-USE: Anywhere outside the execution-queue sync listener.
@@ -18,23 +19,44 @@
  * unblock the head. The shared `isTerminalQuestStatusGuard` treats `blocked` as non-terminal
  * (resumable), but from the runner's perspective a blocked quest is a stable endpoint —
  * the same "runner done with this quest" semantics as the smoketest-poll guard.
+ *
+ * WHY activeSessionId pushes only on the non-terminal branch: terminal entries are about
+ * to be removed from the queue, so updating their session field would just bounce a
+ * change handler on a row that's about to disappear. Live entries running through their
+ * phases are the ones that need the sessionId pushed so the UI's queue bar can hyperlink
+ * to the active agent's chat.
  */
 
-import type { AdapterResult, Quest, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  Quest,
+  QuestId,
+  QuestStatus,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { isSmoketestPollTerminalStatusGuard } from '../../../guards/is-smoketest-poll-terminal-status/is-smoketest-poll-terminal-status-guard';
+import { questActiveSessionTransformer } from '../../../transformers/quest-active-session/quest-active-session-transformer';
 
 export const processSyncEventLayerBroker = async ({
   questId,
   loadQuest,
   removeByQuestId,
   updateEntryStatus,
+  updateEntryActiveSession,
 }: {
   questId: QuestId;
   loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
   removeByQuestId: ({ questId }: { questId: QuestId }) => void;
   updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
+  updateEntryActiveSession: ({
+    questId,
+    activeSessionId,
+  }: {
+    questId: QuestId;
+    activeSessionId: SessionId | undefined;
+  }) => void;
 }): Promise<AdapterResult> => {
   const ok = adapterResultContract.parse({ success: true });
   const quest = await loadQuest({ questId });
@@ -51,7 +73,10 @@ export const processSyncEventLayerBroker = async ({
   });
 
   if (!isTerminalForQueue) {
-    // Still has pending/running work — leave the queue entry intact.
+    // Still has pending/running work — push the derived activeSessionId so the queue bar
+    // can route clicks to the live agent's chat as work items spawn and progress.
+    const { sessionId } = questActiveSessionTransformer({ workItems: quest.workItems });
+    updateEntryActiveSession({ questId, activeSessionId: sessionId });
     return ok;
   }
 

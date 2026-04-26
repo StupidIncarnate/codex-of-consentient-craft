@@ -116,6 +116,19 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
   state.runner = runner;
   runner.start();
 
+  // Broadcast `execution-queue-updated` on every queue mutation so the web's
+  // `useQuestQueueBinding` re-fetches. The runner's own onChange handler only
+  // kicks the drain — it does not emit. Mutations done outside the runner
+  // (status sync, active-session sync, recovery enqueue) would otherwise
+  // silently update state without notifying WS clients.
+  questExecutionQueueState.onChange((): void => {
+    orchestrationEventsState.emit({
+      type: 'execution-queue-updated',
+      processId: RUNNER_PROCESS_ID,
+      payload: {},
+    });
+  });
+
   state.presenceHandler = ({ isPresent }: { isPresent: boolean }): void => {
     if (isPresent) {
       // A new presence-true cancels any pending pause kicked off by a brief drop —

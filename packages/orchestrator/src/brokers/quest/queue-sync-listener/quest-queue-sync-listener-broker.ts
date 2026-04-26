@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Installs a global quest-changed handler that keeps the execution queue in sync with quest file changes — auto-removes entries on abandon/complete/blocked/delete so the queue runner can advance
+ * PURPOSE: Installs a global quest-changed handler that keeps the execution queue in sync with quest file changes — auto-removes entries on abandon/complete/blocked/delete and refreshes activeSessionId on running entries so the queue runner can advance and the queue-bar UI links route to the live agent's chat
  *
  * USAGE:
  * const handle = await questQueueSyncListenerBroker({
@@ -8,13 +8,14 @@
  *   loadQuest: async ({ questId }) => { ... },
  *   removeByQuestId: ({ questId }) => { questExecutionQueueState.removeByQuestId({ questId }); },
  *   updateEntryStatus: ({ questId, status }) => { questExecutionQueueState.updateEntryStatus({ questId, status }); },
+ *   updateEntryActiveSession: ({ questId, activeSessionId }) => { questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId }); },
  * });
  * handle.stop();
  *
  * WHEN-TO-USE: Wired once from the execution-queue flow at module load.
  * WHEN-NOT-TO-USE: Not per-request — this is a process-lifetime subscription.
  *
- * WHY install/loadQuest/removeByQuestId/updateEntryStatus are injected:
+ * WHY install/loadQuest/removeByQuestId/updateEntryStatus/updateEntryActiveSession are injected:
  * brokers/ cannot import state/. The caller (a bootstrap responder) wires the real event
  * source (outbox watcher) and state-backed callbacks.
  *
@@ -25,7 +26,7 @@
  * every quest-persist line, which is what this listener needs.
  */
 
-import type { Quest, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { createSyncHandlerLayerBroker } from './create-sync-handler-layer-broker';
 
@@ -36,16 +37,25 @@ export const questQueueSyncListenerBroker = async ({
   loadQuest,
   removeByQuestId,
   updateEntryStatus,
+  updateEntryActiveSession,
 }: {
   install: (onQuestChanged: QuestChangedHandler) => Promise<{ stop: () => void }>;
   loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
   removeByQuestId: ({ questId }: { questId: QuestId }) => void;
   updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
+  updateEntryActiveSession: ({
+    questId,
+    activeSessionId,
+  }: {
+    questId: QuestId;
+    activeSessionId: SessionId | undefined;
+  }) => void;
 }): Promise<{ stop: () => void }> => {
   const handler = createSyncHandlerLayerBroker({
     loadQuest,
     removeByQuestId,
     updateEntryStatus,
+    updateEntryActiveSession,
   });
 
   const { stop } = await install(handler);

@@ -15,6 +15,7 @@ describe('questQueueSyncListenerBroker', () => {
         loadQuest: async (): Promise<undefined> => Promise.resolve(undefined),
         removeByQuestId: (): undefined => undefined,
         updateEntryStatus: (): undefined => undefined,
+        updateEntryActiveSession: (): undefined => undefined,
       });
 
       handle.stop();
@@ -31,6 +32,7 @@ describe('questQueueSyncListenerBroker', () => {
         loadQuest: async (): Promise<undefined> => Promise.resolve(undefined),
         removeByQuestId: (): undefined => undefined,
         updateEntryStatus: (): undefined => undefined,
+        updateEntryActiveSession: (): undefined => undefined,
       });
 
       const handlerArgTypeofs = install.mock.calls.map((c) => typeof c[0]);
@@ -49,6 +51,7 @@ describe('questQueueSyncListenerBroker', () => {
         loadQuest: async (): Promise<undefined> => Promise.resolve(undefined),
         removeByQuestId: (): undefined => undefined,
         updateEntryStatus: (): undefined => undefined,
+        updateEntryActiveSession: (): undefined => undefined,
       });
 
       const handler = install.mock.calls[0]?.[0] as (args: {

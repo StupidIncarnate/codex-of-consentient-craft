@@ -2,6 +2,7 @@ import {
   QuestQueueEntryStub,
   QuestSourceStub,
   QuestStatusStub,
+  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questExecutionQueueState } from './quest-execution-queue-state';
@@ -349,6 +350,133 @@ describe('questExecutionQueueState', () => {
       const changed = questExecutionQueueState.updateEntryStatus({
         questId: 'q-a' as never,
         status: QuestStatusStub({ value: 'in_progress' }),
+      });
+
+      expect(changed).toBe(false);
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('updateEntryActiveSession', () => {
+    it('VALID: {entry without activeSessionId, sets new sessionId} => mutates field, returns true, handler fires', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+      const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-a' as never,
+        activeSessionId: sessionId,
+      });
+
+      expect(changed).toBe(true);
+      expect(questExecutionQueueState.getActive()?.activeSessionId).toBe(sessionId);
+      expect(handler.mock.calls).toStrictEqual([[]]);
+    });
+
+    it('VALID: {entry has existing sessionId, sets different sessionId} => mutates field, returns true, handler fires', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const oldSession = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+      const newSession = SessionIdStub({ value: '22222222-2222-4222-8222-222222222222' });
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        activeSessionId: oldSession,
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-a' as never,
+        activeSessionId: newSession,
+      });
+
+      expect(changed).toBe(true);
+      expect(questExecutionQueueState.getActive()?.activeSessionId).toBe(newSession);
+      expect(handler.mock.calls).toStrictEqual([[]]);
+    });
+
+    it('VALID: {entry has sessionId, clear with undefined} => deletes field, returns true, handler fires', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        activeSessionId: sessionId,
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-a' as never,
+        activeSessionId: undefined,
+      });
+
+      expect(changed).toBe(true);
+
+      const all = questExecutionQueueState.getAll();
+      const ownKeys = all.map((entry) => Object.hasOwn(entry, 'activeSessionId'));
+      const sessionIds = all.map((entry) => entry.activeSessionId);
+
+      expect(sessionIds).toStrictEqual([undefined]);
+      expect(ownKeys).toStrictEqual([false]);
+      expect(handler.mock.calls).toStrictEqual([[]]);
+    });
+
+    it('EMPTY: {questId not in queue} => returns false, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-missing' as never,
+        activeSessionId: SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' }),
+      });
+
+      expect(changed).toBe(false);
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+
+    it('EDGE: {new sessionId equals existing sessionId} => no mutation, returns false, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
+      const a = QuestQueueEntryStub({
+        questId: 'q-a' as never,
+        activeSessionId: sessionId,
+      });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-a' as never,
+        activeSessionId: sessionId,
+      });
+
+      expect(changed).toBe(false);
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+
+    it('EDGE: {entry has no activeSessionId, clear with undefined} => no-op, returns false, handler does NOT fire', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      questExecutionQueueState.enqueue({ entry: a });
+      const handler = jest.fn();
+      questExecutionQueueState.onChange(handler);
+
+      const changed = questExecutionQueueState.updateEntryActiveSession({
+        questId: 'q-a' as never,
+        activeSessionId: undefined,
       });
 
       expect(changed).toBe(false);
