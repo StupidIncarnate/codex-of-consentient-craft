@@ -65,6 +65,10 @@ import { ruleBanObjectKeysInExpectBrokerProxy } from '../../../brokers/rule/ban-
 import { ruleBanStringIncludesInExpectBrokerProxy } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.proxy';
 import { ruleBanWeakAsymmetricMatchersBrokerProxy } from '../../../brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.proxy';
 import { ruleNoBareProcessCwdBrokerProxy } from '../../../brokers/rule/no-bare-process-cwd/rule-no-bare-process-cwd-broker.proxy';
+import { ruleBanReflectOutsideGuardsBrokerProxy } from '../../../brokers/rule/ban-reflect-outside-guards/rule-ban-reflect-outside-guards-broker.proxy';
+import { ruleBanRequireInSourceBrokerProxy } from '../../../brokers/rule/ban-require-in-source/rule-ban-require-in-source-broker.proxy';
+import { ruleBanUnknownPayloadInDiscriminatedUnionBrokerProxy } from '../../../brokers/rule/ban-unknown-payload-in-discriminated-union/rule-ban-unknown-payload-in-discriminated-union-broker.proxy';
+import { ruleRequireValidationOnUntypedPropertyAccessBrokerProxy } from '../../../brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -124,6 +128,10 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanStringIncludesInExpectBrokerProxy();
   ruleBanWeakAsymmetricMatchersBrokerProxy();
   ruleNoBareProcessCwdBrokerProxy();
+  ruleBanReflectOutsideGuardsBrokerProxy();
+  ruleBanRequireInSourceBrokerProxy();
+  ruleBanUnknownPayloadInDiscriminatedUnionBrokerProxy();
+  ruleRequireValidationOnUntypedPropertyAccessBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

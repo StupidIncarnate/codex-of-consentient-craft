@@ -73,6 +73,10 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-string-includes-in-expect': 'pre-edit',
   '@dungeonmaster/ban-weak-asymmetric-matchers': 'pre-edit',
   '@dungeonmaster/no-bare-process-cwd': 'pre-edit',
+  '@dungeonmaster/ban-reflect-outside-guards': 'pre-edit',
+  '@dungeonmaster/ban-require-in-source': 'pre-edit',
+  '@dungeonmaster/ban-unknown-payload-in-discriminated-union': 'pre-edit',
+  '@dungeonmaster/require-validation-on-untyped-property-access': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

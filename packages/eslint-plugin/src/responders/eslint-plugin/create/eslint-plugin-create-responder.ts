@@ -58,6 +58,10 @@ import { ruleBanObjectKeysInExpectBroker } from '../../../brokers/rule/ban-objec
 import { ruleBanStringIncludesInExpectBroker } from '../../../brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker';
 import { ruleBanWeakAsymmetricMatchersBroker } from '../../../brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker';
 import { ruleNoBareProcessCwdBroker } from '../../../brokers/rule/no-bare-process-cwd/rule-no-bare-process-cwd-broker';
+import { ruleBanReflectOutsideGuardsBroker } from '../../../brokers/rule/ban-reflect-outside-guards/rule-ban-reflect-outside-guards-broker';
+import { ruleBanRequireInSourceBroker } from '../../../brokers/rule/ban-require-in-source/rule-ban-require-in-source-broker';
+import { ruleBanUnknownPayloadInDiscriminatedUnionBroker } from '../../../brokers/rule/ban-unknown-payload-in-discriminated-union/rule-ban-unknown-payload-in-discriminated-union-broker';
+import { ruleRequireValidationOnUntypedPropertyAccessBroker } from '../../../brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -116,6 +120,10 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-string-includes-in-expect': EslintRule;
     readonly 'ban-weak-asymmetric-matchers': EslintRule;
     readonly 'no-bare-process-cwd': EslintRule;
+    readonly 'ban-reflect-outside-guards': EslintRule;
+    readonly 'ban-require-in-source': EslintRule;
+    readonly 'ban-unknown-payload-in-discriminated-union': EslintRule;
+    readonly 'require-validation-on-untyped-property-access': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -177,6 +185,12 @@ export const EslintPluginCreateResponder = (): {
       'ban-string-includes-in-expect': ruleBanStringIncludesInExpectBroker(),
       'ban-weak-asymmetric-matchers': ruleBanWeakAsymmetricMatchersBroker(),
       'no-bare-process-cwd': ruleNoBareProcessCwdBroker(),
+      'ban-reflect-outside-guards': ruleBanReflectOutsideGuardsBroker(),
+      'ban-require-in-source': ruleBanRequireInSourceBroker(),
+      'ban-unknown-payload-in-discriminated-union':
+        ruleBanUnknownPayloadInDiscriminatedUnionBroker(),
+      'require-validation-on-untyped-property-access':
+        ruleRequireValidationOnUntypedPropertyAccessBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),
