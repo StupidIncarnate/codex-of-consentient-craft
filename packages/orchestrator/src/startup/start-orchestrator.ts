@@ -169,7 +169,7 @@ export const StartOrchestrator = {
     guildId: GuildId;
     message: string;
     sessionId?: SessionId;
-  }): Promise<{ chatProcessId: ProcessId }> =>
+  }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
     ChatStartFlow({ guildId, message, ...(sessionId && { sessionId }) }),
 
   clarifyAnswer: async ({

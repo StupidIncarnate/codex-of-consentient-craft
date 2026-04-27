@@ -2,12 +2,12 @@
  * PURPOSE: Adapter for StartOrchestrator.startChat that wraps the orchestrator package
  *
  * USAGE:
- * const { chatProcessId } = await orchestratorStartChatAdapter({ guildId, message });
- * // Returns: { chatProcessId: ProcessId } or throws error
+ * const { chatProcessId, questId } = await orchestratorStartChatAdapter({ guildId, message });
+ * // Returns: { chatProcessId: ProcessId, questId?: QuestId } or throws error
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorStartChatAdapter = async ({
   guildId,
@@ -17,5 +17,5 @@ export const orchestratorStartChatAdapter = async ({
   guildId: GuildId;
   message: string;
   sessionId?: SessionId;
-}): Promise<{ chatProcessId: ProcessId }> =>
+}): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
   StartOrchestrator.startChat({ guildId, message, ...(sessionId && { sessionId }) });

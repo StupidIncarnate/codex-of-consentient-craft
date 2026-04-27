@@ -10,6 +10,7 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
   orchestrationEventTypeContract,
+  processIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -35,7 +36,12 @@ import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { ProcessId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type {
+  OrchestrationEventType,
+  ProcessId,
+  QuestId,
+  WorkItemRole,
+} from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -51,6 +57,10 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   const { upgradeWebSocket } = nodeWebSocket;
   const clients = new Set<WsClient>();
   const processRoleMap = new Map<ProcessId, WorkItemRole>();
+  // Per-quest subscriptions: when a client subscribes to questId X, only events
+  // tagged with that questId are forwarded to it. Subscribed clients are EXCLUDED
+  // from the legacy broadcast-to-all loop to prevent double-delivery.
+  const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
 
   app.get(
     '/ws',
@@ -190,6 +200,122 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 });
               });
           }
+
+          if (message.type === 'subscribe-quest') {
+            const subQuestId = message.questId;
+            const subWs = _ws as WsClient;
+            const existing = clientSubscriptions.get(subWs) ?? new Set<QuestId>();
+            existing.add(subQuestId);
+            clientSubscriptions.set(subWs, existing);
+            // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
+            orchestratorLoadQuestAdapter({ questId: subQuestId })
+              .then(async (quest) => {
+                const findResult = await orchestratorFindQuestPathAdapter({
+                  questId: subQuestId,
+                }).catch(() => null);
+                const subGuildId = findResult?.guildId;
+                if (!subGuildId) return;
+                await Promise.all(
+                  quest.workItems
+                    .filter((wi) => wi.sessionId !== undefined)
+                    .map(async (wi) => {
+                      if (!wi.sessionId) return;
+                      const taggedId = processIdContract.parse(
+                        `quest-replay-${subQuestId}-${wi.id}-${wi.sessionId}`,
+                      );
+                      await orchestratorReplayChatHistoryAdapter({
+                        sessionId: wi.sessionId,
+                        guildId: subGuildId,
+                        chatProcessId: taggedId,
+                      }).catch(() => {
+                        processDevLogAdapter({
+                          message: `replay-quest-history work item ${wi.id} failed`,
+                        });
+                      });
+                    }),
+                );
+                subWs.send(
+                  JSON.stringify(
+                    wsMessageContract.parse({
+                      type: 'chat-history-complete',
+                      payload: { questId: subQuestId },
+                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                    }),
+                  ),
+                );
+              })
+              .catch((error: unknown) => {
+                const reason =
+                  error instanceof Error
+                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+                    : String(error);
+                processDevLogAdapter({
+                  message: `subscribe-quest replay failed for ${subQuestId}: ${reason}`,
+                });
+              });
+          }
+
+          if (message.type === 'unsubscribe-quest') {
+            const unsubQuestId = message.questId;
+            const unsubWs = _ws as WsClient;
+            const existing = clientSubscriptions.get(unsubWs);
+            if (existing) {
+              existing.delete(unsubQuestId);
+              if (existing.size === 0) {
+                clientSubscriptions.delete(unsubWs);
+              }
+            }
+          }
+
+          if (message.type === 'replay-quest-history') {
+            const replayQuestId = message.questId;
+            const replayWs = _ws as WsClient;
+            orchestratorLoadQuestAdapter({ questId: replayQuestId })
+              .then(async (quest) => {
+                const findResult = await orchestratorFindQuestPathAdapter({
+                  questId: replayQuestId,
+                }).catch(() => null);
+                const replayGuildId = findResult?.guildId;
+                if (!replayGuildId) return;
+                await Promise.all(
+                  quest.workItems
+                    .filter((wi) => wi.sessionId !== undefined)
+                    .map(async (wi) => {
+                      if (!wi.sessionId) return;
+                      const taggedId = processIdContract.parse(
+                        `quest-replay-${replayQuestId}-${wi.id}-${wi.sessionId}`,
+                      );
+                      await orchestratorReplayChatHistoryAdapter({
+                        sessionId: wi.sessionId,
+                        guildId: replayGuildId,
+                        chatProcessId: taggedId,
+                      }).catch(() => {
+                        processDevLogAdapter({
+                          message: `replay-quest-history work item ${wi.id} failed`,
+                        });
+                      });
+                    }),
+                );
+                replayWs.send(
+                  JSON.stringify(
+                    wsMessageContract.parse({
+                      type: 'chat-history-complete',
+                      payload: { questId: replayQuestId },
+                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                    }),
+                  ),
+                );
+              })
+              .catch((error: unknown) => {
+                const reason =
+                  error instanceof Error
+                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
+                    : String(error);
+                processDevLogAdapter({
+                  message: `replay-quest-history failed for ${replayQuestId}: ${reason}`,
+                });
+              });
+          }
         } catch (error: unknown) {
           const reason =
             error instanceof Error
@@ -200,6 +326,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       },
       onClose: (_evt: unknown, ws: unknown) => {
         clients.delete(ws as WsClient);
+        clientSubscriptions.delete(ws as WsClient);
         processDevLogAdapter({ message: 'WebSocket client disconnected' });
         if (clients.size === 0) {
           orchestratorSetWebPresenceAdapter({ isPresent: false });
@@ -228,6 +355,20 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
+  // Per-quest event types that the new subscription model routes per-questId.
+  // Clients with active subscriptions ONLY receive these via the per-quest filter,
+  // not the broadcast-to-all loop (prevents double-delivery during stage 2).
+  const PER_QUEST_EVENT_TYPES = new Set<OrchestrationEventType>([
+    'chat-output',
+    'chat-complete',
+    'chat-session-started',
+    'chat-history-complete',
+    'clarification-request',
+    'quest-modified',
+    'quest-created',
+    'quest-session-linked',
+  ]);
+
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
     if (type === 'quest-modified') continue;
@@ -240,6 +381,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
         const payloadRole = parsedPayload.success ? parsedPayload.data.role : undefined;
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
+        const payloadQuestId = parsedPayload.success ? parsedPayload.data.questId : undefined;
         const enrichedPayload =
           type === 'chat-output' && role && !payloadRole ? { ...payload, role } : payload;
 
@@ -259,13 +401,37 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           return;
         }
 
+        const envelope = wsMessageContract.parse({
+          type,
+          payload: { ...payload, processId },
+          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+        });
+
+        // Per-quest filter: forward only to subscribed clients for events that carry questId.
+        if (PER_QUEST_EVENT_TYPES.has(type) && payloadQuestId) {
+          const serializedQuestMsg = JSON.stringify(envelope);
+          for (const [client, subs] of clientSubscriptions) {
+            if (!subs.has(payloadQuestId)) continue;
+            try {
+              client.send(serializedQuestMsg);
+            } catch {
+              clientSubscriptions.delete(client);
+              clients.delete(client);
+            }
+          }
+        }
+
+        // Broadcast-to-all (legacy) — exclude clients with active subscriptions to avoid
+        // double-delivery. Subscribed clients get only the per-quest copy above.
+        const broadcastTargets = new Set<WsClient>();
+        for (const client of clients) {
+          const subs = clientSubscriptions.get(client);
+          if (subs && subs.size > 0) continue;
+          broadcastTargets.add(client);
+        }
         wsEventRelayBroadcastBroker({
-          clients,
-          message: wsMessageContract.parse({
-            type,
-            payload: { ...payload, processId },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
-          }),
+          clients: broadcastTargets,
+          message: envelope,
         });
       },
     });
@@ -276,13 +442,40 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
 
     const batch = pipelineChatOutputBuffer.splice(0);
     for (const item of batch) {
+      const flushEnvelope = wsMessageContract.parse({
+        type: 'chat-output',
+        payload: { ...item.payload, processId: item.processId },
+        timestamp: isoTimestampContract.parse(new Date().toISOString()),
+      });
+      const flushParsed = chatOutputPayloadContract.safeParse(item.payload);
+      const flushQuestId = flushParsed.success ? flushParsed.data.questId : undefined;
+
+      // Per-quest filter on flush: forward only to subscribed clients when the
+      // batched payload carries a questId.
+      if (flushQuestId) {
+        const serializedFlush = JSON.stringify(flushEnvelope);
+        for (const [client, subs] of clientSubscriptions) {
+          if (!subs.has(flushQuestId)) continue;
+          try {
+            client.send(serializedFlush);
+          } catch {
+            clientSubscriptions.delete(client);
+            clients.delete(client);
+          }
+        }
+      }
+
+      // Broadcast-to-all (legacy) — exclude clients with active subscriptions
+      // to avoid double-delivery of subscribed events.
+      const flushBroadcastTargets = new Set<WsClient>();
+      for (const client of clients) {
+        const subs = clientSubscriptions.get(client);
+        if (subs && subs.size > 0) continue;
+        flushBroadcastTargets.add(client);
+      }
       wsEventRelayBroadcastBroker({
-        clients,
-        message: wsMessageContract.parse({
-          type: 'chat-output',
-          payload: { ...item.payload, processId: item.processId },
-          timestamp: isoTimestampContract.parse(new Date().toISOString()),
-        }),
+        clients: flushBroadcastTargets,
+        message: flushEnvelope,
       });
     }
   }, FLUSH_INTERVAL_MS);
@@ -291,13 +484,34 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     onQuestChanged: ({ questId }) => {
       orchestratorLoadQuestAdapter({ questId })
         .then((quest) => {
+          const outboxEnvelope = wsMessageContract.parse({
+            type: 'quest-modified',
+            payload: { questId, quest },
+            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          });
+
+          // Per-quest filter: forward to subscribed clients first.
+          const serializedOutbox = JSON.stringify(outboxEnvelope);
+          for (const [client, subs] of clientSubscriptions) {
+            if (!subs.has(questId)) continue;
+            try {
+              client.send(serializedOutbox);
+            } catch {
+              clientSubscriptions.delete(client);
+              clients.delete(client);
+            }
+          }
+
+          // Broadcast-to-all (legacy) — exclude clients with active subscriptions.
+          const outboxBroadcastTargets = new Set<WsClient>();
+          for (const client of clients) {
+            const subs = clientSubscriptions.get(client);
+            if (subs && subs.size > 0) continue;
+            outboxBroadcastTargets.add(client);
+          }
           wsEventRelayBroadcastBroker({
-            clients,
-            message: wsMessageContract.parse({
-              type: 'quest-modified',
-              payload: { questId, quest },
-              timestamp: isoTimestampContract.parse(new Date().toISOString()),
-            }),
+            clients: outboxBroadcastTargets,
+            message: outboxEnvelope,
           });
         })
         .catch((error: unknown) => {

@@ -27,3 +27,21 @@ export const WsWardDetailRequestMessageStub = (): WsIncomingMessage =>
     questId: QuestIdStub(),
     wardResultId: 'ward-result-1',
   });
+
+export const WsSubscribeQuestMessageStub = (): WsIncomingMessage =>
+  wsIncomingMessageContract.parse({
+    type: 'subscribe-quest',
+    questId: QuestIdStub(),
+  });
+
+export const WsUnsubscribeQuestMessageStub = (): WsIncomingMessage =>
+  wsIncomingMessageContract.parse({
+    type: 'unsubscribe-quest',
+    questId: QuestIdStub(),
+  });
+
+export const WsReplayQuestHistoryMessageStub = (): WsIncomingMessage =>
+  wsIncomingMessageContract.parse({
+    type: 'replay-quest-history',
+    questId: QuestIdStub(),
+  });

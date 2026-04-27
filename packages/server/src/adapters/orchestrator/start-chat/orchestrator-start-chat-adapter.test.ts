@@ -1,4 +1,9 @@
-import { GuildIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  ProcessIdStub,
+  QuestIdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { orchestratorStartChatAdapter } from './orchestrator-start-chat-adapter';
 import { orchestratorStartChatAdapterProxy } from './orchestrator-start-chat-adapter.proxy';
@@ -12,6 +17,22 @@ describe('orchestratorStartChatAdapter', () => {
       const result = await orchestratorStartChatAdapter({ guildId, message: 'hello' });
 
       expect(result).toStrictEqual({ chatProcessId: 'proc-12345' });
+    });
+
+    it('VALID: {guildId, message, no sessionId} => returns chatProcessId AND questId when adapter supplies questId', async () => {
+      const proxy = orchestratorStartChatAdapterProxy();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-with-quest' });
+      const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+
+      proxy.returns({ chatProcessId, questId });
+
+      const result = await orchestratorStartChatAdapter({ guildId, message: 'hello' });
+
+      expect(result).toStrictEqual({
+        chatProcessId: 'proc-with-quest',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
     });
 
     it('VALID: {guildId, message, sessionId} => forwards sessionId to orchestrator', async () => {

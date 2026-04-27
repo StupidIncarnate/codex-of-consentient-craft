@@ -36,7 +36,7 @@ export const ChatStartResponder = async ({
   guildId: GuildId;
   message: string;
   sessionId?: SessionId;
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> => {
   if (sessionId) {
     process.stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
     const pending = pendingClarificationState.getForSession({ sessionId });
@@ -94,7 +94,7 @@ export const ChatStartResponder = async ({
   // closes (Claude CLI writes them async). Stopped when the session's process is killed.
   let mainTailStopHandle: (() => void) | null = null;
 
-  return chatSpawnBroker({
+  const spawnResult = await chatSpawnBroker({
     role: workItemRoleContract.parse('chaoswhisperer'),
     guildId,
     message,
@@ -339,4 +339,9 @@ export const ChatStartResponder = async ({
       });
     },
   });
+
+  return {
+    chatProcessId: spawnResult.chatProcessId,
+    ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+  };
 };

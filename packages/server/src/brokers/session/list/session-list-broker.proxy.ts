@@ -1,7 +1,8 @@
-import type { GuildStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildStub, QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import { orchestratorGetGuildAdapterProxy } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
+import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -11,6 +12,7 @@ import type { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type Quest = ReturnType<typeof QuestStub>;
 type GlobPattern = ReturnType<typeof GlobPatternStub>;
 type FilePath = ReturnType<typeof FilePathStub>;
 type FileContents = ReturnType<typeof FileContentsStub>;
@@ -24,10 +26,13 @@ export const sessionListBrokerProxy = (): {
   setupFileContentError: (params: { error: Error }) => void;
   setupFileStatError: (params: { error: Error }) => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupLoadQuest: (params: { quest: Quest }) => void;
+  setupLoadQuestError: (params: { error: Error }) => void;
   setupGuildNotFound: (params: { guildId: string }) => void;
 } => {
   const guildProxy = orchestratorGetGuildAdapterProxy();
   const questsProxy = orchestratorListQuestsAdapterProxy();
+  const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const homedirProxy = osUserHomedirAdapterProxy();
   const globProxy = globFindAdapterProxy();
   const statProxy = fsStatAdapterProxy();
@@ -66,6 +71,12 @@ export const sessionListBrokerProxy = (): {
     },
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.returns({ quests });
+    },
+    setupLoadQuest: ({ quest }: { quest: Quest }): void => {
+      loadQuestProxy.returns({ quest });
+    },
+    setupLoadQuestError: ({ error }: { error: Error }): void => {
+      loadQuestProxy.throws({ error });
     },
     setupGuildNotFound: ({ guildId }: { guildId: string }): void => {
       guildProxy.throws({ error: new Error(`Guild not found: ${guildId}`) });

@@ -31,6 +31,18 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
     questId: questIdContract,
     wardResultId: z.string().min(1).brand<'WardResultIdRaw'>(),
   }),
+  z.object({
+    type: z.literal('subscribe-quest'),
+    questId: questIdContract,
+  }),
+  z.object({
+    type: z.literal('unsubscribe-quest'),
+    questId: questIdContract,
+  }),
+  z.object({
+    type: z.literal('replay-quest-history'),
+    questId: questIdContract,
+  }),
 ]);
 
 export type WsIncomingMessage = z.infer<typeof wsIncomingMessageContract>;

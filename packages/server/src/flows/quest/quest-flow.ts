@@ -10,8 +10,11 @@
 import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
+import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-responder';
+import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestNewResponder } from '../../responders/quest/new/quest-new-responder';
 import { QuestsQueueResponder } from '../../responders/quests/queue/quests-queue-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
@@ -80,6 +83,30 @@ export const QuestFlow = (): Hono => {
     const result = await QuestDeleteResponder({
       params: { questId: c.req.param('questId') },
       query: { guildId: c.req.query('guildId') },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.new, async (c) => {
+    const result = await QuestNewResponder({
+      params: { guildId: c.req.param('guildId') },
+      body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.chat, async (c) => {
+    const result = await QuestChatResponder({
+      params: { questId: c.req.param('questId') },
+      body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.clarify, async (c) => {
+    const result = await QuestClarifyResponder({
+      params: { questId: c.req.param('questId') },
+      body: await c.req.json(),
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

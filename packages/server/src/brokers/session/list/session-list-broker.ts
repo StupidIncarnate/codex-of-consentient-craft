@@ -17,6 +17,7 @@ import { isoTimestampContract } from '@dungeonmaster/orchestrator';
 
 import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
+import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -66,13 +67,42 @@ export const sessionListBroker = async ({
 
   const quests = await orchestratorListQuestsAdapter({ guildId });
 
+  // Load full quests so we can walk every work item's sessionId — completed quests no longer
+  // have an activeSessionId, but their work items still hold sessionIds for parent + sub-agent
+  // sessions that should appear in the home Sessions list.
+  const fullQuests = await Promise.all(
+    quests.map(async (q) => orchestratorLoadQuestAdapter({ questId: q.id }).catch(() => null)),
+  );
+
+  const workItemSessionIds = new Set<SessionId>();
+  for (const fullQuest of fullQuests) {
+    if (!fullQuest) continue;
+    for (const wi of fullQuest.workItems) {
+      if (wi.sessionId) {
+        workItemSessionIds.add(wi.sessionId);
+      }
+    }
+  }
+
   const directSessionIds = new Set(
     directFiles.map((p) => String(p).split('/').pop()?.replace('.jsonl', '') ?? ''),
   );
   const crossProjectRoot = filePathContract.parse(`${homeDir}/.claude/projects`);
-  const crossProjectSessionIds = quests
-    .map((q) => q.activeSessionId)
-    .filter((s): s is SessionId => s !== undefined && !directSessionIds.has(String(s)));
+
+  // Collect sessionIds that need cross-project lookup: any sessionId attached to a quest
+  // (active or via a work item) that's not already in the direct project dir.
+  const candidateSessionIds = new Set<SessionId>();
+  for (const q of quests) {
+    if (q.activeSessionId !== undefined) {
+      candidateSessionIds.add(q.activeSessionId);
+    }
+  }
+  for (const sid of workItemSessionIds) {
+    candidateSessionIds.add(sid);
+  }
+  const crossProjectSessionIds = Array.from(candidateSessionIds).filter(
+    (s) => !directSessionIds.has(String(s)),
+  );
   const crossProjectFileLists = await Promise.all(
     crossProjectSessionIds.map(async (sessionId) =>
       globFindAdapter({
@@ -145,11 +175,20 @@ export const sessionListBroker = async ({
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     .filter((entry) => hasSessionSummaryGuard({ session: entry }));
 
-  const sessionToQuest = new Map(
-    quests
-      .filter((q) => q.activeSessionId !== undefined)
-      .map((q) => [String(q.activeSessionId), q] as const),
-  );
+  // Walk active session IDs AND every work item sessionId so sub-agent/completed-quest
+  // sessions correlate back to their quest.
+  const activeMappings = quests
+    .filter((q) => q.activeSessionId !== undefined)
+    .map((q) => [String(q.activeSessionId), q] as const);
+  const workItemMappings = fullQuests.flatMap((fullQuest, i) => {
+    if (!fullQuest) return [];
+    const q = quests[i];
+    if (!q) return [];
+    return fullQuest.workItems
+      .filter((wi) => wi.sessionId !== undefined)
+      .map((wi) => [String(wi.sessionId), q] as const);
+  });
+  const sessionToQuest = new Map([...activeMappings, ...workItemMappings]);
 
   const allSessions = filteredSessions.map((entry) => {
     const quest = sessionToQuest.get(String(entry.sessionId));

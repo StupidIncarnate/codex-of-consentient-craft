@@ -1,6 +1,12 @@
 import { Hono } from 'hono';
 import type { QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  GuildId,
+  OrchestrationEventType,
+  ProcessId,
+  QuestId,
+} from '@dungeonmaster/shared/contracts';
 
 import {
   pathJoinAdapterProxy,
@@ -89,6 +95,8 @@ export const ServerInitResponderProxy = (): {
     onError: ((args: { error: unknown }) => void) | undefined;
   };
   getSetWebPresenceCalls: () => unknown[];
+  getReplayChatHistoryCalls: () => unknown[];
+  setupFindQuestPathSuccess: (params: { questPath: AbsoluteFilePath; guildId: GuildId }) => void;
 } => {
   const dateSpy = registerSpyOn({
     object: Date.prototype,
@@ -109,7 +117,7 @@ export const ServerInitResponderProxy = (): {
   pathJoinAdapterProxy();
   locationsWardResultsPathFindBrokerProxy();
   fsReadFileAdapterProxy();
-  orchestratorFindQuestPathAdapterProxy();
+  const findQuestPathProxy = orchestratorFindQuestPathAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   designProcessStateProxy();
   const portProxy = portResolveBrokerProxy();
@@ -164,5 +172,15 @@ export const ServerInitResponderProxy = (): {
     },
     getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
     getSetWebPresenceCalls: (): unknown[] => setWebPresenceProxy.getAllCalledArgs(),
+    getReplayChatHistoryCalls: (): unknown[] => replayProxy.getAllCalledArgs(),
+    setupFindQuestPathSuccess: ({
+      questPath,
+      guildId,
+    }: {
+      questPath: AbsoluteFilePath;
+      guildId: GuildId;
+    }): void => {
+      findQuestPathProxy.returns({ questPath, guildId });
+    },
   };
 };
