@@ -153,7 +153,9 @@ Each stage compiles, passes `npm run ward`, and is independently usable.
 5. **[x] Web: switch `/:guildSlug/session/:sessionId` to `<SessionViewWidget />`.** Old `QuestChatWidget` no longer reachable via session URL. Old execution-WS useEffect inside `quest-chat-widget.tsx` is now dead code.
 6. **[x] Web cleanup:** delete `use-session-chat-binding`, `use-quest-events-binding`, `session-chat-broker`, `is-session-route-guard`, `chatPatchPayloadContract` web-side handler. Update `app-widget` layout guard. Remove `wasLoadedFromUrlRef`/redirect blocks from `quest-chat-widget`.
 7. **[x] Server cleanup:** delete `session-chat-responder`, `session-new-responder`, `session-clarify-responder`. Drop `quest-by-session-request` WS handler, `processRoleMap`, broadcast-to-all chat-output loop, `chat-patch` from `orchestrationEventTypeContract`. Drop `sessions.new`/`sessions.chat`/`sessions.clarify` from `api-routes-statics`.
-8. **Smoketest QA doc rewrite** (`tmp/smoketest-qa.md`): routing language updated; refresh-test reframed; Bug #8/Bug B/Bug #15 marked resolved.
+8. **[x] Smoketest QA doc rewrite** (`tmp/smoketest-qa.md`): routing language updated; refresh-test reframed; Bug #8/Bug B/Bug #15 marked resolved.
+
+**Plus related cleanup completed: smoketests under codex guild.** `smoketest-ensure-guild-broker` now finds the existing guild whose path resolves to the same repo root as the dungeonmaster home, instead of creating a separate "smoketests" guild. Smoketest sessions now physically live under the codex guild — matching where Claude CLI actually writes JSONLs. Bug B's root cause is fully resolved.
 
 ## Verification
 

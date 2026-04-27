@@ -9,8 +9,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { GuildNameStub, guildPathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
 
+import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
 
 interface QueueHarness {
@@ -34,6 +36,7 @@ export const orchestrationEnvironmentHarness = (): {
   setupHome: (params: { tempDir: GuildPath }) => {
     restore: () => void;
   };
+  seedRepoRootGuild: (params: { tempDir: GuildPath }) => Promise<{ guildPath: GuildPath }>;
   setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
     claudeQueueDir: FilePath;
     wardQueueDir: FilePath;
@@ -82,6 +85,22 @@ export const orchestrationEnvironmentHarness = (): {
       currentRestore = restore;
 
       return { restore };
+    },
+    seedRepoRootGuild: async ({
+      tempDir,
+    }: {
+      tempDir: GuildPath;
+    }): Promise<{ guildPath: GuildPath }> => {
+      // Drop a `.dungeonmaster.json` at the testbed dir so cwdResolveBroker({ kind: 'repo-root' })
+      // walks up from the home AND from the registered guild.path to the SAME repo root —
+      // that's the equality smoketestEnsureGuildBroker requires before returning a guildId.
+      fs.writeFileSync(path.join(tempDir, '.dungeonmaster.json'), '{}');
+      const guildPath = guildPathContract.parse(tempDir);
+      await guildAddBroker({
+        name: GuildNameStub({ value: 'codex' }),
+        path: guildPath,
+      });
+      return { guildPath };
     },
 
     setup: ({

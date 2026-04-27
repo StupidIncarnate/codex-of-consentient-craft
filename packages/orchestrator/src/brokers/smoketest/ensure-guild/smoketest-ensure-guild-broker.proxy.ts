@@ -1,14 +1,22 @@
-import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
-import type {
-  FilePath,
-  GuildConfig,
-  GuildIdStub,
-  GuildListItem,
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import {
+  type FilePath,
+  type GuildConfig,
+  type GuildIdStub,
+  repoRootCwdContract,
+  type RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  cwdResolveBrokerProxy,
+  dungeonmasterHomeFindBrokerProxy,
+} from '@dungeonmaster/shared/testing';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 import type { Dirent } from 'fs';
 
-import { guildAddBrokerProxy } from '../../guild/add/guild-add-broker.proxy';
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
 import { smoketestEnsureGuildBroker } from './smoketest-ensure-guild-broker';
 
@@ -26,18 +34,25 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       questsDirPath: FilePath;
       questDirEntries: Dirent[];
     }[];
+    homeRepoRoot?: RepoRootCwd;
+    guildRepoRoots?: readonly (RepoRootCwd | null)[];
   }) => void;
-  findMatchingGuildByName: (params: {
-    guilds: readonly GuildListItem[];
-    name: string;
-  }) => GuildListItem | undefined;
   setupReturnsGuildId: (params: { guildId: GuildId }) => void;
   setupPassthrough: () => void;
   getCallArgs: () => readonly unknown[][];
 } => {
-  dungeonmasterHomeEnsureBrokerProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
+  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
+  cwdResolveBrokerProxy();
+  dungeonmasterHomeFindBrokerProxy();
   const listProxy = guildListBrokerProxy();
-  guildAddBrokerProxy();
+
+  // smoketestEnsureGuildBroker resolves repo-root for the dungeonmaster home AND for every guild
+  // in the config. Stub cwdResolveBroker directly so passthrough tests don't have to seed a full
+  // walk-up chain per guild path. Default: every call returns '/repo-root' so the home and the
+  // first guild collapse to the same answer (matched).
+  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
+  cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse('/repo-root'));
 
   const mocked = smoketestEnsureGuildBroker as jest.MockedFunction<
     typeof smoketestEnsureGuildBroker
@@ -61,6 +76,8 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       homeDir,
       homePath,
       guildEntries,
+      homeRepoRoot,
+      guildRepoRoots,
     }: {
       config: GuildConfig;
       homeDir: string;
@@ -70,6 +87,8 @@ export const smoketestEnsureGuildBrokerProxy = (): {
         questsDirPath: FilePath;
         questDirEntries: Dirent[];
       }[];
+      homeRepoRoot?: RepoRootCwd;
+      guildRepoRoots?: readonly (RepoRootCwd | null)[];
     }): void => {
       listProxy.setupGuildList({
         config,
@@ -77,13 +96,26 @@ export const smoketestEnsureGuildBrokerProxy = (): {
         homePath,
         guildEntries: guildEntries.slice(),
       });
+
+      // Default scenario: home and every guild resolve to '/repo-root', so the first guild matches.
+      // Tests that need a different layout pass `homeRepoRoot` + per-guild `guildRepoRoots` (null
+      // entries simulate cwdResolveBroker rejecting for that guild).
+      const homeAnchor = homeRepoRoot ?? repoRootCwdContract.parse('/repo-root');
+      const perGuild =
+        guildRepoRoots ??
+        (config.guilds.map(() =>
+          repoRootCwdContract.parse('/repo-root'),
+        ) as readonly RepoRootCwd[]);
+
+      cwdResolveMock.mockClear();
+      cwdResolveMock.mockResolvedValueOnce(homeAnchor);
+      for (const root of perGuild) {
+        if (root === null) {
+          cwdResolveMock.mockRejectedValueOnce(new Error('repo-root not found'));
+        } else {
+          cwdResolveMock.mockResolvedValueOnce(root);
+        }
+      }
     },
-    findMatchingGuildByName: ({
-      guilds,
-      name,
-    }: {
-      guilds: readonly GuildListItem[];
-      name: string;
-    }): GuildListItem | undefined => guilds.find((guild) => guild.name === name),
   };
 };

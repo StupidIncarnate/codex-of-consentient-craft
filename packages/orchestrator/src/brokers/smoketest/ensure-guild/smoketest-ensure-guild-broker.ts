@@ -1,47 +1,63 @@
 /**
- * PURPOSE: Ensures a dedicated smoketest guild exists in the dungeonmaster config and returns its actual GuildId
+ * PURPOSE: Resolves the guild whose path walks up to the same repo root as the dungeonmaster home, so smoketests run against the codex guild instead of a separate "smoketests" guild
  *
  * USAGE:
  * const { guildId } = await smoketestEnsureGuildBroker();
- * // Returns: { guildId } — the GuildId of the smoketest guild. Creates the guild on first call
- * // and reuses the existing entry on subsequent calls.
+ * // Returns: { guildId } — the GuildId of the guild that owns the codex repo on disk.
  *
  * WHEN-TO-USE: SmoketestRunResponder calls this before dispatching orchestration cases so
- * questHydrateBroker / chat-spawn / orchestration-loop code that reads guild config by id finds a real entry.
+ * questHydrateBroker / chat-spawn / orchestration-loop code that reads guild config by id finds a real entry
+ * AND the guild reflects where Claude CLI actually writes its session JSONLs (the codex repo root).
  * WHEN-NOT-TO-USE: Outside the smoketest flow. Guilds for real projects go through guildAddBroker directly.
  *
- * WHY not guildAddBroker-with-forced-id: guildAddBroker generates its id internally via crypto.randomUUID()
- * and does not accept an id override. Callers must use the returned GuildId rather than smoketestStatics.guildId.
+ * WHY repo-root matching: every agent spawn calls `cwdResolveBroker({ kind: 'repo-root' })` to walk up from
+ * the guild path and find the directory containing `.dungeonmaster.json`. Claude CLI runs there, so JSONLs
+ * land under `~/.claude/projects/<encoded-repo-root>/<sessionId>.jsonl`. Pinning smoketests to the guild
+ * whose path resolves to the same repo root keeps the guild and the session storage in agreement.
+ *
+ * WHY no fallback creation: silently creating a placeholder smoketest guild is what produced the original
+ * disjunction (guild path = `.dungeonmaster-dev/`, JSONLs under codex repo root). If no matching guild exists
+ * the user must create one for the repo first; this broker throws a clear error instead.
  */
 
-import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
-import {
-  guildIdContract,
-  guildNameContract,
-  guildPathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
+import { cwdResolveBroker, dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
+import { filePathContract, guildIdContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildListItem } from '@dungeonmaster/shared/contracts';
 
-import { smoketestStatics } from '../../../statics/smoketest/smoketest-statics';
-import { guildAddBroker } from '../../guild/add/guild-add-broker';
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 
 export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: GuildId }> => {
-  const smoketestGuildName = guildNameContract.parse(smoketestStatics.guildName);
-
-  const existingGuilds = await guildListBroker();
-  const existing = existingGuilds.find((guild) => guild.name === smoketestGuildName);
-  if (existing !== undefined) {
-    return { guildId: guildIdContract.parse(existing.id) };
-  }
-
-  // Path must be a real accessible directory; use the dungeonmaster home (always created by ensure).
-  const { homePath } = await dungeonmasterHomeEnsureBroker();
-
-  const createdGuild = await guildAddBroker({
-    name: smoketestGuildName,
-    path: guildPathContract.parse(homePath),
+  const { homePath } = dungeonmasterHomeFindBroker();
+  const homeRepoRoot = await cwdResolveBroker({
+    startPath: filePathContract.parse(homePath),
+    kind: 'repo-root',
   });
 
-  return { guildId: guildIdContract.parse(createdGuild.id) };
+  const guilds = await guildListBroker();
+
+  const candidates = await Promise.all(
+    guilds.map(async (guild): Promise<GuildListItem | null> => {
+      try {
+        const guildRepoRoot = await cwdResolveBroker({
+          startPath: filePathContract.parse(guild.path),
+          kind: 'repo-root',
+        });
+        return guildRepoRoot === homeRepoRoot ? guild : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  // Tiebreaker: first match by guild creation order (guildListBroker preserves config order).
+  // Multiple guilds resolving to the same repo root is rare but possible; first-wins is deterministic.
+  const matched = candidates.find((g): g is GuildListItem => g !== null);
+
+  if (matched === undefined) {
+    throw new Error(
+      `Smoketest requires a guild whose path resolves to the repo root ${homeRepoRoot}; create one via the home page first.`,
+    );
+  }
+
+  return { guildId: guildIdContract.parse(matched.id) };
 };

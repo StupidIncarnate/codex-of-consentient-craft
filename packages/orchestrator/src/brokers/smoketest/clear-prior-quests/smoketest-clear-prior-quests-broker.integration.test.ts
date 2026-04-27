@@ -17,6 +17,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
       baseName: BaseNameStub({ value: 'clear-prior-quests-mcp' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });
 
     const { guildId } = await smoketestEnsureGuildBroker();
 
@@ -70,6 +71,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
       baseName: BaseNameStub({ value: 'clear-prior-quests-empty' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });
 
     const { guildId } = await smoketestEnsureGuildBroker();
 
@@ -105,6 +107,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
       baseName: BaseNameStub({ value: 'clear-prior-quests-two-mcp' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedRepoRootGuild({ tempDir: testbed.guildPath });
 
     const { guildId } = await smoketestEnsureGuildBroker();
 
