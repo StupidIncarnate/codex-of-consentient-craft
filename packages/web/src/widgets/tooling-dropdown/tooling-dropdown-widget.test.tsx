@@ -87,7 +87,96 @@ describe('ToolingDropdownWidget', () => {
       expect(label).toBe('Tooling (open active smoketest)');
     });
 
-    it('VALID: {click while smoketest active} => navigates to active smoketest session', async () => {
+    it('VALID: {menu item click, run() resolves with first enqueued entry} => navigates to /:guildSlug/quest/:questId from binding return', async () => {
+      const proxy = ToolingDropdownWidgetProxy();
+      proxy.queue.setupEntries({ entries: [] });
+      proxy.smoketest.setupSuccess({
+        enqueued: [
+          {
+            questId: 'q-test-123' as never,
+            guildSlug: 'smoketests' as never,
+          },
+        ],
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <ToolingDropdownWidget />
+                    <LocationProbe />
+                  </>
+                }
+              />
+              <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      const trigger = await findByTestId('TOOLING_DROPDOWN_TRIGGER');
+      await userEvent.click(trigger);
+
+      const signalsItem = await findByTestId('TOOLING_SMOKETEST_SIGNALS');
+      await userEvent.click(signalsItem);
+
+      const finalLocation = await waitFor(async () => {
+        const el = await findByTestId('LOCATION');
+
+        expect(el.textContent).toBe('/smoketests/quest/q-test-123');
+
+        return el.textContent;
+      });
+
+      expect(finalLocation).toBe('/smoketests/quest/q-test-123');
+    });
+
+    it('EDGE: {menu item click, run() resolves with no enqueued entries} => navigate is not called', async () => {
+      const proxy = ToolingDropdownWidgetProxy();
+      proxy.queue.setupEntries({ entries: [] });
+      proxy.smoketest.setupSuccess({ enqueued: [] });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/start']}>
+            <Routes>
+              <Route
+                path="/start"
+                element={
+                  <>
+                    <ToolingDropdownWidget />
+                    <LocationProbe />
+                  </>
+                }
+              />
+              <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      const trigger = await findByTestId('TOOLING_DROPDOWN_TRIGGER');
+      await userEvent.click(trigger);
+
+      const mcpItem = await findByTestId('TOOLING_SMOKETEST_MCP');
+      await userEvent.click(mcpItem);
+
+      await waitFor(async () => {
+        const el = await findByTestId('LOCATION');
+
+        expect(el.textContent).toBe('/start');
+      });
+
+      const finalLocation = await findByTestId('LOCATION');
+
+      expect(finalLocation.textContent).toBe('/start');
+    });
+
+    it('VALID: {click while smoketest active} => navigates to active smoketest quest', async () => {
       const proxy = ToolingDropdownWidgetProxy();
       proxy.queue.setupEntries({
         entries: [
@@ -114,7 +203,7 @@ describe('ToolingDropdownWidget', () => {
                   </>
                 }
               />
-              <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+              <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
             </Routes>
           </MemoryRouter>
         ),
@@ -132,12 +221,12 @@ describe('ToolingDropdownWidget', () => {
       const finalLocation = await waitFor(async () => {
         const el = await findByTestId('LOCATION');
 
-        expect(el.textContent).toBe('/smoketests-guild/session/sess-mcp');
+        expect(el.textContent).toBe('/smoketests-guild/quest/q-mcp');
 
         return el.textContent;
       });
 
-      expect(finalLocation).toBe('/smoketests-guild/session/sess-mcp');
+      expect(finalLocation).toBe('/smoketests-guild/quest/q-mcp');
     });
   });
 });

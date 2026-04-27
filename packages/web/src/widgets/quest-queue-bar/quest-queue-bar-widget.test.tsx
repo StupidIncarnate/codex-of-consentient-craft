@@ -117,7 +117,7 @@ describe('QuestQueueBarWidget', () => {
   });
 
   describe('open link', () => {
-    it('VALID: {head with activeSessionId} => OPEN link href targets that session', async () => {
+    it('VALID: {head entry} => OPEN link href targets that quest', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const head = QuestQueueEntryStub({
         questId: 'q-open',
@@ -137,13 +137,13 @@ describe('QuestQueueBarWidget', () => {
 
       const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
 
-      expect(openLink.getAttribute('href')).toBe('/smoketests-guild/session/sess-open');
+      expect(openLink.getAttribute('href')).toBe('/smoketests-guild/quest/q-open');
     });
 
-    it('VALID: {head without activeSessionId} => OPEN link falls back to guild session route', async () => {
+    it('VALID: {head without activeSessionId} => OPEN link still targets the quest', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const head = QuestQueueEntryStub({
-        questId: 'q-open',
+        questId: 'q-pending',
         questTitle: 'Planning',
         guildSlug: 'guild-x' as never,
       });
@@ -159,7 +159,7 @@ describe('QuestQueueBarWidget', () => {
 
       const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
 
-      expect(openLink.getAttribute('href')).toBe('/guild-x/session');
+      expect(openLink.getAttribute('href')).toBe('/guild-x/quest/q-pending');
     });
   });
 
@@ -194,11 +194,11 @@ describe('QuestQueueBarWidget', () => {
       const rowA = await findByTestId('QUEST_QUEUE_BAR_ROW_Q-A');
       const rowB = await findByTestId('QUEST_QUEUE_BAR_ROW_Q-B');
 
-      expect(rowA.getAttribute('href')).toBe('/guild-one/session/sess-a');
-      expect(rowB.getAttribute('href')).toBe('/guild-two/session/sess-b');
+      expect(rowA.getAttribute('href')).toBe('/guild-one/quest/q-a');
+      expect(rowB.getAttribute('href')).toBe('/guild-two/quest/q-b');
     });
 
-    it('VALID: {entry without activeSessionId} => renders guild-level session href', async () => {
+    it('VALID: {entry without activeSessionId} => row still links to /quest/:questId', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const head = QuestQueueEntryStub({
         questId: 'q-no-session',
@@ -220,7 +220,7 @@ describe('QuestQueueBarWidget', () => {
 
       const row = await findByTestId('QUEST_QUEUE_BAR_ROW_Q-NO-SESSION');
 
-      expect(row.getAttribute('href')).toBe('/guild-foo/session');
+      expect(row.getAttribute('href')).toBe('/guild-foo/quest/q-no-session');
     });
 
     it('VALID: {toggle twice} => collapses list again', async () => {

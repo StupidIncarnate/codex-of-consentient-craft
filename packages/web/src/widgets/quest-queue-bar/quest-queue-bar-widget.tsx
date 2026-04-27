@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Top-sticky cross-guild quest execution queue bar. Collapsed view shows `Quest N/M — <title>` + optional error badge; expanded view lists every queued entry as a Link to `/:guildSlug/session/:sessionId`.
+ * PURPOSE: Top-sticky cross-guild quest execution queue bar. Collapsed view shows `Quest N/M — <title>` + optional error badge; expanded view lists every queued entry as a Link to `/:guildSlug/quest/:questId`.
  *
  * USAGE:
  * <QuestQueueBarWidget />
@@ -34,10 +34,7 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
   const total = allEntries.length;
   const collapsedLabel = `Quest ${activeIndex + 1}/${total} — ${activeEntry.questTitle}`;
   const hasError = errorEntry !== undefined;
-  const openHref =
-    activeEntry.activeSessionId === undefined
-      ? `/${activeEntry.guildSlug}/session`
-      : `/${activeEntry.guildSlug}/session/${activeEntry.activeSessionId}`;
+  const openHref = `/${activeEntry.guildSlug}/quest/${activeEntry.questId}`;
 
   return (
     <div
@@ -148,10 +145,7 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
           {allEntries.map((entry, index) => {
             const isActive = index === activeIndex;
             const rowHasError = entry.error !== undefined;
-            const href =
-              entry.activeSessionId === undefined
-                ? `/${entry.guildSlug}/session`
-                : `/${entry.guildSlug}/session/${entry.activeSessionId}`;
+            const href = `/${entry.guildSlug}/quest/${entry.questId}`;
             const rowLabel = `${index + 1}/${total} — ${entry.guildSlug} / ${entry.questTitle}`;
             return (
               <Link

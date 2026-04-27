@@ -6,7 +6,8 @@
  * proxy.setupGuilds({ guilds: [] });
  */
 
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -39,6 +40,7 @@ export const HomeContentWidgetProxy = (): {
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
   clickAddGuild: () => Promise<void>;
+  clickAddSession: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
   isSessionEmptyStateVisible: () => boolean;
   isSelectGuildMessageVisible: () => boolean;
@@ -84,6 +86,11 @@ export const HomeContentWidgetProxy = (): {
       guildList.isItemSelected({ testId }),
     clickAddGuild: async (): Promise<void> => {
       await guildList.clickAddButton();
+    },
+    clickAddSession: async (): Promise<void> => {
+      const sessionListEl = screen.getByTestId('GUILD_SESSION_LIST');
+      const addButton = within(sessionListEl).getByTestId('PIXEL_BTN');
+      await userEvent.click(addButton);
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
     isSessionEmptyStateVisible: (): boolean => sessionList.hasEmptyState(),

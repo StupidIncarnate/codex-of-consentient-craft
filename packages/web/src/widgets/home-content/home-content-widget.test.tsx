@@ -2,9 +2,15 @@
  * PURPOSE: Tests for HomeContentWidget - guild selection and session list rendering
  */
 
-import { waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { GuildIdStub, GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import { screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  GuildIdStub,
+  GuildListItemStub,
+  QuestIdStub,
+  SessionIdStub,
+  SessionListItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
@@ -12,6 +18,11 @@ import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
 const GUILD_STORAGE_KEY = 'dungeonmaster-last-guild';
+
+const LocationProbe = (): React.JSX.Element => {
+  const location = useLocation();
+  return <div data-testid="LOCATION">{location.pathname}</div>;
+};
 
 describe('HomeContentWidget', () => {
   describe('empty state', () => {
@@ -279,6 +290,152 @@ describe('HomeContentWidget', () => {
 
       expect(proxy.isSelectGuildMessageVisible()).toBe(true);
       expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+    });
+  });
+
+  describe('navigation', () => {
+    it('VALID: {click session add button} => navigates to /:guildSlug/quest (no session)', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'b1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        name: 'Nav Guild',
+        urlSlug: 'nav-guild' as never,
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <>
+                        <HomeContentWidget />
+                        <LocationProbe />
+                      </>
+                    }
+                  />
+                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+                </Routes>
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickAddSession();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const el = screen.getByTestId('LOCATION');
+
+        expect(el.textContent).toBe('/nav-guild/quest');
+      });
+
+      const finalEl = screen.getByTestId('LOCATION');
+
+      expect(finalEl.textContent).toBe('/nav-guild/quest');
+    });
+
+    it('VALID: {click session in list} => navigates to /:guildSlug/session/:sessionId', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        name: 'Session Guild',
+        urlSlug: 'session-guild' as never,
+      });
+      const sessionId = SessionIdStub({ value: 'd1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const session = SessionListItemStub({
+        sessionId,
+        questId: QuestIdStub({ value: 'e1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        questTitle: 'A Quest' as never,
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [session] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <>
+                        <HomeContentWidget />
+                        <LocationProbe />
+                      </>
+                    }
+                  />
+                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+                </Routes>
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const sessionEl = screen.getByTestId(`SESSION_ITEM_${sessionId}`);
+
+        expect(sessionEl.tagName).toBe('BUTTON');
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const el = screen.getByTestId('LOCATION');
+
+        expect(el.textContent).toBe(`/session-guild/session/${sessionId}`);
+      });
+
+      const finalEl = screen.getByTestId('LOCATION');
+
+      expect(finalEl.textContent).toBe(`/session-guild/session/${sessionId}`);
     });
   });
 

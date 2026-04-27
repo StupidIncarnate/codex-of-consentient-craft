@@ -138,7 +138,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                 onAdd={() => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
-                  const result = navigate(`/${slug}/session`);
+                  const result = navigate(`/${slug}/quest`);
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
                       globalThis.console.error('[home-content] navigation failed', navError);

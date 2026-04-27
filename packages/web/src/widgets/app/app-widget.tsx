@@ -13,7 +13,7 @@ import { Center } from '@mantine/core';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { isSessionRouteGuard } from '../../guards/is-session-route/is-session-route-guard';
+import { isWorkspaceRouteGuard } from '../../guards/is-workspace-route/is-workspace-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
@@ -29,7 +29,7 @@ const unrestrictedMaxWidth = cssPixelsContract.parse(mapFrameStatics.unrestricte
 
 export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();
-  const isQuestRoute = isSessionRouteGuard({ pathname: location.pathname });
+  const isQuestRoute = isWorkspaceRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
 
   const transition = `all ${TRANSITION_DURATION} ${TRANSITION_EASING}`;

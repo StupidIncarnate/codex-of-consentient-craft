@@ -16,6 +16,7 @@ import type {
   GuildListItemStub,
   GuildStub,
   ProcessId,
+  QuestId,
   QuestListItemStub,
   QuestQueueEntry,
   QuestStub,
@@ -47,6 +48,7 @@ import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
+import { QuestChatRoutingLayerWidgetProxy } from './quest-chat-routing-layer-widget.proxy';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -104,6 +106,7 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   setupQuestResume: (params: { restoredStatus: Quest['status'] }) => void;
   setupQuestResumeError: () => void;
   setupQuestAbandonError: () => void;
+  setupQuestNew: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   typeChatPanelMessage: (params: { text: string }) => Promise<void>;
   clickChatPanelSendButton: () => Promise<void>;
   clickChatPanelStopButton: () => Promise<void>;
@@ -119,6 +122,12 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
   // care about the redirect-fallback path. Tests that exercise the fallback
   // call setupQuests({ quests }) with their own list.
   questsBindingProxy.setupQuests({ quests: [] });
+  // Register the Stage 4 routing layer proxies BEFORE the session-binding proxy so
+  // useSessionChatBindingProxy is the most-recently-registered websocket spy. The
+  // websocket-connect-adapter proxy uses a per-call closure for its sockets array;
+  // only the latest registration receives `new WebSocket()` calls. setupQuest /
+  // receiveWsMessage downstream go through the session-binding proxy's closure.
+  const routingLayerProxy = QuestChatRoutingLayerWidgetProxy({ deferOpen });
   const chatBindingProxy = useSessionChatBindingProxy({ deferOpen });
   AutoScrollContainerWidgetProxy();
   ChatEntryListWidgetProxy();
@@ -291,6 +300,15 @@ export const QuestChatWidgetProxy = ({ deferOpen = false }: { deferOpen?: boolea
     },
     setupQuestAbandonError: (): void => {
       abandonProxy.setupError();
+    },
+    setupQuestNew: ({
+      questId,
+      chatProcessId,
+    }: {
+      questId: QuestId;
+      chatProcessId: ProcessId;
+    }): void => {
+      routingLayerProxy.setupQuestNew({ questId, chatProcessId });
     },
     typeChatPanelMessage: async ({ text }: { text: string }): Promise<void> => {
       await chatPanelProxy.typeMessage({ text });

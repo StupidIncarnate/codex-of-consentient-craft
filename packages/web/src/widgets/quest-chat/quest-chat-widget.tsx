@@ -3,15 +3,17 @@
  *
  * USAGE:
  * <QuestChatWidget />
- * // Renders split panel chat interface, reads guildSlug and optional sessionId from URL params
+ * // Branches on URL params: /:guildSlug/quest/:questId mounts the live questId-keyed workspace,
+ * // /:guildSlug/quest renders a single-message chat input that creates a new quest on first send,
+ * // /:guildSlug/session/:sessionId falls through to the legacy session-keyed implementation.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Text } from '@mantine/core';
 
-import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
 import {
   chatEntryContract,
@@ -30,6 +32,7 @@ import { useQuestEventsBinding } from '../../bindings/use-quest-events/use-quest
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { useSessionChatBinding } from '../../bindings/use-session-chat/use-session-chat-binding';
+import { isQuestRouteGuard } from '../../guards/is-quest-route/is-quest-route-guard';
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { designSessionBroker } from '../../brokers/design/session/design-session-broker';
 import { designStartBroker } from '../../brokers/design/start/design-start-broker';
@@ -60,12 +63,15 @@ import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widg
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
+import { QuestChatRoutingLayerWidget } from './quest-chat-routing-layer-widget';
 
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { guildSlug } = params;
   const sessionId = (params.sessionId as SessionId | undefined) ?? null;
+  const isQuestPath = isQuestRouteGuard({ pathname: location.pathname });
   const { colors } = emberDepthsThemeStatics;
   const prevIsStreamingRef = useRef(false);
   const wasLoadedFromUrlRef = useRef(sessionId !== null);
@@ -373,6 +379,20 @@ export const QuestChatWidget = (): React.JSX.Element => {
     }
     return map;
   }, [currentSessionId, entries, workItemSessionEntries]);
+
+  // Stage 4 routing: /:guildSlug/quest[/:questId] picks live workspace or new-chat
+  // panel; legacy /:guildSlug/session paths fall through to the rest of this function.
+  if (isQuestPath) {
+    return (
+      <QuestChatRoutingLayerWidget
+        isQuestPath
+        questId={params.questId as QuestId | undefined}
+        matchedGuild={matchedGuild}
+        matchedGuildId={resolvedGuildId}
+        guildsLoading={guildsLoading}
+      />
+    );
+  }
 
   if (isNotFound) {
     return (

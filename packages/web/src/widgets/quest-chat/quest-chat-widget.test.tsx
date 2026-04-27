@@ -3048,4 +3048,245 @@ describe('QuestChatWidget', () => {
       expect(screen.queryByTestId('CHAT_INPUT')).toBe(null);
     });
   });
+
+  describe('Stage 4: questId-keyed live workspace', () => {
+    it('VALID: {questId in URL, quest binding emits in-progress quest} => renders execution panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({
+        id: 'live-q1',
+        status: 'in_progress',
+        workItems: [WorkItemStub({ sessionId: 'sess-live' as never })],
+      });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/live-q1']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      expect(proxy.hasExecutionPanel()).toBe(true);
+    });
+
+    it('VALID: {questId in URL, no quest yet} => renders dumpster raccoon loading state', () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/live-q-no-data']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      expect(proxy.hasDumpsterRaccoon()).toBe(true);
+    });
+  });
+
+  describe('Stage 4: new-chat branch (no questId)', () => {
+    it('VALID: {/:guildSlug/quest, guild matched} => renders empty chat panel', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest']}>
+            <Routes>
+              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      expect(proxy.hasChatPanel()).toBe(true);
+    });
+
+    it('VALID: {/:guildSlug/quest, send first message} => POSTs questNew and replace-navigates to live workspace', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestNew({
+        questId: 'newly-created-q' as never,
+        chatProcessId: 'proc-new-1' as never,
+      });
+
+      const LocationProbe = (): React.JSX.Element => {
+        const loc = useLocation();
+        return <div data-testid="LOCATION_PATHNAME">{loc.pathname}</div>;
+      };
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest']}>
+            <Routes>
+              <Route
+                path="/:guildSlug/quest"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationProbe />
+                  </>
+                }
+              />
+              <Route
+                path="/:guildSlug/quest/:questId"
+                element={
+                  <>
+                    <QuestChatWidget />
+                    <LocationProbe />
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      await proxy.typeChatPanelMessage({ text: 'hello world' });
+      await proxy.clickChatPanelSendButton();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+          '/test-guild/quest/newly-created-q',
+        );
+      });
+
+      expect(screen.getByTestId('LOCATION_PATHNAME').textContent).toBe(
+        '/test-guild/quest/newly-created-q',
+      );
+    });
+  });
+
+  describe('Stage 4: isQuestPath early-return delegation', () => {
+    it('VALID: {/:guildSlug/quest URL} => delegates to QuestChatRoutingLayerWidget (no legacy split-panel markers)', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'myguild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/myguild/quest']}>
+            <Routes>
+              <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasChatPanel()).toBe(true);
+      });
+
+      // Routing layer's new-chat branch renders only ChatPanel — no divider,
+      // no right-side activity column. The legacy widget always renders both.
+      expect(screen.queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
+      expect(screen.queryByTestId('QUEST_CHAT_ACTIVITY')).toBe(null);
+    });
+
+    it('VALID: {/:guildSlug/quest/:questId URL with no quest yet} => delegates to QuestChatRoutingLayerWidget (loading state, no legacy split-panel markers)', () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'myguild' });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/myguild/quest/abc-123']}>
+            <Routes>
+              <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      // Routing layer's live-workspace branch with quest === null renders only
+      // the dumpster-raccoon loading view. The legacy bottom render (which
+      // would fire on a non-session URL without the early return) always emits
+      // QUEST_CHAT with a divider and an activity column.
+      const loading = screen.queryByTestId('QUEST_CHAT_LOADING');
+
+      expect(loading?.getAttribute('data-testid')).toBe('QUEST_CHAT_LOADING');
+      expect(proxy.hasDumpsterRaccoon()).toBe(true);
+      expect(screen.queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
+      expect(screen.queryByTestId('QUEST_CHAT_ACTIVITY')).toBe(null);
+    });
+
+    it('VALID: {/:guildSlug/session/:sessionId URL} => does NOT delegate to QuestChatRoutingLayerWidget; falls through to legacy split-panel layout', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'myguild' });
+      const guildDetail = GuildStub({ id: guild.id });
+      const quest = QuestStub({ id: 'sess-1', status: 'pending' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/myguild/session/sess-1']}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      // Legacy session-route render emits the split-panel layout: chat on the
+      // left, divider, activity column on the right. The routing-layer
+      // branches NEVER render a divider or QUEST_CHAT_ACTIVITY, so their
+      // presence here proves Stage 4 left this code path untouched.
+      await waitFor(() => {
+        expect(proxy.hasDivider()).toBe(true);
+      });
+
+      expect(proxy.hasDivider()).toBe(true);
+      expect(proxy.hasActivityPlaceholder()).toBe(true);
+    });
+  });
 });

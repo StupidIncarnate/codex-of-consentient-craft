@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Renders a Tooling icon button with Smoketests options (MCP, Signals, Orchestration); while a smoketest suite is the active queue head, the button spins and clicks navigate to that quest's session instead of opening the menu
+ * PURPOSE: Renders a Tooling icon button with Smoketests options (MCP, Signals, Orchestration); while a smoketest suite is the active queue head, the button spins and clicks navigate to that quest's workspace instead of opening the menu
  *
  * USAGE:
  * <ToolingDropdownWidget />
- * // Renders a 36px icon-button trigger that opens a Mantine Menu above it; while a smoketest quest is the active queue head, it becomes a spinning button that navigates to the active smoketest session
+ * // Renders a 36px icon-button trigger that opens a Mantine Menu above it; while a smoketest quest is the active queue head, it becomes a spinning button that navigates to the active smoketest quest workspace
  */
 
 import { Menu, UnstyledButton } from '@mantine/core';
@@ -48,17 +48,14 @@ export const ToolingDropdownWidget = (): React.JSX.Element => {
   );
 
   if (isSmoketestActive) {
-    const sessionHref =
-      activeEntry.activeSessionId === undefined
-        ? `/${activeEntry.guildSlug}/session`
-        : `/${activeEntry.guildSlug}/session/${activeEntry.activeSessionId}`;
+    const questHref = `/${activeEntry.guildSlug}/quest/${activeEntry.questId}`;
     return (
       <UnstyledButton
         data-testid="TOOLING_DROPDOWN_TRIGGER"
         aria-label="Tooling (open active smoketest)"
         title="Tooling (open active smoketest)"
         onClick={(): void => {
-          const result: unknown = navigate(sessionHref);
+          const result: unknown = navigate(questHref);
           if (result instanceof Promise) {
             result.catch((navError: unknown) => {
               globalThis.console.error('[tooling-dropdown] navigate', navError);
@@ -102,7 +99,7 @@ export const ToolingDropdownWidget = (): React.JSX.Element => {
             run({ suite: 'mcp' })
               .then((first) => {
                 if (first !== null) {
-                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  const result: unknown = navigate(`/${first.guildSlug}/quest/${first.questId}`);
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
                       globalThis.console.error('[tooling-dropdown] navigate after mcp', navError);
@@ -124,7 +121,7 @@ export const ToolingDropdownWidget = (): React.JSX.Element => {
             run({ suite: 'signals' })
               .then((first) => {
                 if (first !== null) {
-                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  const result: unknown = navigate(`/${first.guildSlug}/quest/${first.questId}`);
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
                       globalThis.console.error(
@@ -149,7 +146,7 @@ export const ToolingDropdownWidget = (): React.JSX.Element => {
             run({ suite: 'orchestration' })
               .then((first) => {
                 if (first !== null) {
-                  const result: unknown = navigate(`/${first.guildSlug}/session`);
+                  const result: unknown = navigate(`/${first.guildSlug}/quest/${first.questId}`);
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
                       globalThis.console.error(
