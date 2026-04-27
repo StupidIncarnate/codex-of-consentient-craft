@@ -11,20 +11,33 @@ describe('QuestChatFlow', () => {
   });
 
   describe('route elements', () => {
-    it('VALID: {QuestChatFlow()} => returns Routes for /:guildSlug/quest, /:guildSlug/quest/:questId, /:guildSlug/session, /:guildSlug/session/:sessionId all mounting AppQuestChatResponder', () => {
-      const [questNoId, questWithId, sessionNoId, sessionWithId] = QuestChatFlow().props
-        .children as [React.JSX.Element, React.JSX.Element, React.JSX.Element, React.JSX.Element];
+    it('VALID: {QuestChatFlow()} => returns Routes for /:guildSlug/quest, /:guildSlug/quest/:questId, /:guildSlug/session all mounting AppQuestChatResponder', () => {
+      const [questNoId, questWithId, sessionNoId] = QuestChatFlow().props.children as [
+        React.JSX.Element,
+        React.JSX.Element,
+        React.JSX.Element,
+      ];
 
       expect([
         { path: questNoId.props.path, elementType: questNoId.props.element.type },
         { path: questWithId.props.path, elementType: questWithId.props.element.type },
         { path: sessionNoId.props.path, elementType: sessionNoId.props.element.type },
-        { path: sessionWithId.props.path, elementType: sessionWithId.props.element.type },
       ]).toStrictEqual([
         { path: '/:guildSlug/quest', elementType: AppQuestChatResponder },
         { path: '/:guildSlug/quest/:questId', elementType: AppQuestChatResponder },
         { path: '/:guildSlug/session', elementType: AppQuestChatResponder },
-        { path: '/:guildSlug/session/:sessionId', elementType: AppQuestChatResponder },
+      ]);
+    });
+
+    it('VALID: {QuestChatFlow()} => does NOT include /:guildSlug/session/:sessionId (now owned by SessionViewFlow)', () => {
+      const children = QuestChatFlow().props.children as React.JSX.Element[];
+
+      const paths = children.map((child) => String(child.props.path));
+
+      expect(paths).toStrictEqual([
+        '/:guildSlug/quest',
+        '/:guildSlug/quest/:questId',
+        '/:guildSlug/session',
       ]);
     });
   });
@@ -63,7 +76,7 @@ describe('QuestChatFlow', () => {
       });
     });
 
-    it('VALID: {/myguild/session against /:guildSlug/session pattern} => matches the legacy session route with no sessionId', () => {
+    it('VALID: {/myguild/session against /:guildSlug/session pattern} => matches the bare session route with no sessionId', () => {
       const [, , sessionNoId] = QuestChatFlow().props.children as [
         React.JSX.Element,
         React.JSX.Element,
@@ -82,24 +95,17 @@ describe('QuestChatFlow', () => {
       });
     });
 
-    it('VALID: {/myguild/session/abc-123 against /:guildSlug/session/:sessionId pattern} => matches the legacy session route with parsed sessionId', () => {
-      const [, , , sessionWithId] = QuestChatFlow().props.children as [
-        React.JSX.Element,
+    it('EDGE: {/myguild/session/abc-123 against /:guildSlug/session pattern} => does NOT match the bare session route because the per-sessionId route is owned by SessionViewFlow', () => {
+      const [, , sessionNoId] = QuestChatFlow().props.children as [
         React.JSX.Element,
         React.JSX.Element,
         React.JSX.Element,
       ];
-      const pattern = String(sessionWithId.props.path);
+      const pattern = String(sessionNoId.props.path);
 
       const match = matchPath(pattern, '/myguild/session/abc-123');
 
-      expect({
-        guildSlug: match?.params.guildSlug,
-        sessionId: match?.params.sessionId,
-      }).toStrictEqual({
-        guildSlug: 'myguild',
-        sessionId: 'abc-123',
-      });
+      expect(match).toBe(null);
     });
 
     it('EDGE: {/myguild/quest/abc-123/extra against /:guildSlug/quest/:questId pattern} => does NOT match because the misnamed legacy /quest/:sessionId/extra route was removed in Stage 4', () => {

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * QuestChatFlow()
- * // Returns Route elements for /:guildSlug/quest, /:guildSlug/quest/:questId, plus legacy /:guildSlug/session paths
+ * // Returns Route elements for /:guildSlug/quest, /:guildSlug/quest/:questId, plus the bare /:guildSlug/session legacy path
  */
 
 import { Route } from 'react-router-dom';
@@ -15,6 +15,5 @@ export const QuestChatFlow = (): React.JSX.Element => (
     <Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />
     <Route path="/:guildSlug/quest/:questId" element={<AppQuestChatResponder />} />
     <Route path="/:guildSlug/session" element={<AppQuestChatResponder />} />
-    <Route path="/:guildSlug/session/:sessionId" element={<AppQuestChatResponder />} />
   </>
 );
