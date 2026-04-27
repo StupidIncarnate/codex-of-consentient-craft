@@ -20,16 +20,6 @@ describe('wsIncomingMessageContract', () => {
       expect(result.type).toBe('ward-detail-request');
     });
 
-    it('VALID: quest-by-session-request shape => parses successfully', () => {
-      const result = wsIncomingMessageContract.parse({
-        type: 'quest-by-session-request',
-        sessionId: 'sess-1',
-        guildId: GuildIdStub(),
-      });
-
-      expect(result.type).toBe('quest-by-session-request');
-    });
-
     it('VALID: subscribe-quest shape => parses successfully', () => {
       const result = wsIncomingMessageContract.parse({
         type: 'subscribe-quest',

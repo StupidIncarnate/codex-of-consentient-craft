@@ -7,9 +7,10 @@ export const WsIncomingMessageStub = ({
   ...props
 }: StubArgument<WsIncomingMessage> = {}): WsIncomingMessage =>
   wsIncomingMessageContract.parse({
-    type: 'quest-by-session-request',
+    type: 'replay-history',
     sessionId: 'sess-1',
     guildId: GuildIdStub(),
+    chatProcessId: 'proc-1',
     ...(props as object),
   });
 

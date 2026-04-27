@@ -3,7 +3,6 @@ import {
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
-  QuestListItemStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
@@ -40,163 +39,6 @@ describe('ServerInitResponder', () => {
     });
   });
 
-  describe('websocket onMessage quest-by-session-request', () => {
-    it('VALID: {type: quest-by-session-request, matching session} => loads quest and sends ws message', async () => {
-      const proxy = ServerInitResponderProxy();
-      const sessionId = SessionIdStub({ value: 'session-abc' });
-      const guildId = GuildIdStub();
-      const questId = QuestIdStub({ value: 'matched-quest' });
-      const quest = QuestStub({ id: questId });
-
-      proxy.setupListQuestsSuccess({
-        quests: [QuestListItemStub({ id: questId, activeSessionId: sessionId })],
-      });
-      proxy.setupLoadQuestSuccess({ quest });
-      proxy.callResponder();
-
-      const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
-      proxy.simulateConnection({ client });
-      proxy.simulateMessage({
-        data: JSON.stringify({
-          type: 'quest-by-session-request',
-          sessionId,
-          guildId,
-        }),
-        ws: client,
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-
-      expect(sendMock.mock.calls).toStrictEqual([
-        [
-          expect.stringMatching(
-            /^\{"type":"quest-modified","payload":\{"questId":"matched-quest","quest":\{.*\}\},"timestamp":"2024-01-01T00:00:00\.000Z"\}$/u,
-          ),
-        ],
-      ]);
-    });
-
-    it('EDGE: {type: quest-by-session-request, no matching session} => sends quest-by-session-not-found ws message', async () => {
-      const proxy = ServerInitResponderProxy();
-      const sessionId = SessionIdStub({ value: 'session-no-match' });
-      const guildId = GuildIdStub();
-
-      proxy.setupListQuestsSuccess({
-        quests: [QuestListItemStub({ activeSessionId: SessionIdStub({ value: 'other-session' }) })],
-      });
-      proxy.callResponder();
-
-      const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
-      proxy.simulateConnection({ client });
-      proxy.simulateMessage({
-        data: JSON.stringify({
-          type: 'quest-by-session-request',
-          sessionId,
-          guildId,
-        }),
-        ws: client,
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-
-      expect(sendMock.mock.calls).toStrictEqual([
-        [
-          expect.stringMatching(
-            /^\{"type":"quest-by-session-not-found","payload":\{"sessionId":"session-no-match","guildId":"[0-9a-f-]+"\},"timestamp":"2024-01-01T00:00:00\.000Z"\}$/u,
-          ),
-        ],
-      ]);
-    });
-  });
-
-  describe('websocket onMessage quest-by-session-request error logging', () => {
-    it('ERROR: {listQuests rejects with Error} => logs error reason via processDevLogAdapter', async () => {
-      const proxy = ServerInitResponderProxy();
-      proxy.enableDevLogs();
-      const sessionId = SessionIdStub({ value: 'session-fail' });
-      const guildId = GuildIdStub();
-
-      proxy.setupListQuestsFailure({
-        error: new Error('Connection refused'),
-      });
-      proxy.callResponder();
-
-      const client = WsClientStub();
-      proxy.simulateConnection({ client });
-      proxy.simulateMessage({
-        data: JSON.stringify({
-          type: 'quest-by-session-request',
-          sessionId,
-          guildId,
-        }),
-        ws: client,
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-
-      const spy = proxy.getDevLogOutput();
-
-      const matchingCalls = spy.mock.calls.filter((call) =>
-        /quest-by-session-request failed.*Connection refused/u.test(String(call[0])),
-      );
-
-      const matchCount = matchingCalls.length;
-
-      expect(matchCount).toBe(1);
-    });
-
-    it('ERROR: {loadQuest rejects with cause} => logs error message and cause', async () => {
-      const proxy = ServerInitResponderProxy();
-      proxy.enableDevLogs();
-      const sessionId = SessionIdStub({ value: 'session-cause' });
-      const guildId = GuildIdStub();
-      const questId = QuestIdStub({ value: 'quest-cause' });
-
-      proxy.setupListQuestsSuccess({
-        quests: [QuestListItemStub({ id: questId, activeSessionId: sessionId })],
-      });
-      proxy.setupLoadQuestFailure({
-        error: Object.assign(new Error('Failed to parse quest file'), {
-          cause: new SyntaxError('Unexpected token'),
-        }),
-      });
-      proxy.callResponder();
-
-      const client = WsClientStub();
-      proxy.simulateConnection({ client });
-      proxy.simulateMessage({
-        data: JSON.stringify({
-          type: 'quest-by-session-request',
-          sessionId,
-          guildId,
-        }),
-        ws: client,
-      });
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-
-      const spy = proxy.getDevLogOutput();
-
-      const matchingCalls = spy.mock.calls.filter((call) =>
-        /Failed to parse quest file.*cause.*Unexpected token/u.test(String(call[0])),
-      );
-
-      const matchCount = matchingCalls.length;
-
-      expect(matchCount).toBe(1);
-    });
-  });
-
   describe('websocket onMessage parse error', () => {
     it('ERROR: {unparseable data} => does not throw', () => {
       const proxy = ServerInitResponderProxy();
@@ -230,29 +72,7 @@ describe('ServerInitResponder', () => {
       expect(sendMock.mock.calls).toStrictEqual([]);
     });
 
-    it('VALID: {chat-output without slotIndex} => broadcasts immediately', () => {
-      const proxy = ServerInitResponderProxy();
-      proxy.callResponder();
-
-      const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
-      proxy.simulateConnection({ client });
-
-      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
-      const processId = ProcessIdStub();
-      handler!({
-        processId,
-        payload: { text: 'immediate' },
-      });
-
-      const sendCallCount = sendMock.mock.calls.length;
-
-      expect(sendCallCount).toBe(1);
-    });
-
-    it('VALID: {buffered chat-output events} => flush interval drains buffer and broadcasts', () => {
-      jest.useFakeTimers();
-
+    it('VALID: {chat-output without questId} => not delivered (per-quest only)', () => {
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
@@ -263,19 +83,10 @@ describe('ServerInitResponder', () => {
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
         processId: ProcessIdStub(),
-        payload: { slotIndex: 0, text: 'batch-1' },
-      });
-      handler!({
-        processId: ProcessIdStub(),
-        payload: { slotIndex: 1, text: 'batch-2' },
+        payload: { text: 'no-quest-id' },
       });
 
-      jest.advanceTimersByTime(100);
-      jest.useRealTimers();
-
-      const sendCallCount = sendMock.mock.calls.length;
-
-      expect(sendCallCount).toBe(2);
+      expect(sendMock.mock.calls).toStrictEqual([]);
     });
 
     it('EDGE: {empty buffer at flush interval} => no broadcast occurs', () => {
@@ -500,10 +311,10 @@ describe('ServerInitResponder', () => {
     });
   });
 
-  describe('event subscription broadcast-to-all dedup', () => {
-    it('VALID: {chat-output without questId match} => unsubscribed clients receive it, subscribed excluded', async () => {
+  describe('global event broadcast', () => {
+    it('VALID: {phase-change event} => fans out to every connected client (subscribed or not)', async () => {
       const proxy = ServerInitResponderProxy();
-      const questIdX = QuestIdStub({ value: 'quest-dedup' });
+      const questIdX = QuestIdStub({ value: 'quest-global' });
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
       proxy.callResponder();
 
@@ -534,7 +345,7 @@ describe('ServerInitResponder', () => {
       const aCount = sendA.mock.calls.length;
       const bCount = sendB.mock.calls.length;
 
-      expect({ aCount, bCount }).toStrictEqual({ aCount: 0, bCount: 1 });
+      expect({ aCount, bCount }).toStrictEqual({ aCount: 1, bCount: 1 });
     });
   });
 
@@ -627,9 +438,8 @@ describe('ServerInitResponder', () => {
 
       sendMock.mockClear();
 
-      // Verify NOT subscribed: an event tagged with this questId should NOT
-      // reach the client via the per-quest filter; it would instead go via the
-      // broadcast-to-all loop (which DOES include this client because no subs).
+      // Verify NOT subscribed: a per-quest event tagged with this questId should NOT
+      // reach the client (no subscription, no broadcast fallback for per-quest events).
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
         processId: ProcessIdStub({ value: 'p-after-replay' }),
@@ -637,7 +447,6 @@ describe('ServerInitResponder', () => {
       });
 
       const replayCalls = proxy.getReplayChatHistoryCalls();
-      // Client receives exactly one copy (broadcast loop), NOT the per-quest copy.
       const matchingSends = sendMock.mock.calls.filter((c) =>
         String(c[0]).includes('"text":"post-replay"'),
       );
@@ -653,7 +462,7 @@ describe('ServerInitResponder', () => {
             chatProcessId: `quest-replay-${questId}-${workItemAId}-${sessionA}`,
           },
         ],
-        matchingSendCount: 1,
+        matchingSendCount: 0,
       });
     });
   });

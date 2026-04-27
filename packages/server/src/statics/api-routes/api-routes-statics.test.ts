@@ -28,11 +28,7 @@ describe('apiRoutesStatics', () => {
         byId: '/api/guilds/:guildId',
       },
       sessions: {
-        new: '/api/sessions/new',
         list: '/api/guilds/:guildId/sessions',
-        chat: '/api/sessions/:sessionId/chat',
-        chatStop: '/api/sessions/:sessionId/chat/:chatProcessId/stop',
-        clarify: '/api/sessions/:sessionId/clarify',
       },
       design: {
         start: '/api/quests/:questId/design/start',

@@ -10,7 +10,6 @@ describe('devLogEventIconsStatics', () => {
         'chat-session-started': '🔗',
         'quest-session-linked': '🔗',
         'clarification-request': '? ',
-        'chat-patch': '⚡',
         'phase-change': '⚡',
         'slot-update': '⚡',
         'progress-update': '⚡',

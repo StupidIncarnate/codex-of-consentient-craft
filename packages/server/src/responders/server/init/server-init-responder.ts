@@ -25,7 +25,6 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
 import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';
-import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
 import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
@@ -36,12 +35,7 @@ import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type {
-  OrchestrationEventType,
-  ProcessId,
-  QuestId,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -52,14 +46,28 @@ type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
 
+// Per-quest event types route ONLY through the per-quest subscription filter.
+// Clients without a matching subscription do not receive these events.
+const PER_QUEST_EVENT_TYPES = new Set<OrchestrationEventType>([
+  'chat-output',
+  'chat-complete',
+  'chat-session-started',
+  'chat-history-complete',
+  'clarification-request',
+  'quest-modified',
+  'quest-created',
+  'quest-session-linked',
+]);
+
 export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult => {
   const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
   const { upgradeWebSocket } = nodeWebSocket;
+  // `clients` carries every connected WS so global events
+  // (execution-queue-updated, execution-queue-error, phase-change, slot-update,
+  // progress-update, process-complete, process-failed, quest-persisted) can fan out.
   const clients = new Set<WsClient>();
-  const processRoleMap = new Map<ProcessId, WorkItemRole>();
-  // Per-quest subscriptions: when a client subscribes to questId X, only events
-  // tagged with that questId are forwarded to it. Subscribed clients are EXCLUDED
-  // from the legacy broadcast-to-all loop to prevent double-delivery.
+  // Per-quest subscriptions: a client subscribed to questId X receives only the
+  // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
   const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
 
   app.get(
@@ -93,77 +101,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           if (message.type === 'replay-history') {
             const { sessionId, guildId, chatProcessId } = message;
 
-            orchestratorListQuestsAdapter({ guildId })
-              .then(async (quests) => {
-                const fullQuests = await Promise.all(
-                  quests.map(async (q) => orchestratorLoadQuestAdapter({ questId: q.id })),
-                );
-                for (const fullQuest of fullQuests) {
-                  const wi = fullQuest.workItems.find((w) => w.sessionId === sessionId);
-                  if (wi?.role) {
-                    processRoleMap.set(chatProcessId, wi.role);
-                    break;
-                  }
-                }
-              })
-              .catch((error: unknown) => {
-                processDevLogAdapter({
-                  message: `replay role lookup failed: ${error instanceof Error ? error.message : String(error)}`,
-                });
-              })
-              .finally(() => {
-                orchestratorReplayChatHistoryAdapter({
-                  sessionId,
-                  guildId,
-                  chatProcessId,
-                }).catch(() => {
-                  processDevLogAdapter({ message: 'replay-history failed' });
-                });
-              });
+            orchestratorReplayChatHistoryAdapter({
+              sessionId,
+              guildId,
+              chatProcessId,
+            }).catch(() => {
+              processDevLogAdapter({ message: 'replay-history failed' });
+            });
           }
 
-          if (message.type === 'quest-by-session-request') {
-            const { sessionId, guildId } = message;
-
-            orchestratorListQuestsAdapter({ guildId })
-              .then(async (quests) => {
-                const match = quests.find((q) => q.activeSessionId === sessionId);
-
-                if (!match) {
-                  const notFoundMessage = wsMessageContract.parse({
-                    type: 'quest-by-session-not-found',
-                    payload: { sessionId, guildId },
-                    timestamp: isoTimestampContract.parse(new Date().toISOString()),
-                  });
-                  (_ws as WsClient).send(JSON.stringify(notFoundMessage));
-                  return;
-                }
-
-                return orchestratorLoadQuestAdapter({ questId: match.id }).then((quest) => {
-                  const modifiedMessage = wsMessageContract.parse({
-                    type: 'quest-modified',
-                    payload: { questId: match.id, quest },
-                    timestamp: isoTimestampContract.parse(new Date().toISOString()),
-                  });
-                  (_ws as WsClient).send(JSON.stringify(modifiedMessage));
-                });
-              })
-              .catch((error: unknown) => {
-                const reason =
-                  error instanceof Error
-                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-                    : String(error);
-                processDevLogAdapter({
-                  message: `quest-by-session-request failed for session ${sessionId}: ${reason}`,
-                });
-                const notFoundMessage = wsMessageContract.parse({
-                  type: 'quest-by-session-not-found',
-                  payload: { sessionId, guildId },
-                  timestamp: isoTimestampContract.parse(new Date().toISOString()),
-                });
-                (_ws as WsClient).send(JSON.stringify(notFoundMessage));
-              });
-          }
           if (message.type === 'ward-detail-request') {
             const { questId, wardResultId } = message;
 
@@ -355,20 +301,6 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
-  // Per-quest event types that the new subscription model routes per-questId.
-  // Clients with active subscriptions ONLY receive these via the per-quest filter,
-  // not the broadcast-to-all loop (prevents double-delivery during stage 2).
-  const PER_QUEST_EVENT_TYPES = new Set<OrchestrationEventType>([
-    'chat-output',
-    'chat-complete',
-    'chat-session-started',
-    'chat-history-complete',
-    'clarification-request',
-    'quest-modified',
-    'quest-created',
-    'quest-session-linked',
-  ]);
-
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
     if (type === 'quest-modified') continue;
@@ -377,22 +309,14 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     orchestratorEventsOnAdapter({
       type,
       handler: ({ processId, payload }) => {
-        const role = processRoleMap.get(processId);
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
-        const payloadRole = parsedPayload.success ? parsedPayload.data.role : undefined;
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
         const payloadQuestId = parsedPayload.success ? parsedPayload.data.questId : undefined;
-        const enrichedPayload =
-          type === 'chat-output' && role && !payloadRole ? { ...payload, role } : payload;
-
-        if (type === 'chat-history-complete') {
-          processRoleMap.delete(processId);
-        }
 
         processDevLogAdapter({
           message: devLogEventFormatTransformer({
             type,
-            payload: enrichedPayload as Record<PropertyKey, unknown>,
+            payload: payload as Record<PropertyKey, unknown>,
           }),
         });
 
@@ -407,8 +331,10 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           timestamp: isoTimestampContract.parse(new Date().toISOString()),
         });
 
-        // Per-quest filter: forward only to subscribed clients for events that carry questId.
-        if (PER_QUEST_EVENT_TYPES.has(type) && payloadQuestId) {
+        if (PER_QUEST_EVENT_TYPES.has(type)) {
+          // Per-quest events fan out ONLY to subscribed clients whose subscription
+          // matches the payload's questId.
+          if (!payloadQuestId) return;
           const serializedQuestMsg = JSON.stringify(envelope);
           for (const [client, subs] of clientSubscriptions) {
             if (!subs.has(payloadQuestId)) continue;
@@ -419,18 +345,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
               clients.delete(client);
             }
           }
+          return;
         }
 
-        // Broadcast-to-all (legacy) — exclude clients with active subscriptions to avoid
-        // double-delivery. Subscribed clients get only the per-quest copy above.
-        const broadcastTargets = new Set<WsClient>();
-        for (const client of clients) {
-          const subs = clientSubscriptions.get(client);
-          if (subs && subs.size > 0) continue;
-          broadcastTargets.add(client);
-        }
+        // Global events broadcast to every connected client.
         wsEventRelayBroadcastBroker({
-          clients: broadcastTargets,
+          clients,
           message: envelope,
         });
       },
@@ -450,33 +370,19 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       const flushParsed = chatOutputPayloadContract.safeParse(item.payload);
       const flushQuestId = flushParsed.success ? flushParsed.data.questId : undefined;
 
-      // Per-quest filter on flush: forward only to subscribed clients when the
-      // batched payload carries a questId.
-      if (flushQuestId) {
-        const serializedFlush = JSON.stringify(flushEnvelope);
-        for (const [client, subs] of clientSubscriptions) {
-          if (!subs.has(flushQuestId)) continue;
-          try {
-            client.send(serializedFlush);
-          } catch {
-            clientSubscriptions.delete(client);
-            clients.delete(client);
-          }
+      // Pipeline-batched chat-output is a per-quest event — fan out only to
+      // subscribed clients whose subscription matches the batched payload's questId.
+      if (!flushQuestId) continue;
+      const serializedFlush = JSON.stringify(flushEnvelope);
+      for (const [client, subs] of clientSubscriptions) {
+        if (!subs.has(flushQuestId)) continue;
+        try {
+          client.send(serializedFlush);
+        } catch {
+          clientSubscriptions.delete(client);
+          clients.delete(client);
         }
       }
-
-      // Broadcast-to-all (legacy) — exclude clients with active subscriptions
-      // to avoid double-delivery of subscribed events.
-      const flushBroadcastTargets = new Set<WsClient>();
-      for (const client of clients) {
-        const subs = clientSubscriptions.get(client);
-        if (subs && subs.size > 0) continue;
-        flushBroadcastTargets.add(client);
-      }
-      wsEventRelayBroadcastBroker({
-        clients: flushBroadcastTargets,
-        message: flushEnvelope,
-      });
     }
   }, FLUSH_INTERVAL_MS);
 
@@ -490,7 +396,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             timestamp: isoTimestampContract.parse(new Date().toISOString()),
           });
 
-          // Per-quest filter: forward to subscribed clients first.
+          // quest-modified is a per-quest event — only subscribed clients receive it.
           const serializedOutbox = JSON.stringify(outboxEnvelope);
           for (const [client, subs] of clientSubscriptions) {
             if (!subs.has(questId)) continue;
@@ -501,18 +407,6 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
               clients.delete(client);
             }
           }
-
-          // Broadcast-to-all (legacy) — exclude clients with active subscriptions.
-          const outboxBroadcastTargets = new Set<WsClient>();
-          for (const client of clients) {
-            const subs = clientSubscriptions.get(client);
-            if (subs && subs.size > 0) continue;
-            outboxBroadcastTargets.add(client);
-          }
-          wsEventRelayBroadcastBroker({
-            clients: outboxBroadcastTargets,
-            message: outboxEnvelope,
-          });
         })
         .catch((error: unknown) => {
           const reason =
@@ -533,7 +427,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     processDevLogAdapter({ message: `Outbox watcher failed to start: ${reason}` });
   });
 
-  // Startup recovery is now gated behind first-WS-connect (first flip of web presence to true).
+  // Startup recovery is gated behind first-WS-connect (first flip of web presence to true).
   // The execution-queue bootstrap responder runs the recovery sweep lazily so server restarts
   // without a connected browser don't auto-launch orchestration loops.
 

@@ -22,11 +22,6 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
     chatProcessId: processIdContract,
   }),
   z.object({
-    type: z.literal('quest-by-session-request'),
-    sessionId: sessionIdContract,
-    guildId: guildIdContract,
-  }),
-  z.object({
     type: z.literal('ward-detail-request'),
     questId: questIdContract,
     wardResultId: z.string().min(1).brand<'WardResultIdRaw'>(),
