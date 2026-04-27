@@ -1,4 +1,5 @@
 import {
+  AssistantAskUserQuestionStreamLineStub,
   AssistantTextStreamLineStub,
   ExitCodeStub,
   GuildIdStub,
@@ -553,6 +554,74 @@ describe('ChatStartResponder', () => {
             ],
             questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('clarification-request buffered emit flush race', () => {
+    it('VALID: {clarification arrives BEFORE workItemId lookup resolves} => buffers then flushes with questId stamped', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+      const askLine = JSON.stringify(AssistantAskUserQuestionStreamLineStub());
+      const seededQuest = QuestStub({
+        id: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+
+      proxy.setupNewSession({ exitCode, stdoutLines: [askLine] });
+      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailLines({ lines: [] });
+      // Hold the chaoswhisperer work-item lookup unresolved so the clarification fires
+      // while chatQuestId is still null and gets pushed to clarificationBuffer.
+      const deferred = proxy.setupQuestGetDeferred({ quest: seededQuest });
+
+      const capture = proxy.setupEventCapture();
+
+      await proxy.callResponder({
+        guildId,
+        message: 'Race the lookup with a clarification',
+      });
+
+      await flushAsync();
+
+      const beforeFlush = capture
+        .getEmittedEvents()
+        .filter((event) => event.type === 'clarification-request');
+
+      expect(beforeFlush).toStrictEqual([]);
+
+      // Resolve the lookup. The .then handler drains clarificationBuffer, stamping
+      // questId on every emit so the server's per-quest broadcast filter can route it.
+      deferred.resolve();
+      await flushAsync();
+
+      const afterFlush = capture
+        .getEmittedEvents()
+        .filter((event) => event.type === 'clarification-request');
+
+      expect(afterFlush).toStrictEqual([
+        {
+          type: 'clarification-request',
+          processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          payload: {
+            chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            questions: [
+              {
+                question: 'Which database do you want to use?',
+                header: 'Database Selection',
+                options: [
+                  { label: 'PostgreSQL', description: 'Relational database with JSONB support' },
+                  { label: 'SQLite', description: 'Lightweight file-based database' },
+                ],
+                multiSelect: false,
+              },
+            ],
+            questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           },
         },
       ]);

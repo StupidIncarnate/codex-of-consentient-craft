@@ -21,6 +21,7 @@ import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-widget.proxy';
+import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 import { ToolingDropdownWidgetProxy } from '../tooling-dropdown/tooling-dropdown-widget.proxy';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
@@ -29,10 +30,11 @@ type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection
-// These proxies are needed because AppWidget renders HomeContentWidget and QuestChatWidget
-// via <Outlet />, which the implementation file doesn't directly import
+// These proxies are needed because AppWidget renders HomeContentWidget, QuestChatWidget,
+// and SessionViewWidget via <Outlet />, which the implementation file doesn't directly import
 const setupHomeContent = HomeContentWidgetProxy;
 const setupQuestChat = QuestChatWidgetProxy;
+const setupSessionView = SessionViewWidgetProxy;
 
 export const AppWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -54,6 +56,7 @@ export const AppWidgetProxy = (): {
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
   isQuestChatVisible: () => boolean;
+  isSessionViewVisible: () => boolean;
   clickLogoLink: () => Promise<void>;
   isLogoLinkVisible: () => boolean;
   isQuestQueueBarVisible: () => boolean;
@@ -63,6 +66,7 @@ export const AppWidgetProxy = (): {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
   setupQuestChat();
+  setupSessionView();
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   ToolingDropdownWidgetProxy();
@@ -117,6 +121,9 @@ export const AppWidgetProxy = (): {
     isQuestChatVisible: (): boolean =>
       screen.queryByTestId('QUEST_CHAT') !== null ||
       screen.queryByTestId('QUEST_CHAT_LOADING') !== null,
+    isSessionViewVisible: (): boolean =>
+      screen.queryByTestId('dumpster-raccoon-widget') !== null ||
+      screen.queryByTestId('SESSION_VIEW_NOT_FOUND') !== null,
     clickLogoLink: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('LOGO_LINK'));
     },

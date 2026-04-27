@@ -25,6 +25,7 @@ import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';
+import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { streamJsonToClarificationTransformer } from '../../../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
 
@@ -87,6 +88,15 @@ export const ChatStartResponder = async ({
   // chat-output emit carries questId+workItemId for routing.
   const chatOutputBuffer: { chatProcessId: ProcessId; entries: ChatEntry[] }[] = [];
 
+  // Buffer clarification-request emits the same way. The server's per-quest broadcast
+  // filter routes clarifications by `questId`; an emit that races `onQuestCreated` would
+  // miss every subscribed client. Drains in parallel with chatOutputBuffer once chatQuestId
+  // is known. Unlike chat-output, clarification only needs questId (not workItemId).
+  const clarificationBuffer: {
+    chatProcessId: ProcessId;
+    questions: ClarificationQuestion[];
+  }[] = [];
+
   const processor = chatLineProcessTransformer();
   const subagentStopHandles: (() => void)[] = [];
   // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
@@ -124,6 +134,22 @@ export const ChatStartResponder = async ({
                 entries: buffered.entries,
                 questId,
                 workItemId: chaosItem.id,
+              },
+            });
+          }
+          // Drain buffered clarification-request emits. The server's per-quest broadcast
+          // filter requires questId on every clarification payload — emits that raced
+          // onQuestCreated stayed buffered until now and ship with questId stamped.
+          while (clarificationBuffer.length > 0) {
+            const bufferedClarification = clarificationBuffer.shift();
+            if (bufferedClarification === undefined) break;
+            orchestrationEventsState.emit({
+              type: 'clarification-request',
+              processId: bufferedClarification.chatProcessId,
+              payload: {
+                chatProcessId: bufferedClarification.chatProcessId,
+                questions: bufferedClarification.questions,
+                questId,
               },
             });
           }
@@ -189,15 +215,41 @@ export const ChatStartResponder = async ({
           process.stderr.write(
             `[CLARIFICATION-DEBUG] onEntries: clarification DETECTED with ${clarification.questions.length} questions, chatQuestId=${chatQuestId ?? 'NULL'}\n`,
           );
-          orchestrationEventsState.emit({
-            type: 'clarification-request',
-            processId: chatProcessId,
-            payload: {
+          if (chatQuestId === null || chatWorkItemId === null) {
+            // Buffer until onQuestCreated resolves chatQuestId AND the chaoswhisperer
+            // work-item lookup completes — same race window chat-output handles. The
+            // drain in the questGetBroker .then() handler stamps questId on every entry
+            // so the server's per-quest broadcast filter can route it.
+            clarificationBuffer.push({
               chatProcessId,
               questions: clarification.questions,
-              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
-            },
-          });
+            });
+          } else {
+            // Drain anything buffered concurrently before emitting this entry, mirroring
+            // the inline drain pattern used for chat-output.
+            while (clarificationBuffer.length > 0) {
+              const bufferedClarification = clarificationBuffer.shift();
+              if (bufferedClarification === undefined) break;
+              orchestrationEventsState.emit({
+                type: 'clarification-request',
+                processId: bufferedClarification.chatProcessId,
+                payload: {
+                  chatProcessId: bufferedClarification.chatProcessId,
+                  questions: bufferedClarification.questions,
+                  questId: chatQuestId,
+                },
+              });
+            }
+            orchestrationEventsState.emit({
+              type: 'clarification-request',
+              processId: chatProcessId,
+              payload: {
+                chatProcessId,
+                questions: clarification.questions,
+                questId: chatQuestId,
+              },
+            });
+          }
 
           if (chatQuestId) {
             pendingClarificationState.setForProcess({

@@ -15,6 +15,7 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { HomeContentWidget } from '../home-content/home-content-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
+import { SessionViewWidget } from '../session-view/session-view-widget';
 import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
@@ -25,7 +26,7 @@ const renderApp = (): void => {
         <Routes>
           <Route element={<AppWidget />}>
             <Route path="/" element={<HomeContentWidget />} />
-            <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
             <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
             <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
           </Route>
@@ -179,8 +180,8 @@ describe('AppWidget', () => {
     });
   });
 
-  describe('session chat view', () => {
-    it('VALID: {click session} => navigates to session chat route', async () => {
+  describe('session view route', () => {
+    it('VALID: {click session} => navigates to readonly session view route', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
@@ -216,10 +217,10 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestChatVisible()).toBe(true);
+        expect(proxy.isSessionViewVisible()).toBe(true);
       });
 
-      expect(proxy.isQuestChatVisible()).toBe(true);
+      expect(proxy.isSessionViewVisible()).toBe(true);
     });
   });
 
@@ -579,7 +580,7 @@ describe('AppWidget', () => {
   });
 
   describe('navigation between views', () => {
-    it('VALID: {main, click session} => shows quest chat view', async () => {
+    it('VALID: {main, click session} => shows readonly session view', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'e1f2a3b4-c5d6-7890-efab-901234567890',
@@ -617,10 +618,10 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestChatVisible()).toBe(true);
+        expect(proxy.isSessionViewVisible()).toBe(true);
       });
 
-      expect(proxy.isQuestChatVisible()).toBe(true);
+      expect(proxy.isSessionViewVisible()).toBe(true);
     });
 
     it('VALID: {empty state, create guild} => auto-transitions to main', async () => {
@@ -728,7 +729,7 @@ describe('AppWidget', () => {
       expect(proxy.isLogoLinkVisible()).toBe(true);
     });
 
-    it('VALID: {on quest chat route, click logo} => navigates back to home', async () => {
+    it('VALID: {on session view route, click logo} => navigates back to home', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'b0c1d2e3-f4a5-6789-bcde-f01234567890',
@@ -766,7 +767,7 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestChatVisible()).toBe(true);
+        expect(proxy.isSessionViewVisible()).toBe(true);
       });
 
       proxy.setupGuilds({ guilds: [guild] });
@@ -783,7 +784,7 @@ describe('AppWidget', () => {
       });
 
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
-      expect(proxy.isQuestChatVisible()).toBe(false);
+      expect(proxy.isSessionViewVisible()).toBe(false);
     });
   });
 
@@ -839,7 +840,7 @@ describe('AppWidget', () => {
       expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guildC.id}` })).toBe(true);
     });
 
-    it('VALID: {click session} => renders quest chat instead of quest detail tabs', async () => {
+    it('VALID: {click session} => renders readonly session view instead of quest detail tabs', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
         id: 'a9b0c1d2-e3f4-5678-abcd-789abcdef012',
@@ -877,10 +878,10 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isQuestChatVisible()).toBe(true);
+        expect(proxy.isSessionViewVisible()).toBe(true);
       });
 
-      expect(proxy.isQuestChatVisible()).toBe(true);
+      expect(proxy.isSessionViewVisible()).toBe(true);
     });
   });
 });
