@@ -84,7 +84,7 @@ test.describe('Clarification Design Decisions', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // No "Keep Chatting" modal at explore_flows; proceed straight to chat.
 
@@ -181,7 +181,7 @@ test.describe('Clarification Design Decisions', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Dismiss the quest approved modal
     const keepChattingBtn = page.getByText('Keep Chatting');

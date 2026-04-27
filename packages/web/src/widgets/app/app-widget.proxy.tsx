@@ -123,7 +123,7 @@ export const AppWidgetProxy = (): {
       screen.queryByTestId('QUEST_CHAT_LOADING') !== null,
     isSessionViewVisible: (): boolean =>
       screen.queryByTestId('dumpster-raccoon-widget') !== null ||
-      screen.queryByTestId('SESSION_VIEW_NOT_FOUND') !== null,
+      screen.queryByTestId('NOT_FOUND') !== null,
     clickLogoLink: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('LOGO_LINK'));
     },

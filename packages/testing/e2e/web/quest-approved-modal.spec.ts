@@ -36,7 +36,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -64,7 +64,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -90,7 +90,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -131,7 +131,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -163,7 +163,7 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('VALID: clicking Start a new Quest navigates to /:guildSlug/session', async ({
+  test('VALID: clicking Start a new Quest navigates to /:guildSlug/quest', async ({
     page,
     request,
   }) => {
@@ -176,7 +176,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -188,10 +188,10 @@ test.describe('Quest Approved Modal', () => {
 
     await page.getByText('Start a new Quest').click();
 
-    // Should navigate to the guild session page (no sessionId)
-    await page.waitForURL(`**/${urlSlug}/session`, { timeout: REQUEST_TIMEOUT });
+    // Should navigate to the guild new-chat page (no questId — first message creates a new quest)
+    await page.waitForURL(`**/${urlSlug}/quest`, { timeout: REQUEST_TIMEOUT });
 
-    expect(page.url()).toMatch(new RegExp(`/${urlSlug}/session$`, 'u'));
+    expect(page.url()).toMatch(new RegExp(`/${urlSlug}/quest$`, 'u'));
   });
 
   test('VALID: modal does not appear for non-approved status transitions', async ({
@@ -207,7 +207,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -233,7 +233,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

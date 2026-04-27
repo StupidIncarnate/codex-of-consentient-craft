@@ -58,7 +58,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -109,7 +109,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -160,7 +160,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -211,7 +211,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -277,7 +277,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

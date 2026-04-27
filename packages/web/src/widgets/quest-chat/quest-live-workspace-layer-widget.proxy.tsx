@@ -6,9 +6,14 @@ import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-aband
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
+import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
+import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
+import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
+import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
+import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
 export const QuestLiveWorkspaceLayerWidgetProxy = ({
   deferOpen = false,
@@ -25,9 +30,14 @@ export const QuestLiveWorkspaceLayerWidgetProxy = ({
   questModifyBrokerProxy();
   questPauseBrokerProxy();
   questResumeBrokerProxy();
+  questStartBrokerProxy();
+  AutoScrollContainerWidgetProxy();
+  ChatEntryListWidgetProxy();
   ChatPanelWidgetProxy();
   ExecutionPanelWidgetProxy();
   DumpsterRaccoonWidgetProxy();
+  QuestApprovedModalWidgetProxy();
+  QuestSpecPanelWidgetProxy();
   return {
     receiveWsMessage: ({ data }: { data: string }): void => {
       binding.receiveWsMessage({ data });

@@ -126,7 +126,7 @@ test.describe('Floor Ordering', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -228,7 +228,7 @@ test.describe('Floor Ordering', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -344,7 +344,7 @@ test.describe('Floor Ordering', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

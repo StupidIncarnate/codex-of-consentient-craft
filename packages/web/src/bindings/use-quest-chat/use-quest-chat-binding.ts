@@ -33,6 +33,8 @@ import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history
 import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
 import { clarificationRequestPayloadContract } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
 import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
+import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
+import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 
 const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
 
@@ -44,6 +46,7 @@ export const useQuestChatBinding = ({
   questId: QuestId | null;
 }): {
   entriesBySession: Map<SessionId, ChatEntry[]>;
+  slotEntries: Map<SlotIndex, ChatEntry[]>;
   quest: Quest | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
@@ -55,6 +58,7 @@ export const useQuestChatBinding = ({
   stopChat: () => void;
 } => {
   const [entriesBySession, setEntriesBySession] = useState<Map<SessionId, ChatEntry[]>>(new Map());
+  const [slotEntries, setSlotEntries] = useState<Map<SlotIndex, ChatEntry[]>>(new Map());
   const [quest, setQuest] = useState<Quest | null>(null);
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
@@ -98,6 +102,21 @@ export const useQuestChatBinding = ({
         next.set(sessionKey, [...existing, ...validEntries]);
         return next;
       });
+
+      // Slot routing — when payload carries a slotIndex (live active-slot output
+      // from the orchestrator's slot manager), accumulate per-slot so the
+      // ExecutionPanelWidget's active row can render streaming text in place.
+      const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
+      if (slotIndexParsed.success) {
+        const slotKey = slotIndexParsed.data;
+        setSlotEntries((prev) => {
+          const next = new Map(prev);
+          const existing = next.get(slotKey) ?? [];
+          next.set(slotKey, [...existing, ...validEntries]);
+          return next;
+        });
+      }
+
       setIsStreaming(true);
       return;
     }
@@ -278,6 +297,7 @@ export const useQuestChatBinding = ({
 
   return {
     entriesBySession,
+    slotEntries,
     quest,
     pendingClarification,
     isStreaming,

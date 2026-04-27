@@ -107,7 +107,7 @@ test.describe('Chat STOP pauses quest', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     // Wait for quest data + spec panel to appear so questWithContent is truthy.
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

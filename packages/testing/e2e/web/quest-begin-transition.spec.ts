@@ -64,7 +64,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -163,7 +163,7 @@ test.describe('Quest Begin Transition', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

@@ -26,6 +26,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: false,
@@ -96,6 +97,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: true,
@@ -132,6 +134,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: false,
@@ -166,6 +169,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        slotEntries: new Map(),
         quest,
         pendingClarification: null,
         isStreaming: false,
@@ -200,6 +204,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: false,
@@ -317,6 +322,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: true,
@@ -576,6 +582,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
         isStreaming: false,

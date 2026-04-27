@@ -202,7 +202,7 @@ describe('SessionViewWidget', () => {
   });
 
   describe('not found state', () => {
-    it('EDGE: {chat-history-complete with no entries} => renders SESSION_VIEW_NOT_FOUND', async () => {
+    it('EDGE: {chat-history-complete with no entries} => renders NOT_FOUND', async () => {
       const proxy = SessionViewWidgetProxy();
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       proxy.setupGuilds({
@@ -241,10 +241,10 @@ describe('SessionViewWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('SESSION_VIEW_NOT_FOUND')).toBeInTheDocument();
+        expect(screen.getByTestId('NOT_FOUND')).toBeInTheDocument();
       });
 
-      expect(screen.getByTestId('SESSION_VIEW_NOT_FOUND')).toBeInTheDocument();
+      expect(screen.getByTestId('NOT_FOUND')).toBeInTheDocument();
     });
   });
 });

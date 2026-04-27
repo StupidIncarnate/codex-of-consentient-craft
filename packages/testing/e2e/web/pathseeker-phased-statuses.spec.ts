@@ -60,12 +60,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
   test('VALID: {status: seek_synth} => execution panel renders (seek_* is execution phase)', async ({
@@ -108,12 +109,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
   test('VALID: {status: seek_walk} => execution panel renders (seek_* is execution phase)', async ({
@@ -156,12 +158,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
   test('VALID: {status: seek_plan} => execution panel renders (seek_* is execution phase)', async ({
@@ -204,12 +207,13 @@ test.describe('PathSeeker Phased Statuses', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
+    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
   test('VALID: {status: seek_scope, PATCH planningNotes.scopeClassification} => PATCH succeeds, GET returns planningNotes, UI stays stable', async ({
@@ -252,7 +256,7 @@ test.describe('PathSeeker Phased Statuses', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

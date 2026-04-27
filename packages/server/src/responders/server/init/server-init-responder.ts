@@ -69,6 +69,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   // Per-quest subscriptions: a client subscribed to questId X receives only the
   // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
   const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
+  // Per-quest replay-in-progress flags. While a (client, questId) pair is in
+  // this map, live PER_QUEST_EVENT_TYPES events for that questId are NOT
+  // forwarded to that client; the replay-on-subscribe path is the source of
+  // truth during the replay window. Cleared when chat-history-complete fires
+  // for the subscribe-quest replay (or replay errors out).
+  const replayInProgressByClient = new Map<WsClient, Set<QuestId>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -167,6 +173,19 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             const existing = clientSubscriptions.get(subWs) ?? new Set<QuestId>();
             existing.add(subQuestId);
             clientSubscriptions.set(subWs, existing);
+            // Mark this (client, questId) pair as currently replaying so live
+            // chat-output emissions for the same questId are NOT forwarded to
+            // this client during the replay window — without this gate, the
+            // orchestrator's live emission AND the JSONL replay would deliver
+            // the same chat line to the client twice.
+            const replayingForClient = replayInProgressByClient.get(subWs) ?? new Set<QuestId>();
+            replayingForClient.add(subQuestId);
+            replayInProgressByClient.set(subWs, replayingForClient);
+            // Track every chatProcessId we use for this replay so chat-output
+            // events stamped with those IDs route to subWs via the direct-send
+            // path (per-quest delivery is suppressed for this client by the flag
+            // above to prevent live + replay duplicates).
+            const replayChatProcessIds: ProcessId[] = [];
             // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
             orchestratorLoadQuestAdapter({ questId: subQuestId })
               .then(async (quest) => {
@@ -186,26 +205,29 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                   questId: subQuestId,
                 }).catch(() => null);
                 const subGuildId = findResult?.guildId;
-                if (!subGuildId) return;
-                await Promise.all(
-                  quest.workItems
-                    .filter((wi) => wi.sessionId !== undefined)
-                    .map(async (wi) => {
-                      if (!wi.sessionId) return;
-                      const taggedId = processIdContract.parse(
-                        `quest-replay-${subQuestId}-${wi.id}-${wi.sessionId}`,
-                      );
-                      await orchestratorReplayChatHistoryAdapter({
-                        sessionId: wi.sessionId,
-                        guildId: subGuildId,
-                        chatProcessId: taggedId,
-                      }).catch(() => {
-                        processDevLogAdapter({
-                          message: `replay-quest-history work item ${wi.id} failed`,
+                if (subGuildId) {
+                  await Promise.all(
+                    quest.workItems
+                      .filter((wi) => wi.sessionId !== undefined)
+                      .map(async (wi) => {
+                        if (!wi.sessionId) return;
+                        const taggedId = processIdContract.parse(
+                          `quest-replay-${subQuestId}-${wi.id}-${wi.sessionId}`,
+                        );
+                        replayChatProcessIds.push(taggedId);
+                        replayClientByChatProcessId.set(taggedId, subWs);
+                        await orchestratorReplayChatHistoryAdapter({
+                          sessionId: wi.sessionId,
+                          guildId: subGuildId,
+                          chatProcessId: taggedId,
+                        }).catch(() => {
+                          processDevLogAdapter({
+                            message: `replay-quest-history work item ${wi.id} failed`,
+                          });
                         });
-                      });
-                    }),
-                );
+                      }),
+                  );
+                }
                 subWs.send(
                   JSON.stringify(
                     wsMessageContract.parse({
@@ -224,6 +246,18 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 processDevLogAdapter({
                   message: `subscribe-quest replay failed for ${subQuestId}: ${reason}`,
                 });
+              })
+              .finally(() => {
+                const replayingForClientFinish = replayInProgressByClient.get(subWs);
+                if (replayingForClientFinish) {
+                  replayingForClientFinish.delete(subQuestId);
+                  if (replayingForClientFinish.size === 0) {
+                    replayInProgressByClient.delete(subWs);
+                  }
+                }
+                for (const replayProcessId of replayChatProcessIds) {
+                  replayClientByChatProcessId.delete(replayProcessId);
+                }
               });
           }
 
@@ -311,6 +345,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         const closedClient = ws as WsClient;
         clients.delete(closedClient);
         clientSubscriptions.delete(closedClient);
+        replayInProgressByClient.delete(closedClient);
         // Drop any readonly-replay tracking for this client — the SessionViewWidget
         // is gone, so subsequent chat-output frames for those chatProcessIds have
         // nowhere to be delivered.
@@ -389,6 +424,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           if (payloadQuestId) {
             for (const [client, subs] of clientSubscriptions) {
               if (!subs.has(payloadQuestId)) continue;
+              const replaying = replayInProgressByClient.get(client);
+              if (replaying?.has(payloadQuestId)) continue;
               try {
                 client.send(serializedQuestMsg);
                 delivered.add(client);
@@ -452,6 +489,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       const serializedFlush = JSON.stringify(flushEnvelope);
       for (const [client, subs] of clientSubscriptions) {
         if (!subs.has(flushQuestId)) continue;
+        const replaying = replayInProgressByClient.get(client);
+        if (replaying?.has(flushQuestId)) continue;
         try {
           client.send(serializedFlush);
         } catch {

@@ -22,6 +22,7 @@ import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
+import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
 export const QuestFlow = (): Hono => {
@@ -29,6 +30,11 @@ export const QuestFlow = (): Hono => {
 
   app.get(apiRoutesStatics.quests.list, async (c) => {
     const result = await QuestListResponder({ query: { guildId: c.req.query('guildId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.list, async (c) => {
+    const result = await QuestUserAddResponder({ body: await c.req.json() });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

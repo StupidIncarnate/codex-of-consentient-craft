@@ -3,6 +3,7 @@
  *
  * USAGE:
  * const nav = navigationHarness({ page });
+ * await nav.navigateToQuest({ urlSlug: 'my-guild', questId: 'abc-123' });
  * await nav.navigateToSession({ urlSlug: 'my-guild', sessionId: 'abc-123' });
  * await nav.triggerReplayFromBrowser({ guildId: 'guild-id', sessionIds: ['s1', 's2'] });
  */
@@ -15,9 +16,24 @@ export const navigationHarness = ({
 }: {
   page: Page;
 }): {
+  navigateToQuest: (params: { urlSlug: string; questId: string }) => Promise<void>;
   navigateToSession: (params: { urlSlug: string; sessionId: string }) => Promise<void>;
   triggerReplayFromBrowser: (params: { guildId: string; sessionIds: string[] }) => Promise<void>;
 } => {
+  const navigateToQuest = async ({
+    urlSlug,
+    questId,
+  }: {
+    urlSlug: string;
+    questId: string;
+  }): Promise<void> => {
+    const guildsResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
+    );
+    await page.goto(`/${urlSlug}/quest/${questId}`);
+    await guildsResponsePromise;
+  };
+
   const navigateToSession = async ({
     urlSlug,
     sessionId,
@@ -64,6 +80,7 @@ export const navigationHarness = ({
   };
 
   return {
+    navigateToQuest,
     navigateToSession,
     triggerReplayFromBrowser,
   };

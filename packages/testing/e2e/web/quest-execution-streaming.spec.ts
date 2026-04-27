@@ -81,7 +81,7 @@ test.describe('Quest Execution Streaming', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     // Execution panel should appear since quest is in an execution-phase status (seek_scope)
     const executionPanel = page.getByTestId('execution-panel-widget');

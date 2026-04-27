@@ -63,7 +63,7 @@ test.describe('Quest Approve Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
     await expect(page.getByTestId('PANEL_HEADER')).toHaveText('FLOW APPROVAL');

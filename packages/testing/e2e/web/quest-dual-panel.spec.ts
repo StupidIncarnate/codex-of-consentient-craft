@@ -78,7 +78,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -170,7 +170,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Dismiss the quest approved modal that appears when quest status is 'approved'
     const keepChattingBtn = page.getByText('Keep Chatting');
@@ -254,7 +254,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Bug B: spec panel should load quest data via WebSocket without user interaction
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -310,7 +310,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Wait for history to fully replay — the Phase 1 text from the final assistant entry
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({
@@ -366,7 +366,7 @@ test.describe('Quest Dual Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Wait for initial history load
     await expect(page.getByText('Phase 1: Setting up PostgreSQL schema.')).toBeVisible({

@@ -19,14 +19,12 @@ test.describe('Not Found', () => {
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
-    await page.goto('/bogus-guild-slug/session');
+    await page.goto('/bogus-guild-slug/quest');
     await guildsResponsePromise;
 
     await expect(page.getByTestId('NOT_FOUND')).toBeVisible();
     await expect(page.getByText('NOT FOUND')).toBeVisible();
-    await expect(
-      page.getByText('The guild or session you are looking for does not exist.'),
-    ).toBeVisible();
+    await expect(page.getByText('The guild you are looking for does not exist.')).toBeVisible();
 
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
@@ -58,7 +56,7 @@ test.describe('Not Found', () => {
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
     );
-    await page.goto(`/${urlSlug}/session`);
+    await page.goto(`/${urlSlug}/quest`);
     await guildsResponsePromise;
 
     await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();

@@ -112,7 +112,7 @@ test.describe('Session ID Routing', () => {
         const urlSlug = String(guild.urlSlug ?? guild.name)
           .toLowerCase()
           .replace(/\s+/gu, '-');
-        await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+        await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
         // Execution panel should appear (complete status is an execution phase)
         await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
