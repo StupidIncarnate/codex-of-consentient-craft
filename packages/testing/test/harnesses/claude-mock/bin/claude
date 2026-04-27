@@ -52,12 +52,45 @@ if (files.length === 0) {
     process.exit(1);
 }
 
-const nextFile = path.join(activeQueueDir, files[0]);
-const raw = fs.readFileSync(nextFile, 'utf-8');
+// Atomic claim: when N parallel agents spawn and read the same dir snapshot,
+// they all see the same files[0]. Without atomic ownership, two processes can
+// both fs.readFileSync the same file (its inode survives unlink while open),
+// then duplicate-process the same response — manifesting in tests as wrong
+// agent counts under load. Use renameSync (atomic on POSIX within same dir)
+// to claim a unique file before reading.
+const claimFile = (filePath) => {
+    const claimPath = `${filePath}.claimed-${process.pid}-${Date.now()}`;
+    try {
+        fs.renameSync(filePath, claimPath);
+        return claimPath;
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return null;
+        }
+        throw err;
+    }
+};
+
+let claimedPath = null;
+for (const file of files) {
+    const candidate = path.join(activeQueueDir, file);
+    const claimed = claimFile(candidate);
+    if (claimed !== null) {
+        claimedPath = claimed;
+        break;
+    }
+}
+
+if (claimedPath === null) {
+    process.stderr.write('Fake Claude CLI: all queue files were claimed by other processes — increase queue depth or check test setup\n');
+    process.exit(1);
+}
+
+const raw = fs.readFileSync(claimedPath, 'utf-8');
 const response = JSON.parse(raw);
 
 // Remove the consumed file from the queue
-fs.unlinkSync(nextFile);
+fs.unlinkSync(claimedPath);
 
 const lines = response.lines || [];
 const exitCode = response.exitCode ?? 0;
