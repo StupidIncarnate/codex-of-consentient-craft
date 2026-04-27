@@ -13,8 +13,8 @@ import type { AgentRole } from '../../../contracts/agent-role/agent-role-contrac
 import { followupDepthContract } from '../../../contracts/followup-depth/followup-depth-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
-  OnAgentEntryCallback,
   OnFollowupCreatedCallback,
+  OnSlotAgentEntryCallback,
   OnWorkItemSessionIdCallback,
   OnWorkItemSignalCallback,
   OnWorkItemSummaryCallback,
@@ -67,7 +67,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentEntry?: OnAgentEntryCallback;
+  onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
   onWorkItemSummary?: OnWorkItemSummaryCallback;
@@ -116,6 +116,7 @@ export const orchestrationLoopLayerBroker = async ({
                 onAgentEntry({
                   slotIndex,
                   entry: { raw: line },
+                  workItemId,
                   ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                 });
               },
@@ -201,6 +202,7 @@ export const orchestrationLoopLayerBroker = async ({
                 onAgentEntry({
                   slotIndex: newSlotIndex,
                   entry: { raw: line },
+                  workItemId: completedAgent.workItemId,
                   ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                 });
               },
@@ -342,6 +344,7 @@ export const orchestrationLoopLayerBroker = async ({
                     onAgentEntry({
                       slotIndex: newSlotIndex,
                       entry: { raw: line },
+                      workItemId: newWorkItemId,
                       ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                     });
                   },

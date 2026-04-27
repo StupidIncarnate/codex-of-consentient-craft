@@ -11,6 +11,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
 import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
 import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.proxy';
@@ -402,6 +403,49 @@ describe('runSiegemasterLayerBroker', () => {
       const siegeItem = proxy.getPersistedWorkItem({ workItemId: siegeWorkItemId });
 
       expect(siegeItem?.status).toBe('complete');
+    });
+
+    it('VALID: {agent emits a line} => onAgentEntry receives questWorkItemId equal to workItem.id', async () => {
+      const observable = FlowObservableStub();
+      const node = FlowNodeStub({ observables: [observable] });
+      const flow = FlowStub({ nodes: [node] });
+      const siegeWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: siegeWorkItemId,
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+      });
+      const quest = QuestStub({ flows: [flow], workItems: [workItem] });
+
+      const proxy = runSiegemasterLayerBrokerProxy();
+      const agentLine = JSON.stringify({
+        type: 'assistant',
+        message: { content: [{ type: 'text', text: 'hello from siege' }] },
+      });
+      proxy.setupSpawnWithSessionAndSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All tests pass' as never }),
+        sessionIdLine: agentLine,
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runSiegemasterLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(onAgentEntry).toHaveBeenCalledWith({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        entry: { raw: agentLine },
+        questWorkItemId: siegeWorkItemId,
+      });
     });
 
     it('VALID: {both params provided with default values} => completes successfully', async () => {

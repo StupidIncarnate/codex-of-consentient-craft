@@ -6,8 +6,8 @@
  * // Spawns design chat process, streams output via orchestration events
  */
 
-import { workItemContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import { questWorkItemIdContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -28,8 +28,9 @@ export const DesignChatStartResponder = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const processor = chatLineProcessTransformer();
 
-  // Create glyphsmith work item ID upfront for tracking
-  const glyphWorkItemId = crypto.randomUUID();
+  // Create glyphsmith work item ID upfront for tracking. Stamped on every emit so the
+  // server can route per-quest broadcasts to the right subscribed clients.
+  const glyphWorkItemId: QuestWorkItemId = questWorkItemIdContract.parse(crypto.randomUUID());
 
   return chatSpawnBroker({
     role: workItemRoleContract.parse('glyphsmith'),
@@ -41,21 +42,26 @@ export const DesignChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
         processId: chatProcessId,
-        payload: { questId: qId, chatProcessId },
+        payload: { questId: qId, chatProcessId, workItemId: glyphWorkItemId },
       });
     },
     onEntries: ({ chatProcessId, entries }) => {
       orchestrationEventsState.emit({
         type: 'chat-output',
         processId: chatProcessId,
-        payload: { chatProcessId, entries },
+        payload: { chatProcessId, entries, questId, workItemId: glyphWorkItemId },
       });
     },
     onSessionIdExtracted: ({ chatProcessId, sessionId: sid }) => {
       orchestrationEventsState.emit({
         type: 'chat-session-started',
         processId: chatProcessId,
-        payload: { chatProcessId, sessionId: sid },
+        payload: {
+          chatProcessId,
+          sessionId: sid,
+          questId,
+          workItemId: glyphWorkItemId,
+        },
       });
     },
     onAgentDetected: () => {
@@ -88,7 +94,13 @@ export const DesignChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'chat-complete',
         processId: chatProcessId,
-        payload: { chatProcessId, exitCode, sessionId },
+        payload: {
+          chatProcessId,
+          exitCode,
+          sessionId,
+          questId,
+          workItemId: glyphWorkItemId,
+        },
       });
     },
     registerProcess: ({ processId, kill }) => {

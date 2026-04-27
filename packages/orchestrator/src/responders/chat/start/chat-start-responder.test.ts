@@ -1,12 +1,15 @@
 import {
+  AssistantTextStreamLineStub,
   ExitCodeStub,
   GuildIdStub,
   SessionIdStub,
   FilePathStub,
   ProcessIdStub,
   QuestIdStub,
+  QuestStub,
   GuildStub,
   GuildConfigStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts';
@@ -403,17 +406,27 @@ describe('ChatStartResponder', () => {
   });
 
   describe('chat-session-started event', () => {
-    it('VALID: {new session, sessionId extracted} => emits chat-session-started BEFORE chat-complete', async () => {
+    it('VALID: {new session, sessionId extracted, workItemId lookup resolves} => emits chat-session-started with questId+workItemId BEFORE chat-complete', async () => {
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
       const sessionLine = JSON.stringify({ session_id: 'new-session-abc' });
+      // Quest seeded with the chaoswhisperer work item that questUserAddBroker creates
+      // for new chats — both quest.id and workItem.id derive from the mocked
+      // crypto.randomUUID, so they share the same UUID literal here.
+      const seededQuest = QuestStub({
+        id: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
 
       proxy.setupNewSession({ exitCode, stdoutLines: [sessionLine] });
       proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
       proxy.setupMainTailLines({ lines: [] });
+      // Resolve the chaoswhisperer work-item lookup immediately so chatWorkItemId is set
+      // BEFORE the sessionId$ promise drives onSessionIdExtracted → chat-session-started.
+      proxy.setupQuestGetImmediate({ quest: seededQuest });
 
       const capture = proxy.setupEventCapture();
 
@@ -434,6 +447,8 @@ describe('ChatStartResponder', () => {
           payload: {
             chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
             sessionId: 'new-session-abc',
+            questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           },
         },
       ]);
@@ -442,8 +457,104 @@ describe('ChatStartResponder', () => {
 
       expect(eventTypes).toStrictEqual([
         'quest-session-linked',
+        'quest-session-linked',
         'chat-session-started',
         'chat-complete',
+      ]);
+    });
+  });
+
+  describe('chat-output buffered emit flush race', () => {
+    it('VALID: {chat-output emits arrive BEFORE workItemId lookup resolves} => emits stay buffered then flush in order with questId+workItemId stamped', async () => {
+      const proxy = ChatStartResponderProxy();
+      const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+      const firstAssistantLine = JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'first reply' }] },
+        }),
+      );
+      const secondAssistantLine = JSON.stringify(
+        AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'second reply' }] },
+        }),
+      );
+      const seededQuest = QuestStub({
+        id: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+
+      proxy.setupNewSession({
+        exitCode,
+        stdoutLines: [firstAssistantLine, secondAssistantLine],
+      });
+      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
+      proxy.setupMainTailLines({ lines: [] });
+      // Hold the chaoswhisperer work-item lookup unresolved so the stdout-driven
+      // chat-output emits arrive while chatWorkItemId is still null and get buffered.
+      const deferred = proxy.setupQuestGetDeferred({ quest: seededQuest });
+
+      const capture = proxy.setupEventCapture();
+
+      await proxy.callResponder({
+        guildId,
+        message: 'Race the lookup',
+      });
+
+      // Drain stdout + exit. Both chat-output emits hit the responder while
+      // chatWorkItemId is null → both get pushed to chatOutputBuffer.
+      await flushAsync();
+
+      const beforeFlush = capture
+        .getEmittedEvents()
+        .filter((event) => event.type === 'chat-output');
+
+      expect(beforeFlush).toStrictEqual([]);
+
+      // Resolve the lookup. The .then handler drains the buffer in order, stamping
+      // questId+workItemId on every emit.
+      deferred.resolve();
+      await flushAsync();
+
+      const afterFlush = capture.getEmittedEvents().filter((event) => event.type === 'chat-output');
+
+      expect(afterFlush).toStrictEqual([
+        {
+          type: 'chat-output',
+          processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          payload: {
+            chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            entries: [
+              {
+                role: 'assistant',
+                type: 'text',
+                content: 'first reply',
+                source: 'session',
+              },
+            ],
+            questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          },
+        },
+        {
+          type: 'chat-output',
+          processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          payload: {
+            chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            entries: [
+              {
+                role: 'assistant',
+                type: 'text',
+                content: 'second reply',
+                source: 'session',
+              },
+            ],
+            questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          },
+        },
       ]);
     });
   });

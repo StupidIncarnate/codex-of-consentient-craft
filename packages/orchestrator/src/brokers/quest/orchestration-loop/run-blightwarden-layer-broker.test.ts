@@ -8,6 +8,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
 import { runBlightwardenLayerBroker } from './run-blightwarden-layer-broker';
 import { runBlightwardenLayerBrokerProxy } from './run-blightwarden-layer-broker.proxy';
@@ -450,6 +451,60 @@ describe('runBlightwardenLayerBroker', () => {
       );
 
       expect(hasBlightwardenLog).toBe(true);
+    });
+  });
+
+  describe('onAgentEntry payload', () => {
+    it('VALID: {agent emits line} => onAgentEntry receives questWorkItemId = workItem.id and slotIndex 0', async () => {
+      const blightWorkItemId = QuestWorkItemIdStub({
+        value: 'a1111111-1111-4111-8111-111111111111',
+      });
+      const workItem = WorkItemStub({
+        id: blightWorkItemId,
+        role: 'blightwarden',
+      });
+      const quest = QuestStub({ workItems: [workItem] });
+
+      const proxy = runBlightwardenLayerBrokerProxy();
+      proxy.setupSpawnWithSignal({
+        quest,
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: StreamSignalStub({ signal: 'complete', summary: 'All clear' as never }),
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runBlightwardenLayerBroker({
+        questId: quest.id,
+        workItem,
+        startPath: FilePathStub({ value: '/project' }),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      const expectedRawLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_signal',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'complete', summary: 'All clear' },
+            },
+          ],
+        },
+      });
+
+      expect(onAgentEntry.mock.calls).toStrictEqual([
+        [
+          {
+            slotIndex: SlotIndexStub({ value: 0 }),
+            entry: { raw: expectedRawLine },
+            questWorkItemId: blightWorkItemId,
+          },
+        ],
+      ]);
     });
   });
 

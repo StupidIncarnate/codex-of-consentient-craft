@@ -487,7 +487,7 @@ export const orchestrationQuestHarness = (): {
         processId,
         questId,
         startPath,
-        onAgentEntry: ({ slotIndex, entry, sessionId }) => {
+        onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }) => {
           const rawLine: unknown = entry.raw;
           if (typeof rawLine !== 'string') {
             return;
@@ -504,6 +504,8 @@ export const orchestrationQuestHarness = (): {
               processId,
               slotIndex,
               entries,
+              questId,
+              workItemId: questWorkItemId,
               ...(sessionId === undefined ? {} : { sessionId }),
             },
           });

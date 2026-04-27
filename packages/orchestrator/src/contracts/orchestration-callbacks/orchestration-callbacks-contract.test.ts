@@ -15,6 +15,7 @@ describe('orchestrationCallbacksContract', () => {
       onAgentEntryParams: {
         slotIndex: 0,
         entry: { raw: 'test line' },
+        questWorkItemId: 'aaaaaaaa-1111-4222-9333-444444444444',
       },
       onWorkItemSessionIdParams: {
         workItemId: 'work-item-0',
@@ -38,12 +39,17 @@ describe('orchestrationCallbacksContract', () => {
 
   it('VALID: {custom onAgentEntryParams} => overrides defaults', () => {
     const result = OrchestrationCallbacksParamsStub({
-      onAgentEntryParams: { slotIndex: 2 as never, entry: { custom: true } },
+      onAgentEntryParams: {
+        slotIndex: 2 as never,
+        entry: { custom: true },
+        questWorkItemId: 'bbbbbbbb-1111-4222-9333-444444444444' as never,
+      },
     });
 
     expect(result.onAgentEntryParams).toStrictEqual({
       slotIndex: 2,
       entry: { custom: true },
+      questWorkItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
     });
   });
 

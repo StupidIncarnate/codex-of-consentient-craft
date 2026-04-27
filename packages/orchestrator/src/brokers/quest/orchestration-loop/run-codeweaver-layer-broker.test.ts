@@ -10,6 +10,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runCodeweaverLayerBroker } from './run-codeweaver-layer-broker';
 import { runCodeweaverLayerBrokerProxy } from './run-codeweaver-layer-broker.proxy';
@@ -661,6 +662,55 @@ describe('runCodeweaverLayerBroker', () => {
       );
 
       expect(hasCodeweaverLog).toBe(true);
+    });
+  });
+
+  describe('onAgentEntry id translation', () => {
+    it('VALID: {1 codeweaver, slot emits entry} => onAgentEntry receives translated QuestWorkItemId (UUID), not slot-internal id', async () => {
+      const step = DependencyStepStub({ id: 'step-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runCodeweaverLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runCodeweaverLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      expect(onAgentEntry).toHaveBeenCalledTimes(1);
+      expect(onAgentEntry.mock.calls[0]).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          entry: { raw: COMPLETE_SIGNAL_LINE },
+          questWorkItemId: workItemId,
+        },
+      ]);
     });
   });
 

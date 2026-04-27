@@ -18,6 +18,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
@@ -506,6 +507,57 @@ describe('runPathseekerLayerBroker', () => {
       );
 
       expect(hasPathseekerLog).toBe(true);
+    });
+  });
+
+  describe('onAgentEntry callback payload', () => {
+    it('VALID: {spawn emits stream line} => onAgentEntry receives questWorkItemId from workItem.id', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: PS_WORK_ITEM_ID });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'pathseeker',
+        status: 'in_progress',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        steps: [DependencyStepStub()],
+        workItems: [workItem],
+      });
+      const proxy = runPathseekerLayerBrokerProxy();
+      const streamLine = '{"type":"assistant","message":{"role":"assistant","content":[]}}';
+      proxy.setupSuccess({
+        quest,
+        spawnLines: [streamLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onAgentEntry = jest.fn();
+
+      await runPathseekerLayerBroker({
+        questId,
+        workItem,
+        startPath: '/project/src' as never,
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const matchingCalls = onAgentEntry.mock.calls.filter(
+        ([params]: [{ entry: { raw?: unknown } }]) => params.entry.raw === streamLine,
+      );
+
+      expect(matchingCalls).toStrictEqual([
+        [
+          {
+            slotIndex: SlotIndexStub({ value: 0 }),
+            entry: { raw: streamLine },
+            questWorkItemId: workItemId,
+          },
+        ],
+      ]);
     });
   });
 

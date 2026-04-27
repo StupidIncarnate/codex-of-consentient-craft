@@ -6,12 +6,20 @@
  * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  GuildId,
+  ProcessId,
+  QuestId,
+  QuestWorkItemId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 import { chatMainSessionTailBroker } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker';
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
+import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
@@ -41,6 +49,7 @@ export const ChatStartResponder = async ({
   }
 
   let chatQuestId: QuestId | null = null;
+  let chatWorkItemId: QuestWorkItemId | null = null;
 
   if (sessionId) {
     try {
@@ -50,6 +59,10 @@ export const ChatStartResponder = async ({
       );
       if (linkedQuest) {
         chatQuestId = linkedQuest.id;
+        const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
+        if (matchedWorkItem) {
+          chatWorkItemId = matchedWorkItem.id;
+        }
         process.stderr.write(
           `[CLARIFICATION-DEBUG] resumed session: found linked questId=${chatQuestId}\n`,
         );
@@ -66,6 +79,14 @@ export const ChatStartResponder = async ({
     }
   }
 
+  // Buffer chat-output emits that arrive BEFORE chatWorkItemId is resolved. New-chat path:
+  // chaoswhisperer work item is created by `questUserAddBroker` (inside `chatSpawnBroker`)
+  // before stdout begins, but the workItem id is only knowable AFTER `onQuestCreated` fires
+  // and a follow-up questGetBroker resolves the chaoswhisperer work item. The first stdout
+  // lines may race ahead of that lookup. Buffering preserves ordering and guarantees every
+  // chat-output emit carries questId+workItemId for routing.
+  const chatOutputBuffer: { chatProcessId: ProcessId; entries: ChatEntry[] }[] = [];
+
   const processor = chatLineProcessTransformer();
   const subagentStopHandles: (() => void)[] = [];
   // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
@@ -81,6 +102,49 @@ export const ChatStartResponder = async ({
     ...(sessionId && { sessionId }),
     onQuestCreated: ({ questId, chatProcessId }) => {
       chatQuestId = questId;
+      // Resolve the chaoswhisperer work item id created by questUserAddBroker, then flush
+      // any chat-output frames buffered while we were learning it. Fire-and-forget — any
+      // buffered emits stay buffered until the lookup resolves; once chatWorkItemId is
+      // set, the in-line flush below kicks in on the next onEntries call.
+      questGetBroker({ input: getQuestInputContract.parse({ questId }) })
+        .then((result) => {
+          if (!result.success || !result.quest) return;
+          const chaosItem = result.quest.workItems.find((wi) => wi.role === 'chaoswhisperer');
+          if (chaosItem === undefined) return;
+          chatWorkItemId = chaosItem.id;
+          // Drain buffered chat-output emits now that questId+workItemId are both known.
+          while (chatOutputBuffer.length > 0) {
+            const buffered = chatOutputBuffer.shift();
+            if (buffered === undefined) break;
+            orchestrationEventsState.emit({
+              type: 'chat-output',
+              processId: buffered.chatProcessId,
+              payload: {
+                chatProcessId: buffered.chatProcessId,
+                entries: buffered.entries,
+                questId,
+                workItemId: chaosItem.id,
+              },
+            });
+          }
+          // Re-emit quest-session-linked now that we know workItemId, so subscribers can
+          // correlate by workItemId in addition to questId.
+          orchestrationEventsState.emit({
+            type: 'quest-session-linked',
+            processId: chatProcessId,
+            payload: {
+              questId,
+              chatProcessId,
+              workItemId: chaosItem.id,
+              role: 'chaoswhisperer',
+            },
+          });
+        })
+        .catch((error: unknown) => {
+          process.stderr.write(
+            `[chat-start] chaoswhisperer work item lookup failed: ${String(error)}\n`,
+          );
+        });
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
         processId: chatProcessId,
@@ -88,11 +152,35 @@ export const ChatStartResponder = async ({
       });
     },
     onEntries: ({ chatProcessId, entries }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-output',
-        processId: chatProcessId,
-        payload: { chatProcessId, entries },
-      });
+      if (chatQuestId === null || chatWorkItemId === null) {
+        chatOutputBuffer.push({ chatProcessId, entries });
+      } else {
+        // Drain anything that may have been buffered concurrently
+        while (chatOutputBuffer.length > 0) {
+          const buffered = chatOutputBuffer.shift();
+          if (buffered === undefined) break;
+          orchestrationEventsState.emit({
+            type: 'chat-output',
+            processId: buffered.chatProcessId,
+            payload: {
+              chatProcessId: buffered.chatProcessId,
+              entries: buffered.entries,
+              questId: chatQuestId,
+              workItemId: chatWorkItemId,
+            },
+          });
+        }
+        orchestrationEventsState.emit({
+          type: 'chat-output',
+          processId: chatProcessId,
+          payload: {
+            chatProcessId,
+            entries,
+            questId: chatQuestId,
+            workItemId: chatWorkItemId,
+          },
+        });
+      }
 
       for (const entry of entries) {
         if (entry.role !== 'assistant' || entry.type !== 'tool_use') continue;
@@ -104,7 +192,11 @@ export const ChatStartResponder = async ({
           orchestrationEventsState.emit({
             type: 'clarification-request',
             processId: chatProcessId,
-            payload: { chatProcessId, questions: clarification.questions },
+            payload: {
+              chatProcessId,
+              questions: clarification.questions,
+              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+            },
           });
 
           if (chatQuestId) {
@@ -128,7 +220,12 @@ export const ChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'chat-session-started',
         processId: chatProcessId,
-        payload: { chatProcessId, sessionId: sid },
+        payload: {
+          chatProcessId,
+          sessionId: sid,
+          ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+          ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
+        },
       });
     },
     onAgentDetected: ({ chatProcessId, agentId, sessionId: sid }) => {
@@ -142,7 +239,12 @@ export const ChatStartResponder = async ({
           orchestrationEventsState.emit({
             type: 'chat-output',
             processId: cpid,
-            payload: { chatProcessId: cpid, entries },
+            payload: {
+              chatProcessId: cpid,
+              entries,
+              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+              ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
+            },
           });
         },
       })
@@ -182,7 +284,12 @@ export const ChatStartResponder = async ({
             orchestrationEventsState.emit({
               type: 'chat-output',
               processId: cpid,
-              payload: { chatProcessId: cpid, entries },
+              payload: {
+                chatProcessId: cpid,
+                entries,
+                ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+                ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
+              },
             });
           },
         })
@@ -204,7 +311,13 @@ export const ChatStartResponder = async ({
       orchestrationEventsState.emit({
         type: 'chat-complete',
         processId: chatProcessId,
-        payload: { chatProcessId, exitCode, sessionId: sid },
+        payload: {
+          chatProcessId,
+          exitCode,
+          sessionId: sid,
+          ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+          ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
+        },
       });
     },
     registerProcess: ({ processId, kill }) => {

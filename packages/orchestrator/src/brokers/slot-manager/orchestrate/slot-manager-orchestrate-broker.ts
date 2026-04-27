@@ -10,8 +10,8 @@ import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
-  OnAgentEntryCallback,
   OnFollowupCreatedCallback,
+  OnSlotAgentEntryCallback,
   OnWorkItemSessionIdCallback,
   OnWorkItemSignalCallback,
   OnWorkItemSummaryCallback,
@@ -41,7 +41,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotCount: SlotCount;
   slotOperations: SlotOperations;
   startPath: FilePath;
-  onAgentEntry?: OnAgentEntryCallback;
+  onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
   onWorkItemSummary?: OnWorkItemSummaryCallback;

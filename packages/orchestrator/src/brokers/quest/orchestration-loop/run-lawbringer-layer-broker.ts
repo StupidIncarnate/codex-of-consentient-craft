@@ -101,7 +101,18 @@ export const runLawbringerLayerBroker = async ({
     startPath,
     maxFollowupDepth,
     abortSignal,
-    onAgentEntry,
+    // Slot manager passes its internal WorkItemId; translate to the quest work item id
+    // before invoking the responder-facing onAgentEntry.
+    onAgentEntry: ({ slotIndex, entry, workItemId: slotWorkItemId, sessionId }) => {
+      const questItemId = slotToQuestMap.get(slotWorkItemId);
+      if (questItemId === undefined) return;
+      onAgentEntry({
+        slotIndex,
+        entry,
+        questWorkItemId: questItemId,
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
+    },
     onWorkItemSummary: ({ workItemId, summary }) => {
       summaryMap.set(workItemId, summary as SignalSummary);
     },

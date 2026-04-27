@@ -11,8 +11,8 @@ import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contrac
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
-  OnAgentEntryCallback,
   OnFollowupCreatedCallback,
+  OnSlotAgentEntryCallback,
   OnWorkItemSessionIdCallback,
   OnWorkItemSignalCallback,
   OnWorkItemSummaryCallback,
@@ -46,7 +46,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
-  onAgentEntry?: OnAgentEntryCallback;
+  onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
   onWorkItemSummary?: OnWorkItemSummaryCallback;

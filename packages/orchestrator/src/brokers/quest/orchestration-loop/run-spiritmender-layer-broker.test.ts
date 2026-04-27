@@ -7,10 +7,13 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import type { OrchestrationCallbacksParamsStub } from '../../../contracts/orchestration-callbacks/orchestration-callbacks.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
+
+type OnAgentEntryParams = ReturnType<typeof OrchestrationCallbacksParamsStub>['onAgentEntryParams'];
 
 const COMPLETE_SIGNAL_LINE = JSON.stringify({
   type: 'assistant',
@@ -104,6 +107,57 @@ describe('runSpiritmenderLayerBroker', () => {
       const status = proxy.getLastPersistedWorkItemStatus({ workItemId });
 
       expect(status).toBe('complete');
+    });
+
+    it('VALID: {slot manager emits agent entry with internal work-item-0 id} => responder receives translated QuestWorkItemId (UUID)', async () => {
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'in_progress',
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+
+      const proxy = runSpiritmenderLayerBrokerProxy();
+      proxy.setupQuestFound({ quest, batchContents: [BATCH_ONE_FILE] });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const onAgentEntry: jest.MockedFunction<(params: OnAgentEntryParams) => void> = jest.fn();
+
+      await runSpiritmenderLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      // The slot manager surfaces its internal `workItemId` (e.g. 'work-item-0') via the
+      // raw `onLine`-driven callback. The spiritmender broker translates that to the
+      // quest's `QuestWorkItemId` (UUID) before invoking the responder-facing onAgentEntry.
+      // Note: questId is intentionally NOT forwarded — OnAgentEntryCallback's payload is
+      // {slotIndex, entry, questWorkItemId, sessionId?}; questId is layered on by the
+      // responder via build-orchestration-loop-on-agent-entry-transformer.
+      const receivedPayloads = onAgentEntry.mock.calls.map((call) => call[0]);
+
+      expect(receivedPayloads).toStrictEqual([
+        {
+          slotIndex: 0,
+          entry: { raw: COMPLETE_SIGNAL_LINE },
+          questWorkItemId: workItemId,
+        },
+      ]);
     });
 
     it('VALID: {both params provided with default values} => completes without error', async () => {

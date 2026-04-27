@@ -88,6 +88,7 @@ export const runChatLayerBroker = async ({
           onAgentEntry({
             slotIndex,
             entry: { raw: line },
+            questWorkItemId: workItem.id,
             ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
           });
 

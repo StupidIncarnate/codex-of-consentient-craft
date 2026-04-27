@@ -179,6 +179,43 @@ describe('runChatLayerBroker', () => {
       expect(spawnedCwd).toBe(resolvedRepoRoot);
     });
 
+    it('VALID: {agent emits line} => onAgentEntry callback receives workItem.id as questWorkItemId so responder can stamp questId+workItemId on chat-output payload', async () => {
+      const proxy = runChatLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const workItemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'chaoswhisperer',
+        status: 'in_progress',
+      });
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
+      const lines = ['{"type":"assistant","message":{"content":[]}}'] as const;
+      proxy.setupSpawnSuccess({ quest, lines });
+
+      // Simulate the responder closure: it has questId in scope and stamps it onto each
+      // payload alongside the broker-supplied questWorkItemId from the callback params.
+      const stampedPayloads: { questId: typeof questId; questWorkItemId: typeof workItemId }[] = [];
+      const onAgentEntry = jest.fn(({ questWorkItemId: cbWorkItemId }) => {
+        stampedPayloads.push({ questId, questWorkItemId: cbWorkItemId });
+      });
+
+      await runChatLayerBroker({
+        questId,
+        workItem,
+        startPath: FilePathStub({ value: '/project/src' }),
+        userMessage: UserInputStub({ value: 'Help me build auth' }),
+        onAgentEntry,
+      });
+
+      expect(onAgentEntry).toHaveBeenCalledTimes(1);
+      expect(onAgentEntry).toHaveBeenCalledWith({
+        slotIndex: 0,
+        entry: { raw: lines[0] },
+        questWorkItemId: workItemId,
+      });
+      expect(stampedPayloads).toStrictEqual([{ questId, questWorkItemId: workItemId }]);
+    });
+
     it('EDGE: {cwdResolveBroker rejects} => falls back to parsing startPath via repoRootCwdContract and uses it as cwd', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });

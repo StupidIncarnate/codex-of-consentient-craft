@@ -94,7 +94,7 @@ export const RunOrchestrationLoopLayerResponder = async ({
       processId,
       questId,
       startPath,
-      onAgentEntry: ({ slotIndex, entry, sessionId }) => {
+      onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }) => {
         const rawLine: unknown = entry.raw;
         if (typeof rawLine !== 'string') return;
         const parsed = claudeLineNormalizeBroker({ rawLine });
@@ -105,6 +105,8 @@ export const RunOrchestrationLoopLayerResponder = async ({
           slotIndexToSessionId,
           slotIndex,
           entries,
+          questId,
+          workItemId: questWorkItemId,
           ...(sessionId === undefined ? {} : { sessionId }),
         });
         orchestrationEventsState.emit({ type: 'chat-output', processId, payload });

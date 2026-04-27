@@ -20,6 +20,7 @@ export const OrchestrationCallbacksParamsStub = ({
     onAgentEntryParams: {
       slotIndex: 0,
       entry: { raw: 'test line' },
+      questWorkItemId: 'aaaaaaaa-1111-4222-9333-444444444444',
     },
     onWorkItemSessionIdParams: {
       workItemId: 'work-item-0',

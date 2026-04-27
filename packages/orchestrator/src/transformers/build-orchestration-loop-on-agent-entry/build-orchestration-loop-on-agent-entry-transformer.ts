@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Builds the chat-output payload an orchestration-loop responder emits for an agent stream emission, memoizing per-slot sessionIds so the payload carries sessionId AND chatProcessId === sessionId on every emit once the slot's sessionId is learned
+ * PURPOSE: Builds the chat-output payload an orchestration-loop responder emits for an agent stream emission, memoizing per-slot sessionIds so the payload carries sessionId AND chatProcessId === sessionId on every emit once the slot's sessionId is learned. Always stamps questId+workItemId so the server can route per-quest broadcasts to subscribed clients.
  *
  * USAGE:
  * const slotIndexToSessionId = new Map();
@@ -8,6 +8,8 @@
  *   slotIndexToSessionId,
  *   slotIndex,
  *   entries,
+ *   questId,
+ *   workItemId,
  *   sessionId,
  * });
  * orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
@@ -19,7 +21,13 @@
  * the slot manager (e.g. chat-replay-responder, where chatProcessId is the replay key).
  */
 
-import type { ChatEntry, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  ProcessId,
+  QuestId,
+  QuestWorkItemId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 import {
   chatOutputEmitPayloadContract,
@@ -32,12 +40,16 @@ export const buildOrchestrationLoopOnAgentEntryTransformer = ({
   slotIndexToSessionId,
   slotIndex,
   entries,
+  questId,
+  workItemId,
   sessionId,
 }: {
   processId: ProcessId;
   slotIndexToSessionId: Map<SlotIndex, SessionId>;
   slotIndex: SlotIndex;
   entries: ChatEntry[];
+  questId: QuestId;
+  workItemId: QuestWorkItemId;
   sessionId?: SessionId;
 }): ChatOutputEmitPayload => {
   if (sessionId !== undefined) {
@@ -48,6 +60,8 @@ export const buildOrchestrationLoopOnAgentEntryTransformer = ({
     processId,
     slotIndex,
     entries,
+    questId,
+    workItemId,
     ...(memoizedSessionId === undefined
       ? {}
       : { sessionId: memoizedSessionId, chatProcessId: memoizedSessionId }),

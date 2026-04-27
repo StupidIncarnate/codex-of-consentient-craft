@@ -3,8 +3,11 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 
 import { runWardLayerBroker } from './run-ward-layer-broker';
 import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
@@ -541,6 +544,63 @@ describe('runWardLayerBroker', () => {
       const wardStatus = proxy.getPersistedWorkItemStatus({ workItemId: wardItemId });
 
       expect(wardStatus).toBe('failed');
+    });
+  });
+
+  describe('onAgentEntry callback identifiers', () => {
+    it('VALID: {ward emits stdout lines} => onAgentEntry receives matching questWorkItemId for every entry', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardItemId = QuestWorkItemIdStub({ value: WARD_ID });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        maxAttempts: 3,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem],
+      });
+      const proxy = runWardLayerBrokerProxy();
+      proxy.setupWardPass({ quest });
+
+      const onAgentEntry = jest.fn();
+
+      await runWardLayerBroker({
+        questId,
+        workItem: wardItem,
+        startPath: '/project' as never,
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      // Proxy mocks crypto.randomUUID to a constant; ward synthesises sessionId as `ward-<uuid>`
+      const expectedSessionId = SessionIdStub({
+        value: 'ward-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      });
+      const expectedSlotIndex = SlotIndexStub({ value: 0 });
+
+      // Default stdout lines emitted by spawnWardLayerBrokerProxy.setupWardSuccess
+      expect(onAgentEntry.mock.calls).toStrictEqual([
+        [
+          {
+            slotIndex: expectedSlotIndex,
+            entry: { raw: 'run: 1739625600000-a3f1' },
+            questWorkItemId: wardItemId,
+            sessionId: expectedSessionId,
+          },
+        ],
+        [
+          {
+            slotIndex: expectedSlotIndex,
+            entry: { raw: 'lint:      PASS' },
+            questWorkItemId: wardItemId,
+            sessionId: expectedSessionId,
+          },
+        ],
+      ]);
     });
   });
 

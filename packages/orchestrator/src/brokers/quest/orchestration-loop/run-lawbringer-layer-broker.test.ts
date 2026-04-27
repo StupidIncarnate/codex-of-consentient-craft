@@ -8,10 +8,14 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import type { OrchestrationCallbacksParamsStub } from '../../../contracts/orchestration-callbacks/orchestration-callbacks.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runLawbringerLayerBroker } from './run-lawbringer-layer-broker';
 import { runLawbringerLayerBrokerProxy } from './run-lawbringer-layer-broker.proxy';
+
+type OnAgentEntryParams = ReturnType<typeof OrchestrationCallbacksParamsStub>['onAgentEntryParams'];
 
 const COMPLETE_SIGNAL_LINE = JSON.stringify({
   type: 'assistant',
@@ -751,6 +755,67 @@ describe('runLawbringerLayerBroker', () => {
       expect(statusA).toBe('complete');
       expect(statusB).toBe('complete');
       expect(statusC).toBe('complete');
+    });
+  });
+
+  describe('onAgentEntry translates slot WorkItemId to QuestWorkItemId', () => {
+    it('VALID: {slot manager emits onLine with internal work-item-0} => responder receives translated QuestWorkItemId UUID, not slot-internal id', async () => {
+      const step = DependencyStepStub({
+        id: 'step-aaa',
+        focusFile: { path: '/project/src/file-a.ts' },
+      });
+
+      const workItemId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'lawbringer',
+        status: 'in_progress',
+        relatedDataItems: [`steps/${String(step.id)}`],
+      });
+
+      const quest = QuestStub({
+        status: 'in_progress',
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const proxy = runLawbringerLayerBrokerProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupSpawnAndMonitor({
+        lines: [COMPLETE_SIGNAL_LINE],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const capturedCalls: OnAgentEntryParams[] = [];
+      const onAgentEntry = (params: OnAgentEntryParams): void => {
+        capturedCalls.push(params);
+      };
+
+      await runLawbringerLayerBroker({
+        questId: quest.id,
+        workItems: [workItem],
+        startPath: FilePathStub({ value: '/project' }),
+        slotCount: SlotCountStub(),
+        slotOperations: SlotOperationsStub(),
+        onAgentEntry,
+        abortSignal: new AbortController().signal,
+      });
+
+      const [firstCall] = capturedCalls;
+
+      expect(firstCall).toStrictEqual({
+        slotIndex: SlotIndexStub({ value: 0 }),
+        entry: { raw: COMPLETE_SIGNAL_LINE },
+        questWorkItemId: workItemId,
+      });
+
+      const leakedSlotIds = capturedCalls
+        .map((call) => String(call.questWorkItemId))
+        .filter((id) => id.startsWith('work-item-'));
+
+      expect(leakedSlotIds).toStrictEqual([]);
     });
   });
 

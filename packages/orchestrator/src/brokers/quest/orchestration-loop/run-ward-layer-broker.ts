@@ -86,6 +86,7 @@ export const runWardLayerBroker = async ({
       onAgentEntry({
         slotIndex: WARD_SLOT_INDEX,
         entry: { raw: line },
+        questWorkItemId: workItem.id,
         sessionId: wardSessionId,
       });
     },
