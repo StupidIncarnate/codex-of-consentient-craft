@@ -35,27 +35,26 @@ describe('chatOutputPayloadContract', () => {
         workItemId,
       });
     });
+
+    it('VALID: {chatProcessId + entries only, no questId, no workItemId} => parses successfully (replay path)', () => {
+      const result = chatOutputPayloadContract.safeParse({
+        chatProcessId: 'replay-e2e-session-001',
+        entries: [],
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {entries only, no questId, no workItemId, no chatProcessId} => parses successfully', () => {
+      const result = chatOutputPayloadContract.safeParse({
+        entries: [],
+      });
+
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('error cases', () => {
-    it('ERROR: {questId missing} => parse fails', () => {
-      const result = chatOutputPayloadContract.safeParse({
-        entries: [],
-        workItemId: QuestWorkItemIdStub(),
-      });
-
-      expect(result.success).toBe(false);
-    });
-
-    it('ERROR: {workItemId missing} => parse fails', () => {
-      const result = chatOutputPayloadContract.safeParse({
-        entries: [],
-        questId: QuestIdStub(),
-      });
-
-      expect(result.success).toBe(false);
-    });
-
     it('ERROR: {questId is empty string} => parse fails', () => {
       const result = chatOutputPayloadContract.safeParse({
         entries: [],
