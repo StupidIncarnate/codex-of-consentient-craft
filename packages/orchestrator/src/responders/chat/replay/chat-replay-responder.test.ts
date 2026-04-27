@@ -215,8 +215,9 @@ describe('ChatReplayResponder', () => {
 
       // Exactly one chat-output frame fired for this orphan session — and its payload
       // keys must NOT include questId or workItemId (those only get stamped when the
-      // session is linked to a quest workItem).
-      expect(chatOutputPayloadKeys).toStrictEqual([['chatProcessId', 'entries']]);
+      // session is linked to a quest workItem). sessionId is always present so the
+      // SessionViewWidget readonly viewer can bucket entries per-session.
+      expect(chatOutputPayloadKeys).toStrictEqual([['chatProcessId', 'entries', 'sessionId']]);
     });
   });
 

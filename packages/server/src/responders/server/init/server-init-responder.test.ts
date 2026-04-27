@@ -204,6 +204,58 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('websocket onMessage subscribe-quest completed quest', () => {
+    it('VALID: {subscribe-quest for completed quest} => first send is quest-modified with the quest', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-completed-1' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({ id: questId, status: 'complete', workItems: [] });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.setupFindQuestPathSuccess({
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId,
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const firstSendIsQuestModified = String(sendMock.mock.calls[0]?.[0]).startsWith(
+        '{"type":"quest-modified"',
+      );
+      const firstSendCarriesQuestId = String(sendMock.mock.calls[0]?.[0]).includes(
+        `"questId":"${questId}"`,
+      );
+      const firstSendCarriesQuestStatus = String(sendMock.mock.calls[0]?.[0]).includes(
+        '"status":"complete"',
+      );
+      const completeIndex = sendMock.mock.calls.findIndex((c) =>
+        String(c[0]).includes('"type":"chat-history-complete"'),
+      );
+
+      expect({
+        firstSendIsQuestModified,
+        firstSendCarriesQuestId,
+        firstSendCarriesQuestStatus,
+        questModifiedBeforeChatHistoryComplete: completeIndex > 0,
+      }).toStrictEqual({
+        firstSendIsQuestModified: true,
+        firstSendCarriesQuestId: true,
+        firstSendCarriesQuestStatus: true,
+        questModifiedBeforeChatHistoryComplete: true,
+      });
+    });
+  });
+
   describe('websocket onMessage subscribe-quest concurrent subscriptions', () => {
     it('VALID: {subscribe X then Y, unsubscribe X} => Y stays subscribed, X removed', async () => {
       const proxy = ServerInitResponderProxy();
@@ -496,6 +548,121 @@ describe('ServerInitResponder', () => {
       });
 
       expect(sendMock.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('websocket onMessage replay-history direct-send routing', () => {
+    it('VALID: {replay-history then chat-output stamped with same chatProcessId and questId} => requesting client receives the event', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      const replayProcessId = ProcessIdStub({ value: 'replay-direct-A' });
+      const linkedQuestId = QuestIdStub({ value: 'quest-replay-link' });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId: SessionIdStub({ value: 'sess-A' }),
+          guildId: GuildIdStub(),
+          chatProcessId: replayProcessId,
+        }),
+        ws: client,
+      });
+      sendMock.mockClear();
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-replay-A' }),
+        payload: {
+          chatProcessId: replayProcessId,
+          questId: linkedQuestId,
+          text: 'replay-linked-frame',
+        },
+      });
+
+      const matching = sendMock.mock.calls.filter((c) =>
+        String(c[0]).includes('"text":"replay-linked-frame"'),
+      ).length;
+
+      expect(matching).toBe(1);
+    });
+
+    it('VALID: {replay-history then orphan chat-output (no questId)} => requesting client still receives it via replay-direct path', () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      const replayProcessId = ProcessIdStub({ value: 'replay-direct-orphan' });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({
+          type: 'replay-history',
+          sessionId: SessionIdStub({ value: 'sess-orphan' }),
+          guildId: GuildIdStub(),
+          chatProcessId: replayProcessId,
+        }),
+        ws: client,
+      });
+      sendMock.mockClear();
+
+      const chatOutputHandler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      chatOutputHandler!({
+        processId: ProcessIdStub({ value: 'p-orphan' }),
+        payload: { chatProcessId: replayProcessId, text: 'orphan-frame' },
+      });
+      const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-history-complete' });
+      completeHandler!({
+        processId: ProcessIdStub({ value: 'p-orphan' }),
+        payload: { chatProcessId: replayProcessId, sessionId: 'sess-orphan' },
+      });
+
+      const orphanCount = sendMock.mock.calls.filter((c) =>
+        String(c[0]).includes('"text":"orphan-frame"'),
+      ).length;
+      const completeCount = sendMock.mock.calls.filter((c) =>
+        String(c[0]).includes('"type":"chat-history-complete"'),
+      ).length;
+
+      expect({ orphanCount, completeCount }).toStrictEqual({ orphanCount: 1, completeCount: 1 });
+    });
+
+    it('EDGE: {subscribe-quest internal replay chatProcessId} => is NOT double-sent via replay-direct path', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-no-double' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+      sendMock.mockClear();
+
+      const internalReplayProcessId = `quest-replay-${questId}-wi-1-sess-1`;
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-internal' }),
+        payload: {
+          chatProcessId: internalReplayProcessId,
+          questId,
+          text: 'internal-replay-frame',
+        },
+      });
+
+      const deliveryCount = sendMock.mock.calls.filter((c) =>
+        String(c[0]).includes('"text":"internal-replay-frame"'),
+      ).length;
+
+      expect(deliveryCount).toBe(1);
     });
   });
 

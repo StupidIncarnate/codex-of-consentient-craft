@@ -69,6 +69,14 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   // Per-quest subscriptions: a client subscribed to questId X receives only the
   // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
   const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
+  // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
+  // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
+  // chat-output / chat-history-complete events stamped with that chatProcessId can be
+  // forwarded DIRECTLY to that client. Without this, orphan-session chat-output (no
+  // questId) would be filtered out by the per-quest broadcast filter and the readonly
+  // viewer page would hang on the loading state forever. The entry is removed when
+  // chat-history-complete fires for that chatProcessId, or when the client disconnects.
+  const replayClientByChatProcessId = new Map<ProcessId, WsClient>();
 
   app.get(
     '/ws',
@@ -100,6 +108,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
 
           if (message.type === 'replay-history') {
             const { sessionId, guildId, chatProcessId } = message;
+            const replayWs = _ws as WsClient;
+            // Track the requesting client so chat-output / chat-history-complete events
+            // emitted by ChatReplayResponder for this chatProcessId can be routed DIRECTLY
+            // back to the SessionViewWidget — bypassing the per-quest broadcast filter
+            // which would otherwise drop orphan-session frames (no questId stamped).
+            replayClientByChatProcessId.set(chatProcessId, replayWs);
 
             orchestratorReplayChatHistoryAdapter({
               sessionId,
@@ -156,6 +170,18 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
             orchestratorLoadQuestAdapter({ questId: subQuestId })
               .then(async (quest) => {
+                // Send current quest state to the subscribing client BEFORE replay.
+                // Without this, completed quests (no longer being modified) would
+                // never deliver quest data to a freshly subscribed client.
+                subWs.send(
+                  JSON.stringify(
+                    wsMessageContract.parse({
+                      type: 'quest-modified',
+                      payload: { questId: subQuestId, quest },
+                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                    }),
+                  ),
+                );
                 const findResult = await orchestratorFindQuestPathAdapter({
                   questId: subQuestId,
                 }).catch(() => null);
@@ -218,6 +244,17 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             const replayWs = _ws as WsClient;
             orchestratorLoadQuestAdapter({ questId: replayQuestId })
               .then(async (quest) => {
+                // Send current quest state to the requesting client BEFORE replay,
+                // mirroring subscribe-quest. Keeps both flows consistent.
+                replayWs.send(
+                  JSON.stringify(
+                    wsMessageContract.parse({
+                      type: 'quest-modified',
+                      payload: { questId: replayQuestId, quest },
+                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                    }),
+                  ),
+                );
                 const findResult = await orchestratorFindQuestPathAdapter({
                   questId: replayQuestId,
                 }).catch(() => null);
@@ -271,8 +308,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         }
       },
       onClose: (_evt: unknown, ws: unknown) => {
-        clients.delete(ws as WsClient);
-        clientSubscriptions.delete(ws as WsClient);
+        const closedClient = ws as WsClient;
+        clients.delete(closedClient);
+        clientSubscriptions.delete(closedClient);
+        // Drop any readonly-replay tracking for this client — the SessionViewWidget
+        // is gone, so subsequent chat-output frames for those chatProcessIds have
+        // nowhere to be delivered.
+        for (const [pid, replayWs] of replayClientByChatProcessId) {
+          if (replayWs === closedClient) replayClientByChatProcessId.delete(pid);
+        }
         processDevLogAdapter({ message: 'WebSocket client disconnected' });
         if (clients.size === 0) {
           orchestratorSetWebPresenceAdapter({ isPresent: false });
@@ -312,6 +356,9 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
         const payloadQuestId = parsedPayload.success ? parsedPayload.data.questId : undefined;
+        const payloadChatProcessId = parsedPayload.success
+          ? parsedPayload.data.chatProcessId
+          : undefined;
 
         processDevLogAdapter({
           message: devLogEventFormatTransformer({
@@ -332,17 +379,46 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         });
 
         if (PER_QUEST_EVENT_TYPES.has(type)) {
-          // Per-quest events fan out ONLY to subscribed clients whose subscription
-          // matches the payload's questId.
-          if (!payloadQuestId) return;
+          // Per-quest events fan out to subscribed clients whose subscription matches
+          // the payload's questId, AND to any readonly-replay client tracked by
+          // chatProcessId (SessionViewWidget — won't have a subscription). Track
+          // already-delivered clients so a client somehow on both paths is not double-sent.
           const serializedQuestMsg = JSON.stringify(envelope);
-          for (const [client, subs] of clientSubscriptions) {
-            if (!subs.has(payloadQuestId)) continue;
-            try {
-              client.send(serializedQuestMsg);
-            } catch {
-              clientSubscriptions.delete(client);
-              clients.delete(client);
+          const delivered = new Set<WsClient>();
+
+          if (payloadQuestId) {
+            for (const [client, subs] of clientSubscriptions) {
+              if (!subs.has(payloadQuestId)) continue;
+              try {
+                client.send(serializedQuestMsg);
+                delivered.add(client);
+              } catch {
+                clientSubscriptions.delete(client);
+                clients.delete(client);
+              }
+            }
+          }
+
+          // Readonly-replay direct-send. Routes orphan-session chat-output (no questId)
+          // and chat-history-complete events back to the SessionViewWidget that asked
+          // for them via `replay-history`. subscribe-quest's internal replay uses
+          // chatProcessIds like `quest-replay-<questId>-<workItemId>-<sessionId>` which
+          // are NEVER set in this map, so the per-quest path remains the only delivery
+          // surface for those events.
+          if (payloadChatProcessId) {
+            const replayClient = replayClientByChatProcessId.get(payloadChatProcessId);
+            if (replayClient && !delivered.has(replayClient)) {
+              try {
+                replayClient.send(serializedQuestMsg);
+              } catch {
+                clientSubscriptions.delete(replayClient);
+                clients.delete(replayClient);
+                replayClientByChatProcessId.delete(payloadChatProcessId);
+              }
+            }
+            // Clean up the tracking entry once the readonly replay is over.
+            if (type === 'chat-history-complete') {
+              replayClientByChatProcessId.delete(payloadChatProcessId);
             }
           }
           return;

@@ -69,6 +69,7 @@ export const ChatReplayResponder = async ({
           payload: {
             chatProcessId,
             entries,
+            sessionId,
             ...questIdFragment,
             ...workItemIdFragment,
           },
