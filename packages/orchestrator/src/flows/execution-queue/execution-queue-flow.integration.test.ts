@@ -18,8 +18,8 @@ describe('ExecutionQueueFlow', () => {
   });
 
   describe('getAll', () => {
-    it('VALID: exports a function returning an array', () => {
-      const entries = ExecutionQueueFlow.getAll();
+    it('VALID: exports a function returning an array', async () => {
+      const entries = await ExecutionQueueFlow.getAll();
 
       expect(Array.isArray(entries)).toBe(true);
     });

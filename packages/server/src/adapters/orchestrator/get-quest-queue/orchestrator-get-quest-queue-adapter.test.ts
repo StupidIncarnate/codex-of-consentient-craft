@@ -5,31 +5,31 @@ import { orchestratorGetQuestQueueAdapterProxy } from './orchestrator-get-quest-
 
 describe('orchestratorGetQuestQueueAdapter', () => {
   describe('successful read', () => {
-    it('VALID: {} => returns queue entries from orchestrator', () => {
+    it('VALID: {} => returns queue entries from orchestrator', async () => {
       const proxy = orchestratorGetQuestQueueAdapterProxy();
       const entry = QuestQueueEntryStub();
       proxy.returns({ entries: [entry] });
 
-      const result = orchestratorGetQuestQueueAdapter();
+      const result = await orchestratorGetQuestQueueAdapter();
 
       expect(result).toStrictEqual([entry]);
     });
 
-    it('EMPTY: {} => returns empty array when queue empty', () => {
+    it('EMPTY: {} => returns empty array when queue empty', async () => {
       orchestratorGetQuestQueueAdapterProxy();
 
-      const result = orchestratorGetQuestQueueAdapter();
+      const result = await orchestratorGetQuestQueueAdapter();
 
       expect(result).toStrictEqual([]);
     });
   });
 
   describe('error cases', () => {
-    it('ERROR: {orchestrator throws} => throws error', () => {
+    it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorGetQuestQueueAdapterProxy();
       proxy.throws({ error: new Error('Queue read failed') });
 
-      expect(() => orchestratorGetQuestQueueAdapter()).toThrow(/^Queue read failed$/u);
+      await expect(orchestratorGetQuestQueueAdapter()).rejects.toThrow(/^Queue read failed$/u);
     });
   });
 });

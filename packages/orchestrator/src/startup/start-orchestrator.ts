@@ -234,7 +234,7 @@ export const StartOrchestrator = {
   getSmoketestState: (): ReturnType<typeof SmoketestFlow.getState> => SmoketestFlow.getState(),
 
   // Execution queue
-  getExecutionQueue: (): readonly QuestQueueEntry[] => ExecutionQueueFlow.getAll(),
+  getExecutionQueue: async (): Promise<readonly QuestQueueEntry[]> => ExecutionQueueFlow.getAll(),
 
   setWebPresence: ({ isPresent }: { isPresent: boolean }): AdapterResult =>
     ExecutionQueueFlow.setWebPresence({ isPresent }),

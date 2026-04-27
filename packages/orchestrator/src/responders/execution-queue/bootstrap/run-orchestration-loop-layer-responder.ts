@@ -10,7 +10,7 @@
  * questOrchestrationLoopBroker directly.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, SessionId } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
   filePathContract,
@@ -19,10 +19,12 @@ import {
 import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const RunOrchestrationLoopLayerResponder = async ({
@@ -77,6 +79,16 @@ export const RunOrchestrationLoopLayerResponder = async ({
   const guild = await guildGetBroker({ guildId });
   const startPath = filePathContract.parse(guild.path);
 
+  // Per-slot sessionId memo. The slot manager learns each agent's sessionId asynchronously
+  // (after Claude CLI emits its system/init line). The first chat-output emits arrive BEFORE
+  // sessionId is known, so payload.sessionId is undefined for those. Once the slot manager
+  // resolves a sessionId for a slot, it is forwarded on every subsequent onAgentEntry call —
+  // we mirror that into this map so chat-output broadcasts always carry sessionId once known,
+  // even if the upstream lookup ever returns undefined for a transient race. We also stamp
+  // chatProcessId = sessionId so the web client's existing replay-style routing (keyed on
+  // chatProcessId) finds the right work-item bucket when sessionId is present.
+  const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
+
   try {
     await questOrchestrationLoopBroker({
       processId,
@@ -88,16 +100,14 @@ export const RunOrchestrationLoopLayerResponder = async ({
         const parsed = claudeLineNormalizeBroker({ rawLine });
         const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
         if (entries.length === 0) return;
-        orchestrationEventsState.emit({
-          type: 'chat-output',
+        const payload = buildOrchestrationLoopOnAgentEntryTransformer({
           processId,
-          payload: {
-            processId,
-            slotIndex,
-            entries,
-            ...(sessionId === undefined ? {} : { sessionId }),
-          },
+          slotIndexToSessionId,
+          slotIndex,
+          entries,
+          ...(sessionId === undefined ? {} : { sessionId }),
         });
+        orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
       },
       abortSignal: abortController.signal,
     });

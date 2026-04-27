@@ -13,7 +13,11 @@ import { Box, Text } from '@mantine/core';
 
 import type { QuestStatus, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 
-import { chatEntryContract, type ChatEntry } from '@dungeonmaster/shared/contracts';
+import {
+  chatEntryContract,
+  sessionIdContract,
+  type ChatEntry,
+} from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
@@ -35,6 +39,7 @@ import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
+import { isBareUuidChatProcessIdGuard } from '../../guards/is-bare-uuid-chat-process-id/is-bare-uuid-chat-process-id-guard';
 import { isDesignStartVisibleGuard } from '../../guards/is-design-start-visible/is-design-start-visible-guard';
 import { isDesignTabVisibleGuard } from '../../guards/is-design-tab-visible/is-design-tab-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -276,46 +281,6 @@ export const QuestChatWidget = (): React.JSX.Element => {
         const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
         if (!payloadResult.success) return;
 
-        const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
-        if (slotIndexParsed.success) {
-          const rawEntries = payloadResult.data.entries;
-          if (!Array.isArray(rawEntries)) return;
-
-          const validEntries: ChatEntry[] = [];
-          for (const candidate of rawEntries) {
-            const parseResult = chatEntryContract.safeParse(candidate);
-            if (parseResult.success) {
-              validEntries.push(parseResult.data);
-            }
-          }
-          if (validEntries.length === 0) return;
-
-          handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: validEntries });
-
-          const liveSessionId = payloadResult.data.sessionId;
-          if (liveSessionId !== undefined) {
-            setWorkItemSessionEntries((prev) => {
-              const updated = new Map(prev);
-              const existing = updated.get(liveSessionId) ?? [];
-              updated.set(liveSessionId, [...existing, ...validEntries]);
-              return updated;
-            });
-          }
-          return;
-        }
-
-        const { chatProcessId } = payloadResult.data;
-        if (chatProcessId === undefined) return;
-
-        // Only process replay messages initiated by this component's flushPendingReplays,
-        // identified by the 'exec-replay-' prefix. The server broadcasts replay output to
-        // ALL WS clients, so replays triggered by useSessionChatBinding (prefix 'replay-')
-        // or external callers would otherwise duplicate entries in the DOM.
-        const EXEC_REPLAY_PREFIX = 'exec-replay-';
-        if (!chatProcessId.startsWith(EXEC_REPLAY_PREFIX)) return;
-
-        const replaySessionId = chatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId;
-
         const rawEntries = payloadResult.data.entries;
         if (!Array.isArray(rawEntries)) return;
 
@@ -328,10 +293,44 @@ export const QuestChatWidget = (): React.JSX.Element => {
         }
         if (validEntries.length === 0) return;
 
+        // Slot routing: when payload carries a slotIndex (live active session output
+        // from the slot manager), feed the per-slot agent-output binding so the active
+        // session view stays in sync.
+        const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
+        if (slotIndexParsed.success) {
+          handleAgentOutput({ slotIndex: slotIndexParsed.data, entries: validEntries });
+        }
+
+        // Map population: any chat-output that carries a sessionId (live OR replay)
+        // belongs to a work item's per-session entry list, regardless of slotIndex
+        // presence or chatProcessId prefix. Sources covered:
+        //   - LIVE codeweaver: payload.sessionId set, no slotIndex, chatProcessId === sessionId
+        //   - LIVE active session via slot manager: slotIndex + payload.sessionId
+        //   - REPLAY: chatProcessId begins with EXEC_REPLAY_PREFIX, sessionId derived from suffix
+        //   - UUID-shape fallback: payload.sessionId absent and chatProcessId is a bare UUID.
+        //     The orchestrator stamps chatProcessId = sessionId on live emits once sessionId
+        //     is learned (see RunOrchestrationLoopLayerResponder); this fallback recovers
+        //     routing if the explicit sessionId field is ever dropped on the wire.
+        // Replays initiated by other clients (e.g. useSessionChatBinding's 'replay-' prefix)
+        // are filtered out — only this component's own 'exec-replay-' replays count when
+        // payload.sessionId is absent.
+        const EXEC_REPLAY_PREFIX = 'exec-replay-';
+        const { chatProcessId } = payloadResult.data;
+        const fallbackFromBareUuid: SessionId | undefined =
+          chatProcessId !== undefined && isBareUuidChatProcessIdGuard({ chatProcessId })
+            ? sessionIdContract.parse(chatProcessId)
+            : undefined;
+        const targetSessionId: SessionId | undefined =
+          payloadResult.data.sessionId ??
+          (chatProcessId?.startsWith(EXEC_REPLAY_PREFIX) === true
+            ? (chatProcessId.slice(EXEC_REPLAY_PREFIX.length) as SessionId)
+            : fallbackFromBareUuid);
+        if (targetSessionId === undefined) return;
+
         setWorkItemSessionEntries((prev) => {
           const updated = new Map(prev);
-          const existing = updated.get(replaySessionId) ?? [];
-          updated.set(replaySessionId, [...existing, ...validEntries]);
+          const existing = updated.get(targetSessionId) ?? [];
+          updated.set(targetSessionId, [...existing, ...validEntries]);
           return updated;
         });
       },
@@ -456,6 +455,7 @@ export const QuestChatWidget = (): React.JSX.Element => {
               quest={questWithContent}
               slotEntries={slotEntries}
               sessionEntries={sessionEntriesMap}
+              {...(matchedGuild?.urlSlug ? { guildSlug: matchedGuild.urlSlug } : {})}
               onStatusChange={({ status }): void => {
                 if (isUserPausedQuestStatusGuard({ status: questWithContent.status })) {
                   questResumeBroker({ questId: questWithContent.id }).catch(

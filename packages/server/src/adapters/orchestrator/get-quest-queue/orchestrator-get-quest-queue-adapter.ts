@@ -9,5 +9,5 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
-export const orchestratorGetQuestQueueAdapter = (): readonly QuestQueueEntry[] =>
+export const orchestratorGetQuestQueueAdapter = async (): Promise<readonly QuestQueueEntry[]> =>
   StartOrchestrator.getExecutionQueue();

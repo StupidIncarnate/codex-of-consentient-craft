@@ -19,8 +19,12 @@
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import {
+  absoluteFilePathContract,
+  adapterResultContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -56,12 +60,30 @@ export const chatHistoryReplayBroker = async ({
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
   const guild = await guildGetBroker({ guildId });
-  const projectPath = absoluteFilePathContract.parse(guild.path);
+  // Walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
+  // because Claude CLI encodes its session JSONL filename from the SPAWN cwd, not the guild
+  // path. For the smoketests guild whose path is `<repo>/.dungeonmaster-dev`, the agent is
+  // spawned at the repo root by `agent-spawn-by-role-broker`, so the JSONL lives under
+  // `~/.claude/projects/-home-...-codex-of-consentient-craft/`, not `...--dungeonmaster-dev/`.
+  // Falls back to the guild path when no `.dungeonmaster.json` ancestor exists (standalone
+  // projects / e2e isolated /tmp dirs) — those agents spawn at the guild path itself.
+  const guildStartPath = filePathContract.parse(guild.path);
+  const resolvedProjectPath = await (async () => {
+    try {
+      const repoRootCwd = await cwdResolveBroker({
+        startPath: guildStartPath,
+        kind: 'repo-root',
+      });
+      return absoluteFilePathContract.parse(repoRootCwd);
+    } catch {
+      return absoluteFilePathContract.parse(guild.path);
+    }
+  })();
   const homeDir = osUserHomedirAdapter();
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,
-    projectPath,
+    projectPath: resolvedProjectPath,
     sessionId,
   });
 

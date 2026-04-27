@@ -15,6 +15,7 @@ import type {
   QuestStatus,
   SessionId,
   StepId,
+  UrlSlug,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
@@ -55,6 +56,7 @@ export interface ExecutionPanelWidgetProps {
   quest: Quest;
   slotEntries?: Map<SlotIndex, ChatEntry[]>;
   sessionEntries?: Map<SessionId, ChatEntry[]>;
+  guildSlug?: UrlSlug;
   onStatusChange?: (params: { status: QuestStatus }) => void;
   onPause?: () => void;
   onAbandon?: () => void;
@@ -80,6 +82,7 @@ export const ExecutionPanelWidget = ({
   quest,
   slotEntries = new Map(),
   sessionEntries = new Map(),
+  guildSlug,
   onStatusChange,
   onPause,
   onAbandon,
@@ -273,6 +276,12 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
+                            {...(wi.smoketestExpectedSignal
+                              ? { expectedSignal: wi.smoketestExpectedSignal }
+                              : {})}
+                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                            {...(guildSlug ? { guildSlug } : {})}
                           />
                         );
                       })}
@@ -344,6 +353,12 @@ export const ExecutionPanelWidget = ({
                           completedAt={wi.completedAt}
                           {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                           {...(wi.summary ? { summary: wi.summary } : {})}
+                          {...(wi.smoketestExpectedSignal
+                            ? { expectedSignal: wi.smoketestExpectedSignal }
+                            : {})}
+                          {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                          {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                          {...(guildSlug ? { guildSlug } : {})}
                         />
                       );
                     })}
@@ -409,6 +424,12 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
+                            {...(wi.smoketestExpectedSignal
+                              ? { expectedSignal: wi.smoketestExpectedSignal }
+                              : {})}
+                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                            {...(guildSlug ? { guildSlug } : {})}
                           />
                         );
                       })}
@@ -479,6 +500,12 @@ export const ExecutionPanelWidget = ({
                             {...(resolvedWardResults.length > 0
                               ? { wardResults: resolvedWardResults }
                               : {})}
+                            {...(wi.smoketestExpectedSignal
+                              ? { expectedSignal: wi.smoketestExpectedSignal }
+                              : {})}
+                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                            {...(guildSlug ? { guildSlug } : {})}
                           />
                         );
                       })}

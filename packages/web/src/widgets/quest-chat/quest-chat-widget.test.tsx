@@ -1858,6 +1858,274 @@ describe('QuestChatWidget', () => {
     });
   });
 
+  describe('live codeweaver sessionId routing without slotIndex', () => {
+    it('VALID: {chat-output WS message with sessionId only, no slotIndex, no exec-replay- prefix} => routes entries to work item panel by sessionId', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-live-bare-cw',
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-live-bare-cw' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-bare-session-cw' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-bare-cw' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-live-bare-cw',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      // Live codeweaver chat-output: chatProcessId === sessionId (no exec-replay- prefix),
+      // no slotIndex (codeweaver runs outside the slot manager), payload.sessionId carries
+      // the work item's session id.
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'wi-bare-session-cw',
+              sessionId: 'wi-bare-session-cw',
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Live bare-session codeweaver output...',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRow = stepRows.find((row) => row.textContent?.includes('CODEWEAVER'));
+      const rowHeader = codeweaverRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      const messages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(Array.from(messages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+      ]);
+      expect(messages[0]?.textContent).toBe('CODEWEAVERLive bare-session codeweaver output...');
+    });
+
+    it('VALID: {chat-output with no sessionId and no exec-replay- prefix} => entries are ignored', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const quest = QuestStub({
+        id: 'chat-no-route',
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-no-route' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: 'wi-no-route-cw' as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-no-route' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-no-route',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      // Replay path from a different client (chatProcessId begins with 'replay-' not
+      // 'exec-replay-'), no sessionId on payload, no slotIndex. Should be dropped.
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'replay-other-client-session',
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Should not appear anywhere',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRow = stepRows.find((row) => row.textContent?.includes('CODEWEAVER'));
+      const rowHeader = codeweaverRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      const codeweaverMessages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(Array.from(codeweaverMessages)).toStrictEqual([]);
+    });
+
+    it('VALID: {chat-output with no payload.sessionId, no exec-replay- prefix, but UUID-shape chatProcessId} => routes entries to work item panel by chatProcessId', async () => {
+      const proxy = QuestChatWidgetProxy();
+      const guild = GuildListItemStub({ urlSlug: 'test-guild' });
+      const codeweaverSessionId = 'b4a5c2d1-918c-4408-aeb1-f8f4ce8400cb';
+      const quest = QuestStub({
+        id: 'chat-uuid-fallback',
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId: 'chat-uuid-fallback' as never,
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId: codeweaverSessionId as never,
+          }),
+        ],
+      });
+      const guildDetail = GuildStub({ id: guild.id });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupGuild({ guild: guildDetail });
+      proxy.setupQuestStart({ processId: 'proc-uuid-fallback' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/test-guild/session/chat-uuid-fallback',
+                state: { questId: quest.id },
+              },
+            ]}
+          >
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.setupQuest({ quest });
+      });
+
+      await waitFor(() => {
+        expect(proxy.hasExecutionPanel()).toBe(true);
+      });
+
+      // Defensive fallback: payload.sessionId omitted, no exec-replay- prefix, chatProcessId
+      // is a bare UUID (the orchestrator stamps chatProcessId = sessionId on live emits once
+      // the codeweaver session id is learned). Widget should treat chatProcessId as sessionId
+      // and route to the codeweaver work-item bucket.
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: codeweaverSessionId,
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'UUID-fallback codeweaver output...',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
+      const codeweaverRow = stepRows.find((row) => row.textContent?.includes('CODEWEAVER'));
+      const rowHeader = codeweaverRow!.querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      const messages = codeweaverRow!.querySelectorAll('[data-testid="CHAT_MESSAGE"]');
+
+      expect(Array.from(messages).map((m) => m.getAttribute('data-testid'))).toStrictEqual([
+        'CHAT_MESSAGE',
+      ]);
+      expect(messages[0]?.textContent).toBe('CODEWEAVERUUID-fallback codeweaver output...');
+    });
+  });
+
   describe('plain-text fallback for non-JSON lines', () => {
     it('VALID: {chat-output with non-JSON raw line} => falls back to plain text entry without crashing', async () => {
       const proxy = QuestChatWidgetProxy();

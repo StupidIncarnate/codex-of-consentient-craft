@@ -7,9 +7,11 @@
  */
 
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -52,6 +54,9 @@ export const QuestModifyResponder = async ({
           },
         });
 
+        // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
+        const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
+
         questFindQuestPathBroker({ questId: typedQuestId })
           .then(async ({ guildId }) => {
             const guild = await guildGetBroker({ guildId });
@@ -67,16 +72,14 @@ export const QuestModifyResponder = async ({
                 const parsed = claudeLineNormalizeBroker({ rawLine });
                 const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
                 if (entries.length === 0) return;
-                orchestrationEventsState.emit({
-                  type: 'chat-output',
+                const payload = buildOrchestrationLoopOnAgentEntryTransformer({
                   processId,
-                  payload: {
-                    processId,
-                    slotIndex,
-                    entries,
-                    ...(sessionId === undefined ? {} : { sessionId }),
-                  },
+                  slotIndexToSessionId,
+                  slotIndex,
+                  entries,
+                  ...(sessionId === undefined ? {} : { sessionId }),
                 });
+                orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
               },
               abortSignal: abortController.signal,
             });

@@ -9,9 +9,11 @@
  */
 
 import {
+  absoluteFilePathContract,
   exitCodeContract,
   filePathContract,
   repoRootCwdContract,
+  type AbsoluteFilePath,
   type FilePath,
   type RepoRootCwd,
   type SessionId,
@@ -37,6 +39,7 @@ import { signalFromStreamTransformer } from '../../../transformers/signal-from-s
 import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 import { workUnitToArgumentsTransformer } from '../../../transformers/work-unit-to-arguments/work-unit-to-arguments-transformer';
 import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-broker';
+import { signalFromSessionJsonlBroker } from '../../signal/from-session-jsonl/signal-from-session-jsonl-broker';
 
 const SMOKETEST_MODEL = claudeModelContract.parse('haiku');
 
@@ -103,7 +106,7 @@ export const agentSpawnByRoleBroker = async ({
     let lastSignal: StreamSignal | null = null;
     const outputLines: StreamText[] = [];
 
-    return await new Promise<AgentSpawnStreamingResult>((resolve) => {
+    const streamingResult = await new Promise<AgentSpawnStreamingResult>((resolve) => {
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt,
         cwd: resolvedCwd,
@@ -159,6 +162,27 @@ export const agentSpawnByRoleBroker = async ({
         kill();
       }
     });
+
+    // Disk fallback: when the live stream parser missed the agent's signal-back call but a
+    // session JSONL exists on disk, walk the file for the last signal-back tool_use line.
+    // The live and disk paths emit the same envelope shape; differences in stream-event
+    // framing across Claude CLI versions make the live parser miss signals that are still
+    // reliably written to `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`.
+    if (streamingResult.signal === null && streamingResult.sessionId !== null) {
+      const guildPath: AbsoluteFilePath = absoluteFilePathContract.parse(resolvedCwd);
+      const fromDisk = await signalFromSessionJsonlBroker({
+        guildPath,
+        sessionId: streamingResult.sessionId,
+      });
+      if (fromDisk !== null) {
+        return agentSpawnStreamingResultContract.parse({
+          ...streamingResult,
+          signal: fromDisk,
+        });
+      }
+    }
+
+    return streamingResult;
   } catch {
     return agentSpawnStreamingResultContract.parse({
       crashed: true,

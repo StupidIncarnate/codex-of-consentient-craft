@@ -21,7 +21,7 @@ export const ExecutionQueueFlow = {
 
   bootstrapSyncListener: (): AdapterResult => ExecutionQueueSyncListenerBootstrapResponder(),
 
-  getAll: (): readonly QuestQueueEntry[] => ExecutionQueueGetAllResponder(),
+  getAll: async (): Promise<readonly QuestQueueEntry[]> => ExecutionQueueGetAllResponder(),
 
   setWebPresence: ({ isPresent }: { isPresent: boolean }): AdapterResult =>
     ExecutionQueueSetWebPresenceResponder({ isPresent }),

@@ -299,6 +299,175 @@ describe('agentSpawnByRoleBroker', () => {
     });
   });
 
+  describe('disk-fallback signal extraction', () => {
+    it('VALID: {stream emits no signal, sessionId resolved, JSONL on disk has signal-back} => returns signal from disk fallback', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
+
+      // Stream provides only the session-id line — no signal-back tool_use line in stream.
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      // But the on-disk session JSONL contains a signal-back tool_use line (the agent did
+      // call mcp__dungeonmaster__signal-back; the live stream parser missed it).
+      const diskSignalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: {
+                signal: 'complete',
+                summary: 'recovered from disk',
+              },
+            },
+          ],
+        },
+      });
+      proxy.setupSessionJsonlContent({ content: `${diskSignalLine}\n` });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        exitCode: 0,
+        signal: { signal: 'complete', summary: 'recovered from disk' },
+        crashed: false,
+        capturedOutput: [],
+      });
+    });
+
+    it('VALID: {stream emits no signal, sessionId resolved, JSONL on disk has multiple signals} => returns LAST signal from disk', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const firstSignalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'first try' },
+            },
+          ],
+        },
+      });
+      const lastSignalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'complete', summary: 'final answer' },
+            },
+          ],
+        },
+      });
+      proxy.setupSessionJsonlContent({
+        content: `${firstSignalLine}\n${lastSignalLine}\n`,
+      });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        exitCode: 0,
+        signal: { signal: 'complete', summary: 'final answer' },
+        crashed: false,
+        capturedOutput: [],
+      });
+    });
+
+    it('VALID: {stream emits no signal, sessionId resolved, JSONL missing on disk} => returns signal null', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
+
+      proxy.setupSpawnAndMonitor({
+        lines: [sessionLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+      proxy.setupSessionJsonlMissing();
+
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        exitCode: 0,
+        signal: null,
+        crashed: false,
+        capturedOutput: [],
+      });
+    });
+
+    it('VALID: {stream emits signal, JSONL on disk also has signal} => keeps stream signal (no fallback)', async () => {
+      const proxy = agentSpawnByRoleBrokerProxy();
+      const step = DependencyStepStub();
+      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
+      const startPath = FilePathStub({ value: '/project/src' });
+      const stepId = StepIdStub();
+
+      const streamSignalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'complete', stepId, summary: 'from stream' },
+            },
+          ],
+        },
+      });
+      proxy.setupSpawnAndMonitor({
+        lines: [streamSignalLine],
+        exitCode: ExitCodeStub({ value: 0 }),
+      });
+
+      const diskSignalLine = JSON.stringify({
+        type: 'assistant',
+        message: {
+          content: [
+            {
+              type: 'tool_use',
+              name: 'mcp__dungeonmaster__signal-back',
+              input: { signal: 'failed', summary: 'should not be used' },
+            },
+          ],
+        },
+      });
+      proxy.setupSessionJsonlContent({ content: `${diskSignalLine}\n` });
+
+      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+
+      expect(result).toStrictEqual({
+        sessionId: null,
+        exitCode: 0,
+        signal: { signal: 'complete', summary: 'from stream' },
+        crashed: false,
+        capturedOutput: [],
+      });
+    });
+  });
+
   describe('text capture', () => {
     it('VALID: {stdout emits assistant text line} => returns capturedOutput with text', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();

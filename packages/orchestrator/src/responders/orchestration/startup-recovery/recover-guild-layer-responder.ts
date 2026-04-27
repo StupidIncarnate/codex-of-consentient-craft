@@ -11,9 +11,11 @@ import {
   processIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -125,6 +127,9 @@ export const RecoverGuildLayerResponder = async ({
         },
       });
 
+      // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
+      const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
+
       questOrchestrationLoopBroker({
         processId,
         questId: quest.id,
@@ -135,16 +140,14 @@ export const RecoverGuildLayerResponder = async ({
           const parsed = claudeLineNormalizeBroker({ rawLine });
           const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
           if (entries.length === 0) return;
-          orchestrationEventsState.emit({
-            type: 'chat-output',
+          const payload = buildOrchestrationLoopOnAgentEntryTransformer({
             processId,
-            payload: {
-              processId,
-              slotIndex,
-              entries,
-              ...(sessionId === undefined ? {} : { sessionId }),
-            },
+            slotIndexToSessionId,
+            slotIndex,
+            entries,
+            ...(sessionId === undefined ? {} : { sessionId }),
           });
+          orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
         },
         abortSignal: abortController.signal,
       })

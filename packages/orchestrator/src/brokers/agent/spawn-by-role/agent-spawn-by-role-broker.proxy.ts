@@ -7,6 +7,7 @@ import {
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
+import { signalFromSessionJsonlBrokerProxy } from '../../signal/from-session-jsonl/signal-from-session-jsonl-broker.proxy';
 import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unified-broker.proxy';
 
 export const agentSpawnByRoleBrokerProxy = (): {
@@ -23,12 +24,19 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupConfigRoot: (params: { root: string }) => void;
   setupConfigRootRejection: (params: { error: Error }) => void;
   getConfigRootCalls: () => readonly unknown[][];
+  setupSessionJsonlContent: (params: { content: string }) => void;
+  setupSessionJsonlMissing: () => void;
 } => {
   claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
+  // Wires the disk-fallback signal extractor's adapter (fsReadJsonlAdapter -> readFile).
+  // The underlying fsReadJsonlAdapterProxy defaults to empty content, so spawns that resolve
+  // with sessionId !== null && signal === null produce signal: null from the disk fallback
+  // unless a test overrides via setupSessionJsonlContent / setupSessionJsonlMissing.
+  const sessionJsonlProxy = signalFromSessionJsonlBrokerProxy();
   // Every spawn walks up from `startPath` to the repo root (directory containing
   // `.dungeonmaster.json`) via `cwdResolveBroker({ kind: 'repo-root' })`. Mock the broker
   // directly so tests can assert the resolved cwd without threading fs.access / path.join
@@ -121,5 +129,13 @@ export const agentSpawnByRoleBrokerProxy = (): {
     },
 
     getConfigRootCalls: (): readonly unknown[][] => configRootMock.mock.calls,
+
+    setupSessionJsonlContent: ({ content }: { content: string }): void => {
+      sessionJsonlProxy.setupFileContent({ content });
+    },
+
+    setupSessionJsonlMissing: (): void => {
+      sessionJsonlProxy.setupFileNotFound();
+    },
   };
 };

@@ -6,7 +6,7 @@
  * // Returns { resumed: true, restoredStatus: 'seek_scope' } when the paused quest transitions back to its pre-pause status and the loop is relaunched
  */
 
-import type { QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import {
   filePathContract,
@@ -17,6 +17,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+
+import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import {
   isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
@@ -148,6 +151,9 @@ export const OrchestrationResumeResponder = async ({
     },
   });
 
+  // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
+  const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
+
   questOrchestrationLoopBroker({
     processId,
     questId: reloaded.id,
@@ -158,16 +164,14 @@ export const OrchestrationResumeResponder = async ({
       const parsed = claudeLineNormalizeBroker({ rawLine });
       const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
       if (entries.length === 0) return;
-      orchestrationEventsState.emit({
-        type: 'chat-output',
+      const payload = buildOrchestrationLoopOnAgentEntryTransformer({
         processId,
-        payload: {
-          processId,
-          slotIndex,
-          entries,
-          ...(sessionId === undefined ? {} : { sessionId }),
-        },
+        slotIndexToSessionId,
+        slotIndex,
+        entries,
+        ...(sessionId === undefined ? {} : { sessionId }),
       });
+      orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
     },
     abortSignal: abortController.signal,
   })

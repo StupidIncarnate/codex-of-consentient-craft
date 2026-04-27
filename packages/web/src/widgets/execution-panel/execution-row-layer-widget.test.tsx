@@ -1015,4 +1015,93 @@ describe('ExecutionRowLayerWidget', () => {
       expect(badges).toStrictEqual([]);
     });
   });
+
+  describe('signal mismatch rendering', () => {
+    it('VALID: {failed, expectedSignal+actualSignal} => renders both signal lines', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            expectedSignal={'complete'}
+            actualSignal={'failed'}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const expectedEl = screen.getByTestId('execution-row-expected-signal');
+      const actualEl = screen.getByTestId('execution-row-actual-signal');
+
+      expect(expectedEl.textContent).toBe('Expected signal: complete');
+      expect(actualEl.textContent).toBe('Actual signal: failed');
+    });
+
+    it('VALID: {failed, only expectedSignal} => renders expected with em-dash actual', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            expectedSignal={'complete'}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const expectedEl = screen.getByTestId('execution-row-expected-signal');
+      const actualEl = screen.getByTestId('execution-row-actual-signal');
+
+      expect(expectedEl.textContent).toBe('Expected signal: complete');
+      expect(actualEl.textContent).toBe('Actual signal: —');
+    });
+
+    it('VALID: {failed status} => signal text is rendered in danger color', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+            expectedSignal={'complete'}
+            actualSignal={'failed'}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const expectedEl = screen.getByTestId('execution-row-expected-signal');
+
+      expect(expectedEl.style.color).toBe('rgb(239, 68, 68)');
+    });
+
+    it('EMPTY: {neither expectedSignal nor actualSignal} => does not render signal block', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'failed' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-signals')).toBe(null);
+    });
+  });
 });
