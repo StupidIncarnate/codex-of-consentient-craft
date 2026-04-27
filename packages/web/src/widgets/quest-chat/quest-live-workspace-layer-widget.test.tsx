@@ -2,7 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-import { QuestStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestLiveWorkspaceLayerWidget } from './quest-live-workspace-layer-widget';
@@ -148,6 +148,7 @@ describe('QuestLiveWorkspaceLayerWidget', () => {
             type: 'chat-output',
             payload: {
               questId: quest.id,
+              workItemId: QuestWorkItemIdStub(),
               sessionId: workItemSessionId,
               entries: [{ role: 'assistant', type: 'text', content: 'forwarded entry' }],
             },
@@ -250,6 +251,7 @@ describe('QuestLiveWorkspaceLayerWidget', () => {
             type: 'chat-output',
             payload: {
               questId: quest.id,
+              workItemId: QuestWorkItemIdStub(),
               entries: [{ role: 'assistant', type: 'text', content: 'streaming...' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',

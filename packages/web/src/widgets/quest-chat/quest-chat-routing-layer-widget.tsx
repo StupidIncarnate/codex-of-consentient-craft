@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Picks the Stage 4 quest-route branch (live workspace by questId, or new-chat panel) for /:guildSlug/quest[/* :questId]; returns null when the URL is not a quest path so the parent can fall through to legacy session handling.
+ * PURPOSE: Routes the /:guildSlug/quest[/* :questId] surface to NOT_FOUND (no guild), live workspace (questId present), new-chat panel (no questId, guild matched), or loading raccoon (guild loading).
  *
  * USAGE:
- * <QuestChatRoutingLayerWidget isQuestPath={...} questId={...} matchedGuildId={...} matchedGuildSlug={...} guildsLoading={...} />
- * // Returns the routed JSX, or null when none of the Stage 4 quest branches apply.
+ * <QuestChatRoutingLayerWidget questId={...} matchedGuild={...} matchedGuildId={...} guildsLoading={...} />
+ * // Returns the routed JSX for the live quest workspace.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -16,7 +16,6 @@ import { QuestLiveWorkspaceLayerWidget } from './quest-live-workspace-layer-widg
 import { QuestNewChatLayerWidget } from './quest-new-chat-layer-widget';
 
 export interface QuestChatRoutingLayerWidgetProps {
-  isQuestPath: boolean;
   questId: QuestId | null | undefined;
   matchedGuild: Guild | undefined;
   matchedGuildId: GuildId | null;
@@ -24,14 +23,12 @@ export interface QuestChatRoutingLayerWidgetProps {
 }
 
 export const QuestChatRoutingLayerWidget = ({
-  isQuestPath,
   questId,
   matchedGuild,
   matchedGuildId,
   guildsLoading,
-}: QuestChatRoutingLayerWidgetProps): React.JSX.Element | null => {
+}: QuestChatRoutingLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
-  if (!isQuestPath) return null;
 
   const resolvedQuestId = questId ?? null;
   const matchedGuildSlug = matchedGuild?.urlSlug;

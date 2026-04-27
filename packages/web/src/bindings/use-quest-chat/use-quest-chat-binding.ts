@@ -76,12 +76,7 @@ export const useQuestChatBinding = ({
     if (parsed.data.type === 'chat-output') {
       const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
       if (!payloadResult.success) return;
-      if (
-        payloadResult.data.questId !== undefined &&
-        payloadResult.data.questId !== activeQuestId
-      ) {
-        return;
-      }
+      if (payloadResult.data.questId !== activeQuestId) return;
 
       const rawEntries = payloadResult.data.entries;
       if (!Array.isArray(rawEntries)) return;

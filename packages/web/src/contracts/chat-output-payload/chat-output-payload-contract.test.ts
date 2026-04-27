@@ -5,7 +5,7 @@ import { ChatOutputPayloadStub } from './chat-output-payload.stub';
 
 describe('chatOutputPayloadContract', () => {
   describe('valid payloads', () => {
-    it('VALID: {chatProcessId, entries, sessionId} => parses successfully', () => {
+    it('VALID: {chatProcessId, entries, sessionId, questId, workItemId} => parses successfully', () => {
       const payload = ChatOutputPayloadStub();
 
       const result = chatOutputPayloadContract.parse(payload);
@@ -14,18 +14,12 @@ describe('chatOutputPayloadContract', () => {
         chatProcessId: 'proc-12345',
         entries: [],
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        questId: payload.questId,
+        workItemId: payload.workItemId,
       });
     });
-  });
 
-  describe('valid payloads — optional fields', () => {
-    it('VALID: {missing chatProcessId} => parses successfully with chatProcessId undefined', () => {
-      const result = chatOutputPayloadContract.parse({ entries: [] });
-
-      expect(result.chatProcessId).toBe(undefined);
-    });
-
-    it('VALID: {questId, workItemId both present} => parses successfully and preserves them', () => {
+    it('VALID: {questId + workItemId only, no chatProcessId, no sessionId} => parses successfully', () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub();
 
@@ -40,48 +34,33 @@ describe('chatOutputPayloadContract', () => {
         questId,
         workItemId,
       });
-    });
-
-    it('VALID: {questId only} => parses successfully', () => {
-      const questId = QuestIdStub();
-
-      const result = chatOutputPayloadContract.parse({
-        entries: [],
-        questId,
-      });
-
-      expect(result).toStrictEqual({
-        entries: [],
-        questId,
-      });
-    });
-
-    it('VALID: {workItemId only} => parses successfully', () => {
-      const workItemId = QuestWorkItemIdStub();
-
-      const result = chatOutputPayloadContract.parse({
-        entries: [],
-        workItemId,
-      });
-
-      expect(result).toStrictEqual({
-        entries: [],
-        workItemId,
-      });
-    });
-
-    it('VALID: {both questId and workItemId omitted} => parses successfully (orphan-session backward compat)', () => {
-      const result = chatOutputPayloadContract.parse({ entries: [] });
-
-      expect(result).toStrictEqual({ entries: [] });
     });
   });
 
   describe('error cases', () => {
+    it('ERROR: {questId missing} => parse fails', () => {
+      const result = chatOutputPayloadContract.safeParse({
+        entries: [],
+        workItemId: QuestWorkItemIdStub(),
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('ERROR: {workItemId missing} => parse fails', () => {
+      const result = chatOutputPayloadContract.safeParse({
+        entries: [],
+        questId: QuestIdStub(),
+      });
+
+      expect(result.success).toBe(false);
+    });
+
     it('ERROR: {questId is empty string} => parse fails', () => {
       const result = chatOutputPayloadContract.safeParse({
         entries: [],
         questId: '',
+        workItemId: QuestWorkItemIdStub(),
       });
 
       expect(result.success).toBe(false);
@@ -90,6 +69,7 @@ describe('chatOutputPayloadContract', () => {
     it('ERROR: {workItemId is empty string} => parse fails', () => {
       const result = chatOutputPayloadContract.safeParse({
         entries: [],
+        questId: QuestIdStub(),
         workItemId: '',
       });
 
@@ -100,6 +80,7 @@ describe('chatOutputPayloadContract', () => {
       const result = chatOutputPayloadContract.safeParse({
         entries: [],
         questId: 12345,
+        workItemId: QuestWorkItemIdStub(),
       });
 
       expect(result.success).toBe(false);

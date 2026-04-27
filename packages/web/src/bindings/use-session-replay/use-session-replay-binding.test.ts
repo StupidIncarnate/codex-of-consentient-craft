@@ -1,4 +1,9 @@
-import { GuildIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  QuestIdStub,
+  QuestWorkItemIdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -71,6 +76,8 @@ describe('useSessionReplayBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: `replay-${sessionId}`,
+                questId: QuestIdStub(),
+                workItemId: QuestWorkItemIdStub(),
                 entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
@@ -102,6 +109,8 @@ describe('useSessionReplayBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: 'unrelated-proc-id',
+                questId: QuestIdStub(),
+                workItemId: QuestWorkItemIdStub(),
                 entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
@@ -135,6 +144,8 @@ describe('useSessionReplayBinding', () => {
               type: 'chat-output',
               payload: {
                 chatProcessId: `replay-${sessionId}`,
+                questId: QuestIdStub(),
+                workItemId: QuestWorkItemIdStub(),
                 entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
               },
               timestamp: '2025-01-01T00:00:00.000Z',

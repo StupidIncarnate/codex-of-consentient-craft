@@ -2,6 +2,8 @@ import {
   GuildIdStub,
   GuildListItemStub,
   ProcessIdStub,
+  QuestIdStub,
+  QuestWorkItemIdStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 import { act, screen, waitFor } from '@testing-library/react';
@@ -77,6 +79,8 @@ describe('SessionViewWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
               entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
@@ -173,6 +177,8 @@ describe('SessionViewWidget', () => {
             type: 'chat-output',
             payload: {
               chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
               entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',

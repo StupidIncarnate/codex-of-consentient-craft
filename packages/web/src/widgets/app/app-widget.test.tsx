@@ -25,10 +25,9 @@ const renderApp = (): void => {
         <Routes>
           <Route element={<AppWidget />}>
             <Route path="/" element={<HomeContentWidget />} />
-            <Route path="/:guildSlug/session" element={<QuestChatWidget />} />
             <Route path="/:guildSlug/session/:sessionId" element={<QuestChatWidget />} />
             <Route path="/:guildSlug/quest" element={<QuestChatWidget />} />
-            <Route path="/:guildSlug/quest/:sessionId" element={<QuestChatWidget />} />
+            <Route path="/:guildSlug/quest/:questId" element={<QuestChatWidget />} />
           </Route>
         </Routes>
       </MemoryRouter>

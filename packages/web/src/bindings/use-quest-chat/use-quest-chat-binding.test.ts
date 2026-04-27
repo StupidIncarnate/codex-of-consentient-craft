@@ -3,6 +3,7 @@ import {
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
+  QuestWorkItemIdStub,
   SessionIdStub,
   UserInputStub,
 } from '@dungeonmaster/shared/contracts';
@@ -79,6 +80,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-out-1',
+                workItemId: QuestWorkItemIdStub(),
                 sessionId,
                 chatProcessId: ProcessIdStub({ value: 'proc-1' }),
                 entries: [{ role: 'assistant', type: 'text', content: 'hello' }],
@@ -118,6 +120,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-other',
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-2' }),
                 entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
               },
@@ -223,6 +226,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-hist-1',
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-h' }),
                 entries: [{ role: 'assistant', type: 'text', content: 'replay' }],
               },
@@ -444,6 +448,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-complete-1',
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
                 entries: [{ role: 'assistant', type: 'text', content: 'streaming' }],
               },
@@ -534,6 +539,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-nosession-1',
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-ns' }),
                 entries: [{ role: 'assistant', type: 'text', content: 'no-sess' }],
               },
