@@ -53,11 +53,16 @@ export const childProcessSpawnCaptureAdapter = async ({
             child.kill();
           }, timeout);
 
-    child.on('exit', (code) => {
+    child.on('exit', (code, signal) => {
       if (timeoutHandle !== null) {
         clearTimeout(timeoutHandle);
       }
       const combinedOutput = errorMessageContract.parse(stdout + stderr);
+
+      if (code === null && signal !== null) {
+        resolve({ exitCode: exitCodeContract.parse(1), output: combinedOutput });
+        return;
+      }
 
       if (code !== null && code !== 0) {
         const normalizedCode = Math.max(0, code);

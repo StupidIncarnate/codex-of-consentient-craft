@@ -31,16 +31,23 @@ export const fsGlobSyncAdapter = ({
   cwd: AbsoluteFilePath;
   exclude?: readonly string[];
 }): { discoveredCount: DiscoveredCount; discoveredFiles: GitRelativePath[] } => {
-  const allFiles: GitRelativePath[] = [];
+  const seen = new Set<GitRelativePath>();
+  const uniqueFiles: GitRelativePath[] = [];
   for (const pattern of patterns) {
     const matches = globSync(pattern, {
       cwd,
       ...(exclude === undefined ? {} : { exclude: [...exclude] }),
     });
-    allFiles.push(...matches.map((match) => gitRelativePathContract.parse(match)));
+    for (const match of matches) {
+      const parsed = gitRelativePathContract.parse(match);
+      if (!seen.has(parsed)) {
+        seen.add(parsed);
+        uniqueFiles.push(parsed);
+      }
+    }
   }
   return {
-    discoveredCount: discoveredCountContract.parse(allFiles.length),
-    discoveredFiles: allFiles,
+    discoveredCount: discoveredCountContract.parse(uniqueFiles.length),
+    discoveredFiles: uniqueFiles,
   };
 };

@@ -35,7 +35,10 @@ export const jestDiscoverPatternsTransformer = ({
 
   if (checkType === 'unit') {
     return {
-      patterns: exts.map((ext) => globPatternContract.parse(`src/**/*.test.${ext}`)),
+      patterns: exts.flatMap((ext) => [
+        globPatternContract.parse(`src/**/*.test.${ext}`),
+        globPatternContract.parse(`test/**/*.test.${ext}`),
+      ]),
       excludePatterns: exts.flatMap((ext) => [
         globPatternContract.parse(`**/*.integration.test.${ext}`),
         globPatternContract.parse(`**/*.e2e.test.${ext}`),
@@ -44,7 +47,10 @@ export const jestDiscoverPatternsTransformer = ({
   }
 
   return {
-    patterns: exts.map((ext) => globPatternContract.parse(`src/**/*.integration.test.${ext}`)),
+    patterns: exts.flatMap((ext) => [
+      globPatternContract.parse(`src/**/*.integration.test.${ext}`),
+      globPatternContract.parse(`test/**/*.integration.test.${ext}`),
+    ]),
     excludePatterns: [],
   };
 };

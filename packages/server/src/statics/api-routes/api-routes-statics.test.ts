@@ -10,7 +10,7 @@ describe('apiRoutesStatics', () => {
         list: '/api/quests',
         queue: '/api/quests/queue',
         byId: '/api/quests/:questId',
-        new: '/api/guilds/:guildId/quests/chat',
+        new: '/api/guilds/:guildId/quests',
         chat: '/api/quests/:questId/chat',
         clarify: '/api/quests/:questId/clarify',
         start: '/api/quests/:questId/start',

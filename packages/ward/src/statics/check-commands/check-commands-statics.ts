@@ -15,7 +15,7 @@ const tsExts = ['ts', 'tsx'] as const;
 const allExts = ['ts', 'tsx', 'js', 'jsx'] as const;
 
 const lintDiscoverPatterns = [
-  ...allExts.flatMap((ext) => [`src/**/*.${ext}`, `bin/**/*.${ext}`]),
+  ...allExts.flatMap((ext) => [`src/**/*.${ext}`, `bin/**/*.${ext}`, `test/**/*.${ext}`]),
   '*.ts',
   '*.js',
 ];
@@ -23,6 +23,7 @@ const typecheckDiscoverPatterns = tsExts.flatMap((ext) => [`src/**/*.${ext}`, `b
 const unitDiscoverPatterns = allExts.flatMap((ext) => [
   `src/**/*.test.${ext}`,
   `bin/**/*.test.${ext}`,
+  `test/**/*.test.${ext}`,
 ]);
 const unitExcludePatterns = allExts.flatMap((ext) => [
   `**/*.integration.test.${ext}`,
@@ -31,6 +32,7 @@ const unitExcludePatterns = allExts.flatMap((ext) => [
 const integrationDiscoverPatterns = allExts.flatMap((ext) => [
   `src/**/*.integration.test.${ext}`,
   `bin/**/*.integration.test.${ext}`,
+  `test/**/*.integration.test.${ext}`,
 ]);
 
 // Regex alternation for all extensions: ts|tsx|js|jsx

@@ -9,7 +9,10 @@
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types"
-    ]
+    ],
+    "paths": {
+      "@dungeonmaster/eslint-plugin": ["./src/index.ts"]
+    }
   },
   "include": [
     "src/**/*"

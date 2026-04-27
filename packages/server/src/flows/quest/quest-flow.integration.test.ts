@@ -1,4 +1,4 @@
-import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
@@ -27,25 +27,6 @@ describe('QuestFlow', () => {
       const response = await app.request(`/api/quests/${questId}`);
 
       expect(response.status).toBe(200);
-    });
-  });
-
-  describe('POST /api/quests', () => {
-    it('VALID: {missing title} => delegates to QuestUserAddResponder which validates and returns 400', async () => {
-      const app = QuestFlow();
-      const guildId = GuildIdStub();
-
-      const response = await app.request('/api/quests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userRequest: 'Build it', guildId }),
-      });
-      const body: unknown = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(harness.toPlain(body)).toStrictEqual({
-        error: 'title and userRequest are required strings',
-      });
     });
   });
 

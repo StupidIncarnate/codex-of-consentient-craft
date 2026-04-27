@@ -11,5 +11,6 @@
       "../../@types"
     ]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["src/__mocks__"]
 }

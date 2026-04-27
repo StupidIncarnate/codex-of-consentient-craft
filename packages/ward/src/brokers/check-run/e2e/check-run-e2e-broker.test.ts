@@ -51,7 +51,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -83,7 +83,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -122,7 +122,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -156,7 +156,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -205,7 +205,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -267,7 +267,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 2,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],

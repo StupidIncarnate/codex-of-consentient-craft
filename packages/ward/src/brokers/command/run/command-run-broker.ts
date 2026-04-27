@@ -17,6 +17,7 @@ import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 import { gitDiffFilesBroker } from '../../git/diff-files/git-diff-files-broker';
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
+import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 
 export const commandRunBroker = async ({
   config,
@@ -61,6 +62,20 @@ export const commandRunBroker = async ({
   process.stdout.write(`${summary}\n`);
 
   const hasFailing = wardResult.checks.some((check) => check.status === 'fail');
+
+  const hasPassthrough =
+    Array.isArray(wardResult.filters.passthrough) && wardResult.filters.passthrough.length > 0;
+  const mismatchedChecks = wardResult.checks.filter((check) =>
+    hasCheckDiscoveryMismatchGuard({ check, hasPassthrough }),
+  );
+
+  if (mismatchedChecks.length > 0) {
+    const mismatchList = mismatchedChecks.map((check) => `  - ${check.checkType}`).join('\n');
+    process.stdout.write(
+      `\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n${mismatchList}\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward's discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn't, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward's discovery to match the buggy state.\n`,
+    );
+    process.exitCode = 1;
+  }
 
   if (hasFailing) {
     process.stdout.write(

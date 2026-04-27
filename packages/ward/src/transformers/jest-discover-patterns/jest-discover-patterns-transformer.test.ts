@@ -11,9 +11,13 @@ describe('jestDiscoverPatternsTransformer', () => {
       expect(result).toStrictEqual({
         patterns: [
           'src/**/*.test.ts',
+          'test/**/*.test.ts',
           'src/**/*.test.tsx',
+          'test/**/*.test.tsx',
           'src/**/*.test.js',
+          'test/**/*.test.js',
           'src/**/*.test.jsx',
+          'test/**/*.test.jsx',
         ],
         excludePatterns: [
           '**/*.integration.test.ts',
@@ -39,9 +43,13 @@ describe('jestDiscoverPatternsTransformer', () => {
       expect(result).toStrictEqual({
         patterns: [
           'src/**/*.integration.test.ts',
+          'test/**/*.integration.test.ts',
           'src/**/*.integration.test.tsx',
+          'test/**/*.integration.test.tsx',
           'src/**/*.integration.test.js',
+          'test/**/*.integration.test.js',
           'src/**/*.integration.test.jsx',
+          'test/**/*.integration.test.jsx',
         ],
         excludePatterns: [],
       });
@@ -59,12 +67,16 @@ describe('jestDiscoverPatternsTransformer', () => {
         patterns: [
           'src/**/*.test.ts',
           'bin/**/*.test.ts',
+          'test/**/*.test.ts',
           'src/**/*.test.tsx',
           'bin/**/*.test.tsx',
+          'test/**/*.test.tsx',
           'src/**/*.test.js',
           'bin/**/*.test.js',
+          'test/**/*.test.js',
           'src/**/*.test.jsx',
           'bin/**/*.test.jsx',
+          'test/**/*.test.jsx',
         ],
         excludePatterns: [
           '**/*.integration.test.ts',
@@ -91,12 +103,16 @@ describe('jestDiscoverPatternsTransformer', () => {
         patterns: [
           'src/**/*.integration.test.ts',
           'bin/**/*.integration.test.ts',
+          'test/**/*.integration.test.ts',
           'src/**/*.integration.test.tsx',
           'bin/**/*.integration.test.tsx',
+          'test/**/*.integration.test.tsx',
           'src/**/*.integration.test.js',
           'bin/**/*.integration.test.js',
+          'test/**/*.integration.test.js',
           'src/**/*.integration.test.jsx',
           'bin/**/*.integration.test.jsx',
+          'test/**/*.integration.test.jsx',
         ],
         excludePatterns: [],
       });

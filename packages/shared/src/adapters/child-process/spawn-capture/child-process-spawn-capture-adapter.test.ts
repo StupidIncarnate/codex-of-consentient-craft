@@ -96,6 +96,28 @@ describe('childProcessSpawnCaptureAdapter', () => {
     });
   });
 
+  describe('signal kill', () => {
+    it('VALID: {child killed by SIGTERM} => returns exit code 1 with captured output', async () => {
+      const proxy = childProcessSpawnCaptureAdapterProxy();
+      proxy.setupSignalKill({
+        signal: 'SIGTERM',
+        stdout: ErrorMessageStub({ value: 'partial run output' }),
+        stderr: ErrorMessageStub({ value: '' }),
+      });
+
+      const result = await childProcessSpawnCaptureAdapter({
+        command: 'playwright',
+        args: ['test'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: 'partial run output' }),
+      });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {spawn error} => returns exit code 1 and empty output', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();

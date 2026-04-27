@@ -4,7 +4,8 @@ import { EventEmitter, Readable, Writable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 interface ProxyConfig {
-  exitCode: ExitCode;
+  exitCode: ExitCode | null;
+  signal: NodeJS.Signals | null;
   stdout: ErrorMessage;
   stderr: ErrorMessage;
   error: Error | null;
@@ -44,7 +45,7 @@ const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): Chi
         mockStderr.push(Buffer.from(String(snapshot.stderr)));
       }
       mockStderr.push(null);
-      child.emit('exit', snapshot.exitCode);
+      child.emit('exit', snapshot.exitCode, snapshot.signal);
     }
   });
 
@@ -54,6 +55,11 @@ const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): Chi
 export const childProcessSpawnCaptureAdapterProxy = (): {
   setupSuccess: (params: {
     exitCode: ExitCode;
+    stdout: ErrorMessage;
+    stderr: ErrorMessage;
+  }) => void;
+  setupSignalKill: (params: {
+    signal: NodeJS.Signals;
     stdout: ErrorMessage;
     stderr: ErrorMessage;
   }) => void;
@@ -67,6 +73,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
 
   const defaultConfig: ProxyConfig = {
     exitCode: ExitCodeStub({ value: 0 }),
+    signal: null,
     stdout: '' as ErrorMessage,
     stderr: '' as ErrorMessage,
     error: null,
@@ -84,7 +91,20 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       stdout: ErrorMessage;
       stderr: ErrorMessage;
     }): void => {
-      const snapshot: ProxyConfig = { exitCode, stdout, stderr, error: null };
+      const snapshot: ProxyConfig = { exitCode, signal: null, stdout, stderr, error: null };
+      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
+    },
+
+    setupSignalKill: ({
+      signal,
+      stdout,
+      stderr,
+    }: {
+      signal: NodeJS.Signals;
+      stdout: ErrorMessage;
+      stderr: ErrorMessage;
+    }): void => {
+      const snapshot: ProxyConfig = { exitCode: null, signal, stdout, stderr, error: null };
       handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
     },
 

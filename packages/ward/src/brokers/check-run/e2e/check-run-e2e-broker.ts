@@ -104,12 +104,10 @@ export const checkRunE2eBroker = async ({
     `${projectFolder.path}/.ward-playwright-report.json`,
   );
 
-  const FIVE_MINUTES = 300_000;
   const result = await childProcessSpawnCaptureAdapter({
     command,
     args: finalArgs,
     cwd,
-    timeout: FIVE_MINUTES,
     env: {
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),

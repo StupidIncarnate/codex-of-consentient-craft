@@ -18,6 +18,7 @@ import { countFailingFilesTransformer } from '../count-failing-files/count-faili
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
+import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 
 const CHECK_TYPE_PAD = 10;
 const MS_PER_SECOND = 1000;
@@ -52,9 +53,7 @@ export const resultToSummaryTransformer = ({
     );
     const fileBreakdown = `${String(totalFiles - totalFailingFiles)} files passed/${String(totalFailingFiles)} files failed`;
     const discoveredPart = totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered` : '';
-    const isScopedWithResults = hasPassthrough && totalFiles > 0;
-    const hasMismatch =
-      !isScopedWithResults && totalDiscovered > 0 && totalDiscovered !== totalFiles;
+    const hasMismatch = hasCheckDiscoveryMismatchGuard({ check, hasPassthrough });
     const mismatchPart = hasMismatch ? '  DISCOVERY MISMATCH' : '';
 
     const allOnlyDiscovered = check.projectResults.flatMap((pr) => pr.onlyDiscovered);

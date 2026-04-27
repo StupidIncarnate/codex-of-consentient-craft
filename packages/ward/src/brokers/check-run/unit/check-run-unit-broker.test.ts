@@ -25,7 +25,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -70,7 +70,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -103,7 +103,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -168,7 +168,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -217,7 +217,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [],
@@ -353,7 +353,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -415,7 +415,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -514,7 +514,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'fail',
           errors: [
@@ -556,7 +556,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -588,7 +588,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -677,7 +677,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -802,7 +802,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'skip',
           errors: [],
@@ -873,7 +873,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],
@@ -932,7 +932,7 @@ describe('checkRunUnitBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 4,
+          discoveredCount: 1,
           projectFolder,
           status: 'pass',
           errors: [],

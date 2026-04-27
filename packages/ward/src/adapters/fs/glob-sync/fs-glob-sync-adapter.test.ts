@@ -55,4 +55,22 @@ describe('fsGlobSyncAdapter', () => {
       });
     });
   });
+
+  describe('overlapping patterns', () => {
+    it('VALID: {file matches multiple patterns} => deduped, counted once', () => {
+      const proxy = fsGlobSyncAdapterProxy();
+      proxy.returnsFiles({ files: ['@types/x.d.ts'] });
+      proxy.returnsFiles({ files: ['@types/x.d.ts'] });
+
+      const result = fsGlobSyncAdapter({
+        patterns: ['@types/**/*.ts', '@types/**/*.d.ts'],
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        discoveredCount: 1,
+        discoveredFiles: ['@types/x.d.ts'],
+      });
+    });
+  });
 });
