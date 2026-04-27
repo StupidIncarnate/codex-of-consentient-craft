@@ -242,3 +242,44 @@ After stage 7 cleanup:
 - Multi-process orphan dev server hygiene — `tmp/smoketest-qa.md` "kill dev before fix" protocol covers it.
 - Web presence gate (`drainOnceLayerBroker`) — independent.
 - Smoketest fake-CLI not emitting sessionId at system/init — with questId routing this stops mattering for live view.
+
+## Open items / follow-ups (post-handoff)
+
+These were surfaced during the refactor but not addressed; tracked here for the next session.
+
+### 1. Re-run full ward with the discovery-mismatch fix to verify all e2e specs execute
+
+The full-ward run committed at `28fb36e2` (manual-QA fixes) reported **e2e: PASS, 11 files passed / 35 discovered, with `DISCOVERY MISMATCH` warning** — only ~31% of e2e specs actually ran. I treated the green PASS as authoritative and committed; that was a mistake.
+
+A parallel session has since added `packages/ward/src/guards/has-check-discovery-mismatch/` (committed in `f2ef8ddc` alongside the user-quest-create cleanup). Once that guard properly fails ward when discovery and processed-counts diverge, run:
+
+```bash
+npm run build && npm run ward
+```
+
+with `timeout: 600000`. Expect `e2e: PASS  35 files passed / 35 discovered`. The 24 specs that didn't run in the prior reported-PASS may include scenarios that exercise the URL-routing changes (`floor-ordering.spec.ts`, `pause-resume-status-matrix.spec.ts`, `quest-execution-streaming.spec.ts`, `session-id-routing.spec.ts`, `quest-ws-update.spec.ts`, etc.) and would have caught problems before manual QA. If any fail, fix before declaring the refactor shipped.
+
+### 2. Pre-existing orphan cleanup (non-refactor scope, surfaced by review)
+
+The web/server/orchestrator cleanup-review agents (commit `9354b61c`) flagged orphans that pre-existed the refactor. Not blocking, can be picked up as a small follow-up commit.
+
+- **`web-config-statics.api.routes.sessionChatHistory`** (`/api/sessions/:sessionId/chat/history`) — drop entry + matching test line. No web consumer; no server route exists.
+- **Process status/output route chain** — `apiRoutesStatics.process.{status,output}` + `flows/process/process-flow.ts` + `responders/process/{status,output}/` + `adapters/orchestrator/get-quest-status/` are entirely unreferenced. `process-output-responder` is documented as a no-op; `process-status-responder` has zero web consumers. Sideline the chain via `mv`, drop the flow registration in `start-server.ts`, drop the static entries.
+- **`web/brokers/process/status/`** — web-side broker for the above; no widget/binding/responder imports it. Sideline.
+- **`webConfigStatics.api.routes.processStatus`** (`/api/process/:processId`) — drop entry + matching test line after the broker is gone.
+
+### 3. Optional polish — `apiRoutesStatics.quests.list`
+
+`/api/quests` is now GET-only (the POST handler was removed in `f2ef8ddc`). The static field `quests.list` accurately describes its remaining use. Optional rename to `quests.listAll` or split into `quests.list` (GET) vs no-counterpart-for-POST is purely cosmetic; leave it unless you're touching api-routes-statics for another reason.
+
+### 4. Smoketest assertion: pause/resume + WS-update specs against questId URLs
+
+Once item #1's full-e2e run passes, sanity-check that `pause-resume-status-matrix.spec.ts` and `quest-ws-update.spec.ts` exercise the new `/:guildSlug/quest/:questId` URL (not the legacy `/:guildSlug/session/:sessionId`). If they assert against the old session URL, update them. If they're URL-agnostic, leave them.
+
+### 5. Image #3 WS errors (noted in original bug report, deferred)
+
+React StrictMode + `websocket-connect-adapter` close-while-CONNECTING produces 4 console warnings per page load (one per WS connection × StrictMode mount/unmount cycle). The reconnect `setTimeout` also leaks the new connection's handle. Both can be fixed by:
+- Tracking `socket.readyState` and skipping `socket.close()` when in CONNECTING state (set a "close-on-open" flag instead).
+- Capturing the reconnect-spawned adapter handle in a mutable ref the outer `close()` honors so reconnects stay closeable.
+
+Cosmetic. Not blocking. Single-file change to `packages/web/src/adapters/websocket/connect/websocket-connect-adapter.ts` + test.
