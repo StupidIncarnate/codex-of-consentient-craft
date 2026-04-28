@@ -33,7 +33,6 @@ test.describe('Quest Detail Navigation', () => {
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
-    await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
     await expect(page.getByTestId('CHAT_PANEL')).toBeVisible();
 
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
@@ -56,7 +55,7 @@ test.describe('Quest Detail Navigation', () => {
     await page.getByTestId('SESSION_FILTER').getByText('All').click();
     await page.getByTestId(`SESSION_ITEM_${sessionId}`).click();
 
-    await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
+    await expect(page.getByTestId('CHAT_PANEL')).toBeVisible();
 
     await page.goBack();
 
