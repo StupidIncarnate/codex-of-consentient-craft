@@ -98,7 +98,14 @@ export const ChatStartResponder = async ({
   }[] = [];
 
   const processor = chatLineProcessTransformer();
-  const subagentStopHandles: (() => void)[] = [];
+  const subagentHandles: { stop: () => void; initialDrain: Promise<void> }[] = [];
+  // Tracks broker setup promises that haven't resolved yet. Without this, onComplete can
+  // fire and emit chat-complete BEFORE the broker has even set up the file watcher —
+  // any sub-agent entries it would later deliver are then orphaned past chat-complete on
+  // the wire. onComplete awaits this set so every detected sub-agent's drain runs to
+  // completion before chat-complete is announced. Setups remove themselves when they
+  // settle (success OR failure), so the set drains naturally.
+  const inflightSubagentSetups = new Set<Promise<void>>();
   // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
   // have a session ID — catches background-agent task-notifications appended after stdout
   // closes (Claude CLI writes them async). Stopped when the session's process is killed.
@@ -281,7 +288,11 @@ export const ChatStartResponder = async ({
       });
     },
     onAgentDetected: ({ chatProcessId, agentId, sessionId: sid }) => {
-      chatSubagentTailBroker({
+      // Track the setup so onComplete can await it. The .finally on the chain self-removes
+      // the entry once the broker has either successfully pushed its handle OR errored
+      // (the .catch above swallows the rejection so .finally always sees a resolved
+      // chain). Self-removal keeps the set bounded across long-lived sessions.
+      const setup = chatSubagentTailBroker({
         sessionId: sid,
         guildId,
         agentId,
@@ -300,18 +311,36 @@ export const ChatStartResponder = async ({
           });
         },
       })
-        .then((stop) => {
-          subagentStopHandles.push(stop);
+        .then((handle) => {
+          subagentHandles.push(handle);
         })
         .catch((error: unknown) => {
           process.stderr.write(
             `chatSubagentTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
           );
+        })
+        .finally(() => {
+          inflightSubagentSetups.delete(setup);
         });
+      inflightSubagentSetups.add(setup);
     },
-    onComplete: ({ chatProcessId, exitCode, sessionId: sid }) => {
-      for (const stop of subagentStopHandles) {
-        stop();
+    onComplete: async ({ chatProcessId, exitCode, sessionId: sid }) => {
+      // Wait for every in-flight broker setup to resolve. Only then is `subagentHandles`
+      // populated with all handles; iterating earlier would skip brokers whose async
+      // setup hadn't finished and silently leak them past chat-complete.
+      if (inflightSubagentSetups.size > 0) {
+        await Promise.all(Array.from(inflightSubagentSetups));
+      }
+      // Wait for each tail's pre-existing-content drain to deliver every line via
+      // onEntries before we stop the watcher. Without this, the synthetic-emit drain's
+      // queued readline 'line' events fire AFTER state.stopped is flipped and are
+      // dropped at the gate inside the adapter — sub-agent entries silently disappear
+      // from the streaming wire even though they were on disk the whole time.
+      if (subagentHandles.length > 0) {
+        await Promise.all(subagentHandles.map(async (h) => h.initialDrain));
+      }
+      for (const handle of subagentHandles) {
+        handle.stop();
       }
 
       if (sid) {

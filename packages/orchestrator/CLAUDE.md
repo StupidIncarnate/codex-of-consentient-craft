@@ -202,6 +202,29 @@ After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw
 3. If it's a new emit shape: extend `ChatLineOutput` in `chat-line-output-contract.ts` and
    update every call site (chat-spawn-broker, chat-subagent-tail-broker,
    chat-history-replay-broker, chat-main-session-tail-broker).
+
+### Message contract null-tolerance — DO NOT use `.optional()` alone on Claude CLI fields
+
+Claude CLI streams explicit `null` (not `undefined`) for assistant message-level fields like
+`stop_reason`, `stop_sequence`, `model` on every assistant delta until a turn settles. The
+`message` block in `normalizedStreamLineContract` and `assistantStreamLineContract` MUST use
+`.nullish()` (= `.nullable().optional()`), never `.optional()` alone.
+
+**Failure mode if you regress this:** `safeParse` rejects every assistant line, the
+processor's early return fires (`if (!lineParse.success) return [];`), and **every assistant
+text + tool_use entry silently disappears from the WebSocket wire**. Streaming goes dark
+end-to-end while file replay still works (because replay parses the same shape and hits the
+same bug — but only after stream has already missed everything live). The regression is
+invisible unless a stream-vs-replay parity test is in place.
+
+Stubs in `@dungeonmaster/shared/contracts/assistant-stream-line/` and
+`claude-queue-response.stub.ts` build assistant lines with `stop_reason: null` baked in so
+every E2E using these stubs exercises the null-tolerance path automatically. Do not strip
+that field from the stubs — you'd silently turn the parity tests into false positives.
+
+The unit regression in `chat-line-process-transformer.test.ts`
+(`describe('regression: Claude CLI null stop_reason on streamed deltas')`) feeds a real
+Claude-shape line through the processor and asserts the entry survives. Keep it green.
 4. Do NOT add parsing on the server or the web.
 
 ## Callouts

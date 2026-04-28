@@ -301,4 +301,55 @@ describe('fsWatchTailAdapter', () => {
       expect(onError).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('initialDrain promise', () => {
+    // The initialDrain contract closes the resolve-race in chat-start-responder.onComplete
+    // — onComplete must NOT iterate stop handles until every in-flight tail's drain has
+    // delivered every pre-existing line. Without this guard the readline 'line' event
+    // queued by the synthetic-emit drain fires AFTER state.stopped was flipped, and the
+    // line is dropped at the gate inside `rl.on('line')`. The test below proves the
+    // guarantee: lines are delivered to onLine BEFORE initialDrain resolves.
+    it('VALID: pre-existing file content drained => initialDrain resolves AFTER every line has been delivered to onLine', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+      });
+
+      proxy.setupLines({ lines: ['line-a', 'line-b', 'line-c'] });
+      proxy.triggerChange();
+      await handle.initialDrain;
+
+      expect(onLine).toHaveBeenCalledTimes(3);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'line-a' });
+      expect(onLine).toHaveBeenNthCalledWith(2, { line: 'line-b' });
+      expect(onLine).toHaveBeenNthCalledWith(3, { line: 'line-c' });
+    });
+
+    it('VALID: stop() called before any drain runs => initialDrain still resolves so awaiters do not hang', async () => {
+      fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError: () => {},
+      });
+
+      handle.stop();
+
+      // If stop() did not resolve initialDrain, this await would hang forever — the test
+      // would time out instead of pass. The default jest timeout would catch it but we
+      // don't want to rely on that; the guarantee is "stop unblocks the promise".
+      await handle.initialDrain;
+
+      // No drain ever ran (triggerChange was never called), so onLine was never invoked.
+      expect(onLine).toHaveBeenCalledTimes(0);
+    });
+  });
 });
