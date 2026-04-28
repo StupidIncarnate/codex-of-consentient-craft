@@ -157,6 +157,14 @@ export const useQuestChatBinding = ({
   }, []);
 
   useEffect(() => {
+    // Defer opening the WebSocket until a questId is known. Opening eagerly
+    // (before the first message creates the quest) used to cause subscribe-quest
+    // to land on the server before the JSONL was fully written, racing against
+    // chat-output replay. Now we open exactly when the live workspace becomes
+    // addressable, matching the pre-merge timing where a fresh widget mount
+    // drove the WS open.
+    if (!questId) return undefined;
+
     wsRef.current = websocketConnectAdapter({
       url: `ws://${globalThis.location.host}/ws`,
       onMessage: handleWebSocketMessage,
@@ -185,9 +193,14 @@ export const useQuestChatBinding = ({
       }
       wsRef.current = null;
     };
-  }, [handleWebSocketMessage]);
+  }, [questId, handleWebSocketMessage]);
 
   useEffect(() => {
+    // Backstop subscribe — covers the timing window where the WS opens
+    // synchronously inside `websocketConnectAdapter` (mock test rig) and
+    // onOpen fires before `wsRef.current` is assigned. In that case onOpen
+    // sees `wsRef.current === null` and returns; this effect runs after the
+    // outer effect commits and sends subscribe.
     if (!questId) return;
     if (subscribedRef.current) return;
     const ws = wsRef.current;

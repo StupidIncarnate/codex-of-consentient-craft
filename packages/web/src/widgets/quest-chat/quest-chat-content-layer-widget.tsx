@@ -1,24 +1,26 @@
 /**
- * PURPOSE: Renders the live questId-keyed quest workspace as a side-by-side split. Execution-phase: ExecutionPanelWidget on left + flat activity stream on right. Non-execution: ChatPanelWidget on left + QuestSpecPanelWidget on right (with external-update banner + clarify panel + abandon). Owns the QuestApprovedModalWidget toggle so the modal opens once on the approved transition and is dismissable.
+ * PURPOSE: Renders the unified quest chat surface for both `/:guildSlug/quest` (no questId — new-chat) and `/:guildSlug/quest/:questId` (live workspace). Owns the URL replace-navigate after first-message quest creation so the same component instance survives the param transition and local first-message state is preserved.
  *
  * USAGE:
- * <QuestLiveWorkspaceLayerWidget questId={questId} guildSlug={guildSlug} />
- * // Returns the workspace view; mounts useQuestChatBinding internally so the binding only runs on the live route.
+ * <QuestChatContentLayerWidget questId={questId} guildId={guildId} guildSlug={guildSlug} />
+ * // questId === null → new-chat surface (ChatPanel + "Awaiting…"). Once first message creates the quest, the widget replace-navigates to the live URL; same instance keeps rendering with the new questId, binding subscribes, layout transitions to ChatPanel+SpecPanel (or ExecutionPanel+Activity in execution phase).
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Box } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 
 import type {
   ChatEntry,
+  GuildId,
   Quest,
   QuestId,
   QuestStatus,
   UrlSlug,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -30,9 +32,11 @@ import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/tran
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
+import { questNewBroker } from '../../brokers/quest/new/quest-new-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
+import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
@@ -47,15 +51,17 @@ const SUBMIT_FOLLOWUP_MESSAGE =
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
   'Flows approved. Proceed to observables and contracts.' as UserInput;
 
-export interface QuestLiveWorkspaceLayerWidgetProps {
-  questId: QuestId;
-  guildSlug?: UrlSlug;
+export interface QuestChatContentLayerWidgetProps {
+  questId: QuestId | null;
+  guildId: GuildId;
+  guildSlug: UrlSlug;
 }
 
-export const QuestLiveWorkspaceLayerWidget = ({
+export const QuestChatContentLayerWidget = ({
   questId,
+  guildId,
   guildSlug,
-}: QuestLiveWorkspaceLayerWidgetProps): React.JSX.Element => {
+}: QuestChatContentLayerWidgetProps): React.JSX.Element => {
   const navigate = useNavigate();
   const {
     quest,
@@ -66,17 +72,26 @@ export const QuestLiveWorkspaceLayerWidget = ({
     sendMessage,
     submitClarifyAnswers,
     stopChat,
-  } = useQuestChatBinding({
-    questId,
-  });
+  } = useQuestChatBinding({ questId });
+
+  // Local state for the first-message flow: the user's first message lives
+  // here until the binding's replay catches up. Without this, the message
+  // would vanish during the questId param transition because the binding
+  // boots fresh entries on each questId change. Subsequent messages go
+  // through binding.sendMessage and live entirely in binding state.
+  const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
     for (const list of entriesBySession.values()) {
       all.push(...list);
     }
-    return all;
-  }, [entriesBySession]);
+    const localFiltered = localEntries.filter(
+      (entry) => !hasEquivalentChatEntryGuard({ entry, among: all }),
+    );
+    return [...localFiltered, ...all];
+  }, [entriesBySession, localEntries]);
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
@@ -84,7 +99,7 @@ export const QuestLiveWorkspaceLayerWidget = ({
   const prevQuestStatusRef = useRef<QuestStatus | null>(null);
 
   // Detect agent-side quest mutations after the user has loaded the editor —
-  // the QuestSpecPanelWidget surfaces this via an EXTERNAL_UPDATE_BANNER so the
+  // QuestSpecPanelWidget surfaces this via an EXTERNAL_UPDATE_BANNER so the
   // user can RELOAD or KEEP EDITING.
   useEffect(() => {
     if (quest !== prevQuestRef.current && prevQuestRef.current !== null) {
@@ -93,8 +108,8 @@ export const QuestLiveWorkspaceLayerWidget = ({
     prevQuestRef.current = quest;
   }, [quest]);
 
-  // Open the Begin-Quest modal only on the rising edge into 'approved' so it's
-  // dismissable; once status changes the modal can re-arm.
+  // Open the Begin-Quest modal only on the rising edge into 'approved' so
+  // it's dismissable; once status changes the modal can re-arm.
   useEffect(() => {
     const currentStatus = quest?.status ?? null;
     const shouldShow =
@@ -109,22 +124,92 @@ export const QuestLiveWorkspaceLayerWidget = ({
     prevQuestStatusRef.current = currentStatus;
   }, [quest?.status]);
 
+  const handleSend = useCallback(
+    ({ message }: { message: UserInput }): void => {
+      if (questId !== null) {
+        // Normal path — binding handles user message, resume-if-paused, POST.
+        sendMessage({ message });
+        return;
+      }
+      // First-message path — create the quest, then replace-navigate so the
+      // SAME component instance keeps rendering with questId set. The binding
+      // resubscribes via its useEffect on questId; localEntries keeps the
+      // user message visible during the gap until replay catches up.
+      if (submitting) return;
+      const userEntry = chatEntryContract.parse({ role: 'user', content: message });
+      setLocalEntries((prev) => [...prev, userEntry]);
+      setSubmitting(true);
+      questNewBroker({ guildId, message })
+        .then(({ questId: newQuestId }) => {
+          const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
+          if (result instanceof Promise) {
+            result.catch((navError: unknown) => {
+              globalThis.console.error('[quest-chat] new-chat navigate failed', navError);
+            });
+          }
+        })
+        .catch((err: unknown) => {
+          setSubmitting(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+          });
+          setLocalEntries((prev) => [...prev, errorEntry]);
+        });
+    },
+    [questId, sendMessage, submitting, guildId, guildSlug, navigate],
+  );
+
+  const { colors } = emberDepthsThemeStatics;
+
+  // No quest yet — either we're on the new-chat URL (questId null) or the
+  // questId is set but replay hasn't delivered the quest object. Render the
+  // dual-panel chat surface; the chat panel shows localEntries + any binding
+  // entries that have already arrived; the right side shows "Awaiting…".
   if (quest === null) {
     return (
       <Box
-        data-testid="QUEST_CHAT_LOADING"
+        data-testid="QUEST_CHAT"
         style={{
           display: 'flex',
+          flexDirection: 'row',
           flex: 1,
           minHeight: 0,
         }}
       >
-        <DumpsterRaccoonWidget />
+        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <ChatPanelWidget
+            entries={flattenedEntries}
+            isStreaming={submitting || isStreaming}
+            onSendMessage={handleSend}
+          />
+        </Box>
+        <div
+          data-testid="QUEST_CHAT_DIVIDER"
+          style={{
+            width: 1,
+            backgroundColor: colors.border,
+            alignSelf: 'stretch',
+          }}
+        />
+        <Box
+          data-testid="QUEST_CHAT_ACTIVITY"
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
+            Awaiting quest activity...
+          </Text>
+        </Box>
       </Box>
     );
   }
-
-  const { colors } = emberDepthsThemeStatics;
 
   const displayStatus: QuestStatus =
     isUserPausedQuestStatusGuard({ status: quest.status }) &&
@@ -169,7 +254,6 @@ export const QuestLiveWorkspaceLayerWidget = ({
       }}
       onNewQuest={(): void => {
         setApprovedModalOpen(false);
-        if (guildSlug === undefined) return;
         const result = navigate(`/${guildSlug}/quest`);
         if (result instanceof Promise) {
           result.catch((navError: unknown) => {
@@ -194,11 +278,12 @@ export const QuestLiveWorkspaceLayerWidget = ({
             if (nextStatus === 'flows_approved') {
               sendMessage({ message: FLOWS_APPROVED_FOLLOWUP_MESSAGE });
             }
-            // Other gate-approved statuses (approved, design_approved): deliberately
-            // no follow-up message — the agent's response could call modify-quest and
-            // revert the status before the user clicks Begin Quest, which would race
-            // with the start POST and silently fail. The user-driven Begin Quest
-            // button is the intended trigger for the next phase.
+            // Other gate-approved statuses (approved, design_approved):
+            // deliberately no follow-up message — the agent's response could
+            // call modify-quest and revert the status before the user clicks
+            // Begin Quest, which would race with the start POST and silently
+            // fail. The user-driven Begin Quest button is the intended
+            // trigger for the next phase.
           })
           .catch((modifyError: unknown) => {
             globalThis.console.error('[quest-chat] modify failed', modifyError);
@@ -236,7 +321,7 @@ export const QuestLiveWorkspaceLayerWidget = ({
             quest={quest}
             slotEntries={slotEntries}
             sessionEntries={entriesBySession}
-            {...(guildSlug ? { guildSlug } : {})}
+            guildSlug={guildSlug}
             onStatusChange={({ status }): void => {
               if (isUserPausedQuestStatusGuard({ status: quest.status })) {
                 questResumeBroker({ questId: quest.id }).catch((resumeError: unknown) => {
@@ -311,7 +396,7 @@ export const QuestLiveWorkspaceLayerWidget = ({
         <ChatPanelWidget
           entries={flattenedEntries}
           isStreaming={isStreaming}
-          onSendMessage={sendMessage}
+          onSendMessage={handleSend}
           onStopChat={stopChat}
         />
       </Box>

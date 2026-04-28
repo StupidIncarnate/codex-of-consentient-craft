@@ -26,7 +26,7 @@ const renderAt = ({ path, url }: { path: string; url: string }): void => {
 
 describe('QuestChatWidget', () => {
   describe('routing delegation', () => {
-    it('VALID: {/:guildSlug/quest/:questId, guild matches, no quest yet} => delegates to routing layer (QUEST_CHAT_LOADING)', async () => {
+    it('VALID: {/:guildSlug/quest/:questId, guild matches, no quest yet} => delegates to content layer (QUEST_CHAT awaiting surface)', async () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'my-guild' as never });
       proxy.setupGuilds({ guilds: [guild] });
@@ -42,10 +42,10 @@ describe('QuestChatWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.hasQuestChatLoading()).toBe(true);
+        expect(proxy.hasQuestChat()).toBe(true);
       });
 
-      expect(proxy.hasQuestChatLoading()).toBe(true);
+      expect(proxy.hasQuestChat()).toBe(true);
     });
 
     it('VALID: {/:guildSlug/quest, guild matches, no questId} => delegates to routing layer (CHAT_PANEL/QUEST_CHAT)', async () => {
