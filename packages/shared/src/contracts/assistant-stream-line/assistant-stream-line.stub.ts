@@ -196,6 +196,33 @@ export const AssistantAskUserQuestionStreamLineStub = ({
   });
 
 /**
+ * Assistant message as emitted by Claude CLI mid-turn — `stop_reason` and `model` arrive as
+ * explicit `null` before the turn settles. The pre-fix `.optional()` schema rejected this shape
+ * and silently dropped EVERY streamed assistant line, so the web saw only user/tool_result
+ * entries. Use this stub in tests that exercise streaming line parsing to lock in the fix.
+ */
+export const AssistantNullStopReasonStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      stop_reason: null,
+      stop_sequence: null,
+      content: [
+        {
+          type: 'tool_use',
+          id: 'toolu_01F4wgY95Em86z1oALfMC8KK',
+          name: 'mcp__dungeonmaster__discover',
+          input: { glob: 'packages/web/src/widgets/quest-chat/**' },
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
  * Assistant invoking Read on a file path.
  * Occurs when a sub-agent inspects a file during exploration. Inside a sub-agent's JSONL,
  * the paired user tool_result carries the file contents; tests replaying sub-agent chains

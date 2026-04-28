@@ -35,7 +35,12 @@ import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  OrchestrationEventType,
+  ProcessId,
+  QuestId,
+  QuestWorkItemId,
+} from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -71,10 +76,31 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
   // Per-quest replay-in-progress flags. While a (client, questId) pair is in
   // this map, live PER_QUEST_EVENT_TYPES events for that questId are NOT
-  // forwarded to that client; the replay-on-subscribe path is the source of
-  // truth during the replay window. Cleared when chat-history-complete fires
-  // for the subscribe-quest replay (or replay errors out).
+  // forwarded to that client through the per-quest path; instead chat-output
+  // frames are buffered (see bufferedDuringReplay below) and delivered after
+  // the replay window IFF replay produced no chat-output of its own (race lost
+  // — JSONL not yet written when subscribe arrived). This guards against the
+  // pure-loss case where live emits during replay are suppressed AND replay
+  // reads an empty JSONL — the test sees nothing and times out. Cleared when
+  // chat-history-complete fires for the subscribe-quest replay (or replay errors out).
   const replayInProgressByClient = new Map<WsClient, Set<QuestId>>();
+  // Live chat-output frames suppressed during a replay window, keyed by
+  // (client, questId, workItemId). Drained in the subscribe-quest .finally:
+  // for each workItem, deliver buffered frames ONLY IF replay produced no
+  // chat-output for that workItem (replay raced an unwritten JSONL). Frames
+  // for workItems where replay succeeded are dropped to prevent dupes between
+  // live + replay paths. Per-workItem because some workItems' replays may
+  // succeed while others fail — coarse-grain (per-quest) tracking would drop
+  // legitimately race-lost frames whenever ANY replay in the quest succeeded.
+  // Frames without workItemId go under the empty-string key.
+  const bufferedDuringReplay = new Map<
+    WsClient,
+    Map<QuestId, Map<QuestWorkItemId | '', string[]>>
+  >();
+  // WorkItemIds for which replay's direct-send delivered at least one chat-output
+  // frame, per (client, questId). Used by the subscribe-quest .finally to decide
+  // which workItem buffers to drain.
+  const replayDeliveredWorkItems = new Map<WsClient, Map<QuestId, Set<QuestWorkItemId | ''>>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -258,6 +284,38 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 for (const replayProcessId of replayChatProcessIds) {
                   replayClientByChatProcessId.delete(replayProcessId);
                 }
+                // Drain the live-frame buffer per workItem. For each workItem
+                // whose replay produced no chat-output (race lost — JSONL
+                // unwritten when subscribe arrived), deliver buffered live
+                // frames — they're the only source. For workItems whose replay
+                // delivered content, drop the buffer (replay covered the same
+                // content; delivering buffered would dupe).
+                const questDelivered = replayDeliveredWorkItems.get(subWs);
+                const deliveredSet = questDelivered?.get(subQuestId);
+                if (questDelivered) {
+                  questDelivered.delete(subQuestId);
+                  if (questDelivered.size === 0) replayDeliveredWorkItems.delete(subWs);
+                }
+                const questBuffer = bufferedDuringReplay.get(subWs);
+                const workItemBuffer = questBuffer?.get(subQuestId);
+                if (questBuffer) {
+                  questBuffer.delete(subQuestId);
+                  if (questBuffer.size === 0) bufferedDuringReplay.delete(subWs);
+                }
+                if (workItemBuffer) {
+                  for (const [workItemKey, msgs] of workItemBuffer) {
+                    if (deliveredSet?.has(workItemKey)) continue;
+                    for (const msg of msgs) {
+                      try {
+                        subWs.send(msg);
+                      } catch {
+                        clientSubscriptions.delete(subWs);
+                        clients.delete(subWs);
+                        return;
+                      }
+                    }
+                  }
+                }
               });
           }
 
@@ -346,6 +404,8 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         clients.delete(closedClient);
         clientSubscriptions.delete(closedClient);
         replayInProgressByClient.delete(closedClient);
+        bufferedDuringReplay.delete(closedClient);
+        replayDeliveredWorkItems.delete(closedClient);
         // Drop any readonly-replay tracking for this client — the SessionViewWidget
         // is gone, so subsequent chat-output frames for those chatProcessIds have
         // nowhere to be delivered.
@@ -394,6 +454,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
         const payloadChatProcessId = parsedPayload.success
           ? parsedPayload.data.chatProcessId
           : undefined;
+        const payloadWorkItemId = parsedPayload.success ? parsedPayload.data.workItemId : undefined;
 
         processDevLogAdapter({
           message: devLogEventFormatTransformer({
@@ -425,7 +486,31 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             for (const [client, subs] of clientSubscriptions) {
               if (!subs.has(payloadQuestId)) continue;
               const replaying = replayInProgressByClient.get(client);
-              if (replaying?.has(payloadQuestId)) continue;
+              if (replaying?.has(payloadQuestId)) {
+                // Replay frames carry chatProcessId starting with `quest-replay-`
+                // and are delivered via the direct-send path below — don't buffer
+                // them, only buffer LIVE chat-output (different chatProcessId).
+                const isReplayFrame =
+                  typeof payloadChatProcessId === 'string' &&
+                  payloadChatProcessId.startsWith('quest-replay-');
+                if (type === 'chat-output' && !isReplayFrame) {
+                  let questBuffer = bufferedDuringReplay.get(client);
+                  if (!questBuffer) {
+                    questBuffer = new Map<QuestId, Map<QuestWorkItemId | '', string[]>>();
+                    bufferedDuringReplay.set(client, questBuffer);
+                  }
+                  let workItemBuffer = questBuffer.get(payloadQuestId);
+                  if (!workItemBuffer) {
+                    workItemBuffer = new Map<QuestWorkItemId | '', string[]>();
+                    questBuffer.set(payloadQuestId, workItemBuffer);
+                  }
+                  const key: QuestWorkItemId | '' = payloadWorkItemId ?? '';
+                  const msgs = workItemBuffer.get(key) ?? [];
+                  msgs.push(serializedQuestMsg);
+                  workItemBuffer.set(key, msgs);
+                }
+                continue;
+              }
               try {
                 client.send(serializedQuestMsg);
                 delivered.add(client);
@@ -447,6 +532,25 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             if (replayClient && !delivered.has(replayClient)) {
               try {
                 replayClient.send(serializedQuestMsg);
+                // Track replay-emitted chat-output by (client, questId, workItemId)
+                // so subscribe-quest .finally drains the live buffer ONLY for
+                // workItems whose replay raced an unwritten JSONL. WorkItems with
+                // missing JSONL never appear in this set, so their buffered live
+                // frames are delivered (race recovery). WorkItems with successful
+                // replays are added here, so their buffer is dropped (no dupes).
+                if (type === 'chat-output' && payloadQuestId) {
+                  let questDelivered = replayDeliveredWorkItems.get(replayClient);
+                  if (!questDelivered) {
+                    questDelivered = new Map<QuestId, Set<QuestWorkItemId | ''>>();
+                    replayDeliveredWorkItems.set(replayClient, questDelivered);
+                  }
+                  let workItemSet = questDelivered.get(payloadQuestId);
+                  if (!workItemSet) {
+                    workItemSet = new Set<QuestWorkItemId | ''>();
+                    questDelivered.set(payloadQuestId, workItemSet);
+                  }
+                  workItemSet.add(payloadWorkItemId ?? '');
+                }
               } catch {
                 clientSubscriptions.delete(replayClient);
                 clients.delete(replayClient);

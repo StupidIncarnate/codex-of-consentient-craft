@@ -20,6 +20,9 @@ const contentItemContract = z.object({
   is_error: z.boolean().optional(),
 });
 
+// `stop_reason` and `model` use `.nullish()` because Claude CLI emits explicit `null`
+// for these fields on streamed assistant deltas before a turn completes — `.optional()`
+// alone rejects null and silently drops every assistant line.
 export const assistantStreamLineContract = z.object({
   type: z.literal('assistant'),
   message: z.object({
@@ -31,8 +34,8 @@ export const assistantStreamLineContract = z.object({
         output_tokens: z.number().brand<'OutputTokenCount'>(),
       })
       .optional(),
-    stop_reason: z.string().brand<'StopReason'>().optional(),
-    model: z.string().brand<'ModelName'>().optional(),
+    stop_reason: z.string().brand<'StopReason'>().nullish(),
+    model: z.string().brand<'ModelName'>().nullish(),
   }),
 });
 

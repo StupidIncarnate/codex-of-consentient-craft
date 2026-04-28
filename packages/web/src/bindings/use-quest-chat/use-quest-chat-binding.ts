@@ -72,25 +72,55 @@ export const useQuestChatBinding = ({
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
     const parsed = wsMessageContract.safeParse(message);
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      globalThis.console.warn('[WS] parse-failed', message);
+      return;
+    }
 
     const activeQuestId = questIdRef.current;
     if (!activeQuestId) return;
 
     if (parsed.data.type === 'chat-output') {
       const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) return;
+      if (!payloadResult.success) {
+        globalThis.console.warn('[WS] chat-output payload-parse-failed', parsed.data.payload);
+        return;
+      }
       if (payloadResult.data.questId !== activeQuestId) return;
 
       const rawEntries = payloadResult.data.entries;
       if (!Array.isArray(rawEntries)) return;
 
       const validEntries: ChatEntry[] = [];
+      const rejected: { candidate: unknown; reason: unknown }[] = [];
       for (const candidate of rawEntries) {
         const parseResult = chatEntryContract.safeParse(candidate);
         if (parseResult.success) {
           validEntries.push(parseResult.data);
+        } else {
+          rejected.push({ candidate, reason: parseResult.error.issues });
         }
+      }
+
+      globalThis.console.log('[WS] chat-output', {
+        questId: activeQuestId,
+        sessionId: payloadResult.data.sessionId ?? null,
+        chatProcessId: payloadResult.data.chatProcessId ?? null,
+        slotIndex: payloadResult.data.slotIndex ?? null,
+        validCount: validEntries.length,
+        rawCount: rawEntries.length,
+        entries: validEntries.map((e) => ({
+          role: e.role,
+          type: 'type' in e ? e.type : null,
+          toolName: 'toolName' in e ? String(e.toolName) : null,
+          toolUseId: 'toolUseId' in e && e.toolUseId ? String(e.toolUseId) : null,
+          agentId: 'agentId' in e && e.agentId ? String(e.agentId) : null,
+          source: 'source' in e ? (e.source ?? null) : null,
+          content: 'content' in e && typeof e.content === 'string' ? e.content : null,
+        })),
+      });
+      if (rejected.length > 0) {
+        globalThis.console.warn('[WS] chat-output rejected-entries', rejected);
       }
 
       if (validEntries.length === 0) return;

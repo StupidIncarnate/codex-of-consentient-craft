@@ -87,7 +87,31 @@ export const chatHistoryReplayBroker = async ({
     sessionId,
   });
 
-  const sessionLines = await fsReadJsonlAdapter({ filePath: jsonlPath });
+  // The JSONL may race a still-running chat: subscribe-quest can fire before the CLI
+  // (real or fake) finishes its post-stdout JSONL flush. Poll briefly for the file with
+  // a small budget rather than ENOENT immediately — without this, the live broadcast was
+  // already missed (subscribe came AFTER CLI's broadcasts but BEFORE its JSONL write),
+  // so replay is the ONLY path that can deliver content. Budget kept short so completed
+  // sessions with truly missing JSONL fail fast instead of stalling subscribe.
+  const READ_RETRY_TOTAL_MS = 200;
+  const READ_RETRY_INTERVAL_MS = 20;
+  const readWithRetry = async (): Promise<StreamJsonLine[]> => {
+    const deadline = Date.now() + READ_RETRY_TOTAL_MS;
+    for (;;) {
+      try {
+        return await fsReadJsonlAdapter({ filePath: jsonlPath });
+      } catch (err) {
+        const isEnoent = err instanceof Error && err.message.includes('ENOENT');
+        if (!isEnoent || Date.now() >= deadline) {
+          throw err;
+        }
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, READ_RETRY_INTERVAL_MS);
+        });
+      }
+    }
+  };
+  const sessionLines = await readWithRetry();
 
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
 

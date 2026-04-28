@@ -51,6 +51,10 @@ const sessionOrDefault = ({
 const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>
   toLine(SystemInitStreamLineStub({ session_id: sessionId }) as object);
 
+// `stop_reason: null` mirrors real Claude CLI streaming output — the field arrives as
+// explicit `null` on every assistant delta until the turn settles. Including it here makes
+// every E2E using these line builders exercise the contract null-tolerance path that
+// previously caused the orchestrator to silently drop every assistant line.
 const textLine = ({
   text = 'Hello from Claude' as TextContent,
   usage = DEFAULT_USAGE,
@@ -61,6 +65,7 @@ const textLine = ({
         role: 'assistant' as const,
         content: [{ type: 'text' as const, text }],
         usage,
+        stop_reason: null,
       },
     }) as object,
   );
@@ -75,6 +80,7 @@ const toolUseLine = ({
       message: {
         role: 'assistant' as const,
         content: [{ type: 'tool_use' as const, id, name, input }],
+        stop_reason: null,
       },
     }) as object,
   );
@@ -88,6 +94,7 @@ const toolResultLine = ({
       message: {
         role: 'assistant' as const,
         content: [{ type: 'tool_result' as const, tool_use_id: toolUseId, content }],
+        stop_reason: null,
       },
     }) as object,
   );

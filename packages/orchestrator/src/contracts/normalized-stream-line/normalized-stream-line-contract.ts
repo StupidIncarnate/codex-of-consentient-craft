@@ -31,13 +31,16 @@ const _contentItem = z
   })
   .passthrough();
 
+// Optional fields use `.nullish()` (= nullable + optional) because Claude CLI emits
+// explicit `null` for stop_reason / model on streamed assistant deltas before the turn
+// completes — `.optional()` alone rejects null and silently drops every assistant line.
 const message = z
   .object({
-    role: z.string().brand<'StreamMessageRole'>().optional(),
-    content: z.unknown().optional(),
-    usage: z.unknown().optional(),
-    stopReason: z.string().brand<'StreamMessageStopReason'>().optional(),
-    model: z.string().brand<'StreamMessageModel'>().optional(),
+    role: z.string().brand<'StreamMessageRole'>().nullish(),
+    content: z.unknown().nullish(),
+    usage: z.unknown().nullish(),
+    stopReason: z.string().brand<'StreamMessageStopReason'>().nullish(),
+    model: z.string().brand<'StreamMessageModel'>().nullish(),
   })
   .passthrough();
 

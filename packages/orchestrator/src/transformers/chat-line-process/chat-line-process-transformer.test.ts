@@ -1,5 +1,6 @@
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import {
+  AssistantNullStopReasonStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
   ResultStreamLineStub,
@@ -15,6 +16,32 @@ import { chatLineProcessTransformer } from './chat-line-process-transformer';
 const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({ value });
 
 describe('chatLineProcessTransformer', () => {
+  describe('regression: Claude CLI null stop_reason on streamed deltas', () => {
+    it('VALID: {assistant tool_use with stop_reason: null} => emits the tool_use entry (does not silently drop)', () => {
+      const processor = chatLineProcessTransformer();
+      const parsed = normalize(AssistantNullStopReasonStreamLineStub());
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_use',
+              toolUseId: 'toolu_01F4wgY95Em86z1oALfMC8KK',
+              toolName: 'mcp__dungeonmaster__discover',
+              toolInput: '{"glob":"packages/web/src/widgets/quest-chat/**"}',
+              source: 'session',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('basic line processing', () => {
     it('VALID: {assistant text line, source: session} => emits entries with source tag', () => {
       const processor = chatLineProcessTransformer();
