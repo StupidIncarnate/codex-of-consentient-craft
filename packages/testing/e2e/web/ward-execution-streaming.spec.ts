@@ -5,10 +5,10 @@ import { environmentHarness } from '../../test/harnesses/environment/environment
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
+import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
 import { DelayMillisecondsStub } from '../../src/contracts/delay-milliseconds/delay-milliseconds.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-ward-execution-streaming';
-const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
 
@@ -138,11 +138,8 @@ test.describe('Ward Execution Streaming', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-    );
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await guildsResponsePromise;
+    const nav = navigationHarness({ page });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     // Execution panel renders immediately since quest status is seek_scope
     const executionPanel = page.getByTestId('execution-panel-widget');
@@ -318,11 +315,8 @@ test.describe('Ward Execution Streaming', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === HTTP_OK,
-    );
-    await page.goto(`/${urlSlug}/session/${sessionId}`);
-    await guildsResponsePromise;
+    const nav = navigationHarness({ page });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
     // Execution panel renders immediately since quest status is seek_scope
     const executionPanel = page.getByTestId('execution-panel-widget');
