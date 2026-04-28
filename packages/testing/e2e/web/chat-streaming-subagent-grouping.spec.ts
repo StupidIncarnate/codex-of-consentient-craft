@@ -141,10 +141,9 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
       },
     });
 
-    // Navigate to the existing session URL so the next chat message resumes with
-    // sessionId — this gates `onAgentDetected` inside chat-spawn-broker, which needs
-    // `sessionId` to be defined to wire up the foreground sub-agent tail.
-    await page.goto(`/${guildId}/session/${sessionId}`);
+    // Navigate to the live quest workspace so the binding subscribes by questId and
+    // the chat input is available. The session URL is readonly-only under the new routing.
+    await page.goto(`/${guildId}/quest/${created.questId}`);
     await page.waitForResponse(
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );
