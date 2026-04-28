@@ -65,6 +65,7 @@ import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestra
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
 import { orchestratorSetWebPresenceAdapterProxy } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
+import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
@@ -114,6 +115,7 @@ export const ServerInitResponderProxy = (): {
   fsReadFileAdapterProxy();
   const findQuestPathProxy = orchestratorFindQuestPathAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
+  questWaitForSessionStampBrokerProxy();
   designProcessStateProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });

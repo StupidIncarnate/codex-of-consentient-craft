@@ -32,6 +32,7 @@ import { orchestratorSetWebPresenceAdapter } from '../../../adapters/orchestrato
 import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -228,13 +229,25 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                     }),
                   ),
                 );
+                // Wait for the chaoswhisperer/glyphsmith workItem to have its sessionId
+                // stamped before walking workItems for replay. New-chat flow's stamp is
+                // async (chat-spawn-broker fires questModifyBroker after the CLI's first
+                // init line resolves), so a subscribe arriving in that ~100ms window sees
+                // pending workItems with no sessionId and skips them — chat-output that
+                // was emitted before subscribe (no live subscriber yet) is then lost
+                // forever. The broker exits early when no relevant workItem is still
+                // un-stamped (the common case) or when its budget elapses.
+                const questForReplay = await questWaitForSessionStampBroker({
+                  questId: subQuestId,
+                  current: quest,
+                });
                 const findResult = await orchestratorFindQuestPathAdapter({
                   questId: subQuestId,
                 }).catch(() => null);
                 const subGuildId = findResult?.guildId;
                 if (subGuildId) {
                   await Promise.all(
-                    quest.workItems
+                    questForReplay.workItems
                       .filter((wi) => wi.sessionId !== undefined)
                       .map(async (wi) => {
                         if (!wi.sessionId) return;
@@ -255,15 +268,6 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                       }),
                   );
                 }
-                subWs.send(
-                  JSON.stringify(
-                    wsMessageContract.parse({
-                      type: 'chat-history-complete',
-                      payload: { questId: subQuestId },
-                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
-                    }),
-                  ),
-                );
               })
               .catch((error: unknown) => {
                 const reason =
@@ -303,6 +307,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                   questBuffer.delete(subQuestId);
                   if (questBuffer.size === 0) bufferedDuringReplay.delete(subWs);
                 }
+                let drainSendFailed = false;
                 if (workItemBuffer) {
                   for (const [workItemKey, msgs] of workItemBuffer) {
                     if (deliveredSet?.has(workItemKey)) continue;
@@ -312,9 +317,36 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                       } catch {
                         clientSubscriptions.delete(subWs);
                         clients.delete(subWs);
-                        return;
+                        drainSendFailed = true;
+                        break;
                       }
                     }
+                    if (drainSendFailed) break;
+                  }
+                }
+                // chat-history-complete is sent LAST — after every replay frame
+                // and every drained live frame for this subscription. Web's
+                // `useQuestChatBinding` flips `isStreaming` on each chat-output
+                // (TRUE) and on each chat-history-complete (FALSE), so any
+                // ordering that lets a chat-output land after chat-history-complete
+                // pins the chat input disabled until the next live event. Keeping
+                // this send in `.finally` AFTER the drain guarantees the final
+                // flip is `isStreaming = false` whenever the live CLI has already
+                // exited (no more live events coming).
+                if (!drainSendFailed) {
+                  try {
+                    subWs.send(
+                      JSON.stringify(
+                        wsMessageContract.parse({
+                          type: 'chat-history-complete',
+                          payload: { questId: subQuestId },
+                          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                        }),
+                      ),
+                    );
+                  } catch {
+                    clientSubscriptions.delete(subWs);
+                    clients.delete(subWs);
                   }
                 }
               });
@@ -487,14 +519,18 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
             for (const [client, subs] of clientSubscriptions) {
               if (!subs.has(payloadQuestId)) continue;
               const replaying = replayInProgressByClient.get(client);
-              if (replaying?.has(payloadQuestId)) {
-                // Replay frames carry chatProcessId starting with `quest-replay-`
-                // and are delivered via the direct-send path below — don't buffer
-                // them, only buffer LIVE chat-output (different chatProcessId).
+              if (replaying?.has(payloadQuestId) && type === 'chat-output') {
+                // chat-output is the one per-quest event replay also emits, so we have to
+                // suppress live chat-output during the replay window to prevent duplicates.
+                // Replay-emitted frames carry chatProcessId starting with `quest-replay-`
+                // and reach the client through the direct-send path below — those pass
+                // through. LIVE chat-output (different chatProcessId) is buffered per
+                // workItem and drained in the subscribe-quest .finally for workItems whose
+                // replay raced an unwritten JSONL.
                 const isReplayFrame =
                   typeof payloadChatProcessId === 'string' &&
                   payloadChatProcessId.startsWith('quest-replay-');
-                if (type === 'chat-output' && !isReplayFrame) {
+                if (!isReplayFrame) {
                   let questBuffer = bufferedDuringReplay.get(client);
                   if (!questBuffer) {
                     questBuffer = new Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>();
@@ -512,6 +548,12 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 }
                 continue;
               }
+              // Non-chat-output per-quest events (chat-complete, clarification-request,
+              // chat-session-started, chat-history-complete, quest-modified, quest-created,
+              // quest-session-linked) fall through to direct delivery even during a replay
+              // window — replay never emits these, so there is no dupe risk and the client
+              // needs them in real time. Dropping chat-complete during the replay window
+              // would leave isStreaming pinned true on the web until the next live event.
               try {
                 client.send(serializedQuestMsg);
                 delivered.add(client);

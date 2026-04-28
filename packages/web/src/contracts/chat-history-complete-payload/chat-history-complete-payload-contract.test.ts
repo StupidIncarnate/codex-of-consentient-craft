@@ -12,13 +12,11 @@ describe('chatHistoryCompletePayloadContract', () => {
         chatProcessId: 'proc-12345',
       });
     });
-  });
 
-  describe('invalid payloads', () => {
-    it('INVALID: {missing chatProcessId} => throws validation error', () => {
-      expect(() => {
-        chatHistoryCompletePayloadContract.parse({});
-      }).toThrow(/Required/u);
+    it('VALID: {empty payload} => parses successfully (subscribe-quest finisher case)', () => {
+      const result = chatHistoryCompletePayloadContract.parse({});
+
+      expect(result).toStrictEqual({});
     });
   });
 });
