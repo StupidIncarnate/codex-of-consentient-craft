@@ -436,19 +436,17 @@ test.describe('Chat stream vs replay parity', () => {
     await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // STREAMING-HALF: structural-only. Full inner-content lives on the post-reload
-    // replay-half. The streaming sub-agent tail-broker is started mid-parent-stream (on
-    // Task tool_use_result), reads the pre-seeded sub-agent JSONL asynchronously, then
-    // is force-stopped by chat-start-responder.onComplete when the parent's chat-complete
-    // fires. Even with one inner line the file-drain occasionally loses the race under
-    // full-ward load, leaving the chain rendered with "(0 entries)". This is a separate
-    // latent bug in the orchestrator's tail-lifecycle — orthogonal to the convergence
-    // shape this parity spec is here to verify. Replay-on-subscribe reads the same JSONL
-    // synchronously start-to-finish, so the post-reload half deterministically renders
-    // the full body and is what the inner-content assertions run against.
-    await expect(chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER')).toContainText(taskDescription, {
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(chainHeader).toContainText('1 entries', { timeout: CHAT_TIMEOUT });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chainScope.getByText(subagentInnerText).first()).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
+
     await expect(
       chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
     ).toHaveCount(ZERO_COUNT);
@@ -630,26 +628,48 @@ test.describe('Chat stream vs replay parity', () => {
     await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // STREAMING-HALF: structural-only. The full inner-content assertion lives on the
-    // post-reload replay-half. Why: the streaming sub-agent tail-broker is started
-    // mid-parent-stream (on Task tool_use_result), reads the pre-seeded sub-agent JSONL
-    // asynchronously, then is force-stopped by chat-start-responder.onComplete when the
-    // parent's chat-complete fires. With multi-line bodies (3+ lines) the file-drain
-    // loses the race to the stop more often than not, leaving the chain rendered with
-    // "(0 entries)". This is a separate latent bug in the orchestrator's tail-lifecycle
-    // (see chat-subagent-tail-broker / chat-start-responder.onComplete) — orthogonal to
-    // the convergence shape this parity spec is here to verify. Replay-on-subscribe
-    // reads the same JSONL synchronously start-to-finish, so the post-reload half
-    // deterministically renders the full body and is what the inner-content assertions
-    // run against.
-    await expect(chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER')).toContainText(taskDescription, {
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    // 3 inner ChatEntries (tool_use + tool_result + text). The exact count proves no
+    // inner entry was orphaned out of the chain by the convergence layer.
+    await expect(chainHeader).toContainText('3 entries', { timeout: CHAT_TIMEOUT });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Inner tool_use + tool_result MUST merge into a single TOOL_ROW with the inner
+    // toolName + file path. Anything else means tool merging didn't run inside the chain.
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW"]').filter({ hasText: innerFilePath }),
+    ).toHaveCount(ONE_COUNT);
+    // Pairing produces the success-status icon. Without it the tool_use rendered as a
+    // bare row and the tool_result fell through to an orphan "TOOL RESULT" card.
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    // Orphan TOOL RESULT card check is scoped INSIDE the chain — top-level "TOOL RESULT"
+    // cards (e.g. from main-stream tool_results) aren't relevant to chain pairing.
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+    await expect(chainScope.getByText(innerFinalText).first()).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
-    // No orphan TOOL RESULT cards anywhere (chain or top-level). Holds even when the
-    // chain has "(0 entries)" because the parent stream has no top-level tool_results.
-    await expect(
-      chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
-    ).toHaveCount(ZERO_COUNT);
+
+    // Expand the inner row and confirm its result content renders — this is the
+    // load-bearing pairing assertion: a tool_use without its tool_result content shows
+    // an empty body, which is the disguised orphan shape from the bug-report screenshots.
+    const innerRow = chainScope
+      .locator('[data-testid="TOOL_ROW"]')
+      .filter({ hasText: innerFilePath });
+
+    await innerRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    await expect(innerRow.getByTestId('TOOL_ROW_RESULT')).toContainText(innerResultContent, {
+      timeout: CHAT_TIMEOUT,
+    });
+
     await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     await page.reload();
@@ -918,14 +938,39 @@ test.describe('Chat stream vs replay parity', () => {
     await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // STREAMING-HALF: structural-only. Full inner-content lives on the post-reload
-    // replay-half. See variant 1 for the streaming sub-agent tail-broker race.
-    await expect(chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER')).toContainText(taskDescription, {
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(chainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
       timeout: CHAT_TIMEOUT,
     });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // 3 paired TOOL_ROW. Filter-by-file-path proves each tool_use was paired with its
+    // OWN tool_result (and not, say, all three tool_uses pointing at the same result).
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(PARALLEL_TOOL_COUNT);
     await expect(
-      chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+      chainScope.locator('[data-testid="TOOL_ROW"]').filter({ hasText: innerFilePath1 }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW"]').filter({ hasText: innerFilePath2 }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW"]').filter({ hasText: innerFilePath3 }),
+    ).toHaveCount(ONE_COUNT);
+    // Status-icon count == PARALLEL_TOOL_COUNT proves every inner tool_use found its
+    // matching tool_result.
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(PARALLEL_TOOL_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
     ).toHaveCount(ZERO_COUNT);
+    await expect(chainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
     await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     await page.reload();
@@ -1130,14 +1175,32 @@ test.describe('Chat stream vs replay parity', () => {
     await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // STREAMING-HALF: structural-only. Full inner-content lives on the post-reload
-    // replay-half. See variant 1 for the streaming sub-agent tail-broker race.
-    await expect(chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER')).toContainText(taskDescription, {
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(chainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
       timeout: CHAT_TIMEOUT,
     });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chainScope.getByText(innerFirstText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainScope.getByText(innerSecondText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
-      chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+      chainScope.locator('[data-testid="TOOL_ROW"]').filter({ hasText: innerFilePath }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
     ).toHaveCount(ZERO_COUNT);
+
     await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
 
     await page.reload();

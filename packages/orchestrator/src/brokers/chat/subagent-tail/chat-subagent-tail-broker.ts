@@ -2,7 +2,7 @@
  * PURPOSE: Tails a subagent's JSONL file in real-time and feeds lines through a shared processor instance, dispatching fully-parsed ChatEntry arrays via callbacks. Relies on the processor's realAgentId→toolUseId translation map (populated by user tool_result lines on the parent stream) to stamp sub-agent lines with the correct `parent_tool_use_id` — so they converge on the same wire shape as streaming-source lines.
  *
  * USAGE:
- * const stop = chatSubagentTailBroker({
+ * const { stop, initialDrain } = await chatSubagentTailBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  *   guildId: GuildIdStub({ value: 'f47ac10b-...' }),
  *   agentId: AgentIdStub({ value: 'agent-1' }),
@@ -10,7 +10,11 @@
  *   onEntries: ({ chatProcessId, entries }) => { },
  *   chatProcessId: ProcessIdStub({ value: 'proc-123' }),
  * });
- * // Returns a stop function that ends the tail
+ * // `stop` ends the tail; `initialDrain` resolves once the pre-existing JSONL content has
+ * // been fully delivered. Callers MUST await initialDrain before stop() if they need the
+ * // pre-existing lines to reach the renderer (chat-start-responder.onComplete relies on
+ * // this — without the await the readline 'line' events queued by the synthetic-emit
+ * // drain race against state.stopped and silently drop sub-agent entries).
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -43,7 +47,7 @@ export const chatSubagentTailBroker = async ({
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
   chatProcessId: ProcessId;
-}): Promise<() => void> => {
+}): Promise<{ stop: () => void; initialDrain: Promise<void> }> => {
   const guild = await guildGetBroker({ guildId });
   const projectPath = absoluteFilePathContract.parse(guild.path);
   const homeDir = osUserHomedirAdapter();
@@ -104,5 +108,5 @@ export const chatSubagentTailBroker = async ({
     },
   });
 
-  return handle.stop;
+  return { stop: handle.stop, initialDrain: handle.initialDrain };
 };

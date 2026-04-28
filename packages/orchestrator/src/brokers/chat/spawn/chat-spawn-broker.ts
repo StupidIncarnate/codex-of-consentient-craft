@@ -71,11 +71,15 @@ export const chatSpawnBroker = async ({
     agentId: AgentId;
     sessionId: SessionId;
   }) => void;
+  // onComplete may return a Promise; chat-spawn-broker fires it without awaiting (the
+  // spawn-side teardown is already done at this point). chat-start-responder.onComplete
+  // returns a promise because it awaits sub-agent tail drains before emitting
+  // chat-complete on the bus.
   onComplete: (params: {
     chatProcessId: ProcessId;
     exitCode: number | null;
     sessionId: SessionId | null;
-  }) => void;
+  }) => void | Promise<void>;
   onQuestCreated?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   onDesignSessionLinked?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
@@ -206,7 +210,18 @@ export const chatSpawnBroker = async ({
         onDesignSessionLinked?.({ questId: resolvedQuestId, chatProcessId });
       }
 
-      onComplete({ chatProcessId, exitCode: exitCode ?? null, sessionId: finalSessionId });
+      // The caller's onComplete may return a Promise (chat-start-responder's onComplete is
+      // async because it awaits sub-agent tail drains before emitting chat-complete on the
+      // bus). Fire-and-forget here — chat-spawn-broker has no further work to coordinate
+      // with the caller's teardown. Promise.resolve normalises void-return into a thenable
+      // so a single .catch handles either return shape lint-cleanly.
+      Promise.resolve(
+        onComplete({ chatProcessId, exitCode: exitCode ?? null, sessionId: finalSessionId }),
+      ).catch((error: unknown) => {
+        process.stderr.write(
+          `chat-spawn-broker onComplete handler rejected: ${error instanceof Error ? error.message : String(error)}\n`,
+        );
+      });
     },
   });
 

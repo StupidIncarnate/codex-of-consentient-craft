@@ -205,7 +205,7 @@ describe('chatSubagentTailBroker', () => {
 
       const batches: unknown[] = [];
 
-      const stop = await chatSubagentTailBroker({
+      const { stop } = await chatSubagentTailBroker({
         sessionId,
         guildId,
         agentId,
