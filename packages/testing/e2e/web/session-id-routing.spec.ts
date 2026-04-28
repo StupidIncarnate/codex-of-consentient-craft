@@ -126,9 +126,8 @@ test.describe('Session ID Routing', () => {
 
         await expect(roleBadge).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-        // Trigger replay from browser to ensure WS is connected when messages are sent
-        const replaySessionIds = workItems.map((wi) => wi.sessionId);
-        await nav.triggerReplayFromBrowser({ guildId, sessionIds: replaySessionIds });
+        // No explicit replay needed: navigateToQuest sends subscribe-quest which triggers
+        // server-side replay-on-subscribe for all work item sessions automatically.
 
         // Find the execution row for this role and expand it
         const roleRow = page.getByTestId('execution-row-layer-widget').filter({
@@ -208,7 +207,7 @@ test.describe('Session ID Routing', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Execution panel should appear
     const executionPanel = page.getByTestId('execution-panel-widget');
@@ -303,7 +302,7 @@ test.describe('Session ID Routing', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToSession({ urlSlug, sessionId: mainSessionId });
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
 
     // Execution panel should appear
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -317,11 +316,8 @@ test.describe('Session ID Routing', () => {
 
     await expect(cwRows).toHaveCount(2, { timeout: PANEL_TIMEOUT });
 
-    // Trigger replay from browser to ensure WS is connected when messages are sent
-    await nav.triggerReplayFromBrowser({
-      guildId,
-      sessionIds: [mainSessionId, cwSessionId1, cwSessionId2],
-    });
+    // No explicit replay needed: navigateToQuest sends subscribe-quest which triggers
+    // server-side replay-on-subscribe for all work item sessions automatically.
 
     // Expand first codeweaver row
     await cwRows.nth(0).getByTestId('execution-row-header').click();
