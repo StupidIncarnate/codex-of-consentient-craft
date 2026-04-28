@@ -187,19 +187,20 @@ test.describe('Quest WS Update', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    // Queue a Claude response for the new-session flow.
+    // Queue a Claude response for the new-quest flow.
     // The sessionId must be unique; the fake CLI writes a JSONL file using it.
     const sessionId = `e2e-session-link-race-${Date.now()}`;
     claudeMock.queueResponse({
       response: SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }),
     });
 
-    // Navigate to the guild session page WITHOUT a sessionId — this is a new chat
-    const _nav = navigationHarness({ page });
+    // Navigate to the guild quest page WITHOUT a questId — this is the new-chat surface.
+    // Under quest-id routing, /:guildSlug/quest is the entry point for starting a new
+    // conversation; /:guildSlug/session (no id) no longer exists.
     const guildsResponsePromise = page.waitForResponse(
       (r) => r.url().includes('/api/guilds') && r.status() === 200,
     );
-    await page.goto(`/${urlSlug}/session`);
+    await page.goto(`/${urlSlug}/quest`);
     await guildsResponsePromise;
 
     // Initially there's no quest, so we should see the awaiting placeholder
@@ -207,16 +208,17 @@ test.describe('Quest WS Update', () => {
       timeout: PANEL_TIMEOUT,
     });
 
-    // Send a message — this triggers the /api/sessions/new endpoint which:
+    // Send a message — this triggers POST /api/guilds/:guildId/quests (questNewBroker) which:
     // 1. Creates a quest via questUserAddBroker (empty, no flows)
-    // 2. Emits quest-session-linked WS event with chatProcessId
-    // 3. Spawns fake CLI
-    // 4. Returns { chatProcessId } in HTTP response
-    // The race condition: quest-session-linked arrives BEFORE chatProcessId is set on the client
+    // 2. Spawns fake CLI
+    // 3. Returns { questId, chatProcessId } in HTTP response
+    // 4. Page navigates to /:guildSlug/quest/:questId (replace)
+    // useQuestChatBinding subscribes via WS and receives quest-modified with current state
     await page.getByTestId('CHAT_INPUT').fill('Build a login feature');
     await page.getByTestId('SEND_BUTTON').click();
 
-    // Wait for the chat response to stream through (confirms fake CLI ran)
+    // Wait for the chat response to stream through (confirms fake CLI ran and page navigated
+    // to the live workspace where chat-output WS events are received)
     await expect(page.getByText('Quest created successfully')).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
@@ -230,8 +232,8 @@ test.describe('Quest WS Update', () => {
     const questId = String(createdQuest.id);
 
     // PATCH the quest to add a flow and advance status — this triggers quest-modified WS broadcast.
-    // If quest-session-linked was handled correctly, the client knows the questId and
-    // useQuestEventsBinding is subscribed to updates for it.
+    // The client subscribed to the questId via useQuestChatBinding on navigate, so it receives the
+    // outbox-driven quest-modified event and the spec panel updates.
     // The transition to explore_flows must run first because the per-status input
     // allowlist gate runs against the current status before mutations apply, and
     // the freshly-created quest sits at 'created' which only allows title + status.
@@ -254,10 +256,9 @@ test.describe('Quest WS Update', () => {
       },
     });
 
-    // If the fix works: quest-session-linked was buffered and replayed when chatProcessId arrived,
-    // so linkedQuestId is set, useQuestEventsBinding received quest-modified, spec panel shows.
-    // If the bug is present: quest-session-linked was dropped, linkedQuestId is null,
-    // useQuestEventsBinding ignores quest-modified, spec panel stays stuck on "Awaiting..."
+    // The page navigated to /:guildSlug/quest/:questId after quest creation, so
+    // QuestLiveWorkspaceLayerWidget is mounted and shows QUEST_SPEC_PANEL for non-execution
+    // phases. The quest-modified WS events deliver the flow added above.
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
     await expect(page.getByText('Race Condition Flow')).toBeVisible({
