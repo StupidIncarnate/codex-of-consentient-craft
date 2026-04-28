@@ -347,6 +347,22 @@ export const ChatStartResponder = async ({
         })
           .then((stop) => {
             mainTailStopHandle = stop;
+            // Re-register the process with ONLY the tail's stop handle. The CLI process
+            // has already exited; we keep the registry entry so any subsequent chat on the
+            // same quest (e.g. a second user message via --resume) can find and kill this
+            // tail before starting. Without this, the tail keeps running and picks up
+            // JSONL lines written by the new chat process, causing duplicate chat-output
+            // events on the client.
+            orchestrationProcessesState.register({
+              orchestrationProcess: {
+                processId: chatProcessId,
+                questId: chatQuestId ?? questIdContract.parse(`chat-${chatProcessId}`),
+                kill: () => {
+                  stop();
+                  mainTailStopHandle = null;
+                },
+              },
+            });
           })
           .catch((error: unknown) => {
             process.stderr.write(

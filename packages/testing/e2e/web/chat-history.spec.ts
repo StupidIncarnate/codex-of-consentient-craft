@@ -38,13 +38,18 @@ test.describe('Chat History & Sessions', () => {
     await page.getByTestId('CHAT_INPUT').fill('Remember this');
     await page.getByTestId('SEND_BUTTON').click();
 
-    // Wait for response to appear
+    // Wait for URL to update with quest ID (navigate happens after new quest creation).
+    // This must come BEFORE asserting text: the new-quest flow returns the questId
+    // immediately when the CLI spawns (before it finishes writing the JSONL). The
+    // browser navigates to /:guildSlug/quest/:questId, which triggers subscribe-quest.
+    // subscribe-quest replay reads the JSONL — which is complete by this point because
+    // the fake CLI has had ~600ms+ (WS connect latency) to write the file.
+    await page.waitForURL(/\/quest\/[0-9a-f]/u, { timeout: CHAT_TIMEOUT });
+
+    // Wait for response to appear (loaded via subscribe-quest replay from JSONL)
     await expect(page.getByText('Persistent response')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // Wait for URL to update with session ID (happens after streaming completes)
-    await page.waitForURL(/\/session\//u, { timeout: CHAT_TIMEOUT });
-
-    // Refresh the page (use reload to preserve the session URL that was set after streaming)
+    // Refresh the page; URL is now the stable quest URL so history loads via subscribe-quest replay
     await page.reload();
     await page.waitForResponse(
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
