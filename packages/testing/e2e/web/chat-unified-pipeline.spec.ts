@@ -57,9 +57,9 @@ test.describe('Unified JSONL Pipeline', () => {
 
     await expect(page.getByText('Replayed via WebSocket')).toBeVisible({ timeout: CHAT_TIMEOUT });
 
-    // Wait for URL to update with session ID
-    await page.waitForURL(/\/session\//u, { timeout: CHAT_TIMEOUT });
-    const sessionUrl = page.url();
+    // Wait for URL to update with quest ID (post-refactor: new chat navigates to /quest/:questId)
+    await page.waitForURL(/\/quest\/[0-9a-f-]{36}/u, { timeout: CHAT_TIMEOUT });
+    const questUrl = page.url();
 
     // Navigate away
     await page.goto(`/${guildId}/quest`);
@@ -67,8 +67,8 @@ test.describe('Unified JSONL Pipeline', () => {
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );
 
-    // Navigate back to the session URL
-    await page.goto(sessionUrl);
+    // Navigate back to the quest URL
+    await page.goto(questUrl);
     await page.waitForResponse(
       (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
     );
@@ -115,8 +115,8 @@ test.describe('Unified JSONL Pipeline', () => {
       timeout: CHAT_TIMEOUT,
     });
 
-    // Wait for session URL
-    await page.waitForURL(/\/session\//u, { timeout: CHAT_TIMEOUT });
+    // Wait for quest URL (post-refactor: new chat navigates to /quest/:questId)
+    await page.waitForURL(/\/quest\/[0-9a-f-]{36}/u, { timeout: CHAT_TIMEOUT });
 
     // Hard refresh
     await page.reload();
