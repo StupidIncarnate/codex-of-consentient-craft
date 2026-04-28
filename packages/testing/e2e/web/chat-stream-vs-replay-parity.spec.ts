@@ -498,4 +498,61 @@ test.describe('Chat stream vs replay parity', () => {
     ).toHaveCount(ZERO_COUNT);
     await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
+
+  /*
+   * TODO — sub-agent inner-body variants for full parity coverage.
+   *
+   * The sub-agent test above only exercises the simplest inner body (one assistant
+   * text line). The original ask was that the sub-agent does "similar test cases"
+   * inside the chain — meaning every shape we cover at the top level should ALSO be
+   * covered inside a sub-agent. Each missing variant below should be a separate
+   * `test()` block in this describe; the assertion shape mirrors the parent test
+   * but scoped to `chatPanel.getByTestId('SUBAGENT_CHAIN')`.
+   *
+   * `test.skip` / `test.todo` are forbidden by `@dungeonmaster/forbid-todo-skip`,
+   * so these are documented here instead of stubbed.
+   *
+   * 1. Sub-agent: single tool_use + tool_result + text inside the chain.
+   *    Setup: use `sessions.createSubagentSessionWithInternalTool({ … })` to
+   *    pre-seed the sub-agent JSONL with one assistant tool_use + matching user
+   *    tool_result. Parent stream: same as the existing sub-agent test (Task
+   *    dispatch, Task completion with realAgentId, parent text bookends).
+   *    Assert inside `SUBAGENT_CHAIN`: 1 `TOOL_ROW` with the inner toolName +
+   *    input visible, no orphan `TOOL RESULT` cards inside the chain, and the
+   *    inner result content visible when the row is expanded. Parent assertions
+   *    same as the existing test.
+   *
+   * 2. Sub-agent: several parallel tool_uses + tool_results + text inside the chain.
+   *    Setup: pre-seed the sub-agent JSONL with three separate assistant
+   *    tool_use lines + three user tool_result lines (real Claude shape — one
+   *    item per line, not bundled), followed by one assistant text. Parent
+   *    stream: Task dispatch + completion + parent text bookends.
+   *    Assert inside `SUBAGENT_CHAIN`: 3 `TOOL_ROW` elements, each filtered by
+   *    its expected file path; `TOOL_ROW_STATUS` count = 3 (every row paired);
+   *    zero orphan `TOOL RESULT` cards inside the chain; the sub-agent's final
+   *    inner text visible inside the chain scope. The chain header's entry
+   *    count should reflect ALL inner entries (texts + tool_uses + tool_results).
+   *
+   * 3. Sub-agent: assistant text → tool_use + tool_result → assistant text inside
+   *    the chain (the conversational variant).
+   *    Setup: pre-seed the sub-agent JSONL with assistant text → assistant
+   *    tool_use → user tool_result → assistant text. Parent stream: same as
+   *    above.
+   *    Assert inside `SUBAGENT_CHAIN`: both inner text markers visible in
+   *    order, 1 paired `TOOL_ROW` between them, zero orphan TOOL RESULT cards,
+   *    chain header entry count reflects all inner entries.
+   *
+   * Each variant must run BOTH the streaming-then-reload assertion sequence
+   * (same shape as the existing 3 tests). The harness helper to pre-seed the
+   * sub-agent JSONL with multi-entry bodies needs extending — current
+   * `createSubagentSessionWithInternalTool` only handles one tool_use; for
+   * variants 2 and 3 you'll need a new helper (e.g.
+   * `createSubagentTailMultiEntry`) that accepts a `lines: string[]` array and
+   * writes them under `subagents/agent-${agentId}.jsonl`. Mirror the existing
+   * helper's parentUuid/timestamp wiring.
+   *
+   * After all three variants are written, `chat-streaming-subagent-grouping`
+   * and `chat-replay-subagent-grouping` may be deprecated — they cover narrower
+   * slices of the same convergence invariant.
+   */
 });
