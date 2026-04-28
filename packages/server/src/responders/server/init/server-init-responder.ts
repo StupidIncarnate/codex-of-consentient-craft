@@ -40,6 +40,7 @@ import type {
   ProcessId,
   QuestId,
   QuestWorkItemId,
+  WsMessage,
 } from '@dungeonmaster/shared/contracts';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
@@ -92,15 +93,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   // live + replay paths. Per-workItem because some workItems' replays may
   // succeed while others fail — coarse-grain (per-quest) tracking would drop
   // legitimately race-lost frames whenever ANY replay in the quest succeeded.
-  // Frames without workItemId go under the empty-string key.
+  // Frames without workItemId go under the null key.
   const bufferedDuringReplay = new Map<
     WsClient,
-    Map<QuestId, Map<QuestWorkItemId | '', string[]>>
+    Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>
   >();
   // WorkItemIds for which replay's direct-send delivered at least one chat-output
   // frame, per (client, questId). Used by the subscribe-quest .finally to decide
   // which workItem buffers to drain.
-  const replayDeliveredWorkItems = new Map<WsClient, Map<QuestId, Set<QuestWorkItemId | ''>>>();
+  const replayDeliveredWorkItems = new Map<WsClient, Map<QuestId, Set<QuestWorkItemId | null>>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -307,7 +308,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                     if (deliveredSet?.has(workItemKey)) continue;
                     for (const msg of msgs) {
                       try {
-                        subWs.send(msg);
+                        subWs.send(JSON.stringify(msg));
                       } catch {
                         clientSubscriptions.delete(subWs);
                         clients.delete(subWs);
@@ -496,17 +497,17 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 if (type === 'chat-output' && !isReplayFrame) {
                   let questBuffer = bufferedDuringReplay.get(client);
                   if (!questBuffer) {
-                    questBuffer = new Map<QuestId, Map<QuestWorkItemId | '', string[]>>();
+                    questBuffer = new Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>();
                     bufferedDuringReplay.set(client, questBuffer);
                   }
                   let workItemBuffer = questBuffer.get(payloadQuestId);
                   if (!workItemBuffer) {
-                    workItemBuffer = new Map<QuestWorkItemId | '', string[]>();
+                    workItemBuffer = new Map<QuestWorkItemId | null, WsMessage[]>();
                     questBuffer.set(payloadQuestId, workItemBuffer);
                   }
-                  const key: QuestWorkItemId | '' = payloadWorkItemId ?? '';
+                  const key: QuestWorkItemId | null = payloadWorkItemId ?? null;
                   const msgs = workItemBuffer.get(key) ?? [];
-                  msgs.push(serializedQuestMsg);
+                  msgs.push(envelope);
                   workItemBuffer.set(key, msgs);
                 }
                 continue;
@@ -541,15 +542,15 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                 if (type === 'chat-output' && payloadQuestId) {
                   let questDelivered = replayDeliveredWorkItems.get(replayClient);
                   if (!questDelivered) {
-                    questDelivered = new Map<QuestId, Set<QuestWorkItemId | ''>>();
+                    questDelivered = new Map<QuestId, Set<QuestWorkItemId | null>>();
                     replayDeliveredWorkItems.set(replayClient, questDelivered);
                   }
                   let workItemSet = questDelivered.get(payloadQuestId);
                   if (!workItemSet) {
-                    workItemSet = new Set<QuestWorkItemId | ''>();
+                    workItemSet = new Set<QuestWorkItemId | null>();
                     questDelivered.set(payloadQuestId, workItemSet);
                   }
-                  workItemSet.add(payloadWorkItemId ?? '');
+                  workItemSet.add(payloadWorkItemId ?? null);
                 }
               } catch {
                 clientSubscriptions.delete(replayClient);

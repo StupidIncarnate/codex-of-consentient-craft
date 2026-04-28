@@ -11,6 +11,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
+import { chatReplayJsonlReadBrokerProxy } from '../replay-jsonl-read/chat-replay-jsonl-read-broker.proxy';
 
 type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfig']>[0]['config'];
 
@@ -31,6 +32,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   const homedirProxy = osUserHomedirAdapterProxy();
   const readJsonlProxy = fsReadJsonlAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the readJsonlProxy above already
+  // mocks the underlying readFile that the replay broker delegates to.
+  chatReplayJsonlReadBrokerProxy();
 
   // chat-history-replay-broker walks up from the guild path to the repo root via
   // cwdResolveBroker so the encoded JSONL path matches the spawn cwd of the agent that

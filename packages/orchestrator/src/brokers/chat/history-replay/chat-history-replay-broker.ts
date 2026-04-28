@@ -36,6 +36,7 @@ import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
@@ -88,30 +89,11 @@ export const chatHistoryReplayBroker = async ({
   });
 
   // The JSONL may race a still-running chat: subscribe-quest can fire before the CLI
-  // (real or fake) finishes its post-stdout JSONL flush. Poll briefly for the file with
-  // a small budget rather than ENOENT immediately — without this, the live broadcast was
-  // already missed (subscribe came AFTER CLI's broadcasts but BEFORE its JSONL write),
-  // so replay is the ONLY path that can deliver content. Budget kept short so completed
-  // sessions with truly missing JSONL fail fast instead of stalling subscribe.
-  const READ_RETRY_TOTAL_MS = 200;
-  const READ_RETRY_INTERVAL_MS = 20;
-  const readWithRetry = async (): Promise<StreamJsonLine[]> => {
-    const deadline = Date.now() + READ_RETRY_TOTAL_MS;
-    for (;;) {
-      try {
-        return await fsReadJsonlAdapter({ filePath: jsonlPath });
-      } catch (err) {
-        const isEnoent = err instanceof Error && err.message.includes('ENOENT');
-        if (!isEnoent || Date.now() >= deadline) {
-          throw err;
-        }
-        await new Promise<void>((resolve) => {
-          setTimeout(resolve, READ_RETRY_INTERVAL_MS);
-        });
-      }
-    }
-  };
-  const sessionLines = await readWithRetry();
+  // (real or fake) finishes its post-stdout JSONL flush. The replay broker polls briefly
+  // for the file rather than ENOENT immediately — without this, live broadcasts shipped
+  // before subscribe are lost AND replay misses the unwritten JSONL, so nothing reaches
+  // the client.
+  const sessionLines = await chatReplayJsonlReadBroker({ filePath: jsonlPath });
 
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
 
