@@ -158,6 +158,17 @@ export const sessionHarness = ({
     agentId: string;
     assistantText: string;
   }) => void;
+  // Like createSubagentTailOnly but accepts a pre-built `lines` array so callers can seed
+  // multi-entry sub-agent bodies (text → tool_use → tool_result → text, parallel tool_uses,
+  // etc.) without forking the harness for every variant. Each entry is a `JSON.stringify(...)`
+  // of a stream-line stub. Replay sorts across main+subagent files by timestamp, so callers
+  // building multi-line bodies should bake monotonically-increasing `timestamp` fields onto
+  // each line via spread. Filename is `agent-${agentId}.jsonl` to match real Claude CLI shape.
+  createSubagentTailMultiEntry: (params: {
+    sessionId: string;
+    agentId: string;
+    lines: string[];
+  }) => void;
   createSessionWithRedactedThinking: (params: { sessionId: string; assistantText: string }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
@@ -510,6 +521,21 @@ export const sessionHarness = ({
     );
   };
 
+  const createSubagentTailMultiEntry = ({
+    sessionId,
+    agentId,
+    lines,
+  }: {
+    sessionId: string;
+    agentId: string;
+    lines: string[];
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+    fs.writeFileSync(path.join(subagentDir, `agent-${agentId}.jsonl`), `${lines.join('\n')}\n`);
+  };
+
   const createSessionWithRedactedThinking = ({
     sessionId,
     assistantText,
@@ -596,6 +622,7 @@ export const sessionHarness = ({
     createSubagentSessionFiles,
     createSubagentSessionWithInternalTool,
     createSubagentTailOnly,
+    createSubagentTailMultiEntry,
     createBackgroundAgentSession,
     createSessionWithRedactedThinking,
     cleanSessionFiles,
