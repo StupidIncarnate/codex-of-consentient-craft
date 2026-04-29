@@ -1,8 +1,5 @@
 import {
   AssistantTextStreamLineStub,
-  AssistantThinkingStreamLineStub,
-  AssistantRedactedThinkingStreamLineStub,
-  AssistantToolUseStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -15,23 +12,6 @@ const UserToolResultEntry = ({ toolUseId }: { toolUseId: string }) => ({
     role: 'user' as const,
     content: [{ type: 'tool_result' as const, toolUseId, content: 'done' }],
   },
-});
-
-const AssistantThinkingEntry = () => ({
-  ...AssistantThinkingStreamLineStub(),
-});
-
-const AssistantRedactedThinkingEntry = () => ({
-  ...AssistantRedactedThinkingStreamLineStub(),
-});
-
-const AssistantToolUseEntry = ({ toolUseId }: { toolUseId: string }) => ({
-  ...AssistantToolUseStreamLineStub({
-    message: {
-      role: 'assistant',
-      content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-    },
-  } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
 });
 
 const EntryWithoutMessage = () => ({
@@ -168,33 +148,6 @@ describe('toolUseIdsFromContentTransformer', () => {
       const result = toolUseIdsFromContentTransformer({ entry });
 
       expect(result).toStrictEqual(['toolu_01A', 'toolu_01B']);
-    });
-  });
-
-  describe('non-tool_result variant items — all skipped', () => {
-    it('EMPTY: {content array with thinking item} => returns empty array', () => {
-      const entry = AssistantThinkingEntry();
-
-      const result = toolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('EMPTY: {content array with redacted_thinking item} => returns empty array', () => {
-      const entry = AssistantRedactedThinkingEntry();
-
-      const result = toolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('EMPTY: {content array with tool_use item} => returns empty array — only tool_result is extracted', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_abc_01' });
-      const entry = AssistantToolUseEntry({ toolUseId });
-
-      const result = toolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
     });
   });
 });

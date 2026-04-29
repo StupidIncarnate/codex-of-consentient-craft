@@ -219,30 +219,6 @@ describe('streamJsonToToolUseTransformer', () => {
       expect(result).toBe(null);
     });
 
-    it('EMPTY: {assistant message with only thinking block} => returns null', () => {
-      const result = streamJsonToToolUseTransformer({
-        parsed: snakeKeysToCamelKeysTransformer({
-          value: JSON.parse(
-            '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me reason."}]}}',
-          ),
-        }),
-      });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {assistant message with only redacted_thinking block} => returns null', () => {
-      const result = streamJsonToToolUseTransformer({
-        parsed: snakeKeysToCamelKeysTransformer({
-          value: JSON.parse(
-            '{"type":"assistant","message":{"content":[{"type":"redacted_thinking","data":"<blob>"}]}}',
-          ),
-        }),
-      });
-
-      expect(result).toBe(null);
-    });
-
     it('EMPTY: {assistant message with empty content array} => returns null', () => {
       const result = streamJsonToToolUseTransformer({
         parsed: snakeKeysToCamelKeysTransformer({

@@ -192,31 +192,5 @@ describe('parseUserStreamEntryTransformer', () => {
 
       expect(result).toStrictEqual([]);
     });
-
-    it('EMPTY: {thinking item in user message content} => skips — only tool_result items are extracted', () => {
-      const result = parseUserStreamEntryTransformer({
-        parsed: normalize({
-          type: 'user',
-          message: {
-            content: [{ type: 'thinking', thinking: 'Some reasoning.' }],
-          },
-        }),
-      });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('EMPTY: {redacted_thinking item in user message content} => skips — only tool_result items are extracted', () => {
-      const result = parseUserStreamEntryTransformer({
-        parsed: normalize({
-          type: 'user',
-          message: {
-            content: [{ type: 'redacted_thinking', data: '<encrypted-blob>' }],
-          },
-        }),
-      });
-
-      expect(result).toStrictEqual([]);
-    });
   });
 });

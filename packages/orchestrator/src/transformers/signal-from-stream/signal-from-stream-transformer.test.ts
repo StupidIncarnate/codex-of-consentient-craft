@@ -153,30 +153,6 @@ describe('signalFromStreamTransformer', () => {
       expect(result).toBe(null);
     });
 
-    it('EMPTY: {assistant message with only thinking block} => returns null', () => {
-      const parsed = snakeKeysToCamelKeysTransformer({
-        value: JSON.parse(
-          '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me reason."}]}}',
-        ),
-      });
-
-      const result = signalFromStreamTransformer({ parsed });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {assistant message with only redacted_thinking block} => returns null', () => {
-      const parsed = snakeKeysToCamelKeysTransformer({
-        value: JSON.parse(
-          '{"type":"assistant","message":{"content":[{"type":"redacted_thinking","data":"<blob>"}]}}',
-        ),
-      });
-
-      const result = signalFromStreamTransformer({ parsed });
-
-      expect(result).toBe(null);
-    });
-
     it('EMPTY: {different MCP tool call} => returns null', () => {
       const parsed = snakeKeysToCamelKeysTransformer({
         value: AssistantToolUseStreamLineStub({

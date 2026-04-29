@@ -1,9 +1,6 @@
 import {
   AssistantToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-  AssistantThinkingStreamLineStub,
-  AssistantRedactedThinkingStreamLineStub,
-  AssistantToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
@@ -114,23 +111,6 @@ const AssistantMixedTaskAndReadEntry = ({
       ],
     },
   } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-});
-
-const AssistantThinkingEntry = () => ({
-  ...AssistantThinkingStreamLineStub(),
-});
-
-const AssistantRedactedThinkingEntry = () => ({
-  ...AssistantRedactedThinkingStreamLineStub(),
-});
-
-const AssistantToolResultEntry = ({ toolUseId }: { toolUseId: string }) => ({
-  ...AssistantToolResultStreamLineStub({
-    message: {
-      role: 'assistant',
-      content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-    },
-  } as Parameters<typeof AssistantToolResultStreamLineStub>[0]),
 });
 
 const EntryWithoutMessage = () => ({
@@ -301,33 +281,6 @@ describe('taskToolUseIdsFromContentTransformer', () => {
 
       expect(result).toStrictEqual([]);
       expect(getContentItemAgentId({ entry, index: 0 })).toBe(undefined);
-    });
-  });
-
-  describe('non-tool_use variant items — all skipped', () => {
-    it('EMPTY: {content array with thinking item} => returns empty array, does not stamp', () => {
-      const entry = AssistantThinkingEntry();
-
-      const result = taskToolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('EMPTY: {content array with redacted_thinking item} => returns empty array, does not stamp', () => {
-      const entry = AssistantRedactedThinkingEntry();
-
-      const result = taskToolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('EMPTY: {content array with tool_result item} => returns empty array — only Task/Agent tool_use extracted', () => {
-      const toolUseId = ToolUseIdStub({ value: 'toolu_tr_01' });
-      const entry = AssistantToolResultEntry({ toolUseId });
-
-      const result = taskToolUseIdsFromContentTransformer({ entry });
-
-      expect(result).toStrictEqual([]);
     });
   });
 

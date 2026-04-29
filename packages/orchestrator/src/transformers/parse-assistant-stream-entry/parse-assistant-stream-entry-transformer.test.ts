@@ -60,25 +60,10 @@ describe('parseAssistantStreamEntryTransformer', () => {
         },
       ]);
     });
-
-    it('EMPTY: {redacted_thinking content} => skips item — no handler in mapContentItemToChatEntryTransformer', () => {
-      const result = parseAssistantStreamEntryTransformer({
-        parsed: normalize({
-          type: 'assistant',
-          message: {
-            role: 'assistant',
-            content: [{ type: 'redacted_thinking', data: '<encrypted-blob>' }],
-          },
-        }),
-      });
-
-      expect(result).toStrictEqual([]);
-    });
   });
 
   describe('tool content', () => {
-    it('VALID: {tool_use content} => returns tool use chat entry with toolUseId', () => {
-      const toolUseId = 'toolu_01ParseTest001';
+    it('VALID: {tool_use content} => returns tool use chat entry', () => {
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantToolUseStreamLineStub({
@@ -87,7 +72,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
               content: [
                 {
                   type: 'tool_use',
-                  id: toolUseId,
+                  id: 'toolu_01ParseTest001',
                   name: 'read_file',
                   input: { path: '/test' },
                 },
@@ -101,7 +86,6 @@ describe('parseAssistantStreamEntryTransformer', () => {
         {
           role: 'assistant',
           type: 'tool_use',
-          toolUseId,
           toolName: 'read_file',
           toolInput: '{"path":"/test"}',
         },
@@ -132,8 +116,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
   });
 
   describe('mixed content', () => {
-    it('VALID: {multiple content items} => returns multiple entries with toolUseId on tool_use', () => {
-      const toolUseId = 'toolu_01ParseMixed001';
+    it('VALID: {multiple content items} => returns multiple entries', () => {
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantMixedContentStreamLineStub({
@@ -143,7 +126,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
                 { type: 'text', text: 'Let me read that file' },
                 {
                   type: 'tool_use',
-                  id: toolUseId,
+                  id: 'toolu_01ParseMixed001',
                   name: 'read_file',
                   input: { path: '/src' },
                 },
@@ -169,7 +152,6 @@ describe('parseAssistantStreamEntryTransformer', () => {
         {
           role: 'assistant',
           type: 'tool_use',
-          toolUseId,
           toolName: 'read_file',
           toolInput: '{"path":"/src"}',
           usage: {

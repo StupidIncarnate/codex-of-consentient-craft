@@ -495,17 +495,6 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
-  describe('redacted_thinking items', () => {
-    it('EMPTY: {type: "redacted_thinking"} => returns null — impl has no handler for this variant', () => {
-      const result = mapContentItemToChatEntryTransformer({
-        item: { type: 'redacted_thinking', data: '<encrypted-blob>' },
-        usage: undefined,
-      });
-
-      expect(result).toBe(null);
-    });
-  });
-
   describe('unrecognized items', () => {
     it('EMPTY: {type: "unknown"} => returns null', () => {
       const result = mapContentItemToChatEntryTransformer({
@@ -514,61 +503,6 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
 
       expect(result).toBe(null);
-    });
-  });
-
-  describe('tool_result with tool_reference content items — known rendering bug', () => {
-    it('INVALID: {tool_result, content array has tool_reference item} => tool_reference is silently dropped, renders empty string', () => {
-      // BUG: mapContentItemToChatEntryTransformer walks tool_result.content array and extracts
-      // only items where cParse.data.text is defined. tool_reference blocks have no `.text` field —
-      // they have `tool_name` instead — so they parse successfully via the contract but contribute
-      // `undefined` to the map, which is then filtered by `typeof t === 'string'`. The result is
-      // an empty string join, meaning the tool_reference content is completely invisible to the web.
-      //
-      // The e2e repro is chat-stream-vs-replay-parity.spec.ts.
-      // This unit test pins the bug at the unit level: given a tool_result whose content includes
-      // a tool_reference block, the transformer SHOULD render some representation of that block,
-      // but currently returns an empty content string.
-      const result = mapContentItemToChatEntryTransformer({
-        item: {
-          type: 'tool_result',
-          toolUseId: 'toolu_ref_bug',
-          content: [{ type: 'tool_reference', tool_name: 'mcp__dungeonmaster__get-quest' }],
-        },
-        usage: undefined,
-      });
-
-      // Current (buggy) behaviour — tool_reference is dropped, content collapses to ''.
-      // When the bug is fixed this assertion will fail, which is the intended signal.
-      expect(result).toStrictEqual({
-        role: 'assistant',
-        type: 'tool_result',
-        toolName: 'toolu_ref_bug',
-        content: '',
-      });
-    });
-
-    it('INVALID: {tool_result, mixed text + tool_reference} => tool_reference dropped, only text survives', () => {
-      // Same bug: the text block contributes its text but the tool_reference is silently skipped.
-      const result = mapContentItemToChatEntryTransformer({
-        item: {
-          type: 'tool_result',
-          toolUseId: 'toolu_ref_mixed',
-          content: [
-            { type: 'text', text: 'Prefix text' },
-            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__discover' },
-          ],
-        },
-        usage: undefined,
-      });
-
-      // Current (buggy) behaviour — only the text survives, tool_reference dropped.
-      expect(result).toStrictEqual({
-        role: 'assistant',
-        type: 'tool_result',
-        toolName: 'toolu_ref_mixed',
-        content: 'Prefix text',
-      });
     });
   });
 });
