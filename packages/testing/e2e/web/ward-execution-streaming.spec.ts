@@ -148,12 +148,19 @@ test.describe('Ward Execution Streaming', () => {
       timeout: PANEL_TIMEOUT,
     });
 
-    // Wait for ward row to appear with DONE status
-    const wardRow = executionPanel.getByText('[WARD]').first();
+    // Wait for the ward row to reach DONE before clicking. Required because the row is
+    // not expandable while status is `pending` or `queued` — a click during that window
+    // is a no-op, and the row's auto-expand/auto-collapse lifecycle can leave the row
+    // collapsed by the time entries arrive. Filtering on `[WARD]` + `DONE` ensures the
+    // click lands on a row that the widget will actually toggle open.
+    const wardRow = executionPanel
+      .locator('[data-testid="execution-row-header"]')
+      .filter({ hasText: '[WARD]' })
+      .filter({ hasText: 'DONE' })
+      .first();
 
     await expect(wardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
-    // Click the ward row to expand it and reveal streamed entries
     await wardRow.click();
 
     // Ward output lines should be visible in the expanded row after streaming.
@@ -325,13 +332,21 @@ test.describe('Ward Execution Streaming', () => {
       timeout: PANEL_TIMEOUT,
     });
 
-    // Wait for floor boss ward row — there should be 2 [WARD] badges (mini boss + floor boss)
-    const wardRows = executionPanel.getByText('[WARD]');
+    // Wait for both ward rows to reach DONE before clicking the floor boss. The mini
+    // boss is seeded `complete`; the floor boss must transition pending → in_progress →
+    // complete. Filtering on `[WARD]` + `DONE` and taking `nth(1)` ensures we click the
+    // floor-boss row only after the widget marks it expandable. Without this gate, a
+    // click during the pending window is a no-op and the row's auto-expand/collapse
+    // lifecycle can leave it collapsed by the time entries land.
+    const floorBossWardRow = executionPanel
+      .locator('[data-testid="execution-row-header"]')
+      .filter({ hasText: '[WARD]' })
+      .filter({ hasText: 'DONE' })
+      .nth(1);
 
-    await expect(wardRows.nth(1)).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
+    await expect(floorBossWardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
 
-    // Click the floor boss ward row (second [WARD] badge) to expand it
-    await wardRows.nth(1).click();
+    await floorBossWardRow.click();
 
     // Ward output lines should be visible in the expanded row after streaming.
     // Scope to the execution panel because the activity panel also flattens session entries and

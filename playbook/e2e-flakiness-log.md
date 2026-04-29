@@ -189,48 +189,80 @@ dropped substantially even on tests this fix didn't directly target.
 
 ---
 
-## OPEN / UNFIXED — execution-slot-streaming flakes
+## 2026-04-28 — ward-execution-streaming racy click on `[WARD]` row
 
-**Branch / worktree:** `worktree-e2e-flake-stragglers` (not addressed)
+**Branch / worktree:** `worktree-e2e-flake-stragglers`
 **Failing specs:**
-- `ward-execution-streaming.spec.ts` "mini boss" — 7/15 fails under broad-sweep load
-- `ward-execution-streaming.spec.ts` "floor boss" — 5/15 fails under broad-sweep load
-- `quest-execution-streaming.spec.ts:31` "pathseeker streaming text" — 4/15 fails
+- `ward-execution-streaming.spec.ts:31` "mini boss ward streams output lines to execution panel"
+- `ward-execution-streaming.spec.ts:174` "floor boss ward streams output lines to execution panel"
 
-**Symptom:** Slot-streaming chat-output frames (carrying `slotIndex` and
-`workItemId`) ARRIVE at the client over WS — the network log confirms the
-target text was delivered. But `executionPanel.getByText(...).toBeVisible
-({ timeout: 15000 })` still times out. The execution-panel widget renders
-nothing for the slot.
+**Symptom:** Slot-streaming chat-output frames carrying `slotIndex` and
+`workItemId` ARRIVED at the client over WS — the network log confirmed every
+ward output line was delivered. But `executionPanel.getByText('lint
+        @dungeonmaster/...')` timed out, and the page snapshot showed the
+`[WARD]` row in the execution panel rendered as `▸ ... DONE` (chevron
+collapsed) with no expanded body. The activity panel on the right rendered
+the same lines — so the entries were in `entriesBySession` and the binding
+parsed them correctly.
 
-**Suspected root cause area** (not confirmed): slot-rendering pipeline in
-`packages/web/src/widgets/execution-panel/`. Three angles to investigate:
-1. `slotEntries` Map state path — is it being updated correctly under React's
-   batching? Check `setSlotEntries` predicate in `useQuestChatBinding`.
-2. The execution-panel rendering may be gated on a workItem status the test
-   doesn't wait for. Confirm slot rendering activates on `pending` and
-   `in_progress`, not just `complete`.
-3. Under load, react may batch updates differently — possible stale-closure
-   issue in slotEntries Map updates.
+**Root cause:** Race in `ExecutionRowLayerWidget`'s expansion lifecycle.
 
-**Cross-load behavior:** In isolation (clean non-chat sweep), `ward-execution-
-streaming` was 1/30 ≈ 3%. Under load (after the 9-spec chat sweep ran first),
-12/30 ≈ 40%. So this is a load-aggravated bug, NOT a load-induced bug. The
-flake is real even alone, just rarer.
+- The row's click handler is gated on
+  `EXPANDABLE_STATUSES = [in_progress, complete, partially_complete, failed]`.
+  When `status === 'pending'` or `'queued'` the click is a silent no-op AND
+  `userClickedRef.current` is never flipped true.
+- The auto-expand effect fires only while `status === 'in_progress' && hasEntries`.
+- The auto-collapse effect fires when leaving `in_progress` IF
+  `userClickedRef.current` is false, then resets the ref to false at the end.
 
-**Where the fixes from this session DON'T apply:** None of the chat-related
-fixes (1–5 in the resume-flow + sessionId-stamp entries above) touch slot-
-streaming. `pipelineChatOutputBuffer` (the `slotIndex`-batched flush in
-`serverInitResponder`) is a separate code path from the chat chat-output
-delivery I fixed.
+For ward, the work item's lifecycle is `pending → in_progress → complete`,
+and that progression can be very fast — under broad-sweep load the test's
+`wardRow.click()` lands while `status === 'pending'`, the click is dropped,
+and by the time entries arrive the row has gone through `in_progress` →
+`complete` with `userClickedRef.current === false` the whole way. The
+auto-collapse effect collapses the row as it leaves `in_progress`, and there
+is no further trigger to re-expand because the click intent was discarded.
+
+In isolation, orchestration was fast enough that `wardRow.click()` reliably
+landed at `status === 'in_progress'`, the click stuck (`userClickedRef = true`),
+and the auto-collapse on exit was suppressed. Under load (~late repeats in
+the chat-* sweep) the timing slid into the pending window, hence the late-
+repeat clustering (repeats 9–14).
+
+**Fix location:**
+- `packages/testing/e2e/web/ward-execution-streaming.spec.ts:152` and `:336`
+  — replaced `executionPanel.getByText('[WARD]').first()` /
+  `getByText('[WARD]').nth(1)` with
+  `executionPanel.locator('[data-testid="execution-row-header"]').filter
+  ({ hasText: '[WARD]' }).filter({ hasText: 'DONE' }).first()` /
+  `.nth(1)`. The locator only resolves once the ward row has reached `DONE`
+  (status `complete`), so the click always lands on an expandable row and
+  toggles `userClickedRef = true` deterministically. Entries that landed in
+  `entriesBySession` while the row was auto-collapsed are visible the moment
+  the click expands the row.
+
+**Negative results / dead ends:** None — the diagnosis from the failing-test
+page snapshot (collapsed chevron + entries visible elsewhere) pointed
+directly at the row's expansion lifecycle, and the `EXPANDABLE_STATUSES` /
+`userClickedRef` interaction was the only way to land on that state.
+
+**Latent product note** (not addressed in this fix): the same widget
+behaviour means a real user clicking a `pending` row gets no feedback and
+must re-click after the row becomes expandable. If we want clicks during
+non-expandable status to "stick" once the row enters an expandable status,
+the fix would live in `packages/web/src/widgets/execution-panel/
+execution-row-layer-widget.tsx` — track click intent across status
+transitions instead of dropping it inside the `if (isExpandable)` guard.
 
 **Reproducer:**
 ```bash
 cd packages/testing
-# Alone: ~1/30 fail
+# Alone: clean even pre-fix
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/ward-execution-streaming.spec.ts e2e/web/quest-execution-streaming.spec.ts
-# Under load: ~12/30 fail
+  e2e/web/ward-execution-streaming.spec.ts
+# Under load:
+#   pre-fix: 11/450 fails (5 mini boss + 6 floor boss, all at repeats 9–14)
+#   post-fix: 0/450 fails for ward-execution-streaming
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
   e2e/web/chat-*.spec.ts e2e/web/ward-execution-streaming.spec.ts \
   e2e/web/quest-execution-streaming.spec.ts
@@ -238,41 +270,128 @@ npx playwright test --repeat-each=15 --retries=0 --reporter=line \
 
 ---
 
-## 2026-04-28 — Subagent tail lifecycle race (other session, NOT yet fixed in master)
+## OPEN / UNFIXED — chat-streaming-subagent grouping flake at late repeats
 
-**Branch / worktree:** `worktree-subagent-parity-tests` (separate session
-working on this)
-**Failing specs:** `chat-stream-vs-replay-parity.spec.ts` tests 3 +
-variants 1–3 (currently structurally weakened with `STREAMING-HALF: structural-only`
-comment block to dodge the race).
+**Branch / worktree:** `worktree-e2e-flake-stragglers` (not addressed)
+**Failing specs:**
+- `chat-streaming-subagent-grouping.spec.ts:26` "VALID: {streamed Agent
+  tool_use followed by user tool_result with tool_use_result.agentId
+  (snake_case)} => sub-agent chain groups its sub-agent tail entries" —
+  1/450 in the broad chat-* + execution-streaming sweep, at repeat 14.
+
+**Symptom:** After clicking the SEND button (test fills "Stream sub-agent
+via stdout") the test waits for the streamed parent-level assistant text
+"All done" via `page.getByText('All done').toBeVisible({ timeout: 10s })`.
+The assertion times out. The page snapshot shows:
+
+- The pre-seeded session JSONL replayed correctly: `YOU "Kick off test"` and
+  `SUB-AGENT "SUBAGENT_INNER_MARKER_xyz"` are visible.
+- The chat input still has "Stream sub-agent via stdout" filled, the SEND
+  button has the `[active]` Mantine state (just clicked).
+- No `Agent` tool_use, no `tool_result`, no "All done" — so the LIVE-streamed
+  response from the queued claude-mock never reached the chat.
+
+**Suspected root cause area** (unconfirmed): the LIVE chat-output frames for
+this `chaoswhisperer` work item are dropped because the work item's replay
+already succeeded. `serverInitResponder` tracks `replayDeliveredWorkItems` —
+if a work item's replay produced any frames, the live buffer for that
+(client, questId, workItemId) tuple is dropped on subscribe-quest's
+`.finally` to prevent dupes between replay and live paths. The race is:
+
+1. The pre-seeded session JSONL contains "Kick off test" + the sub-agent
+   tail. Replay reads this and emits `chat-output` to the client — the
+   `chaoswhisperer` work item is now in `replayDeliveredWorkItems`.
+2. The user click triggers POST `/chat` which spawns the fake CLI; the
+   queued response streams Agent tool_use + tool_result + "All done". These
+   are the LIVE frames for the same `chaoswhisperer` work item.
+3. If the live frames arrive while `replayInProgressByClient` is still set
+   for this quest, they go into `bufferedDuringReplay`. When subscribe-
+   quest's `.finally` drains, it sees the work item in
+   `replayDeliveredWorkItems` and drops the buffer to avoid dupes — losing
+   the live "All done".
+
+This wouldn't be a problem on every repeat because the test's POST `/chat`
+might race the replay finish line either way. Late repeats accumulate
+server-side state (slow file writes, more events on the bus) which
+lengthens the replay window enough to catch the live frames.
+
+**Where the fix probably lives:** `packages/server/src/responders/server/
+init/server-init-responder.ts` — the dedupe machinery currently treats
+"replay produced N frames for this workItem" as "drop the live buffer for
+this workItem". The fix needs to distinguish "frames replay already shipped"
+from "frames emitted live AFTER the user's new send", e.g. by stamping the
+buffered envelopes with a wall-clock timestamp at enqueue and only dropping
+those that pre-date the work item's last replay-emitted frame, OR by
+keying replay-vs-live dedupe on `chatProcessId` (live frames carry the new
+spawn's chatProcessId, replay frames carry `quest-replay-...`).
+
+**Reproducer:**
+```bash
+cd packages/testing
+# Under broad sweep load (chat-* + execution-streaming): ~1/150 of this test
+npx playwright test --repeat-each=15 --retries=0 --reporter=line \
+  e2e/web/chat-*.spec.ts e2e/web/ward-execution-streaming.spec.ts \
+  e2e/web/quest-execution-streaming.spec.ts
+# Failed at repeat 14 of chat-streaming-subagent-grouping.spec.ts on this
+# branch's broad sweep after the ward-execution-streaming fix.
+```
+
+---
+
+## 2026-04-28 — Subagent tail lifecycle race
+
+**Branch / worktree:** Fixed in `worktree-subagent-parity-tests`, merged into
+`worktree-e2e-flake-stragglers` (commit `9561ea00`).
+**Failing specs:** `chat-stream-vs-replay-parity.spec.ts` test 3 + variants
+1–3. The streaming-half assertions previously had a `STREAMING-HALF:
+structural-only` comment block dodging the race; that weakening is removed —
+streaming-half now asserts entry count, TOOL_ROW count, file-path filters,
+status icons, and inner content.
 
 **Symptom:** Sub-agent inner-body chain renders `(0 entries)` in live
 streaming. Page reload makes it appear (replay reads JSONL synchronously
 start-to-finish).
 
-**Root cause** (per the other session's report): `chatSubagentTailBroker` is
-started async inside `chat-start-responder.onAgentDetected`. When
-`chat-start-responder.onComplete` fires, it synchronously stops every tail
-in `subagentStopHandles[]` — but if the broker hasn't resolved yet, the stop
-handle was never pushed; if it has, `state.stopped = true` flips before the
-synthetic `'change'` event finishes draining the file. Either way, sub-agent
-ChatEntries get dropped.
+**Root cause (two distinct races, both addressed):**
 
-**Fix location** (planned, not landed): the other session is owning Option C
-from their report — track in-flight tail-broker promises, await them in
-`onComplete`, then await `stop()` (made async) for each handle, THEN emit
-`chat-complete`.
+1. **Resolve race.** `chatSubagentTailBroker` is started async inside
+   `chat-start-responder.onAgentDetected` as fire-and-forget; the broker's
+   promise resolves only after `await guildGetBroker(...)` and the sync setup
+   of fs-watch-tail. If parent `chat-complete` fires first, `onComplete`
+   iterates an empty `subagentStopHandles[]`; the broker is leaked AND its
+   eventual `onEntries` emit lands past chat-complete on the wire.
+2. **Drain race.** Even when the handle is in the array, `onComplete` calls
+   `stop()` synchronously, flipping `fs-watch-tail-adapter`'s `state.stopped`
+   to true. The synthetic-emit drain's queued readline `'line'` events fire
+   AFTER stopped is set and are no-op'd at the gate inside `rl.on('line')`,
+   dropping every line that hadn't yet been delivered.
 
-**Why it didn't intersect with this session's flakes:** None of the chat-*
-specs that this session targeted use `Task`/`Agent` tool_use. The
-`chat-streaming-subagent-grouping` and `chat-replay-subagent-grouping` specs
-that DO test sub-agent flow have weaker assertions that don't exercise the
-race window. Only `chat-stream-vs-replay-parity` exercises it, and its
-streaming-half assertions are gated.
+**Fix locations:**
+- `packages/orchestrator/src/adapters/fs/watch-tail/fs-watch-tail-adapter.ts`
+  — handle now exposes `initialDrain: Promise<void>`; resolves once the
+  synthetic-emit drain has delivered every pre-existing line via `onLine`,
+  and `stop()` also resolves it so awaiters never hang on torn-down adapters.
+- `packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts`
+  — returns `{ stop, initialDrain }` so callers can await drain-before-teardown.
+  `chat-main-session-tail-broker` keeps its current shape (`startPosition: 'end'`
+  makes the drain a no-op).
+- `packages/orchestrator/src/responders/chat/start/chat-start-responder.ts`
+  — tracks in-flight broker setups in a Set; setup chain self-removes in
+  `.finally`. `onComplete` is now async: awaits all in-flight setups (resolves
+  the resolve race), then awaits each handle's `initialDrain` (resolves the
+  drain race), then stops each tail, THEN emits `chat-complete`.
+- `packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts`
+  — `onComplete` callback type widens to `void | Promise<void>` so async
+  handlers don't trigger `no-misused-promises`. Fires-and-forgets via
+  `Promise.resolve(...).catch(...)` (rejected handler logs to stderr).
+
+**Negative results / dead ends:** None recorded — fix landed on first
+serious attempt after the two-race diagnosis was clear.
 
 **Cross-reference for future flake hunters:** if you ever see "(0 entries)"
-in a live sub-agent chain in real use (not just test), this is the
-suspected cause.
+in a live sub-agent chain in real use (not just test), the resolve/drain race
+is the suspect; check whether the current handle exposes `initialDrain` and
+whether `chat-start-responder.onComplete` is awaiting it.
 
 ---
 
@@ -284,10 +403,10 @@ checked. Each entry below has a direct link to the entry above.
 | Symptom                                                                 | Likely candidates                                                                       |
 |-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | `isStreaming` pinned true / chat input disabled after first response    | "Chat resume-flow flakes" — three independent bugs share this symptom                  |
-| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame  | Web binding's contract `safeParse` rejecting silently, OR slot-rendering pipeline      |
+| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame  | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline |
 | `expect(text).toBeVisible()` times out, no WS frame for that text       | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe |
 | Strict-mode violation: text resolved to N elements                       | Buffer-replay dupe — frame delivered twice via different paths                         |
 | Fails at repeat 11+ in broad sweep, passes alone                         | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak" |
-| Sub-agent chain renders "(0 entries)"                                    | "Subagent tail lifecycle race" — different worktree                                    |
+| Sub-agent chain renders "(0 entries)"                                    | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder) |
 
 When you fix a flake not yet in this catalog, add a new symptom row.
