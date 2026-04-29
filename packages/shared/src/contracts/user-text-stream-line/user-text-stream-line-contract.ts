@@ -7,19 +7,13 @@
  */
 import { z } from 'zod';
 
+import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
+
 export const userTextStreamLineContract = z.object({
   type: z.literal('user'),
   message: z.object({
     role: z.literal('user'),
-    content: z.union([
-      z.string().brand<'UserTextContent'>(),
-      z.array(
-        z.object({
-          type: z.literal('text'),
-          text: z.string().brand<'TextContent'>(),
-        }),
-      ),
-    ]),
+    content: z.union([z.string().brand<'UserTextContent'>(), z.array(textBlockParamContract)]),
   }),
 });
 

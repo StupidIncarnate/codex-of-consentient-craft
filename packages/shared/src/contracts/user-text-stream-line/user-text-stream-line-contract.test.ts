@@ -2,6 +2,8 @@ import { userTextStreamLineContract } from './user-text-stream-line-contract';
 import {
   TaskNotificationUserTextStreamLineStub,
   UserTextArrayStreamLineStub,
+  UserTextEmptyArrayStreamLineStub,
+  UserTextMultiBlockStreamLineStub,
   UserTextStringStreamLineStub,
 } from './user-text-stream-line.stub';
 
@@ -21,7 +23,7 @@ describe('userTextStreamLineContract', () => {
       });
     });
 
-    it('VALID: {array content} => parses user message with array content', () => {
+    it('VALID: {array content, single block} => parses user message with single text-block array', () => {
       const streamLine = UserTextArrayStreamLineStub();
 
       const result = userTextStreamLineContract.parse(streamLine);
@@ -31,6 +33,37 @@ describe('userTextStreamLineContract', () => {
         message: {
           role: 'user',
           content: [{ type: 'text', text: 'Hello' }],
+        },
+      });
+    });
+
+    it('VALID: {array content, multiple blocks} => parses user message with two text-block array', () => {
+      const streamLine = UserTextMultiBlockStreamLineStub();
+
+      const result = userTextStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'First block' },
+            { type: 'text', text: 'Second block' },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {array content, empty array} => parses user message with empty text-block array', () => {
+      const streamLine = UserTextEmptyArrayStreamLineStub();
+
+      const result = userTextStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [],
         },
       });
     });
@@ -82,6 +115,30 @@ describe('userTextStreamLineContract', () => {
       expect(() => {
         userTextStreamLineContract.parse({
           type: 'user',
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {array block with wrong type} => throws validation error when block type is not "text"', () => {
+      expect(() => {
+        userTextStreamLineContract.parse({
+          type: 'user',
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_use', text: 'bad block' }],
+          },
+        });
+      }).toThrow(/Invalid/u);
+    });
+
+    it('INVALID: {array block missing text field} => throws validation error', () => {
+      expect(() => {
+        userTextStreamLineContract.parse({
+          type: 'user',
+          message: {
+            role: 'user',
+            content: [{ type: 'text' }],
+          },
         });
       }).toThrow(/Required/u);
     });

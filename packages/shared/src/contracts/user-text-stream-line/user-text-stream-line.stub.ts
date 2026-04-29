@@ -19,7 +19,7 @@ export const UserTextStringStreamLineStub = ({
   });
 
 /**
- * User message with array content form.
+ * User message with a single-element text-block array content form.
  */
 export const UserTextArrayStreamLineStub = ({
   ...props
@@ -29,6 +29,39 @@ export const UserTextArrayStreamLineStub = ({
     message: {
       role: 'user',
       content: [{ type: 'text', text: 'Hello' }],
+    },
+    ...props,
+  });
+
+/**
+ * User message with a two-element text-block array — exercises multi-block parsing.
+ */
+export const UserTextMultiBlockStreamLineStub = ({
+  ...props
+}: StubArgument<UserTextStreamLine> = {}): UserTextStreamLine =>
+  userTextStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'First block' },
+        { type: 'text', text: 'Second block' },
+      ],
+    },
+    ...props,
+  });
+
+/**
+ * User message with an empty text-block array — exercises the zero-element edge case.
+ */
+export const UserTextEmptyArrayStreamLineStub = ({
+  ...props
+}: StubArgument<UserTextStreamLine> = {}): UserTextStreamLine =>
+  userTextStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [],
     },
     ...props,
   });
