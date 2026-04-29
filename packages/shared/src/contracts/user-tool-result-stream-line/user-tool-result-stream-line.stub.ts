@@ -247,6 +247,62 @@ export const SearchResultArrayToolResultStreamLineStub = ({
   });
 
 /**
+ * Tool result line whose top-level `toolUseResult` is an ARRAY of text blocks — Claude CLI
+ * emits this for MCP tools (`mcp__*`) and Bash text returns. The verbatim shape is
+ * `toolUseResult: [{ type: 'text', text: '...' }]`. Captured from a live MCP `get-quest`
+ * session JSONL. Distinct from `TaskToolResultStreamLineStub` (object form with `agentId`)
+ * and `ReadTooBigErrorToolResultStreamLineStub` (string form for tool errors).
+ */
+export const McpTextReturnToolResultStreamLineStub = ({
+  ...props
+}: StubArgument<UserToolResultStreamLine> = {}): UserToolResultStreamLine =>
+  userToolResultStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01McpTextReturn5678',
+          content: 'Quest contents here.',
+        },
+      ],
+    },
+    toolUseResult: [{ type: 'text', text: 'Quest contents here.' }],
+    ...props,
+  });
+
+/**
+ * Tool result line whose top-level `toolUseResult` is a plain STRING — Claude CLI emits
+ * this for tool errors (Read of an oversized file, hook-blocked Grep, etc). The verbatim
+ * shape is `toolUseResult: "Error: File content (N tokens) exceeds maximum allowed
+ * tokens (25000)..."`. Captured from a live sub-agent JSONL where the inner Read tool
+ * exceeded the token budget. The matching content block carries `is_error: true` and a
+ * mirror of the same error text.
+ */
+export const ReadTooBigErrorToolResultStreamLineStub = ({
+  ...props
+}: StubArgument<UserToolResultStreamLine> = {}): UserToolResultStreamLine =>
+  userToolResultStreamLineContract.parse({
+    type: 'user',
+    message: {
+      role: 'user',
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01ReadTooBig9012',
+          content:
+            'File content (42613 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.',
+          is_error: true,
+        },
+      ],
+    },
+    toolUseResult:
+      'Error: File content (42613 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.',
+    ...props,
+  });
+
+/**
  * Tool result whose content is a mixed array of text and tool_reference blocks — emitted
  * when a tool returns a combination of descriptive text and named tool references. Mirrors
  * the real ToolSearch output format where result entries interleave plain text with references.

@@ -3,9 +3,11 @@ import {
   AskUserQuestionToolResultStreamLineStub,
   DocumentArrayToolResultStreamLineStub,
   ImageArrayToolResultStreamLineStub,
+  McpTextReturnToolResultStreamLineStub,
   MixedArrayToolResultStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
   PermissionDeniedStreamLineStub,
+  ReadTooBigErrorToolResultStreamLineStub,
   SearchResultArrayToolResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
   TaskToolResultStreamLineStub,
@@ -106,6 +108,51 @@ describe('userToolResultStreamLineContract', () => {
           ],
         },
         toolUseResult: { agentId: 'subagent-correlation-id' },
+      });
+    });
+
+    it('VALID: {MCP / Bash text return with toolUseResult: array<text>} => parses array-shaped toolUseResult', () => {
+      const streamLine = McpTextReturnToolResultStreamLineStub();
+
+      const result = userToolResultStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01McpTextReturn5678',
+              content: 'Quest contents here.',
+            },
+          ],
+        },
+        toolUseResult: [{ type: 'text', text: 'Quest contents here.' }],
+      });
+    });
+
+    it('VALID: {Read-too-big error with toolUseResult: string} => parses string-shaped toolUseResult', () => {
+      const streamLine = ReadTooBigErrorToolResultStreamLineStub();
+
+      const result = userToolResultStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01ReadTooBig9012',
+              content:
+                'File content (42613 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.',
+              is_error: true,
+            },
+          ],
+        },
+        toolUseResult:
+          'Error: File content (42613 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.',
       });
     });
 

@@ -316,6 +316,30 @@ export const AssistantMixedTextThinkingStreamLineStub = ({
   });
 
 /**
+ * Synthetic API-error assistant line — Claude CLI inserts this into the JSONL when the
+ * upstream Anthropic API returns an error mid-turn (rate limit, 5xx, etc). The line carries
+ * `model: '<synthetic>'`, a `usage` block of zeros, and the original error context as
+ * top-level `error` + `isApiErrorMessage: true` fields. The contract admits any string for
+ * `model`, so `<synthetic>` parses; the top-level `error` / `isApiErrorMessage` fields are
+ * stripped silently (they are not load-bearing for chat rendering).
+ */
+export const AssistantSyntheticApiErrorStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      model: '<synthetic>',
+      content: [{ type: 'text', text: 'API request failed: rate limited' }],
+      stop_reason: 'stop_sequence',
+      stop_sequence: '',
+      usage: { input_tokens: 0, output_tokens: 0 },
+    },
+    ...props,
+  });
+
+/**
  * Assistant message carrying both tool_use and tool_result in the same content array.
  * Rare CLI shape — occurs in multi-turn tool loops where the model echoes a prior result
  * alongside a new tool invocation in the same streamed assistant message.

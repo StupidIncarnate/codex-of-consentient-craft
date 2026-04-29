@@ -7,6 +7,7 @@ import {
   AssistantNullStopReasonStreamLineStub,
   AssistantReadToolUseStreamLineStub,
   AssistantRedactedThinkingStreamLineStub,
+  AssistantSyntheticApiErrorStreamLineStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantThinkingStreamLineStub,
@@ -315,6 +316,25 @@ describe('assistantStreamLineContract', () => {
       const result = assistantStreamLineContract.parse(streamLine);
 
       expect(result.message.stop_reason).toBe(null);
+    });
+  });
+
+  describe('regression: Claude CLI synthetic API-error line (model: <synthetic>)', () => {
+    it('VALID: {synthetic API error} => parses assistant line with model: "<synthetic>" and zero usage', () => {
+      const streamLine = AssistantSyntheticApiErrorStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          model: '<synthetic>',
+          content: [{ type: 'text', text: 'API request failed: rate limited' }],
+          stop_reason: 'stop_sequence',
+          usage: { input_tokens: 0, output_tokens: 0 },
+        },
+      });
     });
   });
 

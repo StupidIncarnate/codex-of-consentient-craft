@@ -174,6 +174,8 @@ export const chatHistoryReplayBroker = async ({
     if (lineData.type !== 'user') continue;
     const { toolUseResult } = lineData;
     if (toolUseResult === undefined) continue;
+    if (typeof toolUseResult === 'string') continue;
+    if (Array.isArray(toolUseResult)) continue;
     const realAgentIdRaw = toolUseResult.agentId;
     if (typeof realAgentIdRaw !== 'string' || realAgentIdRaw.length === 0) continue;
     const msg = lineData.message;

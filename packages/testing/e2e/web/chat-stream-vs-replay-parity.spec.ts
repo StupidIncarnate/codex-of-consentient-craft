@@ -1396,4 +1396,622 @@ test.describe('Chat stream vs replay parity', () => {
 
     await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
+
+  test('VALID: {tool_result line carries top-level toolUseResult as array of text blocks (MCP / Bash text-return shape)} => paired TOOL_ROW with non-empty body, identical after streaming and after reload', async ({
+    page,
+    request,
+  }) => {
+    // Regression guard for the wire-drop bug seen on the live dev server: when the parent
+    // session's user line has a top-level `toolUseResult` shaped as an ARRAY (not an
+    // object), `userToolResultStreamLineContract` rejects the line and the entire tool_result
+    // disappears from the wire. Real Claude CLI emits this shape for MCP tools that return
+    // text (`mcp__dungeonmaster__get-quest`, `mcp__dungeonmaster__modify-quest`,
+    // `mcp__dungeonmaster__discover`, `mcp__dungeonmaster__ask-user-question`) AND for `Bash`.
+    // The earlier array-content parity test only exercises `message.content[i].content` as an
+    // array — it never sets the top-level `toolUseResult` field — so the contract-rejection
+    // path stays uncaught. This test queues the exact line shape captured from a live MCP
+    // session: `toolUseResult: [{ type: 'text', text: '...' }]`. The contract today rejects
+    // it, the line drops, and the assertions on the rendered TOOL_ROW body fail.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Parity MCP toolUseResult Array Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-parity-mcp-toolUseResult-array-001';
+    const userText = 'parity-mcp-array-tur-user-msg-8821';
+    const assistantText = 'parity-mcp-array-tur-assistant-text-3392';
+    const toolName = 'mcp__dungeonmaster__get-quest';
+    const toolUseId = 'toolu_parity_mcp_arraytur_aa';
+    const questIdInput = 'fake-quest-id-for-parity-test';
+    const resultContent =
+      'PARITY_MCP_ARRAY_TUR_RESULT_TEXT_2026 — full body of the MCP tool return goes here';
+
+    claudeMock.queueResponse({
+      response: {
+        sessionId,
+        lines: [
+          JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
+          JSON.stringify(
+            AssistantToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: toolUseId,
+                    name: toolName,
+                    input: { questId: questIdInput },
+                  },
+                ],
+              },
+            }),
+          ),
+          // RAW user tool_result line — mirrors the MCP/Bash shape captured from real CLI:
+          // `toolUseResult` is an ARRAY of text blocks, not an object. Cannot use
+          // SuccessfulToolResultStreamLineStub here because the contract rejects array-shaped
+          // toolUseResult, which is exactly the rejection path under test.
+          JSON.stringify({
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: toolUseId,
+                  content: resultContent,
+                },
+              ],
+            },
+            toolUseResult: [{ type: 'text', text: resultContent }],
+          }),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: assistantText }],
+              },
+            }),
+          ),
+          JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
+        ],
+      },
+    });
+
+    await page.goto(`/${guildId}/quest`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await page.getByTestId('CHAT_INPUT').fill(userText);
+    await page.getByTestId('SEND_BUTTON').click();
+
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(chatPanel.getByText(assistantText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    // STREAMING — exactly one TOOL_ROW (the tool_use rendered fine on its own line).
+    await expect(chatPanel.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+
+    // Pairing: the ✓ status icon appears only when the tool_result was admitted by the
+    // processor and merged onto the row. Today the contract drops the result line, so the
+    // row stays unpaired and this fails.
+    await expect(
+      chatPanel.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+
+    // No orphan TOOL RESULT card — if the result somehow leaked through a different branch,
+    // it must merge into the row, not float free.
+    await expect(
+      chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+
+    // The load-bearing assertion: the result body must contain the actual MCP tool return
+    // text. Today this fails because the contract-rejection path drops the entire tool_result
+    // entry — the row's body is empty, mirroring the symptom on the live dev server.
+    const toolRow = chatPanel.locator('[data-testid="TOOL_ROW"]').first();
+
+    await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    const toolRowResult = toolRow.getByTestId('TOOL_ROW_RESULT');
+
+    await expect(toolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(toolRowResult).toContainText(resultContent, { timeout: CHAT_TIMEOUT });
+
+    await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    await page.reload();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const replayPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(replayPanel.getByText(assistantText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayPanel.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      replayPanel.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      replayPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+
+    const replayToolRow = replayPanel.locator('[data-testid="TOOL_ROW"]').first();
+
+    await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    const replayToolRowResult = replayToolRow.getByTestId('TOOL_ROW_RESULT');
+
+    await expect(replayToolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayToolRowResult).toContainText(resultContent, { timeout: CHAT_TIMEOUT });
+
+    await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+  });
+
+  test('VALID: {sub-agent inner tool_result carries top-level toolUseResult as array of text blocks (MCP / Bash text-return shape)} => paired TOOL_ROW inside chain with non-empty body, identical after streaming and after reload', async ({
+    page,
+    request,
+  }) => {
+    // Sub-agent variant of the MCP / Bash text-return regression. The same
+    // userToolResultStreamLineContract is applied to sub-agent JSONL lines via the unified
+    // chatLineProcessTransformer — so any tool_result line whose top-level `toolUseResult`
+    // is an array (instead of `{agentId}` or omitted) is silently dropped from the chain.
+    // This mirrors the production failure mode for MCP tools called by Task sub-agents.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Parity Subagent MCP toolUseResult Array Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-parity-subagent-mcp-array-tur-001';
+    const realAgentId = 'paritysubmcparr';
+    const taskToolUseId = 'toolu_parity_task_submcparray';
+    const innerToolUseId = 'toolu_parity_subinner_mcparrayaa';
+    const userText = 'parity-subagent-mcp-array-tur-user-msg-4466';
+    const preAgentText = 'parity-subagent-mcp-array-tur-pre-text-5577';
+    const taskDescription = 'Parity sub-agent MCP toolUseResult array variant';
+    const innerToolName = 'mcp__dungeonmaster__discover';
+    const innerToolInput = { glob: '/parity/sub-mcp-array/**' };
+    const innerResultContent =
+      'PARITY_SUBAGENT_MCP_ARRAY_TUR_RESULT_TEXT_2026 — full MCP discover return goes here';
+    const innerFinalText = 'PARITY_SUBAGENT_MCP_ARRAY_TUR_INNER_FINAL_2026';
+    const finalText = 'parity-subagent-mcp-array-tur-final-text-7788';
+    const SUB_INNER_ENTRY_COUNT = 3; // tool_use + tool_result + text
+
+    sessions.cleanSessionDirectory();
+
+    sessions.createSubagentTailMultiEntry({
+      sessionId,
+      agentId: realAgentId,
+      lines: [
+        JSON.stringify({
+          ...AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [
+                {
+                  type: 'tool_use',
+                  id: innerToolUseId,
+                  name: innerToolName,
+                  input: innerToolInput,
+                },
+              ],
+            },
+          }),
+          timestamp: '2026-04-15T20:00:02.000Z',
+        }),
+        // RAW inner tool_result line — top-level `toolUseResult` is an ARRAY of text blocks,
+        // mirroring the captured shape Claude CLI emits when a sub-agent invokes an MCP tool
+        // that returns text. The stub spread alone can't carry this shape because the stub
+        // factory parses through the contract; we inject the array field after the spread
+        // and JSON-stringify the resulting raw object exactly as the CLI would write it.
+        JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: innerToolUseId,
+                  content: innerResultContent,
+                },
+              ],
+            },
+          }),
+          toolUseResult: [{ type: 'text', text: innerResultContent }],
+          timestamp: '2026-04-15T20:00:03.000Z',
+        }),
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [{ type: 'text', text: innerFinalText }],
+            },
+          }),
+          timestamp: '2026-04-15T20:00:04.000Z',
+        }),
+      ],
+    });
+
+    claudeMock.queueResponse({
+      response: {
+        sessionId,
+        lines: [
+          JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: preAgentText }],
+              },
+            }),
+          ),
+          JSON.stringify(
+            AssistantTaskToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: taskToolUseId,
+                    name: 'Task',
+                    input: {
+                      description: taskDescription,
+                      subagent_type: 'general-purpose',
+                      prompt: 'Do the parity sub-agent MCP-array work',
+                    },
+                  },
+                ],
+              },
+            }),
+          ),
+          JSON.stringify(
+            TaskToolResultStreamLineStub({
+              message: {
+                role: 'user',
+                content: [
+                  { type: 'tool_result', tool_use_id: taskToolUseId, content: 'sub-agent done' },
+                ],
+              },
+              toolUseResult: { agentId: realAgentId },
+            }),
+          ),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: finalText }],
+              },
+            }),
+          ),
+          JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
+        ],
+      },
+    });
+
+    await page.goto(`/${guildId}/quest`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await page.getByTestId('CHAT_INPUT').fill(userText);
+    await page.getByTestId('SEND_BUTTON').click();
+
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    // 3 inner ChatEntries (tool_use + tool_result + text). When the contract rejects the
+    // array-shaped toolUseResult, the inner tool_result is dropped and the count falls to 2.
+    await expect(chainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+    await expect(chainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const innerRow = chainScope.locator('[data-testid="TOOL_ROW"]').first();
+
+    await innerRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    await expect(innerRow.getByTestId('TOOL_ROW_RESULT')).toContainText(innerResultContent, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    await page.reload();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const replayPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(replayPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    const replayChainHeader = replayPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(replayChainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(replayChainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      replayChainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      replayChainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+    await expect(replayChainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const replayInnerRow = replayChainScope.locator('[data-testid="TOOL_ROW"]').first();
+
+    await replayInnerRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    await expect(replayInnerRow.getByTestId('TOOL_ROW_RESULT')).toContainText(innerResultContent, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+  });
+
+  test('VALID: {sub-agent inner Read error tool_result carries top-level toolUseResult as string (Read-too-big shape)} => paired TOOL_ROW inside chain with non-empty body, identical after streaming and after reload', async ({
+    page,
+    request,
+  }) => {
+    // Regression for the Read-error wire-drop: real Claude CLI emits a third
+    // `toolUseResult` shape — a plain STRING — for tool errors like
+    // "File content (N tokens) exceeds maximum allowed tokens (25000)..." or hook-blocked
+    // Grep returns. The shared user-tool-result-stream-line contract and the orchestrator's
+    // normalized-stream-line contract previously admitted only the object form
+    // (`{agentId}`), then were widened to admit the array form (`[{type:'text', text}]`).
+    // String form is the third shape, observed in production sub-agent JSONLs:
+    //   "toolUseResult": "Error: File content (42613 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters..."
+    // Lines with this shape are silently dropped by the contract today, so the inner Read
+    // tool_use renders with no result body.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Parity Subagent Read Error toolUseResult String Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-parity-subagent-read-error-string-001';
+    const realAgentId = 'paritysubreaderr';
+    const taskToolUseId = 'toolu_parity_task_subreaderra';
+    const innerToolUseId = 'toolu_parity_subinner_readerraa';
+    const userText = 'parity-subagent-read-error-string-user-msg-1199';
+    const preAgentText = 'parity-subagent-read-error-string-pre-text-2200';
+    const taskDescription = 'Parity sub-agent Read-error toolUseResult string variant';
+    const innerToolName = 'Read';
+    const innerFilePath = '/parity/sub-read-error/file.ts';
+    const innerErrorContent =
+      'PARITY_SUBAGENT_READ_ERROR_BODY_2026 — File content exceeds maximum allowed tokens (25000)';
+    const innerFinalText = 'PARITY_SUBAGENT_READ_ERROR_INNER_FINAL_2026';
+    const finalText = 'parity-subagent-read-error-string-final-text-3311';
+    const SUB_INNER_ENTRY_COUNT = 3; // tool_use + tool_result + text
+
+    sessions.cleanSessionDirectory();
+
+    sessions.createSubagentTailMultiEntry({
+      sessionId,
+      agentId: realAgentId,
+      lines: [
+        JSON.stringify({
+          ...AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [
+                {
+                  type: 'tool_use',
+                  id: innerToolUseId,
+                  name: innerToolName,
+                  input: { file_path: innerFilePath },
+                },
+              ],
+            },
+          }),
+          timestamp: '2026-04-15T20:00:02.000Z',
+        }),
+        // RAW inner tool_result line — top-level `toolUseResult` is a STRING, mirroring the
+        // captured shape Claude CLI emits when Read fails because the file exceeds the token
+        // limit. The line additionally carries `is_error: true` inside the content block, but
+        // the ENTIRE line is dropped today by the contract because it can't admit a string
+        // for `toolUseResult`. The stub's parse-through factory cannot represent this shape,
+        // so we hand-build the JSON.
+        JSON.stringify({
+          type: 'user',
+          message: {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: innerToolUseId,
+                content: innerErrorContent,
+                is_error: true,
+              },
+            ],
+          },
+          toolUseResult: `Error: ${innerErrorContent}`,
+          timestamp: '2026-04-15T20:00:03.000Z',
+        }),
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [{ type: 'text', text: innerFinalText }],
+            },
+          }),
+          timestamp: '2026-04-15T20:00:04.000Z',
+        }),
+      ],
+    });
+
+    claudeMock.queueResponse({
+      response: {
+        sessionId,
+        lines: [
+          JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: preAgentText }],
+              },
+            }),
+          ),
+          JSON.stringify(
+            AssistantTaskToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: taskToolUseId,
+                    name: 'Task',
+                    input: {
+                      description: taskDescription,
+                      subagent_type: 'general-purpose',
+                      prompt: 'Trigger the Read-too-big error inside the sub-agent',
+                    },
+                  },
+                ],
+              },
+            }),
+          ),
+          JSON.stringify(
+            TaskToolResultStreamLineStub({
+              message: {
+                role: 'user',
+                content: [
+                  { type: 'tool_result', tool_use_id: taskToolUseId, content: 'sub-agent done' },
+                ],
+              },
+              toolUseResult: { agentId: realAgentId },
+            }),
+          ),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: finalText }],
+              },
+            }),
+          ),
+          JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
+        ],
+      },
+    });
+
+    await page.goto(`/${guildId}/quest`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await page.getByTestId('CHAT_INPUT').fill(userText);
+    await page.getByTestId('SEND_BUTTON').click();
+
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(chatPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    // 3 inner ChatEntries (tool_use + tool_result + text). When the contract rejects the
+    // string-shaped toolUseResult, the inner tool_result is dropped and the count falls to 2.
+    await expect(chainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+    await expect(chainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const innerRow = chainScope.locator('[data-testid="TOOL_ROW"]').first();
+
+    await innerRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    // Load-bearing assertion: error body must surface in the row, not silently disappear.
+    await expect(innerRow.getByTestId('TOOL_ROW_RESULT')).toContainText(innerErrorContent, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    await page.reload();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const replayPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(replayPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayPanel.getByText(preAgentText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    const replayChainHeader = replayPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(replayChainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(replayChainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      replayChainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+    await expect(replayChainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const replayInnerRow = replayChainScope.locator('[data-testid="TOOL_ROW"]').first();
+
+    await replayInnerRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    await expect(replayInnerRow.getByTestId('TOOL_ROW_RESULT')).toContainText(innerErrorContent, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+  });
 });

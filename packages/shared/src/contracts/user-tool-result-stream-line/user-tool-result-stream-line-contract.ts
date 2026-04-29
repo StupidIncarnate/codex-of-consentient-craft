@@ -18,10 +18,22 @@ export const userToolResultStreamLineContract = z.object({
       z.discriminatedUnion('type', [toolResultBlockParamContract, textBlockParamContract]),
     ),
   }),
+  // Claude CLI emits `toolUseResult` in three distinct shapes:
+  //   • Object form for Task / sub-agent completion lines: `{ agentId, status, ... }` —
+  //     carries the real internal sub-agent id we read for chain correlation.
+  //   • Array form for MCP tools and Bash text returns: `[{ type: 'text', text: '...' }]` —
+  //     a verbatim echo of the tool's content, no fields we read.
+  //   • String form for tool-error returns (e.g., Read of an oversized file emits
+  //     `"Error: File content (N tokens) exceeds maximum allowed tokens (25000)..."`,
+  //     or hook-blocked Grep emits an `"Error: PreToolUse:Grep hook error..."` payload).
+  // All three shapes must be admitted; readers that access `.agentId` must narrow to the
+  // object branch first — string and array values do not carry the field.
   toolUseResult: z
-    .object({
-      agentId: z.string().brand<'AgentIdCorrelation'>().optional(),
-    })
+    .union([
+      z.object({ agentId: z.string().brand<'AgentIdCorrelation'>().optional() }).passthrough(),
+      z.array(z.unknown()),
+      z.string().brand<'ToolUseResultErrorMessage'>(),
+    ])
     .optional(),
 });
 

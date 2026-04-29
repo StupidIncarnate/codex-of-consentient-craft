@@ -72,11 +72,15 @@ const taskNotification = z
   })
   .passthrough();
 
-const toolUseResult = z
-  .object({
-    agentId: z.unknown().optional(),
-  })
-  .passthrough();
+// Claude CLI emits `toolUseResult` in three distinct shapes — Task / sub-agent object form
+// (`{agentId, status, ...}`), MCP / Bash array form (`[{type:'text', text:'...'}]`), and
+// tool-error string form ("Error: File content (N tokens) exceeds..."). All must parse;
+// readers must narrow to the object branch before accessing `.agentId`.
+const toolUseResult = z.union([
+  z.object({ agentId: z.unknown().optional() }).passthrough(),
+  z.array(z.unknown()),
+  z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
+]);
 
 export const normalizedStreamLineContract = z
   .object({

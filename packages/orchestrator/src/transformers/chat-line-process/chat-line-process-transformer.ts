@@ -129,7 +129,11 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         // in agentIdMap so the history replay path can translate sub-agent JSONL lines
         // (tagged with realAgentId) into the same `parent_tool_use_id` wire shape.
         const { toolUseResult } = original;
-        if (toolUseResult !== undefined) {
+        if (
+          toolUseResult !== undefined &&
+          typeof toolUseResult !== 'string' &&
+          !Array.isArray(toolUseResult)
+        ) {
           const resultAgentId = toolUseResult.agentId;
           if (typeof resultAgentId === 'string') {
             const parsedAgentId = agentIdContract.parse(resultAgentId);

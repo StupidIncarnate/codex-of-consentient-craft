@@ -90,7 +90,11 @@ describe('chatLineProcessTransformer', () => {
       ]);
     });
 
-    it('VALID: {tool_reference array content tool_result} => emits tool_result entry with empty content (design decision: non-text array items are not renderable as text)', () => {
+    it('VALID: {tool_reference array content tool_result} => emits tool_result entry projecting each tool_reference as its toolName', () => {
+      // Real Claude CLI emits MCP ToolSearch results as a tool_result whose `content` is an
+      // array of `{ type: 'tool_reference', tool_name: '…' }` blocks. Per the SDK's
+      // ToolResultBlockParam.content union, every variant must surface in the rendered text;
+      // tool_reference items project to their `toolName`, joined with newlines.
       const processor = chatLineProcessTransformer();
       const parsed = normalize(ToolReferenceArrayToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -105,7 +109,7 @@ describe('chatLineProcessTransformer', () => {
               role: 'assistant',
               type: 'tool_result',
               toolName: 'toolu_01ToolSearch1234abcd',
-              content: '',
+              content: 'mcp__dungeonmaster__get-quest\nmcp__dungeonmaster__list-quests',
               source: 'session',
             },
           ],
@@ -113,7 +117,7 @@ describe('chatLineProcessTransformer', () => {
       ]);
     });
 
-    it('VALID: {mixed text+tool_reference array content tool_result} => emits tool_result entry joining only text items', () => {
+    it('VALID: {mixed text+tool_reference array content tool_result} => emits tool_result entry joining text + tool_reference variants', () => {
       const processor = chatLineProcessTransformer();
       const parsed = normalize(MixedArrayToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -128,7 +132,7 @@ describe('chatLineProcessTransformer', () => {
               role: 'assistant',
               type: 'tool_result',
               toolName: 'toolu_01MixedArray7890qrst',
-              content: 'Found the following tools:',
+              content: 'Found the following tools:\nmcp__dungeonmaster__discover',
               source: 'session',
             },
           ],
