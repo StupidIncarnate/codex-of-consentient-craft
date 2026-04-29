@@ -90,12 +90,15 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry', () => {
+    it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry with toolUseId', () => {
+      const toolUseId = 'toolu_01SjEntry001';
       const parsed = normalize(
         AssistantToolUseStreamLineStub({
           message: {
             role: 'assistant',
-            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+            content: [
+              { type: 'tool_use', id: toolUseId, name: 'read_file', input: { path: '/test' } },
+            ],
           },
         }),
       );
@@ -107,6 +110,7 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'assistant',
             type: 'tool_use',
+            toolUseId,
             toolName: 'read_file',
             toolInput: '{"path":"/test"}',
           },
@@ -140,14 +144,15 @@ describe('streamJsonToChatEntryTransformer', () => {
       });
     });
 
-    it('VALID: {type: "assistant", multiple content items} => returns multiple entries', () => {
+    it('VALID: {type: "assistant", multiple content items} => returns multiple entries with toolUseId', () => {
+      const toolUseId = 'toolu_01SjMixed001';
       const parsed = normalize(
         AssistantMixedContentStreamLineStub({
           message: {
             role: 'assistant',
             content: [
               { type: 'text', text: 'Let me read that file' },
-              { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
+              { type: 'tool_use', id: toolUseId, name: 'read_file', input: { path: '/src' } },
             ],
             usage: {
               input_tokens: 200,
@@ -175,6 +180,7 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'assistant',
             type: 'tool_use',
+            toolUseId,
             toolName: 'read_file',
             toolInput: '{"path":"/src"}',
             usage: {

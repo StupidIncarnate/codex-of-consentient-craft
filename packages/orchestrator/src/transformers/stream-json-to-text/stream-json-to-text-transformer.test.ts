@@ -139,6 +139,30 @@ describe('streamJsonToTextTransformer', () => {
       expect(result).toBe(null);
     });
 
+    it('EMPTY: {assistant message with only thinking block} => returns null', () => {
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me reason."}]}}',
+          ),
+        }),
+      });
+
+      expect(result).toBe(null);
+    });
+
+    it('EMPTY: {assistant message with only redacted_thinking block} => returns null', () => {
+      const result = streamJsonToTextTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: JSON.parse(
+            '{"type":"assistant","message":{"content":[{"type":"redacted_thinking","data":"<blob>"}]}}',
+          ),
+        }),
+      });
+
+      expect(result).toBe(null);
+    });
+
     it('EMPTY: {assistant message with no content property} => returns null', () => {
       const result = streamJsonToTextTransformer({
         parsed: snakeKeysToCamelKeysTransformer({
