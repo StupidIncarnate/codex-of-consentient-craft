@@ -2,11 +2,16 @@ import { assistantStreamLineContract } from './assistant-stream-line-contract';
 import {
   AssistantAskUserQuestionStreamLineStub,
   AssistantMixedContentStreamLineStub,
+  AssistantMixedTextThinkingStreamLineStub,
+  AssistantMixedToolUseToolResultStreamLineStub,
+  AssistantNullStopReasonStreamLineStub,
   AssistantReadToolUseStreamLineStub,
   AssistantRedactedThinkingStreamLineStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantThinkingStreamLineStub,
+  AssistantThinkingWithSignatureStreamLineStub,
+  AssistantToolResultArrayContentStreamLineStub,
   AssistantToolResultStreamLineStub,
   AssistantToolUseStreamLineStub,
 } from './assistant-stream-line.stub';
@@ -197,7 +202,7 @@ describe('assistantStreamLineContract', () => {
       });
     });
 
-    it('VALID: {redacted thinking content} => parses thinking block with empty text (contract strips unknown signature field)', () => {
+    it('VALID: {redacted_thinking content} => parses redacted_thinking block with data field', () => {
       const streamLine = AssistantRedactedThinkingStreamLineStub();
 
       const result = assistantStreamLineContract.parse(streamLine);
@@ -206,9 +211,110 @@ describe('assistantStreamLineContract', () => {
         type: 'assistant',
         message: {
           role: 'assistant',
-          content: [{ type: 'thinking', thinking: '' }],
+          content: [
+            {
+              type: 'redacted_thinking',
+              data: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+redactedblob',
+            },
+          ],
         },
       });
+    });
+
+    it('VALID: {tool_result with array content} => parses tool_result carrying a content block array', () => {
+      const streamLine = AssistantToolResultArrayContentStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01ArrayResult7890abcd',
+              content: [{ type: 'text', text: 'line one\nline two' }],
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {thinking with signature} => parses thinking block with non-empty signature field', () => {
+      const streamLine = AssistantThinkingWithSignatureStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'thinking',
+              thinking: 'I need to reason through the architecture carefully before proceeding.',
+              signature: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+sigblob',
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {mixed text + thinking} => parses thinking and text blocks in same content array', () => {
+      const streamLine = AssistantMixedTextThinkingStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            { type: 'thinking', thinking: 'Let me think about the best approach here.' },
+            {
+              type: 'text',
+              text: 'Based on my analysis, the best approach is to refactor the broker.',
+            },
+          ],
+        },
+      });
+    });
+
+    it('VALID: {mixed tool_use + tool_result} => parses tool_use and tool_result in same content array', () => {
+      const streamLine = AssistantMixedToolUseToolResultStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result).toStrictEqual({
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_01MixedUse7890abcd',
+              name: 'Bash',
+              input: { command: 'cat /tmp/output.txt' },
+            },
+            {
+              type: 'tool_result',
+              tool_use_id: 'toolu_01MixedUse7890abcd',
+              content: 'output line one\noutput line two',
+            },
+          ],
+        },
+      });
+    });
+  });
+
+  describe('regression: Claude CLI null stop_reason on streamed deltas', () => {
+    it('VALID: {stop_reason: null} => parses assistant line with explicit null stop_reason', () => {
+      const streamLine = AssistantNullStopReasonStreamLineStub();
+
+      const result = assistantStreamLineContract.parse(streamLine);
+
+      expect(result.message.stop_reason).toBe(null);
     });
   });
 
@@ -235,6 +341,78 @@ describe('assistantStreamLineContract', () => {
         assistantStreamLineContract.parse({
           type: 'assistant',
           message: { role: 'assistant' },
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {content item with unknown type "server_tool_use"} => throws invalid discriminator', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'server_tool_use', id: 'toolu_01', name: 'web_search', input: {} }],
+          },
+        });
+      }).toThrow(/Invalid discriminator value/u);
+    });
+
+    it('INVALID: {thinking block missing thinking field} => throws required error', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'thinking' }],
+          },
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {tool_use block missing id} => throws validation error for missing id', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_use', name: 'Bash', input: {} }],
+          },
+        });
+      }).toThrow(/Required|too_small/u);
+    });
+
+    it('INVALID: {tool_result block missing tool_use_id} => throws validation error for missing tool_use_id', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'tool_result', content: 'some output' }],
+          },
+        });
+      }).toThrow(/Required|too_small/u);
+    });
+
+    it('INVALID: {redacted_thinking block missing data field} => throws required error', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'redacted_thinking' }],
+          },
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {text block missing text field} => throws required error', () => {
+      expect(() => {
+        assistantStreamLineContract.parse({
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text' }],
+          },
         });
       }).toThrow(/Required/u);
     });

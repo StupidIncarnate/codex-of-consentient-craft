@@ -93,7 +93,14 @@ describe('streamJsonToChatEntryTransformer', () => {
         AssistantToolUseStreamLineStub({
           message: {
             role: 'assistant',
-            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+            content: [
+              {
+                type: 'tool_use',
+                id: 'toolu_01JsonEntry001',
+                name: 'read_file',
+                input: { path: '/test' },
+              },
+            ],
           },
         }),
       );
@@ -145,7 +152,12 @@ describe('streamJsonToChatEntryTransformer', () => {
             role: 'assistant',
             content: [
               { type: 'text', text: 'Let me read that file' },
-              { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
+              {
+                type: 'tool_use',
+                id: 'toolu_01JsonMixed001',
+                name: 'read_file',
+                input: { path: '/src' },
+              },
             ],
             usage: {
               input_tokens: 200,

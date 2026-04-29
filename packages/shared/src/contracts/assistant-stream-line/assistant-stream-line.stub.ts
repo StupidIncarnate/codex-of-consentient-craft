@@ -106,10 +106,9 @@ export const AssistantThinkingStreamLineStub = ({
   });
 
 /**
- * Assistant message with a redacted-thinking content item — Claude CLI emits this shape when
- * extended thinking is enabled on a signature-carrying model: the `thinking` text is empty and
- * a cryptographic `signature` preserves cache continuity. Renderers should filter these out;
- * an empty "THINKING" label with no body is noise.
+ * Assistant message with a redacted_thinking content item — Claude CLI emits this distinct type
+ * when extended thinking output has been encrypted server-side. The `data` field carries the
+ * cryptographic blob. Renderers should skip this item; there is no displayable content.
  */
 export const AssistantRedactedThinkingStreamLineStub = ({
   ...props
@@ -120,9 +119,8 @@ export const AssistantRedactedThinkingStreamLineStub = ({
       role: 'assistant',
       content: [
         {
-          type: 'thinking',
-          thinking: '',
-          signature: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+redactedblob',
+          type: 'redacted_thinking',
+          data: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+redactedblob',
         },
       ],
     },
@@ -241,6 +239,105 @@ export const AssistantReadToolUseStreamLineStub = ({
           id: 'toolu_01ReadFile7890abcd',
           name: 'Read',
           input: { file_path: '/src/index.ts' },
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
+ * Assistant message where tool_result carries an array of mixed content blocks instead of a plain string.
+ * Rare but legal per SDK — occurs when a tool returns structured content (e.g. text + image) rather
+ * than a flat string. The content array uses the same discriminated union as assistant message content.
+ */
+export const AssistantToolResultArrayContentStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01ArrayResult7890abcd',
+          content: [{ type: 'text', text: 'line one\nline two' }],
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
+ * Assistant thinking block carrying a non-empty cryptographic signature.
+ * Occurs when extended thinking is used on a model that supports cache continuity — the Claude
+ * CLI includes the signature so the server can resume the thinking cache across turns.
+ * Renderers display the thinking text and may use the signature for cache diagnostics.
+ */
+export const AssistantThinkingWithSignatureStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        {
+          type: 'thinking',
+          thinking: 'I need to reason through the architecture carefully before proceeding.',
+          signature: 'EtQCClkIDBgCKkDr4oLptwx6b6TDFpBewoaZg35pJ2vjLn2mMCK4mi+sigblob',
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
+ * Assistant message with both text and thinking blocks in the same content array.
+ * Occurs when extended thinking produces visible reasoning followed by a prose response
+ * in a single assistant turn. The thinking block always precedes the text block.
+ */
+export const AssistantMixedTextThinkingStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'Let me think about the best approach here.' },
+        {
+          type: 'text',
+          text: 'Based on my analysis, the best approach is to refactor the broker.',
+        },
+      ],
+    },
+    ...props,
+  });
+
+/**
+ * Assistant message carrying both tool_use and tool_result in the same content array.
+ * Rare CLI shape — occurs in multi-turn tool loops where the model echoes a prior result
+ * alongside a new tool invocation in the same streamed assistant message.
+ */
+export const AssistantMixedToolUseToolResultStreamLineStub = ({
+  ...props
+}: StubArgument<AssistantStreamLine> = {}): AssistantStreamLine =>
+  assistantStreamLineContract.parse({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        {
+          type: 'tool_use',
+          id: 'toolu_01MixedUse7890abcd',
+          name: 'Bash',
+          input: { command: 'cat /tmp/output.txt' },
+        },
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_01MixedUse7890abcd',
+          content: 'output line one\noutput line two',
         },
       ],
     },

@@ -7,6 +7,9 @@ import {
   AssistantToolUseStreamLineStub,
   AssistantToolResultStreamLineStub,
 } from '../assistant-stream-line/assistant-stream-line.stub';
+import type { TextBlockParam } from '../text-block-param/text-block-param-contract';
+import type { ToolUseBlockParam } from '../tool-use-block-param/tool-use-block-param-contract';
+import type { ToolResultBlockParam } from '../tool-result-block-param/tool-result-block-param-contract';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
@@ -19,11 +22,10 @@ import type { ClaudeQueueResponse } from './claude-queue-response-contract';
 
 // ── Branded type aliases ───────────────────────────────────────────────────────
 
-type ContentItem = AssistantStreamLine['message']['content'][0];
-type TextContent = NonNullable<ContentItem['text']>;
-type ToolUseId = NonNullable<ContentItem['id']>;
-type ToolName = NonNullable<ContentItem['name']>;
-type ToolResultContent = Exclude<NonNullable<ContentItem['content']>, unknown[]>;
+type TextContent = TextBlockParam['text'];
+type ToolUseId = ToolUseBlockParam['id'];
+type ToolName = ToolUseBlockParam['name'];
+type ToolResultContent = Exclude<NonNullable<ToolResultBlockParam['content']>, unknown[]>;
 type UsageBlock = NonNullable<AssistantStreamLine['message']['usage']>;
 type InputTokenCount = UsageBlock['input_tokens'];
 type OutputTokenCount = UsageBlock['output_tokens'];

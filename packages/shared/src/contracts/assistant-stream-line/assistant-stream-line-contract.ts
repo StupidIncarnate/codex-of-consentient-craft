@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Validates the shape of a JSONL stream line where an assistant message carries content items
- * (text, tool_use, tool_result, thinking)
+ * (text, tool_use, tool_result, thinking, redacted_thinking)
  *
  * USAGE:
  * const parsed = assistantStreamLineContract.parse(JSON.parse(rawLine));
@@ -8,17 +8,7 @@
  */
 import { z } from 'zod';
 
-const contentItemContract = z.object({
-  type: z.string().brand<'ContentItemType'>(),
-  text: z.string().brand<'TextContent'>().optional(),
-  thinking: z.string().brand<'ThinkingContent'>().optional(),
-  id: z.string().brand<'ToolUseId'>().optional(),
-  name: z.string().brand<'ToolName'>().optional(),
-  input: z.record(z.unknown()).optional(),
-  tool_use_id: z.string().brand<'ToolUseId'>().optional(),
-  content: z.union([z.string().brand<'ToolResultContent'>(), z.array(z.unknown())]).optional(),
-  is_error: z.boolean().optional(),
-});
+import { assistantContentBlockParamContract } from '../assistant-content-block-param/assistant-content-block-param-contract';
 
 // `stop_reason` and `model` use `.nullish()` because Claude CLI emits explicit `null`
 // for these fields on streamed assistant deltas before a turn completes — `.optional()`
@@ -27,7 +17,7 @@ export const assistantStreamLineContract = z.object({
   type: z.literal('assistant'),
   message: z.object({
     role: z.literal('assistant'),
-    content: z.array(contentItemContract),
+    content: z.array(assistantContentBlockParamContract),
     usage: z
       .object({
         input_tokens: z.number().brand<'InputTokenCount'>(),
