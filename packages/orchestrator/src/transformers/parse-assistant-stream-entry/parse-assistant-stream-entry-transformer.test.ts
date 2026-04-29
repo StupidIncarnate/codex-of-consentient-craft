@@ -86,6 +86,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
         {
           role: 'assistant',
           type: 'tool_use',
+          toolUseId: 'toolu_01ParseTest001',
           toolName: 'read_file',
           toolInput: '{"path":"/test"}',
         },
@@ -152,6 +153,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
         {
           role: 'assistant',
           type: 'tool_use',
+          toolUseId: 'toolu_01ParseMixed001',
           toolName: 'read_file',
           toolInput: '{"path":"/src"}',
           usage: {

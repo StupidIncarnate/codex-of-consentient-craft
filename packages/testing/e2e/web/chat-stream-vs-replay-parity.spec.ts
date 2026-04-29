@@ -1241,4 +1241,159 @@ test.describe('Chat stream vs replay parity', () => {
 
     await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
+
+  test('VALID: {tool_result whose content is an array of non-text items (mirroring real ToolSearch / MCP results)} => TOOL_ROW_RESULT renders the item payload (not empty), identical after streaming and after reload', async ({
+    page,
+    request,
+  }) => {
+    // Regression guard for the production bug where MCP-style tool_results render with empty
+    // bodies. Real Claude CLI emits some tool_results (most visibly `ToolSearch`, but also any
+    // MCP tool that returns structured items) with `message.content[i].content` as an ARRAY of
+    // non-`text` blocks — e.g. `[{ type: 'tool_reference', tool_name: 'mcp__…' }, …]`. The
+    // orchestrator's `mapContentItemToChatEntryTransformer` only extracts a `text` field from
+    // each array entry, so non-`text` items collapse to '' and the rendered TOOL_ROW shows
+    // an empty body even though the row's status icon is ✓.
+    //
+    // Earlier parity tests in this file always pass `content` as a plain string, so they
+    // never exercise the array-of-non-text path that breaks in production. This test queues
+    // a tool_result whose `content` is an array of `tool_reference` items (the exact shape
+    // captured from a real MCP ToolSearch session JSONL) and asserts the rendered row body
+    // contains the item payload — currently empty, so the assertion fails until the
+    // transformer learns to render non-`text` content items.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Parity Array-Content Tool Result Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-parity-array-content-001';
+    const userText = 'parity-array-content-user-msg-9173';
+    const assistantText = 'parity-array-content-assistant-text-4421';
+    const toolName = 'ToolSearch';
+    const toolUseId = 'toolu_parity_arraycontent_aa';
+    const toolQuery = 'parity-array-content-query';
+    const referencedToolA = 'mcp__dungeonmaster__get-quest';
+    const referencedToolB = 'mcp__dungeonmaster__modify-quest';
+
+    claudeMock.queueResponse({
+      response: {
+        sessionId,
+        lines: [
+          JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
+          JSON.stringify(
+            AssistantToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: toolUseId,
+                    name: toolName,
+                    input: { query: toolQuery },
+                  },
+                ],
+              },
+            }),
+          ),
+          // RAW user tool_result line — mirrors the captured Claude CLI output shape:
+          // `content` is an ARRAY of `tool_reference` items, NOT a string. The
+          // SuccessfulToolResultStreamLineStub's contract rejects array content (its `content`
+          // field is `z.string()`), so we hand-build the JSON to reproduce the real shape.
+          JSON.stringify({
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: toolUseId,
+                  content: [
+                    { type: 'tool_reference', tool_name: referencedToolA },
+                    { type: 'tool_reference', tool_name: referencedToolB },
+                  ],
+                },
+              ],
+            },
+          }),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: assistantText }],
+              },
+            }),
+          ),
+          JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
+        ],
+      },
+    });
+
+    await page.goto(`/${guildId}/quest`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await page.getByTestId('CHAT_INPUT').fill(userText);
+    await page.getByTestId('SEND_BUTTON').click();
+
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(chatPanel.getByText(assistantText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    // STREAMING — exactly one paired tool row with success icon (proves merge happened).
+    await expect(chatPanel.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      chatPanel.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      chatPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+
+    // The load-bearing assertion: expand the row and verify that the rendered TOOL_ROW_RESULT
+    // body actually shows the array payload — at minimum the referenced tool_name strings.
+    // Today the result body collapses to '' because non-`text` items are dropped, so this
+    // assertion fails. Restoring it requires the orchestrator to render non-`text` content
+    // items (e.g. by stringifying their fields) instead of silently filtering them out.
+    const toolRow = chatPanel.locator('[data-testid="TOOL_ROW"]').first();
+
+    await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    const toolRowResult = toolRow.getByTestId('TOOL_ROW_RESULT');
+
+    await expect(toolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(toolRowResult).toContainText(referencedToolA, { timeout: CHAT_TIMEOUT });
+    await expect(toolRowResult).toContainText(referencedToolB, { timeout: CHAT_TIMEOUT });
+
+    await expect(chatPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    await page.reload();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const replayPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(replayPanel.getByText(assistantText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayPanel.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(
+      replayPanel.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
+    ).toHaveCount(ONE_COUNT);
+    await expect(
+      replayPanel.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+
+    const replayToolRow = replayPanel.locator('[data-testid="TOOL_ROW"]').first();
+
+    await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+
+    const replayToolRowResult = replayToolRow.getByTestId('TOOL_ROW_RESULT');
+
+    await expect(replayToolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
+    await expect(replayToolRowResult).toContainText(referencedToolA, { timeout: CHAT_TIMEOUT });
+    await expect(replayToolRowResult).toContainText(referencedToolB, { timeout: CHAT_TIMEOUT });
+
+    await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
+  });
 });

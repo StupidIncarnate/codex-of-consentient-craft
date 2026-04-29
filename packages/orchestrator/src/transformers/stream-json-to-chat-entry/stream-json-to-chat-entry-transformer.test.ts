@@ -91,11 +91,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry', () => {
+      const toolUseId = 'toolu_01StreamEntry001';
       const parsed = normalize(
         AssistantToolUseStreamLineStub({
           message: {
             role: 'assistant',
-            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
+            content: [
+              { type: 'tool_use', id: toolUseId, name: 'read_file', input: { path: '/test' } },
+            ],
           },
         }),
       );
@@ -107,6 +110,7 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'assistant',
             type: 'tool_use',
+            toolUseId,
             toolName: 'read_file',
             toolInput: '{"path":"/test"}',
           },
@@ -141,13 +145,14 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", multiple content items} => returns multiple entries', () => {
+      const toolUseId = 'toolu_01StreamMixed001';
       const parsed = normalize(
         AssistantMixedContentStreamLineStub({
           message: {
             role: 'assistant',
             content: [
               { type: 'text', text: 'Let me read that file' },
-              { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
+              { type: 'tool_use', id: toolUseId, name: 'read_file', input: { path: '/src' } },
             ],
             usage: {
               input_tokens: 200,
@@ -175,6 +180,7 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'assistant',
             type: 'tool_use',
+            toolUseId,
             toolName: 'read_file',
             toolInput: '{"path":"/src"}',
             usage: {

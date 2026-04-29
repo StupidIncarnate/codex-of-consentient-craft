@@ -505,4 +505,59 @@ describe('mapContentItemToChatEntryTransformer', () => {
       expect(result).toBe(null);
     });
   });
+
+  // Regression guard for the production bug captured at quest ac509111-...:
+  // real Claude CLI emits MCP tool_results (most visibly `ToolSearch`) with `content`
+  // as an array of `tool_reference` blocks — `[{ type: 'tool_reference', tool_name: '…' }]`.
+  // The Anthropic SDK's `ToolResultBlockParam.content` admits this shape exactly. The
+  // transformer's array-content branch only extracts `text` fields from each item, so
+  // every `tool_reference` collapses to undefined → filtered → joined to ''. The rendered
+  // TOOL_ROW shows status ✓ (the result paired) but an empty body.
+  //
+  // The assertion here is "the tool_name strings should appear in the rendered content".
+  // It currently FAILS because the transformer drops them. When the transformer learns to
+  // render non-`text` array items, this test flips to passing — that's the diagnostic.
+  describe('tool_result with tool_reference content items — known rendering bug', () => {
+    it('VALID: {tool_result, content: [tool_reference, tool_reference]} => renders tool_name strings (currently FAILS — bug repro)', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          toolUseId: 'toolu_01ToolReferenceArray',
+          content: [
+            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__get-quest' },
+            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__modify-quest' },
+          ],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_01ToolReferenceArray',
+        content: 'mcp__dungeonmaster__get-quest\nmcp__dungeonmaster__modify-quest',
+      });
+    });
+
+    it('VALID: {tool_result, mixed text + tool_reference content} => renders both text and tool_name strings (currently FAILS — bug repro)', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          toolUseId: 'toolu_01ToolReferenceMixed',
+          content: [
+            { type: 'text', text: 'Found these tools:' },
+            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__ask-user-question' },
+          ],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_01ToolReferenceMixed',
+        content: 'Found these tools:\nmcp__dungeonmaster__ask-user-question',
+      });
+    });
+  });
 });
