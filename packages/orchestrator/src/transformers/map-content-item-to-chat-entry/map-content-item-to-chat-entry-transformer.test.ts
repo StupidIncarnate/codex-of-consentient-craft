@@ -218,7 +218,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
-    it('EDGE: {type: "tool_result", content is array with non-text items} => skips non-text items', () => {
+    it('EDGE: {type: "tool_result", content array with text + image + non-object} => skips only non-objects, projects each variant', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
@@ -232,7 +232,7 @@ describe('mapContentItemToChatEntryTransformer', () => {
         role: 'assistant',
         type: 'tool_result',
         toolName: 'toolu_789',
-        content: 'Valid text',
+        content: 'Valid text\n[image]',
       });
     });
 
@@ -517,15 +517,15 @@ describe('mapContentItemToChatEntryTransformer', () => {
   // The assertion here is "the tool_name strings should appear in the rendered content".
   // It currently FAILS because the transformer drops them. When the transformer learns to
   // render non-`text` array items, this test flips to passing — that's the diagnostic.
-  describe('tool_result with tool_reference content items — known rendering bug', () => {
-    it('VALID: {tool_result, content: [tool_reference, tool_reference]} => renders tool_name strings (currently FAILS — bug repro)', () => {
+  describe('tool_result with array content — Anthropic SDK variant projections', () => {
+    it('VALID: {tool_result, content: [tool_reference, tool_reference]} => joins tool_name strings', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
           toolUseId: 'toolu_01ToolReferenceArray',
           content: [
-            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__get-quest' },
-            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__modify-quest' },
+            { type: 'tool_reference', toolName: 'mcp__dungeonmaster__get-quest' },
+            { type: 'tool_reference', toolName: 'mcp__dungeonmaster__modify-quest' },
           ],
         },
         usage: undefined,
@@ -539,14 +539,14 @@ describe('mapContentItemToChatEntryTransformer', () => {
       });
     });
 
-    it('VALID: {tool_result, mixed text + tool_reference content} => renders both text and tool_name strings (currently FAILS — bug repro)', () => {
+    it('VALID: {tool_result, mixed text + tool_reference content} => joins text and tool_name strings in order', () => {
       const result = mapContentItemToChatEntryTransformer({
         item: {
           type: 'tool_result',
           toolUseId: 'toolu_01ToolReferenceMixed',
           content: [
             { type: 'text', text: 'Found these tools:' },
-            { type: 'tool_reference', tool_name: 'mcp__dungeonmaster__ask-user-question' },
+            { type: 'tool_reference', toolName: 'mcp__dungeonmaster__ask-user-question' },
           ],
         },
         usage: undefined,
@@ -557,6 +557,60 @@ describe('mapContentItemToChatEntryTransformer', () => {
         type: 'tool_result',
         toolName: 'toolu_01ToolReferenceMixed',
         content: 'Found these tools:\nmcp__dungeonmaster__ask-user-question',
+      });
+    });
+
+    it('VALID: {tool_result, content: [search_result]} => renders the title', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          toolUseId: 'toolu_01SearchResult',
+          content: [{ type: 'search_result', title: 'Anthropic Docs', source: 'https://x' }],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_01SearchResult',
+        content: 'Anthropic Docs',
+      });
+    });
+
+    it('VALID: {tool_result, content: [image]} => renders [image] placeholder', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          toolUseId: 'toolu_01Image',
+          content: [{ type: 'image' }],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_01Image',
+        content: '[image]',
+      });
+    });
+
+    it('VALID: {tool_result, content: [document]} => renders [document] placeholder', () => {
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_result',
+          toolUseId: 'toolu_01Document',
+          content: [{ type: 'document' }],
+        },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_01Document',
+        content: '[document]',
       });
     });
   });

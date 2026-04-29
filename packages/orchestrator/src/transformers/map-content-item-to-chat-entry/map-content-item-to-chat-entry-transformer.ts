@@ -60,6 +60,13 @@ export const mapContentItemToChatEntryTransformer = ({
 
   if (itemType === 'tool_result') {
     const toolUseId = typeof item.toolUseId === 'string' ? item.toolUseId : '';
+    // The Anthropic SDK admits string OR array<text|image|search_result|document|tool_reference>
+    // for tool_result.content. Each array variant gets a string projection so the rendered
+    // chat row body shows something meaningful regardless of which block type Claude returned:
+    // - text → the text itself
+    // - tool_reference → the tool_name (real CLI emits this for ToolSearch results)
+    // - search_result → the title
+    // - image / document → typed placeholder so the row body isn't silently empty
     const content =
       typeof item.content === 'string'
         ? item.content
@@ -67,7 +74,16 @@ export const mapContentItemToChatEntryTransformer = ({
           ? item.content
               .map((c: unknown) => {
                 const cParse = normalizedStreamLineContentItemContract.safeParse(c);
-                return cParse.success ? cParse.data.text : undefined;
+                if (!cParse.success) return undefined;
+                const block = cParse.data;
+                if (block.type === 'text' && typeof block.text === 'string') return block.text;
+                if (block.type === 'tool_reference' && typeof block.toolName === 'string')
+                  return block.toolName;
+                if (block.type === 'search_result' && typeof block.title === 'string')
+                  return block.title;
+                if (block.type === 'image') return '[image]';
+                if (block.type === 'document') return '[document]';
+                return undefined;
               })
               .filter((t: unknown) => typeof t === 'string')
               .join('\n')

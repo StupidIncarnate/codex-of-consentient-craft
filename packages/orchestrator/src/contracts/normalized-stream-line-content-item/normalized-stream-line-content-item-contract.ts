@@ -21,6 +21,8 @@ export const normalizedStreamLineContentItemContract = z
     name: z.string().brand<'StreamContentName'>().optional(),
     input: z.unknown().optional(),
     toolUseId: z.string().brand<'StreamContentToolUseId'>().optional(),
+    toolName: z.string().brand<'StreamContentToolName'>().optional(),
+    title: z.string().brand<'StreamContentTitle'>().optional(),
     content: z.unknown().optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'StreamContentSource'>().optional(),
