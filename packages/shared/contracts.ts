@@ -471,3 +471,37 @@ export * from './src/contracts/normalized-line/normalized-line.stub';
 // Project Config Contracts
 export * from './src/contracts/project-config/project-config-contract';
 export * from './src/contracts/project-config/project-config.stub';
+
+// Claude Content Block Contracts
+export * from './src/contracts/text-block-param/text-block-param-contract';
+export * from './src/contracts/text-block-param/text-block-param.stub';
+
+export * from './src/contracts/image-block-param/image-block-param-contract';
+export * from './src/contracts/image-block-param/image-block-param.stub';
+
+export * from './src/contracts/document-block-param/document-block-param-contract';
+export * from './src/contracts/document-block-param/document-block-param.stub';
+
+export * from './src/contracts/search-result-block-param/search-result-block-param-contract';
+export * from './src/contracts/search-result-block-param/search-result-block-param.stub';
+
+export * from './src/contracts/tool-reference-block-param/tool-reference-block-param-contract';
+export * from './src/contracts/tool-reference-block-param/tool-reference-block-param.stub';
+
+export * from './src/contracts/tool-use-block-param/tool-use-block-param-contract';
+export * from './src/contracts/tool-use-block-param/tool-use-block-param.stub';
+
+export * from './src/contracts/tool-result-block-param/tool-result-block-param-contract';
+export * from './src/contracts/tool-result-block-param/tool-result-block-param.stub';
+
+export * from './src/contracts/thinking-block-param/thinking-block-param-contract';
+export * from './src/contracts/thinking-block-param/thinking-block-param.stub';
+
+export * from './src/contracts/redacted-thinking-block-param/redacted-thinking-block-param-contract';
+export * from './src/contracts/redacted-thinking-block-param/redacted-thinking-block-param.stub';
+
+export * from './src/contracts/tool-result-content-block-param/tool-result-content-block-param-contract';
+export * from './src/contracts/tool-result-content-block-param/tool-result-content-block-param.stub';
+
+export * from './src/contracts/assistant-content-block-param/assistant-content-block-param-contract';
+export * from './src/contracts/assistant-content-block-param/assistant-content-block-param.stub';
