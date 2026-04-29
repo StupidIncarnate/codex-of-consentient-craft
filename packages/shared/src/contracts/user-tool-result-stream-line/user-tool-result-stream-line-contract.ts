@@ -7,18 +7,15 @@
  */
 import { z } from 'zod';
 
+import { toolResultBlockParamContract } from '../tool-result-block-param/tool-result-block-param-contract';
+import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
+
 export const userToolResultStreamLineContract = z.object({
   type: z.literal('user'),
   message: z.object({
     role: z.literal('user'),
     content: z.array(
-      z.object({
-        type: z.string().brand<'ContentItemType'>(),
-        tool_use_id: z.string().brand<'ToolUseId'>().optional(),
-        content: z.string().brand<'ToolResultContent'>().optional(),
-        text: z.string().brand<'TextContent'>().optional(),
-        is_error: z.boolean().optional(),
-      }),
+      z.discriminatedUnion('type', [toolResultBlockParamContract, textBlockParamContract]),
     ),
   }),
   toolUseResult: z

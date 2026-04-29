@@ -1,15 +1,20 @@
 import {
+  AssistantMixedContentStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantThinkingStreamLineStub,
   AssistantToolResultStreamLineStub,
   AssistantToolUseStreamLineStub,
-  AssistantMixedContentStreamLineStub,
+  DocumentArrayToolResultStreamLineStub,
+  ImageArrayToolResultStreamLineStub,
+  MixedArrayToolResultStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
   PermissionDeniedStreamLineStub,
   ResultStreamLineStub,
+  SearchResultArrayToolResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
   SystemInitStreamLineStub,
   TextOnlyUserStreamLineStub,
+  ToolReferenceArrayToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
@@ -93,14 +98,7 @@ describe('streamJsonToChatEntryTransformer', () => {
         AssistantToolUseStreamLineStub({
           message: {
             role: 'assistant',
-            content: [
-              {
-                type: 'tool_use',
-                id: 'toolu_01JsonEntry001',
-                name: 'read_file',
-                input: { path: '/test' },
-              },
-            ],
+            content: [{ type: 'tool_use', name: 'read_file', input: { path: '/test' } }],
           },
         }),
       );
@@ -152,12 +150,7 @@ describe('streamJsonToChatEntryTransformer', () => {
             role: 'assistant',
             content: [
               { type: 'text', text: 'Let me read that file' },
-              {
-                type: 'tool_use',
-                id: 'toolu_01JsonMixed001',
-                name: 'read_file',
-                input: { path: '/src' },
-              },
+              { type: 'tool_use', name: 'read_file', input: { path: '/src' } },
             ],
             usage: {
               input_tokens: 200,
@@ -482,6 +475,96 @@ describe('streamJsonToChatEntryTransformer', () => {
 
       expect(result).toStrictEqual({
         entries: [],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {tool_reference array content} => returns tool_result entry with empty content (tool_reference items have no text field)', () => {
+      const parsed = normalize(ToolReferenceArrayToolResultStreamLineStub());
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01ToolSearch1234abcd',
+            content: '',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {image array content} => returns tool_result entry with empty content (image items have no text field)', () => {
+      const parsed = normalize(ImageArrayToolResultStreamLineStub());
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01Screenshot5678efgh',
+            content: '',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {document array content} => returns tool_result entry with empty content (document items have no text field)', () => {
+      const parsed = normalize(DocumentArrayToolResultStreamLineStub());
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01DocFetch9012ijkl',
+            content: '',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {search_result array content} => returns tool_result entry with empty content (search_result items have no top-level text field)', () => {
+      const parsed = normalize(SearchResultArrayToolResultStreamLineStub());
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01WebSearch3456mnop',
+            content: '',
+          },
+        ],
+        sessionId: null,
+      });
+    });
+
+    it('VALID: {mixed text+tool_reference array content} => returns tool_result entry with only text items joined', () => {
+      const parsed = normalize(MixedArrayToolResultStreamLineStub());
+
+      const result = streamJsonToChatEntryTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'tool_result',
+            toolName: 'toolu_01MixedArray7890qrst',
+            content: 'Found the following tools:',
+          },
+        ],
         sessionId: null,
       });
     });

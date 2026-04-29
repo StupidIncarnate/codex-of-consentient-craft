@@ -3,9 +3,11 @@ import {
   AssistantNullStopReasonStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+  MixedArrayToolResultStreamLineStub,
   ResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
   SystemInitStreamLineStub,
+  ToolReferenceArrayToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
@@ -82,6 +84,52 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
               content: 'File contents retrieved successfully',
               source: 'subagent',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {tool_reference array content tool_result} => emits tool_result entry with empty content (design decision: non-text array items are not renderable as text)', () => {
+      const processor = chatLineProcessTransformer();
+      const parsed = normalize(ToolReferenceArrayToolResultStreamLineStub());
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01ToolSearch1234abcd',
+              content: '',
+              source: 'session',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {mixed text+tool_reference array content tool_result} => emits tool_result entry joining only text items', () => {
+      const processor = chatLineProcessTransformer();
+      const parsed = normalize(MixedArrayToolResultStreamLineStub());
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01MixedArray7890qrst',
+              content: 'Found the following tools:',
+              source: 'session',
             },
           ],
         },

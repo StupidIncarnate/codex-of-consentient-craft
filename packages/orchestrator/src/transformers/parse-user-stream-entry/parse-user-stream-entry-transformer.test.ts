@@ -1,8 +1,13 @@
 import {
-  PermissionDeniedStreamLineStub,
-  SuccessfulToolResultStreamLineStub,
+  DocumentArrayToolResultStreamLineStub,
+  ImageArrayToolResultStreamLineStub,
+  MixedArrayToolResultStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
+  PermissionDeniedStreamLineStub,
+  SearchResultArrayToolResultStreamLineStub,
+  SuccessfulToolResultStreamLineStub,
   TextOnlyUserStreamLineStub,
+  ToolReferenceArrayToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
@@ -55,6 +60,81 @@ describe('parseUserStreamEntryTransformer', () => {
           type: 'tool_result',
           toolName: 'toolu_015sb5Rz8yPMN4sbwdNaz8kk',
           content: 'Read 42 lines from file',
+        },
+      ]);
+    });
+
+    it('VALID: {tool_reference array content} => returns tool_result entry with empty content (tool_reference items have no text field)', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(ToolReferenceArrayToolResultStreamLineStub()),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_01ToolSearch1234abcd',
+          content: '',
+        },
+      ]);
+    });
+
+    it('VALID: {image array content} => returns tool_result entry with empty content (image items have no text field)', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(ImageArrayToolResultStreamLineStub()),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_01Screenshot5678efgh',
+          content: '',
+        },
+      ]);
+    });
+
+    it('VALID: {document array content} => returns tool_result entry with empty content (document items have no text field)', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(DocumentArrayToolResultStreamLineStub()),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_01DocFetch9012ijkl',
+          content: '',
+        },
+      ]);
+    });
+
+    it('VALID: {search_result array content} => returns tool_result entry with empty content (search_result items have no top-level text field)', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(SearchResultArrayToolResultStreamLineStub()),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_01WebSearch3456mnop',
+          content: '',
+        },
+      ]);
+    });
+
+    it('VALID: {mixed text+tool_reference array content} => returns tool_result entry with only text items joined', () => {
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize(MixedArrayToolResultStreamLineStub()),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_01MixedArray7890qrst',
+          content: 'Found the following tools:',
         },
       ]);
     });
