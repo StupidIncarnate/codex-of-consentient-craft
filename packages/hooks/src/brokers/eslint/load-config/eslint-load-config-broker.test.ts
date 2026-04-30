@@ -60,6 +60,7 @@ describe('eslintLoadConfigBroker', () => {
       eslintLoadConfigBrokerProxy();
 
       const result = await eslintLoadConfigBroker({
+        cwd: '/null-config-test',
         filePath: 'test.ts',
       });
 

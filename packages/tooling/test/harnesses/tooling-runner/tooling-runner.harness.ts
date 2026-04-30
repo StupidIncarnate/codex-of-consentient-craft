@@ -20,7 +20,7 @@ import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error
 type ExecError = ReturnType<typeof ExecErrorStub>;
 
 const ENTRY_PATH = FilePathStub({
-  value: path.join(process.cwd(), 'bin', 'detect-duplicate-primitives.ts'),
+  value: path.join(process.cwd(), 'dist', 'bin', 'detect-duplicate-primitives.js'),
 });
 
 const isExecError = (error: unknown): error is ExecError =>
@@ -38,7 +38,7 @@ export const toolingRunnerHarness = (): {
   }: {
     args: readonly string[];
   }): ReturnType<typeof CommandResultStub> => {
-    const command = `npx tsx ${String(ENTRY_PATH)} ${args.join(' ')}`;
+    const command = `node ${String(ENTRY_PATH)} ${args.join(' ')}`;
 
     try {
       const stdout = execSync(command, {

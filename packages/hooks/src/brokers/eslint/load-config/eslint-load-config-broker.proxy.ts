@@ -12,13 +12,9 @@ import type { ESLint } from 'eslint';
 import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
 import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
-
-const EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT = 6;
-
-// Track which test we're in based on constructor calls across ALL tests
-const globalState = { constructorCallCount: 0 };
 
 export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child proxies
@@ -26,18 +22,17 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   const eslintProxy = eslintEslintAdapterProxy();
   eslintCalculateConfigForFileAdapterProxy();
   pathResolveAdapterProxy();
+  fsExistsSyncAdapterProxy();
   eslintFallbackPathsBrokerProxy();
 
   // Override the eslint adapter proxy's mock handle to provide test-specific behavior
   const eslintHandle = eslintProxy.getHandle();
 
-  // Create a mock that returns different values based on which test is running
+  // Mock that returns different values based on cwd
   eslintHandle.mockImplementation((options: never) => {
     const opts = options as unknown as ConstructorParameters<typeof ESLint>[0];
     const cwdValue = opts?.cwd ?? '';
-    globalState.constructorCallCount += 1;
 
-    // Error test cases - check cwd first
     if (cwdValue === '/error-test-1') {
       throw new Error('ESLint configuration error');
     }
@@ -48,14 +43,11 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
       throw new Error('Non-Error thrown');
     }
 
-    // Create mock calculateConfigForFile that returns based on cwd
     const mockCalculateConfigForFile = jest.fn();
 
-    // Edge case: test 5 (6th constructor call - after test1:1, test2:1, test3:1, test4:2, test5:1)
-    if (globalState.constructorCallCount === EDGE_CASE_TEST_CONSTRUCTOR_CALL_COUNT) {
+    if (cwdValue === '/null-config-test') {
       mockCalculateConfigForFile.mockResolvedValue(null);
     } else if (cwdValue === '/project') {
-      // Return different configs based on cwd
       mockCalculateConfigForFile.mockResolvedValue({
         rules: { 'no-unused-vars': 'error' },
       } as Linter.Config);
@@ -68,7 +60,6 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
         rules: { 'no-console': 'warn' },
       } as Linter.Config);
     } else {
-      // Default cwd test (process.cwd())
       mockCalculateConfigForFile.mockResolvedValue({
         rules: { 'no-console': 'warn' },
       } as Linter.Config);

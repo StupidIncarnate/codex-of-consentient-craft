@@ -9,7 +9,6 @@ import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-t
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
 
-import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
@@ -134,8 +133,6 @@ describe('post-edit-hook', () => {
   });
 
   describe('with invalid hook data', () => {
-    const runner = hookRunnerHarness();
-
     it.each([
       {
         scenario: 'INVALID_INPUT: {invalid JSON} => exits with 1',
@@ -147,18 +144,15 @@ describe('post-edit-hook', () => {
         input: JSON.stringify({ invalid: 'data' }),
         stderrPattern: /Unsupported hook event/iu,
       },
-    ])('$scenario', ({ input, stderrPattern }) => {
-      const rawResult = runner.runHookRaw({
-        hookName: 'start-post-edit-hook',
-        input: input as never,
-      });
+    ])('$scenario', async ({ input, stderrPattern }) => {
+      const result = await persistentRunner.runHookRaw({ rawInput: input });
 
       expect({
-        status: rawResult.status,
-        stdout: rawResult.stdout,
-        stderr: rawResult.stderr,
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+        stderr: result.stderr,
       }).toStrictEqual({
-        status: 1,
+        exitCode: 1,
         stdout: '',
         stderr: expect.stringMatching(stderrPattern),
       });

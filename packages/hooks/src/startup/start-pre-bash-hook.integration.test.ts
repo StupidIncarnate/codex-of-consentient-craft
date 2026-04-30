@@ -1,18 +1,26 @@
 import { HookDataStub } from '../contracts/hook-data/hook-data.stub';
 
-import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
+import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
 describe('pre-bash-hook', () => {
-  const runner = hookRunnerHarness();
+  const persistentRunner = hookPersistentRunnerHarness();
+
+  beforeAll(async () => {
+    await persistentRunner.start({ hookName: 'start-pre-bash-hook' });
+  });
+
+  afterAll(async () => {
+    await persistentRunner.stop();
+  });
 
   describe('blocked commands', () => {
-    it('VALID: {command: "jest"} => returns exit code 2 with redirect message', () => {
+    it('VALID: {command: "jest"} => returns exit code 2 with redirect message', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'jest' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -21,13 +29,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "npx jest --verbose"} => returns exit code 2', () => {
+    it('VALID: {command: "npx jest --verbose"} => returns exit code 2', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npx jest --verbose' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -37,13 +45,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "eslint src/"} => returns exit code 2', () => {
+    it('VALID: {command: "eslint src/"} => returns exit code 2', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'eslint src/' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -52,13 +60,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "npx eslint"} => returns exit code 2', () => {
+    it('VALID: {command: "npx eslint"} => returns exit code 2', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npx eslint' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -67,13 +75,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "tsc --noEmit"} => returns exit code 2', () => {
+    it('VALID: {command: "tsc --noEmit"} => returns exit code 2', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'tsc --noEmit' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -82,13 +90,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "npx tsc"} => returns exit code 2', () => {
+    it('VALID: {command: "npx tsc"} => returns exit code 2', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npx tsc' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 2,
@@ -99,13 +107,13 @@ describe('pre-bash-hook', () => {
   });
 
   describe('allowed commands', () => {
-    it('VALID: {command: "npm test"} => returns exit code 0', () => {
+    it('VALID: {command: "npm test"} => returns exit code 0', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npm test' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -114,13 +122,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "npm run lint"} => returns exit code 0', () => {
+    it('VALID: {command: "npm run lint"} => returns exit code 0', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npm run lint' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -129,13 +137,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns exit code 0 with updatedInput timeout', () => {
+    it('VALID: {command: "dungeonmaster-ward", no timeout} => returns exit code 0 with updatedInput timeout', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'dungeonmaster-ward' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -149,13 +157,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "echo hello"} => returns exit code 0', () => {
+    it('VALID: {command: "echo hello"} => returns exit code 0', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'echo hello' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -164,13 +172,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "git status"} => returns exit code 0', () => {
+    it('VALID: {command: "git status"} => returns exit code 0', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'git status' },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -181,13 +189,13 @@ describe('pre-bash-hook', () => {
   });
 
   describe('ward timeout enforcement', () => {
-    it('VALID: {command: "npm run ward", timeout: 120000} => returns updatedInput with timeout 600000', () => {
+    it('VALID: {command: "npm run ward", timeout: 120000} => returns updatedInput with timeout 600000', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npm run ward', timeout: 120_000 },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -201,13 +209,13 @@ describe('pre-bash-hook', () => {
       });
     });
 
-    it('VALID: {command: "npm run ward", timeout: 600000} => no override needed', () => {
+    it('VALID: {command: "npm run ward", timeout: 600000} => no override needed', async () => {
       const hookData = HookDataStub({
         tool_name: 'Bash',
         tool_input: { command: 'npm run ward', timeout: 600_000 },
       });
 
-      const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -218,32 +226,29 @@ describe('pre-bash-hook', () => {
   });
 
   describe('error handling', () => {
-    it('ERROR: {invalid JSON input} => returns exit code 1', () => {
-      const rawResult = runner.runHookRaw({
-        hookName: 'start-pre-bash-hook',
-        input: 'not json' as never,
-      });
+    it('ERROR: {invalid JSON input} => returns exit code 1', async () => {
+      const result = await persistentRunner.runHookRaw({ rawInput: 'not json' });
 
       expect({
-        status: rawResult.status,
-        stdout: rawResult.stdout,
-        stderr: rawResult.stderr,
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+        stderr: result.stderr,
       }).toStrictEqual({
-        status: 1,
+        exitCode: 1,
         stdout: '',
         stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
       });
     });
 
-    it('ERROR: {empty input} => returns exit code 1', () => {
-      const rawResult = runner.runHookRaw({ hookName: 'start-pre-bash-hook', input: '' as never });
+    it('ERROR: {empty input} => returns exit code 1', async () => {
+      const result = await persistentRunner.runHookRaw({ rawInput: '' });
 
       expect({
-        status: rawResult.status,
-        stdout: rawResult.stdout,
-        stderr: rawResult.stderr,
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+        stderr: result.stderr,
       }).toStrictEqual({
-        status: 1,
+        exitCode: 1,
         stdout: '',
         stderr: expect.stringMatching(/^Hook error: .+\n(?:.+\n)*$/su),
       });

@@ -8,18 +8,18 @@
 import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
 import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
 import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-// Cache the config to avoid repeated expensive loading
-// WARNING: This is a module-level cache that persists across function calls.
-// This is intentional for performance but creates a potential race condition
-// If multiple calls with different cwds happen simultaneously.
-// In practice, this is safe for the pre-edit-lint use case since:
-// 1. Calls are serialized through the CLI
-// 2. The cwd rarely changes during a session
-let configCache: { cwd: PropertyKey; config: unknown } | null = null;
+// Cache keyed by resolved eslint.config.* path (or cwd when no config is found). Many cwds
+// can resolve to the same config file, so this lets unrelated callers share a cache entry.
+const configCache = new Map<FilePath, unknown>();
+
+const MAX_WALK_UP_DEPTH = 20;
 
 export const eslintLoadConfigBroker = async ({
   cwd = processCwdAdapter(),
@@ -28,14 +28,32 @@ export const eslintLoadConfigBroker = async ({
   cwd?: string;
   filePath: string;
 }): Promise<unknown> => {
-  // Return cached config if same cwd
-  const currentCache = configCache;
-  if (currentCache !== null && currentCache.cwd === cwd) {
-    return currentCache.config;
+  const targetCwd = cwd;
+  const resolvedCwd = pathResolveAdapter({ paths: [targetCwd] });
+
+  let cacheKey: FilePath = resolvedCwd;
+  let walkDir: FilePath = resolvedCwd;
+  for (let depth = 0; depth < MAX_WALK_UP_DEPTH; depth++) {
+    const currentDir = walkDir;
+    const candidates = locationsStatics.repoRoot.eslintConfig.map((name) =>
+      pathResolveAdapter({ paths: [currentDir, name] }),
+    );
+    const found = candidates.find((candidate) => fsExistsSyncAdapter({ filePath: candidate }));
+    if (found !== undefined) {
+      cacheKey = found;
+      break;
+    }
+    const parentDir = pathResolveAdapter({ paths: [walkDir, '..'] });
+    if (parentDir === walkDir) {
+      break;
+    }
+    walkDir = parentDir;
   }
 
-  // Store the cwd we're loading for to check after async operation
-  const targetCwd = cwd;
+  const cached = configCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
 
   try {
     const eslint = eslintEslintAdapter({ options: { cwd: targetCwd } });
@@ -45,9 +63,7 @@ export const eslintLoadConfigBroker = async ({
     // returns an empty config with no rules. Build candidate fallback paths by walking up
     // from cwd, then resolve them all in parallel to find a non-ignored location.
     if (!hasEslintRulesConfigGuard({ config })) {
-      const candidatePaths = eslintFallbackPathsBroker({
-        cwd: pathResolveAdapter({ paths: [targetCwd] }),
-      });
+      const candidatePaths = eslintFallbackPathsBroker({ cwd: resolvedCwd });
 
       const candidateConfigs = await Promise.all(
         candidatePaths.map(async (candidate) =>
@@ -64,11 +80,7 @@ export const eslintLoadConfigBroker = async ({
       }
     }
 
-    // Only update cache if no other call has changed it
-    // This prevents race conditions where parallel calls overwrite each other
-    if (configCache === null || configCache.cwd !== targetCwd) {
-      configCache = { cwd: targetCwd, config };
-    }
+    configCache.set(cacheKey, config);
 
     return config;
   } catch (error: unknown) {

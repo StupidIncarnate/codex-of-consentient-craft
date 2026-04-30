@@ -2,20 +2,24 @@ import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 import { SessionStartHookStub } from '../contracts/session-start-hook-data/session-start-hook-data.stub';
 import { SubagentStartHookDataStub } from '../contracts/subagent-start-hook-data/subagent-start-hook-data.stub';
 
-import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
+import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
 describe('start-session-snippet-hook', () => {
-  const runner = hookRunnerHarness();
+  const persistentRunner = hookPersistentRunnerHarness();
+
+  beforeAll(async () => {
+    await persistentRunner.start({ hookName: 'start-session-snippet-hook' });
+  });
+
+  afterAll(async () => {
+    await persistentRunner.stop();
+  });
 
   describe('SessionStart', () => {
-    it('VALID: {hookData: SessionStart, args: ["discover"]} => exits with code 0 and raw discover snippet in stdout', () => {
+    it('VALID: {hookData: SessionStart, args: ["discover"]} => exits with code 0 and raw discover snippet in stdout', async () => {
       const hookData = SessionStartHookStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['discover'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['discover'] });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -24,14 +28,10 @@ describe('start-session-snippet-hook', () => {
       });
     });
 
-    it('VALID: {hookData: SessionStart, args: ["ward"]} => exits with code 0 and raw ward snippet in stdout', () => {
+    it('VALID: {hookData: SessionStart, args: ["ward"]} => exits with code 0 and raw ward snippet in stdout', async () => {
       const hookData = SessionStartHookStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['ward'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['ward'] });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -40,14 +40,10 @@ describe('start-session-snippet-hook', () => {
       });
     });
 
-    it('ERROR: {hookData: SessionStart, args: ["nonexistent"]} => exits with code 1 and error in stderr', () => {
+    it('ERROR: {hookData: SessionStart, args: ["nonexistent"]} => exits with code 1 and error in stderr', async () => {
       const hookData = SessionStartHookStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['nonexistent'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['nonexistent'] });
 
       expect(result).toStrictEqual({
         exitCode: 1,
@@ -56,13 +52,10 @@ describe('start-session-snippet-hook', () => {
       });
     });
 
-    it('ERROR: {hookData: SessionStart, no args} => exits with code 1 and error in stderr', () => {
+    it('ERROR: {hookData: SessionStart, no args} => exits with code 1 and error in stderr', async () => {
       const hookData = SessionStartHookStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-      });
+      const result = await persistentRunner.runHook({ hookData });
 
       expect(result).toStrictEqual({
         exitCode: 1,
@@ -73,14 +66,10 @@ describe('start-session-snippet-hook', () => {
   });
 
   describe('SubagentStart', () => {
-    it('VALID: {hookData: SubagentStart, args: ["discover"]} => exits with code 0 and JSON with additionalContext containing discover snippet', () => {
+    it('VALID: {hookData: SubagentStart, args: ["discover"]} => exits with code 0 and JSON with additionalContext containing discover snippet', async () => {
       const hookData = SubagentStartHookDataStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['discover'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['discover'] });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -94,14 +83,10 @@ describe('start-session-snippet-hook', () => {
       });
     });
 
-    it('VALID: {hookData: SubagentStart, args: ["ward"]} => exits with code 0 and JSON with additionalContext containing ward snippet', () => {
+    it('VALID: {hookData: SubagentStart, args: ["ward"]} => exits with code 0 and JSON with additionalContext containing ward snippet', async () => {
       const hookData = SubagentStartHookDataStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['ward'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['ward'] });
 
       expect(result).toStrictEqual({
         exitCode: 0,
@@ -115,14 +100,10 @@ describe('start-session-snippet-hook', () => {
       });
     });
 
-    it('ERROR: {hookData: SubagentStart, args: ["nonexistent"]} => exits with code 1 and raw error in stderr', () => {
+    it('ERROR: {hookData: SubagentStart, args: ["nonexistent"]} => exits with code 1 and raw error in stderr', async () => {
       const hookData = SubagentStartHookDataStub();
 
-      const result = runner.runHook({
-        hookName: 'start-session-snippet-hook',
-        hookData,
-        args: ['nonexistent'],
-      });
+      const result = await persistentRunner.runHook({ hookData, args: ['nonexistent'] });
 
       expect(result).toStrictEqual({
         exitCode: 1,

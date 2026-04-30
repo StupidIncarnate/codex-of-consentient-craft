@@ -17,14 +17,25 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { ExecResultStub } from '../../../src/contracts/exec-result/exec-result.stub';
 
-type HookName = 'start-pre-bash-hook' | 'start-post-edit-hook' | 'start-pre-edit-hook';
+type HookName =
+  | 'start-pre-bash-hook'
+  | 'start-post-edit-hook'
+  | 'start-pre-edit-hook'
+  | 'start-session-snippet-hook';
 
 const WORKER_PATH = path.join(__dirname, 'hook-persistent-worker.ts');
 
 export const hookPersistentRunnerHarness = (): {
   start: (params: { hookName: HookName }) => Promise<void>;
   stop: () => Promise<void>;
-  runHook: (params: { hookData: unknown }) => Promise<ReturnType<typeof ExecResultStub>>;
+  runHook: (params: {
+    hookData: unknown;
+    args?: readonly string[];
+  }) => Promise<ReturnType<typeof ExecResultStub>>;
+  runHookRaw: (params: {
+    rawInput: string;
+    args?: readonly string[];
+  }) => Promise<ReturnType<typeof ExecResultStub>>;
 } => {
   let child: ChildProcess | null = null;
   let rl: readline.Interface | null = null;
@@ -128,10 +139,10 @@ export const hookPersistentRunnerHarness = (): {
     }
   };
 
-  const runHook = async ({
-    hookData,
-  }: {
-    hookData: unknown;
+  const sendEnvelope = async (envelope: {
+    hookData?: unknown;
+    rawInput?: string;
+    args?: readonly string[];
   }): Promise<ReturnType<typeof ExecResultStub>> => {
     if (!child) {
       throw new Error('Worker not started. Call start() first.');
@@ -139,9 +150,27 @@ export const hookPersistentRunnerHarness = (): {
 
     return new Promise((resolve, reject) => {
       responseQueue.push({ resolve, reject });
-      child!.stdin!.write(`${JSON.stringify(hookData)}\n`);
+      child!.stdin!.write(`${JSON.stringify(envelope)}\n`);
     });
   };
 
-  return { start, stop, runHook };
+  const runHook = async ({
+    hookData,
+    args,
+  }: {
+    hookData: unknown;
+    args?: readonly string[];
+  }): Promise<ReturnType<typeof ExecResultStub>> =>
+    sendEnvelope(args === undefined ? { hookData } : { hookData, args });
+
+  const runHookRaw = async ({
+    rawInput,
+    args,
+  }: {
+    rawInput: string;
+    args?: readonly string[];
+  }): Promise<ReturnType<typeof ExecResultStub>> =>
+    sendEnvelope(args === undefined ? { rawInput } : { rawInput, args });
+
+  return { start, stop, runHook, runHookRaw };
 };
