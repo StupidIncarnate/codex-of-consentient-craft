@@ -7,6 +7,7 @@
  */
 
 import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
 import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
 import { RpcIdStub } from '../../contracts/rpc-id/rpc-id.stub';
@@ -538,5 +539,57 @@ describe('McpServerFlow', () => {
 
       expect(response.error?.message).toMatch(/^\[$/mu);
     });
+  });
+
+  describe('content size cap', () => {
+    // Tools whose response is NOT bounded by the 50KB cap. When a new tool is
+    // added to mcpToolsStatics.tools.names it is automatically size-checked,
+    // so this test will fail until the new tool either fits the cap with empty
+    // args or is added here with a documented reason.
+    const TOOLS_EXEMPT_FROM_SIZE_CAP = [
+      // Require args — cannot be invoked with `{}`
+      'discover',
+      'get-folder-detail',
+      'get-quest',
+      'get-quest-status',
+      'get-quest-planning-notes',
+      'get-agent-prompt',
+      // Mutating actions, not reference content
+      'modify-quest',
+      'start-quest',
+      'signal-back',
+      'ask-user-question',
+      // Dynamic listings whose size scales with user data
+      'list-quests',
+      'list-guilds',
+    ] as const;
+
+    const sizeCappedTools = mcpToolsStatics.tools.names.filter(
+      (name) => !TOOLS_EXEMPT_FROM_SIZE_CAP.some((exempt) => exempt === name),
+    );
+
+    it.each(sizeCappedTools)(
+      'VALID: tool %s => response content under 50KB',
+      async (toolName) => {
+        const request = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 99999 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: toolName,
+            arguments: {},
+          },
+        });
+
+        const response = await client.sendRequest(request);
+
+        expect(response.error).toBe(undefined);
+
+        const result = ToolCallResultStub(response.result as never);
+        const [firstContent] = result.content;
+        const text = String(firstContent!.text);
+
+        expect(Buffer.byteLength(text, 'utf8')).toBeLessThanOrEqual(50_000);
+      },
+    );
   });
 });

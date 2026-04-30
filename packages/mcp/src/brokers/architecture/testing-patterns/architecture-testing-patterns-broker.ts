@@ -80,17 +80,10 @@ expect(myGuard({value: 'test', optional: undefined})).toBe(false);
   const parameterizeStateMatrices = `**DAMP > DRY still holds.** But when a test is repeated 3 or more times with the only variation being an input value (cycling through every status in a union, every enum member, every invalid input variant), parameterize with \`it.each\`, \`test.each\`, or \`describe.each\`. The body, setup, and assertion shape must be identical across cases — only literal values change.
 
 \`\`\`typescript
-// ❌ WRONG - 15 near-identical tests differing only by one string value
-it('EMPTY: {status: pending} => neither PAUSE nor RESUME button visible', () => {
-  const proxy = ExecutionPanelWidgetProxy();
-  const quest: Quest = QuestStub({ status: 'pending' });
-  mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-  expect(proxy.hasPauseButton()).toBe(false);
-  expect(proxy.hasResumeButton()).toBe(false);
-});
-it('EMPTY: {status: created} => neither PAUSE nor RESUME button visible', () => { /* same body, 'created' */ });
-it('EMPTY: {status: blocked} => neither PAUSE nor RESUME button visible', () => { /* same body, 'blocked' */ });
-// ...12 more
+// ❌ WRONG - 15 near-identical tests differing only by status literal
+it('EMPTY: {status: pending} => neither PAUSE nor RESUME button visible', () => { /* ... */ });
+it('EMPTY: {status: created} => neither PAUSE nor RESUME button visible', () => { /* ... */ });
+// ...13 more, identical body, only status differs
 
 // ✅ CORRECT - Parameterize the matrix; derive the list from the canonical static.
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -262,25 +255,6 @@ expect(result).toMatchObject({id: '123'}); // Extra properties pass
 expect(output).toContain('Error'); // Superset passes
 expect(config.includes('parser')).toBe(true); // Could be anywhere
 expect(typeof tsconfig.compilerOptions).toBe('object'); // Any object!
-\`\`\`
-
-**Don't be afraid of the full object:**
-\`\`\`typescript
-// ❌ WRONG - Weak checks that miss bugs
-expect(config.includes('@typescript-eslint/parser')).toBe(true);
-expect(typeof tsconfig.compilerOptions).toBe('object');
-
-// ✅ CORRECT - Assert FULL expected value
-expect(config).toStrictEqual(\`module.exports = [...full config...]\`);
-expect(tsconfig).toStrictEqual({
-  compilerOptions: {
-    target: 'ES2020',
-    module: 'commonjs',
-    // ...ALL properties
-  },
-  include: ['**/*.ts'],
-  exclude: ['node_modules']
-});
 \`\`\`
 
 **Test values, not existence:**
@@ -468,13 +442,6 @@ it('VALID: {value} => transforms correctly', () => {
   const result = formatDateTransformer({date: new Date()});
   expect(result).toBe('2024-01-15');
 });
-
-// ❌ WRONG - Assigning but never using
-it('test', () => {
-  const proxy = emptyProxy(); // Lint error: unused variable
-  const result = doSomething();
-  expect(result).toBe(expected);
-});
 \`\`\`
 
 **When to assign:** You call setup methods on the proxy (most common case)
@@ -534,17 +501,6 @@ export const userProfileBrokerProxy = () => {
   };
 };
 
-// ✅ CORRECT - Just call when empty
-export const pureTransformerProxy = () => {
-  pureGuardProxy(); // Returns {}, never used
-  return {};
-};
-
-// ❌ WRONG - Assigning but not using
-export const badProxy = () => {
-  const unused = emptyProxy(); // Lint error: unused variable
-  return {};
-};
 \`\`\``;
 
   // Global Function Mocking
@@ -664,25 +620,7 @@ export const exitCodeContract = z
   .brand<'ExitCode'>();
 \`\`\`
 
-**Same principle applies to lists and enumerations.** When a test iterates over a finite set of values (every status in a union, every enum member, every kind of minion), it MUST import the canonical list from its single source of truth — a \`*-statics.ts\`, a Zod schema's \`.options\`, or an exported readonly array — and filter/partition from it. Never re-type the members inline. Hardcoded arrays rot the moment someone adds a new member: the new member is silently omitted from the test, and "100% coverage" becomes a lie.
-
-\`\`\`typescript
-// ❌ WRONG — duplicates the status list in the test; silently stale when a new status is added
-it.each(['pending', 'created', 'blocked', 'complete'] as const)(
-  'popup hidden for %s',
-  (status) => { /* ... */ },
-);
-
-// ✅ CORRECT — derives from canonical list; picks up new members automatically
-import { questStatusList } from '@dungeonmaster/shared/statics/quest-status';
-
-const nonApprovedStatuses = questStatusList.filter((s) => s !== 'approved');
-
-it.each(nonApprovedStatuses)('popup hidden for %s', (status) => { /* ... */ });
-it('popup visible for approved', () => { /* ... */ });
-\`\`\`
-
-**If the canonical list doesn't exist yet, promote it first.** A test that enumerates a finite set of values and has no existing single-source-of-truth is a signal to move the array into a \`*-statics.ts\` (or lean on the Zod schema's \`.options\` for enums), then import it from both the test and the production code. "What are all the possible values?" becomes a single grep, and future additions automatically flow to every consumer that imports the list.`;
+**Same principle applies to lists and enumerations** — see Parameterize State Matrices above for the full \`it.each\` derive-from-statics rule.`;
 
   // EndpointMock (StartEndpointMock)
   const endpointMock = `### When to Use \`StartEndpointMock\`
@@ -792,20 +730,13 @@ that UI. Bypassing the UI skips the whole point of an E2E: you never verify the 
 and the outgoing request body/URL are correct.
 
 \`\`\`typescript
-// ❌ WRONG — intercepting server responses
-await page.route('/api/items/*', (route) => route.fulfill({body: '{}'}));
-
 // ❌ WRONG — the test's whole purpose is to verify the APPROVE button transitions the quest;
 // PATCHing skips the button entirely. Silently passes while the button is broken.
+// Same failure mode for request.post / request.delete.
 await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
 await expect(page.getByText('Begin Quest modal')).toBeVisible();
 
-// ❌ WRONG — same failure mode for POST-backed controls. If the test name is
-// "clicking Begin Quest starts the pipeline", it MUST click Begin Quest.
-await request.post(\`/api/quests/\${questId}/start\`);
-await expect(page.getByTestId('execution-panel-widget')).toBeVisible();
-
-// ❌ WRONG — file-backed forms/harness helpers are equally covered by this rule.
+// ❌ WRONG — file-backed harness helpers are equally covered by this rule.
 // If there's a "Remove Guild" button, the "remove guild" test must click it.
 await guildHarness.deleteGuildFile({guildId});
 await expect(page.getByTestId('guild-card')).not.toBeVisible();
@@ -835,17 +766,15 @@ have stable testids (\`PIXEL_BTN\`, \`CHAT_INPUT\`, etc.); filter by text when m
 
 ### Observe Requests, Don't Intercept
 
+Use \`page.waitForRequest\` to observe outgoing requests — never \`page.route\` (intercepting is banned per the rule above).
+
 \`\`\`typescript
-// ✅ Watching (allowed) — page.waitForRequest just observes
 const patchPromise = page.waitForRequest(
   (req) => req.method() === 'PATCH' && req.url().includes(\`/api/items/\${itemId}\`),
 );
 await page.getByText('Save').click();
 const patchReq = await patchPromise;
 expect(patchReq.postDataJSON()).toHaveProperty('status', 'active');
-
-// ❌ Intercepting (forbidden)
-await page.route('/api/items/*', (route) => route.fulfill({status: 200, body: '{}'}));
 \`\`\`
 
 ### Each Test Owns Its State
@@ -969,16 +898,7 @@ Scenario files are **scenario descriptions only** — test blocks and assertions
 - Extract properties: ALWAYS use destructuring (\`const { x } = Stub()\`, never \`.property\`)
 - Optional fields: Omit defaults (don't set \`undefined\`)
 
-**Tests get types from stubs, NOT contracts:**
-
-\`\`\`typescript
-// ❌ WRONG - Importing from contract
-import type {User} from '../contracts/user/user-contract';
-
-// ✅ CORRECT - Get type from stub
-import {UserStub} from '../contracts/user/user.stub';
-type User = ReturnType<typeof UserStub>;
-\`\`\``;
+**Tests get types from stubs, NOT contracts** — see Type Safety section above for the \`ReturnType<typeof Stub>\` pattern.`;
 
   // Mocking Mechanics - registerMock
   const mockingMechanics = `**Use \`registerMock\` for all mocking in proxy files.** It replaces \`jest.mock()\`/\`jest.mocked()\`/\`jest.spyOn()\`.
@@ -1041,38 +961,15 @@ export const fsWriteFileAdapterProxy = (): {
 };
 \`\`\`
 
-**Global function proxy example:**
+For globals (\`randomUUID\`, \`Date.now\`, etc.), use \`registerMock\` the same way — see Global Function Mocking section above.
 
 \`\`\`typescript
-import { randomUUID } from 'crypto';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
-
-export const cryptoRandomUuidAdapterProxy = (): {
-  setupReturns: (params: { uuid: Uuid }) => void;
-} => {
-  const handle = registerMock({ fn: randomUUID });
-  handle.mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-
-  return {
-    setupReturns: ({ uuid }: { uuid: Uuid }): void => {
-      handle.mockReturnValue(uuid);
-    },
-  };
-};
-\`\`\`
-
-\`\`\`typescript
-// ❌ WRONG - jest.mocked in proxy
+// ❌ WRONG - jest.mocked / jest.spyOn / jest.mock are all forbidden in proxies
 const mockReadFile = jest.mocked(readFile);
-mockReadFile.mockImplementation(async () => Buffer.from(''));
-
-// ❌ WRONG - jest.spyOn in proxy
 jest.spyOn(crypto, 'randomUUID').mockReturnValue('f47ac10b-...');
-
-// ❌ WRONG - jest.mock in proxy
 jest.mock('fs/promises');
 
-// ✅ CORRECT - registerMock replaces all of the above
+// ✅ CORRECT - registerMock replaces all three
 const handle = registerMock({ fn: readFile });
 const uuidHandle = registerMock({ fn: randomUUID });
 \`\`\`
@@ -1125,38 +1022,34 @@ handle.mockImplementation((...args) => realPath.join(...args));
 
 **When to use:** A parent proxy needs the real implementation of something mocked by a child proxy.
 
-### registerIsolateModules — Test Entry Points with Side Effects
+### registerIsolateModules
 
-Use \`registerIsolateModules\` to test entry points that have top-level side effects. Wraps \`jest.isolateModules\` + \`jest.doMock\`.
-
-\`\`\`typescript
-import { registerIsolateModules } from '@dungeonmaster/testing/register-mock';
-
-registerIsolateModules({
-  mocks: [{ module: './start-server', factory: () => ({ startServer: mockStart }) }],
-  entrypoint: require.resolve('./index'),
-});
-\`\`\`
-
-**When to use:** Testing a module that calls functions at import time (like \`index.ts\` that starts a server).`;
+For testing entry points with top-level side effects, see \`@dungeonmaster/testing/register-mock\` — \`registerIsolateModules\` wraps \`jest.isolateModules\` + \`jest.doMock\`.`;
 
   // Integration Testing
-  const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files**. They validate that startup files correctly wire up the entire application. Use \`.integration.test.ts\` extension.
+  const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files and flows**. Use \`.integration.test.ts\` extension.
 
-**All other code** (brokers, flows, guards, transformers, widgets, etc.) uses **unit tests** (\`.test.ts\`) with colocated proxies.
+- **Startup files** — validate that the startup wires up the entire application correctly.
+- **Flows** — validate that the flow wires its responders/middleware/adapters correctly across the slice it owns (e.g., HTTP route → responder → broker, MCP request → handler, hook entry → responder).
+
+**All other code** (brokers, guards, transformers, widgets, responders, adapters, etc.) uses **unit tests** (\`.test.ts\`) with colocated proxies.
 
 \`\`\`
-// ✅ CORRECT - Co-located with startup file
+// ✅ CORRECT - Co-located with the file under test
 src/startup/
   start-my-app.ts
   start-my-app.integration.test.ts   // <-- Co-located
   start-my-app.proxy.ts              // <-- If needed for complex setup
 
+src/flows/quest/
+  quest-flow.ts
+  quest-flow.integration.test.ts     // <-- Co-located
+
 // ❌ WRONG - Separate test directory
 test/start-my-app.integration.test.ts
 \`\`\`
 
-**When complex setup is needed** (spawning processes, creating clients), startup integration tests can use a colocated proxy.
+**When complex setup is needed** (spawning processes, creating clients), startup/flow integration tests can use a colocated proxy.
 
 **Debugging integration test timeouts:**
 
