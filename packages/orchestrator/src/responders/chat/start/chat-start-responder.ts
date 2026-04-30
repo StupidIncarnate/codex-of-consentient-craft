@@ -110,6 +110,11 @@ export const ChatStartResponder = async ({
   // have a session ID — catches background-agent task-notifications appended after stdout
   // closes (Claude CLI writes them async). Stopped when the session's process is killed.
   let mainTailStopHandle: (() => void) | null = null;
+  // Sub-agent tails for `run_in_background` Tasks must keep delivering entries past parent
+  // CLI exit — Claude CLI writes the agent's JSONL while the parent is asleep. Stopping
+  // the watchers in `onComplete` would kill them before the background agent has finished
+  // writing. Tails are torn down only when the chat itself is torn down (user navigates
+  // away, /chat/stop, a new chat replaces this one) via the composed kill handlers below.
 
   const spawnResult = await chatSpawnBroker({
     role: workItemRoleContract.parse('chaoswhisperer'),
@@ -332,15 +337,14 @@ export const ChatStartResponder = async ({
         await Promise.all(Array.from(inflightSubagentSetups));
       }
       // Wait for each tail's pre-existing-content drain to deliver every line via
-      // onEntries before we stop the watcher. Without this, the synthetic-emit drain's
-      // queued readline 'line' events fire AFTER state.stopped is flipped and are
-      // dropped at the gate inside the adapter — sub-agent entries silently disappear
-      // from the streaming wire even though they were on disk the whole time.
+      // onEntries before chat-complete fires. Without this, the synthetic-emit drain's
+      // queued readline 'line' events would race chat-complete on the wire — clients
+      // could see chat-complete before the sub-agent's already-on-disk lines arrive.
+      // The tails are NOT stopped here — for `run_in_background` Tasks the parent CLI
+      // exits while Claude CLI is still writing the agent's JSONL. The watchers stay
+      // alive past chat-complete and are torn down via the chat-process kill below.
       if (subagentHandles.length > 0) {
         await Promise.all(subagentHandles.map(async (h) => h.initialDrain));
-      }
-      for (const handle of subagentHandles) {
-        handle.stop();
       }
 
       if (sid) {
@@ -376,12 +380,15 @@ export const ChatStartResponder = async ({
         })
           .then((stop) => {
             mainTailStopHandle = stop;
-            // Re-register the process with ONLY the tail's stop handle. The CLI process
-            // has already exited; we keep the registry entry so any subsequent chat on the
-            // same quest (e.g. a second user message via --resume) can find and kill this
-            // tail before starting. Without this, the tail keeps running and picks up
-            // JSONL lines written by the new chat process, causing duplicate chat-output
-            // events on the client.
+            // Re-register the process with the post-exit teardown surface: the main-session
+            // tail AND any still-alive sub-agent tails. The CLI process has already exited;
+            // we keep the registry entry so any subsequent chat on the same quest (e.g. a
+            // second user message via --resume) can find and kill these tails before
+            // starting. Without this, the tails keep running and pick up JSONL lines
+            // written by the new chat process, causing duplicate chat-output events on
+            // the client. Sub-agent tails specifically must survive parent-CLI exit so
+            // `run_in_background` agents can continue delivering streamed entries — see
+            // the lifecycle comment near `subagentHandles`.
             orchestrationProcessesState.register({
               orchestrationProcess: {
                 processId: chatProcessId,
@@ -389,6 +396,10 @@ export const ChatStartResponder = async ({
                 kill: () => {
                   stop();
                   mainTailStopHandle = null;
+                  for (const handle of subagentHandles) {
+                    handle.stop();
+                  }
+                  subagentHandles.length = 0;
                 },
               },
             });
@@ -418,9 +429,13 @@ export const ChatStartResponder = async ({
       });
     },
     registerProcess: ({ processId, kill }) => {
-      // Compose the original CLI-kill with a main-session tail stop. When the session is
-      // torn down (user navigates away, chat-stop, etc.), both the CLI process AND the
-      // file-tail watcher are cleaned up together.
+      // Compose the CLI kill with the file-watcher teardown. When the session is torn
+      // down (user navigates away, chat-stop, etc.), the CLI process, the post-exit main
+      // tail, AND every sub-agent tail are cleaned up together. Sub-agent tails are
+      // included here because they outlive parent CLI exit (see the lifecycle comment
+      // near `subagentHandles`) — without this stop, a `run_in_background` agent's
+      // watcher would leak past chat teardown and start delivering entries to a stale
+      // chat process.
       orchestrationProcessesState.register({
         orchestrationProcess: {
           processId,
@@ -431,6 +446,10 @@ export const ChatStartResponder = async ({
               mainTailStopHandle();
               mainTailStopHandle = null;
             }
+            for (const handle of subagentHandles) {
+              handle.stop();
+            }
+            subagentHandles.length = 0;
           },
         },
       });

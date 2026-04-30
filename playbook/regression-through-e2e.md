@@ -31,39 +31,63 @@ If a phase fails, you go back — you do not paper over.
 
 ## Phase 1: Determine root cause
 
-Always trace from the user-visible symptom **down** to the source. Don't
-trust your prior. The same UI gap can come from contract rejection,
-transformer drop, broker filter, or component branch.
+The same UI gap can come from contract rejection, transformer drop, broker
+filter, or component branch. Don't trust your prior — capture the actual
+wire data first, then trace.
 
-The reliable trace order:
+### For streaming bugs: start in Chrome, capture the live wire
 
-1. **Confirm the UI symptom in the browser.** Open the URL the user gave you
-   (Chrome MCP tools), navigate to the quest page, find the missing element.
-   Verify with `read_page` or `find` that it's actually missing — not just
-   collapsed or off-viewport.
+If the symptom is "I don't see X live during streaming" (not "I don't see X
+when I reload a finished session"), this is the order. **Do not skip step
+1.** Stub-driven debugging from JSONL alone is misleading because it
+collapses the streaming/replay timing dimension.
 
-2. **Walk the React props.** Use the `javascript_tool` to grab the relevant
-   widget's `entries` / state via the React fiber. Confirm whether the data
-   reaches the component or not. If it does, the bug is render-side. If it
-   doesn't, the bug is upstream.
+1. **Reproduce in Chrome with the console open.** Start a fresh chat
+   session (`/codex/quest/` with no quest id) so you get clean WS traffic.
+   Drive the user's original prompt verbatim — you can find it in the
+   reported quest's `userRequest` or the chat panel header. Watch the
+   browser console: every WS message is logged via
+   `use-quest-chat-binding` (`[WS] chat-output`, `[WS] chat-complete`,
+   `[WS] chat-history-complete`). The console messages ARE the streaming
+   wire — what shapes are emitted, in what order, with which `agentId`,
+   `toolUseId`, `source`, etc. Save these.
 
-3. **Check the wire.** If data didn't reach the widget, look at WS messages
-   in console (`use-quest-chat-binding` logs `[WS] chat-output`) or the
-   server's broadcast path. Are entries being emitted at all? Are they being
-   filtered out somewhere?
+2. **Now refresh the page.** The same session re-loads via the replay path
+   (`chat-history-replay-broker` reads JSONL, fires the same `chat-output`
+   contract). The console floods with replay frames. Save these too.
 
-4. **Check the JSONL on disk.** Find the session JSONL (`~/.claude/projects/<encoded>/<sessionId>.jsonl`)
-   — confirm whether Claude CLI actually wrote the data. If the JSONL has
-   it but the wire doesn't, the orchestrator is dropping it.
+3. **Diff stream vs replay.** Whatever's in replay but missing from
+   streaming (or vice versa) is your bug surface. The convergence
+   invariant is "both paths produce identical `ChatEntry` shapes" — any
+   asymmetry is a regression.
 
-5. **Check the contracts.** Most "silently dropped" bugs in this codebase
-   are zod `.safeParse` failures returning `[]` from the processor's
-   early-return. The shape that fails is almost always what real Claude CLI
+4. **The console captures ARE your future test stubs.** Both
+   `chat-streaming-*-grouping.spec.ts` and `chat-replay-*-grouping.spec.ts`
+   pre-seed JSONL and queue Claude-mock lines. Lifting the captured WS
+   payloads into those harnesses means you're testing against the EXACT
+   shapes Claude CLI produced, not an idealized shape you guessed.
+
+### For non-streaming bugs (or after you have the stream/replay diff):
+
+5. **Walk the React props.** Use `javascript_tool` to read the widget's
+   `entries` / state via the React fiber. Confirm whether the data
+   actually reached the component. If it did, the bug is render-side. If
+   it didn't, the bug is upstream.
+
+6. **Check the JSONL on disk.** Find the session JSONL
+   (`~/.claude/projects/<encoded>/<sessionId>.jsonl` and the
+   `<sessionId>/subagents/agent-<realAgentId>.jsonl` siblings). Claude
+   CLI wrote it; the orchestrator parsed it. If JSONL has the field but
+   WS doesn't, the orchestrator dropped it.
+
+7. **Check the contracts.** Most "silently dropped" bugs are zod
+   `.safeParse` failures returning `[]` from the processor's early
+   return. The shape that fails is almost always what real Claude CLI
    emits but our stubs don't.
 
 When you find the root cause, **explain it to the user before writing any
 code.** "I think X is rejecting Y because of Z" — wait for confirmation,
-because you may have misread.
+because you may have misread the trace.
 
 ---
 
@@ -99,13 +123,21 @@ the user's experience is, that's what regression has to track.
 
 ### Use real CLI shapes, not idealized stubs
 
-Find a captured JSONL line from a real session that exercises the bug.
-Embed the literal shape (or hand-build the JSON) in the test. Stubs that
-already pass under the broken contract are useless — they were written
-assuming the broken constraint.
+The console captures from Phase 1 step 1 are the source of truth. Lift the
+literal `chat-output` payloads (and the upstream JSONL lines that produced
+them) into the test:
 
-When in doubt, look at `~/.claude/projects/<...>/<sessionId>.jsonl` and
-mirror what's actually there.
+- **For e2e:** queue the captured stream-line shapes via `claudeMock.queueResponse`
+  and pre-seed sub-agent JSONLs via the `sessionHarness` helpers. The shapes
+  must match what real Claude CLI emitted, not an idealized form.
+- **For unit:** pass the literal post-normalize shape into the
+  transformer/processor and assert on the output.
+
+Stubs that already pass under the broken contract are useless — they were
+written assuming the broken constraint. JSONL on disk is also a fallback
+source, but for streaming bugs it loses the timing dimension (when each
+line arrived, what order, before or after parent CLI exit). The console
+capture from Phase 1 keeps that timing visible.
 
 ### Run the test, confirm it fails
 
@@ -241,7 +273,9 @@ session id or quest id in the message if it helps trace later.
 
 - **`pgrep dungeonmaster`** isn't enough to confirm dev is dead — sibling
   workspaces (e.g. `amalga-victorious`) run their own vites that pollute
-  the pgrep output. Filter by working directory or by port (`lsof -iTCP:4751`).
+  the pgrep output. Use `bash scripts/scoped-kill.sh dev --dry-run` for an
+  authoritative list of THIS repo's dev processes (port + cwd-scoped),
+  or `lsof -iTCP:4751` for a port-only check.
 
 - **Stubs ARE the regression probe — don't build a parallel fixtures
   system.** When you find a new captured CLI shape, add a stub for it
@@ -291,9 +325,13 @@ session id or quest id in the message if it helps trace later.
   problem field.
 - ❌ Hand-editing `.claude/settings.json` or any infra/config file
   during the fix. Surface a diff to the user instead.
-- ❌ Running `npm run dev` while another instance is running. Kill all
-  tsx-watch / vite children first; verify `pgrep` is empty before
-  restarting (memory: `feedback_kill_dev_before_fix.md`).
+- ❌ Hand-rolling a pkill sequence before `npm run dev`. The root
+  `dev:kill` (`scripts/scoped-kill.sh`) does a port sweep AND a cwd-scoped
+  sweep over `/proc/<pid>/cwd`, reaping every stale tsx-watch / vite /
+  parent shell whose cwd is inside this repo while leaving other repos
+  alone. Just run `npm run dev` — it self-cleans. Use `bash
+  scripts/scoped-kill.sh dev --dry-run` if you want to preview the kill
+  set first (memory: `feedback_kill_dev_before_fix.md`).
 - ❌ Declaring a bug "secondary" or "out of scope" because it surfaces
   through the UI but the cause is server/contract layer. Every bug that
   surfaces through the UI is in scope (memory: `feedback_manual_qa_scope.md`).

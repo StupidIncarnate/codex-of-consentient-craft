@@ -32,6 +32,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
@@ -145,6 +146,16 @@ export const chatSpawnBroker = async ({
     }
   })();
 
+  // Runtime sessionId tracker. The `sessionId` parameter is set ONLY on resume — for a
+  // fresh chat it's undefined until Claude CLI emits its `system/init` line carrying the
+  // newly-allocated session_id. We update this closed-over variable as soon as any stream
+  // line carries `sessionId`, so the `agent-detected` handler below can correlate even on
+  // brand-new chats. Without this update, a `run_in_background` Task launched on the very
+  // first turn of a new chat fires `agent-detected` before `sessionId` is known, the guard
+  // below silently skips `onAgentDetected`, and the sub-agent tail is never started — the
+  // chain renders `(0 entries)` for the entire life of the chat.
+  let runtimeSessionId: SessionId | undefined = sessionId;
+
   const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,
     cwd: repoRootCwd,
@@ -156,6 +167,20 @@ export const chatSpawnBroker = async ({
         process.stderr.write(`[SUBAGENT-TRACE][STDOUT-RAW] ${line}\n`);
       }
       const parsed = claudeLineNormalizeBroker({ rawLine: line });
+
+      // Pick up sessionId synchronously per-line — system/init always arrives first
+      // and carries `sessionId`, so by the time a Task tool_result line appears with
+      // `tool_use_result.agentId`, runtimeSessionId is populated. Sync update avoids
+      // racing the next `line` event before sessionId$ Promise observers have run.
+      if (runtimeSessionId === undefined) {
+        const sidParse = normalizedStreamLineContract.safeParse(parsed);
+        if (sidParse.success) {
+          const sid = sidParse.data.sessionId;
+          if (typeof sid === 'string' && sid.length > 0) {
+            runtimeSessionId = sessionIdContract.parse(sid);
+          }
+        }
+      }
 
       const outputs = processor.processLine({
         parsed,
@@ -189,15 +214,15 @@ export const chatSpawnBroker = async ({
         if (output.type === 'agent-detected') {
           if (subagentDebug) {
             process.stderr.write(
-              `[SUBAGENT-TRACE][STDOUT-AGENT-DETECTED] toolUseId=${String(output.toolUseId)} realAgentId=${String(output.agentId)} sessionId=${String(sessionId)}\n`,
+              `[SUBAGENT-TRACE][STDOUT-AGENT-DETECTED] toolUseId=${String(output.toolUseId)} realAgentId=${String(output.agentId)} sessionId=${String(runtimeSessionId)}\n`,
             );
           }
-          if (sessionId) {
+          if (runtimeSessionId !== undefined) {
             onAgentDetected({
               chatProcessId,
               toolUseId: output.toolUseId,
               agentId: output.agentId,
-              sessionId,
+              sessionId: runtimeSessionId,
             });
           }
         }

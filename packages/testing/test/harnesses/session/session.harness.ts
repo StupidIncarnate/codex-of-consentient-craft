@@ -169,6 +169,11 @@ export const sessionHarness = ({
     agentId: string;
     lines: string[];
   }) => void;
+  // Append a single line to an existing sub-agent JSONL — simulates Claude CLI writing
+  // additional entries while a `run_in_background` agent keeps running after the parent
+  // CLI has already exited. Tests use this to verify the streaming sub-agent tail keeps
+  // delivering entries past parent CLI exit.
+  appendSubagentLine: (params: { sessionId: string; agentId: string; line: string }) => void;
   createSessionWithRedactedThinking: (params: { sessionId: string; assistantText: string }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
@@ -536,6 +541,25 @@ export const sessionHarness = ({
     fs.writeFileSync(path.join(subagentDir, `agent-${agentId}.jsonl`), `${lines.join('\n')}\n`);
   };
 
+  const appendSubagentLine = ({
+    sessionId,
+    agentId,
+    line,
+  }: {
+    sessionId: string;
+    agentId: string;
+    line: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    // Ensure the subagent directory exists. On a brand-new chat the orchestrator may
+    // try to start the watcher before Claude CLI has created either the session
+    // directory or the subagent directory; this matches that real-world race by
+    // creating the dir on append rather than requiring the test to pre-seed it.
+    fs.mkdirSync(subagentDir, { recursive: true });
+    fs.appendFileSync(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
+  };
+
   const createSessionWithRedactedThinking = ({
     sessionId,
     assistantText,
@@ -623,6 +647,7 @@ export const sessionHarness = ({
     createSubagentSessionWithInternalTool,
     createSubagentTailOnly,
     createSubagentTailMultiEntry,
+    appendSubagentLine,
     createBackgroundAgentSession,
     createSessionWithRedactedThinking,
     cleanSessionFiles,

@@ -20,11 +20,12 @@ export interface FsWatchTailHandle {
   // Resolves once the synthetic-emit drain triggered at adapter creation has fully
   // delivered every existing line via `onLine` (or there was nothing to drain). Callers
   // that need to KNOW the file's pre-existing content has been consumed before they
-  // proceed (e.g. chat-subagent-tail-broker, which must finish draining the sub-agent
-  // JSONL before chat-start-responder.onComplete force-stops the watcher) MUST await
-  // this. Callers that only care about new appends after the watcher started can ignore
-  // it. Resolves immediately when `startPosition: 'end'` (nothing to drain). Calling
-  // `stop()` also resolves it so awaiters never hang on torn-down adapters.
+  // proceed (e.g. chat-subagent-tail-broker — chat-start-responder.onComplete awaits
+  // every sub-agent's initialDrain before emitting chat-complete so the wire never sees
+  // chat-complete arrive before pre-existing on-disk lines) MUST await this. Callers
+  // that only care about new appends after the watcher started can ignore it. Resolves
+  // immediately when `startPosition: 'end'` (nothing to drain). Calling `stop()` also
+  // resolves it so awaiters never hang on torn-down adapters.
   initialDrain: Promise<void>;
 }
 
@@ -39,11 +40,20 @@ export const fsWatchTailAdapter = ({
   onError: (params: { error: unknown }) => void;
   startPosition?: 'beginning' | 'end';
 }): FsWatchTailHandle => {
-  // `beginning` (default) — drain any existing content before watching. Needed for the
-  // sub-agent tail: the parent blocks on the Agent tool until the sub-agent completes,
-  // Claude CLI writes the full sub-agent JSONL during that block, and only then do we
-  // receive the tool_result and start the tail. Reading from 0 ensures the streaming
-  // sub-agent chain sees the same entries as replay does.
+  // `beginning` (default) — drain any existing content before watching, then keep
+  // watching for appends. Used by the sub-agent tail. There are two cases:
+  //   1. Foreground Task — the parent blocks on the Agent tool until the sub-agent
+  //      completes; Claude CLI writes the full sub-agent JSONL during that block; we
+  //      receive the tool_result and start the tail; the synthetic-emit drain reads
+  //      the now-complete file. The watcher then sits idle for the rest of the chat.
+  //   2. Background Task (`run_in_background: true`) — the parent gets a synthetic
+  //      `async_launched` tool_result almost immediately and then exits its turn while
+  //      Claude CLI continues writing the sub-agent JSONL for many more seconds. The
+  //      watcher must keep running past parent CLI exit so those late appends still
+  //      reach the wire. chat-start-responder accordingly stops sub-agent tails only
+  //      on chat-process teardown, not on parent CLI exit.
+  // In either case, reading from 0 ensures the streaming sub-agent chain sees the same
+  // entries as replay does.
   //
   // `end` — only emit lines appended AFTER the tail starts. Used by the main-session
   // post-exit fallback: stdout already streamed lines up to this file size, and we want
@@ -53,11 +63,12 @@ export const fsWatchTailAdapter = ({
   const state = { position: initialPosition, reading: false, stopped: false };
 
   // The synthetic-emit drain is async (createReadStream + readline). We expose its
-  // completion as a promise so the broker layer can await drain-before-resolve, closing
-  // the resolve-race against chat-start-responder.onComplete that would otherwise stop
-  // the watcher mid-drain and silently drop sub-agent lines. `resolveInitialDrainRef` is
-  // populated synchronously inside the Promise executor, then captured in event-handler
-  // closures; resolving more than once is a no-op (Promise resolve is idempotent).
+  // completion as a promise so chat-start-responder.onComplete can await every drain
+  // before emitting chat-complete on the wire — without that await, queued readline
+  // 'line' events could fire after chat-complete and arrive at the client out of order.
+  // `resolveInitialDrainRef` is populated synchronously inside the Promise executor,
+  // then captured in event-handler closures; resolving more than once is a no-op
+  // (Promise resolve is idempotent).
   const resolveInitialDrainRef: { current: (() => void) | null } = { current: null };
   const initialDrain = new Promise<void>((resolve) => {
     resolveInitialDrainRef.current = resolve;

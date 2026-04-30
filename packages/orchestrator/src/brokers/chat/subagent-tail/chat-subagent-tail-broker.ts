@@ -17,9 +17,17 @@
  * // drain race against state.stopped and silently drop sub-agent entries).
  */
 
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import {
+  fsMkdirAdapter,
+  osUserHomedirAdapter,
+  pathDirnameAdapter,
+} from '@dungeonmaster/shared/adapters';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  fileContentsContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import {
@@ -27,6 +35,7 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
+import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -61,6 +70,21 @@ export const chatSubagentTailBroker = async ({
   const subagentJsonlPath = absoluteFilePathContract.parse(
     `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents/agent-${agentId}.jsonl`,
   );
+
+  // Ensure the directory + file exist before handing the path to fsWatchTailAdapter.
+  // For a `run_in_background` Task, Claude CLI emits the `async_launched` tool_result on
+  // stdout BEFORE it has finished creating `subagents/agent-<realAgentId>.jsonl` on disk.
+  // `fs.watch` on a missing path throws ENOENT synchronously and the broker rejects, so
+  // none of the agent's later activity reaches the wire even though Claude CLI writes
+  // the JSONL within a few hundred milliseconds. mkdir+append('') is a touch — creates
+  // an empty file if missing, leaves existing content untouched (no truncate).
+  await fsMkdirAdapter({
+    filepath: pathDirnameAdapter({ path: filePathContract.parse(String(subagentJsonlPath)) }),
+  });
+  await fsAppendFileAdapter({
+    filePath: filePathContract.parse(String(subagentJsonlPath)),
+    contents: fileContentsContract.parse(''),
+  });
 
   const subagentSource = chatLineSourceContract.parse('subagent');
 
