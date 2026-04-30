@@ -51,23 +51,70 @@ Convergence strategy (`chat-line-process-transformer.ts`):
 3. For file-sourced lines with NO `parent_tool_use_id` but an `agentId` param (= real
    internal id from the JSONL filename), look up the Task's toolUseId in the processor's
    reverse map and synthesize `parent_tool_use_id` before proceeding. The reverse map is
-   populated two ways: (a) as tool_use_result lines flow through the processor live, and
-   (b) via a pre-scan in `chat-history-replay-broker` before it iterates timestamp-sorted
-   lines — because sub-agent lines sort earlier than their own completion tool_result and
-   wouldn't otherwise find a translation when they arrive.
-4. After the two preceding steps, the emitted `ChatEntry` shape is identical regardless of
+   populated three ways:
+   - **(a) live during streaming:** as `user.tool_result` lines flow through the processor,
+     each one carrying `tool_use_result.agentId` (real id) alongside the content item's
+     `tool_use_id` (Task's id) registers the pair.
+   - **(b) replay pre-scan 1a (`chat-history-replay-broker.ts`):** the same `tool_use_result`
+     scan, run before pass 2 begins. This is required because sub-agent lines sort earlier
+     than their own completion tool_result; without the pre-scan they'd reach pass 2 before
+     a translation existed.
+   - **(c) replay pre-scan 1b (`chat-history-replay-broker.ts`):** **prompt-text equality
+     pairing** for in-flight Tasks. When the user pauses or interrupts a run before the
+     Task's completion `user.tool_result` lands, neither (a) nor (b) registers the pair.
+     The replay broker then walks every assistant Task/Agent `tool_use` whose `id` is still
+     unpaired, reads the first line of each unclaimed subagent JSONL on disk, and pairs them
+     when `subagentLine0.message.content` (string) **byte-equals** the Task's `input.prompt`.
+     Claude CLI passes the prompt verbatim from `Task.input.prompt` to the subagent's first
+     user-text line, so this is an id-equivalent pairing, not a fuzzy text match.
+4. After the three preceding steps, the emitted `ChatEntry` shape is identical regardless of
    source. Everything downstream (the web, collect-subagent-chains, etc.) operates on one
    uniform wire contract.
+
+**Why pass-1b exists (prompt-text pairing for in-flight Tasks):**
+
+The completion `user.tool_result` line is the ONLY place Claude CLI co-locates `toolUseId`
+with `tool_use_result.agentId` (the real internal id). For a paused/interrupted run, that
+line never gets written, so paths (a) and (b) have nothing to register. Without pass-1b, the
+subagent JSONL's lines flow through pass 2 with `agentId = realAgentId` (from the filename)
+instead of `agentId = toolUseId`. The web's `collectSubagentChainsTransformer` keys chain
+membership on toolUseId, so those entries fall out of `innerGroups` and render as **orphan
+trailing singletons** below the chain header — visible to the user as "SUB-AGENT" rows
+floating below the last chain with no header above them.
+
+**Why prompt-text equality is the right pairing key:**
+
+Claude CLI does not write any cross-file id link before the completion tool_result lands. We
+audited every field on both surfaces:
+
+- Parent's Task tool_use line carries `uuid`, `parentUuid`, `requestId`, `promptId`, content
+  item `id` (= toolUseId), `input.{description, prompt, subagent_type, model}`.
+- Subagent JSONL line 0 carries `uuid`, `parentUuid: null`, `promptId`, `agentId`
+  (= realAgentId, also in filename), `message.content` (string = the prompt verbatim).
+
+`promptId` identifies the parent user-prompt **turn**, not the individual Task — when one
+turn fires N parallel Tasks, all N subagent files share the same `promptId`, so it's a
+1-to-N grouping not a pairing. No other id co-occurs. The only field with byte-identical
+content on both sides is the prompt itself.
+
+For the prompt-collision corner case (two parallel Tasks with identical `input.prompt`):
+each subagent file is still its own distinct sub-agent with its own realAgentId and JSONL
+file, so pass-1b produces two separate chain groups regardless of which Task it pairs each
+file to. Identical prompts also produce identical chain headers (same description, same
+subagent_type), so a swapped pairing is visually indistinguishable. No tiebreaker needed.
 
 **Tests that protect this convergence:**
 
 - `chat-streaming-subagent-grouping.spec.ts` — streaming path via fake Claude CLI stdout.
 - `chat-replay-subagent-grouping.spec.ts` — file-replay path via pre-seeded JSONL on disk.
+  Two cases: completed Task (pass-1a) and in-flight Task with no completion (pass-1b).
+- `chat-history-replay-broker.test.ts` — unit-level coverage of all three reverse-map
+  population paths, including the prompt-text pairing.
 
-If you touch sub-agent correlation, BOTH tests must stay green. If one passes and the other
-fails, the two sources are drifting apart again — do NOT "fix" by adjusting web-side lookup
-logic; go back to the processor and restore the invariant that both paths produce identical
-ChatEntry shapes.
+If you touch sub-agent correlation, ALL of these tests must stay green. If one passes and
+the others fail, the two sources are drifting apart again — do NOT "fix" by adjusting
+web-side lookup logic; go back to the processor / replay broker and restore the invariant
+that all paths produce identical ChatEntry shapes.
 
 ### Line-shape cheat sheet
 

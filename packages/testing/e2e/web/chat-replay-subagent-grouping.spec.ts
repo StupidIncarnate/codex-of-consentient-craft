@@ -96,4 +96,202 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
       timeout: CHAT_TIMEOUT,
     });
   });
+
+  // The in-flight Task case: the parent JSONL has the assistant Task tool_use line
+  // but NO completion user.tool_result yet (the user paused mid-Task). Pass-1a in
+  // chat-history-replay-broker only learns realAgentId↔toolUseId from completion
+  // lines, so for an in-flight Task the subagent JSONL's lines fall through pass 2
+  // tagged with realAgentId (from filename) instead of toolUseId. The web chain
+  // grouping keys on toolUseId; without pass-1b the entries would orphan into
+  // trailing singletons below the chain header.
+  //
+  // Pass-1b pairs unpaired Task tool_uses with subagent files via prompt-text
+  // equality — Claude CLI passes the prompt string verbatim from Task.input.prompt
+  // to the subagent's first user-text line, so the strings are byte-identical.
+  // This test asserts the user-visible symptom: with no completion tool_result,
+  // the chain header still groups the subagent file's content (positive entry
+  // count) AND the prompt body renders as the SUB-AGENT PROMPT row inside the chain.
+  test('VALID: {parent JSONL has Agent tool_use but NO completion tool_use_result (in-flight); subagent JSONL first line is the prompt verbatim} => chain renders with positive entry count and the prompt body as the first message inside the chain', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'In-Flight Replay Subagent Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-replay-inflight-001';
+    const agentId = 'inflightreplaysub';
+    const taskToolUseId = 'toolu_replay_inflight_001';
+    const TASK_DESCRIPTION = 'In-flight gap minion';
+    const TASK_PROMPT_BODY =
+      'Verify the chaoswhisperer-gap-minion observable coverage and report any gaps you find while exploring the spec.';
+    const SUBAGENT_MARKER = 'INFLIGHT_REPLAY_INNER_MARKER_xyz';
+    const USER_MESSAGE = 'Run the gap minion';
+
+    sessions.createInFlightSubagentSessionFiles({
+      sessionId,
+      agentId,
+      toolUseId: taskToolUseId,
+      userMessage: USER_MESSAGE,
+      taskDescription: TASK_DESCRIPTION,
+      taskPrompt: TASK_PROMPT_BODY,
+      subagentText: SUBAGENT_MARKER,
+    });
+
+    await page.goto(`/${guildId}/session/${sessionId}`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const chainHeader = page.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    // The header description comes from Task.input.description.
+    await expect(chainHeader).toContainText(TASK_DESCRIPTION, { timeout: CHAT_TIMEOUT });
+    // "2 entries" = the prompt user-text line + the assistant text line. "0 entries"
+    // is the regression signature: it means pass-1b never registered the
+    // realAgentId↔toolUseId mapping, the subagent lines kept agentId = realAgentId,
+    // and the web's collectSubagentChainsTransformer dropped them out of the chain.
+    await expect(chainHeader).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
+
+    const chainScope = page.getByTestId('SUBAGENT_CHAIN');
+    const messages = chainScope.getByTestId('CHAT_MESSAGE');
+
+    // EXACTLY two CHAT_MESSAGE rows render inside the chain — one for the prompt
+    // (rendered from the subagent JSONL's first user-text line, which equals
+    // Task.input.prompt verbatim) and one for the subagent's first assistant
+    // response. Anything other than 2 means pass-1b mis-paired the file or the
+    // entries dropped out of the chain group.
+    await expect(messages).toHaveCount(2, { timeout: CHAT_TIMEOUT });
+
+    // Row 0: the prompt row. Both the SUB-AGENT PROMPT label AND the full prompt
+    // body text must be inside this specific row — the load-bearing assertion. If
+    // the prompt rendered outside the chain instead of inside, this would fail
+    // because messages.nth(0) would be the assistant text row, not the prompt.
+    const promptRow = messages.nth(0);
+
+    await expect(promptRow).toContainText('SUB-AGENT PROMPT', { timeout: CHAT_TIMEOUT });
+    await expect(promptRow).toContainText(TASK_PROMPT_BODY, { timeout: CHAT_TIMEOUT });
+
+    // Row 1: the subagent's assistant text. Label is SUB-AGENT (no PROMPT suffix —
+    // that's the user-role label; assistant rows under source='subagent' get the
+    // SUB-AGENT label without "PROMPT") and the body is the marker text.
+    const assistantRow = messages.nth(1);
+
+    await expect(assistantRow).toContainText('SUB-AGENT', { timeout: CHAT_TIMEOUT });
+    await expect(assistantRow).toContainText(SUBAGENT_MARKER, { timeout: CHAT_TIMEOUT });
+  });
+
+  // Real-world reproduction shape: a session where the user paused mid-run after
+  // some sub-agents had already completed but one was still in flight. The user-
+  // reported bug had 2 completed Explore minions + 1 in-flight ChaosWhisperer
+  // minion. With the original code, only the completed Tasks paired correctly via
+  // pass-1a; the in-flight Task's subagent JSONL fell through pass 2 with
+  // agentId = realAgentId and rendered as orphan trailing singletons below the
+  // last chain header. Pass-1b's prompt-match scan must pair the in-flight Task
+  // without disturbing the already-paired ones.
+  test('VALID: {three sub-agents, two completed (pass-1a path) + one in-flight without completion tool_result (pass-1b path)} => all three render as separate chains, each with the prompt body in row 0 and the assistant text in row 1', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Mixed Replay Subagent Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-replay-mixed-001';
+    const USER_MESSAGE = 'Run the gap analysis pipeline';
+
+    const subAlpha = {
+      agentId: 'alphaagent',
+      toolUseId: 'toolu_replay_mixed_alpha',
+      taskDescription: 'Alpha completed minion',
+      taskPrompt:
+        'Find quest status enum and deletable statuses in packages/shared/src/contracts/quest-status.',
+      subagentText: 'MIXED_REPLAY_ALPHA_MARKER',
+      completed: true,
+    };
+    const subBeta = {
+      agentId: 'betaagent',
+      toolUseId: 'toolu_replay_mixed_beta',
+      taskDescription: 'Beta completed minion',
+      taskPrompt:
+        'Explore quest list UI and quest deletion infrastructure in packages/web/src/widgets.',
+      subagentText: 'MIXED_REPLAY_BETA_MARKER',
+      completed: true,
+    };
+    const subGamma = {
+      agentId: 'gammaagent',
+      toolUseId: 'toolu_replay_mixed_gamma',
+      taskDescription: 'Gamma in-flight minion',
+      taskPrompt: 'Verify chaoswhisperer-gap-minion observable coverage and report gaps you find.',
+      subagentText: 'MIXED_REPLAY_GAMMA_MARKER',
+      completed: false,
+    };
+
+    sessions.createMultiSubagentSessionFiles({
+      sessionId,
+      userMessage: USER_MESSAGE,
+      subagents: [subAlpha, subBeta, subGamma],
+    });
+
+    await page.goto(`/${guildId}/session/${sessionId}`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    // Three chain headers, one per sub-agent. Anything other than 3 means a
+    // sub-agent's entries fell out of any chain group.
+    const chainHeaders = page.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeaders).toHaveCount(3, { timeout: CHAT_TIMEOUT });
+
+    // Each header carries its description + entry count. Order matches the
+    // order the parent fired the Task tool_uses.
+    await expect(chainHeaders.nth(0)).toContainText(subAlpha.taskDescription, {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainHeaders.nth(0)).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
+    await expect(chainHeaders.nth(1)).toContainText(subBeta.taskDescription, {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainHeaders.nth(1)).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
+    await expect(chainHeaders.nth(2)).toContainText(subGamma.taskDescription, {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(chainHeaders.nth(2)).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
+
+    // Each chain owns its own [data-testid="SUBAGENT_CHAIN"] scope. Inside each,
+    // CHAT_MESSAGE row 0 is the prompt (rendered from the subagent JSONL's first
+    // user-text line, which equals Task.input.prompt verbatim) and row 1 is the
+    // assistant text marker. The load-bearing assertion is that the IN-FLIGHT
+    // sub-agent (subGamma, no completion in the parent JSONL) renders identically
+    // to the completed ones — same row count, same prompt as row 0, same marker
+    // as row 1.
+    const chains = page.getByTestId('SUBAGENT_CHAIN');
+
+    await expect(chains).toHaveCount(3, { timeout: CHAT_TIMEOUT });
+
+    const expectChainRows = async (chainIndex: number, sub: typeof subAlpha): Promise<void> => {
+      const messages = chains.nth(chainIndex).getByTestId('CHAT_MESSAGE');
+
+      await expect(messages).toHaveCount(2, { timeout: CHAT_TIMEOUT });
+
+      const promptRow = messages.nth(0);
+
+      await expect(promptRow).toContainText('SUB-AGENT PROMPT', { timeout: CHAT_TIMEOUT });
+      await expect(promptRow).toContainText(sub.taskPrompt, { timeout: CHAT_TIMEOUT });
+
+      const assistantRow = messages.nth(1);
+
+      await expect(assistantRow).toContainText('SUB-AGENT', { timeout: CHAT_TIMEOUT });
+      await expect(assistantRow).toContainText(sub.subagentText, { timeout: CHAT_TIMEOUT });
+    };
+
+    await expectChainRows(0, subAlpha);
+    await expectChainRows(1, subBeta);
+    await expectChainRows(2, subGamma);
+  });
 });

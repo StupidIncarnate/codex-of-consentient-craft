@@ -131,6 +131,42 @@ export const sessionHarness = ({
     mainAssistantText: string;
     subagentText: string;
   }) => void;
+  // Pre-seeds a session where the parent fired a Task tool_use but the user paused
+  // the run before its completion `user.tool_result` landed. The subagent JSONL
+  // exists on disk (Claude CLI wrote it the moment the Task spawned) with the prompt
+  // verbatim as its first user-text line. Tests use this to exercise the replay
+  // broker's prompt-match pre-scan: without it, the subagent file's lines key on
+  // realAgentId (filename) instead of toolUseId, and the web's chain grouping
+  // orphans them as trailing singletons below the chain header.
+  createInFlightSubagentSessionFiles: (params: {
+    sessionId: string;
+    agentId: string;
+    toolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    taskPrompt: string;
+    subagentText: string;
+  }) => void;
+  // Pre-seeds a session with MULTIPLE sub-agents where each entry can independently
+  // be `completed: true` (parent JSONL has the completion `user.tool_result` linking
+  // toolUseId↔agentId via tool_use_result.agentId — pass-1a path) or `completed: false`
+  // (no completion line — pass-1b prompt-match path). Mirrors the real-world bug
+  // shape where the user paused a quest mid-run after one or more sub-agents had
+  // already completed, leaving a mix of paired and unpaired Tasks in the session.
+  // Order of subagents in the array determines emission order (timestamps are
+  // generated monotonically increasing).
+  createMultiSubagentSessionFiles: (params: {
+    sessionId: string;
+    userMessage: string;
+    subagents: readonly {
+      agentId: string;
+      toolUseId: string;
+      taskDescription: string;
+      taskPrompt: string;
+      subagentText: string;
+      completed: boolean;
+    }[];
+  }) => void;
   createSubagentSessionWithInternalTool: (params: {
     sessionId: string;
     agentId: string;
@@ -302,6 +338,211 @@ export const sessionHarness = ({
       path.join(subagentDir, `agent-${agentId}.jsonl`),
       `${subagentLines.join('\n')}\n`,
     );
+  };
+
+  const createInFlightSubagentSessionFiles = ({
+    sessionId,
+    agentId,
+    toolUseId,
+    userMessage,
+    taskDescription,
+    taskPrompt,
+    subagentText,
+  }: {
+    sessionId: string;
+    agentId: string;
+    toolUseId: string;
+    userMessage: string;
+    taskDescription: string;
+    taskPrompt: string;
+    subagentText: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+
+    // Main session JSONL: user kickoff + assistant Task tool_use. NO completion
+    // user.tool_result line — that's the in-flight condition. Without the
+    // completion, the replay broker's pass-1a (which keys on tool_use_result.agentId)
+    // never registers the realAgentId↔toolUseId mapping; pass-1b's prompt-match
+    // pairing is the only path that links the subagent file's lines back to the
+    // Task's toolUseId.
+    const mainLines = [
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        timestamp: '2026-04-29T20:00:00.000Z',
+      }),
+      JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: toolUseId,
+                name: 'Agent',
+                input: {
+                  description: taskDescription,
+                  prompt: taskPrompt,
+                  subagent_type: 'general-purpose',
+                },
+              },
+            ],
+          },
+        }),
+        timestamp: '2026-04-29T20:00:01.000Z',
+      }),
+    ];
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+
+    // Subagent JSONL: line 0 is a user-text line whose `message.content` is the
+    // taskPrompt verbatim — that's the byte-identical string Claude CLI passes
+    // both to the parent's Task.input.prompt AND to the spawned subagent's first
+    // line. The replay broker's pass-1b prompt-match scan reads exactly this line
+    // when pairing the realAgentId (filename) with the toolUseId.
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+
+    const subagentLines = [
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({
+          message: { role: 'user', content: taskPrompt },
+        }),
+        timestamp: '2026-04-29T20:00:02.000Z',
+      }),
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: subagentText }],
+            usage: { input_tokens: 50, output_tokens: 20 },
+          },
+        }),
+        timestamp: '2026-04-29T20:00:03.000Z',
+      }),
+    ];
+
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${agentId}.jsonl`),
+      `${subagentLines.join('\n')}\n`,
+    );
+  };
+
+  const createMultiSubagentSessionFiles = ({
+    sessionId,
+    userMessage,
+    subagents,
+  }: {
+    sessionId: string;
+    userMessage: string;
+    subagents: readonly {
+      agentId: string;
+      toolUseId: string;
+      taskDescription: string;
+      taskPrompt: string;
+      subagentText: string;
+      completed: boolean;
+    }[];
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    fs.mkdirSync(jsonlDir, { recursive: true });
+
+    // Timestamp generator. The kickoff sits at 00:00; each Task tool_use + its
+    // companion subagent activity gets its own minute slot so timestamps stay
+    // monotonically increasing across both files (the replay broker sorts every
+    // line across main + subagent JSONLs into one timestamp-ordered stream, so
+    // overlapping timestamps would scramble emission order across sources).
+    const baseEpoch = new Date('2026-04-29T20:00:00.000Z').getTime();
+    const ts = (offsetSeconds: number) => new Date(baseEpoch + offsetSeconds * 1000).toISOString();
+
+    const mainLines = [
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        timestamp: ts(0),
+      }),
+    ];
+
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+
+    subagents.forEach((sub, idx) => {
+      const slotStart = (idx + 1) * 60;
+
+      // Parent assistant Task tool_use line — toolUseId is born here.
+      mainLines.push(
+        JSON.stringify({
+          ...AssistantTaskToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: sub.toolUseId,
+                  name: 'Agent',
+                  input: {
+                    description: sub.taskDescription,
+                    prompt: sub.taskPrompt,
+                    subagent_type: 'general-purpose',
+                  },
+                },
+              ],
+            },
+          }),
+          timestamp: ts(slotStart),
+        }),
+      );
+
+      // Completion `user.tool_result` line — only emitted when this sub-agent
+      // is marked completed. This is the line whose `tool_use_result.agentId`
+      // pairs realAgentId↔toolUseId via the replay broker's pass-1a pre-scan.
+      // For `completed: false` entries the parent JSONL has no such line, so
+      // pass-1a never registers the mapping — pass-1b's prompt-match scan is
+      // the only path that links the file back to the Task.
+      if (sub.completed) {
+        mainLines.push(
+          JSON.stringify({
+            ...TaskToolResultStreamLineStub({
+              message: {
+                role: 'user',
+                content: [{ type: 'tool_result', tool_use_id: sub.toolUseId, content: 'done' }],
+              },
+              toolUseResult: { agentId: sub.agentId },
+            }),
+            timestamp: ts(slotStart + 30),
+          }),
+        );
+      }
+
+      // Subagent JSONL: line 0 is a user-text line whose `message.content`
+      // equals the Task's `input.prompt` verbatim — the byte-identical string
+      // pass-1b uses to pair this file with its parent Task when no completion
+      // exists. Line 1 is an assistant text response carrying the marker.
+      const subagentLines = [
+        JSON.stringify({
+          ...UserTextStringStreamLineStub({
+            message: { role: 'user', content: sub.taskPrompt },
+          }),
+          timestamp: ts(slotStart + 1),
+        }),
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: sub.subagentText }],
+              usage: { input_tokens: 50, output_tokens: 20 },
+            },
+          }),
+          timestamp: ts(slotStart + 2),
+        }),
+      ];
+
+      fs.writeFileSync(
+        path.join(subagentDir, `agent-${sub.agentId}.jsonl`),
+        `${subagentLines.join('\n')}\n`,
+      );
+    });
+
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
   };
 
   const createSubagentSessionWithInternalTool = ({
@@ -644,6 +885,8 @@ export const sessionHarness = ({
     createSessionFile,
     createMultiEntrySessionFile,
     createSubagentSessionFiles,
+    createInFlightSubagentSessionFiles,
+    createMultiSubagentSessionFiles,
     createSubagentSessionWithInternalTool,
     createSubagentTailOnly,
     createSubagentTailMultiEntry,

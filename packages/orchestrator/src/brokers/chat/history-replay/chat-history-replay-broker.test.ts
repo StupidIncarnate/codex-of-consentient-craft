@@ -794,5 +794,137 @@ describe('chatHistoryReplayBroker', () => {
         ],
       ]);
     });
+
+    it('VALID: {parent Task tool_use has NO completion tool_result (in-flight, paused mid-Task); subagent JSONL first line is a user-text prompt that exactly matches the Task input.prompt} => pre-scan pairs realAgentId↔toolUseId via prompt match so subagent entries still carry agentId = Task toolUseId', async () => {
+      // Anchors the in-flight Task replay regression. When a quest is paused mid-run,
+      // the parent JSONL has the assistant Task tool_use line but the corresponding user
+      // tool_result hasn't been emitted yet. The original pass-1 pre-scan only learns
+      // realAgentId↔toolUseId from the completion line's `tool_use_result.agentId`, so
+      // for an in-flight Task the subagent JSONL's lines fall through pass 2 with
+      // `agentId = realAgentId` (from the JSONL filename) instead of the Task's
+      // toolUseId. The web's chain grouping (which keys on toolUseId) then drops the
+      // entries into the trailing-singletons buffer instead of the chain group's
+      // innerGroups — the exact rendering symptom users see ("orphan" subagent rows
+      // at the bottom of the chat, no chain header above them).
+      //
+      // Fix invariant: the pass-1 pre-scan ALSO walks parent assistant Task/Agent
+      // tool_uses whose `id` was not paired by the tool_use_result scan, and pairs
+      // each with the subagent JSONL whose first line's `message.content` (string)
+      // equals the Task's `input.prompt`. Claude CLI passes the prompt string verbatim
+      // to the subagent, so the strings are byte-identical — this is an id-equivalent
+      // pairing, not a fuzzy match.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-inflight-task' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const taskToolUseId = 'toolu_01InFlightTask9999abcd';
+      const realAgentId = 'inflightagent';
+      const taskPrompt = 'Verify the chaoswhisperer-gap-minion observable coverage';
+
+      const userLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({
+          message: { role: 'user', content: 'kickoff prompt' },
+        }),
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+      const taskToolUseLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: taskToolUseId,
+                name: 'Agent',
+                input: { description: 'In-flight agent', prompt: taskPrompt },
+              },
+            ],
+          },
+        }),
+        timestamp: '2025-01-01T00:00:01.000Z',
+      });
+
+      // The subagent JSONL's first line is a user-text line whose content IS the Task's
+      // input.prompt verbatim. Real Claude CLI shape — line 0 is always the prompt.
+      const subagentPromptLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({
+          message: { role: 'user', content: taskPrompt },
+        }),
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
+      const subagentTextLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'IN_FLIGHT_SUBAGENT_TEXT' }],
+          },
+        }),
+        timestamp: '2025-01-01T00:00:03.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({
+        content: [userLine, taskToolUseLine].join('\n'),
+      });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentFile({
+        content: [subagentPromptLine, subagentTextLine].join('\n'),
+      });
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      // Timestamp-sorted: user(00) -> taskToolUse(01) -> subagentPrompt(02) -> subagentText(03).
+      // BOTH subagent batches MUST carry agentId = taskToolUseId — same as the
+      // completed-Task case ('VALID: {main JSONL has Task tool_use + completion ...}'
+      // above). Without the prompt-match fallback, the subagent entries arrive with
+      // agentId = realAgentId and the web chain grouping drops them.
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'user',
+            content: 'kickoff prompt',
+            source: 'session',
+          },
+        ],
+        [
+          {
+            role: 'assistant',
+            type: 'tool_use',
+            toolUseId: taskToolUseId,
+            toolName: 'Agent',
+            toolInput: JSON.stringify({ description: 'In-flight agent', prompt: taskPrompt }),
+            source: 'session',
+            agentId: taskToolUseId,
+          },
+        ],
+        [
+          {
+            role: 'user',
+            content: taskPrompt,
+            source: 'subagent',
+            agentId: taskToolUseId,
+          },
+        ],
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'IN_FLIGHT_SUBAGENT_TEXT',
+            source: 'subagent',
+            agentId: taskToolUseId,
+          },
+        ],
+      ]);
+    });
   });
 });

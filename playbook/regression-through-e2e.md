@@ -27,6 +27,31 @@ exist because each one catches a failure mode that the next phase can't.
 
 If a phase fails, you go back — you do not paper over.
 
+## Order is load-bearing: test BEFORE fix
+
+The phases are sequential, not a checklist you can reorder. Phase 2 (write
+the failing test) MUST be complete — code written, run against the unfixed
+codebase, **observed to fail on the assertion** — BEFORE you touch the
+implementation in Phase 3.
+
+Why this is non-negotiable:
+
+- A test you write *after* the fix has no proof it would have caught the
+  bug. You assume the assertion targets the symptom; you have no evidence.
+  The next regression in this area silently passes the test and the bug
+  re-ships.
+- Watching the test fail is the only way to know the assertion talks
+  about the *user-visible symptom*, not an intermediate cause that
+  silently recovers downstream. If the assertion asserts on the wrong
+  shape, you find out at Phase 2 (cheap), not after the fix is committed
+  (expensive).
+- A test written after the fix often slips into the same shape as the
+  fixed code — you write what you just made true. That's a tautology, not
+  a regression guard.
+
+If you finish Phase 1 and you're tempted to "just fix it real quick" —
+stop. Write the test first. Watch it fail. Then fix.
+
 ---
 
 ## Phase 1: Determine root cause

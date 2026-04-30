@@ -44,6 +44,7 @@ import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-li
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { normalizedStreamLineContentItemContract } from '../../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
+import { taskAgentToolInputContract } from '../../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
@@ -160,7 +161,7 @@ export const chatHistoryReplayBroker = async ({
     }
   }
 
-  // PASS 1: scan every parent-stream user tool_result for `tool_use_result.agentId` paired
+  // PASS 1a: scan every parent-stream user tool_result for `tool_use_result.agentId` paired
   // with the content item's `tool_use_id`. Register each mapping with the processor BEFORE
   // we emit any sub-agent lines. Without this pre-scan, sub-agent lines that sort earlier
   // than their completion tool_result can't translate their realAgentId to a Task toolUseId,
@@ -193,6 +194,61 @@ export const chatHistoryReplayBroker = async ({
         agentId: agentIdContract.parse(realAgentIdRaw),
         toolUseId: toolUseIdContract.parse(tuid),
       });
+    }
+  }
+
+  // PASS 1b: pair pending Tasks (assistant Task/Agent tool_uses with no completion
+  // tool_result yet) with their on-disk subagent JSONL files via prompt-text equality.
+  // Claude CLI writes the parent's `input.prompt` verbatim as the first user-text line
+  // of the subagent JSONL, so the strings are byte-identical — this is an id-equivalent
+  // pairing, not a fuzzy match. Without this pass, in-flight Tasks (paused quests, runs
+  // interrupted before the completion landed) would have no realAgentId↔toolUseId mapping
+  // and subagent file lines would emerge with agentId = realAgentId (from the JSONL
+  // filename) instead of the Task's toolUseId. The web's chain grouping keys on toolUseId,
+  // so those entries would render as orphaned trailing singletons below the chain header.
+  for (const line of sessionLines) {
+    const parsed = claudeLineNormalizeBroker({ rawLine: line });
+    const lineParse = normalizedStreamLineContract.safeParse(parsed);
+    if (!lineParse.success) continue;
+    const lineData = lineParse.data;
+    if (lineData.type !== 'assistant') continue;
+    const items = lineData.message?.content;
+    if (!Array.isArray(items)) continue;
+    for (const rawItem of items) {
+      const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+      if (!itemParse.success) continue;
+      const item = itemParse.data;
+      if (item.type !== 'tool_use') continue;
+      if (item.name !== 'Task' && item.name !== 'Agent') continue;
+      if (typeof item.id !== 'string' || String(item.id).length === 0) continue;
+      const inputParse = taskAgentToolInputContract.safeParse(item.input);
+      if (!inputParse.success) continue;
+      const promptValue = inputParse.data.prompt;
+      // Find the first unclaimed subagent file whose first line is a user-text line whose
+      // content equals this Task's prompt. "Unclaimed" = the processor's reverse map does
+      // not yet have an entry for that file's realAgentId. Skip if no match — pass-1a may
+      // have already paired this Task via tool_use_result.agentId, or the subagent file
+      // simply isn't on disk (replay against a session that never spawned a subagent).
+      for (const file of subagentFiles) {
+        if (processor.resolveToolUseIdForAgent({ agentId: file.agentId }) !== undefined) {
+          continue;
+        }
+        const [firstLine] = file.lines;
+        if (firstLine === undefined) continue;
+        const firstParsed = claudeLineNormalizeBroker({ rawLine: firstLine });
+        const firstParse = normalizedStreamLineContract.safeParse(firstParsed);
+        if (!firstParse.success) continue;
+        const firstData = firstParse.data;
+        if (firstData.type !== 'user') continue;
+        const firstContent = firstData.message?.content;
+        if (typeof firstContent !== 'string') continue;
+        if (firstContent !== String(promptValue)) continue;
+        processor.registerAgentTranslation({
+          agentId: file.agentId,
+          toolUseId: toolUseIdContract.parse(String(item.id)),
+        });
+        break;
+      }
     }
   }
 
