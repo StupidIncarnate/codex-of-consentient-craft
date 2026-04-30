@@ -10,10 +10,12 @@ import { z } from 'zod';
 
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 
+import { floorGroupKeyContract } from '../floor-group-key/floor-group-key-contract';
 import { floorNameContract } from '../floor-name/floor-name-contract';
 import { floorNumberContract } from '../floor-number/floor-number-contract';
 
 export const floorGroupContract = z.object({
+  key: floorGroupKeyContract,
   floorName: floorNameContract,
   floorNumber: floorNumberContract.nullable(),
   workItems: z.array(workItemContract),

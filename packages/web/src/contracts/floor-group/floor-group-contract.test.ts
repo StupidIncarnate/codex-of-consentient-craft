@@ -3,7 +3,7 @@ import { FloorGroupStub } from './floor-group.stub';
 
 describe('floorGroupContract', () => {
   describe('valid floor groups', () => {
-    it('VALID: {floorName, floorNumber, workItems} => parses successfully', () => {
+    it('VALID: {key, floorName, floorNumber, workItems} => parses successfully', () => {
       const group = FloorGroupStub({
         floorName: 'FORGE',
         floorNumber: 1,
@@ -12,6 +12,7 @@ describe('floorGroupContract', () => {
       const result = floorGroupContract.parse(group);
 
       expect(result).toStrictEqual({
+        key: '1:FORGE',
         floorName: 'FORGE',
         floorNumber: 1,
         workItems: [],

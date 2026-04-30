@@ -97,6 +97,7 @@ export const workItemsToFloorGroupsTransformer = ({
 
     groups.push(
       floorGroupContract.parse({
+        key,
         floorName: group.floorName,
         floorNumber,
         workItems: group.items,

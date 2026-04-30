@@ -80,7 +80,23 @@ export const QuestChatContentLayerWidget = ({
   // boots fresh entries on each questId change. Subsequent messages go
   // through binding.sendMessage and live entirely in binding state.
   const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
+  // `submitting` covers the period from "user clicks send on the new-chat
+  // surface" until the binding shows any activity for this quest. The
+  // orchestrator emits chat-history-complete on subscription before live
+  // chat-output, which would otherwise leave the input button reading "play"
+  // between quest-modified and the first streaming entry. Hand-off happens
+  // when the binding either reports streaming OR has accumulated any entries
+  // — either signals the binding has taken ownership. We can't key solely on
+  // the rising edge of `isStreaming` because chat-output and chat-history-
+  // complete can land in the same React commit (mocked Claude in e2e), which
+  // would collapse the rising edge to false→false and leave submitting stuck.
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (submitting && (isStreaming || entriesBySession.size > 0)) {
+      setSubmitting(false);
+    }
+  }, [submitting, isStreaming, entriesBySession]);
 
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
@@ -395,7 +411,7 @@ export const QuestChatContentLayerWidget = ({
       <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <ChatPanelWidget
           entries={flattenedEntries}
-          isStreaming={isStreaming}
+          isStreaming={submitting || isStreaming}
           onSendMessage={handleSend}
           onStopChat={stopChat}
         />

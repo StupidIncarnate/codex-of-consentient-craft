@@ -385,7 +385,7 @@ export const ExecutionPanelWidget = ({
                   if (allItems.length === 0) return null;
 
                   return (
-                    <Box key={`floor-${group.floorName}-${String(group.floorNumber)}`}>
+                    <Box key={`floor-${group.key}`}>
                       <FloorHeaderLayerWidget
                         floorNumber={group.floorNumber}
                         name={group.floorName}

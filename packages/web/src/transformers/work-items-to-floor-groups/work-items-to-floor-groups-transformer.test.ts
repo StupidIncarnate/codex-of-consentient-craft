@@ -250,6 +250,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(homebaseGroups).toStrictEqual([
         {
+          key: '0:HOMEBASE',
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos, glyph],
@@ -272,6 +273,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(result).toStrictEqual([
         {
+          key: '0:HOMEBASE',
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos],
@@ -674,6 +676,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(result).toStrictEqual([
         {
+          key: '0:FORGE',
           floorName: 'FORGE',
           floorNumber: 1,
           workItems: [item],
@@ -703,11 +706,13 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(result).toStrictEqual([
         {
+          key: '0:HOMEBASE',
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos],
         },
         {
+          key: '1:ENTRANCE: CARTOGRAPHY',
           floorName: 'ENTRANCE: CARTOGRAPHY',
           floorNumber: null,
           workItems: [ps],
