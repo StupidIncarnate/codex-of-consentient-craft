@@ -191,13 +191,49 @@ describe('inflateXmlStringsTransformer', () => {
   });
 
   describe('arrays', () => {
-    it('VALID: array containing XML string => inflates only the XML element', () => {
+    it('VALID: array containing XML string => leaves both elements as-is (inflation skipped inside arrays)', () => {
+      // Strings inside arrays are NOT inflated. Claude CLI packs message.content as an
+      // array of `{type, text|content}` items whose strings (e.g. <tool_use_error>) are
+      // meant for verbatim display. Inflation happens only at object-property string
+      // positions where <task-notification> lives.
       expect(
         inflateXmlStringsTransformer({
           value: ['plain', '<a><b>1</b></a>'],
           parseXml: stubParseXml,
         }),
-      ).toStrictEqual(['plain', { a: { b: '1' } }]);
+      ).toStrictEqual(['plain', '<a><b>1</b></a>']);
+    });
+
+    it('VALID: object containing array containing object with XML string content => inflation skipped at the inner string', () => {
+      // Mirrors the real Claude CLI tool_result shape:
+      //   message.content[i] = { type: 'tool_result', content: '<tool_use_error>...</tool_use_error>' }
+      // The inner content string must reach the renderer unchanged.
+      expect(
+        inflateXmlStringsTransformer({
+          value: {
+            message: {
+              content: [
+                {
+                  type: 'tool_result',
+                  content: '<tool_use_error>Unknown skill: x</tool_use_error>',
+                  is_error: true,
+                },
+              ],
+            },
+          },
+          parseXml: stubParseXml,
+        }),
+      ).toStrictEqual({
+        message: {
+          content: [
+            {
+              type: 'tool_result',
+              content: '<tool_use_error>Unknown skill: x</tool_use_error>',
+              is_error: true,
+            },
+          ],
+        },
+      });
     });
 
     it('EMPTY: [] => returns []', () => {

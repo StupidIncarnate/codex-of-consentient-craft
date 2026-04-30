@@ -261,6 +261,20 @@ session id or quest id in the message if it helps trace later.
   validates the camelCased post-normalize shape. A widening fix has to
   land in both — only widening one means streaming and replay disagree.
 
+- **Recursive normalizers/inflaters can swallow strings the renderer
+  needed verbatim.** `claudeLineNormalizeBroker` invokes
+  `inflateXmlStringsTransformer` on the entire normalized line tree;
+  every XML-shaped string is rewritten into the parsed object form. That's
+  intended for `<task-notification>` at `message.content` (string at
+  object-property position). It is NOT what you want for
+  `<tool_use_error>` strings inside `tool_result.content[]` — those must
+  reach the renderer as strings. The inflater is scoped via an
+  `insideArray` flag so descent through any array stops further inflation.
+  When debugging "TOOL ERROR with empty body" or "system-reminder rendered
+  as object" symptoms: read the widget's `memoizedProps.toolResult.content`
+  via React fiber — empty string vs. JSONL-on-disk's actual XML envelope
+  is the tell.
+
 - **Sub-agent JSONLs live at
   `~/.claude/projects/<encoded>/<sessionId>/subagents/agent-<realId>.jsonl`,
   not under `~/.claude/projects/<encoded>/subagents/`.** When grep'ing for

@@ -75,6 +75,40 @@ describe('claudeLineNormalizeBroker', () => {
       });
     });
 
+    it('VALID: {rawLine with <tool_use_error> XML inside tool_result.content (array element)} => leaves the error string intact for the renderer', () => {
+      // Captured from a real Claude CLI session: when a sub-agent invokes the wrong tool
+      // (e.g. an MCP tool through the `Skill` wrapper), Claude CLI returns a tool_result
+      // whose `content` is `<tool_use_error>...</tool_use_error>`. The string is meant to
+      // be rendered verbatim under TOOL ERROR. The XML inflater must NOT rewrite it into
+      // `{ toolUseError: '...' }` because the chat-entry mapper expects content to be a
+      // string; the object form lands as `""` on the renderer (TOOL ERROR with no body).
+      // Inflation is scoped to object-property strings (where <task-notification> lives) —
+      // strings inside arrays (where Claude packs tool_result content items) are not
+      // inflated, so the error envelope reaches the renderer unchanged.
+      claudeLineNormalizeBrokerProxy();
+
+      expect(
+        claudeLineNormalizeBroker({
+          rawLine:
+            '{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_015VPePjJrY2PJ8LT5iC7QVp","content":"<tool_use_error>Unknown skill: mcp__dungeonmaster__discover</tool_use_error>","is_error":true}]}}',
+        }),
+      ).toStrictEqual({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              toolUseId: 'toolu_015VPePjJrY2PJ8LT5iC7QVp',
+              content:
+                '<tool_use_error>Unknown skill: mcp__dungeonmaster__discover</tool_use_error>',
+              isError: true,
+            },
+          ],
+        },
+      });
+    });
+
     it('VALID: {rawLine with plain text content} => leaves content as string', () => {
       claudeLineNormalizeBrokerProxy();
 
