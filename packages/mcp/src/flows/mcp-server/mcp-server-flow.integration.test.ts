@@ -568,28 +568,25 @@ describe('McpServerFlow', () => {
       (name) => !TOOLS_EXEMPT_FROM_SIZE_CAP.some((exempt) => exempt === name),
     );
 
-    it.each(sizeCappedTools)(
-      'VALID: tool %s => response content under 50KB',
-      async (toolName) => {
-        const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 99999 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
-          params: {
-            name: toolName,
-            arguments: {},
-          },
-        });
+    it.each(sizeCappedTools)('VALID: tool %s => response content under 50KB', async (toolName) => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 99999 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: toolName,
+          arguments: {},
+        },
+      });
 
-        const response = await client.sendRequest(request);
+      const response = await client.sendRequest(request);
 
-        expect(response.error).toBe(undefined);
+      expect(response.error).toBe(undefined);
 
-        const result = ToolCallResultStub(response.result as never);
-        const [firstContent] = result.content;
-        const text = String(firstContent!.text);
+      const result = ToolCallResultStub(response.result as never);
+      const [firstContent] = result.content;
+      const text = String(firstContent!.text);
 
-        expect(Buffer.byteLength(text, 'utf8')).toBeLessThanOrEqual(50_000);
-      },
-    );
+      expect(Buffer.byteLength(text, 'utf8')).toBeLessThanOrEqual(50_000);
+    });
   });
 });
