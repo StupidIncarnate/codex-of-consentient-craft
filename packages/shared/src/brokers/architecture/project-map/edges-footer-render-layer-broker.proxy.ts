@@ -1,4 +1,6 @@
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
+import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
+import { architectureFileBusEdgesBrokerProxy } from '../file-bus-edges/architecture-file-bus-edges-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
@@ -27,6 +29,12 @@ export const edgesFooterRenderLayerBrokerProxy = (): {
   setupEmpty: () => void;
 } => {
   const edgeGraphProxy = architectureEdgeGraphBrokerProxy();
+  // ws/file-bus broker proxies are initialized so registerMock wires them up, but we don't
+  // call .setup() — that would overwrite the underlying readdir/readFile adapter
+  // implementations the edge-graph proxy installs. The HTTP-fixture data has no WS/file-bus
+  // calls, so both brokers naturally return empty edge sets.
+  architectureWsEdgesBrokerProxy();
+  architectureFileBusEdgesBrokerProxy();
 
   const flowPath = AbsoluteFilePathStub({
     value: '/repo/packages/server/src/flows/quest/quest-flow.ts',

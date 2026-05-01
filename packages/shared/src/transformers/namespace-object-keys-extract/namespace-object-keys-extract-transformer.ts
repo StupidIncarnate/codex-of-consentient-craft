@@ -1,13 +1,15 @@
 /**
  * PURPOSE: Extracts property key names from an exported namespace object literal in TypeScript
- * source text. Finds `export const \w+ = {` and collects each camelCase property key inside
- * the object body.
+ * source text. Finds `export const \w+ = {` and collects each camelCase property key that sits
+ * at brace-depth-1 inside the object body (skipping nested type-annotation or destructure
+ * objects so parameter names like `{ guildId, questId }` aren't returned as methods).
  *
  * USAGE:
  * const keys = namespaceObjectKeysExtractTransformer({
- *   source: contentTextContract.parse('export const StartOrchestrator = {\n  listGuilds: async () => [],\n  addGuild: async () => {},\n};'),
+ *   source: contentTextContract.parse('export const StartOrchestrator = {\n  listGuilds: async () => [],\n  addGuild: async ({name}: {name: GuildName}) => {},\n};'),
  * });
- * // Returns ['listGuilds', 'addGuild'] as ContentText[]
+ * // Returns ['listGuilds', 'addGuild'] — `name` is filtered out because it sits inside a
+ * // nested `{name}` destructure / `{name: GuildName}` type-annotation block, not at depth 1.
  *
  * WHEN-TO-USE: Extracting the public API method list from programmatic-service startup files
  * WHEN-NOT-TO-USE: When full AST accuracy is required — this is a v1 regex heuristic
@@ -21,8 +23,8 @@ import {
 // Matches the exported namespace object literal header
 const NAMESPACE_OBJECT_HEADER_PATTERN = /export\s+const\s+\w+\s*=\s*\{/u;
 
-// Matches camelCase property keys inside the object body (indented lines: `  methodName:`)
-const METHOD_KEY_PATTERN = /^\s{2,}([a-z][A-Za-z0-9]*):/gmu;
+// Matches a camelCase property key at the start of a line (after leading whitespace)
+const TOP_LEVEL_KEY_PATTERN = /^(\s+)([a-z][A-Za-z0-9]*):/u;
 
 export const namespaceObjectKeysExtractTransformer = ({
   source,
@@ -38,23 +40,38 @@ export const namespaceObjectKeysExtractTransformer = ({
 
   const startIdx = namespaceMatch.index + namespaceMatch[0].length;
 
-  // Walk forward tracking brace depth to find the end of the object literal
-  let depth = 1;
-  let endIdx = startIdx;
-  while (endIdx < src.length && depth > 0) {
-    const ch = src[endIdx];
-    if (ch === '{') depth++;
-    else if (ch === '}') depth--;
-    endIdx++;
-  }
-
-  const objectBody = src.slice(startIdx, endIdx - 1);
-
+  // Walk character-by-character so we can both (a) find the end of the namespace literal and
+  // (b) track which lines sit at brace-depth-1 (immediate properties of the namespace).
   const found: ContentText[] = [];
-  METHOD_KEY_PATTERN.lastIndex = 0;
-  let match = METHOD_KEY_PATTERN.exec(objectBody);
-  while (match !== null) {
-    const [, methodName] = match;
+  let depth = 1;
+  let lineStart = startIdx;
+  for (let i = startIdx; i < src.length; i += 1) {
+    const ch = src[i];
+    if (ch === '\n') {
+      lineStart = i + 1;
+      continue;
+    }
+    if (ch === '{') {
+      depth += 1;
+      continue;
+    }
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) break;
+      continue;
+    }
+    // Only consider key matches at the start of a line while at depth 1 (so nested
+    // parameter destructures and type annotations are skipped).
+    if (depth !== 1) continue;
+    // Skip if we're not still examining the line's leading whitespace
+    if (i !== lineStart) continue;
+    const lineSlice = src.slice(lineStart);
+    const match = TOP_LEVEL_KEY_PATTERN.exec(lineSlice);
+    if (match === null) {
+      // Skip past this line's content; depth tracking handles nested objects on other lines.
+      continue;
+    }
+    const [whole, , methodName] = match;
     if (methodName !== undefined) {
       const parsed = contentTextContract.parse(methodName);
       const alreadySeen = found.some((m) => String(m) === String(parsed));
@@ -62,9 +79,9 @@ export const namespaceObjectKeysExtractTransformer = ({
         found.push(parsed);
       }
     }
-    match = METHOD_KEY_PATTERN.exec(objectBody);
+    // Advance past the matched key so we don't re-enter the line-start branch.
+    i += whole.length - 1;
   }
-  METHOD_KEY_PATTERN.lastIndex = 0;
 
   return found;
 };

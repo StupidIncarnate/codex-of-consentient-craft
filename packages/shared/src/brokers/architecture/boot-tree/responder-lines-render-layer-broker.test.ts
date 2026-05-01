@@ -62,7 +62,7 @@ describe('responderLinesRenderLayerBroker', () => {
 
       expect(result).toStrictEqual([
         ContentTextStub({ value: '  ↳ server-init-responder' }),
-        ContentTextStub({ value: '      → hono-serve-adapter' }),
+        ContentTextStub({ value: '      → adapters/hono/serve' }),
       ]);
     });
   });

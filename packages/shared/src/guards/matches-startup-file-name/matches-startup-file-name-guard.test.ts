@@ -24,4 +24,20 @@ describe('matchesStartupFileNameGuard', () => {
   it('INVALID: {name: start-my-app.js} => returns false (must end in .ts)', () => {
     expect(matchesStartupFileNameGuard({ name: 'start-my-app.js' })).toBe(false);
   });
+
+  it('INVALID: {name: start-cli.integration.test.ts} => returns false (test files are excluded)', () => {
+    expect(matchesStartupFileNameGuard({ name: 'start-cli.integration.test.ts' })).toBe(false);
+  });
+
+  it('INVALID: {name: start-cli.test.ts} => returns false (test files are excluded)', () => {
+    expect(matchesStartupFileNameGuard({ name: 'start-cli.test.ts' })).toBe(false);
+  });
+
+  it('INVALID: {name: start-cli.proxy.ts} => returns false (proxy files are excluded)', () => {
+    expect(matchesStartupFileNameGuard({ name: 'start-cli.proxy.ts' })).toBe(false);
+  });
+
+  it('INVALID: {name: start-cli.stub.ts} => returns false (stub files are excluded)', () => {
+    expect(matchesStartupFileNameGuard({ name: 'start-cli.stub.ts' })).toBe(false);
+  });
 });

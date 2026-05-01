@@ -82,9 +82,7 @@ describe('architectureSideChannelBroker', () => {
       const lines = String(result).split('\n');
 
       expect(lines[0]).toBe('---');
-      expect(lines.some((l) => l === '## Side-channel — after the HTTP response returns')).toBe(
-        true,
-      );
+      expect(lines.some((l) => l.startsWith('## Side-channel'))).toBe(true);
       expect(lines.some((l) => l === '```')).toBe(true);
     });
 

@@ -1,7 +1,7 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
-import { findFirstStartupFileLayerBrokerProxy } from './find-first-startup-file-layer-broker.proxy';
+import { readPackageCliContentLayerBrokerProxy } from './read-package-cli-content-layer-broker.proxy';
 import { findFirstFlowFileRecursiveLayerBrokerProxy } from './find-first-flow-file-recursive-layer-broker.proxy';
 import { hasResponderCreateLayerBrokerProxy } from './has-responder-create-layer-broker.proxy';
 import { dirExistsInParentLayerBrokerProxy } from './dir-exists-in-parent-layer-broker.proxy';
@@ -65,7 +65,7 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
   const readFileProxy = readFileOptionalLayerBrokerProxy();
-  findFirstStartupFileLayerBrokerProxy();
+  readPackageCliContentLayerBrokerProxy();
   findFirstFlowFileRecursiveLayerBrokerProxy();
   hasResponderCreateLayerBrokerProxy();
   dirExistsInParentLayerBrokerProxy();

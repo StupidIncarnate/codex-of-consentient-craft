@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Compose the full project-map: per-package connection-graph view (boot, type-specific
- * headline, side-channel, excluded audit, inventory counts) plus a cross-package EDGES footer and
- * a pointer to the per-package detail tool.
+ * headline, side-channel) plus a cross-package EDGES footer and a pointer to the per-package
+ * detail tool.
  *
  * USAGE:
  * const markdown = await architectureProjectMapBroker({ projectRoot: absoluteFilePathContract.parse('/home/user/project') });
@@ -35,8 +35,6 @@ export const architectureProjectMapBroker = async ({
   const scanTargets: {
     packageName: ContentText;
     packageRoot: AbsoluteFilePath;
-    srcPath: AbsoluteFilePath;
-    packageJsonPath: AbsoluteFilePath;
   }[] = [];
 
   if (packageDirs.length > 0) {
@@ -49,33 +47,22 @@ export const architectureProjectMapBroker = async ({
       scanTargets.push({
         packageName: contentTextContract.parse(pkg.name),
         packageRoot: pkgRoot,
-        srcPath: absoluteFilePathContract.parse(`${pkgRoot}/${projectMapStatics.srcDirName}`),
-        packageJsonPath: absoluteFilePathContract.parse(
-          `${pkgRoot}/${projectMapStatics.packageJsonName}`,
-        ),
       });
     }
   } else {
-    const pkgRoot = projectRoot;
     scanTargets.push({
       packageName: contentTextContract.parse(projectMapStatics.rootPackageName),
-      packageRoot: pkgRoot,
-      srcPath: absoluteFilePathContract.parse(`${pkgRoot}/${projectMapStatics.srcDirName}`),
-      packageJsonPath: absoluteFilePathContract.parse(
-        `${pkgRoot}/${projectMapStatics.packageJsonName}`,
-      ),
+      packageRoot: projectRoot,
     });
   }
 
   const packageSections = await Promise.all(
-    scanTargets.map(async ({ packageName, packageRoot, srcPath, packageJsonPath }) => {
+    scanTargets.map(async ({ packageName, packageRoot }) => {
       const packageType = await architecturePackageTypeDetectBroker({ packageRoot });
       return packageSectionBuildLayerBroker({
         packageName,
         packageRoot,
         packageType,
-        srcPath,
-        packageJsonPath,
         projectRoot,
       });
     }),

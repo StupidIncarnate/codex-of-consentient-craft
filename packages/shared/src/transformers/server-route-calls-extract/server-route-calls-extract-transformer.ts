@@ -1,15 +1,20 @@
 /**
  * PURPOSE: Extracts HTTP route registrations from a Hono flow file source text using regex.
- * Returns raw route call sites with method and raw argument string (either a member-expression
- * reference like `apiRoutesStatics.quests.list` or a string literal like `/api/health`).
+ * Returns each call site's method, raw URL argument, and the responder identifier referenced
+ * inside its handler body (when one exists — null for inline-handler routes like `/api/health`).
  *
  * USAGE:
  * const routes = serverRouteCallsExtractTransformer({
- *   source: contentTextContract.parse("app.get(apiRoutesStatics.quests.list, async (c) => {});"),
+ *   source: contentTextContract.parse(`
+ *     app.get(apiRoutesStatics.quests.list, async (c) => {
+ *       const result = await QuestListResponder({ query });
+ *       return c.json(result.data);
+ *     });
+ *   `),
  * });
- * // Returns [{ method: 'GET', rawArg: 'apiRoutesStatics.quests.list' }]
+ * // Returns [{ method: 'GET', rawArg: 'apiRoutesStatics.quests.list', responderName: 'QuestListResponder' }]
  *
- * WHEN-TO-USE: HTTP-edges broker extracting app.<method>(<arg>) registrations from server flow files
+ * WHEN-TO-USE: HTTP-edges broker extracting (route, responder) pairs from server flow files
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
@@ -24,31 +29,48 @@ import type { ServerRouteCallSite } from '../../contracts/server-route-call-site
 const ROUTE_PATTERN =
   /app\.(get|post|patch|delete|put)\(\s*(apiRoutesStatics\.[a-zA-Z0-9_.]+|'([^']*)'|"([^"]*)")/gu;
 
+// Matches the first `await <Identifier>Responder(` reference inside a handler body. The
+// extractor scans the source slice between this app.<method>( call and the next one (or EOF).
+const RESPONDER_REF_PATTERN = /\bawait\s+([A-Z][A-Za-z0-9]*Responder)\s*\(/u;
+
 export const serverRouteCallsExtractTransformer = ({
   source,
 }: {
   source: ContentText;
 }): ServerRouteCallSite[] => {
-  const results: ServerRouteCallSite[] = [];
+  const sourceStr = String(source);
+  const callStarts = [];
+
   ROUTE_PATTERN.lastIndex = 0;
-
-  let match = ROUTE_PATTERN.exec(String(source));
+  let match = ROUTE_PATTERN.exec(sourceStr);
   while (match !== null) {
-    const [, methodRaw, fullArg, singleQuoted, doubleQuoted] = match;
-    if (methodRaw === undefined || fullArg === undefined) {
-      match = ROUTE_PATTERN.exec(String(source));
-      continue;
+    const [whole, methodRaw, fullArg, singleQuoted, doubleQuoted] = match;
+    if (methodRaw !== undefined && fullArg !== undefined) {
+      const rawArg = singleQuoted ?? doubleQuoted ?? fullArg;
+      callStarts.push({
+        method: methodRaw.toUpperCase(),
+        rawArg,
+        bodyStart: match.index + whole.length,
+      });
     }
+    match = ROUTE_PATTERN.exec(sourceStr);
+  }
 
-    // When the arg is a quoted literal, use the unquoted content; otherwise use the whole ref
-    const rawArg = singleQuoted ?? doubleQuoted ?? fullArg;
-
+  const results: ServerRouteCallSite[] = [];
+  for (let i = 0; i < callStarts.length; i += 1) {
+    const current = callStarts[i];
+    if (current === undefined) continue;
+    const next = callStarts[i + 1];
+    const sliceEnd = next === undefined ? sourceStr.length : next.bodyStart;
+    const sliceText = sourceStr.slice(current.bodyStart, sliceEnd);
+    const responderMatch = RESPONDER_REF_PATTERN.exec(sliceText);
+    const responderName =
+      responderMatch?.[1] === undefined ? null : contentTextContract.parse(responderMatch[1]);
     results.push({
-      method: contentTextContract.parse(methodRaw.toUpperCase()),
-      rawArg: contentTextContract.parse(rawArg),
+      method: contentTextContract.parse(current.method),
+      rawArg: contentTextContract.parse(current.rawArg),
+      responderName,
     });
-
-    match = ROUTE_PATTERN.exec(String(source));
   }
 
   return results;

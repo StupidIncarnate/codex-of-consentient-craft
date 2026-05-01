@@ -26,6 +26,7 @@ export const projectMapStatics = {
   staticsInlineThreshold: 15,
   testFileSuffixes: [
     '.integration.test.ts',
+    '.e2e.test.ts',
     '.test.ts',
     '.test.tsx',
     '.proxy.ts',
@@ -44,9 +45,7 @@ export const projectMapStatics = {
 | \`{x?}\` | optional field on a method signature |
 | \`{...}\` | signature truncated for brevity |
 `,
-  urlPairingConvention: `**URL pairing convention** (every http-backend route): the literal path is the same string in both \`webConfigStatics.api.routes.<key>\` (web side) and \`apiRoutesStatics.<group>.<key>\` (server side). For example, both resolve to \`'/api/quests/:questId/start'\`. Every row of the route table below is one such pairing — the route table is exhaustive (every endpoint registered by the server is listed).
-
----`,
+  urlPairingConvention: `**URL pairing convention** (every http-backend route): the literal path is the same string in both \`webConfigStatics.api.routes.<key>\` (web side) and \`apiRoutesStatics.<group>.<key>\` (server side). For example, both resolve to \`'/api/quests/:questId/start'\`. Every row of the route table below is one such pairing — the route table is exhaustive (every endpoint registered by the server is listed).`,
   hookHandlersMinBinCount: 2,
   sourceFileExtensions: ['.ts', '.tsx', '.js', '.jsx'],
   fsWriteAdapterNames: ['fsAppendFileAdapter', 'fsWriteFileAdapter', 'fsMkdirAdapter'],

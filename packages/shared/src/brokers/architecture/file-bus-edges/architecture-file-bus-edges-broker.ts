@@ -44,6 +44,19 @@ export const architectureFileBusEdgesBroker = ({
     if (!isNonTestFileGuard({ filePath })) {
       continue;
     }
+    // Skip pure-helper folders that may contain the regex/literal patterns being scanned for
+    // (e.g. shared/transformers/file-write-calls-extract-transformer.ts contains the writer
+    // pattern). Per the brief, transformers/guards/contracts/statics never move data at
+    // runtime, so any "match" inside them is a false positive.
+    const filePathStr = String(filePath);
+    if (
+      filePathStr.includes('/transformers/') ||
+      filePathStr.includes('/guards/') ||
+      filePathStr.includes('/contracts/') ||
+      filePathStr.includes('/statics/')
+    ) {
+      continue;
+    }
     const source = readFileLayerBroker({ filePath });
     if (source === undefined) {
       continue;

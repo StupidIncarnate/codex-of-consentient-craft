@@ -169,7 +169,7 @@ describe('architectureStateWritesBroker', () => {
   });
 
   describe('browser storage', () => {
-    it('VALID: {localStorage.setItem} => listed in browserStorageWrites', () => {
+    it('VALID: {localStorage.setItem in non-helper file} => listed in browserStorageWrites', () => {
       const proxy = architectureStateWritesBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
       const srcFile = AbsoluteFilePathStub({

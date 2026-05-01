@@ -41,18 +41,13 @@ export const architectureProjectMapBrokerProxy = (): {
 
   return {
     setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
-      // discoverProxy must queue its ReturnValueOnce BEFORE sectionProxy runs, because
-      // sectionProxy's excludedAuditProxy.setupEmpty() also queues a ReturnValueOnce([]).
-      // Queue ordering: discoverProxy's entry is consumed first by discoverPackagesLayerBroker;
-      // the extra [] from excludedAudit is consumed harmlessly by the first type-detect readdir
-      // call (which returns [] from the routing fn anyway since srcDirNames is empty).
       discoverProxy.setupPackages({
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
       // edgesFooterProxy and sectionProxy must come before typeDetectProxy so that the
       // type-detect readdir routing is set last and wins for the type-detection pass.
       edgesFooterProxy.setupEmpty();
-      sectionProxy.setupLibraryPackage({ packageName });
+      sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
@@ -64,8 +59,8 @@ export const architectureProjectMapBrokerProxy = (): {
     setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
       // Only type-detect and discover setup is needed here. The section build calls
       // architectureBootTreeBroker (non-library path) then headlineDispatchLayerBroker which
-      // throws immediately for frontend-ink — no further brokers (side-channel, excluded-audit,
-      // inventory, edges-footer) are reached, so their setups are not required.
+      // throws immediately for frontend-ink — no further brokers (side-channel, edges-footer)
+      // are reached, so their setups are not required.
       // typeDetectProxy.setupPackage must come before discoverProxy.setupPackages (which only
       // queues a ReturnValueOnce) to avoid queue ordering issues.
       typeDetectProxy.setupPackage({
@@ -81,7 +76,7 @@ export const architectureProjectMapBrokerProxy = (): {
 
     setupEmptyMonorepo: (): void => {
       edgesFooterProxy.setupEmpty();
-      sectionProxy.setupLibraryPackage({ packageName: 'root' });
+      sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: '/project',
         packageJsonContent: '{}',

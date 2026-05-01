@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Renders the display lines for one HTTP route entry inside a flow's code block.
  * Produces METHOD<pad> URL, then → responders/<folder>, then → adapters/<folder>,
- * then → Namespace.method({...}) lines by reading the flow source and responder source.
+ * then → Namespace.method({...}) lines using the responder file resolved during edge extraction.
  *
  * USAGE:
  * const lines = routeEntryLinesRenderLayerBroker({
@@ -24,7 +24,6 @@ import { importStatementsExtractTransformer } from '../../../transformers/import
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { responderFolderFromImportPathTransformer } from '../../../transformers/responder-folder-from-import-path/responder-folder-from-import-path-transformer';
 import { adapterFolderFromImportPathTransformer } from '../../../transformers/adapter-folder-from-import-path/adapter-folder-from-import-path-transformer';
-import { urlBestResponderImportPickTransformer } from '../../../transformers/url-best-responder-import-pick/url-best-responder-import-pick-transformer';
 import { namespaceCallFirstExtractTransformer } from '../../../transformers/namespace-call-first-extract/namespace-call-first-extract-transformer';
 import { readSourceLayerBroker } from './read-source-layer-broker';
 
@@ -39,44 +38,19 @@ export const routeEntryLinesRenderLayerBroker = ({
   const url = String(edge.urlPattern);
   const firstLine = contentTextContract.parse(`${method} ${url}`);
 
-  if (edge.serverFlowFile === null) {
-    return [firstLine];
-  }
-
-  const flowSource = readSourceLayerBroker({ filePath: edge.serverFlowFile });
-  if (flowSource === undefined) {
-    return [firstLine];
-  }
-
-  const allImports = importStatementsExtractTransformer({ source: flowSource });
-  const responderImports = allImports.filter((p) => String(p).includes('responders/'));
-
-  const bestResponderImport = urlBestResponderImportPickTransformer({
-    urlPattern: contentTextContract.parse(url),
-    responderImports,
-  });
-
-  if (bestResponderImport === null) {
+  if (edge.serverResponderFile === null) {
     return [firstLine];
   }
 
   const responderFolder = responderFolderFromImportPathTransformer({
-    importPath: bestResponderImport,
+    importPath: contentTextContract.parse(String(edge.serverResponderFile)),
   });
   const lines: ContentText[] = [firstLine];
   if (String(responderFolder) !== '') {
     lines.push(contentTextContract.parse(`  → ${String(responderFolder)}`));
   }
 
-  const responderAbsPath = relativeImportResolveTransformer({
-    sourceFile: edge.serverFlowFile,
-    importPath: bestResponderImport,
-  });
-  if (responderAbsPath === null) {
-    return lines;
-  }
-
-  const responderSource = readSourceLayerBroker({ filePath: responderAbsPath });
+  const responderSource = readSourceLayerBroker({ filePath: edge.serverResponderFile });
   if (responderSource === undefined) {
     return lines;
   }
@@ -98,7 +72,7 @@ export const routeEntryLinesRenderLayerBroker = ({
     }
 
     const adpAbsPath = relativeImportResolveTransformer({
-      sourceFile: responderAbsPath,
+      sourceFile: edge.serverResponderFile,
       importPath: adp,
     });
     if (adpAbsPath !== null) {
@@ -111,7 +85,7 @@ export const routeEntryLinesRenderLayerBroker = ({
       }
     }
   } else {
-    for (let i = 0; i < adapterImports.length; i++) {
+    for (let i = 0; i < adapterImports.length; i += 1) {
       const adp = adapterImports[i];
       if (adp === undefined) continue;
 
@@ -123,7 +97,7 @@ export const routeEntryLinesRenderLayerBroker = ({
       }
 
       const adpAbsPath = relativeImportResolveTransformer({
-        sourceFile: responderAbsPath,
+        sourceFile: edge.serverResponderFile,
         importPath: adp,
       });
       if (adpAbsPath !== null) {

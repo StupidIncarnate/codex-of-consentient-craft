@@ -19,5 +19,6 @@ export const ServerRouteCallSiteStub = ({
   serverRouteCallSiteContract.parse({
     method: ContentTextStub({ value: 'GET' }),
     rawArg: ContentTextStub({ value: 'apiRoutesStatics.quests.list' }),
+    responderName: ContentTextStub({ value: 'QuestListResponder' }),
     ...props,
   });

@@ -35,12 +35,15 @@ export const architectureStateWritesBroker = ({
   // Collect all non-test source files
   const sourceFiles = listSourceFilesLayerBroker({ dirPath: srcPath });
 
-  // Collect all source file contents (skip missing files silently)
+  // Collect all source file contents (skip missing files silently). Keep filePath alongside
+  // each content so per-folder filtering (e.g. adapters-only browser-storage scanning) works.
   const fileContents: ContentText[] = [];
+  const fileEntries: { filePath: AbsoluteFilePath; content: ContentText }[] = [];
   for (const filePath of sourceFiles) {
     const content = readSourceFileLayerBroker({ filePath });
     if (content !== undefined) {
       fileContents.push(content);
+      fileEntries.push({ filePath, content });
     }
   }
 
@@ -76,9 +79,22 @@ export const architectureStateWritesBroker = ({
   literalWrites.sort((a, b) => String(a).localeCompare(String(b)));
   const fileWrites = [...literalWrites, ...computedWrites];
 
-  // Browser storage: scan all source files for localStorage/sessionStorage/indexedDB
+  // Browser storage: scan source files for localStorage/sessionStorage/indexedDB usage,
+  // skipping pure-helper folders (statics/, transformers/, contracts/, guards/) so prompt
+  // statics that mention `localStorage.setItem(...)` as documentation examples don't get
+  // counted as real browser storage writes. The brief enumerates these as the categories
+  // that don't move data and aren't sources of state writes.
   const browserStorageWrites: ContentText[] = [];
-  for (const content of fileContents) {
+  for (const { filePath, content } of fileEntries) {
+    const fp = String(filePath);
+    if (
+      fp.includes('/statics/') ||
+      fp.includes('/transformers/') ||
+      fp.includes('/contracts/') ||
+      fp.includes('/guards/')
+    ) {
+      continue;
+    }
     const writes = browserStorageCallsExtractTransformer({ source: content });
     for (const write of writes) {
       if (browserStorageWrites.some((w) => String(w) === String(write))) {

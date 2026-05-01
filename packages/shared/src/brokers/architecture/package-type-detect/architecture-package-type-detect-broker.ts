@@ -14,7 +14,7 @@ import { packageJsonContract } from '../../../contracts/package-json/package-jso
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
-import { findFirstStartupFileLayerBroker } from './find-first-startup-file-layer-broker';
+import { readPackageCliContentLayerBroker } from './read-package-cli-content-layer-broker';
 import { findFirstFlowFileRecursiveLayerBroker } from './find-first-flow-file-recursive-layer-broker';
 import { hasResponderCreateLayerBroker } from './has-responder-create-layer-broker';
 import { dirExistsInParentLayerBroker } from './dir-exists-in-parent-layer-broker';
@@ -43,15 +43,10 @@ export const architecturePackageTypeDetectBroker = async ({
   const adapterEntries = safeReaddirLayerBroker({ dirPath: adaptersPath });
   const adapterDirNames = adapterEntries.filter((e) => e.isDirectory()).map((e) => e.name);
 
-  // Find and read first startup file content
-  const startupDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/startup`);
-  const startupFileName = findFirstStartupFileLayerBroker({ startupDirPath });
-  const startupFileContent =
-    startupFileName === undefined
-      ? undefined
-      : readFileOptionalLayerBroker({
-          filePath: absoluteFilePathContract.parse(`${packageRoot}/src/startup/${startupFileName}`),
-        });
+  // Read concatenated content from every non-test startup + bin source file. Combining them lets
+  // detection signals (process.argv reference, async-namespace export) surface even when argv parsing
+  // lives in a thin bin entry while the startup takes the parsed command as a parameter.
+  const startupFileContent = readPackageCliContentLayerBroker({ packageRoot });
 
   // Find and read first flow file content (recursive search)
   const flowsDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/flows`);

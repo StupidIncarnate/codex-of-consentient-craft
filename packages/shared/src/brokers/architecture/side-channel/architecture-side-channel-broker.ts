@@ -22,22 +22,26 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
+import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { architectureWsEdgesBroker } from '../ws-edges/architecture-ws-edges-broker';
 import { architectureFileBusEdgesBroker } from '../file-bus-edges/architecture-file-bus-edges-broker';
 import { wsEdgesFilterLayerBroker } from './ws-edges-filter-layer-broker';
 import { fileBusEdgesFilterLayerBroker } from './file-bus-edges-filter-layer-broker';
 import { sideChannelRenderLayerBroker } from './side-channel-render-layer-broker';
 
-const SECTION_HEADER = '## Side-channel — after the HTTP response returns';
+const HTTP_BACKEND_SECTION_HEADER = '## Side-channel — after the HTTP response returns';
+const GENERIC_SECTION_HEADER = '## Side-channel — async cascade after the request returns';
 
 export const architectureSideChannelBroker = ({
   projectRoot,
   packageRoot,
   packageName,
+  packageType,
 }: {
   projectRoot: AbsoluteFilePath;
   packageRoot: AbsoluteFilePath;
   packageName: ContentText;
+  packageType?: PackageType;
 }): ContentText => {
   const wsEdges = architectureWsEdgesBroker({ projectRoot });
   const fileBusEdges = architectureFileBusEdgesBroker({ projectRoot });
@@ -72,7 +76,9 @@ export const architectureSideChannelBroker = ({
     return contentTextContract.parse('');
   }
 
+  const sectionHeader =
+    packageType === 'http-backend' ? HTTP_BACKEND_SECTION_HEADER : GENERIC_SECTION_HEADER;
   return contentTextContract.parse(
-    `---\n\n${SECTION_HEADER}\n\n\`\`\`\n${String(codeBlockBody)}\n\`\`\``,
+    `---\n\n${sectionHeader}\n\n\`\`\`\n${String(codeBlockBody)}\n\`\`\``,
   );
 };

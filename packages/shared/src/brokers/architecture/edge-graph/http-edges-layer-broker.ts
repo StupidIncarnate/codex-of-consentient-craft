@@ -19,6 +19,8 @@ import { contentTextContract } from '../../../contracts/content-text/content-tex
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { httpEdgeContract, type HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
+import { namedImportsToPathMapTransformer } from '../../../transformers/named-imports-to-path-map/named-imports-to-path-map-transformer';
+import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { serverRouteCallsExtractTransformer } from '../../../transformers/server-route-calls-extract/server-route-calls-extract-transformer';
 import { webFetchCallsExtractTransformer } from '../../../transformers/web-fetch-calls-extract/web-fetch-calls-extract-transformer';
 import { staticsPathResolveTransformer } from '../../../transformers/statics-path-resolve/statics-path-resolve-transformer';
@@ -49,6 +51,7 @@ export const httpEdgesLayerBroker = ({
     method: ContentText;
     urlPattern: ContentText;
     flowFile: AbsoluteFilePath;
+    responderFile: AbsoluteFilePath | null;
   }[] = [];
   const flowsDir = absoluteFilePathContract.parse(`${root}/${SERVER_FLOWS_REL}`);
   const flowFiles = listTsFilesLayerBroker({ dirPath: flowsDir });
@@ -61,6 +64,7 @@ export const httpEdgesLayerBroker = ({
     if (source === undefined) {
       continue;
     }
+    const importMap = namedImportsToPathMapTransformer({ source });
     const callSites = serverRouteCallsExtractTransformer({ source });
     for (const site of callSites) {
       const rawArg = String(site.rawArg);
@@ -75,7 +79,27 @@ export const httpEdgesLayerBroker = ({
         }
         urlPattern = resolved;
       }
-      serverEntries.push({ method: site.method, urlPattern, flowFile });
+
+      let responderFile: AbsoluteFilePath | null = null;
+      if (site.responderName !== null) {
+        // Find the import path for the responder name (Map keys are branded ContentText, so
+        // we iterate to compare by string value).
+        let importPath: ContentText | null = null;
+        for (const [name, path] of importMap) {
+          if (String(name) === String(site.responderName)) {
+            importPath = path;
+            break;
+          }
+        }
+        if (importPath !== null) {
+          responderFile = relativeImportResolveTransformer({
+            sourceFile: flowFile,
+            importPath,
+          });
+        }
+      }
+
+      serverEntries.push({ method: site.method, urlPattern, flowFile, responderFile });
     }
   }
 
@@ -132,7 +156,7 @@ export const httpEdgesLayerBroker = ({
           method: server.method,
           urlPattern: server.urlPattern,
           serverFlowFile: server.flowFile,
-          serverResponderFile: null,
+          serverResponderFile: server.responderFile,
           webBrokerFile: null,
           paired: false,
         }),
@@ -144,7 +168,7 @@ export const httpEdgesLayerBroker = ({
           method: server.method,
           urlPattern: server.urlPattern,
           serverFlowFile: server.flowFile,
-          serverResponderFile: null,
+          serverResponderFile: server.responderFile,
           webBrokerFile: web.brokerFile,
           paired: true,
         }),

@@ -37,7 +37,7 @@ describe('architectureBootTreeBroker', () => {
             '',
             'flows/server/server-flow',
             '  ↳ server-init-responder',
-            '      → hono-serve-adapter',
+            '      → adapters/hono/serve',
             '```',
           ].join('\n'),
         }),

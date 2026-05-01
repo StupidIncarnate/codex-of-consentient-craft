@@ -184,7 +184,7 @@ describe('architectureProjectMapHeadlineHttpBackendBroker', () => {
             path: QUEST_FLOW_PATH,
             source: ContentTextStub({
               value: `import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
-app.get(apiRoutesStatics.quests.list, async (c) => {});`,
+app.get(apiRoutesStatics.quests.list, async (c) => { await QuestListResponder({}); });`,
             }),
           },
         ],
@@ -365,7 +365,7 @@ export const orchestratorStartQuestAdapter = async ({ questId }) => StartOrchest
             path: QUEST_FLOW_PATH,
             source: ContentTextStub({
               value: `import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
-app.get(apiRoutesStatics.quests.list, async (c) => {});`,
+app.get(apiRoutesStatics.quests.list, async (c) => { await QuestListResponder({}); });`,
             }),
           },
         ],

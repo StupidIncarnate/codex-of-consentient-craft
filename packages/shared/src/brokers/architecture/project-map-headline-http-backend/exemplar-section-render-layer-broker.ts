@@ -26,7 +26,6 @@ import { importStatementsExtractTransformer } from '../../../transformers/import
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { responderFolderFromImportPathTransformer } from '../../../transformers/responder-folder-from-import-path/responder-folder-from-import-path-transformer';
 import { adapterFolderFromImportPathTransformer } from '../../../transformers/adapter-folder-from-import-path/adapter-folder-from-import-path-transformer';
-import { urlBestResponderImportPickTransformer } from '../../../transformers/url-best-responder-import-pick/url-best-responder-import-pick-transformer';
 import { namespaceCallFirstExtractTransformer } from '../../../transformers/namespace-call-first-extract/namespace-call-first-extract-transformer';
 import { exemplarBoundaryBoxRenderLayerBroker } from './exemplar-boundary-box-render-layer-broker';
 import { readSourceLayerBroker } from './read-source-layer-broker';
@@ -98,79 +97,61 @@ export const exemplarSectionRenderLayerBroker = ({
       ),
     );
 
-    // Find best responder import and render responder + adapters
-    const flowSource = readSourceLayerBroker({ filePath: edge.serverFlowFile });
-    if (flowSource !== undefined) {
-      const allImports = importStatementsExtractTransformer({ source: flowSource });
-      const responderImports = allImports.filter((p) => String(p).includes('responders/'));
-
-      const bestResponderImport = urlBestResponderImportPickTransformer({
-        urlPattern,
-        responderImports,
+    // Render responder + adapters using the resolved responder file from the edge
+    if (edge.serverResponderFile !== null) {
+      const responderFolder = responderFolderFromImportPathTransformer({
+        importPath: contentTextContract.parse(String(edge.serverResponderFile)),
       });
+      if (String(responderFolder) !== '') {
+        parts.push(contentTextContract.parse(`  → server/${String(responderFolder)}`));
+      }
 
-      if (bestResponderImport !== null) {
-        const responderFolder = responderFolderFromImportPathTransformer({
-          importPath: bestResponderImport,
-        });
-        if (String(responderFolder) !== '') {
-          parts.push(contentTextContract.parse(`  → server/${String(responderFolder)}`));
-        }
+      const responderSource = readSourceLayerBroker({ filePath: edge.serverResponderFile });
+      if (responderSource !== undefined) {
+        const respImports = importStatementsExtractTransformer({ source: responderSource });
+        const adapterImports = respImports.filter((p) => String(p).includes('adapters/'));
 
-        const responderAbsPath = relativeImportResolveTransformer({
-          sourceFile: edge.serverFlowFile,
-          importPath: bestResponderImport,
-        });
-
-        if (responderAbsPath !== null) {
-          const responderSource = readSourceLayerBroker({ filePath: responderAbsPath });
-          if (responderSource !== undefined) {
-            const respImports = importStatementsExtractTransformer({ source: responderSource });
-            const adapterImports = respImports.filter((p) => String(p).includes('adapters/'));
-
-            if (adapterImports.length === 1) {
-              const [adp] = adapterImports;
-              if (adp !== undefined) {
-                const adpFolder = adapterFolderFromImportPathTransformer({ importPath: adp });
-                if (String(adpFolder) !== '') {
-                  parts.push(contentTextContract.parse(`      → server/${String(adpFolder)}`));
-                }
-                const adpAbsPath = relativeImportResolveTransformer({
-                  sourceFile: responderAbsPath,
-                  importPath: adp,
-                });
-                if (adpAbsPath !== null) {
-                  const adpSource = readSourceLayerBroker({ filePath: adpAbsPath });
-                  if (adpSource !== undefined) {
-                    const call = namespaceCallFirstExtractTransformer({ source: adpSource });
-                    if (call !== null) {
-                      parts.push(contentTextContract.parse(`            → ${String(call)}`));
-                    }
-                  }
+        if (adapterImports.length === 1) {
+          const [adp] = adapterImports;
+          if (adp !== undefined) {
+            const adpFolder = adapterFolderFromImportPathTransformer({ importPath: adp });
+            if (String(adpFolder) !== '') {
+              parts.push(contentTextContract.parse(`      → server/${String(adpFolder)}`));
+            }
+            const adpAbsPath = relativeImportResolveTransformer({
+              sourceFile: edge.serverResponderFile,
+              importPath: adp,
+            });
+            if (adpAbsPath !== null) {
+              const adpSource = readSourceLayerBroker({ filePath: adpAbsPath });
+              if (adpSource !== undefined) {
+                const call = namespaceCallFirstExtractTransformer({ source: adpSource });
+                if (call !== null) {
+                  parts.push(contentTextContract.parse(`            → ${String(call)}`));
                 }
               }
-            } else if (adapterImports.length > 1) {
-              for (let i = 0; i < adapterImports.length; i++) {
-                const adp = adapterImports[i];
-                if (adp === undefined) continue;
-                const adpFolder = adapterFolderFromImportPathTransformer({ importPath: adp });
-                const isLast = i === adapterImports.length - 1;
-                const prefix = isLast ? '      └─→' : '      ├─→';
-                if (String(adpFolder) !== '') {
-                  parts.push(contentTextContract.parse(`${prefix} server/${String(adpFolder)}`));
-                }
-                const adpAbsPath = relativeImportResolveTransformer({
-                  sourceFile: responderAbsPath,
-                  importPath: adp,
-                });
-                if (adpAbsPath !== null) {
-                  const adpSource = readSourceLayerBroker({ filePath: adpAbsPath });
-                  if (adpSource !== undefined) {
-                    const call = namespaceCallFirstExtractTransformer({ source: adpSource });
-                    if (call !== null) {
-                      parts.push(contentTextContract.parse(`                  → ${String(call)}`));
-                    }
-                  }
+            }
+          }
+        } else if (adapterImports.length > 1) {
+          for (let i = 0; i < adapterImports.length; i += 1) {
+            const adp = adapterImports[i];
+            if (adp === undefined) continue;
+            const adpFolder = adapterFolderFromImportPathTransformer({ importPath: adp });
+            const isLast = i === adapterImports.length - 1;
+            const prefix = isLast ? '      └─→' : '      ├─→';
+            if (String(adpFolder) !== '') {
+              parts.push(contentTextContract.parse(`${prefix} server/${String(adpFolder)}`));
+            }
+            const adpAbsPath = relativeImportResolveTransformer({
+              sourceFile: edge.serverResponderFile,
+              importPath: adp,
+            });
+            if (adpAbsPath !== null) {
+              const adpSource = readSourceLayerBroker({ filePath: adpAbsPath });
+              if (adpSource !== undefined) {
+                const call = namespaceCallFirstExtractTransformer({ source: adpSource });
+                if (call !== null) {
+                  parts.push(contentTextContract.parse(`                  → ${String(call)}`));
                 }
               }
             }

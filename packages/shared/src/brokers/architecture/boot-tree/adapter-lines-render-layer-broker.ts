@@ -17,9 +17,8 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
-import { importPathToPackagePrefixTransformer } from '../../../transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer';
+import { adapterFilePathToDisplayTransformer } from '../../../transformers/adapter-file-path-to-display/adapter-file-path-to-display-transformer';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
-import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
 import { adapterImportsFindLayerBroker } from './adapter-imports-find-layer-broker';
 
 export const adapterLinesRenderLayerBroker = ({
@@ -35,10 +34,8 @@ export const adapterLinesRenderLayerBroker = ({
   const lines: ContentText[] = [];
 
   for (const { filePath, isWsSubscriber } of adapters) {
-    const displayName = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
-    const symbolName = filePathToSymbolNameTransformer({ filePath });
-
     if (isWsSubscriber) {
+      const displayName = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
       lines.push(
         contentTextContract.parse(
           `      + ${String(displayName)}    ← runtime FLOW shown in Side-channel`,
@@ -47,15 +44,11 @@ export const adapterLinesRenderLayerBroker = ({
       continue;
     }
 
-    let renderName: ContentText = displayName;
+    let renderName: ContentText = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
     try {
-      renderName = importPathToPackagePrefixTransformer({
-        renderingFilePath,
-        referencedFilePath: filePath,
-        symbolName: String(symbolName),
-      });
+      renderName = adapterFilePathToDisplayTransformer({ filePath, renderingFilePath });
     } catch {
-      // keep displayName as fallback
+      // keep displayName fallback assigned above
     }
 
     lines.push(contentTextContract.parse(`      → ${String(renderName)}`));

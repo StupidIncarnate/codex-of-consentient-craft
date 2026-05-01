@@ -27,7 +27,7 @@ describe('adapterLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '      → hono-serve-adapter' })]);
+      expect(result).toStrictEqual([ContentTextStub({ value: '      → adapters/hono/serve' })]);
     });
   });
 

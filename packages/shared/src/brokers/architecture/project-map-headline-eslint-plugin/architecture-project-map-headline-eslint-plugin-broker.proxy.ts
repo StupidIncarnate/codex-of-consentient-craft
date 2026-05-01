@@ -2,7 +2,6 @@ import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/abs
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { listRuleFilesLayerBrokerProxy } from './list-rule-files-layer-broker.proxy';
-import { rulesSectionRenderLayerBrokerProxy } from './rules-section-render-layer-broker.proxy';
 import { configPresetsSectionRenderLayerBrokerProxy } from './config-presets-section-render-layer-broker.proxy';
 import { exemplarSectionRenderLayerBrokerProxy } from './exemplar-section-render-layer-broker.proxy';
 import { readSourceLayerBrokerProxy } from './read-source-layer-broker.proxy';
@@ -19,7 +18,6 @@ export const architectureProjectMapHeadlineEslintPluginBrokerProxy = (): {
   }) => void;
 } => {
   const listProxy = listRuleFilesLayerBrokerProxy();
-  rulesSectionRenderLayerBrokerProxy();
   configPresetsSectionRenderLayerBrokerProxy();
   const exemplarProxy = exemplarSectionRenderLayerBrokerProxy();
   const readProxy = readSourceLayerBrokerProxy();

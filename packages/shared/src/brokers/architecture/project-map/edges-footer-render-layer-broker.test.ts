@@ -15,7 +15,8 @@ describe('edgesFooterRenderLayerBroker', () => {
 
       expect(result).toStrictEqual(
         ContentTextStub({
-          value: '## EDGES\n\n```\nHTTP edges (paired): 0\nHTTP edges (orphan): 0\n```',
+          value:
+            '## EDGES\n\n```\nHTTP edges:\n  web → server (paired): 0\n  web → server (orphan): 0\n```',
         }),
       );
     });
@@ -30,7 +31,8 @@ describe('edgesFooterRenderLayerBroker', () => {
 
       expect(result).toStrictEqual(
         ContentTextStub({
-          value: '## EDGES\n\n```\nHTTP edges (paired): 0\nHTTP edges (orphan): 2\n```',
+          value:
+            '## EDGES\n\n```\nHTTP edges:\n  web → server (paired): 0\n  web → server (orphan): 2\n```',
         }),
       );
     });

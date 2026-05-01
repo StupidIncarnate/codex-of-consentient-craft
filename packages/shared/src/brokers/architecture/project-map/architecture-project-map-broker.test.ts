@@ -78,22 +78,6 @@ describe('architectureProjectMapBroker', () => {
     });
   });
 
-  describe('inventory subsection', () => {
-    it('VALID: {library package} => output contains ### Inventory subsection', async () => {
-      const proxy = architectureProjectMapBrokerProxy();
-      proxy.setupLibraryPackage({ packageName: 'shared' });
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
-
-      const result = await architectureProjectMapBroker({ projectRoot });
-
-      expect(
-        String(result)
-          .split('\n')
-          .some((l) => l === '### Inventory'),
-      ).toBe(true);
-    });
-  });
-
   describe('library type skips boot section', () => {
     it('VALID: {library package} => output does not contain ## Boot heading', async () => {
       const proxy = architectureProjectMapBrokerProxy();

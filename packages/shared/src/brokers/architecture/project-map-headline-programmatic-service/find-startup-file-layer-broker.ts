@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Finds the primary startup file for a programmatic-service package by listing
- * files in src/startup/ and returning the first non-test file that matches *-startup.ts or
- * start-*.ts naming (excludes integration tests, proxy files, and stubs).
+ * PURPOSE: Finds the startup file that exports the programmatic-service namespace
+ * (an object literal with async methods) by scanning every non-test startup file in src/startup/.
  *
  * USAGE:
  * const path = findStartupFileLayerBroker({
  *   packageRoot: absoluteFilePathContract.parse('/repo/packages/orchestrator'),
  * });
- * // Returns AbsoluteFilePath or undefined when no startup file is found
+ * // Returns AbsoluteFilePath of the file containing `export const StartOrchestrator = { ... }`
+ * // or undefined when no namespace-exporting startup file is found
  *
  * WHEN-TO-USE: project-map-headline-programmatic-service-broker locating the namespace export source
  */
@@ -15,6 +15,8 @@
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
+import { startupExportsAsyncNamespaceGuard } from '../../../guards/startup-exports-async-namespace/startup-exports-async-namespace-guard';
+import { readSourceLayerBroker } from './read-source-layer-broker';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
 export const findStartupFileLayerBroker = ({
@@ -27,10 +29,12 @@ export const findStartupFileLayerBroker = ({
 
   for (const entry of entries) {
     if (!entry.isFile()) continue;
+    if (!entry.name.startsWith('start-') || !entry.name.endsWith('.ts')) continue;
     const entryPath = absoluteFilePathContract.parse(`${String(startupDir)}/${entry.name}`);
     if (!isNonTestFileGuard({ filePath: entryPath })) continue;
-    // Match start-*.ts files (the main export namespace file)
-    if (entry.name.startsWith('start-') && entry.name.endsWith('.ts')) {
+    const source = readSourceLayerBroker({ filePath: entryPath });
+    if (source === undefined) continue;
+    if (startupExportsAsyncNamespaceGuard({ startupFileContent: String(source) })) {
       return entryPath;
     }
   }
