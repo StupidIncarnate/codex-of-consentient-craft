@@ -91,15 +91,19 @@ One renderer per detected type. Each is its own broker file under `packages/shar
     - For each package: detect type → render Header / Boot / Headline / Exemplar / Side-channel / Excluded / Inventory-counts
     - Cross-package EDGES footer
     - Pointer footer to `get-project-inventory` and `get-project-map({expand:…})` (deferred args)
-24. **Extend** `packages/shared/src/statics/project-map/project-map-statics.ts` with:
+24. [x] **Extend** `packages/shared/src/statics/project-map/project-map-statics.ts` with:
     - `excludedFolders: ['guards', 'transformers', 'contracts', 'assets']`
     - `staticsInlineThreshold: 15` (used by library renderer)
     - Symbol legend block (matches server-map.md header table)
     - Test-file suffix filter list (`.test.ts`, `.test.tsx`, `.proxy.ts`, `.proxy.tsx`, `.stub.ts`, `.integration.test.ts`)
-25. **Add a single shared filter guard** `packages/shared/src/guards/is-non-test-file/is-non-test-file-guard.ts` that consumes the suffix list above. **Every** extractor (boot-tree, edge-graph, state-writes, widget-tree, headline renderers, package-inventory) MUST route file-listing through this guard. Centralized so the filter cannot drift across extractors.
+25. [x] **Add a single shared filter guard** `packages/shared/src/guards/is-non-test-file/is-non-test-file-guard.ts` that consumes the suffix list above. **Every** extractor (boot-tree, edge-graph, state-writes, widget-tree, headline renderers, package-inventory) MUST route file-listing through this guard. Centralized so the filter cannot drift across extractors.
 26. **Add transformers for two repeated rendering concerns:**
     - `packages/shared/src/transformers/layer-file-parent-resolve/layer-file-parent-resolve-transformer.ts` — given a layer file path (`-layer-` infix, e.g. `quest-chat-content-layer-widget.tsx`), returns its parent entry file path. Naming convention: strip `-<word>-layer` → parent name. Used by Boot-tree and headline renderers to inline layer files under their parent (brief item 10).
     - `packages/shared/src/transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer.ts` — given the file currently being rendered + a referenced symbol's source path, returns the cross-package qualified name (`shared/brokers/portResolveBroker`) when the source is in a different package, or just the bare name when local. Used everywhere cross-package origins must be inline-qualified (brief item 8).
+
+> [DONE: import-path]
+> [DONE: layer-file]
+> [VERIFIED green by orchestrator-verification agent]
 
 ### 2e. Tests
 

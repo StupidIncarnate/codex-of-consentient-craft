@@ -75,3 +75,6 @@ export * from './src/transformers/previous-review-quest-status/previous-review-q
 
 // Display Header Quest Status
 export * from './src/transformers/display-header-quest-status/display-header-quest-status-transformer';
+
+// Layer File Parent Resolve
+export * from './src/transformers/layer-file-parent-resolve/layer-file-parent-resolve-transformer';

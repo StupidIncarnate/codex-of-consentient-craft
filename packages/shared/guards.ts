@@ -10,6 +10,7 @@
 
 export * from './src/guards/is-key-of/is-key-of-guard';
 export * from './src/guards/has-quest-gate-content/has-quest-gate-content-guard';
+export * from './src/guards/is-non-test-file/is-non-test-file-guard';
 
 // Quest Status Guards
 export * from './src/guards/is-pre-execution-quest-status/is-pre-execution-quest-status-guard';
