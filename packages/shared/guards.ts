@@ -43,3 +43,13 @@ export * from './src/guards/is-failure-work-item-status/is-failure-work-item-sta
 
 // Folder Type Groups Guards
 export * from './src/guards/is-valid-folder-type-groups/is-valid-folder-type-groups-guard';
+
+// Package Type Detection Guards
+export * from './src/guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
+export * from './src/guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';
+export * from './src/guards/has-ink-adapter/has-ink-adapter-guard';
+export * from './src/guards/has-widgets-folder/has-widgets-folder-guard';
+export * from './src/guards/react-in-deps/react-in-deps-guard';
+export * from './src/guards/startup-references-argv/startup-references-argv-guard';
+export * from './src/guards/flow-returns-tool-registration/flow-returns-tool-registration-guard';
+export * from './src/guards/startup-exports-async-namespace/startup-exports-async-namespace-guard';

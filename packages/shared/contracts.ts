@@ -505,3 +505,11 @@ export * from './src/contracts/tool-result-content-block-param/tool-result-conte
 
 export * from './src/contracts/assistant-content-block-param/assistant-content-block-param-contract';
 export * from './src/contracts/assistant-content-block-param/assistant-content-block-param.stub';
+
+// Package JSON Contracts
+export * from './src/contracts/package-json/package-json-contract';
+export * from './src/contracts/package-json/package-json.stub';
+
+// Package Type Contracts
+export * from './src/contracts/package-type/package-type-contract';
+export * from './src/contracts/package-type/package-type.stub';
