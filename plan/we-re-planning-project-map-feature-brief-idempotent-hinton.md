@@ -82,7 +82,7 @@ One renderer per detected type. Each is its own broker file under `packages/shar
 15. [x] `project-map-headline-programmatic-service-broker` — Public API method table grouped by domain + event-bus emissions list + owned state stores. One API-call exemplar.
 16. [x] `project-map-headline-cli-tool-broker` — Subcommand → responder table. One subcommand exemplar.
 17. [x] `project-map-headline-hook-handlers-broker` — Hook event registration table (each `bin` entry → startup → flow → responder → spawned subprocess / fs writes). One hook invocation exemplar.
-18. `project-map-headline-eslint-plugin-broker` — Rules grouped by name prefix (ban-, enforce-, forbid-, require-, no-, other) + config presets. One rule's broker as exemplar (no request-shape).
+18. [x] `project-map-headline-eslint-plugin-broker` — Rules grouped by name prefix (ban-, enforce-, forbid-, require-, no-, other) + config presets. One rule's broker as exemplar (no request-shape).
 19. `project-map-headline-frontend-react-broker` — Widget composition tree (roots + 2 levels of children) + which bindings/brokers attach where. Hubs listed separately. One user-interaction exemplar (click → broker → HTTP edge AND WS dispatch back → state writes → re-render).
 20. `project-map-headline-library-broker` — Barrel export table + consumer-package count. No exemplar trace.
 20a. **`frontend-ink` is detected but NOT rendered in v1.** No current package is `frontend-ink`. The composer's per-type switch must throw a clear error if a `frontend-ink` package is encountered (rather than silently falling back to `library`), telling the user to add the renderer. Renderer deferred to v2.
