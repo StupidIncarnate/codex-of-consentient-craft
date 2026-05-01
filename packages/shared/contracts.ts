@@ -565,3 +565,7 @@ export * from './src/contracts/server-route-call-site/server-route-call-site.stu
 // Web Fetch Call Site Contracts
 export * from './src/contracts/web-fetch-call-site/web-fetch-call-site-contract';
 export * from './src/contracts/web-fetch-call-site/web-fetch-call-site.stub';
+
+// Bin Entry Contracts
+export * from './src/contracts/bin-entry/bin-entry-contract';
+export * from './src/contracts/bin-entry/bin-entry.stub';
