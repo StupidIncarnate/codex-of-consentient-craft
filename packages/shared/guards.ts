@@ -48,6 +48,9 @@ export * from './src/guards/is-valid-folder-type-groups/is-valid-folder-type-gro
 export * from './src/guards/is-ws-subscriber-name/is-ws-subscriber-name-guard';
 export * from './src/guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
+// Widget Tree Guards
+export * from './src/guards/matches-widget-file-name/matches-widget-file-name-guard';
+
 // Package Type Detection Guards
 export * from './src/guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
 export * from './src/guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';

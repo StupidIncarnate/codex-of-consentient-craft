@@ -521,3 +521,15 @@ export * from './src/contracts/state-writes-result/state-writes-result.stub';
 // File Write Call Contracts
 export * from './src/contracts/file-write-call/file-write-call-contract';
 export * from './src/contracts/file-write-call/file-write-call.stub';
+
+// Widget Edges Contracts
+export * from './src/contracts/widget-edges/widget-edges-contract';
+export * from './src/contracts/widget-edges/widget-edges.stub';
+
+// Widget Node Contracts
+export * from './src/contracts/widget-node/widget-node-contract';
+export * from './src/contracts/widget-node/widget-node.stub';
+
+// Widget Tree Result Contracts
+export * from './src/contracts/widget-tree-result/widget-tree-result-contract';
+export * from './src/contracts/widget-tree-result/widget-tree-result.stub';

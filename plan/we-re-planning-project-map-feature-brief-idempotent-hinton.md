@@ -65,7 +65,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
     - `fsAppendFileAdapter` / `fsWriteFileAdapter` / `fsMkdirAdapter` callers traced back to literal paths via `shared/brokers/locations/*-find-broker` chains (file writes)
     - localStorage/sessionStorage/indexedDB usage in adapters (browser storage)
     - Reuses path-resolution logic with file-bus broker.
-11. **`packages/shared/src/brokers/architecture/widget-tree/`** — frontend-react only. For each widget file, extract imports targeting other widget paths. Build directed graph. Roots = widgets imported by responders/flows. Hubs = in-degree ≥ 5 (listed separately, not inline).
+11. [x] **`packages/shared/src/brokers/architecture/widget-tree/`** — frontend-react only. For each widget file, extract imports targeting other widget paths. Build directed graph. Roots = widgets imported by responders/flows. Hubs = in-degree ≥ 5 (listed separately, not inline).
 12. [x] **`packages/shared/src/brokers/architecture/boot-tree/`** — startup → flows → responders skeleton. Universal across all types except `library` (libraries skip Boot section).
 
 ### 2c. Per-type renderers

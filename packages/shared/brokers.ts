@@ -22,6 +22,9 @@ export * from './src/brokers/architecture/package-type-detect/architecture-packa
 // Architecture Boot Tree
 export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broker';
 
+// Architecture Widget Tree
+export * from './src/brokers/architecture/widget-tree/architecture-widget-tree-broker';
+
 // Config Root
 export * from './src/brokers/config-root/find/config-root-find-broker';
 

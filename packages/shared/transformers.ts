@@ -93,3 +93,6 @@ export * from './src/transformers/file-path-to-symbol-name/file-path-to-symbol-n
 
 // Flow Name From File Path
 export * from './src/transformers/flow-name-from-file-path/flow-name-from-file-path-transformer';
+
+// Widget File Name Extract
+export * from './src/transformers/widget-file-name-extract/widget-file-name-extract-transformer';
