@@ -53,7 +53,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
 
 ### 2b. Universal extractors
 
-9. **`packages/shared/src/brokers/architecture/edge-graph/`** — five layer brokers, each producing one edge category for the EDGES footer and feeding type-specific headlines:
+9. [x] **`packages/shared/src/brokers/architecture/edge-graph/`** — five layer brokers, each producing one edge category for the EDGES footer and feeding type-specific headlines:
    - `http-edges-layer-broker` — joins server `app.<method>(apiRoutesStatics.<g>.<k>, …)` AST scan with web `fetch{Get,Post,Patch,Delete}Adapter({url: webConfigStatics.api.routes.<k>})`. Resolve both static refs to literals; join key `(method, urlPattern)`. **Must also handle inline string-literal route registrations** (e.g. `app.get('/api/health', …)` if `flows/health/health-flow.ts` doesn't go through `apiRoutesStatics`) — first arg may be either a literal string or a `MemberExpression` resolving into the statics. Verify both shapes during AST walk.
    > [DONE: http-edges]
    - `ws-edges-layer-broker` — emit sites: `orchestrationEventsState.emit({type: '<lit>', …})`. Consume sites: `if (parsed.data.type === '<lit>')` after `wsMessageContract.safeParse`. Join key: literal type string. Canonical union from `packages/shared/src/contracts/orchestration-event-type/orchestration-event-type-contract.ts` (Zod enum, 16 literals).
@@ -63,6 +63,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
    - `direct-call-edges-layer-broker` — every folder `packages/X/adapters/<otherPkg>/<sub>/` is a wrapper; read body to extract `<OtherPkg>.<method>` and signature. Convention: adapter sub-folder name matches an importable package name.
    > [DONE: direct-call-edges]
    - `import-edges-layer-broker` — cross-package barrel imports beyond direct adapters (e.g. `@dungeonmaster/shared/contracts`). Aggregate by source pkg + barrel.
+   > [DONE: import-edges]
    - **Known orphan:** `webConfigStatics.api.routes.sessionChatHistory` (`/api/sessions/:sessionId/chat/history`) has no server-side `apiRoutesStatics` entry. The HTTP-edge join will produce one orphan in v1 output — expected, surface via Phase 3 `orphans?: boolean` if needed.
 10. [x] **`packages/shared/src/brokers/architecture/state-writes/`** — scans:
     - `state/*` folder names imported by responders/brokers (architectural stores)
