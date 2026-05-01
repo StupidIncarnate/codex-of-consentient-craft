@@ -60,7 +60,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
    - `direct-call-edges-layer-broker` — every folder `packages/X/adapters/<otherPkg>/<sub>/` is a wrapper; read body to extract `<OtherPkg>.<method>` and signature. Convention: adapter sub-folder name matches an importable package name.
    - `import-edges-layer-broker` — cross-package barrel imports beyond direct adapters (e.g. `@dungeonmaster/shared/contracts`). Aggregate by source pkg + barrel.
    - **Known orphan:** `webConfigStatics.api.routes.sessionChatHistory` (`/api/sessions/:sessionId/chat/history`) has no server-side `apiRoutesStatics` entry. The HTTP-edge join will produce one orphan in v1 output — expected, surface via Phase 3 `orphans?: boolean` if needed.
-10. **`packages/shared/src/brokers/architecture/state-writes/`** — scans:
+10. [x] **`packages/shared/src/brokers/architecture/state-writes/`** — scans:
     - `state/*` folder names imported by responders/brokers (architectural stores)
     - `fsAppendFileAdapter` / `fsWriteFileAdapter` / `fsMkdirAdapter` callers traced back to literal paths via `shared/brokers/locations/*-find-broker` chains (file writes)
     - localStorage/sessionStorage/indexedDB usage in adapters (browser storage)

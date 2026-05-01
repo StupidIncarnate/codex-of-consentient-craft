@@ -39,6 +39,13 @@ describe('projectMapStatics', () => {
 
 ---`,
       hookHandlersMinBinCount: 2,
+      sourceFileExtensions: ['.ts', '.tsx', '.js', '.jsx'],
+      fsWriteAdapterNames: ['fsAppendFileAdapter', 'fsWriteFileAdapter', 'fsMkdirAdapter'],
+      browserStoragePatterns: {
+        localStoragePrefix: 'localStorage: ',
+        sessionStoragePrefix: 'sessionStorage: ',
+        indexedDbPrefix: 'indexedDB: ',
+      },
     });
   });
 });

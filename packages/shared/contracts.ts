@@ -513,3 +513,11 @@ export * from './src/contracts/package-json/package-json.stub';
 // Package Type Contracts
 export * from './src/contracts/package-type/package-type-contract';
 export * from './src/contracts/package-type/package-type.stub';
+
+// State Writes Result Contracts
+export * from './src/contracts/state-writes-result/state-writes-result-contract';
+export * from './src/contracts/state-writes-result/state-writes-result.stub';
+
+// File Write Call Contracts
+export * from './src/contracts/file-write-call/file-write-call-contract';
+export * from './src/contracts/file-write-call/file-write-call.stub';
