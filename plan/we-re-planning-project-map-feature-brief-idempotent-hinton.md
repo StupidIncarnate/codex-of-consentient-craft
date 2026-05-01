@@ -59,6 +59,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
    - `ws-edges-layer-broker` — emit sites: `orchestrationEventsState.emit({type: '<lit>', …})`. Consume sites: `if (parsed.data.type === '<lit>')` after `wsMessageContract.safeParse`. Join key: literal type string. Canonical union from `packages/shared/src/contracts/orchestration-event-type/orchestration-event-type-contract.ts` (Zod enum, 16 literals).
    > [DONE: ws-edges]
    - `file-bus-edges-layer-broker` — pairs `fsAppendFileAdapter`/`fsWriteFileAdapter` callers with `fsWatchTailAdapter` callers, joining on resolved literal path (resolved through `shared/brokers/locations/*-find-broker` chains).
+   > [DONE: file-bus-edges]
    - `direct-call-edges-layer-broker` — every folder `packages/X/adapters/<otherPkg>/<sub>/` is a wrapper; read body to extract `<OtherPkg>.<method>` and signature. Convention: adapter sub-folder name matches an importable package name.
    - `import-edges-layer-broker` — cross-package barrel imports beyond direct adapters (e.g. `@dungeonmaster/shared/contracts`). Aggregate by source pkg + barrel.
    - **Known orphan:** `webConfigStatics.api.routes.sessionChatHistory` (`/api/sessions/:sessionId/chat/history`) has no server-side `apiRoutesStatics` entry. The HTTP-edge join will produce one orphan in v1 output — expected, surface via Phase 3 `orphans?: boolean` if needed.

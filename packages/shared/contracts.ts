@@ -542,6 +542,14 @@ export * from './src/contracts/http-edge/http-edge.stub';
 export * from './src/contracts/ws-edge/ws-edge-contract';
 export * from './src/contracts/ws-edge/ws-edge.stub';
 
+// File Bus Edge Contracts
+export * from './src/contracts/file-bus-edge/file-bus-edge-contract';
+export * from './src/contracts/file-bus-edge/file-bus-edge.stub';
+
+// Fs Watch Tail Call Contracts
+export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call-contract';
+export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call.stub';
+
 // Server Route Call Site Contracts
 export * from './src/contracts/server-route-call-site/server-route-call-site-contract';
 export * from './src/contracts/server-route-call-site/server-route-call-site.stub';
