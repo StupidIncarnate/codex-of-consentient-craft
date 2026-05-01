@@ -538,6 +538,10 @@ export * from './src/contracts/widget-tree-result/widget-tree-result.stub';
 export * from './src/contracts/http-edge/http-edge-contract';
 export * from './src/contracts/http-edge/http-edge.stub';
 
+// WS Edge Contracts
+export * from './src/contracts/ws-edge/ws-edge-contract';
+export * from './src/contracts/ws-edge/ws-edge.stub';
+
 // Server Route Call Site Contracts
 export * from './src/contracts/server-route-call-site/server-route-call-site-contract';
 export * from './src/contracts/server-route-call-site/server-route-call-site.stub';
