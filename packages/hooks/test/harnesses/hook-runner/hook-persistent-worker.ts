@@ -15,7 +15,7 @@ type SyncHookFlow = (params: { inputData: string }) => ExecResult;
 type SessionSnippetFlow = (params: {
   snippetKey: string | undefined;
   hookInput: unknown;
-}) => ExecResult;
+}) => Promise<ExecResult>;
 
 interface FlowModule {
   HookPreEditFlow?: AsyncHookFlow;
@@ -45,7 +45,7 @@ const processEnvelope = async (params: {
     const snippetKey = envelope.args?.[0];
     const hookInput: unknown =
       envelope.rawInput === undefined ? envelope.hookData : JSON.parse(envelope.rawInput);
-    const result = flowModule.HookSessionSnippetFlow({ snippetKey, hookInput });
+    const result = await flowModule.HookSessionSnippetFlow({ snippetKey, hookInput });
     writeResult(result);
     return;
   }

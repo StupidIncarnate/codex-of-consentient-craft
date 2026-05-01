@@ -2,7 +2,7 @@
  * PURPOSE: Generates a package summary snippet by extracting package headers from the project map
  *
  * USAGE:
- * const content = HookSessionSnippetPackagesResponder();
+ * const content = await HookSessionSnippetPackagesResponder();
  * // Returns ContentText with markdown list of package names and descriptions
  *
  * WHEN-TO-USE: When the session-snippet hook needs dynamic packages content at runtime
@@ -15,12 +15,12 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { extractPackageHeadersTransformer } from '../../../transformers/extract-package-headers/extract-package-headers-transformer';
 
-export const HookSessionSnippetPackagesResponder = ({
+export const HookSessionSnippetPackagesResponder = async ({
   projectRoot = absoluteFilePathContract.parse(processCwdAdapter()),
 }: {
   projectRoot?: AbsoluteFilePath;
-} = {}): ContentText => {
-  const fullMap = architectureProjectMapBroker({
+} = {}): Promise<ContentText> => {
+  const fullMap = await architectureProjectMapBroker({
     projectRoot: absoluteFilePathContract.parse(String(projectRoot)),
   });
 

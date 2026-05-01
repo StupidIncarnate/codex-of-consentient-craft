@@ -1,7 +1,9 @@
 import type { Dirent } from 'fs';
-import { architecturePackageInventoryBrokerProxy } from '../package-inventory/architecture-package-inventory-broker.proxy';
+import { architecturePackageTypeDetectBrokerProxy } from '../package-type-detect/architecture-package-type-detect-broker.proxy';
+import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
+import { edgesFooterRenderLayerBrokerProxy } from './edges-footer-render-layer-broker.proxy';
+import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -17,77 +19,76 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
     isSymbolicLink: () => false,
   }) as Dirent;
 
+/**
+ * All sub-proxies share the same underlying `readdirSync` and `readFileSync` mock handles
+ * via registerMock's stack-based dispatch. When multiple sub-proxies call setupImplementation,
+ * each one overwrites the shared baseImpl. The LAST setup call wins.
+ *
+ * Setup ordering rule: call proxy setups that install readdir/readFile implementations
+ * (edgesFooterProxy, sectionProxy) BEFORE typeDetectProxy.setupPackage so that the
+ * type-detect routing implementation is the last one set and governs the type-detection pass.
+ */
 export const architectureProjectMapBrokerProxy = (): {
-  setupMonorepo: ({
-    packages,
-  }: {
-    packages: {
-      name: string;
-      description?: ContentText;
-      folders: {
-        name: string;
-        entries: { name: string; isDir: boolean }[];
-        subEntries?: Record<string, { name: string; isDir: boolean }[]>;
-      }[];
-    }[];
-  }) => void;
-  setupSingleRepo: ({
-    folders,
-    description,
-  }: {
-    folders: {
-      name: string;
-      entries: { name: string; isDir: boolean }[];
-      subEntries?: Record<string, { name: string; isDir: boolean }[]>;
-    }[];
-    description?: ContentText;
-  }) => void;
-  setupEmptySrc: () => void;
+  setupLibraryPackage: ({ packageName }: { packageName: string }) => void;
+  setupFrontendInkPackage: ({ packageName }: { packageName: string }) => void;
+  setupEmptyMonorepo: () => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
-  const inventoryProxy = architecturePackageInventoryBrokerProxy();
+  const typeDetectProxy = architecturePackageTypeDetectBrokerProxy();
+  const sectionProxy = packageSectionBuildLayerBrokerProxy();
+  const edgesFooterProxy = edgesFooterRenderLayerBrokerProxy();
+  pointerFooterRenderLayerBrokerProxy();
 
   return {
-    setupMonorepo: ({
-      packages,
-    }: {
-      packages: {
-        name: string;
-        description?: ContentText;
-        folders: {
-          name: string;
-          entries: { name: string; isDir: boolean }[];
-          subEntries?: Record<string, { name: string; isDir: boolean }[]>;
-        }[];
-      }[];
-    }): void => {
+    setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
+      // discoverProxy must queue its ReturnValueOnce BEFORE sectionProxy runs, because
+      // sectionProxy's excludedAuditProxy.setupEmpty() also queues a ReturnValueOnce([]).
+      // Queue ordering: discoverProxy's entry is consumed first by discoverPackagesLayerBroker;
+      // the extra [] from excludedAudit is consumed harmlessly by the first type-detect readdir
+      // call (which returns [] from the routing fn anyway since srcDirNames is empty).
       discoverProxy.setupPackages({
-        entries: packages.map((pkg) => makeDirent({ name: pkg.name, isDir: true })),
+        entries: [makeDirent({ name: packageName, isDir: true })],
       });
-      inventoryProxy.setupMonorepoPackages({ packages });
-    },
-
-    setupSingleRepo: ({
-      folders,
-      description,
-    }: {
-      folders: {
-        name: string;
-        entries: { name: string; isDir: boolean }[];
-        subEntries?: Record<string, { name: string; isDir: boolean }[]>;
-      }[];
-      description?: ContentText;
-    }): void => {
-      discoverProxy.setupMissingPackagesDir();
-      inventoryProxy.setupSingleRepo({
-        folders,
-        ...(description !== undefined && { description }),
+      // edgesFooterProxy and sectionProxy must come before typeDetectProxy so that the
+      // type-detect readdir routing is set last and wins for the type-detection pass.
+      edgesFooterProxy.setupEmpty();
+      sectionProxy.setupLibraryPackage({ packageName });
+      typeDetectProxy.setupPackage({
+        packageRoot: `/project/packages/${packageName}`,
+        packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
+        srcDirNames: [],
+        adapterDirNames: [],
       });
     },
 
-    setupEmptySrc: (): void => {
+    setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
+      // Only type-detect and discover setup is needed here. The section build calls
+      // architectureBootTreeBroker (non-library path) then headlineDispatchLayerBroker which
+      // throws immediately for frontend-ink — no further brokers (side-channel, excluded-audit,
+      // inventory, edges-footer) are reached, so their setups are not required.
+      // typeDetectProxy.setupPackage must come before discoverProxy.setupPackages (which only
+      // queues a ReturnValueOnce) to avoid queue ordering issues.
+      typeDetectProxy.setupPackage({
+        packageRoot: `/project/packages/${packageName}`,
+        packageJsonContent: '{}',
+        srcDirNames: ['widgets', 'adapters'],
+        adapterDirNames: ['ink'],
+      });
+      discoverProxy.setupPackages({
+        entries: [makeDirent({ name: packageName, isDir: true })],
+      });
+    },
+
+    setupEmptyMonorepo: (): void => {
+      edgesFooterProxy.setupEmpty();
+      sectionProxy.setupLibraryPackage({ packageName: 'root' });
+      typeDetectProxy.setupPackage({
+        packageRoot: '/project',
+        packageJsonContent: '{}',
+        srcDirNames: [],
+        adapterDirNames: [],
+      });
       discoverProxy.setupMissingPackagesDir();
-      inventoryProxy.setupEmptySrc();
     },
   };
 };

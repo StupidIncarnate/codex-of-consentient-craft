@@ -111,7 +111,7 @@ export const ArchitectureHandleResponder = async ({
   }
 
   if (tool === 'get-project-map') {
-    const result = architectureProjectMapBroker({
+    const result = await architectureProjectMapBroker({
       projectRoot: absoluteFilePathContract.parse(processCwdAdapter()),
     });
 

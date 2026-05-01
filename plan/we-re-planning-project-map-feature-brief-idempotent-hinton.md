@@ -91,7 +91,7 @@ One renderer per detected type. Each is its own broker file under `packages/shar
 
 ### 2d. Composer + statics
 
-23. **Rewrite** `architecture-project-map-broker` to compose:
+23. [x] **Rewrite** `architecture-project-map-broker` to compose:
     - Top-level header: Symbol legend + URL pairing convention block (appears ONCE, not per-package — sourced from `tmp/server-map.md` lines 1–17)
     - For each package: detect type → render Header / Boot / Headline / Exemplar / Side-channel / Excluded / Inventory-counts
     - Cross-package EDGES footer

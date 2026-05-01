@@ -1,50 +1,33 @@
-import { ContentTextStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 import { HookSessionSnippetPackagesResponder } from './hook-session-snippet-packages-responder';
 import { HookSessionSnippetPackagesResponderProxy } from './hook-session-snippet-packages-responder.proxy';
 
 describe('HookSessionSnippetPackagesResponder', () => {
   describe('generatePackageSummary()', () => {
-    it('VALID: {projectRoot with packages} => returns compact package list with descriptions', () => {
+    it('VALID: {projectRoot with a package} => returns compact package list', async () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupPackages({
-        packages: [
-          { name: 'cli', description: ContentTextStub({ value: 'CLI for quest management' }) },
-          {
-            name: 'shared',
-            description: ContentTextStub({ value: 'Shared contracts and utilities' }),
-          },
-        ],
+        packages: [{ name: 'cli' }],
       });
 
-      const result = HookSessionSnippetPackagesResponder({
+      const result = await HookSessionSnippetPackagesResponder({
         projectRoot: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(
-        ContentTextStub({
-          value: [
-            '## Packages',
-            '',
-            '- **cli** — CLI for quest management',
-            '- **shared** — Shared contracts and utilities',
-          ].join('\n'),
-        }),
-      );
+      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **cli**' }));
     });
 
-    it('VALID: {projectRoot with package without description} => returns name only', () => {
+    it('VALID: {projectRoot with no packages dir} => returns root package entry', async () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
-      proxy.setupPackages({
-        packages: [{ name: 'bare' }],
-      });
+      proxy.setupEmptyMonorepo();
 
-      const result = HookSessionSnippetPackagesResponder({
+      const result = await HookSessionSnippetPackagesResponder({
         projectRoot: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **bare**' }));
+      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **root**' }));
     });
   });
 });

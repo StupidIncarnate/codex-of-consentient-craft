@@ -5,8 +5,8 @@ import { SubagentStartHookDataStub } from '../../contracts/subagent-start-hook-d
 
 describe('HookSessionSnippetFlow', () => {
   describe('SessionStart', () => {
-    it('VALID: {snippetKey: "discover", hookInput: SessionStart} => returns exitCode 0 with raw XML', () => {
-      const result = HookSessionSnippetFlow({
+    it('VALID: {snippetKey: "discover", hookInput: SessionStart} => returns exitCode 0 with raw XML', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'discover',
         hookInput: SessionStartHookStub(),
       });
@@ -18,8 +18,8 @@ describe('HookSessionSnippetFlow', () => {
       });
     });
 
-    it('VALID: {snippetKey: "ward", hookInput: SessionStart} => returns exitCode 0 with raw XML', () => {
-      const result = HookSessionSnippetFlow({
+    it('VALID: {snippetKey: "ward", hookInput: SessionStart} => returns exitCode 0 with raw XML', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'ward',
         hookInput: SessionStartHookStub(),
       });
@@ -31,8 +31,8 @@ describe('HookSessionSnippetFlow', () => {
       });
     });
 
-    it('ERROR: {snippetKey: "nonexistent", hookInput: SessionStart} => returns exitCode 1 with error in stderr', () => {
-      const result = HookSessionSnippetFlow({
+    it('ERROR: {snippetKey: "nonexistent", hookInput: SessionStart} => returns exitCode 1 with error in stderr', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'nonexistent',
         hookInput: SessionStartHookStub(),
       });
@@ -44,8 +44,8 @@ describe('HookSessionSnippetFlow', () => {
       });
     });
 
-    it('ERROR: {snippetKey: undefined, hookInput: SessionStart} => returns exitCode 1 with error in stderr', () => {
-      const result = HookSessionSnippetFlow({
+    it('ERROR: {snippetKey: undefined, hookInput: SessionStart} => returns exitCode 1 with error in stderr', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: undefined,
         hookInput: SessionStartHookStub(),
       });
@@ -59,8 +59,8 @@ describe('HookSessionSnippetFlow', () => {
   });
 
   describe('SubagentStart', () => {
-    it('VALID: {snippetKey: "discover", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', () => {
-      const result = HookSessionSnippetFlow({
+    it('VALID: {snippetKey: "discover", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'discover',
         hookInput: SubagentStartHookDataStub(),
       });
@@ -77,8 +77,8 @@ describe('HookSessionSnippetFlow', () => {
       });
     });
 
-    it('VALID: {snippetKey: "ward", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', () => {
-      const result = HookSessionSnippetFlow({
+    it('VALID: {snippetKey: "ward", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'ward',
         hookInput: SubagentStartHookDataStub(),
       });
@@ -95,8 +95,8 @@ describe('HookSessionSnippetFlow', () => {
       });
     });
 
-    it('ERROR: {snippetKey: "nonexistent", hookInput: SubagentStart} => returns exitCode 1 with raw error in stderr', () => {
-      const result = HookSessionSnippetFlow({
+    it('ERROR: {snippetKey: "nonexistent", hookInput: SubagentStart} => returns exitCode 1 with raw error in stderr', async () => {
+      const result = await HookSessionSnippetFlow({
         snippetKey: 'nonexistent',
         hookInput: SubagentStartHookDataStub(),
       });

@@ -2,7 +2,7 @@
  * PURPOSE: Validates snippet key and returns the corresponding architecture snippet content
  *
  * USAGE:
- * const result = HookSessionSnippetFlow({ snippetKey: 'discover', hookInput: parsedStdin });
+ * const result = await HookSessionSnippetFlow({ snippetKey: 'discover', hookInput: parsedStdin });
  * // Returns ExecResult with stdout containing the snippet wrapped in XML tags
  * // For SubagentStart hookInput: stdout is JSON with additionalContext for sub-agent injection
  *
@@ -27,18 +27,18 @@ type DynamicKey = {
     : never;
 }[keyof typeof sessionSnippetStatics];
 
-const dynamicGenerators: Record<DynamicKey, () => ContentText> = {
-  folderTypes: buildFolderTypesTableTransformer,
-  packages: () => HookSessionSnippetPackagesResponder(),
+const dynamicGenerators: Record<DynamicKey, () => Promise<ContentText>> = {
+  folderTypes: async () => Promise.resolve(buildFolderTypesTableTransformer()),
+  packages: async () => HookSessionSnippetPackagesResponder(),
 };
 
-export const HookSessionSnippetFlow = ({
+export const HookSessionSnippetFlow = async ({
   snippetKey,
   hookInput,
 }: {
   snippetKey: string | undefined;
   hookInput: unknown;
-}): ExecResult => {
+}): Promise<ExecResult> => {
   if (!snippetKey || !isKeyOfGuard(snippetKey, sessionSnippetStatics)) {
     return execResultContract.parse({
       stderr: `Unknown snippet key: ${snippetKey ?? '(none)'}\n`,
@@ -50,7 +50,7 @@ export const HookSessionSnippetFlow = ({
   const staticValue = sessionSnippetStatics[snippetKey];
 
   const rawContent =
-    staticValue === null ? dynamicGenerators[snippetKey as DynamicKey]() : staticValue;
+    staticValue === null ? await dynamicGenerators[snippetKey as DynamicKey]() : staticValue;
 
   const xmlTagged = execResultContract.shape.stdout.parse(
     `<dungeonmaster-${snippetKey}>\n${rawContent}\n</dungeonmaster-${snippetKey}>\n`,

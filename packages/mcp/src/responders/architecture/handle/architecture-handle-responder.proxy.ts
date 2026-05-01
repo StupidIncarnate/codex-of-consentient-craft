@@ -35,9 +35,11 @@ export const ArchitectureHandleResponderProxy = (): {
     pattern: GlobPattern;
   }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
-  setupMonorepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupMonorepo'];
-  setupSingleRepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupSingleRepo'];
-  setupEmptySrc: ReturnType<typeof architectureProjectMapBrokerProxy>['setupEmptySrc'];
+  setupLibraryPackage: ReturnType<typeof architectureProjectMapBrokerProxy>['setupLibraryPackage'];
+  setupFrontendInkPackage: ReturnType<
+    typeof architectureProjectMapBrokerProxy
+  >['setupFrontendInkPackage'];
+  setupEmptyMonorepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupEmptyMonorepo'];
 } => {
   processCwdAdapterProxy();
   architectureOverviewBrokerProxy();
@@ -75,20 +77,22 @@ export const ArchitectureHandleResponderProxy = (): {
         content: ContentTextStub({ value: content }),
       });
     },
-    setupMonorepo: (
-      params: Parameters<ReturnType<typeof architectureProjectMapBrokerProxy>['setupMonorepo']>[0],
-    ): void => {
-      projectMapProxy.setupMonorepo(params);
+    setupLibraryPackage: ({
+      packageName,
+    }: Parameters<
+      ReturnType<typeof architectureProjectMapBrokerProxy>['setupLibraryPackage']
+    >[0]): void => {
+      projectMapProxy.setupLibraryPackage({ packageName });
     },
-    setupSingleRepo: (
-      params: Parameters<
-        ReturnType<typeof architectureProjectMapBrokerProxy>['setupSingleRepo']
-      >[0],
-    ): void => {
-      projectMapProxy.setupSingleRepo(params);
+    setupFrontendInkPackage: ({
+      packageName,
+    }: Parameters<
+      ReturnType<typeof architectureProjectMapBrokerProxy>['setupFrontendInkPackage']
+    >[0]): void => {
+      projectMapProxy.setupFrontendInkPackage({ packageName });
     },
-    setupEmptySrc: (): void => {
-      projectMapProxy.setupEmptySrc();
+    setupEmptyMonorepo: (): void => {
+      projectMapProxy.setupEmptyMonorepo();
     },
   };
 };

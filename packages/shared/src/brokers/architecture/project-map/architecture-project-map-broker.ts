@@ -1,14 +1,19 @@
 /**
- * PURPOSE: Generate compact codebase map showing packages, folder types, file counts, and domain names for LLM orientation
+ * PURPOSE: Compose the full project-map: per-package connection-graph view (boot, type-specific
+ * headline, side-channel, excluded audit, inventory counts) plus a cross-package EDGES footer and
+ * a pointer to the per-package detail tool.
  *
  * USAGE:
- * const markdown = architectureProjectMapBroker({ projectRoot: absoluteFilePathContract.parse('/home/user/project') });
- * // Returns ContentText markdown with package folders, file counts, and domain/action summaries
+ * const markdown = await architectureProjectMapBroker({ projectRoot: absoluteFilePathContract.parse('/home/user/project') });
+ * // Returns ContentText markdown with symbol legend, per-package sections, EDGES footer, and pointer footer
  *
- * WHEN-TO-USE: When LLMs need a quick orientation of what exists where before making targeted discover calls
+ * WHEN-TO-USE: When LLMs need a full connection-graph orientation of the codebase
  */
 
-import { architecturePackageInventoryBroker } from '../package-inventory/architecture-package-inventory-broker';
+import { architecturePackageTypeDetectBroker } from '../package-type-detect/architecture-package-type-detect-broker';
+import { packageSectionBuildLayerBroker } from './package-section-build-layer-broker';
+import { edgesFooterRenderLayerBroker } from './edges-footer-render-layer-broker';
+import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-broker';
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -16,22 +21,20 @@ import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
-export const architectureProjectMapBroker = ({
+export const architectureProjectMapBroker = async ({
   projectRoot,
 }: {
   projectRoot: AbsoluteFilePath;
-}): ContentText => {
+}): Promise<ContentText> => {
   const packagesPath = absoluteFilePathContract.parse(
     `${projectRoot}/${projectMapStatics.packagesDirName}`,
   );
   const packagesEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
   const packageDirs = packagesEntries.filter((entry) => entry.isDirectory());
 
-  const sections: ContentText[] = [contentTextContract.parse(projectMapStatics.header)];
-
-  // Build scan targets: monorepo packages or single root
   const scanTargets: {
     packageName: ContentText;
+    packageRoot: AbsoluteFilePath;
     srcPath: AbsoluteFilePath;
     packageJsonPath: AbsoluteFilePath;
   }[] = [];
@@ -40,30 +43,52 @@ export const architectureProjectMapBroker = ({
     const sortedPackages = [...packageDirs].sort((a, b) => a.name.localeCompare(b.name));
 
     for (const pkg of sortedPackages) {
+      const pkgRoot = absoluteFilePathContract.parse(
+        `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}`,
+      );
       scanTargets.push({
         packageName: contentTextContract.parse(pkg.name),
-        srcPath: absoluteFilePathContract.parse(
-          `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}/${projectMapStatics.srcDirName}`,
-        ),
+        packageRoot: pkgRoot,
+        srcPath: absoluteFilePathContract.parse(`${pkgRoot}/${projectMapStatics.srcDirName}`),
         packageJsonPath: absoluteFilePathContract.parse(
-          `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}/${projectMapStatics.packageJsonName}`,
+          `${pkgRoot}/${projectMapStatics.packageJsonName}`,
         ),
       });
     }
   } else {
+    const pkgRoot = projectRoot;
     scanTargets.push({
       packageName: contentTextContract.parse(projectMapStatics.rootPackageName),
-      srcPath: absoluteFilePathContract.parse(`${projectRoot}/${projectMapStatics.srcDirName}`),
+      packageRoot: pkgRoot,
+      srcPath: absoluteFilePathContract.parse(`${pkgRoot}/${projectMapStatics.srcDirName}`),
       packageJsonPath: absoluteFilePathContract.parse(
-        `${projectRoot}/${projectMapStatics.packageJsonName}`,
+        `${pkgRoot}/${projectMapStatics.packageJsonName}`,
       ),
     });
   }
 
-  // Build section for each scan target by delegating to the package-inventory broker
-  for (const { packageName, srcPath, packageJsonPath } of scanTargets) {
-    sections.push(architecturePackageInventoryBroker({ packageName, srcPath, packageJsonPath }));
-  }
+  const packageSections = await Promise.all(
+    scanTargets.map(async ({ packageName, packageRoot, srcPath, packageJsonPath }) => {
+      const packageType = await architecturePackageTypeDetectBroker({ packageRoot });
+      return packageSectionBuildLayerBroker({
+        packageName,
+        packageRoot,
+        packageType,
+        srcPath,
+        packageJsonPath,
+        projectRoot,
+      });
+    }),
+  );
 
-  return contentTextContract.parse(sections.join('\n\n'));
+  const topLevelParts: ContentText[] = [
+    contentTextContract.parse(
+      `${projectMapStatics.symbolLegend}\n${projectMapStatics.urlPairingConvention}`,
+    ),
+    ...packageSections,
+    edgesFooterRenderLayerBroker({ projectRoot }),
+    pointerFooterRenderLayerBroker(),
+  ];
+
+  return contentTextContract.parse(topLevelParts.join('\n\n---\n\n'));
 };

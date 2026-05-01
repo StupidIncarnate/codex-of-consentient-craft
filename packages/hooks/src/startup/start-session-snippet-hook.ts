@@ -11,19 +11,32 @@
  * WHEN-TO-USE: Called by Claude CLI as a SessionStart or SubagentStart hook for each registered snippet key
  */
 
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+
 import { HookSessionSnippetFlow } from '../flows/hook-session-snippet/hook-session-snippet-flow';
 
 const [, , snippetKey] = process.argv;
 
-let stdinData = '';
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => {
-  stdinData += String(chunk);
-});
-process.stdin.on('end', () => {
-  const hookInput: unknown = JSON.parse(stdinData);
-  const result = HookSessionSnippetFlow({ snippetKey, hookInput });
+export const StartSessionSnippetHook = async ({
+  snippetKeyArg,
+  inputData,
+}: {
+  snippetKeyArg: string | undefined;
+  inputData: string;
+}): Promise<AdapterResult> => {
+  const hookInput: unknown = JSON.parse(inputData);
+  const result = await HookSessionSnippetFlow({ snippetKey: snippetKeyArg, hookInput });
   process.stderr.write(result.stderr);
   process.stdout.write(result.stdout);
   process.exit(result.exitCode);
+};
+
+const inputBuffer = { data: '' };
+process.stdin.on('data', (chunk: Buffer) => {
+  inputBuffer.data += chunk.toString();
+});
+process.stdin.on('end', () => {
+  StartSessionSnippetHook({ snippetKeyArg: snippetKey, inputData: inputBuffer.data }).catch(() =>
+    process.exit(1),
+  );
 });
