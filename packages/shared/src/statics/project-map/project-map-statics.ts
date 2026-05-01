@@ -47,6 +47,13 @@ export const projectMapStatics = {
   hookHandlersMinBinCount: 2,
   sourceFileExtensions: ['.ts', '.tsx', '.js', '.jsx'],
   fsWriteAdapterNames: ['fsAppendFileAdapter', 'fsWriteFileAdapter', 'fsMkdirAdapter'],
+  webFetchAdapterMethods: {
+    fetchGetAdapter: 'GET',
+    fetchPostAdapter: 'POST',
+    fetchPatchAdapter: 'PATCH',
+    fetchDeleteAdapter: 'DELETE',
+    fetchPutAdapter: 'PUT',
+  },
   browserStoragePatterns: {
     localStoragePrefix: 'localStorage: ',
     sessionStoragePrefix: 'sessionStorage: ',
