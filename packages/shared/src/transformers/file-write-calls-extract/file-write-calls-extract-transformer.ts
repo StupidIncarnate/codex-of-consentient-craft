@@ -20,12 +20,13 @@ import type { FileWriteCall } from '../../contracts/file-write-call/file-write-c
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 
 // Matches: fsXxxAdapter({ filePath: 'literal' }) or fsXxxAdapter({ filePath: brokerName(...) })
-// Capture groups: 1=adapterName 2=single-quoted 3=double-quoted 4=backtick-content 5=broker-name
+// or fsXxxAdapter({ filePath: someVariable, ... })
+// Capture groups: 1=adapterName 2=single-quoted 3=double-quoted 4=backtick-content 5=broker-name (has paren) 6=bare var
 // Adapter names sourced from projectMapStatics.fsWriteAdapterNames
 const adapterAlternation = projectMapStatics.fsWriteAdapterNames.join('|');
 const backtickSegment = '`([^`]*)`';
 const FS_WRITE_PATTERN = new RegExp(
-  `\\b(${adapterAlternation})\\s*\\(\\s*\\{[^}]*?filePath\\s*:\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\()`,
+  `\\b(${adapterAlternation})\\s*\\(\\s*\\{[^}]*?filePath\\s*:\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\(|(\\w+)\\b)`,
   'gu',
 );
 
@@ -38,13 +39,14 @@ export const fileWriteCallsExtractTransformer = ({
   FS_WRITE_PATTERN.lastIndex = 0;
   let match = FS_WRITE_PATTERN.exec(String(source));
   while (match !== null) {
-    const [, adapterName, singleQuoted, doubleQuoted, backticked, brokerName] = match;
+    const [, adapterName, singleQuoted, doubleQuoted, backticked, brokerName, bareVar] = match;
     if (adapterName === undefined) {
       match = FS_WRITE_PATTERN.exec(String(source));
       continue;
     }
 
-    const computedArg = brokerName === undefined ? undefined : `<computed: ${brokerName}>`;
+    const computedName = brokerName ?? bareVar;
+    const computedArg = computedName === undefined ? undefined : `<computed: ${computedName}>`;
     const rawArg = singleQuoted ?? doubleQuoted ?? backticked ?? computedArg;
 
     if (rawArg === undefined) {
