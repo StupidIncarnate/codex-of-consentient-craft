@@ -25,3 +25,4 @@ export * from './src/statics/default-batch-groups/default-batch-groups-statics';
 export * from './src/statics/mcp-tools/mcp-tools-statics';
 export * from './src/statics/locations/locations-statics';
 export * from './src/statics/widget-tree/widget-tree-statics';
+export * from './src/statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';

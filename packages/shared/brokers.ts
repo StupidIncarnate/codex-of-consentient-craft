@@ -25,6 +25,9 @@ export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broke
 // Architecture Widget Tree
 export * from './src/brokers/architecture/widget-tree/architecture-widget-tree-broker';
 
+// Architecture Frontend React Headline
+export * from './src/brokers/architecture/project-map-headline-frontend-react/architecture-project-map-headline-frontend-react-broker';
+
 // Config Root
 export * from './src/brokers/config-root/find/config-root-find-broker';
 
