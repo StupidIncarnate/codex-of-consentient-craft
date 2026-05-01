@@ -546,6 +546,10 @@ export * from './src/contracts/ws-edge/ws-edge.stub';
 export * from './src/contracts/file-bus-edge/file-bus-edge-contract';
 export * from './src/contracts/file-bus-edge/file-bus-edge.stub';
 
+// Direct Call Edge Contracts
+export * from './src/contracts/direct-call-edge/direct-call-edge-contract';
+export * from './src/contracts/direct-call-edge/direct-call-edge.stub';
+
 // Fs Watch Tail Call Contracts
 export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call-contract';
 export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call.stub';
