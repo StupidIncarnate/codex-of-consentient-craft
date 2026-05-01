@@ -107,4 +107,9 @@ export const smoketestProbeArgsStatics = {
     args: { questId: '{{questId}}' },
     summary: 'mcp-get-quest-planning-notes-probe-ok',
   },
+  'get-project-inventory': {
+    mode: 'call',
+    args: { packageName: 'shared' },
+    summary: 'mcp-get-project-inventory-probe-ok',
+  },
 } as const;

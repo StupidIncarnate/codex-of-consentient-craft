@@ -550,6 +550,7 @@ describe('McpServerFlow', () => {
       // Require args — cannot be invoked with `{}`
       'discover',
       'get-folder-detail',
+      'get-project-inventory',
       'get-quest',
       'get-quest-status',
       'get-quest-planning-notes',

@@ -8,18 +8,13 @@
  * WHEN-TO-USE: When LLMs need a quick orientation of what exists where before making targeted discover calls
  */
 
-import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
-import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
-import { formatFolderContentLayerBroker } from './format-folder-content-layer-broker';
-import { readPackageDescriptionLayerBroker } from './read-package-description-layer-broker';
-import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
+import { architecturePackageInventoryBroker } from '../package-inventory/architecture-package-inventory-broker';
+import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import { folderConfigContract } from '../../../contracts/folder-config/folder-config-contract';
-import { isKeyOfGuard } from '../../../guards/is-key-of/is-key-of-guard';
 
 export const architectureProjectMapBroker = ({
   projectRoot,
@@ -29,7 +24,7 @@ export const architectureProjectMapBroker = ({
   const packagesPath = absoluteFilePathContract.parse(
     `${projectRoot}/${projectMapStatics.packagesDirName}`,
   );
-  const packagesEntries = safeReaddirLayerBroker({ dirPath: packagesPath });
+  const packagesEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
   const packageDirs = packagesEntries.filter((entry) => entry.isDirectory());
 
   const sections: ContentText[] = [contentTextContract.parse(projectMapStatics.header)];
@@ -65,52 +60,9 @@ export const architectureProjectMapBroker = ({
     });
   }
 
-  // Build section for each scan target
+  // Build section for each scan target by delegating to the package-inventory broker
   for (const { packageName, srcPath, packageJsonPath } of scanTargets) {
-    const totalFiles = countFilesRecursiveLayerBroker({ dirPath: srcPath });
-    const description = readPackageDescriptionLayerBroker({ packageJsonPath });
-    const descriptionSuffix =
-      description.length > 0 ? ` ${projectMapStatics.descriptionSeparator} ${description}` : '';
-    const folderEntries = safeReaddirLayerBroker({ dirPath: srcPath })
-      .filter((entry) => entry.isDirectory())
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    if (folderEntries.length === 0) {
-      sections.push(
-        contentTextContract.parse(
-          `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}\n  ${projectMapStatics.emptyLabel}`,
-        ),
-      );
-      continue;
-    }
-
-    const lines: ContentText[] = [
-      contentTextContract.parse(
-        `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`,
-      ),
-    ];
-
-    for (const folder of folderEntries) {
-      const folderPath = absoluteFilePathContract.parse(`${srcPath}/${folder.name}`);
-      const fileCount = countFilesRecursiveLayerBroker({ dirPath: folderPath });
-
-      // Look up folder depth from config
-      const folderDepth = isKeyOfGuard(folder.name, folderConfigStatics)
-        ? folderConfigContract.shape.folderDepth.parse(folderConfigStatics[folder.name].folderDepth)
-        : folderConfigContract.shape.folderDepth.parse(projectMapStatics.defaultFolderDepth);
-
-      const content = formatFolderContentLayerBroker({ dirPath: folderPath, folderDepth });
-
-      if (content.length > 0) {
-        lines.push(
-          contentTextContract.parse(`  ${folder.name}/ (${String(fileCount)}) — ${content}`),
-        );
-      } else {
-        lines.push(contentTextContract.parse(`  ${folder.name}/ (${String(fileCount)})`));
-      }
-    }
-
-    sections.push(contentTextContract.parse(lines.join('\n')));
+    sections.push(architecturePackageInventoryBroker({ packageName, srcPath, packageJsonPath }));
   }
 
   return contentTextContract.parse(sections.join('\n\n'));

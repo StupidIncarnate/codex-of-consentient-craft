@@ -1,15 +1,16 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for architecture-related MCP tools (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map)
+ * PURPOSE: Returns ToolRegistration[] for architecture-related MCP tools (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map, get-project-inventory)
  *
  * USAGE:
  * const registrations = ArchitectureFlow();
- * // Returns 6 ToolRegistration objects that delegate to ArchitectureHandleResponder
+ * // Returns 7 ToolRegistration objects that delegate to ArchitectureHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { discoverInputContract } from '../../contracts/discover-input/discover-input-contract';
 import { folderDetailInputContract } from '../../contracts/folder-detail-input/folder-detail-input-contract';
+import { getProjectInventoryInputContract } from '../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { ArchitectureHandleResponder } from '../../responders/architecture/handle/architecture-handle-responder';
 
@@ -17,6 +18,10 @@ const jsonSchemaOptions = { $refStrategy: 'none' as const };
 const discoverSchema = zodToJsonSchema(discoverInputContract as never, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
 const folderDetailSchema = zodToJsonSchema(folderDetailInputContract as never, jsonSchemaOptions);
+const getProjectInventorySchema = zodToJsonSchema(
+  getProjectInventoryInputContract as never,
+  jsonSchemaOptions,
+);
 
 export const ArchitectureFlow = (): ToolRegistration[] => [
   {
@@ -60,5 +65,13 @@ export const ArchitectureFlow = (): ToolRegistration[] => [
     inputSchema: emptySchema as never,
     handler: async ({ args }) =>
       ArchitectureHandleResponder({ tool: 'get-project-map' as never, args }),
+  },
+  {
+    name: 'get-project-inventory' as never,
+    description:
+      'Returns the per-package folder/file inventory section for a single package' as never,
+    inputSchema: getProjectInventorySchema as never,
+    handler: async ({ args }) =>
+      ArchitectureHandleResponder({ tool: 'get-project-inventory' as never, args }),
   },
 ];

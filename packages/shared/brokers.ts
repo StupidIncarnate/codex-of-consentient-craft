@@ -13,6 +13,9 @@ export * from './src/brokers/architecture/overview/architecture-overview-broker'
 // Architecture Project Map
 export * from './src/brokers/architecture/project-map/architecture-project-map-broker';
 
+// Architecture Package Inventory
+export * from './src/brokers/architecture/package-inventory/architecture-package-inventory-broker';
+
 // Config Root
 export * from './src/brokers/config-root/find/config-root-find-broker';
 

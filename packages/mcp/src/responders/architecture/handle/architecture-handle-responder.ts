@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map)
+ * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-syntax-rules, get-testing-patterns, get-project-map, get-project-inventory)
  *
  * USAGE:
  * const result = await ArchitectureHandleResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
@@ -8,9 +8,14 @@
 
 import {
   architectureOverviewBroker,
+  architecturePackageInventoryBroker,
   architectureProjectMapBroker,
 } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  contentTextContract as sharedContentTextContract,
+} from '@dungeonmaster/shared/contracts';
+// sharedContentTextContract is used to brand the packageName string for the inventory broker call
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureSyntaxRulesBroker } from '../../../brokers/architecture/syntax-rules/architecture-syntax-rules-broker';
@@ -21,6 +26,7 @@ import type { ToolResponse } from '../../../contracts/tool-response/tool-respons
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
+import { getProjectInventoryInputContract } from '../../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -107,6 +113,24 @@ export const ArchitectureHandleResponder = async ({
   if (tool === 'get-project-map') {
     const result = architectureProjectMapBroker({
       projectRoot: absoluteFilePathContract.parse(processCwdAdapter()),
+    });
+
+    return {
+      content: [{ type: 'text', text: contentTextContract.parse(result) }],
+    };
+  }
+
+  if (tool === 'get-project-inventory') {
+    const { packageName } = getProjectInventoryInputContract.parse(args);
+    const projectRoot = processCwdAdapter();
+    const srcPath = absoluteFilePathContract.parse(`${projectRoot}/packages/${packageName}/src`);
+    const packageJsonPath = absoluteFilePathContract.parse(
+      `${projectRoot}/packages/${packageName}/package.json`,
+    );
+    const result = architecturePackageInventoryBroker({
+      packageName: sharedContentTextContract.parse(packageName),
+      srcPath,
+      packageJsonPath,
     });
 
     return {

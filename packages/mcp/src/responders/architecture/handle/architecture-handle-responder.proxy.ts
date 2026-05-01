@@ -8,6 +8,7 @@
 
 import {
   architectureOverviewBrokerProxy,
+  architecturePackageInventoryBrokerProxy,
   architectureProjectMapBrokerProxy,
   processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
@@ -40,6 +41,7 @@ export const ArchitectureHandleResponderProxy = (): {
 } => {
   processCwdAdapterProxy();
   architectureOverviewBrokerProxy();
+  architecturePackageInventoryBrokerProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();
   architectureFolderDetailBrokerProxy();

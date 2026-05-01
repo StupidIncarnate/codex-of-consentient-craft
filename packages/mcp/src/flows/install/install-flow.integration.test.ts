@@ -80,6 +80,7 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-agent-prompt',
                 'mcp__dungeonmaster__get-project-map',
                 'mcp__dungeonmaster__get-quest-planning-notes',
+                'mcp__dungeonmaster__get-project-inventory',
               ],
             },
           },

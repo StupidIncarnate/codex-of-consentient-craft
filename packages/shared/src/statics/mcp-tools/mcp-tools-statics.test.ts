@@ -24,6 +24,7 @@ describe('mcpToolsStatics', () => {
           'get-agent-prompt',
           'get-project-map',
           'get-quest-planning-notes',
+          'get-project-inventory',
         ],
       },
     });
