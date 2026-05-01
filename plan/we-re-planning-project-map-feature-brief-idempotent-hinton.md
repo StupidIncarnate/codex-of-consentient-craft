@@ -43,13 +43,13 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
 
 ### 2a. Detection
 
-7. **`packages/shared/src/brokers/architecture/package-type-detect/`** — runs the priority-order detection table from the brief §"Tech-type detection". Returns a branded `PackageType` literal: `'http-backend' | 'mcp-server' | 'frontend-react' | 'frontend-ink' | 'hook-handlers' | 'eslint-plugin' | 'cli-tool' | 'programmatic-service' | 'library'`.
+7. [x] **`packages/shared/src/brokers/architecture/package-type-detect/`** — runs the priority-order detection table from the brief §"Tech-type detection". Returns a branded `PackageType` literal: `'http-backend' | 'mcp-server' | 'frontend-react' | 'frontend-ink' | 'hook-handlers' | 'eslint-plugin' | 'cli-tool' | 'programmatic-service' | 'library'`.
    - Add contract: `packages/shared/src/contracts/package-type/`
    - Detection signals are filesystem + `package.json` only — never names. Mechanics per brief §"AST/file-read mechanics".
    - **Decompose into small layer-brokers/guards** (one per signal): `has-hono-or-express-adapter-guard`, `has-modelcontextprotocol-adapter-guard`, `has-widgets-folder-guard`, `react-in-deps-guard`, `bin-entry-count-broker`, `startup-references-argv-guard`, `flow-returns-tool-registration-guard`, `startup-exports-async-namespace-guard`. Top-level broker chains them in priority order.
    - **TS-AST infrastructure note:** "startup exports a namespace of async methods" (programmatic-service signal) and "flow returns `ToolRegistration[]`" (mcp-server signal) require TypeScript AST parsing. `shared` has no TS-AST adapter today. Either (a) add `packages/shared/src/adapters/typescript/parse-source-file/` wrapping `typescript` compiler API, or (b) start with the heuristic alternatives the brief allows: regex grep for `export const \w+ = {` + `async (` for namespace; grep `import { ToolRegistration }` for flow signal. Recommend (b) for v1 — cheaper and the brief explicitly permits it; revisit if heuristics misfire.
    - **`mock-rails`** is empty (0 files) and is being deleted; if still present at scan time, falls through to `library`. No special-case needed.
-8. **Test**: every current monorepo package classifies to its expected type (per the conflict-resolution decision below for `tooling`). Fixture-based tests for synthetic package shapes covering priority ordering and hybrid edge cases.
+8. [x] **Test**: every current monorepo package classifies to its expected type (per the conflict-resolution decision below for `tooling`). Fixture-based tests for synthetic package shapes covering priority ordering and hybrid edge cases.
 
 ### 2b. Universal extractors
 
