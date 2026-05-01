@@ -78,7 +78,7 @@ Goal: `get-project-map` returns the connection-graph view per server-map.md shap
 One renderer per detected type. Each is its own broker file under `packages/shared/src/brokers/architecture/project-map/headline/`:
 
 13. [x] `project-map-headline-http-backend-broker` — Routes table grouped by flow file (matches server-map.md §"Routes" exactly). One detailed exemplar trace.
-14. `project-map-headline-mcp-server-broker` — Tool registration table grouped by flow file (each flow returns `ToolRegistration[]`, names are literals). One tool exemplar trace.
+14. [x] `project-map-headline-mcp-server-broker` — Tool registration table grouped by flow file (each flow returns `ToolRegistration[]`, names are literals). One tool exemplar trace.
 15. `project-map-headline-programmatic-service-broker` — Public API method table grouped by domain + event-bus emissions list + owned state stores. One API-call exemplar.
 16. `project-map-headline-cli-tool-broker` — Subcommand → responder table. One subcommand exemplar.
 17. `project-map-headline-hook-handlers-broker` — Hook event registration table (each `bin` entry → startup → flow → responder → spawned subprocess / fs writes). One hook invocation exemplar.
