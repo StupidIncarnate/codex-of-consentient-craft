@@ -14,6 +14,8 @@ describe('projectMapStatics', () => {
       packageJsonName: 'package.json',
       descriptionSeparator: '—',
       excludedFolders: ['guards', 'transformers', 'contracts', 'assets'],
+      excludedAuditColumnPadding: 2,
+      excludedAuditColumnWidth: 15,
       staticsInlineThreshold: 15,
       testFileSuffixes: [
         '.integration.test.ts',

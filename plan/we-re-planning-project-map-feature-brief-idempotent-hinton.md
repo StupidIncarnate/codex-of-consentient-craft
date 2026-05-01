@@ -87,7 +87,7 @@ One renderer per detected type. Each is its own broker file under `packages/shar
 20. [x] `project-map-headline-library-broker` — Barrel export table + consumer-package count. No exemplar trace.
 20a. **`frontend-ink` is detected but NOT rendered in v1.** No current package is `frontend-ink`. The composer's per-type switch must throw a clear error if a `frontend-ink` package is encountered (rather than silently falling back to `library`), telling the user to add the renderer. Renderer deferred to v2.
 21. [x] **Side-channel section** — for any package with WS/bus/file-outbox edges, render the async cascade (see server-map.md §"Side-channel"). Built from edge-graph results.
-22. **Excluded categories audit** — bottom of every package's section. Lists files in `guards/`, `transformers/`, `contracts/`, `assets/` that were on the trace path but filtered. Per brief §"Format conventions" item 7: errors/ and statics/ are NOT excluded.
+22. [x] **Excluded categories audit** — bottom of every package's section. Lists files in `guards/`, `transformers/`, `contracts/`, `assets/` that were on the trace path but filtered. Per brief §"Format conventions" item 7: errors/ and statics/ are NOT excluded.
 
 ### 2d. Composer + statics
 

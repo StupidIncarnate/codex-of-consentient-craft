@@ -20,6 +20,9 @@ export const projectMapStatics = {
   packageJsonName: 'package.json',
   descriptionSeparator: '—',
   excludedFolders: ['guards', 'transformers', 'contracts', 'assets'],
+  excludedAuditColumnPadding: 2,
+  // 'transformers/'.length + excludedAuditColumnPadding — precomputed so brokers avoid Math.max
+  excludedAuditColumnWidth: 15,
   staticsInlineThreshold: 15,
   testFileSuffixes: [
     '.integration.test.ts',
