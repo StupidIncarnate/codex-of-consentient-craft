@@ -44,6 +44,10 @@ export * from './src/guards/is-failure-work-item-status/is-failure-work-item-sta
 // Folder Type Groups Guards
 export * from './src/guards/is-valid-folder-type-groups/is-valid-folder-type-groups-guard';
 
+// Boot-tree Guards
+export * from './src/guards/is-ws-subscriber-name/is-ws-subscriber-name-guard';
+export * from './src/guards/is-file-in-folder-type/is-file-in-folder-type-guard';
+
 // Package Type Detection Guards
 export * from './src/guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
 export * from './src/guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';

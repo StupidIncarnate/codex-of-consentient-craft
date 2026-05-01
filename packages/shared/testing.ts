@@ -30,6 +30,7 @@ export * from './src/brokers/architecture/overview/architecture-overview-broker.
 export * from './src/brokers/architecture/project-map/architecture-project-map-broker.proxy';
 export * from './src/brokers/architecture/package-inventory/architecture-package-inventory-broker.proxy';
 export * from './src/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
+export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broker.proxy';
 export * from './src/brokers/install/check/install-check-broker.proxy';
 export * from './src/brokers/config-root/find/config-root-find-broker.proxy';
 export * from './src/brokers/project-root/find/project-root-find-broker.proxy';
