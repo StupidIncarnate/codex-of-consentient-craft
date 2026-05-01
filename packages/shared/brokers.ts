@@ -28,6 +28,12 @@ export * from './src/brokers/architecture/widget-tree/architecture-widget-tree-b
 // Architecture Frontend React Headline
 export * from './src/brokers/architecture/project-map-headline-frontend-react/architecture-project-map-headline-frontend-react-broker';
 
+// Architecture Library Headline
+export * from './src/brokers/architecture/project-map-headline-library/architecture-project-map-headline-library-broker';
+
+// Architecture Import Edges
+export * from './src/brokers/architecture/import-edges/architecture-import-edges-broker';
+
 // Config Root
 export * from './src/brokers/config-root/find/config-root-find-broker';
 
