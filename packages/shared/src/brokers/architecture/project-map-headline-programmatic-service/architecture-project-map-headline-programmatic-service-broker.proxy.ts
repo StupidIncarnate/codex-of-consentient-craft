@@ -6,7 +6,6 @@ import { readSourceLayerBrokerProxy } from './read-source-layer-broker.proxy';
 import { apiSectionRenderLayerBrokerProxy } from './api-section-render-layer-broker.proxy';
 import { eventsSectionRenderLayerBrokerProxy } from './events-section-render-layer-broker.proxy';
 import { stateWritesSectionRenderLayerBrokerProxy } from './state-writes-section-render-layer-broker.proxy';
-import { exemplarSectionRenderLayerBrokerProxy } from './exemplar-section-render-layer-broker.proxy';
 
 export const architectureProjectMapHeadlineProgrammaticServiceBrokerProxy = (): {
   setup: ({
@@ -23,11 +22,10 @@ export const architectureProjectMapHeadlineProgrammaticServiceBrokerProxy = (): 
   const findStartupProxy = findStartupFileLayerBrokerProxy();
   const readProxy = readSourceLayerBrokerProxy();
   // Initialize child proxies for enforce-proxy-child-creation compliance.
-  // api and exemplar sections have no I/O boundaries to mock at the parent level.
+  // api section has no I/O boundaries to mock at the parent level.
   apiSectionRenderLayerBrokerProxy();
   const eventsProxy = eventsSectionRenderLayerBrokerProxy();
   const stateProxy = stateWritesSectionRenderLayerBrokerProxy();
-  exemplarSectionRenderLayerBrokerProxy();
 
   return {
     setup: ({

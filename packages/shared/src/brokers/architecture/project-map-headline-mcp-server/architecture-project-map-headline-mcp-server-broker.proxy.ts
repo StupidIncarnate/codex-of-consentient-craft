@@ -3,8 +3,6 @@ import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/abs
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
-import { readFlowSourceLayerBrokerProxy } from './read-flow-source-layer-broker.proxy';
-import { exemplarSectionRenderLayerBrokerProxy } from './exemplar-section-render-layer-broker.proxy';
 import { toolsSectionRenderLayerBrokerProxy } from './tools-section-render-layer-broker.proxy';
 
 const buildFileDirent = ({ name }: { name: string }): Dirent =>
@@ -47,9 +45,7 @@ export const architectureProjectMapHeadlineMcpServerBrokerProxy = (): {
   }) => void;
 } => {
   const listProxy = listFlowFilesLayerBrokerProxy();
-  const readProxy = readFlowSourceLayerBrokerProxy();
   const toolsProxy = toolsSectionRenderLayerBrokerProxy();
-  const exemplarProxy = exemplarSectionRenderLayerBrokerProxy();
 
   return {
     setup: ({
@@ -115,11 +111,7 @@ export const architectureProjectMapHeadlineMcpServerBrokerProxy = (): {
         return ContentTextStub({ value: '' });
       };
 
-      // All three consumers of readFlowSourceLayerBroker share the same unified
-      // readFileSync implementation via stack-based dispatch.
-      readProxy.setupImplementation({ fn: unifiedImpl });
       toolsProxy.setupImplementation({ fn: unifiedImpl });
-      exemplarProxy.setupImplementation({ fn: unifiedImpl });
     },
   };
 };

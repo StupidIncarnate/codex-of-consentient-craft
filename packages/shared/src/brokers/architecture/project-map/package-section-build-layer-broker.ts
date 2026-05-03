@@ -32,13 +32,19 @@ export const packageSectionBuildLayerBroker = ({
 
   packageParts.push(contentTextContract.parse(`# ${String(packageName)} [${packageType}]`));
 
-  if (packageType !== 'library') {
-    packageParts.push(architectureBootTreeBroker({ packageRoot }));
+  if (packageType !== 'library' && packageType !== 'http-backend') {
+    packageParts.push(architectureBootTreeBroker({ packageRoot, projectRoot, packageType }));
   }
 
-  packageParts.push(
-    headlineDispatchLayerBroker({ packageType, projectRoot, packageRoot, packageName }),
-  );
+  const headline = headlineDispatchLayerBroker({
+    packageType,
+    projectRoot,
+    packageRoot,
+    packageName,
+  });
+  if (String(headline).length > 0) {
+    packageParts.push(headline);
+  }
 
   if (packageType !== 'library') {
     const sideChannel = architectureSideChannelBroker({

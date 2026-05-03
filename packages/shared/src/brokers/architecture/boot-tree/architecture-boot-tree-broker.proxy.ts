@@ -1,6 +1,9 @@
 import { startupFilesFindLayerBrokerProxy } from './startup-files-find-layer-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 import { responderLinesRenderLayerBrokerProxy } from './responder-lines-render-layer-broker.proxy';
+import { architectureWidgetTreeBrokerProxy } from '../widget-tree/architecture-widget-tree-broker.proxy';
+import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
+import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBootTreeBrokerProxy = (): {
@@ -11,6 +14,9 @@ export const architectureBootTreeBrokerProxy = (): {
   const startupProxy = startupFilesFindLayerBrokerProxy();
   const flowImportsProxy = importsInFolderTypeFindLayerBrokerProxy();
   const responderProxy = responderLinesRenderLayerBrokerProxy();
+  architectureWidgetTreeBrokerProxy();
+  architectureEdgeGraphBrokerProxy();
+  architectureWsEdgesBrokerProxy();
 
   const buildImpl =
     (map: Record<string, ContentText>) =>
@@ -36,8 +42,7 @@ export const architectureBootTreeBrokerProxy = (): {
     setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
       const impl = buildImpl(map);
       flowImportsProxy.setupImplementation({ fn: impl });
-      responderProxy.setupFlowImplementation({ fn: impl });
-      responderProxy.setupAdapterImplementation({ fn: impl });
+      responderProxy.setupFileContentsMap({ map });
     },
   };
 };

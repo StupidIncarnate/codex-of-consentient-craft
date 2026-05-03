@@ -554,6 +554,14 @@ export * from './src/contracts/direct-call-edge/direct-call-edge.stub';
 export * from './src/contracts/import-edge/import-edge-contract';
 export * from './src/contracts/import-edge/import-edge.stub';
 
+// Route Metadata Contracts
+export * from './src/contracts/route-metadata/route-metadata-contract';
+export * from './src/contracts/route-metadata/route-metadata.stub';
+
+// Widget Context Contracts
+export * from './src/contracts/widget-context/widget-context-contract';
+export * from './src/contracts/widget-context/widget-context.stub';
+
 // Fs Watch Tail Call Contracts
 export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call-contract';
 export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call.stub';

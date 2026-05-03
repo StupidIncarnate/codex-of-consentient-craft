@@ -13,12 +13,6 @@ const ARCH_FLOW_PATH = AbsoluteFilePathStub({
 const QUEST_FLOW_PATH = AbsoluteFilePathStub({
   value: '/repo/packages/mcp/src/flows/quest/quest-flow.ts',
 });
-const ARCH_RESPONDER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
-});
-const SHARED_ADAPTER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/mcp/src/adapters/shared/discover/shared-discover-adapter.ts',
-});
 
 const ARCH_FLOW_SOURCE = ContentTextStub({
   value: `export const ArchitectureFlow = (): ToolRegistration[] => [
@@ -47,18 +41,6 @@ const QUEST_FLOW_SOURCE = ContentTextStub({
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest' as never, args }),
   },
 ];`,
-});
-
-const ARCH_RESPONDER_SOURCE = ContentTextStub({
-  value: `import { sharedDiscoverAdapter } from '../../../adapters/shared/discover/shared-discover-adapter';
-export const ArchitectureHandleResponder = async ({ tool, args }) => {
-  return sharedDiscoverAdapter({ tool, args });
-};`,
-});
-
-const SHARED_ADAPTER_SOURCE = ContentTextStub({
-  value: `import { StartShared } from '@dungeonmaster/shared';
-export const sharedDiscoverAdapter = async ({ tool, args }) => StartShared.discover({ tool, args });`,
 });
 
 describe('architectureProjectMapHeadlineMcpServerBroker', () => {
@@ -226,71 +208,6 @@ describe('architectureProjectMapHeadlineMcpServerBroker', () => {
       const getQuestLine = `${'get-quest'.padEnd(projectMapHeadlineMcpServerStatics.toolNamePadWidth)} → QuestHandleResponder`;
 
       expect(lines.some((l) => l === getQuestLine)).toBe(true);
-    });
-  });
-
-  describe('detailed exemplar', () => {
-    it('VALID: {flow with tool} => exemplar section header present', () => {
-      const proxy = architectureProjectMapHeadlineMcpServerBrokerProxy();
-
-      proxy.setup({
-        flowFiles: [{ path: ARCH_FLOW_PATH, source: ARCH_FLOW_SOURCE }],
-        responderFiles: [{ path: ARCH_RESPONDER_PATH, source: ARCH_RESPONDER_SOURCE }],
-        adapterFiles: [{ path: SHARED_ADAPTER_PATH, source: SHARED_ADAPTER_SOURCE }],
-      });
-
-      const result = architectureProjectMapHeadlineMcpServerBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(lines.some((l) => l === '## Detailed exemplar — `discover`')).toBe(true);
-    });
-
-    it('VALID: {flow with tool} => BOUNDARY box top-left corner line present', () => {
-      const proxy = architectureProjectMapHeadlineMcpServerBrokerProxy();
-
-      proxy.setup({
-        flowFiles: [{ path: ARCH_FLOW_PATH, source: ARCH_FLOW_SOURCE }],
-        responderFiles: [{ path: ARCH_RESPONDER_PATH, source: ARCH_RESPONDER_SOURCE }],
-        adapterFiles: [{ path: SHARED_ADAPTER_PATH, source: SHARED_ADAPTER_SOURCE }],
-      });
-
-      const result = architectureProjectMapHeadlineMcpServerBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some(
-          (l) => l === '      ╔══════════════════════════════════════════════════════════╗',
-        ),
-      ).toBe(true);
-    });
-  });
-
-  describe('cross-package adapter extraction', () => {
-    it('VALID: {adapter wrapping StartShared.discover} => renders namespace call token in exemplar', () => {
-      const proxy = architectureProjectMapHeadlineMcpServerBrokerProxy();
-
-      proxy.setup({
-        flowFiles: [{ path: ARCH_FLOW_PATH, source: ARCH_FLOW_SOURCE }],
-        responderFiles: [{ path: ARCH_RESPONDER_PATH, source: ARCH_RESPONDER_SOURCE }],
-        adapterFiles: [{ path: SHARED_ADAPTER_PATH, source: SHARED_ADAPTER_SOURCE }],
-      });
-
-      const result = architectureProjectMapHeadlineMcpServerBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(lines.some((l) => l === '            → StartShared.discover({...})')).toBe(true);
     });
   });
 });

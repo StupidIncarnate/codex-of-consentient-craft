@@ -152,50 +152,6 @@ describe('architectureProjectMapHeadlineCliToolBroker', () => {
 
       expect(lines.some((l) => l === detailLine)).toBe(true);
     });
-
-    it('VALID: {multi-subcommand} => exemplar section header present', () => {
-      const proxy = architectureProjectMapHeadlineCliToolBrokerProxy();
-      proxy.setup({
-        binName: 'dungeonmaster-ward',
-        startupFileName: 'start-ward.ts',
-        startupSource: MULTI_SUBCOMMAND_SOURCE,
-      });
-
-      const result = architectureProjectMapHeadlineCliToolBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some((l) => l.startsWith(projectMapHeadlineCliToolStatics.exemplarSectionPrefix)),
-      ).toBe(true);
-    });
-
-    it("VALID: {multi-subcommand, first is 'run'} => exemplar is for 'run' subcommand", () => {
-      const proxy = architectureProjectMapHeadlineCliToolBrokerProxy();
-      proxy.setup({
-        binName: 'dungeonmaster-ward',
-        startupFileName: 'start-ward.ts',
-        startupSource: MULTI_SUBCOMMAND_SOURCE,
-      });
-
-      const result = architectureProjectMapHeadlineCliToolBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some(
-          (l) =>
-            l ===
-            `${projectMapHeadlineCliToolStatics.exemplarSectionPrefix}run${projectMapHeadlineCliToolStatics.exemplarSectionSuffix}`,
-        ),
-      ).toBe(true);
-    });
   });
 
   describe('section separators', () => {

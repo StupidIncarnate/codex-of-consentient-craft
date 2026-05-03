@@ -60,4 +60,24 @@ describe('packageSectionBuildLayerBroker', () => {
       ).toBe(false);
     });
   });
+
+  describe('http-backend type', () => {
+    it('VALID: {http-backend package} => does not contain ## Boot section (routes section replaces boot)', () => {
+      const proxy = packageSectionBuildLayerBrokerProxy();
+      proxy.setupHttpBackendPackage();
+
+      const result = packageSectionBuildLayerBroker({
+        packageName: PACKAGE_NAME,
+        packageRoot: PACKAGE_ROOT,
+        packageType: PackageTypeStub({ value: 'http-backend' }),
+        projectRoot: PROJECT_ROOT,
+      });
+
+      expect(
+        String(result)
+          .split('\n')
+          .some((l) => l === '## Boot'),
+      ).toBe(false);
+    });
+  });
 });

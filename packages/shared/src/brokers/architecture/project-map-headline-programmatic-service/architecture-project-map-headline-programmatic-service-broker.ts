@@ -1,8 +1,7 @@
 /**
- * PURPOSE: Renders the Public API, Event bus emissions, State writes, and Detailed exemplar
- * sections for a programmatic-service package in the project-map connection-graph view. The
- * Public API section lists every method on the exported namespace object grouped by domain.
- * The exemplar traces the first method end-to-end.
+ * PURPOSE: Renders the Public API, Event bus emissions, and State writes sections for a
+ * programmatic-service package in the project-map connection-graph view. The Public API
+ * section lists every method on the exported namespace object grouped by domain.
  *
  * USAGE:
  * const markdown = architectureProjectMapHeadlineProgrammaticServiceBroker({
@@ -10,7 +9,7 @@
  *   packageRoot: absoluteFilePathContract.parse('/repo/packages/orchestrator'),
  * });
  * // Returns ContentText markdown with ## Public API, ## Event bus emissions,
- * // ## State writes, and ## Detailed exemplar sections
+ * // and ## State writes sections
  *
  * WHEN-TO-USE: As the headline renderer for packages detected as programmatic-service type
  * WHEN-NOT-TO-USE: For non-programmatic-service packages
@@ -28,7 +27,6 @@ import { readSourceLayerBroker } from './read-source-layer-broker';
 import { apiSectionRenderLayerBroker } from './api-section-render-layer-broker';
 import { eventsSectionRenderLayerBroker } from './events-section-render-layer-broker';
 import { stateWritesSectionRenderLayerBroker } from './state-writes-section-render-layer-broker';
-import { exemplarSectionRenderLayerBroker } from './exemplar-section-render-layer-broker';
 
 export const architectureProjectMapHeadlineProgrammaticServiceBroker = ({
   projectRoot: _projectRoot,
@@ -86,25 +84,15 @@ export const architectureProjectMapHeadlineProgrammaticServiceBroker = ({
 
   const apiSection = apiSectionRenderLayerBroker({ methodNames, namespaceName });
 
-  const parts: ContentText[] = [
-    apiSection,
-    contentTextContract.parse('---'),
-    eventsSection,
-    contentTextContract.parse('---'),
-    stateSection,
-  ];
-
-  const [firstMethod] = methodNames;
-
-  if (firstMethod !== undefined) {
-    const exemplarSection = exemplarSectionRenderLayerBroker({
-      methodName: firstMethod,
-      startupFilePath,
-      packageRoot,
-    });
-    parts.push(contentTextContract.parse('---'));
-    parts.push(exemplarSection);
-  }
-
-  return contentTextContract.parse(parts.map(String).join('\n\n'));
+  return contentTextContract.parse(
+    [
+      apiSection,
+      contentTextContract.parse('---'),
+      eventsSection,
+      contentTextContract.parse('---'),
+      stateSection,
+    ]
+      .map(String)
+      .join('\n\n'),
+  );
 };

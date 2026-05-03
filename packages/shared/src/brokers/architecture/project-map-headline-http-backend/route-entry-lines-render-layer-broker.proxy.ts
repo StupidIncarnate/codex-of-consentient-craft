@@ -1,4 +1,5 @@
 import { readSourceLayerBrokerProxy } from './read-source-layer-broker.proxy';
+import { architectureBackRefBrokerProxy } from '../back-ref/architecture-back-ref-broker.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const routeEntryLinesRenderLayerBrokerProxy = (): {
@@ -7,6 +8,7 @@ export const routeEntryLinesRenderLayerBrokerProxy = (): {
   setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
   const readProxy = readSourceLayerBrokerProxy();
+  architectureBackRefBrokerProxy();
 
   return {
     setupReturns: ({ content }: { content: ContentText }): void => {

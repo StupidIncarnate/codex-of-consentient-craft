@@ -11,7 +11,5 @@
 export const projectMapHeadlineEslintPluginStatics = {
   configSectionHeader: '## Config presets',
   configSectionEmpty: '(no config presets found)',
-  exemplarSectionPrefix: '## Detailed exemplar — `',
-  exemplarSectionSuffix: '`',
   ruleNameParentDirDepth: 2,
 } as const;

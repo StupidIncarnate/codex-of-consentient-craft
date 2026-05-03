@@ -35,11 +35,7 @@ describe('architectureProjectMapHeadlineHookHandlersBroker', () => {
 
       const lines = String(result).split('\n');
 
-      expect(
-        lines.some((l) =>
-          l.startsWith(projectMapHeadlineHookHandlersStatics.exemplarSectionPrefix),
-        ),
-      ).toBe(false);
+      expect(lines.some((l) => l.startsWith('## Detailed exemplar'))).toBe(false);
     });
   });
 

@@ -25,10 +25,13 @@ import {
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import type { FileBusEdge } from '../../../contracts/file-bus-edge/file-bus-edge-contract';
 import { filePathToProjectRelativeTransformer } from '../../../transformers/file-path-to-project-relative/file-path-to-project-relative-transformer';
+import { architectureBackRefBroker } from '../back-ref/architecture-back-ref-broker';
 
 const CONTINUATION_PREFIX = '  │    ';
 const EVENT_TYPES_LABEL = 'event types: ';
 const EVENT_TYPES_INDENT = '             ';
+const CONSUMER_ARROW = '  ──►  ';
+const SOURCE_ARROW = '  ←─  ';
 
 export const sideChannelRenderLayerBroker = ({
   wsEmitterEdges,
@@ -80,21 +83,29 @@ export const sideChannelRenderLayerBroker = ({
         contentTextContract.parse(`  ${branch} ${String(shortEmitter)}.emit (in-memory bus)`),
       );
 
-      const eventTypes = edges.map((e) => e.eventType);
-      if (eventTypes.length > 0) {
-        const [firstType] = eventTypes;
-        if (firstType !== undefined) {
-          lines.push(
-            contentTextContract.parse(
-              `${CONTINUATION_PREFIX}${EVENT_TYPES_LABEL}${String(firstType)}`,
-            ),
-          );
-          for (const et of eventTypes.slice(1)) {
-            lines.push(
-              contentTextContract.parse(`${CONTINUATION_PREFIX}${EVENT_TYPES_INDENT}${String(et)}`),
-            );
-          }
+      for (let j = 0; j < edges.length; j++) {
+        const e = edges[j];
+        if (e === undefined) continue;
+        const label = j === 0 ? EVENT_TYPES_LABEL : EVENT_TYPES_INDENT;
+        const consumerRefs: ContentText[] = [];
+        const seenRefs: AbsoluteFilePath[] = [];
+        for (const cf of e.consumerFiles) {
+          const alreadySeen = seenRefs.some((s) => String(s) === String(cf));
+          if (alreadySeen) continue;
+          seenRefs.push(cf);
+          const ref = architectureBackRefBroker({ filePath: cf, projectRoot });
+          if (ref === null) continue;
+          consumerRefs.push(ref);
         }
+        const arrowSuffix =
+          consumerRefs.length === 0
+            ? ''
+            : `${CONSUMER_ARROW}${consumerRefs.map(String).join(', ')}`;
+        lines.push(
+          contentTextContract.parse(
+            `${CONTINUATION_PREFIX}${label}${String(e.eventType)}${arrowSuffix}`,
+          ),
+        );
       }
     }
   }
@@ -106,8 +117,15 @@ export const sideChannelRenderLayerBroker = ({
         filePath: edge.writerFile,
         projectRoot,
       });
+      const watcherRef =
+        edge.watcherFile === null
+          ? null
+          : architectureBackRefBroker({ filePath: edge.watcherFile, projectRoot });
+      const arrowSuffix = watcherRef === null ? '' : `${CONSUMER_ARROW}${String(watcherRef)}`;
       lines.push(
-        contentTextContract.parse(`  └─ ${String(shortWriter)} appends ${String(edge.filePath)}`),
+        contentTextContract.parse(
+          `  └─ ${String(shortWriter)} appends ${String(edge.filePath)}${arrowSuffix}`,
+        ),
       );
     }
   }
@@ -119,13 +137,48 @@ export const sideChannelRenderLayerBroker = ({
   }
 
   if (wsConsumerEdges.length > 0) {
+    const consumerByFile = new Map<
+      ContentText,
+      { events: ContentText[]; sources: ContentText[] }
+    >();
+    const consumerOrder: ContentText[] = [];
     for (const edge of wsConsumerEdges) {
       for (const cf of edge.consumerFiles) {
-        const shortConsumer = filePathToProjectRelativeTransformer({ filePath: cf, projectRoot });
-        lines.push(
-          contentTextContract.parse(`${String(shortConsumer)}        (in-memory bus subscriber)`),
-        );
+        const cfKey = contentTextContract.parse(String(cf));
+        if (!consumerByFile.has(cfKey)) {
+          consumerOrder.push(cfKey);
+          consumerByFile.set(cfKey, { events: [], sources: [] });
+        }
+        const entry = consumerByFile.get(cfKey);
+        if (entry === undefined) continue;
+        entry.events.push(edge.eventType);
+        if (edge.emitterFile !== null) {
+          const ref = architectureBackRefBroker({
+            filePath: edge.emitterFile,
+            projectRoot,
+          });
+          if (ref !== null) {
+            const seen = entry.sources.some((s) => String(s) === String(ref));
+            if (!seen) {
+              entry.sources.push(ref);
+            }
+          }
+        }
       }
+    }
+    for (const cfKey of consumerOrder) {
+      const cf = absoluteFilePathContract.parse(String(cfKey));
+      const shortConsumer = filePathToProjectRelativeTransformer({ filePath: cf, projectRoot });
+      const entry = consumerByFile.get(cfKey);
+      const sourceSuffix =
+        entry === undefined || entry.sources.length === 0
+          ? ''
+          : `${SOURCE_ARROW}${entry.sources.map(String).join(', ')}`;
+      lines.push(
+        contentTextContract.parse(
+          `${String(shortConsumer)}        (in-memory bus subscriber)${sourceSuffix}`,
+        ),
+      );
     }
   }
 
@@ -136,7 +189,16 @@ export const sideChannelRenderLayerBroker = ({
         filePath: edge.watcherFile,
         projectRoot,
       });
-      lines.push(contentTextContract.parse(`${String(shortWatcher)}     (file tail subscriber)`));
+      const writerRef =
+        edge.writerFile === null
+          ? null
+          : architectureBackRefBroker({ filePath: edge.writerFile, projectRoot });
+      const sourceSuffix = writerRef === null ? '' : `${SOURCE_ARROW}${String(writerRef)}`;
+      lines.push(
+        contentTextContract.parse(
+          `${String(shortWatcher)}     (file tail subscriber)${sourceSuffix}`,
+        ),
+      );
     }
   }
 

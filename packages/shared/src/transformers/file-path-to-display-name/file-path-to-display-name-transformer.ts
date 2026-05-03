@@ -31,9 +31,11 @@ export const filePathToDisplayNameTransformer = ({
     ? String(filePath).slice(prefix.length)
     : String(filePath);
 
-  const withoutTs = relative.endsWith('.ts')
-    ? relative.slice(0, relative.length - '.ts'.length)
-    : relative;
+  const withoutExt = relative.endsWith('.tsx')
+    ? relative.slice(0, relative.length - '.tsx'.length)
+    : relative.endsWith('.ts')
+      ? relative.slice(0, relative.length - '.ts'.length)
+      : relative;
 
-  return contentTextContract.parse(withoutTs);
+  return contentTextContract.parse(withoutExt);
 };

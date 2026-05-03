@@ -4,6 +4,7 @@ import { architectureSideChannelBrokerProxy } from '../side-channel/architecture
 
 export const packageSectionBuildLayerBrokerProxy = (): {
   setupLibraryPackage: () => void;
+  setupHttpBackendPackage: () => void;
 } => {
   architectureBootTreeBrokerProxy();
   const headlineProxy = headlineDispatchLayerBrokerProxy();
@@ -15,6 +16,13 @@ export const packageSectionBuildLayerBrokerProxy = (): {
       // called here — calling bootTreeProxy.setupNoStartupFiles() would queue a ReturnValueOnce
       // that could contaminate readdir call ordering in composer-level proxy tests.
       headlineProxy.setupForLibrary();
+      sideChannelProxy.setup({ sourceFiles: [] });
+    },
+
+    setupHttpBackendPackage: (): void => {
+      // http-backend packages skip the boot tree (Boot section removed in favour of Routes),
+      // so bootTreeProxy is not called here for the same reason as library packages.
+      headlineProxy.setupForHttpBackend();
       sideChannelProxy.setup({ sourceFiles: [] });
     },
   };

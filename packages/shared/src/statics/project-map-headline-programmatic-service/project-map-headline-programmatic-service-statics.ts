@@ -21,22 +21,6 @@ export const projectMapHeadlineProgrammaticServiceStatics = {
   inMemoryLabel: 'in-memory:',
   filesLabel: 'files:    ',
   browserLabel: 'browser:  ',
-  exemplarSectionPrefix: '## Detailed exemplar — `',
-  exemplarSectionSuffix: '`',
-  exemplarDescription:
-    'The API-table entry above shows the call shape. This section traces the same method end-to-end including internal flow, state writes, file writes, spawns, and bus emissions.',
-  exemplarRequestChainHeader: '### Call trace',
-  boundaryBoxInnerWidth: 56,
-  boundaryBoxPad: 2,
-  genericBoundaryBoxLabel: 'BOUNDARY →',
-  genericBoundaryBoxNote: '(cross-package adapter call)',
-  genericBoundaryBoxFill: '═',
-  genericBoundaryBoxCornerTL: '╔',
-  genericBoundaryBoxCornerTR: '╗',
-  genericBoundaryBoxCornerBL: '╚',
-  genericBoundaryBoxCornerBR: '╝',
-  genericBoundaryBoxSide: '║',
-  genericBoundaryBoxIndent: '      ',
   // Domain groupings: verb prefix → domain group label
   methodGroupPrefixes: {
     listGuilds: 'Guilds',

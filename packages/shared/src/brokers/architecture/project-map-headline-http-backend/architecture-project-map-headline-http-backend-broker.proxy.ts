@@ -5,8 +5,6 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
 import { routesForPackageFilterLayerBrokerProxy } from './routes-for-package-filter-layer-broker.proxy';
 import { routesSectionRenderLayerBrokerProxy } from './routes-section-render-layer-broker.proxy';
-import { exemplarEdgePickLayerBrokerProxy } from './exemplar-edge-pick-layer-broker.proxy';
-import { exemplarSectionRenderLayerBrokerProxy } from './exemplar-section-render-layer-broker.proxy';
 
 // Canonical statics file paths used by edge detection
 const SERVER_STATICS_PATH = AbsoluteFilePathStub({
@@ -33,9 +31,7 @@ export const architectureProjectMapHeadlineHttpBackendBrokerProxy = (): {
 } => {
   const edgeGraphProxy = architectureEdgeGraphBrokerProxy();
   routesForPackageFilterLayerBrokerProxy();
-  routesSectionRenderLayerBrokerProxy();
-  exemplarEdgePickLayerBrokerProxy();
-  const exemplarProxy = exemplarSectionRenderLayerBrokerProxy();
+  const routesSectionProxy = routesSectionRenderLayerBrokerProxy();
 
   return {
     setup: ({
@@ -51,7 +47,7 @@ export const architectureProjectMapHeadlineHttpBackendBrokerProxy = (): {
       responderFiles: { path: AbsoluteFilePath; source: ContentText }[];
       adapterFiles: { path: AbsoluteFilePath; source: ContentText }[];
     }): void => {
-      // Build unified file map covering statics, flow, responder, and adapter files
+      // Build file map covering statics, flow, responder, and adapter files
       const fileMap = new Map<AbsoluteFilePath, ContentText>();
       fileMap.set(SERVER_STATICS_PATH, serverStaticsSource);
       fileMap.set(WEB_STATICS_PATH, webStaticsSource);
@@ -65,17 +61,15 @@ export const architectureProjectMapHeadlineHttpBackendBrokerProxy = (): {
         fileMap.set(a.path, a.source);
       }
 
-      const unifiedImpl = (filePath: ContentText): ContentText => {
+      const fileImpl = (filePath: ContentText): ContentText => {
         for (const [key, source] of fileMap) {
           if (String(key) === String(filePath)) {
             return source;
           }
         }
-        // Return empty content for unknown files (edge-graph returns '' for unresolvable statics)
         return ContentTextStub({ value: '' });
       };
 
-      // Set up edge-graph proxy (covers statics + flow source reads for HTTP edge detection)
       edgeGraphProxy.setup({
         serverStaticsSource,
         webStaticsSource,
@@ -83,10 +77,7 @@ export const architectureProjectMapHeadlineHttpBackendBrokerProxy = (): {
         brokerFiles: [],
       });
 
-      // Override the shared readFileSync handle with the unified implementation so that
-      // both edge-graph and render-layer reads see the full file map (including responder/adapter files).
-      // This must come AFTER edgeGraphProxy.setup() to overwrite its partial implementation.
-      exemplarProxy.setupImplementation({ fn: unifiedImpl });
+      routesSectionProxy.setupImplementation({ fn: fileImpl });
     },
   };
 };

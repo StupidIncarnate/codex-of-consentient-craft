@@ -156,56 +156,6 @@ describe('architectureProjectMapHeadlineProgrammaticServiceBroker', () => {
     });
   });
 
-  describe('detailed exemplar', () => {
-    it('VALID: {startup with methods} => exemplar section header present', () => {
-      const proxy = architectureProjectMapHeadlineProgrammaticServiceBrokerProxy();
-
-      proxy.setup({
-        startupFileName: 'start-orchestrator.ts',
-        startupSource: STARTUP_SOURCE,
-        sourceFiles: [],
-      });
-
-      const result = architectureProjectMapHeadlineProgrammaticServiceBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some((l) =>
-          l.startsWith(projectMapHeadlineProgrammaticServiceStatics.exemplarSectionPrefix),
-        ),
-      ).toBe(true);
-    });
-
-    it('VALID: {startup with listGuilds as first method} => exemplar is for listGuilds', () => {
-      const proxy = architectureProjectMapHeadlineProgrammaticServiceBrokerProxy();
-
-      proxy.setup({
-        startupFileName: 'start-orchestrator.ts',
-        startupSource: STARTUP_SOURCE,
-        sourceFiles: [],
-      });
-
-      const result = architectureProjectMapHeadlineProgrammaticServiceBroker({
-        projectRoot: PROJECT_ROOT,
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some(
-          (l) =>
-            l ===
-            `${projectMapHeadlineProgrammaticServiceStatics.exemplarSectionPrefix}listGuilds${projectMapHeadlineProgrammaticServiceStatics.exemplarSectionSuffix}`,
-        ),
-      ).toBe(true);
-    });
-  });
-
   describe('section separators', () => {
     it('VALID: {startup with methods} => sections separated by horizontal rule', () => {
       const proxy = architectureProjectMapHeadlineProgrammaticServiceBrokerProxy();

@@ -12,10 +12,11 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 export const headlineDispatchLayerBrokerProxy = (): {
   setupForLibrary: () => void;
   setupForEslintPlugin: () => void;
+  setupForHttpBackend: () => void;
 } => {
   const libraryProxy = architectureProjectMapHeadlineLibraryBrokerProxy();
   const eslintProxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
-  architectureProjectMapHeadlineHttpBackendBrokerProxy();
+  const httpBackendProxy = architectureProjectMapHeadlineHttpBackendBrokerProxy();
   architectureProjectMapHeadlineMcpServerBrokerProxy();
   architectureProjectMapHeadlineProgrammaticServiceBrokerProxy();
   architectureProjectMapHeadlineCliToolBrokerProxy();
@@ -36,9 +37,17 @@ export const headlineDispatchLayerBrokerProxy = (): {
 
     setupForEslintPlugin: (): void => {
       eslintProxy.setup({
-        ruleDomainNames: [],
         startupSource: undefined,
-        ruleSourceMap: new Map(),
+      });
+    },
+
+    setupForHttpBackend: (): void => {
+      httpBackendProxy.setup({
+        serverStaticsSource: ContentTextStub({ value: '' }),
+        webStaticsSource: ContentTextStub({ value: '' }),
+        flowFiles: [],
+        responderFiles: [],
+        adapterFiles: [],
       });
     },
   };

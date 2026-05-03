@@ -3,16 +3,16 @@ import { extractPackageHeadersTransformer } from './extract-package-headers-tran
 
 describe('extractPackageHeadersTransformer', () => {
   describe('extractHeaders()', () => {
-    it('VALID: {projectMap: map with two packages} => returns compact list with names and descriptions', () => {
+    it('VALID: {projectMap: map with two packages} => returns compact list with names', () => {
       const projectMap = ContentTextStub({
         value: [
-          '# Codebase Map',
+          '# cli [cli-tool]',
           '',
-          '## cli (69 files) — CLI for quest management',
-          '  brokers/ (12) — install (execute, orchestrate)',
+          'some content',
           '',
-          '## config (96 files) — Configuration parser and resolver',
-          '  statics/ (14) — framework, routing-library',
+          '# config [library]',
+          '',
+          'more content',
         ].join('\n'),
       });
 
@@ -20,19 +20,14 @@ describe('extractPackageHeadersTransformer', () => {
 
       expect(result).toBe(
         ContentTextStub({
-          value: [
-            '## Packages',
-            '',
-            '- **cli** — CLI for quest management',
-            '- **config** — Configuration parser and resolver',
-          ].join('\n'),
+          value: ['## Packages', '', '- **cli**', '- **config**'].join('\n'),
         }),
       );
     });
 
-    it('VALID: {projectMap: package without description} => returns name only', () => {
+    it('VALID: {projectMap: single package} => returns name only', () => {
       const projectMap = ContentTextStub({
-        value: '## bare (5 files)\n  brokers/ (2)',
+        value: '# bare [library]\n\nsome content',
       });
 
       const result = extractPackageHeadersTransformer({ projectMap });
@@ -42,7 +37,7 @@ describe('extractPackageHeadersTransformer', () => {
 
     it('EMPTY: {projectMap: no package headers} => returns header only', () => {
       const projectMap = ContentTextStub({
-        value: '# Codebase Map\n\nNo packages found.',
+        value: '## some section\n\nNo packages found.',
       });
 
       const result = extractPackageHeadersTransformer({ projectMap });

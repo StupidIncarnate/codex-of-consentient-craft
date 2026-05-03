@@ -5,9 +5,18 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { HttpEdgeStub } from '../../../contracts/http-edge/http-edge.stub';
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
 
 const RESPONDER_PATH = AbsoluteFilePathStub({
   value: '/repo/packages/server/src/responders/quest/list/quest-list-responder.ts',
+});
+
+const WEB_BROKER_PATH = AbsoluteFilePathStub({
+  value: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.ts',
+});
+
+const WEB_BROKER_2_PATH = AbsoluteFilePathStub({
+  value: '/repo/packages/web/src/brokers/quest/queue/quest-queue-broker.ts',
 });
 
 const RESPONDER_SOURCE_WITH_ADAPTER = ContentTextStub({
@@ -25,10 +34,15 @@ describe('routeEntryLinesRenderLayerBroker', () => {
         urlPattern: ContentTextStub({ value: '/api/health' }),
         serverFlowFile: null,
         serverResponderFile: null,
+        webBrokerFile: null,
         paired: false,
       });
 
-      const result = routeEntryLinesRenderLayerBroker({ edge, packageRoot: PACKAGE_ROOT });
+      const result = routeEntryLinesRenderLayerBroker({
+        edges: [edge],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
 
       expect(result.map(String)).toStrictEqual(['GET    /api/health']);
     });
@@ -43,9 +57,14 @@ describe('routeEntryLinesRenderLayerBroker', () => {
         method: ContentTextStub({ value: 'GET' }),
         urlPattern: ContentTextStub({ value: '/api/quests' }),
         serverResponderFile: RESPONDER_PATH,
+        webBrokerFile: null,
       });
 
-      const result = routeEntryLinesRenderLayerBroker({ edge, packageRoot: PACKAGE_ROOT });
+      const result = routeEntryLinesRenderLayerBroker({
+        edges: [edge],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
 
       expect(result.map(String)).toStrictEqual(['GET    /api/quests', '  → responders/quest/list']);
     });
@@ -63,14 +82,19 @@ describe('routeEntryLinesRenderLayerBroker', () => {
         method: ContentTextStub({ value: 'GET' }),
         urlPattern: ContentTextStub({ value: '/api/quests' }),
         serverResponderFile: RESPONDER_PATH,
+        webBrokerFile: null,
       });
 
-      const result = routeEntryLinesRenderLayerBroker({ edge, packageRoot: PACKAGE_ROOT });
+      const result = routeEntryLinesRenderLayerBroker({
+        edges: [edge],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
 
       expect(result.map(String)).toStrictEqual([
         'GET    /api/quests',
         '  → responders/quest/list',
-        '  → adapters/orchestrator/list-quests',
+        '    → adapters/orchestrator/list-quests',
       ]);
     });
   });
@@ -84,11 +108,53 @@ describe('routeEntryLinesRenderLayerBroker', () => {
         method: ContentTextStub({ value: 'POST' }),
         urlPattern: ContentTextStub({ value: '/api/quests/:questId/start' }),
         serverResponderFile: null,
+        webBrokerFile: null,
       });
 
-      const result = routeEntryLinesRenderLayerBroker({ edge, packageRoot: PACKAGE_ROOT });
+      const result = routeEntryLinesRenderLayerBroker({
+        edges: [edge],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
 
       expect(result.map(String)).toStrictEqual(['POST   /api/quests/:questId/start']);
+    });
+  });
+
+  describe('fan-in: multiple consumer back-refs', () => {
+    it('VALID: {two web brokers same route} => emits two ← back-ref lines', () => {
+      const proxy = routeEntryLinesRenderLayerBrokerProxy();
+      proxy.setupReturns({
+        content: ContentTextStub({ value: 'export const useQuestListBinding = () => {};' }),
+      });
+      proxy.setupReturns({
+        content: ContentTextStub({ value: 'export const useQuestQueueBinding = () => {};' }),
+      });
+
+      const edge1 = HttpEdgeStub({
+        method: ContentTextStub({ value: 'GET' }),
+        urlPattern: ContentTextStub({ value: '/api/quests' }),
+        serverResponderFile: null,
+        webBrokerFile: WEB_BROKER_PATH,
+      });
+      const edge2 = HttpEdgeStub({
+        method: ContentTextStub({ value: 'GET' }),
+        urlPattern: ContentTextStub({ value: '/api/quests' }),
+        serverResponderFile: null,
+        webBrokerFile: WEB_BROKER_2_PATH,
+      });
+
+      const result = routeEntryLinesRenderLayerBroker({
+        edges: [edge1, edge2],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
+
+      expect(result.map(String)).toStrictEqual([
+        'GET    /api/quests',
+        '  ← packages/web (useQuestListBinding)',
+        '  ← packages/web (useQuestQueueBinding)',
+      ]);
     });
   });
 });

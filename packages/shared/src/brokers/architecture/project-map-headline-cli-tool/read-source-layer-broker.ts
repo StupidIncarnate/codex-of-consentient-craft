@@ -8,7 +8,7 @@
  * });
  * // Returns ContentText or undefined if the file is missing
  *
- * WHEN-TO-USE: cli-tool headline broker reading responder and adapter source files for exemplar tracing
+ * WHEN-TO-USE: cli-tool headline broker reading responder and adapter source files
  */
 
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';

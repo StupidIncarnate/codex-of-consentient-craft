@@ -5,6 +5,7 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { HttpEdgeStub } from '../../../contracts/http-edge/http-edge.stub';
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
 
 const QUEST_FLOW_PATH = AbsoluteFilePathStub({
   value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
@@ -19,7 +20,11 @@ describe('routesSectionRenderLayerBroker', () => {
     it('EMPTY: {no edges} => output is routes header followed by empty notice', () => {
       routesSectionRenderLayerBrokerProxy();
 
-      const result = routesSectionRenderLayerBroker({ edges: [], packageRoot: PACKAGE_ROOT });
+      const result = routesSectionRenderLayerBroker({
+        edges: [],
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
+      });
 
       expect(String(result)).toBe(
         '## Routes — every server endpoint\n\n(no routes found in this package)',
@@ -40,6 +45,7 @@ describe('routesSectionRenderLayerBroker', () => {
       const result = routesSectionRenderLayerBroker({
         edges: [edge],
         packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
       });
 
       const lines = String(result).split('\n');
@@ -47,7 +53,7 @@ describe('routesSectionRenderLayerBroker', () => {
       expect(lines[0]).toBe('## Routes — every server endpoint');
     });
 
-    it('VALID: {GET /api/health from health-flow, no source} => output contains flow file header', () => {
+    it('VALID: {GET /api/health from health-flow, no source} => output contains flow file name', () => {
       routesSectionRenderLayerBrokerProxy();
 
       const edge = HttpEdgeStub({
@@ -59,14 +65,15 @@ describe('routesSectionRenderLayerBroker', () => {
       const result = routesSectionRenderLayerBroker({
         edges: [edge],
         packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
       });
 
       const lines = String(result).split('\n');
 
-      expect(lines.some((l) => l === '### flows/health/health-flow.ts')).toBe(true);
+      expect(lines.some((l) => l === 'flows/health/health-flow.ts')).toBe(true);
     });
 
-    it('VALID: {GET /api/health from health-flow, no source} => output contains route line', () => {
+    it('VALID: {GET /api/health from health-flow, no source} => output contains route line indented under flow', () => {
       routesSectionRenderLayerBrokerProxy();
 
       const edge = HttpEdgeStub({
@@ -78,11 +85,12 @@ describe('routesSectionRenderLayerBroker', () => {
       const result = routesSectionRenderLayerBroker({
         edges: [edge],
         packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
       });
 
       const lines = String(result).split('\n');
 
-      expect(lines.some((l) => l === 'GET    /api/health')).toBe(true);
+      expect(lines.some((l) => l === '  GET    /api/health')).toBe(true);
     });
   });
 
@@ -104,12 +112,13 @@ describe('routesSectionRenderLayerBroker', () => {
       const result = routesSectionRenderLayerBroker({
         edges: [questEdge, healthEdge],
         packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
       });
 
       const lines = String(result).split('\n');
 
-      expect(lines.some((l) => l === '### flows/quest/quest-flow.ts')).toBe(true);
-      expect(lines.some((l) => l === '### flows/health/health-flow.ts')).toBe(true);
+      expect(lines.some((l) => l === 'flows/quest/quest-flow.ts')).toBe(true);
+      expect(lines.some((l) => l === 'flows/health/health-flow.ts')).toBe(true);
     });
   });
 
@@ -127,6 +136,7 @@ describe('routesSectionRenderLayerBroker', () => {
       const result = routesSectionRenderLayerBroker({
         edges: [orphanEdge],
         packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
       });
 
       expect(String(result)).toBe(

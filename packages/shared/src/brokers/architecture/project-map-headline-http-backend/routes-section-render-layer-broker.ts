@@ -26,9 +26,11 @@ import { routeEntryLinesRenderLayerBroker } from './route-entry-lines-render-lay
 export const routesSectionRenderLayerBroker = ({
   edges,
   packageRoot,
+  projectRoot,
 }: {
   edges: HttpEdge[];
   packageRoot: AbsoluteFilePath;
+  projectRoot: AbsoluteFilePath;
 }): ContentText => {
   const packageSrcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
 
@@ -57,11 +59,7 @@ export const routesSectionRenderLayerBroker = ({
     );
   }
 
-  const sectionParts: ContentText[] = [
-    contentTextContract.parse(projectMapHeadlineHttpBackendStatics.routesSectionHeader),
-    contentTextContract.parse(''),
-    contentTextContract.parse(projectMapHeadlineHttpBackendStatics.routesSectionDescription),
-  ];
+  const flowBlocks: ContentText[] = [];
 
   for (const flowKey of flowOrder) {
     const flowEdges = grouped.get(flowKey) ?? [];
@@ -73,19 +71,48 @@ export const routesSectionRenderLayerBroker = ({
       packageSrcPath,
     });
 
-    sectionParts.push(contentTextContract.parse(''));
-    sectionParts.push(contentTextContract.parse(`### ${String(flowDisplay)}.ts`));
-    sectionParts.push(contentTextContract.parse(''));
-    sectionParts.push(contentTextContract.parse('```'));
-
-    const entryBlocks: ContentText[] = [];
+    const routeEntries: ContentText[] = [];
+    const routeKeyOrder: ContentText[] = [];
+    const routeGroups = new Map<ContentText, HttpEdge[]>();
     for (const edge of flowEdges) {
-      const entryLines = routeEntryLinesRenderLayerBroker({ edge, packageRoot });
-      entryBlocks.push(contentTextContract.parse(entryLines.map(String).join('\n')));
+      const routeKey = contentTextContract.parse(
+        `${String(edge.method)} ${String(edge.urlPattern)}`,
+      );
+      const alreadyAdded = routeKeyOrder.some((k) => String(k) === String(routeKey));
+      if (!alreadyAdded) {
+        routeKeyOrder.push(routeKey);
+        routeGroups.set(routeKey, []);
+      }
+      for (const [k, arr] of routeGroups) {
+        if (String(k) === String(routeKey)) {
+          arr.push(edge);
+        }
+      }
     }
-    sectionParts.push(contentTextContract.parse(entryBlocks.map(String).join('\n\n')));
-    sectionParts.push(contentTextContract.parse('```'));
+
+    for (const routeKey of routeKeyOrder) {
+      const routeEdges = routeGroups.get(routeKey) ?? [];
+      if (routeEdges.length === 0) continue;
+      const entryLines = routeEntryLinesRenderLayerBroker({
+        edges: routeEdges,
+        packageRoot,
+        projectRoot,
+      });
+      routeEntries.push(
+        contentTextContract.parse(entryLines.map((l) => `  ${String(l)}`).join('\n')),
+      );
+    }
+
+    flowBlocks.push(
+      contentTextContract.parse(
+        `${String(flowDisplay)}.ts\n${routeEntries.map(String).join('\n\n')}`,
+      ),
+    );
   }
 
-  return contentTextContract.parse(sectionParts.map(String).join('\n'));
+  const codeBody = flowBlocks.map(String).join('\n\n');
+
+  return contentTextContract.parse(
+    `${projectMapHeadlineHttpBackendStatics.routesSectionHeader}\n\n\`\`\`\n${codeBody}\n\`\`\``,
+  );
 };

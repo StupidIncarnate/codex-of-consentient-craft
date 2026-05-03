@@ -37,7 +37,7 @@ describe('headlineDispatchLayerBroker', () => {
         packageName: PACKAGE_NAME,
       });
 
-      expect(String(result).split('\n')[0]).toStrictEqual('## Rules registered (0 total)');
+      expect(String(result).split('\n')[0]).toStrictEqual('## Config presets');
     });
   });
 

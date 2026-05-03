@@ -5,8 +5,6 @@ describe('projectMapHeadlineEslintPluginStatics', () => {
     expect(projectMapHeadlineEslintPluginStatics).toStrictEqual({
       configSectionHeader: '## Config presets',
       configSectionEmpty: '(no config presets found)',
-      exemplarSectionPrefix: '## Detailed exemplar — `',
-      exemplarSectionSuffix: '`',
       ruleNameParentDirDepth: 2,
     });
   });

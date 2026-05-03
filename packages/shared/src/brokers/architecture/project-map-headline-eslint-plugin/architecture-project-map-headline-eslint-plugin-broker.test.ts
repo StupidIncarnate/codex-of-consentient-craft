@@ -6,26 +6,6 @@ import { projectMapHeadlineEslintPluginStatics } from '../../../statics/project-
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/eslint-plugin' });
 
-const BAN_PRIMITIVES_PATH = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.ts',
-});
-
-const ENFORCE_PROJECT_STRUCTURE_PATH = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/eslint-plugin/src/brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.ts',
-});
-
-const BAN_PRIMITIVES_SOURCE = ContentTextStub({
-  value: `/**
- * PURPOSE: Bans raw string and number types in favor of Zod contract types
- *
- * USAGE:
- * const rule = ruleBanPrimitivesBroker();
- */
-export const ruleBanPrimitivesBroker = () => {};`,
-});
-
 const STARTUP_SOURCE_WITH_CONFIGS = ContentTextStub({
   value: `export const StartEslintPlugin = () => ({
   rules: {},
@@ -42,9 +22,7 @@ describe('architectureProjectMapHeadlineEslintPluginBroker', () => {
       const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
 
       proxy.setup({
-        ruleDomainNames: [],
         startupSource: STARTUP_SOURCE_WITH_CONFIGS,
-        ruleSourceMap: new Map(),
       });
 
       const result = architectureProjectMapHeadlineEslintPluginBroker({
@@ -62,9 +40,7 @@ describe('architectureProjectMapHeadlineEslintPluginBroker', () => {
       const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
 
       proxy.setup({
-        ruleDomainNames: [],
         startupSource: STARTUP_SOURCE_WITH_CONFIGS,
-        ruleSourceMap: new Map(),
       });
 
       const result = architectureProjectMapHeadlineEslintPluginBroker({
@@ -80,9 +56,7 @@ describe('architectureProjectMapHeadlineEslintPluginBroker', () => {
       const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
 
       proxy.setup({
-        ruleDomainNames: [],
         startupSource: STARTUP_SOURCE_WITH_CONFIGS,
-        ruleSourceMap: new Map(),
       });
 
       const result = architectureProjectMapHeadlineEslintPluginBroker({
@@ -92,87 +66,6 @@ describe('architectureProjectMapHeadlineEslintPluginBroker', () => {
       const lines = String(result).split('\n');
 
       expect(lines.some((l) => l === '- dungeonmasterTest')).toBe(true);
-    });
-  });
-
-  describe('exemplar emits PURPOSE line for first rule', () => {
-    it('VALID: {ban-primitives rule with PURPOSE} => exemplar header present', () => {
-      const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
-
-      proxy.setup({
-        ruleDomainNames: [ContentTextStub({ value: 'ban-primitives' })],
-        startupSource: undefined,
-        ruleSourceMap: new Map([[BAN_PRIMITIVES_PATH, BAN_PRIMITIVES_SOURCE]]),
-      });
-
-      const result = architectureProjectMapHeadlineEslintPluginBroker({
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some(
-          (l) =>
-            l ===
-            `${projectMapHeadlineEslintPluginStatics.exemplarSectionPrefix}ban-primitives${projectMapHeadlineEslintPluginStatics.exemplarSectionSuffix}`,
-        ),
-      ).toBe(true);
-    });
-
-    it('VALID: {ban-primitives rule with PURPOSE} => PURPOSE line in exemplar section', () => {
-      const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
-
-      proxy.setup({
-        ruleDomainNames: [ContentTextStub({ value: 'ban-primitives' })],
-        startupSource: undefined,
-        ruleSourceMap: new Map([[BAN_PRIMITIVES_PATH, BAN_PRIMITIVES_SOURCE]]),
-      });
-
-      const result = architectureProjectMapHeadlineEslintPluginBroker({
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some((l) =>
-          l.startsWith('PURPOSE: Bans raw string and number types in favor of Zod contract types'),
-        ),
-      ).toBe(true);
-    });
-
-    it('VALID: {two rules} => exemplar picks first rule (ban-primitives)', () => {
-      const proxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
-
-      proxy.setup({
-        ruleDomainNames: [
-          ContentTextStub({ value: 'ban-primitives' }),
-          ContentTextStub({ value: 'enforce-project-structure' }),
-        ],
-        startupSource: undefined,
-        ruleSourceMap: new Map([
-          [BAN_PRIMITIVES_PATH, BAN_PRIMITIVES_SOURCE],
-          [
-            ENFORCE_PROJECT_STRUCTURE_PATH,
-            ContentTextStub({ value: '/** * PURPOSE: Enforces project structure rules */' }),
-          ],
-        ]),
-      });
-
-      const result = architectureProjectMapHeadlineEslintPluginBroker({
-        packageRoot: PACKAGE_ROOT,
-      });
-
-      const lines = String(result).split('\n');
-
-      expect(
-        lines.some(
-          (l) =>
-            l ===
-            `${projectMapHeadlineEslintPluginStatics.exemplarSectionPrefix}ban-primitives${projectMapHeadlineEslintPluginStatics.exemplarSectionSuffix}`,
-        ),
-      ).toBe(true);
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Renders the ↳ responder lines and their nested adapter lines for a single flow file
- * in the boot-tree output
+ * PURPOSE: Renders the body lines beneath a flow header — route metadata, ↳ responder lines and
+ * their nested → adapter lines, and recursive child-flow chains
  *
  * USAGE:
  * const lines = responderLinesRenderLayerBroker({
@@ -8,41 +8,102 @@
  *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
  *   renderingFilePath: absoluteFilePathContract.parse('/repo/packages/server/src/startup/start-server.ts'),
  * });
- * // Returns ContentText[] with ↳ responder lines and nested → adapter lines
+ * // Returns ContentText[] with route lines, ↳ responder lines, → adapter lines, and ↳ flows/... recursion
  *
- * WHEN-TO-USE: boot-tree rendering composing the responder+adapter subtree for each flow
+ * WHEN-TO-USE: boot-tree rendering composing the body subtree under each flow header — the caller
+ * is responsible for emitting the flow's display name on its own line; this broker only renders the body
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import {
+  absoluteFilePathContract,
+  type AbsoluteFilePath,
+} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
+import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
 import { importPathToPackagePrefixTransformer } from '../../../transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
+import { pascalCaseToKebabCaseTransformer } from '../../../transformers/pascal-case-to-kebab-case/pascal-case-to-kebab-case-transformer';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import { adapterLinesRenderLayerBroker } from './adapter-lines-render-layer-broker';
+import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
+import { widgetSubtreeRenderLayerBroker } from './widget-subtree-render-layer-broker';
 
 export const responderLinesRenderLayerBroker = ({
   flowFile,
   packageSrcPath,
   renderingFilePath,
+  depth = 0,
+  visited = new Set<AbsoluteFilePath>(),
+  widgetContext,
+  consumedWidgetResponders = new Set<AbsoluteFilePath>(),
 }: {
   flowFile: AbsoluteFilePath;
   packageSrcPath: AbsoluteFilePath;
   renderingFilePath: AbsoluteFilePath;
+  depth?: number;
+  visited?: Set<AbsoluteFilePath>;
+  widgetContext?: WidgetContext;
+  consumedWidgetResponders?: Set<AbsoluteFilePath>;
 }): ContentText[] => {
+  const indent = '    '.repeat(depth);
+  const lines: ContentText[] = [];
+
   const responders = importsInFolderTypeFindLayerBroker({
     sourceFile: flowFile,
     packageSrcPath,
     folderType: 'responders',
   });
-  const lines: ContentText[] = [];
+  const routes = routeMetadataExtractLayerBroker({ flowFile });
 
+  const symbolToResponderFile = new Map<ContentText, AbsoluteFilePath>();
   for (const responderFile of responders) {
     const symbolName = filePathToSymbolNameTransformer({ filePath: responderFile });
+    symbolToResponderFile.set(symbolName, responderFile);
+  }
 
+  const consumedResponders = new Set<AbsoluteFilePath>();
+
+  for (const route of routes) {
+    const kebabSymbol = pascalCaseToKebabCaseTransformer({ pascal: route.responderSymbol });
+    const responderFile = symbolToResponderFile.get(kebabSymbol);
+    if (responderFile !== undefined) {
+      consumedResponders.add(responderFile);
+    }
+    const symbol = String(route.responderSymbol);
+    const prefix =
+      route.path === null ? `(layout) ${symbol}` : `path="${String(route.path)}" → ${symbol}`;
+    lines.push(contentTextContract.parse(`${indent}  ${prefix}`));
+
+    if (
+      widgetContext !== undefined &&
+      responderFile !== undefined &&
+      !consumedWidgetResponders.has(responderFile)
+    ) {
+      consumedWidgetResponders.add(responderFile);
+      const widgetLines = widgetSubtreeRenderLayerBroker({
+        responderFile,
+        widgetTree: widgetContext.widgetTree,
+        httpEdges: widgetContext.httpEdges,
+        wsEdges: widgetContext.wsEdges,
+        packageRoot: widgetContext.packageRoot,
+        projectRoot: widgetContext.projectRoot,
+        packageSrcPath,
+        indent: contentTextContract.parse(`${indent}      `),
+      });
+      for (const wl of widgetLines) {
+        lines.push(wl);
+      }
+    }
+  }
+
+  for (const responderFile of responders) {
+    if (consumedResponders.has(responderFile)) continue;
+
+    const symbolName = filePathToSymbolNameTransformer({ filePath: responderFile });
     let renderName: ContentText = filePathToDisplayNameTransformer({
       filePath: responderFile,
       packageSrcPath,
@@ -57,7 +118,7 @@ export const responderLinesRenderLayerBroker = ({
       // keep displayName as fallback
     }
 
-    lines.push(contentTextContract.parse(`  ↳ ${String(renderName)}`));
+    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(renderName)}`));
 
     const adapterLines = adapterLinesRenderLayerBroker({
       responderFile,
@@ -65,7 +126,64 @@ export const responderLinesRenderLayerBroker = ({
       renderingFilePath,
     });
     for (const al of adapterLines) {
-      lines.push(al);
+      lines.push(contentTextContract.parse(`${indent}${String(al)}`));
+    }
+
+    if (widgetContext !== undefined && !consumedWidgetResponders.has(responderFile)) {
+      consumedWidgetResponders.add(responderFile);
+      const widgetLines = widgetSubtreeRenderLayerBroker({
+        responderFile,
+        widgetTree: widgetContext.widgetTree,
+        httpEdges: widgetContext.httpEdges,
+        wsEdges: widgetContext.wsEdges,
+        packageRoot: widgetContext.packageRoot,
+        projectRoot: widgetContext.projectRoot,
+        packageSrcPath,
+        indent: contentTextContract.parse(`${indent}      `),
+      });
+      for (const wl of widgetLines) {
+        lines.push(wl);
+      }
+    }
+  }
+
+  const childFlows = importsInFolderTypeFindLayerBroker({
+    sourceFile: flowFile,
+    packageSrcPath,
+    folderType: 'flows',
+  });
+
+  for (const childFlow of childFlows) {
+    const childAbsPath = absoluteFilePathContract.parse(String(childFlow));
+    if (visited.has(childAbsPath)) continue;
+    visited.add(childAbsPath);
+
+    const childDisplay = filePathToDisplayNameTransformer({
+      filePath: childFlow,
+      packageSrcPath,
+    });
+    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(childDisplay)}`));
+
+    const childLines =
+      widgetContext === undefined
+        ? responderLinesRenderLayerBroker({
+            flowFile: childFlow,
+            packageSrcPath,
+            renderingFilePath,
+            depth: depth + 1,
+            visited,
+          })
+        : responderLinesRenderLayerBroker({
+            flowFile: childFlow,
+            packageSrcPath,
+            renderingFilePath,
+            depth: depth + 1,
+            visited,
+            widgetContext,
+            consumedWidgetResponders,
+          });
+    for (const cl of childLines) {
+      lines.push(cl);
     }
   }
 
