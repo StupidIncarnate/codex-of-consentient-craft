@@ -2,7 +2,6 @@ import { architectureProjectMapHeadlineLibraryBrokerProxy } from '../project-map
 import { architectureProjectMapHeadlineEslintPluginBrokerProxy } from '../project-map-headline-eslint-plugin/architecture-project-map-headline-eslint-plugin-broker.proxy';
 import { architectureProjectMapHeadlineHttpBackendBrokerProxy } from '../project-map-headline-http-backend/architecture-project-map-headline-http-backend-broker.proxy';
 import { architectureProjectMapHeadlineMcpServerBrokerProxy } from '../project-map-headline-mcp-server/architecture-project-map-headline-mcp-server-broker.proxy';
-import { architectureProjectMapHeadlineProgrammaticServiceBrokerProxy } from '../project-map-headline-programmatic-service/architecture-project-map-headline-programmatic-service-broker.proxy';
 import { architectureProjectMapHeadlineCliToolBrokerProxy } from '../project-map-headline-cli-tool/architecture-project-map-headline-cli-tool-broker.proxy';
 import { architectureProjectMapHeadlineHookHandlersBrokerProxy } from '../project-map-headline-hook-handlers/architecture-project-map-headline-hook-handlers-broker.proxy';
 import { architectureProjectMapHeadlineFrontendReactBrokerProxy } from '../project-map-headline-frontend-react/architecture-project-map-headline-frontend-react-broker.proxy';
@@ -18,7 +17,6 @@ export const headlineDispatchLayerBrokerProxy = (): {
   const eslintProxy = architectureProjectMapHeadlineEslintPluginBrokerProxy();
   const httpBackendProxy = architectureProjectMapHeadlineHttpBackendBrokerProxy();
   architectureProjectMapHeadlineMcpServerBrokerProxy();
-  architectureProjectMapHeadlineProgrammaticServiceBrokerProxy();
   architectureProjectMapHeadlineCliToolBrokerProxy();
   architectureProjectMapHeadlineHookHandlersBrokerProxy();
   architectureProjectMapHeadlineFrontendReactBrokerProxy();

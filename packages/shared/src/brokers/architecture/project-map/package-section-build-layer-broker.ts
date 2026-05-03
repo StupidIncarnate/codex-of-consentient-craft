@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Builds the per-package markdown section for the project-map composer,
- * assembling the header line, boot tree, headline, and side-channel
+ * assembling the header line, boot tree, and headline
  *
  * USAGE:
  * const section = packageSectionBuildLayerBroker({ packageName, packageRoot, packageType, srcPath, packageJsonPath, projectRoot });
@@ -10,7 +10,6 @@
  */
 
 import { architectureBootTreeBroker } from '../boot-tree/architecture-boot-tree-broker';
-import { architectureSideChannelBroker } from '../side-channel/architecture-side-channel-broker';
 import { headlineDispatchLayerBroker } from './headline-dispatch-layer-broker';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
@@ -44,18 +43,6 @@ export const packageSectionBuildLayerBroker = ({
   });
   if (String(headline).length > 0) {
     packageParts.push(headline);
-  }
-
-  if (packageType !== 'library') {
-    const sideChannel = architectureSideChannelBroker({
-      projectRoot,
-      packageRoot,
-      packageName,
-      packageType,
-    });
-    if (String(sideChannel).length > 0) {
-      packageParts.push(sideChannel);
-    }
   }
 
   return contentTextContract.parse(packageParts.join('\n\n'));

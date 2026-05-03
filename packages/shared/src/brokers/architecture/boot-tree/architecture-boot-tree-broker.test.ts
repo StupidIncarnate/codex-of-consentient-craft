@@ -131,7 +131,7 @@ describe('architectureBootTreeBroker', () => {
   });
 
   describe('WS subscriber adapter', () => {
-    it('VALID: {EventsOn adapter in responder} => renders side-channel note line not → line', () => {
+    it('VALID: {EventsOn adapter in responder} => renders as a regular → adapter leaf', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
@@ -163,7 +163,7 @@ describe('architectureBootTreeBroker', () => {
             '',
             'flows/server/server-flow',
             '  ↳ server-init-responder',
-            '      + adapters/orchestrator/events-on/orchestrator-events-on-adapter    ← runtime FLOW shown in Side-channel',
+            '      → adapters/orchestrator/events-on',
             '```',
           ].join('\n'),
         }),

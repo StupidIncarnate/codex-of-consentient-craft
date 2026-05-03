@@ -78,5 +78,20 @@ describe('importStatementsExtractTransformer', () => {
 
       expect(result).toStrictEqual([ContentTextStub({ value: './multi' })]);
     });
+
+    it('VALID: {source: import inside JSDoc block} => skipped', () => {
+      const source = ContentTextStub({
+        value: [
+          '/**',
+          ' * USAGE:',
+          " * import { foo } from './fake-from-jsdoc';",
+          ' */',
+          "import { real } from './real';",
+        ].join('\n'),
+      });
+      const result = importStatementsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([ContentTextStub({ value: './real' })]);
+    });
   });
 });

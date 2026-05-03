@@ -10,14 +10,16 @@
 
 import { architectureProjectMapHeadlineHttpBackendBroker } from '../project-map-headline-http-backend/architecture-project-map-headline-http-backend-broker';
 import { architectureProjectMapHeadlineMcpServerBroker } from '../project-map-headline-mcp-server/architecture-project-map-headline-mcp-server-broker';
-import { architectureProjectMapHeadlineProgrammaticServiceBroker } from '../project-map-headline-programmatic-service/architecture-project-map-headline-programmatic-service-broker';
 import { architectureProjectMapHeadlineCliToolBroker } from '../project-map-headline-cli-tool/architecture-project-map-headline-cli-tool-broker';
 import { architectureProjectMapHeadlineHookHandlersBroker } from '../project-map-headline-hook-handlers/architecture-project-map-headline-hook-handlers-broker';
 import { architectureProjectMapHeadlineEslintPluginBroker } from '../project-map-headline-eslint-plugin/architecture-project-map-headline-eslint-plugin-broker';
 import { architectureProjectMapHeadlineFrontendReactBroker } from '../project-map-headline-frontend-react/architecture-project-map-headline-frontend-react-broker';
 import { architectureProjectMapHeadlineLibraryBroker } from '../project-map-headline-library/architecture-project-map-headline-library-broker';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import {
+  contentTextContract,
+  type ContentText,
+} from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 
 export const headlineDispatchLayerBroker = ({
@@ -38,7 +40,7 @@ export const headlineDispatchLayerBroker = ({
     return architectureProjectMapHeadlineMcpServerBroker({ projectRoot, packageRoot });
   }
   if (packageType === 'programmatic-service') {
-    return architectureProjectMapHeadlineProgrammaticServiceBroker({ projectRoot, packageRoot });
+    return contentTextContract.parse('');
   }
   if (packageType === 'cli-tool') {
     return architectureProjectMapHeadlineCliToolBroker({ projectRoot, packageRoot });

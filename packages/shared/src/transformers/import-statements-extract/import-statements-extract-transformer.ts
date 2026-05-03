@@ -16,21 +16,23 @@ import {
 
 const IMPORT_FROM_PATTERN =
   /import\s+(?:type\s+)?(?:\{[^}]+\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gu;
+const BLOCK_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//gu;
 
 export const importStatementsExtractTransformer = ({
   source,
 }: {
   source: ContentText;
 }): ContentText[] => {
+  const sourceWithoutComments = String(source).replace(BLOCK_COMMENT_PATTERN, '');
   const paths: ContentText[] = [];
   IMPORT_FROM_PATTERN.lastIndex = 0;
-  let match = IMPORT_FROM_PATTERN.exec(String(source));
+  let match = IMPORT_FROM_PATTERN.exec(sourceWithoutComments);
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
       paths.push(contentTextContract.parse(captured));
     }
-    match = IMPORT_FROM_PATTERN.exec(String(source));
+    match = IMPORT_FROM_PATTERN.exec(sourceWithoutComments);
   }
   return paths;
 };

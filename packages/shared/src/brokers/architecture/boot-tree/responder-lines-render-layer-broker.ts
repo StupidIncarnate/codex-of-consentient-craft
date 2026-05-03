@@ -28,7 +28,7 @@ import { filePathToDisplayNameTransformer } from '../../../transformers/file-pat
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
 import { pascalCaseToKebabCaseTransformer } from '../../../transformers/pascal-case-to-kebab-case/pascal-case-to-kebab-case-transformer';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
-import { adapterLinesRenderLayerBroker } from './adapter-lines-render-layer-broker';
+import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
 import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
 import { widgetSubtreeRenderLayerBroker } from './widget-subtree-render-layer-broker';
 
@@ -120,12 +120,12 @@ export const responderLinesRenderLayerBroker = ({
 
     lines.push(contentTextContract.parse(`${indent}  ↳ ${String(renderName)}`));
 
-    const adapterLines = adapterLinesRenderLayerBroker({
-      responderFile,
+    const callChainLines = callChainLinesRenderLayerBroker({
+      sourceFile: responderFile,
       packageSrcPath,
       renderingFilePath,
     });
-    for (const al of adapterLines) {
+    for (const al of callChainLines) {
       lines.push(contentTextContract.parse(`${indent}${String(al)}`));
     }
 
