@@ -2,6 +2,7 @@ import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-typ
 import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-layer-broker.proxy';
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
+import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const responderLinesRenderLayerBrokerProxy = (): {
@@ -14,6 +15,7 @@ export const responderLinesRenderLayerBrokerProxy = (): {
   const callChainProxy = callChainLinesRenderLayerBrokerProxy();
   const routeMetadataProxy = routeMetadataExtractLayerBrokerProxy();
   widgetSubtreeRenderLayerBrokerProxy();
+  busEventLinesRenderLayerBrokerProxy();
 
   const buildImpl =
     (map: Record<string, ContentText>) =>

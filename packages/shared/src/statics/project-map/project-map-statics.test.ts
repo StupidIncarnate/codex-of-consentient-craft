@@ -54,9 +54,6 @@ describe('projectMapStatics', () => {
         sessionStoragePrefix: 'sessionStorage: ',
         indexedDbPrefix: 'indexedDB: ',
       },
-      edgesFooterHeader: '## EDGES',
-      edgesFooterPairedLabel: 'HTTP edges (paired)',
-      edgesFooterOrphanLabel: 'HTTP edges (orphan)',
       pointerFooter:
         '> Call `get-project-inventory({ packageName })` for the per-package folder/file detail.',
     });

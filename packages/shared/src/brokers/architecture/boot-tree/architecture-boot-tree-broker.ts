@@ -26,9 +26,11 @@ import { flowNameFromFilePathTransformer } from '../../../transformers/flow-name
 import { architectureWidgetTreeBroker } from '../widget-tree/architecture-widget-tree-broker';
 import { architectureEdgeGraphBroker } from '../edge-graph/architecture-edge-graph-broker';
 import { architectureWsEdgesBroker } from '../ws-edges/architecture-ws-edges-broker';
+import { architectureEventBusBroker } from '../event-bus/architecture-event-bus-broker';
 import { startupFilesFindLayerBroker } from './startup-files-find-layer-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
+import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 import { responderLinesRenderLayerBroker } from './responder-lines-render-layer-broker';
 
 export const architectureBootTreeBroker = ({
@@ -57,6 +59,9 @@ export const architectureBootTreeBroker = ({
           projectRoot,
         }
       : undefined;
+
+  const eventBusContext: EventBusContext | undefined =
+    projectRoot === undefined ? undefined : architectureEventBusBroker({ projectRoot });
 
   const allBlocks: ContentText[] = [];
   const visited = new Set<AbsoluteFilePath>();
@@ -90,22 +95,22 @@ export const architectureBootTreeBroker = ({
       visited.add(flowFile);
 
       const flowDisplay = filePathToDisplayNameTransformer({ filePath: flowFile, packageSrcPath });
-      const responderLines =
-        widgetContext === undefined
-          ? responderLinesRenderLayerBroker({
-              flowFile,
-              packageSrcPath,
-              renderingFilePath: startupFile,
-              visited,
-            })
-          : responderLinesRenderLayerBroker({
-              flowFile,
-              packageSrcPath,
-              renderingFilePath: startupFile,
-              visited,
-              widgetContext,
-              consumedWidgetResponders,
-            });
+      // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an
+      // optional field — only include it when defined.
+      const baseArgs = {
+        flowFile,
+        packageSrcPath,
+        renderingFilePath: startupFile,
+        visited,
+      };
+      const widgetArgs =
+        widgetContext === undefined ? {} : { widgetContext, consumedWidgetResponders };
+      const busArgs = eventBusContext === undefined ? {} : { eventBusContext };
+      const responderLines = responderLinesRenderLayerBroker({
+        ...baseArgs,
+        ...widgetArgs,
+        ...busArgs,
+      });
 
       const flowBlockLines: ContentText[] = [flowDisplay, ...responderLines];
       allBlocks.push(contentTextContract.parse(''));

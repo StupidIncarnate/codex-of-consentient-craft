@@ -1,18 +1,16 @@
 /**
  * PURPOSE: Compose the full project-map: per-package connection-graph view (boot, type-specific
- * headline, side-channel) plus a cross-package EDGES footer and a pointer to the per-package
- * detail tool.
+ * headline, side-channel) plus a pointer to the per-package detail tool.
  *
  * USAGE:
  * const markdown = await architectureProjectMapBroker({ projectRoot: absoluteFilePathContract.parse('/home/user/project') });
- * // Returns ContentText markdown with symbol legend, per-package sections, EDGES footer, and pointer footer
+ * // Returns ContentText markdown with symbol legend, per-package sections, and pointer footer
  *
  * WHEN-TO-USE: When LLMs need a full connection-graph orientation of the codebase
  */
 
 import { architecturePackageTypeDetectBroker } from '../package-type-detect/architecture-package-type-detect-broker';
 import { packageSectionBuildLayerBroker } from './package-section-build-layer-broker';
-import { edgesFooterRenderLayerBroker } from './edges-footer-render-layer-broker';
 import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-broker';
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
@@ -73,7 +71,6 @@ export const architectureProjectMapBroker = async ({
       `${projectMapStatics.symbolLegend}\n${projectMapStatics.urlPairingConvention}`,
     ),
     ...packageSections,
-    edgesFooterRenderLayerBroker({ projectRoot }),
     pointerFooterRenderLayerBroker(),
   ];
 

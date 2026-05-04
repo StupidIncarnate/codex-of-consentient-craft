@@ -28,9 +28,6 @@ export * from './src/brokers/architecture/widget-tree/architecture-widget-tree-b
 // Architecture WS Edges
 export * from './src/brokers/architecture/ws-edges/architecture-ws-edges-broker';
 
-// Architecture File-bus Edges
-export * from './src/brokers/architecture/file-bus-edges/architecture-file-bus-edges-broker';
-
 // Architecture Frontend React Headline
 export * from './src/brokers/architecture/project-map-headline-frontend-react/architecture-project-map-headline-frontend-react-broker';
 

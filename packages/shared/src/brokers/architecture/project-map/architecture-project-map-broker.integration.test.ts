@@ -76,7 +76,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     expect(after).toStrictEqual(['', '---', '', '# cli [cli-tool]']);
   });
 
-  it('VALID: {real monorepo} => emits EDGES footer and pointer footer at the end', async () => {
+  it('VALID: {real monorepo} => emits pointer footer at the end with no EDGES section', async () => {
     const cwd = String(processCwdAdapter());
     const projectRoot = AbsoluteFilePathStub({
       value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
@@ -85,7 +85,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     const result = await architectureProjectMapBroker({ projectRoot });
     const lines = String(result).split('\n');
 
-    expect(lines.some((l) => l === '## EDGES')).toBe(true);
+    expect(lines.some((l) => l === '## EDGES')).toBe(false);
     expect(lines[lines.length - 1]).toBe(
       '> Call `get-project-inventory({ packageName })` for the per-package folder/file detail.',
     );

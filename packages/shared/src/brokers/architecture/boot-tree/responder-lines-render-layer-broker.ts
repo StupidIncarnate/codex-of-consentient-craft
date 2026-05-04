@@ -23,6 +23,7 @@ import {
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
 import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
+import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 import { importPathToPackagePrefixTransformer } from '../../../transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
@@ -31,6 +32,7 @@ import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-fin
 import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
 import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
 import { widgetSubtreeRenderLayerBroker } from './widget-subtree-render-layer-broker';
+import { busEventLinesRenderLayerBroker } from './bus-event-lines-render-layer-broker';
 
 export const responderLinesRenderLayerBroker = ({
   flowFile,
@@ -40,6 +42,7 @@ export const responderLinesRenderLayerBroker = ({
   visited = new Set<AbsoluteFilePath>(),
   widgetContext,
   consumedWidgetResponders = new Set<AbsoluteFilePath>(),
+  eventBusContext,
 }: {
   flowFile: AbsoluteFilePath;
   packageSrcPath: AbsoluteFilePath;
@@ -48,6 +51,7 @@ export const responderLinesRenderLayerBroker = ({
   visited?: Set<AbsoluteFilePath>;
   widgetContext?: WidgetContext;
   consumedWidgetResponders?: Set<AbsoluteFilePath>;
+  eventBusContext?: EventBusContext;
 }): ContentText[] => {
   const indent = '    '.repeat(depth);
   const lines: ContentText[] = [];
@@ -129,6 +133,19 @@ export const responderLinesRenderLayerBroker = ({
       lines.push(contentTextContract.parse(`${indent}${String(al)}`));
     }
 
+    if (eventBusContext !== undefined) {
+      const busLines = busEventLinesRenderLayerBroker({
+        responderFile,
+        eventBusContext,
+      });
+      // Indent matches the call-chain `→ adapters/...` lines so bus annotations
+      // sit at the same visual depth as the responder's adapter calls.
+      const busIndent = `${indent}      `;
+      for (const bl of busLines) {
+        lines.push(contentTextContract.parse(`${busIndent}${String(bl)}`));
+      }
+    }
+
     if (widgetContext !== undefined && !consumedWidgetResponders.has(responderFile)) {
       consumedWidgetResponders.add(responderFile);
       const widgetLines = widgetSubtreeRenderLayerBroker({
@@ -164,24 +181,23 @@ export const responderLinesRenderLayerBroker = ({
     });
     lines.push(contentTextContract.parse(`${indent}  ↳ ${String(childDisplay)}`));
 
-    const childLines =
-      widgetContext === undefined
-        ? responderLinesRenderLayerBroker({
-            flowFile: childFlow,
-            packageSrcPath,
-            renderingFilePath,
-            depth: depth + 1,
-            visited,
-          })
-        : responderLinesRenderLayerBroker({
-            flowFile: childFlow,
-            packageSrcPath,
-            renderingFilePath,
-            depth: depth + 1,
-            visited,
-            widgetContext,
-            consumedWidgetResponders,
-          });
+    // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an
+    // optional field — only include it when defined.
+    const baseChildArgs = {
+      flowFile: childFlow,
+      packageSrcPath,
+      renderingFilePath,
+      depth: depth + 1,
+      visited,
+    };
+    const widgetChildArgs =
+      widgetContext === undefined ? {} : { widgetContext, consumedWidgetResponders };
+    const busChildArgs = eventBusContext === undefined ? {} : { eventBusContext };
+    const childLines = responderLinesRenderLayerBroker({
+      ...baseChildArgs,
+      ...widgetChildArgs,
+      ...busChildArgs,
+    });
     for (const cl of childLines) {
       lines.push(cl);
     }

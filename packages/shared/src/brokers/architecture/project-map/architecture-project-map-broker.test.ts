@@ -48,22 +48,6 @@ describe('architectureProjectMapBroker', () => {
     });
   });
 
-  describe('EDGES footer', () => {
-    it('VALID: {library package} => output contains ## EDGES section', async () => {
-      const proxy = architectureProjectMapBrokerProxy();
-      proxy.setupLibraryPackage({ packageName: 'shared' });
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
-
-      const result = await architectureProjectMapBroker({ projectRoot });
-
-      expect(
-        String(result)
-          .split('\n')
-          .some((l) => l === '## EDGES'),
-      ).toBe(true);
-    });
-  });
-
   describe('pointer footer', () => {
     it('VALID: {library package} => output ends with pointer footer line', async () => {
       const proxy = architectureProjectMapBrokerProxy();

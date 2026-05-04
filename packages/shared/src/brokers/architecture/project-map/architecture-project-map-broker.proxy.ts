@@ -1,7 +1,6 @@
 import type { Dirent } from 'fs';
 import { architecturePackageTypeDetectBrokerProxy } from '../package-type-detect/architecture-package-type-detect-broker.proxy';
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
-import { edgesFooterRenderLayerBrokerProxy } from './edges-footer-render-layer-broker.proxy';
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
 
@@ -25,8 +24,8 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
  * each one overwrites the shared baseImpl. The LAST setup call wins.
  *
  * Setup ordering rule: call proxy setups that install readdir/readFile implementations
- * (edgesFooterProxy, sectionProxy) BEFORE typeDetectProxy.setupPackage so that the
- * type-detect routing implementation is the last one set and governs the type-detection pass.
+ * (sectionProxy) BEFORE typeDetectProxy.setupPackage so that the type-detect routing
+ * implementation is the last one set and governs the type-detection pass.
  */
 export const architectureProjectMapBrokerProxy = (): {
   setupLibraryPackage: ({ packageName }: { packageName: string }) => void;
@@ -36,7 +35,6 @@ export const architectureProjectMapBrokerProxy = (): {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
   const typeDetectProxy = architecturePackageTypeDetectBrokerProxy();
   const sectionProxy = packageSectionBuildLayerBrokerProxy();
-  const edgesFooterProxy = edgesFooterRenderLayerBrokerProxy();
   pointerFooterRenderLayerBrokerProxy();
 
   return {
@@ -44,9 +42,8 @@ export const architectureProjectMapBrokerProxy = (): {
       discoverProxy.setupPackages({
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
-      // edgesFooterProxy and sectionProxy must come before typeDetectProxy so that the
-      // type-detect readdir routing is set last and wins for the type-detection pass.
-      edgesFooterProxy.setupEmpty();
+      // sectionProxy must come before typeDetectProxy so that the type-detect readdir
+      // routing is set last and wins for the type-detection pass.
       sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
@@ -59,8 +56,8 @@ export const architectureProjectMapBrokerProxy = (): {
     setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
       // Only type-detect and discover setup is needed here. The section build calls
       // architectureBootTreeBroker (non-library path) then headlineDispatchLayerBroker which
-      // throws immediately for frontend-ink — no further brokers (side-channel, edges-footer)
-      // are reached, so their setups are not required.
+      // throws immediately for frontend-ink — no further brokers are reached, so their
+      // setups are not required.
       // typeDetectProxy.setupPackage must come before discoverProxy.setupPackages (which only
       // queues a ReturnValueOnce) to avoid queue ordering issues.
       typeDetectProxy.setupPackage({
@@ -75,7 +72,6 @@ export const architectureProjectMapBrokerProxy = (): {
     },
 
     setupEmptyMonorepo: (): void => {
-      edgesFooterProxy.setupEmpty();
       sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: '/project',

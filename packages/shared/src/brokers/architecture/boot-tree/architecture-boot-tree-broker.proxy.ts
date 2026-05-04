@@ -4,6 +4,7 @@ import { responderLinesRenderLayerBrokerProxy } from './responder-lines-render-l
 import { architectureWidgetTreeBrokerProxy } from '../widget-tree/architecture-widget-tree-broker.proxy';
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
+import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event-bus-broker.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBootTreeBrokerProxy = (): {
@@ -17,6 +18,10 @@ export const architectureBootTreeBrokerProxy = (): {
   architectureWidgetTreeBrokerProxy();
   architectureEdgeGraphBrokerProxy();
   architectureWsEdgesBrokerProxy();
+  // Event-bus discovery walks `state/` folders independently. Initialise its proxy
+  // so its file walk does not hit unmocked fs adapters when boot-tree tests only
+  // set up startup/responder content.
+  architectureEventBusBrokerProxy();
 
   const buildImpl =
     (map: Record<string, ContentText>) =>

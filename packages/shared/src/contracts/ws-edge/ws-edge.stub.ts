@@ -22,6 +22,9 @@ export const WsEdgeStub = ({ ...props }: StubArgument<WsEdge> = {}): WsEdge =>
         value: '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
       }),
     ],
+    wsGatewayFile: AbsoluteFilePathStub({
+      value: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
+    }),
     paired: true,
     ...props,
   });

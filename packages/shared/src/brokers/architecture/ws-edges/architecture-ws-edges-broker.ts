@@ -9,7 +9,7 @@
  * });
  * // Returns WsEdge[] with paired=true when at least one emitter AND one consumer share the type
  *
- * WHEN-TO-USE: Project-map side-channel renderer and EDGES footer that need WS edge records
+ * WHEN-TO-USE: Project-map renderers that need WS edge records to annotate widget bindings
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 
@@ -20,6 +20,7 @@ import { wsEdgeContract, type WsEdge } from '../../../contracts/ws-edge/ws-edge-
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { wsEmitCallsExtractTransformer } from '../../../transformers/ws-emit-calls-extract/ws-emit-calls-extract-transformer';
 import { wsConsumeCallsExtractTransformer } from '../../../transformers/ws-consume-calls-extract/ws-consume-calls-extract-transformer';
+import { architectureWsGatewayBroker } from '../ws-gateway/architecture-ws-gateway-broker';
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { readFileLayerBroker } from './read-file-layer-broker';
 
@@ -79,6 +80,13 @@ export const architectureWsEdgesBroker = ({
     }
   }
 
+  // Discover the WS gateway file once. There may be more than one in a repo with
+  // multiple gateways; pick the first deterministically. All edges share the same
+  // gateway attribution because every WS frame in this codebase exits the same
+  // boundary file (the file that imports the WS-server adapter).
+  const gateways = architectureWsGatewayBroker({ projectRoot });
+  const wsGatewayFile: AbsoluteFilePath | null = gateways[0] ?? null;
+
   const edges: WsEdge[] = [];
 
   for (const eventType of seenTypes) {
@@ -91,7 +99,9 @@ export const architectureWsEdgesBroker = ({
 
     const paired = emitterFile !== null && consumerFiles.length > 0;
 
-    edges.push(wsEdgeContract.parse({ eventType, emitterFile, consumerFiles, paired }));
+    edges.push(
+      wsEdgeContract.parse({ eventType, emitterFile, consumerFiles, wsGatewayFile, paired }),
+    );
   }
 
   return edges;

@@ -8,7 +8,7 @@
  * });
  * // Returns HttpEdge[] with paired=true for server+web matches, paired=false for orphans
  *
- * WHEN-TO-USE: Project-map headline renderers and EDGES footer that need HTTP edge records
+ * WHEN-TO-USE: Project-map headline renderers that need HTTP edge records
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 

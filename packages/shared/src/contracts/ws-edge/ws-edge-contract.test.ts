@@ -4,7 +4,7 @@ import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.s
 
 describe('wsEdgeContract', () => {
   describe('parse', () => {
-    it('VALID: {full paired edge} => parses successfully', () => {
+    it('VALID: {full paired edge with gateway} => parses successfully', () => {
       const result = wsEdgeContract.parse({
         eventType: ContentTextStub({ value: 'chat-output' }),
         emitterFile: AbsoluteFilePathStub({
@@ -12,9 +12,12 @@ describe('wsEdgeContract', () => {
         }),
         consumerFiles: [
           AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
+            value: '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
           }),
         ],
+        wsGatewayFile: AbsoluteFilePathStub({
+          value: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
+        }),
         paired: true,
       });
 
@@ -22,42 +25,44 @@ describe('wsEdgeContract', () => {
         eventType: 'chat-output',
         emitterFile:
           '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
-        consumerFiles: [
-          '/repo/packages/server/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
-        ],
+        consumerFiles: ['/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts'],
+        wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
         paired: true,
       });
     });
 
-    it('VALID: {null emitterFile, paired=false} => parses successfully', () => {
+    it('VALID: {null emitterFile and gateway, paired=false} => parses successfully', () => {
       const result = wsEdgeContract.parse({
         eventType: ContentTextStub({ value: 'chat-output' }),
         emitterFile: null,
         consumerFiles: [
           AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
+            value: '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
           }),
         ],
+        wsGatewayFile: null,
         paired: false,
       });
 
       expect(result).toStrictEqual({
         eventType: 'chat-output',
         emitterFile: null,
-        consumerFiles: [
-          '/repo/packages/server/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
-        ],
+        consumerFiles: ['/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts'],
+        wsGatewayFile: null,
         paired: false,
       });
     });
 
-    it('VALID: {empty consumerFiles} => parses successfully', () => {
+    it('VALID: {empty consumerFiles, gateway present} => parses successfully', () => {
       const result = wsEdgeContract.parse({
         eventType: ContentTextStub({ value: 'chat-complete' }),
         emitterFile: AbsoluteFilePathStub({
           value: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
         }),
         consumerFiles: [],
+        wsGatewayFile: AbsoluteFilePathStub({
+          value: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
+        }),
         paired: false,
       });
 
@@ -66,6 +71,7 @@ describe('wsEdgeContract', () => {
         emitterFile:
           '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
         consumerFiles: [],
+        wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
         paired: false,
       });
     });

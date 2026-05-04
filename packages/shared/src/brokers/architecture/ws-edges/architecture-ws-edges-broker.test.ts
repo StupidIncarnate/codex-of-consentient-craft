@@ -50,6 +50,7 @@ describe('architectureWsEdgesBroker', () => {
           eventType: ContentTextStub({ value: 'chat-output' }),
           emitterFile: EMIT_FILE,
           consumerFiles: [CONSUME_FILE],
+          wsGatewayFile: null,
           paired: true,
         },
       ]);
@@ -75,6 +76,7 @@ describe('architectureWsEdgesBroker', () => {
           eventType: ContentTextStub({ value: 'slot-update' }),
           emitterFile: EMIT_FILE,
           consumerFiles: [],
+          wsGatewayFile: null,
           paired: false,
         },
       ]);

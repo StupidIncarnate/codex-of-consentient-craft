@@ -114,13 +114,21 @@ export const architectureBindingFlowTraceBroker = ({
 
   const wsEvents = wsEdges
     .filter((edge) => edge.consumerFiles.some((f) => String(f) === String(bindingFilePath)))
-    .map((edge) => ({
-      eventType: edge.eventType,
-      emitterRef:
-        edge.emitterFile === null
-          ? null
-          : architectureBackRefBroker({ filePath: edge.emitterFile, projectRoot }),
-    }));
+    .map((edge) => {
+      // Prefer the gateway file (the file that owns the WS transport boundary) for
+      // the back-ref. The emitter file is the bus origin, not the WS broadcaster —
+      // labelling consumer bindings with the gateway is the architecturally accurate
+      // attribution. Fall back to the emitter when no gateway is detected so repos
+      // without a WS-server adapter still render something useful.
+      const refSourceFile = edge.wsGatewayFile ?? edge.emitterFile;
+      return {
+        eventType: edge.eventType,
+        emitterRef:
+          refSourceFile === null
+            ? null
+            : architectureBackRefBroker({ filePath: refSourceFile, projectRoot }),
+      };
+    });
 
   return { httpFlows, wsEvents };
 };

@@ -155,6 +155,7 @@ describe('architectureBindingFlowTraceBroker', () => {
         eventType: ContentTextStub({ value: 'quest-updated' }),
         emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
         consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
+        wsGatewayFile: null,
         paired: true,
       });
 
@@ -169,7 +170,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       expect(String(result.wsEvents[0]?.eventType)).toBe('quest-updated');
     });
 
-    it('VALID: {binding with WS edge and emitter file} => emitterRef is back-ref to emitter', () => {
+    it('VALID: {WS edge with no gateway, emitter present} => emitterRef falls back to emitter', () => {
       architectureBindingFlowTraceBrokerProxy().setupFiles({
         [BINDING_FILE]: `export const useQuestsBinding = () => {};`,
         [EMITTER_FILE]: EMITTER_SOURCE,
@@ -179,6 +180,7 @@ describe('architectureBindingFlowTraceBroker', () => {
         eventType: ContentTextStub({ value: 'quest-updated' }),
         emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
         consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
+        wsGatewayFile: null,
         paired: true,
       });
 
@@ -191,6 +193,36 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       expect(String(result.wsEvents[0]?.emitterRef)).toBe('packages/orchestrator (questResponder)');
+    });
+
+    it('VALID: {WS edge with gateway file} => emitterRef is back-ref to gateway, NOT emitter', () => {
+      const GATEWAY_FILE =
+        '/repo/packages/server/src/responders/server/init/server-init-responder.ts';
+      const GATEWAY_SOURCE = `export const ServerInitResponder = () => {};`;
+
+      architectureBindingFlowTraceBrokerProxy().setupFiles({
+        [BINDING_FILE]: `export const useQuestsBinding = () => {};`,
+        [EMITTER_FILE]: EMITTER_SOURCE,
+        [GATEWAY_FILE]: GATEWAY_SOURCE,
+      });
+
+      const wsEdge = WsEdgeStub({
+        eventType: ContentTextStub({ value: 'quest-updated' }),
+        emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
+        consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
+        wsGatewayFile: AbsoluteFilePathStub({ value: GATEWAY_FILE }),
+        paired: true,
+      });
+
+      const result = architectureBindingFlowTraceBroker({
+        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        httpEdges: [],
+        wsEdges: [wsEdge],
+      });
+
+      expect(String(result.wsEvents[0]?.emitterRef)).toBe('packages/server (ServerInitResponder)');
     });
   });
 });
