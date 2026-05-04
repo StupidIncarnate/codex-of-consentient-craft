@@ -9,19 +9,36 @@
  */
 
 import { architectureProjectMapBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { fsReaddirWithTypesAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import type { AbsoluteFilePath, ContentText, PackageName } from '@dungeonmaster/shared/contracts';
 import { extractPackageHeadersTransformer } from '../../../transformers/extract-package-headers/extract-package-headers-transformer';
+
+const SINGLE_ROOT_FALLBACK_PACKAGE_NAME = 'root';
 
 export const HookSessionSnippetPackagesResponder = async ({
   projectRoot = absoluteFilePathContract.parse(processCwdAdapter()),
 }: {
   projectRoot?: AbsoluteFilePath;
 } = {}): Promise<ContentText> => {
+  const projectRootPath = absoluteFilePathContract.parse(String(projectRoot));
+  const packagesDir = absoluteFilePathContract.parse(`${String(projectRootPath)}/packages`);
+
+  let packages: PackageName[] = [packageNameContract.parse(SINGLE_ROOT_FALLBACK_PACKAGE_NAME)];
+  try {
+    const dirs = fsReaddirWithTypesAdapter({ dirPath: packagesDir }).filter((entry) =>
+      entry.isDirectory(),
+    );
+    if (dirs.length > 0) {
+      packages = dirs.map((entry) => packageNameContract.parse(entry.name));
+    }
+  } catch {
+    // Single-root mode (no packages/ directory): keep the fallback initialization above.
+  }
+
   const fullMap = await architectureProjectMapBroker({
-    projectRoot: absoluteFilePathContract.parse(String(projectRoot)),
+    projectRoot: projectRootPath,
+    packages,
   });
 
   return extractPackageHeadersTransformer({ projectMap: fullMap });

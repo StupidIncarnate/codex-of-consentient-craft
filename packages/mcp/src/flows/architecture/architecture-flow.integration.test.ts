@@ -45,7 +45,7 @@ describe('ArchitectureFlow', () => {
         'Returns detailed information about a specific folder type',
         'Returns universal syntax rules',
         'Returns testing patterns and philosophy for writing tests and proxies',
-        'Returns compact codebase map with packages, folder types, file counts, and domains',
+        'Returns a project-map slice for the requested packages: connection graphs, folder types, file counts. Pass one or more package names; required.',
         'Returns the per-package folder/file inventory section for a single package',
       ]);
     });

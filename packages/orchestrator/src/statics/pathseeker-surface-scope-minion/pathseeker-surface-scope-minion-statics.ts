@@ -59,7 +59,7 @@ Why this matters: Pathseeker processes a lot of information during synthesis and
 
 ### Step 3: Orient to the Codebase
 
-Call \`get-project-map\` (no params) if you have not already. Then use the \`get-architecture\`, \`get-testing-patterns\`, and \`get-syntax-rules\` tools once each to load project standards. These tell you folder types, import rules, companion file requirements, and naming conventions.
+Call \`get-project-map({ packages: [...] })\` for the package(s) your slice covers if you have not already. Then use the \`get-architecture\`, \`get-testing-patterns\`, and \`get-syntax-rules\` tools once each to load project standards. These tell you folder types, import rules, companion file requirements, and naming conventions.
 
 ### Step 4: Discover and Verify
 

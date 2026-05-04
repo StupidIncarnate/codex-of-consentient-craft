@@ -63,7 +63,8 @@ On start:
 - \`get-quest\` — read the spec and current status. Always pass \`format: 'text'\` (cheap to consume, renders mermaid). Default stage returns everything; use \`stage: 'planning'\` for a replan-focused view of committed steps.
 - \`get-quest-planning-notes\` — read committed intermediate artifacts on resume
 - \`modify-quest\` — write scopeClassification, synthesis, walkFindings, steps; transition status
-- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`, \`get-project-map\` — project standards
+- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\` — project standards
+- \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) the quest touches
 - \`discover\` — find files and symbols
 - \`get-folder-detail\` — look up folder-type conventions
 - \`signal-back\` — terminal signal when all work is done
@@ -83,7 +84,7 @@ Load project standards and read the quest spec. These tool calls can be batched 
 - \`get-architecture\` (no params)
 - \`get-testing-patterns\` (no params)
 - \`get-syntax-rules\` (no params)
-- \`get-project-map\` (no params)
+- \`get-project-map({ packages: [...] })\` — pass the package(s) the quest's flows + observables reference (look at \`flows[].nodes\`, observable types, accompanyingFiles)
 - \`get-quest\` if you have not already
 
 Also Read the repo-root \`CLAUDE.md\`. You will not have time to read it deeply again later; read it now.

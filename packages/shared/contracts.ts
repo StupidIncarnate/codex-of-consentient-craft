@@ -577,3 +577,10 @@ export * from './src/contracts/web-fetch-call-site/web-fetch-call-site.stub';
 // Bin Entry Contracts
 export * from './src/contracts/bin-entry/bin-entry-contract';
 export * from './src/contracts/bin-entry/bin-entry.stub';
+
+// Responder Annotation Contracts
+export * from './src/contracts/responder-annotation/responder-annotation-contract';
+export * from './src/contracts/responder-annotation/responder-annotation.stub';
+
+export * from './src/contracts/responder-annotation-map/responder-annotation-map-contract';
+export * from './src/contracts/responder-annotation-map/responder-annotation-map.stub';

@@ -1,12 +1,16 @@
 /**
- * PURPOSE: Compose the full project-map: per-package connection-graph view (boot, type-specific
- * headline, side-channel) plus a pointer to the per-package detail tool.
+ * PURPOSE: Compose the project-map slice for a caller-supplied list of packages: per-package
+ * connection-graph view (boot, type-specific headline, side-channel) plus a pointer to the
+ * per-package detail tool. Empty `packages` and unknown names throw.
  *
  * USAGE:
- * const markdown = await architectureProjectMapBroker({ projectRoot: absoluteFilePathContract.parse('/home/user/project') });
+ * const markdown = await architectureProjectMapBroker({
+ *   projectRoot: absoluteFilePathContract.parse('/home/user/project'),
+ *   packages: [packageNameContract.parse('mcp'), packageNameContract.parse('shared')],
+ * });
  * // Returns ContentText markdown with symbol legend, per-package sections, and pointer footer
  *
- * WHEN-TO-USE: When LLMs need a full connection-graph orientation of the codebase
+ * WHEN-TO-USE: When a caller knows which packages they need a connection-graph for
  */
 
 import { architecturePackageTypeDetectBroker } from '../package-type-detect/architecture-package-type-detect-broker';
@@ -18,12 +22,19 @@ import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/abs
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
+import type { PackageName } from '../../../contracts/package-name/package-name-contract';
 
 export const architectureProjectMapBroker = async ({
   projectRoot,
+  packages,
 }: {
   projectRoot: AbsoluteFilePath;
+  packages: PackageName[];
 }): Promise<ContentText> => {
+  if (packages.length === 0) {
+    throw new Error('get-project-map requires at least one package name in `packages`.');
+  }
+
   const packagesPath = absoluteFilePathContract.parse(
     `${projectRoot}/${projectMapStatics.packagesDirName}`,
   );
@@ -54,15 +65,33 @@ export const architectureProjectMapBroker = async ({
     });
   }
 
-  const packageSections = await Promise.all(
-    scanTargets.map(async ({ packageName, packageRoot }) => {
-      const packageType = await architecturePackageTypeDetectBroker({ packageRoot });
-      return packageSectionBuildLayerBroker({
-        packageName,
-        packageRoot,
-        packageType,
-        projectRoot,
-      });
+  const discoveredNames = scanTargets.map(({ packageName }) => String(packageName));
+  const requestedNames = packages.map((name) => String(name));
+  const unknown = requestedNames.filter((name) => !discoveredNames.includes(name));
+  if (unknown.length > 0) {
+    const validList = [...discoveredNames].sort((a, b) => a.localeCompare(b)).join(', ');
+    throw new Error(`Unknown package(s): ${unknown.join(', ')}. Valid: ${validList}`);
+  }
+
+  const targetsWithType = await Promise.all(
+    scanTargets.map(async ({ packageName, packageRoot }) => ({
+      packageName,
+      packageRoot,
+      packageType: await architecturePackageTypeDetectBroker({ packageRoot }),
+    })),
+  );
+
+  // Library packages have no startup tree to walk — they belong to get-project-inventory.
+  const renderableTargets = targetsWithType
+    .filter(({ packageType }) => packageType !== 'library')
+    .filter(({ packageName }) => requestedNames.includes(String(packageName)));
+
+  const packageSections = renderableTargets.map(({ packageName, packageRoot, packageType }) =>
+    packageSectionBuildLayerBroker({
+      packageName,
+      packageRoot,
+      packageType,
+      projectRoot,
     }),
   );
 

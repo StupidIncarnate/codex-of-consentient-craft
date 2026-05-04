@@ -21,6 +21,7 @@ import {
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
+import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { flowNameFromFilePathTransformer } from '../../../transformers/flow-name-from-file-path/flow-name-from-file-path-transformer';
 import { architectureWidgetTreeBroker } from '../widget-tree/architecture-widget-tree-broker';
@@ -37,10 +38,14 @@ export const architectureBootTreeBroker = ({
   packageRoot,
   projectRoot,
   packageType,
+  responderAnnotations,
+  startupAnnotations,
 }: {
   packageRoot: AbsoluteFilePath;
   projectRoot?: AbsoluteFilePath;
   packageType?: PackageType;
+  responderAnnotations?: ResponderAnnotationMap;
+  startupAnnotations?: ResponderAnnotationMap;
 }): ContentText => {
   const packageSrcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
   const startupFiles = startupFilesFindLayerBroker({ packageSrcPath });
@@ -84,7 +89,19 @@ export const architectureBootTreeBroker = ({
       return String(flowNameFromFilePathTransformer({ displayName }));
     });
 
-    const startupBlockLines: ContentText[] = [startupDisplay];
+    const startupAnnotation = startupAnnotations?.get(startupFile);
+    const startupSuffixSource = startupAnnotation?.suffix ?? null;
+    const startupSuffix = startupSuffixSource === null ? '' : `  ${String(startupSuffixSource)}`;
+    const annotatedStartupLine = contentTextContract.parse(
+      `${String(startupDisplay)}${startupSuffix}`,
+    );
+    const startupBlockLines: ContentText[] = [annotatedStartupLine];
+    if (startupAnnotation !== undefined) {
+      const childIndent = '      ';
+      for (const cl of startupAnnotation.childLines) {
+        startupBlockLines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+      }
+    }
     if (flowNames.length > 0) {
       startupBlockLines.push(contentTextContract.parse(`  ↳ flows/{${flowNames.join(', ')}}`));
     }
@@ -106,10 +123,12 @@ export const architectureBootTreeBroker = ({
       const widgetArgs =
         widgetContext === undefined ? {} : { widgetContext, consumedWidgetResponders };
       const busArgs = eventBusContext === undefined ? {} : { eventBusContext };
+      const annotationArgs = responderAnnotations === undefined ? {} : { responderAnnotations };
       const responderLines = responderLinesRenderLayerBroker({
         ...baseArgs,
         ...widgetArgs,
         ...busArgs,
+        ...annotationArgs,
       });
 
       const flowBlockLines: ContentText[] = [flowDisplay, ...responderLines];

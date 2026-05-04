@@ -1,16 +1,17 @@
 /**
  * PURPOSE: Builds the per-package markdown section for the project-map composer,
- * assembling the header line, boot tree, and headline
+ * assembling the header line and the unified boot tree (with type-specific metadata
+ * interspersed inline).
  *
  * USAGE:
- * const section = packageSectionBuildLayerBroker({ packageName, packageRoot, packageType, srcPath, packageJsonPath, projectRoot });
- * // Returns ContentText with all sub-sections joined by \\n\\n
+ * const section = packageSectionBuildLayerBroker({ packageName, packageRoot, packageType, projectRoot });
+ * // Returns ContentText with all sub-sections joined by \n\n
  *
- * WHEN-TO-USE: Inside architecture-project-map-broker for each package in the monorepo
+ * WHEN-TO-USE: Inside architecture-project-map-broker for each non-library package
  */
 
 import { architectureBootTreeBroker } from '../boot-tree/architecture-boot-tree-broker';
-import { headlineDispatchLayerBroker } from './headline-dispatch-layer-broker';
+import { architectureResponderAnnotationsBroker } from '../responder-annotations/architecture-responder-annotations-broker';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -31,19 +32,21 @@ export const packageSectionBuildLayerBroker = ({
 
   packageParts.push(contentTextContract.parse(`# ${String(packageName)} [${packageType}]`));
 
-  if (packageType !== 'library' && packageType !== 'http-backend') {
-    packageParts.push(architectureBootTreeBroker({ packageRoot, projectRoot, packageType }));
-  }
-
-  const headline = headlineDispatchLayerBroker({
+  const { responderAnnotations, startupAnnotations } = architectureResponderAnnotationsBroker({
     packageType,
     projectRoot,
     packageRoot,
-    packageName,
   });
-  if (String(headline).length > 0) {
-    packageParts.push(headline);
-  }
+
+  packageParts.push(
+    architectureBootTreeBroker({
+      packageRoot,
+      projectRoot,
+      packageType,
+      responderAnnotations,
+      startupAnnotations,
+    }),
+  );
 
   return contentTextContract.parse(packageParts.join('\n\n'));
 };

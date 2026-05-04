@@ -120,18 +120,54 @@ describe('ArchitectureHandleResponder', () => {
   });
 
   describe('get-project-map', () => {
-    it('VALID: {tool: get-project-map} => returns project map text', async () => {
+    it('VALID: {tool: get-project-map, packages: [shared]} => returns project map text', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupLibraryPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-project-map' }),
-        args: {},
+        args: { packages: ['shared'] },
       });
 
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: result.content[0]!.text }],
       });
+    });
+
+    it('INVALID: {tool: get-project-map, args: {}} => throws Required error for packages', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupLibraryPackage({ packageName: 'shared' });
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-project-map' }),
+          args: {},
+        }),
+      ).rejects.toThrow(/Required/u);
+    });
+
+    it('INVALID: {tool: get-project-map, packages: []} => throws min-length error', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupLibraryPackage({ packageName: 'shared' });
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-project-map' }),
+          args: { packages: [] },
+        }),
+      ).rejects.toThrow(/at least 1 element/u);
+    });
+
+    it('INVALID: {tool: get-project-map, packages: [unknown]} => throws Unknown package error', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupLibraryPackage({ packageName: 'shared' });
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-project-map' }),
+          args: { packages: ['shared', 'typo'] },
+        }),
+      ).rejects.toThrow(/Unknown package\(s\): typo\. Valid: shared/u);
     });
   });
 

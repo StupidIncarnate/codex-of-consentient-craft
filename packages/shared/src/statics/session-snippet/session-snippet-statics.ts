@@ -65,44 +65,46 @@ Use \`discover\` to locate files. Use \`Read\` only once you need full file cont
 
 **Always discover before creating.** Check if similar code exists. Extend, don't duplicate.`,
 
-  searchStrategy: `## Search Strategy — MANDATORY ORDER
+  searchStrategy: `## Search Strategy
 
-Before searching, exploring, or modifying ANY code in this repo, follow this order. This applies to every task — bug fixes, new features, refactors, test writing, code review.
+Before searching, exploring, or modifying code, follow this order.
 
-**DO NOT call \`discover\` before calling \`get-project-map\`.** This is the #1 search mistake. Without the project map, you are blindly guessing package names and folder paths. Every wasted discover call burns context and time.
+### Step 1: Identify candidate package(s)
+Pick the package(s) the task touches. The available packages are listed in the \`dungeonmaster-packages\` snippet that loads at session start (cli, hooks, mcp, orchestrator, server, web, ward, tooling, shared, etc.). If you have no guess, read the task again — it usually names a feature or layer that maps to one or two packages.
 
-### Step 1: \`get-project-map\` FIRST — no exceptions
-Call \`get-project-map\` BEFORE any discover or grep calls. It shows every package, its description, and which folder types it contains:
-
-\`\`\`
-## cli (69 files) — CLI for quest management
-  brokers/ (12) — install (execute, orchestrate)
-## web (589 files) — Web UI for quest management
-  widgets/ (132) — app, chat-panel, quest-chat
-  bindings/ (30) — use-quests, use-session-chat
-## orchestrator (713 files) — Agent orchestration
-  brokers/ (156) — quest (add, get, list, modify)
-\`\`\`
-
-Read this output. Identify which package and folder type owns what you need. THEN proceed to Step 2.
-
-### Step 2: \`discover\` with a targeted glob
-Now that you know the package and folder from Step 1, glob into that specific area:
+### Step 2: \`get-project-map({ packages: [...] })\` for those slices
+Pass the candidate package names. Required arg, min 1. Returns connection-graph slices for just those packages:
 
 \`\`\`
-discover({ glob: "packages/shared/src/brokers/**" })
-// tree with file names + purposes
+get-project-map({ packages: ['mcp', 'shared'] })
+
+# mcp [mcp-server]
+## Boot
+startup/start-mcp-server
+  ↳ flows/{architecture, quest, interaction, mcp-server}
+…
+
+# shared [library]   ← library packages get filtered out (use get-project-inventory for them)
 \`\`\`
 
-Add \`verbose: true\` if you need signatures. Add \`grep\` only for known identifiers.
+Read the slice. Identify which folder type owns what you need. THEN proceed to Step 3.
 
-### Step 3: \`Read\` the specific file
+### Step 3: \`discover\` with a targeted glob
+Glob into the specific area you identified:
+
+\`\`\`
+discover({ glob: "packages/mcp/src/responders/architecture/**" })
+\`\`\`
+
+Add \`verbose: true\` for signatures. Add \`grep\` only for known identifiers.
+
+### Step 4: \`Read\` the specific file
 Once discover found the file, Read it for full contents.
 
 **Rules:**
-- NEVER skip Step 1. If you call discover without calling get-project-map first, you are doing it wrong.
-- Start with glob, not grep — grep guesses names, glob browses structure
-- Always discover before creating new files`,
+- \`get-project-map\` errors on unknown package names — list valid names is in the error message.
+- Start with glob, not grep — grep guesses names, glob browses structure.
+- Always discover before creating new files.`,
 
   folderTypes: null,
 

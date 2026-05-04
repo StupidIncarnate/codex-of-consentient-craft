@@ -11,6 +11,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { discoverInputContract } from '../../contracts/discover-input/discover-input-contract';
 import { folderDetailInputContract } from '../../contracts/folder-detail-input/folder-detail-input-contract';
 import { getProjectInventoryInputContract } from '../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
+import { getProjectMapInputContract } from '../../contracts/get-project-map-input/get-project-map-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { ArchitectureHandleResponder } from '../../responders/architecture/handle/architecture-handle-responder';
 
@@ -22,6 +23,7 @@ const getProjectInventorySchema = zodToJsonSchema(
   getProjectInventoryInputContract as never,
   jsonSchemaOptions,
 );
+const getProjectMapSchema = zodToJsonSchema(getProjectMapInputContract as never, jsonSchemaOptions);
 
 export const ArchitectureFlow = (): ToolRegistration[] => [
   {
@@ -61,8 +63,8 @@ export const ArchitectureFlow = (): ToolRegistration[] => [
   {
     name: 'get-project-map' as never,
     description:
-      'Returns compact codebase map with packages, folder types, file counts, and domains' as never,
-    inputSchema: emptySchema as never,
+      'Returns a project-map slice for the requested packages: connection graphs, folder types, file counts. Pass one or more package names; required.' as never,
+    inputSchema: getProjectMapSchema as never,
     handler: async ({ args }) =>
       ArchitectureHandleResponder({ tool: 'get-project-map' as never, args }),
   },

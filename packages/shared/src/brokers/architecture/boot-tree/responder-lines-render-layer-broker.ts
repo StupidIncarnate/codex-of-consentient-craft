@@ -24,6 +24,7 @@ import {
 } from '../../../contracts/content-text/content-text-contract';
 import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
 import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
+import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import { importPathToPackagePrefixTransformer } from '../../../transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
@@ -43,6 +44,7 @@ export const responderLinesRenderLayerBroker = ({
   widgetContext,
   consumedWidgetResponders = new Set<AbsoluteFilePath>(),
   eventBusContext,
+  responderAnnotations,
 }: {
   flowFile: AbsoluteFilePath;
   packageSrcPath: AbsoluteFilePath;
@@ -52,6 +54,7 @@ export const responderLinesRenderLayerBroker = ({
   widgetContext?: WidgetContext;
   consumedWidgetResponders?: Set<AbsoluteFilePath>;
   eventBusContext?: EventBusContext;
+  responderAnnotations?: ResponderAnnotationMap;
 }): ContentText[] => {
   const indent = '    '.repeat(depth);
   const lines: ContentText[] = [];
@@ -80,7 +83,17 @@ export const responderLinesRenderLayerBroker = ({
     const symbol = String(route.responderSymbol);
     const prefix =
       route.path === null ? `(layout) ${symbol}` : `path="${String(route.path)}" → ${symbol}`;
-    lines.push(contentTextContract.parse(`${indent}  ${prefix}`));
+    const annotation =
+      responderFile === undefined ? undefined : responderAnnotations?.get(responderFile);
+    const annotationSuffixSource = annotation?.suffix ?? null;
+    const suffixStr = annotationSuffixSource === null ? '' : `  ${String(annotationSuffixSource)}`;
+    lines.push(contentTextContract.parse(`${indent}  ${prefix}${suffixStr}`));
+    if (annotation !== undefined) {
+      const childIndent = `${indent}      `;
+      for (const cl of annotation.childLines) {
+        lines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+      }
+    }
 
     if (
       widgetContext !== undefined &&
@@ -122,7 +135,16 @@ export const responderLinesRenderLayerBroker = ({
       // keep displayName as fallback
     }
 
-    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(renderName)}`));
+    const annotation = responderAnnotations?.get(responderFile);
+    const annotationSuffixSource = annotation?.suffix ?? null;
+    const suffixStr = annotationSuffixSource === null ? '' : `  ${String(annotationSuffixSource)}`;
+    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(renderName)}${suffixStr}`));
+    if (annotation !== undefined) {
+      const childIndent = `${indent}      `;
+      for (const cl of annotation.childLines) {
+        lines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+      }
+    }
 
     const callChainLines = callChainLinesRenderLayerBroker({
       sourceFile: responderFile,
@@ -193,10 +215,12 @@ export const responderLinesRenderLayerBroker = ({
     const widgetChildArgs =
       widgetContext === undefined ? {} : { widgetContext, consumedWidgetResponders };
     const busChildArgs = eventBusContext === undefined ? {} : { eventBusContext };
+    const annotationChildArgs = responderAnnotations === undefined ? {} : { responderAnnotations };
     const childLines = responderLinesRenderLayerBroker({
       ...baseChildArgs,
       ...widgetChildArgs,
       ...busChildArgs,
+      ...annotationChildArgs,
     });
     for (const cl of childLines) {
       lines.push(cl);

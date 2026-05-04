@@ -4,6 +4,7 @@ import type { ContentText } from '../../../contracts/content-text/content-text-c
 export const architectureBackRefBrokerProxy = (): {
   setupSource: ({ content }: { content: ContentText }) => void;
   setupMissing: () => void;
+  setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
   const sourceProxy = architectureSourceReadBrokerProxy();
   return {
@@ -12,6 +13,9 @@ export const architectureBackRefBrokerProxy = (): {
     },
     setupMissing: (): void => {
       sourceProxy.setupMissing();
+    },
+    setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+      sourceProxy.setupImplementation({ fn });
     },
   };
 };

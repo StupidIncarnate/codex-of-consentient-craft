@@ -3,6 +3,7 @@ import { architecturePackageTypeDetectBrokerProxy } from '../package-type-detect
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
+import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -29,22 +30,22 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
  */
 export const architectureProjectMapBrokerProxy = (): {
   setupLibraryPackage: ({ packageName }: { packageName: string }) => void;
+  setupRenderablePackage: ({ packageName }: { packageName: string }) => void;
   setupFrontendInkPackage: ({ packageName }: { packageName: string }) => void;
   setupEmptyMonorepo: () => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
   const typeDetectProxy = architecturePackageTypeDetectBrokerProxy();
-  const sectionProxy = packageSectionBuildLayerBrokerProxy();
+  packageSectionBuildLayerBrokerProxy();
   pointerFooterRenderLayerBrokerProxy();
 
   return {
     setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
+      // Library packages are filtered out before reaching package-section-build, so this
+      // setup just configures discovery + type-detection to identify the package as a library.
       discoverProxy.setupPackages({
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
-      // sectionProxy must come before typeDetectProxy so that the type-detect readdir
-      // routing is set last and wins for the type-detection pass.
-      sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
@@ -53,13 +54,26 @@ export const architectureProjectMapBrokerProxy = (): {
       });
     },
 
+    setupRenderablePackage: ({ packageName }: { packageName: string }): void => {
+      // Configures a package whose type-detect returns 'programmatic-service' so the package
+      // section IS rendered (with a `# name [type]` header). Used by tests that consume the
+      // header line (e.g. session-snippet-packages).
+      discoverProxy.setupPackages({
+        entries: [makeDirent({ name: packageName, isDir: true })],
+      });
+      typeDetectProxy.setupPackage({
+        packageRoot: `/project/packages/${packageName}`,
+        packageJsonContent: '{}',
+        srcDirNames: ['flows', 'responders', 'state', 'startup'],
+        adapterDirNames: [],
+        startupFileName: 'start-app.ts',
+        startupFileContent: ContentTextStub({
+          value: 'export const StartApp = { run: async () => {} };',
+        }),
+      });
+    },
+
     setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
-      // Only type-detect and discover setup is needed here. The section build calls
-      // architectureBootTreeBroker (non-library path) then headlineDispatchLayerBroker which
-      // throws immediately for frontend-ink — no further brokers are reached, so their
-      // setups are not required.
-      // typeDetectProxy.setupPackage must come before discoverProxy.setupPackages (which only
-      // queues a ReturnValueOnce) to avoid queue ordering issues.
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{}',
@@ -72,7 +86,6 @@ export const architectureProjectMapBrokerProxy = (): {
     },
 
     setupEmptyMonorepo: (): void => {
-      sectionProxy.setupLibraryPackage();
       typeDetectProxy.setupPackage({
         packageRoot: '/project',
         packageJsonContent: '{}',

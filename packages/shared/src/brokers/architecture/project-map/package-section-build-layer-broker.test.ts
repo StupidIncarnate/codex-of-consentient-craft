@@ -5,66 +5,26 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { PackageTypeStub } from '../../../contracts/package-type/package-type.stub';
 
 const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/shared' });
-const PACKAGE_NAME = ContentTextStub({ value: 'shared' });
+const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
+const PACKAGE_NAME = ContentTextStub({ value: 'orchestrator' });
 
 describe('packageSectionBuildLayerBroker', () => {
-  describe('library type', () => {
-    it('VALID: {library package} => section starts with # shared [library] header', () => {
-      const proxy = packageSectionBuildLayerBrokerProxy();
-      proxy.setupLibraryPackage();
+  describe('section header', () => {
+    it('VALID: {programmatic-service package} => section starts with # name [type] header', () => {
+      packageSectionBuildLayerBrokerProxy();
 
       const result = packageSectionBuildLayerBroker({
         packageName: PACKAGE_NAME,
         packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'library' }),
+        packageType: PackageTypeStub({ value: 'programmatic-service' }),
         projectRoot: PROJECT_ROOT,
       });
 
-      expect(String(result).split('\n')[0]).toStrictEqual('# shared [library]');
+      expect(String(result).split('\n')[0]).toStrictEqual('# orchestrator [programmatic-service]');
     });
 
-    it('VALID: {library package} => does not contain ## Boot section (library skips boot)', () => {
-      const proxy = packageSectionBuildLayerBrokerProxy();
-      proxy.setupLibraryPackage();
-
-      const result = packageSectionBuildLayerBroker({
-        packageName: PACKAGE_NAME,
-        packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'library' }),
-        projectRoot: PROJECT_ROOT,
-      });
-
-      expect(
-        String(result)
-          .split('\n')
-          .some((l) => l === '## Boot'),
-      ).toBe(false);
-    });
-
-    it('VALID: {library package} => does not contain ## Side-channel section (library skips side-channel)', () => {
-      const proxy = packageSectionBuildLayerBrokerProxy();
-      proxy.setupLibraryPackage();
-
-      const result = packageSectionBuildLayerBroker({
-        packageName: PACKAGE_NAME,
-        packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'library' }),
-        projectRoot: PROJECT_ROOT,
-      });
-
-      expect(
-        String(result)
-          .split('\n')
-          .some((l) => l.startsWith('## Side-channel')),
-      ).toBe(false);
-    });
-  });
-
-  describe('http-backend type', () => {
-    it('VALID: {http-backend package} => does not contain ## Boot section (routes section replaces boot)', () => {
-      const proxy = packageSectionBuildLayerBrokerProxy();
-      proxy.setupHttpBackendPackage();
+    it('VALID: {any package type} => emits ## Boot header (no per-type headline section)', () => {
+      packageSectionBuildLayerBrokerProxy();
 
       const result = packageSectionBuildLayerBroker({
         packageName: PACKAGE_NAME,
@@ -77,7 +37,32 @@ describe('packageSectionBuildLayerBroker', () => {
         String(result)
           .split('\n')
           .some((l) => l === '## Boot'),
-      ).toBe(false);
+      ).toBe(true);
+    });
+
+    it('VALID: {any package type} => does not emit any per-type ## headline section header', () => {
+      packageSectionBuildLayerBrokerProxy();
+
+      const result = packageSectionBuildLayerBroker({
+        packageName: PACKAGE_NAME,
+        packageRoot: PACKAGE_ROOT,
+        packageType: PackageTypeStub({ value: 'http-backend' }),
+        projectRoot: PROJECT_ROOT,
+      });
+
+      const lines = String(result).split('\n');
+      const headlineHeaders = [
+        '## Routes',
+        '## Tools',
+        '## Subcommands',
+        '## Hooks',
+        '## Config presets',
+        '## Library exports',
+        '## Consumers',
+      ];
+      const found = headlineHeaders.filter((header) => lines.some((l) => l.startsWith(header)));
+
+      expect(found).toStrictEqual([]);
     });
   });
 });

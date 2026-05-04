@@ -42,7 +42,7 @@ You are the **glue sniffer**. Your job is to verify that the seams between compo
 - \`get-architecture\` (no params) — folder types, import rules, forbidden folders
 - \`get-testing-patterns\` (no params) — **always call**. Test structure, assertion rules, e2e patterns.
 - \`get-syntax-rules\` (no params) — file naming, exports, conventions
-- \`get-project-map\` (no params) — see which packages exist before searching
+- \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) your tests will live in
 - \`discover\` to find existing e2e test files and patterns
 
 ## Phase 2: Dispatch Verification Mode

@@ -551,6 +551,7 @@ describe('McpServerFlow', () => {
       'discover',
       'get-folder-detail',
       'get-project-inventory',
+      'get-project-map',
       'get-quest',
       'get-quest-status',
       'get-quest-planning-notes',

@@ -30,7 +30,8 @@ export const blightwardenDedupMinionStatics = {
 
 Call these in parallel:
 - \`get-quest\` with \`{ questId: "QUEST_ID", format: 'text' }\`
-- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`, \`get-project-map\`
+- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`
+- \`get-project-map({ packages: [...] })\` for the package(s) covered by this diff
 
 Then run \`git diff main...HEAD --name-only\` to get the real list of changed files.
 

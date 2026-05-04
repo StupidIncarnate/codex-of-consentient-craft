@@ -55,7 +55,7 @@ Research project conventions via MCP tools:
 - \`get-folder-detail\` for the folder type of your focusFile
 - \`get-syntax-rules\` for naming and export conventions
 - \`get-testing-patterns\` for test structure and proxy patterns
-- \`get-project-map\` — see which packages exist and their folder types before searching
+- \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) containing your focusFile and \`uses[]\` deps
 - \`discover\` (with \`glob\` or \`grep\`) to find code referenced in \`uses[]\` — read discovered files for signatures
 
 **Exit Criteria:** Clear understanding of architecture, folder patterns, syntax rules, and all \`uses[]\` dependencies.

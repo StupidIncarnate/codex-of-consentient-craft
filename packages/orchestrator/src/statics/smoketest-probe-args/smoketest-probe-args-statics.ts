@@ -99,7 +99,7 @@ export const smoketestProbeArgsStatics = {
   },
   'get-project-map': {
     mode: 'call',
-    args: {},
+    args: { packages: ['mcp'] },
     summary: 'mcp-get-project-map-probe-ok',
   },
   'get-quest-planning-notes': {

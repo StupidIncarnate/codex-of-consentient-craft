@@ -27,6 +27,7 @@ import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
 import { getProjectInventoryInputContract } from '../../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
+import { getProjectMapInputContract } from '../../../contracts/get-project-map-input/get-project-map-input-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -111,8 +112,10 @@ export const ArchitectureHandleResponder = async ({
   }
 
   if (tool === 'get-project-map') {
+    const { packages } = getProjectMapInputContract.parse(args);
     const result = await architectureProjectMapBroker({
       projectRoot: absoluteFilePathContract.parse(processCwdAdapter()),
+      packages,
     });
 
     return {

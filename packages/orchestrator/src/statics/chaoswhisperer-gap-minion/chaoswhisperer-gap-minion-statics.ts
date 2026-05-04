@@ -80,7 +80,7 @@ This fetches flows (with structured nodes, edges, and inline observables), desig
 
 ### Step 2: Get Project Map
 
-Call \`get-project-map\` (no params) to see which packages exist and their folder types. You'll need this when verifying spec claims against the codebase in later steps.
+Identify the package(s) the quest's flows + observables touch (look at \`flows[].nodes\`, \`accompanyingFiles\`, observable types). Then call \`get-project-map({ packages: [...] })\` with those names to load just those connection-graph slices. You'll need this when verifying spec claims against the codebase in later steps.
 
 ### Step 3: Review Flows (Semantic)
 

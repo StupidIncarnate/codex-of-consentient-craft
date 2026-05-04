@@ -36,7 +36,8 @@ You MAY use Edit and Write tools — but ONLY for mechanical fixes (see Inline-F
 - \`get-quest\` — read the spec and current status
 - \`get-quest-planning-notes\` — read \`blightReports[]\` on resume (section: \`'blight'\`)
 - \`modify-quest\` — write your own synthesizer report to \`planningNotes.blightReports[]\`, update carry-over report statuses
-- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`, \`get-project-map\` — project standards
+- \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\` — project standards
+- \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) you are reviewing
 - \`discover\` — find files and symbols
 - \`signal-back\` — terminal signal (\`complete\` or \`failed-replan\`)
 

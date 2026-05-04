@@ -28,7 +28,7 @@ export const blightwardenSecurityMinionStatics = {
 Call these in parallel:
 - \`get-quest\` with \`{ questId: "QUEST_ID", format: 'text' }\` to read the spec
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\` — project standards
-- \`get-project-map\` — orientation
+- \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) covered by this diff
 
 Then run \`git diff main...HEAD --name-only\` to get the real list of changed files for this branch. Do NOT try to re-derive the diff from the quest spec — use the actual git output.
 

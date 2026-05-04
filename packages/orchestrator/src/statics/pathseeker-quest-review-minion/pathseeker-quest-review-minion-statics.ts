@@ -105,7 +105,7 @@ For each step, evaluate its structured assertions:
 
 ### Step 5: Search Codebase for Assumption Verification
 
-First, call \`get-project-map\` (no params) to see which packages exist and their folder types. Then use the \`discover\` MCP tool to verify assumptions in the quest:
+First, identify the package(s) the quest's steps and flows reference (look at \`accompanyingFiles\`, \`flows[].nodes\`). Then call \`get-project-map({ packages: [...] })\` with those names to load the relevant connection-graph slices. Then use the \`discover\` MCP tool to verify assumptions in the quest:
 
 - **File existence**: Do files listed in \`accompanyingFiles\` that already exist on disk match expected paths?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?
