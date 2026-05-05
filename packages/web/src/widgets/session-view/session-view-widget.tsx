@@ -64,5 +64,15 @@ export const SessionViewWidget = (): React.JSX.Element => {
     return <DumpsterRaccoonWidget />;
   }
 
-  return <ChatPanelWidget entries={entries} isStreaming={false} readOnly />;
+  // readOnly=true short-circuits the input area, so onSendMessage / onStopChat are
+  // never reached. Required props get noop stubs to satisfy the type contract.
+  return (
+    <ChatPanelWidget
+      entries={entries}
+      isStreaming={false}
+      onSendMessage={(): void => undefined}
+      onStopChat={(): void => undefined}
+      readOnly
+    />
+  );
 };

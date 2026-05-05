@@ -621,9 +621,18 @@ describe('ChatPanelWidget', () => {
   describe('readOnly mode', () => {
     it('VALID: {readOnly: true} => does not render chat input', () => {
       ChatPanelWidgetProxy();
+      const noop = (): void => undefined;
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={[]} isStreaming={false} readOnly />,
+        ui: (
+          <ChatPanelWidget
+            entries={[]}
+            isStreaming={false}
+            onSendMessage={noop}
+            onStopChat={noop}
+            readOnly
+          />
+        ),
       });
 
       expect(screen.queryByTestId('CHAT_INPUT')).toBe(null);
@@ -635,9 +644,18 @@ describe('ChatPanelWidget', () => {
         UserChatEntryStub({ content: 'Hello' }),
         AssistantTextChatEntryStub({ content: 'Hi' }),
       ];
+      const noop = (): void => undefined;
 
       mantineRenderAdapter({
-        ui: <ChatPanelWidget entries={entries} isStreaming={false} readOnly />,
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={noop}
+            onStopChat={noop}
+            readOnly
+          />
+        ),
       });
 
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);

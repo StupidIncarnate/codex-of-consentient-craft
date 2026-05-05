@@ -49,6 +49,7 @@ export const HomeContentWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
+  selectAllSessionsFilter: () => Promise<void>;
   setupConsoleErrorCapture: () => SpyOnHandle;
   setupCreateGuildError: () => void;
   clearStorage: () => void;
@@ -109,6 +110,9 @@ export const HomeContentWidgetProxy = (): {
     },
     clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
       await sessionList.clickSession({ testId });
+    },
+    selectAllSessionsFilter: async (): Promise<void> => {
+      await sessionList.clickFilterOption({ label: 'All' });
     },
     setupConsoleErrorCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: globalThis.console, method: 'error' });

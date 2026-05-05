@@ -140,6 +140,15 @@ export const QuestChatContentLayerWidget = ({
     prevQuestStatusRef.current = currentStatus;
   }, [quest?.status]);
 
+  const handleStop = useCallback((): void => {
+    // Clear submitting alongside the binding's stopChat so the UI returns to the
+    // SEND state even if no chat-output ever arrived to flip isStreaming. Without
+    // this, on a first-message STOP that fires before any assistant output,
+    // submitting stays true forever and the input keeps showing STOP.
+    setSubmitting(false);
+    stopChat();
+  }, [stopChat]);
+
   const handleSend = useCallback(
     ({ message }: { message: UserInput }): void => {
       if (questId !== null) {
@@ -207,6 +216,7 @@ export const QuestChatContentLayerWidget = ({
             entries={flattenedEntries}
             isStreaming={submitting || isStreaming}
             onSendMessage={handleSend}
+            onStopChat={handleStop}
           />
         </Box>
         <div
@@ -420,7 +430,7 @@ export const QuestChatContentLayerWidget = ({
           entries={flattenedEntries}
           isStreaming={submitting || isStreaming}
           onSendMessage={handleSend}
-          onStopChat={stopChat}
+          onStopChat={handleStop}
         />
       </Box>
       <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

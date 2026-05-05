@@ -29,8 +29,8 @@ import type { UserInput } from '@dungeonmaster/shared/contracts';
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;
-  onSendMessage?: (params: { message: UserInput }) => void;
-  onStopChat?: () => void;
+  onSendMessage: (params: { message: UserInput }) => void;
+  onStopChat: () => void;
   readOnly?: boolean;
 }
 
@@ -126,8 +126,8 @@ export const ChatPanelWidget = ({
 
           <ChatInputWidget
             isStreaming={isStreaming}
-            onSendMessage={onSendMessage ?? ((): void => undefined)}
-            onStopChat={onStopChat ?? ((): void => undefined)}
+            onSendMessage={onSendMessage}
+            onStopChat={onStopChat}
           />
         </>
       )}

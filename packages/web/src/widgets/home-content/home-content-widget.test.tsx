@@ -360,7 +360,7 @@ describe('HomeContentWidget', () => {
       expect(finalEl.textContent).toBe('/nav-guild/quest');
     });
 
-    it('VALID: {click session in list} => navigates to /:guildSlug/session/:sessionId', async () => {
+    it('VALID: {click quest-linked session row} => navigates to /:guildSlug/quest/:questId', async () => {
       const proxy = HomeContentWidgetProxy();
       proxy.clearStorage();
       const guild = GuildListItemStub({
@@ -369,9 +369,10 @@ describe('HomeContentWidget', () => {
         urlSlug: 'session-guild' as never,
       });
       const sessionId = SessionIdStub({ value: 'd1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const questId = QuestIdStub({ value: 'e1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const session = SessionListItemStub({
         sessionId,
-        questId: QuestIdStub({ value: 'e1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        questId,
         questTitle: 'A Quest' as never,
       });
 
@@ -394,6 +395,7 @@ describe('HomeContentWidget', () => {
                     }
                   />
                   <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                  <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
                   <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
                 </Routes>
               </MemoryRouter>
@@ -430,12 +432,95 @@ describe('HomeContentWidget', () => {
       await waitFor(() => {
         const el = screen.getByTestId('LOCATION');
 
-        expect(el.textContent).toBe(`/session-guild/session/${sessionId}`);
+        expect(el.textContent).toBe(`/session-guild/quest/${questId}`);
       });
 
       const finalEl = screen.getByTestId('LOCATION');
 
-      expect(finalEl.textContent).toBe(`/session-guild/session/${sessionId}`);
+      expect(finalEl.textContent).toBe(`/session-guild/quest/${questId}`);
+    });
+
+    it('VALID: {click orphan session row (no quest)} => navigates to /:guildSlug/session/:sessionId', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567891' }),
+        name: 'Orphan Session Guild',
+        urlSlug: 'orphan-session-guild' as never,
+      });
+      const sessionId = SessionIdStub({ value: 'd1b2c3d4-e5f6-7890-abcd-ef1234567891' });
+      const session = SessionListItemStub({ sessionId });
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [session] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <>
+                        <HomeContentWidget />
+                        <LocationProbe />
+                      </>
+                    }
+                  />
+                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                  <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
+                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+                </Routes>
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      // Orphan filter — toggle to "All" so the no-quest row is visible
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const sessionEl = screen.getByTestId(`SESSION_ITEM_${sessionId}`);
+
+        expect(sessionEl.tagName).toBe('BUTTON');
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const el = screen.getByTestId('LOCATION');
+
+        expect(el.textContent).toBe(`/orphan-session-guild/session/${sessionId}`);
+      });
+
+      const finalEl = screen.getByTestId('LOCATION');
+
+      expect(finalEl.textContent).toBe(`/orphan-session-guild/session/${sessionId}`);
     });
   });
 

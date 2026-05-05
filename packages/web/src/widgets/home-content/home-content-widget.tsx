@@ -126,7 +126,11 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
                   const session = sessions.find((s) => s.sessionId === sessionId);
-                  const result = navigate(`/${slug}/session/${sessionId}`, {
+                  const target =
+                    session?.questId === undefined
+                      ? `/${slug}/session/${sessionId}`
+                      : `/${slug}/quest/${session.questId}`;
+                  const result = navigate(target, {
                     state: { questId: session?.questId ?? null },
                   });
                   if (result instanceof Promise) {
