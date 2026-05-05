@@ -42,4 +42,24 @@ describe('escapeQuotedMermaidLabelTransformer', () => {
       expect(result).toBe('fn#40;x#41; &quot;y&quot;');
     });
   });
+
+  describe('labels with angle brackets', () => {
+    it('VALID: {label: "~/.dungeonmaster/guilds/<guildId>/quests/<questId>"} => escapes angle brackets as &lt;/&gt;', () => {
+      const node = FlowNodeStub({
+        label: '~/.dungeonmaster/guilds/<guildId>/quests/<questId>',
+      });
+
+      const result = escapeQuotedMermaidLabelTransformer({ label: node.label });
+
+      expect(result).toBe('~/.dungeonmaster/guilds/&lt;guildId&gt;/quests/&lt;questId&gt;');
+    });
+
+    it('VALID: {label: "a < b && c > d"} => escapes both angle brackets', () => {
+      const node = FlowNodeStub({ label: 'a < b && c > d' });
+
+      const result = escapeQuotedMermaidLabelTransformer({ label: node.label });
+
+      expect(result).toBe('a &lt; b && c &gt; d');
+    });
+  });
 });

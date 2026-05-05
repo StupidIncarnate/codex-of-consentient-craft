@@ -20,9 +20,11 @@ const QUOTED_MERMAID_ENTITY_MAP = {
   '}': '#125;',
   '|': '#124;',
   '"': '&quot;',
+  '<': '&lt;',
+  '>': '&gt;',
 } as const;
 
-const MERMAID_SPECIAL_CHARS = /[()[\]{}|"]/gu;
+const MERMAID_SPECIAL_CHARS = /[()[\]{}|"<>]/gu;
 
 export const escapeQuotedMermaidLabelTransformer = ({
   label,

@@ -125,4 +125,24 @@ describe('escapeMermaidLabelTransformer', () => {
       expect(result).toBe('fn#40;x#41; #91;y#93; #123;z#125; #124; #34;q#34;');
     });
   });
+
+  describe('labels with angle brackets', () => {
+    it('VALID: {label: "~/.dungeonmaster/guilds/<guildId>/quests/<questId>"} => escapes angle brackets', () => {
+      const node = FlowNodeStub({
+        label: '~/.dungeonmaster/guilds/<guildId>/quests/<questId>',
+      });
+
+      const result = escapeMermaidLabelTransformer({ label: node.label });
+
+      expect(result).toBe('~/.dungeonmaster/guilds/#60;guildId#62;/quests/#60;questId#62;');
+    });
+
+    it('VALID: {label: "a < b && c > d"} => escapes both angle brackets', () => {
+      const node = FlowNodeStub({ label: 'a < b && c > d' });
+
+      const result = escapeMermaidLabelTransformer({ label: node.label });
+
+      expect(result).toBe('a #60; b && c #62; d');
+    });
+  });
 });

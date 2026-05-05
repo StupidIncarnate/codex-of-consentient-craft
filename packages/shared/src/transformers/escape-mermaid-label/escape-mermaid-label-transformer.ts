@@ -20,9 +20,11 @@ const MERMAID_ENTITY_MAP = {
   '}': '#125;',
   '|': '#124;',
   '"': '#34;',
+  '<': '#60;',
+  '>': '#62;',
 } as const;
 
-const MERMAID_SPECIAL_CHARS = /[()[\]{}|"]/gu;
+const MERMAID_SPECIAL_CHARS = /[()[\]{}|"<>]/gu;
 
 export const escapeMermaidLabelTransformer = ({
   label,
