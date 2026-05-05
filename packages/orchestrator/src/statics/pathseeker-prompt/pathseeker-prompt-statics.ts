@@ -228,7 +228,7 @@ For every file the synthesized plan will MODIFY:
 
 For every \`uses\` dependency cited in any minion report:
 - Confirm the symbol exists at the claimed path with the claimed export name
-- \`discover\` for the name if Reading the file is overkill
+- If only a symbol name is given (no path), use \`discover({ grep: "exportName" })\` to find it deterministically — NOT a glob, since naming variants miss (\`user-profile-transformer/\` vs \`user/profile/\`). For batch verification of leaf-utility refs (contracts, transformers, guards, statics, errors), \`get-project-inventory({ packageName })\` gives the full enumerated list to scan
 
 Batch the Reads in parallel whenever you can. Multiple Read tool calls in a single message should be the default.
 

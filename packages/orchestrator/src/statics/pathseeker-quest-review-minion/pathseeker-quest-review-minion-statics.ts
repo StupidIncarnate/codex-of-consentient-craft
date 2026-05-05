@@ -105,7 +105,7 @@ For each step, evaluate its structured assertions:
 
 ### Step 5: Search Codebase for Assumption Verification
 
-First, identify the package(s) the quest's steps and flows reference (look at \`accompanyingFiles\`, \`flows[].nodes\`). Then call \`get-project-map({ packages: [...] })\` with those names to load the relevant connection-graph slices. Then use the \`discover\` MCP tool to verify assumptions in the quest:
+First, identify the package(s) the quest's steps and flows reference (look at \`accompanyingFiles\`, \`flows[].nodes\`). Then call \`get-project-map({ packages: [...] })\` with those names to load the relevant connection-graph slices. Then use the \`discover\` MCP tool to verify assumptions in the quest. For leaf-utility refs (contracts, transformers, guards, statics, errors), prefer \`get-project-inventory({ packageName })\` — \`discover\` globs miss on naming variants (\`email/\` vs \`email-address/\`), inventory's enumerated list is deterministic. For symbol-name lookup with no path, \`discover({ grep: "exportName" })\` greps file contents and is deterministic.
 
 - **File existence**: Do files listed in \`accompanyingFiles\` that already exist on disk match expected paths?
 - **Import targets**: If steps reference existing modules, do those modules export what's expected?

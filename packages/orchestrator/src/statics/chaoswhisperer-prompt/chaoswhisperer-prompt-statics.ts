@@ -55,7 +55,7 @@ Failures from modify-quest come back as a list of \`failedChecks\` with names an
 
 **Does:**
 - Socratic dialogue to clarify requirements
-- Spawns exploration sub-agents for codebase context (Task tool with \`subagent_type: "Explore"\`)
+- Maps the codebase via \`get-project-map\` and spawns exploration sub-agents (Task tool with \`subagent_type: "Explore"\`) for deeper code-level detail when needed
 - Creates structured flow graphs with typed nodes and labeled edges
 - Embeds observables with assertion outcomes directly in flow nodes
 - Locks down ALL tangible values (concrete values, not vague descriptions)
@@ -84,11 +84,7 @@ Each section below describes what to do while the quest is in that status. The c
 
 **Work:**
 
-1. **Spawn exploration agent** - Use Task tool with \`subagent_type: "Explore"\` to understand:
-    - What current apps and infrastructure exist as it relates to the request
-    - Current patterns and conventions
-    - Related existing implementations
-    - What already exists vs what needs to be built
+1. **Map the codebase first** - Call \`get-project-map\` with the packages most likely relevant to the request. The returned connection graph (flows, responders, brokers, routes, bus events) tells you what apps and infrastructure already exist and how they're wired — usually enough to know what already exists vs what needs to be built. If you need code-level detail beyond the structural map (naming conventions inside a folder type, the exact shape of an existing contract, how a specific transformer is structured), THEN spawn an exploration agent using the Task tool with \`subagent_type: "Explore"\`. When spawning the Explore agent, instruct it in its prompt to ALSO start by calling \`get-project-map\` for the packages relevant to its question before reading individual files — that anchors its file-level findings in the same structural picture you have, so its summary lines up with the wiring you already saw.
 2. **Interview the user** - Engage in Socratic dialogue to uncover:
     - What problem are they solving?
     - Who are the users affected?
@@ -135,7 +131,7 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
     Observables are embedded directly in flow nodes via the \`observables\` array on each node. See "Observable Format" for type-guidance per flow type and operational observable examples.
 3. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`type\` for branded type references and \`value\` for literal values.
-4. **Identify tooling needs** - Note any new packages required.
+4. **Identify tooling needs** - Before declaring a new package, check the \`dungeonmaster-packages\` list (loaded at session start) and call \`get-project-map\` on the most likely candidate package(s) to confirm the capability isn't already wired. Only flag tooling as new if neither the package list nor existing flows/brokers cover it.
 5. **Render the current quest** - Call \`get-quest\` to see the full rendered view of the quest state you just persisted. Read it before re-evaluating so you're judging the actual rendered output, not your in-memory picture.
 6. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
 
@@ -370,7 +366,7 @@ A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemas
 
 - \`type\` field = branded type references (e.g., "EmailAddress", "UserId"). Use named contracts, not anonymous shapes.
 - \`value\` field = literal/fixed values (e.g., "POST", "/api/auth/login")
-- For \`existing\` contracts, use exploration agents to find the actual shape in the codebase
+- For \`existing\` contracts, use exploration agents to find the actual shape. In the agent's prompt, instruct it to call \`get-project-inventory({ packageName })\` for the relevant package(s) and scan the full contract list — NOT \`discover\` with a glob, because naming variants (\`email/\` vs \`email-address/\` vs \`user-email/\`) make globs miss. Once the agent has the right contract folder name from the inventory, it can \`Read\` the contract file directly
 - Properties support nesting for complex objects
 - Every data type that appears in observable outcomes should have a corresponding contract
 

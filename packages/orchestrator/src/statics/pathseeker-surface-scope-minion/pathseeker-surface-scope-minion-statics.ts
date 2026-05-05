@@ -66,7 +66,7 @@ Call \`get-project-map({ packages: [...] })\` for the package(s) your slice cove
 Use the \`discover\` MCP tool to find what already exists in your slice's folders. Look for:
 
 - **Existing implementations you can reuse** — if an adapter already wraps the npm package you need, reference it. Do not propose a new adapter.
-- **Existing contracts** — if a contract is declared in the quest spec and already exists in \`@dungeonmaster/shared\`, list it under "Contracts — Existing."
+- **Existing contracts** — for every contract declared in the quest spec, check if it already exists. Use \`get-project-inventory({ packageName })\` for shared and any service packages your slice touches — NOT \`discover\` with a glob, because naming variants (\`email/\` vs \`email-address/\` vs \`user-email/\`) make globs miss. If found, list it under "Contracts — Existing."
 - **Files that need modification** — if the slice requires extending an existing broker, the focusFile is that existing broker, not a new file.
 - **Sibling patterns** — for every new file you propose, find the closest sibling in the same folder type and cite it by path. The implementer will model the new file after it.
 

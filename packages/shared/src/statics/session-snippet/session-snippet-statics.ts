@@ -87,7 +87,9 @@ startup/start-mcp-server
 # shared [library]   ← library packages get filtered out (use get-project-inventory for them)
 \`\`\`
 
-Read the slice. Identify which folder type owns what you need. THEN proceed to Step 3.
+**Project-map covers only wired code** (flows, responders, brokers, adapters, state, routes). For \`contracts/\`, \`transformers/\`, \`guards/\`, \`statics/\`, \`errors/\`, call \`get-project-inventory({ packageName })\` — these aren't in the graph, and \`discover\` globs miss on naming variants (\`email/\` vs \`email-address/\`). Inventory gives the deterministic full list.
+
+Read the slice or inventory. Identify which folder type owns what you need. THEN proceed to Step 3.
 
 ### Step 3: \`discover\` with a targeted glob
 Glob into the specific area you identified:
